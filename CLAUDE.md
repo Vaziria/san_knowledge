@@ -47,7 +47,10 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 **Schema (spec "# Knowledge").**
 - `node_type` property: `domain`, `doc` or `doc_section`.
 - The graph **label is the title**, made Cypher-safe by `kb.Label` ("Internet Marketing" → `InternetMarketing`), because goraphdb's parser has no backtick quoting. The original title is in the `title` property.
-- Edges: `domain_of` (doc|doc_section → domain) and `section_of` (doc_section → parent doc or parent section). `validRelation` enforces the endpoint types.
+- Edges, with endpoint types enforced by `validRelation`:
+  - `domain_of`: doc|doc_section → domain
+  - `section_of`: doc_section → parent doc or parent section
+  - `reference`: doc|doc_section → doc|doc_section, from markdown links `[text](other.md#heading)`
 - Keys, found via a property index on `key` (not a unique constraint):
   - domain: slug of its title
   - doc: its project-relative path (`docs/x.md`)
@@ -59,6 +62,11 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - Change detection uses per-section text fingerprints. Changed text sets `needs_summary` and keeps the old summary.
 - Removed files and headings are deleted. A renamed heading with unchanged text carries over its summary, keywords and domains.
 - Empty docs, and headings with no text of their own, never need a summary.
+- References are built in a final pass, after all docs exist:
+  - The source is the section containing the link, or the doc for links above the first heading.
+  - `ResolveLink` tries the path relative to the linking file, then relative to the project root; a `#fragment` is matched to a heading slug, falling back to the doc.
+  - Web links, images, inline code, fenced code and non-tracked files are ignored.
+  - Stale `reference` edges are removed only if their author is `sync`.
 - Frontmatter `domain:`, `keyword:` and `summary:` are applied with author `frontmatter`; frontmatter domain edges are removed when no longer declared.
 - `view` and `mcp` run a structural sync on start (skip with `--no-sync`).
 

@@ -16,15 +16,15 @@ import (
 
 // AnnotateRequest is what the AI sees for one document.
 type AnnotateRequest struct {
-	Loc          string          `json:"loc"`
-	Title        string          `json:"title"`
-	Text         string          `json:"text"`
-	Truncated    bool            `json:"truncated,omitempty"`
-	NeedDoc      bool            `json:"need_doc_summary"`
-	NeedDomain   bool            `json:"need_domain"`
-	Sections     []SectionBrief  `json:"sections"`   // sections that need a summary
-	Domains      []DomainBrief   `json:"domains"`    // existing domains to prefer
-	CurrentDoms  []string        `json:"current_domains,omitempty"`
+	Loc         string         `json:"loc"`
+	Title       string         `json:"title"`
+	Text        string         `json:"text"`
+	Truncated   bool           `json:"truncated,omitempty"`
+	NeedDoc     bool           `json:"need_doc_summary"`
+	NeedDomain  bool           `json:"need_domain"`
+	Sections    []SectionBrief `json:"sections"` // sections that need a summary
+	Domains     []DomainBrief  `json:"domains"`  // existing domains to prefer
+	CurrentDoms []string       `json:"current_domains,omitempty"`
 }
 
 type SectionBrief struct {
@@ -164,18 +164,18 @@ func truncate(s string, n int) string {
 // AIOptions controls the sync AI step.
 type AIOptions struct {
 	DryRun      bool
-	Parallel    int                  // concurrent AI calls, default 3
-	MaxDocChars int                  // document text sent to the AI, default 60000
+	Parallel    int // concurrent AI calls, default 3
+	MaxDocChars int // document text sent to the AI, default 60000
 	Progress    func(loc string, err error)
 }
 
 // AIReport describes what the AI step did (or would do, in a dry run).
 type AIReport struct {
-	Docs           []string       `json:"docs"`
-	Summarized     int            `json:"nodes_summarized"`
-	DomainsCreated []string       `json:"domains_created"`
-	DomainsLinked  map[string][]string `json:"domains_linked"`
-	Failed         map[string]string   `json:"failed"`
+	Docs           []string                   `json:"docs"`
+	Summarized     int                        `json:"nodes_summarized"`
+	DomainsCreated []string                   `json:"domains_created"`
+	DomainsLinked  map[string][]string        `json:"domains_linked"`
+	Failed         map[string]string          `json:"failed"`
 	Proposals      map[string]*AnnotateResult `json:"proposals,omitempty"` // dry run only
 }
 

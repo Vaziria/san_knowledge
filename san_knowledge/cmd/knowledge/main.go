@@ -95,7 +95,8 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 		Usage:   "shared knowledge graph for people and AI",
 		Version: version,
 		Description: "Nodes: domain, doc, doc_section (node_type property; the graph label is the title).\n" +
-			"Edges: domain_of (doc|doc_section -> domain), section_of (doc_section -> doc|doc_section).\n" +
+			"Edges: domain_of (doc|doc_section -> domain), section_of (doc_section -> doc|doc_section),\n" +
+			"reference (doc|doc_section -> doc|doc_section it links to with [text](other.md#heading)).\n" +
 			"Docs in ./docs are tracked by \"knowledge sync\".",
 		Reader:                stdin,
 		Writer:                out,
@@ -165,7 +166,8 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 				Name: "sync", Category: "tools", ArgsUsage: " ",
 				Usage: "track ./docs: update doc/doc_section nodes, then let the AI write summaries, keywords and domains",
 				Description: "Step 1 (no AI): markdown files in ./docs become doc and doc_section nodes; changed content is\n" +
-					"flagged needs_summary; removed files/headings are deleted; frontmatter \"domain:\", \"keyword:\" and\n" +
+					"flagged needs_summary; removed files/headings are deleted; links to other docs become reference\n" +
+					"edges; frontmatter \"domain:\", \"keyword:\" and\n" +
 					"\"summary:\" are applied. Step 2 (AI, skip with --no-ai): for each doc with pending nodes, \"claude -p\"\n" +
 					"writes summaries/keywords and picks or creates domains. Uses your Claude Code login (no API key).\n" +
 					"Summaries written by a person or frontmatter are never overwritten.",
@@ -198,7 +200,7 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 			},
 			{
 				Name: "delete", Category: "nodes", ArgsUsage: "<domain-key>",
-				Usage: "delete a domain and its edges (docs and sections are managed by sync)",
+				Usage:  "delete a domain and its edges (docs and sections are managed by sync)",
 				Flags:  []cli.Flag{&cli.BoolFlag{Name: "force", Usage: "confirm deletion"}},
 				Action: withStore(1, (*app).delete),
 			},
@@ -223,9 +225,10 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					w := cmd.Root().Writer
 					v := map[string]any{"node_types": kb.NodeTypes, "edges": map[string]string{
-						kb.RelDomainOf: "doc|doc_section -> domain", kb.RelSectionOf: "doc_section -> doc|doc_section"}}
+						kb.RelDomainOf: "doc|doc_section -> domain", kb.RelSectionOf: "doc_section -> doc|doc_section",
+						kb.RelReference: "doc|doc_section -> doc|doc_section"}}
 					return emit(w, cmd.Bool("json"), v, func() {
-						fmt.Fprintf(w, "node types: %s\nedges:\n  domain_of   doc|doc_section -> domain\n  section_of  doc_section -> doc|doc_section\n", strings.Join(kb.NodeTypes, ", "))
+						fmt.Fprintf(w, "node types: %s\nedges:\n  domain_of   doc|doc_section -> domain\n  section_of  doc_section -> doc|doc_section\n  reference   doc|doc_section -> doc|doc_section (markdown links)\n", strings.Join(kb.NodeTypes, ", "))
 					})
 				},
 			},

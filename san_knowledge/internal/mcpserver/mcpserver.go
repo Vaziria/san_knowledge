@@ -39,7 +39,7 @@ func New(open Opener, author, version string) *Server {
 var supportedVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 
 const instructions = `Knowledge graph of this project, shared between the user and AI.
-Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs, key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section).
+Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs, key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section), reference (doc/section -> doc/section it links to with a markdown link).
 Before answering questions about the project's research or docs, call knowledge_explain to load context and cite the loc (file:line).
 Docs and sections come from the files: after editing files in ./docs call knowledge_sync. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.`
 
@@ -241,16 +241,16 @@ func (s *Server) call(name string, raw json.RawMessage) (string, error) {
 
 func (s *Server) run(st *kb.Store, name string, raw json.RawMessage) (string, error) {
 	var a struct {
-		Query        string   `json:"query"`
-		Limit        int      `json:"limit"`
-		Depth        int      `json:"depth"`
-		Key          string   `json:"key"`
-		NodeType     string   `json:"node_type"`
-		Keyword      any      `json:"keyword"`
-		Domain       string   `json:"domain"`
-		NeedsSummary bool     `json:"needs_summary"`
-		Summary      *string  `json:"summary"`
-		Title        string   `json:"title"`
+		Query        string  `json:"query"`
+		Limit        int     `json:"limit"`
+		Depth        int     `json:"depth"`
+		Key          string  `json:"key"`
+		NodeType     string  `json:"node_type"`
+		Keyword      any     `json:"keyword"`
+		Domain       string  `json:"domain"`
+		NeedsSummary bool    `json:"needs_summary"`
+		Summary      *string `json:"summary"`
+		Title        string  `json:"title"`
 	}
 	if err := json.Unmarshal(raw, &a); err != nil {
 		return "", fmt.Errorf("invalid arguments: %w", err)

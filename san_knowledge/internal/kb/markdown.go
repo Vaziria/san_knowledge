@@ -3,6 +3,7 @@ package kb
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"net/url"
 	"path"
 	"regexp"
 	"strings"
@@ -16,6 +17,14 @@ type ParsedDoc struct {
 	Hash     string
 	Front    Frontmatter
 	Sections []ParsedSection
+	Links    []ParsedLink
+}
+
+// ParsedLink is a markdown link found in a doc, e.g. [see this](other.md#heading).
+type ParsedLink struct {
+	FromKey string // section containing the link, or the doc loc before the first section
+	Target  string // raw link target
+	Line    int
 }
 
 // ParsedSection is one heading and the text up to the next heading.
@@ -43,9 +52,14 @@ type Frontmatter struct {
 }
 
 var (
-	headingRe = regexp.MustCompile(`^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$`)
-	fenceRe   = regexp.MustCompile("^ {0,3}(```|~~~)")
-	linkRe    = regexp.MustCompile(`\[([^\]]*)\]\([^)]*\)`)
+	headingRe    = regexp.MustCompile(`^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$`)
+	fenceRe      = regexp.MustCompile("^ {0,3}(```|~~~)")
+	linkRe       = regexp.MustCompile(`\[([^\]]*)\]\([^)]*\)`)
+	inlineCodeRe = regexp.MustCompile("`[^`]*`")
+	// Captures the target of [text](target); the leading group is used to skip
+	// images (![alt](src)). linkTarget cleans <brackets> and "titles".
+	linkTargetRe = regexp.MustCompile(`(!?)\[[^\]]*\]\(([^)]*)\)`)
+	linkTitleRe  = regexp.MustCompile(`\s+"[^"]*"\s*$`)
 )
 
 // ParseMarkdown parses a document. The first line-1 "# " heading becomes the
@@ -65,6 +79,11 @@ func ParseMarkdown(loc string, data []byte) *ParsedDoc {
 		line  int
 	}
 	var headings []heading
+	type rawLink struct {
+		target string
+		line   int
+	}
+	var links []rawLink
 	inFence := false
 	for i := start; i < len(lines); i++ {
 		if fenceRe.MatchString(lines[i]) {
@@ -76,6 +95,13 @@ func ParseMarkdown(loc string, data []byte) *ParsedDoc {
 		}
 		if m := headingRe.FindStringSubmatch(lines[i]); m != nil && strings.TrimSpace(m[2]) != "" {
 			headings = append(headings, heading{title: cleanTitle(m[2]), level: len(m[1]), line: i + 1})
+		}
+		for _, m := range linkTargetRe.FindAllStringSubmatch(inlineCodeRe.ReplaceAllString(lines[i], ""), -1) {
+			target := strings.TrimSpace(linkTitleRe.ReplaceAllString(m[2], ""))
+			target = strings.TrimSuffix(strings.TrimPrefix(target, "<"), ">")
+			if m[1] == "" && target != "" {
+				links = append(links, rawLink{target: target, line: i + 1})
+			}
 		}
 	}
 
@@ -127,7 +153,66 @@ func ParseMarkdown(loc string, data []byte) *ParsedDoc {
 		})
 		stack = append(stack, frame{level: h.level, key: key, path: p})
 	}
+
+	// A link belongs to the last section starting at or before its line.
+	for _, l := range links {
+		from := loc
+		for _, s := range doc.Sections {
+			if s.Line <= l.line {
+				from = s.Key
+			}
+		}
+		doc.Links = append(doc.Links, ParsedLink{FromKey: from, Target: l.target, Line: l.line})
+	}
 	return doc
+}
+
+// ResolveLink maps a link target found in doc fromLoc to a tracked node key:
+// a doc loc, or a section key when the target has a #heading that exists.
+// ok is false for web links, non-markdown files and untracked docs.
+// docs maps tracked locs to their parsed content.
+func ResolveLink(fromLoc, target string, docs map[string]*ParsedDoc) (string, bool) {
+	if strings.Contains(target, "://") || strings.HasPrefix(target, "mailto:") {
+		return "", false
+	}
+	target, fragment, _ := strings.Cut(target, "#")
+	target, _, _ = strings.Cut(target, "?")
+	if t, err := url.PathUnescape(target); err == nil {
+		target = t
+	}
+	if f, err := url.PathUnescape(fragment); err == nil {
+		fragment = f
+	}
+	target = strings.ReplaceAll(target, `\`, "/")
+
+	var candidates []string
+	switch {
+	case target == "":
+		candidates = []string{fromLoc} // [x](#heading) within the same doc
+	case strings.HasPrefix(target, "/"):
+		candidates = []string{path.Clean(strings.TrimPrefix(target, "/"))}
+	default:
+		// Relative to the linking file, then relative to the project root
+		// (editors often write workspace-relative links like docs/x.md).
+		candidates = []string{path.Clean(path.Join(path.Dir(fromLoc), target)), path.Clean(target)}
+	}
+	for _, loc := range candidates {
+		d, ok := docs[loc]
+		if !ok {
+			continue
+		}
+		if fragment == "" {
+			return loc, true
+		}
+		want := Slug(fragment)
+		for _, s := range d.Sections {
+			if strings.HasSuffix(s.Key, "#"+want) || strings.HasSuffix(s.Key, "/"+want) {
+				return s.Key, true
+			}
+		}
+		return loc, true // unknown heading: link to the doc
+	}
+	return "", false
 }
 
 // SectionText returns the text of a section key, or the whole doc for its loc.

@@ -110,7 +110,7 @@ func printSyncReport(w io.Writer, r *kb.SyncReport) {
 	if r.SummariesKept > 0 {
 		fmt.Fprintf(w, " (%d renamed, summary kept)", r.SummariesKept)
 	}
-	fmt.Fprintf(w, "\nneeds summary: %d\n", r.NeedsSummary)
+	fmt.Fprintf(w, "\nreferences: +%d -%d\nneeds summary: %d\n", r.ReferencesAdded, r.ReferencesRemoved, r.NeedsSummary)
 	for _, e := range r.Errors {
 		fmt.Fprintln(w, "  error:", e)
 	}

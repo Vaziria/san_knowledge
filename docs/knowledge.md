@@ -61,5 +61,6 @@ for example:
 3. Edge.
     - edge `domain_of`
     - edge `section_of`
+    - edge `reference`, if doc/section reference to other doc like `[read this/ see this/etc.](link to doc)`
 
 

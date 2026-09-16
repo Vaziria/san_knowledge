@@ -138,6 +138,7 @@
         'overlay-opacity': 0,
       } },
       { selector: 'edge[rel = "domain_of"]', style: { 'line-style': 'dashed', 'width': 1.5 } },
+      { selector: 'edge[rel = "reference"]', style: { 'line-style': 'dotted', 'width': 2, 'curve-style': 'unbundled-bezier', 'control-point-distances': 30 } },
       { selector: 'edge.show-label', style: { 'label': 'data(rel)', 'line-color': ink2, 'target-arrow-color': ink2, 'width': 2 } },
       { selector: 'node.selected', style: { 'border-color': accent, 'border-width': 4, 'border-style': 'solid', 'font-weight': 700 } },
       { selector: 'node.match', style: { 'border-color': ink, 'border-width': 3, 'border-style': 'solid', 'font-weight': 700 } },
@@ -415,6 +416,9 @@
     const children = data.in.filter((l) => l.rel === 'section_of')
       .sort((a, b) => ((state.byKey.get(a.from) || {}).line_loc || 0) - ((state.byKey.get(b.from) || {}).line_loc || 0));
     const members = data.in.filter((l) => l.rel === 'domain_of');
+    const refsOut = data.out.filter((l) => l.rel === 'reference');
+    const refsIn = data.in.filter((l) => l.rel === 'reference');
+    const refMeta = (k) => { const x = state.byKey.get(k) || {}; return [locOf(x), x.summary].filter(Boolean).join(' · '); };
     const props = Object.entries(n.props || {}).sort(([a], [b]) => a.localeCompare(b));
 
     const unassign = (nodeKey, domainKey) => async () => {
@@ -459,6 +463,10 @@
         const c = state.byKey.get(l.from) || {};
         return nodeRow(l.from, [c.line_loc ? `line ${c.line_loc}` : '', c.needs_summary ? 'needs summary' : c.summary].filter(Boolean).join(' · '));
       })) : null,
+      refsOut.length ? h('h3', { text: `References (${refsOut.length})` }) : null,
+      refsOut.length ? h('ul', { class: 'conn-list' }, refsOut.map((l) => nodeRow(l.to, refMeta(l.to)))) : null,
+      refsIn.length ? h('h3', { text: `Referenced by (${refsIn.length})` }) : null,
+      refsIn.length ? h('ul', { class: 'conn-list' }, refsIn.map((l) => nodeRow(l.from, refMeta(l.from)))) : null,
       members.length ? h('h3', { text: `Docs and sections (${members.length})` }) : null,
       members.length ? h('ul', { class: 'conn-list' }, members.map((l) => nodeRow(l.from, locOf(state.byKey.get(l.from) || {}), unassign(l.from, n.key)))) : null,
       props.length ? h('h3', { text: 'Properties' }) : null,

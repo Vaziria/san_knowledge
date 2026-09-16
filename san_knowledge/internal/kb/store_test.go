@@ -65,7 +65,10 @@ func TestParseMarkdown(t *testing.T) {
 	if d.Title != "Marketing Guide" {
 		t.Fatalf("title: %q", d.Title)
 	}
-	want := []struct{ key, parent string; level, line int }{
+	want := []struct {
+		key, parent string
+		level, line int
+	}{
 		{"docs/guide.md#channels", "docs/guide.md", 2, 4},
 		{"docs/guide.md#channels/social-media", "docs/guide.md#channels", 3, 7},
 		{"docs/guide.md#channels/marketplaces", "docs/guide.md#channels", 3, 14},
@@ -91,6 +94,109 @@ func TestParseMarkdown(t *testing.T) {
 	}
 	if fm.Title != "x" || len(fm.Sections) != 1 || fm.Sections[0].Line != 6 {
 		t.Fatalf("frontmatter doc: title=%q sections=%+v", fm.Title, fm.Sections)
+	}
+}
+
+func TestParseAndResolveLinks(t *testing.T) {
+	src := "# A\nIntro, [see guide](guide.md).\n\n## Usage\nRead [this](./sub/b.md#Setup Steps) and [web](https://x.com/a.md).\n" +
+		"![img](pic.md) `[code](guide.md)` [go file](../san_knowledge/main.go)\n```\n[fenced](guide.md)\n```\n" +
+		"## Self\nJump to [usage](#usage) or [root style](docs/guide.md#nope).\n"
+	a := ParseMarkdown("docs/a.md", []byte(src))
+	got := map[string]string{}
+	for _, l := range a.Links {
+		got[l.Target] = l.FromKey
+	}
+	want := map[string]string{
+		"guide.md": "docs/a.md", "./sub/b.md#Setup Steps": "docs/a.md#usage", "https://x.com/a.md": "docs/a.md#usage",
+		"../san_knowledge/main.go": "docs/a.md#usage", "#usage": "docs/a.md#self", "docs/guide.md#nope": "docs/a.md#self",
+	}
+	if len(got) != len(want) {
+		t.Fatalf("links (images, inline code and fences must be skipped): %+v", a.Links)
+	}
+	for target, from := range want {
+		if got[target] != from {
+			t.Fatalf("link %q from %q, want %q", target, got[target], from)
+		}
+	}
+
+	docs := map[string]*ParsedDoc{
+		"docs/a.md":     a,
+		"docs/guide.md": ParseMarkdown("docs/guide.md", []byte("# Guide\n## Intro\nx")),
+		"docs/sub/b.md": ParseMarkdown("docs/sub/b.md", []byte("# B\n## Setup Steps\nx")),
+	}
+	cases := map[string]string{
+		"guide.md":                 "docs/guide.md",
+		"./sub/b.md#Setup Steps":   "docs/sub/b.md#setup-steps",
+		"#usage":                   "docs/a.md#usage",
+		"docs/guide.md#nope":       "docs/guide.md", // root-relative; unknown heading falls back to the doc
+		"/docs/sub/b.md":           "docs/sub/b.md",
+		"sub%2Fb.md":               "docs/sub/b.md",
+		"https://x.com/a.md":       "",
+		"../san_knowledge/main.go": "",
+		"missing.md":               "",
+	}
+	for target, want := range cases {
+		to, ok := ResolveLink("docs/a.md", target, docs)
+		if (want == "") == ok || to != want {
+			t.Errorf("ResolveLink(%q) = %q, %v; want %q", target, to, ok, want)
+		}
+	}
+}
+
+func TestSyncReferences(t *testing.T) {
+	s, _ := project(t, map[string]string{
+		"a.md":     "# A\nSee [guide](guide.md).\n## Usage\nRead [setup](sub/b.md#setup) twice: [again](sub/b.md#setup).",
+		"guide.md": "# Guide\ntext",
+		"sub/b.md": "# B\n## Setup\nBack to [a](../a.md#usage).",
+	})
+	r, err := s.Sync()
+	if err != nil || len(r.Errors) > 0 || r.ReferencesAdded != 3 {
+		t.Fatalf("sync: %v %+v", err, r)
+	}
+	refs := func(key string) []string {
+		out, _, _ := s.Links(key)
+		var to []string
+		for _, l := range out {
+			if l.Rel == RelReference {
+				to = append(to, l.To)
+			}
+		}
+		return to
+	}
+	if got := refs("docs/a.md"); len(got) != 1 || got[0] != "docs/guide.md" {
+		t.Fatalf("doc-level reference: %v", got)
+	}
+	if got := refs("docs/a.md#usage"); len(got) != 1 || got[0] != "docs/sub/b.md#setup" {
+		t.Fatalf("section reference (deduplicated): %v", got)
+	}
+	if got := refs("docs/sub/b.md#setup"); len(got) != 1 || got[0] != "docs/a.md#usage" {
+		t.Fatalf("reference to a doc processed earlier: %v", got)
+	}
+	if r, _ := s.Sync(); r.ReferencesAdded+r.ReferencesRemoved != 0 {
+		t.Fatalf("idempotent: %+v", r)
+	}
+
+	// A user-made reference survives; removed links and deleted targets drop edges.
+	s.Link(Link{From: "docs/guide.md", Rel: RelReference, To: "docs/a.md", Author: "user"})
+	writeDoc(t, s.Root, "a.md", "# A\nNo links now.\n## Usage\nplain")
+	os.Remove(filepath.Join(s.Root, "docs", "sub", "b.md"))
+	r, _ = s.Sync()
+	if r.ReferencesRemoved != 2 || len(refs("docs/a.md")) != 0 || len(refs("docs/a.md#usage")) != 0 {
+		t.Fatalf("stale references: %+v a=%v usage=%v", r, refs("docs/a.md"), refs("docs/a.md#usage"))
+	}
+	if got := refs("docs/guide.md"); len(got) != 1 || got[0] != "docs/a.md" {
+		t.Fatalf("user reference removed: %v", got)
+	}
+
+	// Restoring the target file restores the edge on the next sync.
+	writeDoc(t, s.Root, "a.md", "# A\nSee [b](sub/b.md).")
+	writeDoc(t, s.Root, "sub/b.md", "# B\ntext")
+	s.Sync()
+	if got := refs("docs/a.md"); len(got) != 1 || got[0] != "docs/sub/b.md" {
+		t.Fatalf("restored reference: %v", got)
+	}
+	if _, _, err := s.Link(Link{From: "docs/a.md", Rel: RelReference, To: "coding"}); err == nil {
+		t.Fatal("reference to a missing/domain node accepted")
 	}
 }
 

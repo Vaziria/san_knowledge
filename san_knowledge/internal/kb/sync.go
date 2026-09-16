@@ -19,15 +19,17 @@ const AuthorFrontmatter = "frontmatter"
 
 // SyncReport describes what a structural sync changed.
 type SyncReport struct {
-	DocsAdded       []string `json:"docs_added"`
-	DocsUpdated     []string `json:"docs_updated"`
-	DocsRemoved     []string `json:"docs_removed"`
-	SectionsAdded   int      `json:"sections_added"`
-	SectionsUpdated int      `json:"sections_updated"`
-	SectionsRemoved int      `json:"sections_removed"`
-	SummariesKept   int      `json:"summaries_carried_over"`
-	NeedsSummary    int      `json:"needs_summary"`
-	Errors          []string `json:"errors,omitempty"`
+	DocsAdded         []string `json:"docs_added"`
+	DocsUpdated       []string `json:"docs_updated"`
+	DocsRemoved       []string `json:"docs_removed"`
+	SectionsAdded     int      `json:"sections_added"`
+	SectionsUpdated   int      `json:"sections_updated"`
+	SectionsRemoved   int      `json:"sections_removed"`
+	SummariesKept     int      `json:"summaries_carried_over"`
+	ReferencesAdded   int      `json:"references_added"`
+	ReferencesRemoved int      `json:"references_removed"`
+	NeedsSummary      int      `json:"needs_summary"`
+	Errors            []string `json:"errors,omitempty"`
 }
 
 // IsHumanAuthor reports whether summary/keyword were written by a person (or
@@ -80,6 +82,7 @@ func (s *Store) Sync() (*SyncReport, error) {
 		return nil, err
 	}
 	seen := map[string]bool{}
+	parsed := map[string]*ParsedDoc{}
 	for _, loc := range locs {
 		seen[loc] = true
 		doc, err := s.ParseDoc(loc)
@@ -87,8 +90,22 @@ func (s *Store) Sync() (*SyncReport, error) {
 			r.Errors = append(r.Errors, loc+": "+err.Error())
 			continue
 		}
-		if err := s.syncDoc(doc, r); err != nil {
-			r.Errors = append(r.Errors, loc+": "+err.Error())
+		parsed[loc] = doc
+	}
+	for _, loc := range locs {
+		if doc := parsed[loc]; doc != nil {
+			if err := s.syncDoc(doc, r); err != nil {
+				r.Errors = append(r.Errors, loc+": "+err.Error())
+				delete(parsed, loc)
+			}
+		}
+	}
+	// References need every doc and section to exist, so they come last.
+	for _, loc := range locs {
+		if doc := parsed[loc]; doc != nil {
+			if err := s.syncReferences(doc, parsed, r); err != nil {
+				r.Errors = append(r.Errors, loc+": "+err.Error())
+			}
 		}
 	}
 
@@ -252,6 +269,68 @@ func (s *Store) syncDoc(doc *ParsedDoc, r *SyncReport) error {
 				return err
 			}
 			r.SectionsRemoved++
+		}
+	}
+	return nil
+}
+
+// syncReferences makes the reference edges leaving this doc and its sections
+// match the links in the file. Only edges written by sync are removed.
+func (s *Store) syncReferences(doc *ParsedDoc, docs map[string]*ParsedDoc, r *SyncReport) error {
+	type pair struct{ from, to string }
+	want := map[pair]bool{}
+	for _, l := range doc.Links {
+		to, ok := ResolveLink(doc.Loc, l.Target, docs)
+		if ok && to != l.FromKey {
+			want[pair{l.FromKey, to}] = true
+		}
+	}
+
+	sources := []string{doc.Loc}
+	for _, sec := range doc.Sections {
+		sources = append(sources, sec.Key)
+	}
+	for _, from := range sources {
+		out, _, err := s.Links(from)
+		if err != nil {
+			if errors.Is(err, ErrNotFound) {
+				continue
+			}
+			return err
+		}
+		for _, l := range out {
+			if l.Rel != RelReference {
+				continue
+			}
+			p := pair{from, l.To}
+			if want[p] {
+				delete(want, p) // already present
+				continue
+			}
+			if l.Author == AuthorSync {
+				if _, err := s.Unlink(from, RelReference, l.To); err != nil {
+					return err
+				}
+				r.ReferencesRemoved++
+			}
+		}
+	}
+
+	pairs := make([]pair, 0, len(want))
+	for p := range want {
+		pairs = append(pairs, p)
+	}
+	sort.Slice(pairs, func(i, j int) bool {
+		if pairs[i].from != pairs[j].from {
+			return pairs[i].from < pairs[j].from
+		}
+		return pairs[i].to < pairs[j].to
+	})
+	for _, p := range pairs {
+		if _, created, err := s.Link(Link{From: p.from, Rel: RelReference, To: p.to, Author: AuthorSync}); err != nil {
+			return err
+		} else if created {
+			r.ReferencesAdded++
 		}
 	}
 	return nil

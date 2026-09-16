@@ -1,5 +1,6 @@
 # Build output (rebuild with san_knowledge/build.ps1)
 bin/*.exe
+bin/*.exe~
 
 # Live graph database: binary bbolt file, rewritten on every change.
 # Version knowledge through JSON exports instead: bin/knowledge.exe export knowledge_data/export.json

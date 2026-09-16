@@ -15,17 +15,19 @@ const (
 
 	RelDomainOf  = "domain_of"  // doc|doc_section -> domain
 	RelSectionOf = "section_of" // doc_section -> doc|doc_section (parent heading)
+	RelReference = "reference"  // doc|doc_section -> doc|doc_section it links to
 )
 
 var (
 	NodeTypes = []string{TypeDomain, TypeDoc, TypeSection}
-	Relations = []string{RelDomainOf, RelSectionOf}
+	Relations = []string{RelDomainOf, RelSectionOf, RelReference}
 )
 
 // relationRules lists which node types each relation may connect.
 var relationRules = map[string]struct{ from, to []string }{
 	RelDomainOf:  {from: []string{TypeDoc, TypeSection}, to: []string{TypeDomain}},
 	RelSectionOf: {from: []string{TypeSection}, to: []string{TypeDoc, TypeSection}},
+	RelReference: {from: []string{TypeDoc, TypeSection}, to: []string{TypeDoc, TypeSection}},
 }
 
 func validNodeType(t string) error {

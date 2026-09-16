@@ -1,0 +1,20 @@
+# Build output (rebuild with san_knowledge/build.ps1)
+bin/*.exe
+
+# Live graph database: binary bbolt file, rewritten on every change.
+# Version knowledge through JSON exports instead: bin/knowledge.exe export knowledge_data/export.json
+knowledge_data/*.db
+knowledge_data/*.db.lock
+
+# Personal Claude Code settings
+.claude/settings.local.json
+
+# Go
+*.test
+*.out
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

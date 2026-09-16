@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Graph</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Knowledge Graph</h1>
+        <p class="counts" id="counts">Loading…</p>
+      </div>
+    </div>
+    <form class="search" id="search-form" role="search">
+      <input id="search" type="search" placeholder="Ask or search, e.g. rural internet use" aria-label="Explain query" autocomplete="off">
+      <button type="submit" class="btn primary">Explain</button>
+    </form>
+    <div class="actions">
+      <button class="btn" id="btn-sync" type="button" title="Update docs and sections from ./docs">Sync docs</button>
+      <button class="btn" id="btn-ai" type="button" title="Write missing summaries, keywords and domains with Claude" hidden>Summarize with AI</button>
+      <button class="btn" id="btn-domain" type="button">+ Domain</button>
+      <div class="seg" role="group" aria-label="View mode">
+        <button class="seg-btn active" id="mode-graph" type="button" aria-pressed="true">Graph</button>
+        <button class="seg-btn" id="mode-table" type="button" aria-pressed="false">Table</button>
+      </div>
+      <button class="btn icon" id="btn-theme" type="button" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <div class="filters" id="filters">
+    <div class="legend" id="legend" aria-label="Node types (click to show or hide)"></div>
+    <span class="legend-note"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.5 2"/></svg> needs summary</span>
+    <label class="select-filter">
+      <span>Domain</span>
+      <select id="domain-select"><option value="">All domains</option></select>
+    </label>
+    <label class="select-filter">
+      <span>Keyword</span>
+      <select id="keyword-select"><option value="">All keywords</option></select>
+    </label>
+    <button class="btn ghost" id="btn-fit" type="button">Fit</button>
+    <button class="btn ghost" id="btn-clear" type="button" hidden>Clear highlight</button>
+  </div>
+
+  <main class="layout">
+    <section class="stage" aria-label="Knowledge graph">
+      <div id="graph" class="graph"></div>
+      <div id="table-wrap" class="table-wrap" hidden>
+        <table class="data-table">
+          <thead><tr>
+            <th data-sort="title">Title</th><th data-sort="type">Type</th><th data-sort="loc">Location</th>
+            <th data-sort="domain">Domain</th><th data-sort="keyword">Keywords</th><th data-sort="status">Summary</th>
+          </tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div id="empty" class="empty" hidden>
+        <p class="empty-title">No knowledge yet</p>
+        <p>Add markdown files to <code>./docs</code>, then sync:<br><code>knowledge sync</code></p>
+        <button class="btn primary" type="button" data-action="sync">Sync docs</button>
+      </div>
+      <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+      <div id="busy" class="busy" hidden><span class="spinner" aria-hidden="true"></span><span id="busy-text">Working…</span></div>
+    </section>
+
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </main>
+
+  <dialog id="dialog" class="dialog"></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="vendor/cytoscape.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

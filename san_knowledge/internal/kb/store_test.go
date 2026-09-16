@@ -1,0 +1,412 @@
+package kb
+
+import (
+	"context"
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"testing"
+)
+
+// project creates a temp project root with docs/ files and an open store.
+func project(t *testing.T, files map[string]string) (*Store, string) {
+	t.Helper()
+	root := t.TempDir()
+	for name, body := range files {
+		writeDoc(t, root, name, body)
+	}
+	dir := filepath.Join(root, "knowledge_data")
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { s.Close() })
+	return s, dir
+}
+
+func writeDoc(t *testing.T, root, name, body string) {
+	t.Helper()
+	p := filepath.Join(root, "docs", filepath.FromSlash(name))
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+const guide = `# Marketing Guide
+Intro text.
+
+## Channels
+Overview of channels.
+
+### Social Media
+Instagram and TikTok dominate.
+
+` + "```" + `
+# not a heading
+` + "```" + `
+
+### Marketplaces
+Tokopedia and Shopee.
+
+## Channels
+A second section with the same title.
+
+# Appendix
+Extra notes.
+`
+
+func TestParseMarkdown(t *testing.T) {
+	d := ParseMarkdown("docs/guide.md", []byte(strings.ReplaceAll(guide, "\n", "\r\n")))
+	if d.Title != "Marketing Guide" {
+		t.Fatalf("title: %q", d.Title)
+	}
+	want := []struct{ key, parent string; level, line int }{
+		{"docs/guide.md#channels", "docs/guide.md", 2, 4},
+		{"docs/guide.md#channels/social-media", "docs/guide.md#channels", 3, 7},
+		{"docs/guide.md#channels/marketplaces", "docs/guide.md#channels", 3, 14},
+		{"docs/guide.md#channels-2", "docs/guide.md", 2, 17},
+		{"docs/guide.md#appendix", "docs/guide.md", 1, 20},
+	}
+	if len(d.Sections) != len(want) {
+		t.Fatalf("sections: %+v", d.Sections)
+	}
+	for i, w := range want {
+		s := d.Sections[i]
+		if s.Key != w.key || s.ParentKey != w.parent || s.Level != w.level || s.Line != w.line {
+			t.Fatalf("section %d: got %+v want %+v", i, s, w)
+		}
+	}
+	if !strings.Contains(d.Sections[1].Text, "# not a heading") {
+		t.Fatalf("fenced code should stay in section text: %q", d.Sections[1].Text)
+	}
+
+	fm := ParseMarkdown("docs/x.md", []byte("---\ndomain: [Internet Marketing, Business]\nkeyword: seo, ads\nsummary: \"Short.\"\n---\n## Only\nbody"))
+	if len(fm.Front.Domain) != 2 || fm.Front.Domain[1] != "Business" || len(fm.Front.Keyword) != 2 || fm.Front.Summary != "Short." {
+		t.Fatalf("frontmatter: %+v", fm.Front)
+	}
+	if fm.Title != "x" || len(fm.Sections) != 1 || fm.Sections[0].Line != 6 {
+		t.Fatalf("frontmatter doc: title=%q sections=%+v", fm.Title, fm.Sections)
+	}
+}
+
+func TestNormalizeKeyword(t *testing.T) {
+	got := NormalizeKeyword([]string{"CLI-Tool", "cli tool", " graph_database , Graph  Database", ""})
+	if strings.Join(got, "|") != "cli tool|graph database" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestLabel(t *testing.T) {
+	cases := map[string]string{"Coding": "Coding", "Internet Marketing": "InternetMarketing",
+		"`knowledge.exe` Tools": "KnowledgeExeTools", "2026 Plan": "N2026Plan", "—": "doc"}
+	for in, want := range cases {
+		if got := Label(in, "doc"); got != want {
+			t.Errorf("Label(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestSyncLifecycle(t *testing.T) {
+	s, _ := project(t, map[string]string{"guide.md": guide, "old.md": "# Old\ntext"})
+	r, err := s.Sync()
+	if err != nil || len(r.Errors) > 0 {
+		t.Fatalf("sync: %v %+v", err, r)
+	}
+	if len(r.DocsAdded) != 2 || r.SectionsAdded != 5 || r.NeedsSummary != 7 {
+		t.Fatalf("first sync report: %+v", r)
+	}
+	sec, err := s.Get("docs/guide.md#channels/social-media")
+	if err != nil || sec.NodeType != TypeSection || sec.Loc != "docs/guide.md" || sec.LineLoc != 7 || sec.Level != 3 {
+		t.Fatalf("section node: %v %+v", err, sec)
+	}
+	res, err := s.Query(context.Background(), `MATCH (n:SocialMedia) RETURN n.key`)
+	if err != nil || len(res.Rows) != 1 {
+		t.Fatalf("title label: %v %+v", err, res)
+	}
+	out, _, _ := s.Links("docs/guide.md#channels/social-media")
+	if len(out) != 1 || out[0].Rel != RelSectionOf || out[0].To != "docs/guide.md#channels" {
+		t.Fatalf("section_of: %+v", out)
+	}
+
+	// Unchanged files: nothing to do.
+	if r, _ := s.Sync(); len(r.DocsUpdated)+r.SectionsAdded+r.SectionsUpdated+r.SectionsRemoved != 0 {
+		t.Fatalf("idempotent sync changed something: %+v", r)
+	}
+
+	// Summaries written by AI and by a person.
+	sum := "Social channels."
+	s.Annotate("docs/guide.md#channels/social-media", Annotation{Summary: &sum, Keyword: []string{"Social", "tiktok"}, Author: AuthorAI})
+	mk := "Marketplaces."
+	s.Annotate("docs/guide.md#channels/marketplaces", Annotation{Summary: &mk, Author: "user"})
+	if n, _ := s.Get("docs/guide.md#channels/social-media"); n.NeedsSummary || n.Keyword[0] != "social" {
+		t.Fatalf("annotate: %+v", n)
+	}
+
+	// Edit: rename "Social Media" (same text), change Marketplaces text, drop Appendix, remove old.md, add new.md.
+	edited := strings.Replace(guide, "### Social Media", "### Social Networks", 1)
+	edited = strings.Replace(edited, "Tokopedia and Shopee.", "Tokopedia, Shopee and TikTok Shop.", 1)
+	edited = edited[:strings.Index(edited, "# Appendix")]
+	root := s.Root
+	writeDoc(t, root, "guide.md", edited)
+	os.Remove(filepath.Join(root, "docs", "old.md"))
+	writeDoc(t, root, "sub/new.md", "## Heading only\nx")
+
+	r, err = s.Sync()
+	if err != nil || len(r.Errors) > 0 {
+		t.Fatalf("second sync: %v %+v", err, r)
+	}
+	if len(r.DocsAdded) != 1 || r.DocsAdded[0] != "docs/sub/new.md" || len(r.DocsRemoved) != 1 || len(r.DocsUpdated) != 1 {
+		t.Fatalf("doc changes: %+v", r)
+	}
+	if r.SummariesKept != 1 {
+		t.Fatalf("renamed heading should keep its summary: %+v", r)
+	}
+	if n, err := s.Get("docs/guide.md#channels/social-networks"); err != nil || n.Summary != "Social channels." || n.NeedsSummary {
+		t.Fatalf("carried summary: %v %+v", err, n)
+	}
+	if s.Exists("docs/guide.md#channels/social-media") || s.Exists("docs/guide.md#appendix") || s.Exists("docs/old.md") {
+		t.Fatal("removed headings/docs still present")
+	}
+	if n, _ := s.Get("docs/guide.md#channels/marketplaces"); !n.NeedsSummary || n.Summary != "Marketplaces." {
+		t.Fatalf("changed section should keep old summary and be flagged: %+v", n)
+	}
+	if n, _ := s.Get("docs/sub/new.md"); n.Title != "new" {
+		t.Fatalf("doc without h1 takes file name: %+v", n)
+	}
+
+	writeDoc(t, root, "empty.md", "  \n")
+	writeDoc(t, root, "nest.md", "# N\n## Parent\n### Child\ntext")
+	s.Sync()
+	if n, err := s.Get("docs/empty.md"); err != nil || n.NeedsSummary {
+		t.Fatalf("empty doc should not need a summary: %v %+v", err, n)
+	}
+	if n, _ := s.Get("docs/nest.md#parent"); n.NeedsSummary {
+		t.Fatalf("heading with only subsections should not need a summary: %+v", n)
+	}
+	if n, _ := s.Get("docs/nest.md#parent/child"); !n.NeedsSummary {
+		t.Fatalf("child with text should need a summary: %+v", n)
+	}
+}
+
+func TestFrontmatterDomains(t *testing.T) {
+	s, _ := project(t, map[string]string{"a.md": "---\ndomain: Internet Marketing\nsummary: About ads.\n---\n# A\ntext"})
+	if _, err := s.Sync(); err != nil {
+		t.Fatal(err)
+	}
+	ds, _ := s.DomainsOf("docs/a.md")
+	if len(ds) != 1 || ds[0].Key != "internet-marketing" || ds[0].NodeType != TypeDomain {
+		t.Fatalf("frontmatter domain: %+v", ds)
+	}
+	if n, _ := s.Get("docs/a.md"); n.Summary != "About ads." || n.NeedsSummary || !IsHumanAuthor(n.Author) {
+		t.Fatalf("frontmatter summary: %+v", n)
+	}
+	// A manually assigned domain survives when frontmatter changes.
+	s.AssignDomain("docs/a.md", "Business", "user")
+	writeDoc(t, s.Root, "a.md", "---\ndomain: Coding\n---\n# A\ntext")
+	if _, err := s.Sync(); err != nil {
+		t.Fatal(err)
+	}
+	ds, _ = s.DomainsOf("docs/a.md")
+	var titles []string
+	for _, d := range ds {
+		titles = append(titles, d.Title)
+	}
+	if strings.Join(titles, ",") != "Business,Coding" && strings.Join(titles, ",") != "Coding,Business" {
+		t.Fatalf("domains after frontmatter change: %v", titles)
+	}
+}
+
+func TestSchemaRules(t *testing.T) {
+	s, _ := project(t, map[string]string{"a.md": "# A\n## S\nx"})
+	s.Sync()
+	d, created, err := s.AddDomain("Internet Marketing", "Online channels", []string{"ads"}, "user")
+	if err != nil || !created || d.Key != "internet-marketing" {
+		t.Fatalf("add domain: %v %+v", err, d)
+	}
+	if _, created, _ := s.AddDomain("internet marketing", "", nil, "user"); created {
+		t.Fatal("domain duplicated")
+	}
+	if _, _, err := s.Link(Link{From: "internet-marketing", Rel: RelDomainOf, To: "docs/a.md"}); err == nil {
+		t.Fatal("domain_of from domain accepted")
+	}
+	if _, _, err := s.Link(Link{From: "docs/a.md", Rel: "related", To: "internet-marketing"}); err == nil {
+		t.Fatal("unknown edge accepted")
+	}
+	if _, _, err := s.Link(Link{From: "docs/a.md#s", Rel: RelDomainOf, To: "internet-marketing"}); err != nil {
+		t.Fatalf("section domain_of: %v", err)
+	}
+	title := "New"
+	if _, err := s.Annotate("docs/a.md", Annotation{Title: &title}); err == nil {
+		t.Fatal("doc title editable")
+	}
+	if n, err := s.Annotate("internet-marketing", Annotation{Title: &title}); err != nil || n.Title != "New" {
+		t.Fatalf("domain rename: %v %+v", err, n)
+	}
+	if res, _ := s.Query(context.Background(), `MATCH (n:New) RETURN n.key`); len(res.Rows) != 1 {
+		t.Fatal("label not updated on retitle")
+	}
+	if _, err := s.Get("nope"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("not found: %v", err)
+	}
+}
+
+type fakeAI struct {
+	mu    sync.Mutex
+	calls []*AnnotateRequest
+	fail  map[string]bool
+}
+
+func (f *fakeAI) Annotate(_ context.Context, req *AnnotateRequest) (*AnnotateResult, error) {
+	f.mu.Lock()
+	f.calls = append(f.calls, req)
+	f.mu.Unlock()
+	if f.fail[req.Loc] {
+		return nil, errors.New("boom")
+	}
+	res := &AnnotateResult{Domains: []string{"Internet Marketing"}, Summary: "Doc " + req.Title, Keyword: []string{"K1"}}
+	if strings.Contains(req.Loc, "code") {
+		res.Domains = []string{"Coding"}
+	}
+	for _, s := range req.Sections {
+		res.Sections = append(res.Sections, SectionResult{Key: s.Key, Summary: "Sec " + s.Title, Keyword: []string{"k2"}})
+	}
+	res.Sections = append(res.Sections, SectionResult{Key: "docs/unrelated.md#x", Summary: "ignored"})
+	return res, nil
+}
+
+func TestRunAI(t *testing.T) {
+	s, dir := project(t, map[string]string{
+		"ads.md":   "# Ads\n## Search\nGoogle ads\n## Social\nMeta ads",
+		"code.md":  "# Code\n## Go\ntext",
+		"bad.md":   "# Bad\n## X\ny",
+		"empty.md": "\n", // never sent to the AI
+	})
+	s.AddDomain("Internet Marketing", "", nil, "user")
+	s.Sync()
+	human := "Written by a person."
+	s.Annotate("docs/ads.md#social", Annotation{Summary: &human, Author: "user"})
+	s.Close() // RunAI opens the store itself
+
+	ai := &fakeAI{fail: map[string]bool{"docs/bad.md": true}}
+
+	dry, err := RunAI(context.Background(), dir, ai, AIOptions{DryRun: true})
+	if err != nil || len(dry.Proposals) != 2 || len(dry.Failed) != 1 {
+		t.Fatalf("dry run: %v %+v", err, dry)
+	}
+	With(dir, func(s *Store) error {
+		if n, _ := s.Get("docs/ads.md"); n.Summary != "" {
+			t.Fatalf("dry run wrote data: %+v", n)
+		}
+		return nil
+	})
+
+	ai.calls = nil
+	rep, err := RunAI(context.Background(), dir, ai, AIOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// ads doc + ads#search + code doc + code#go (ads#social is human-written).
+	if rep.Summarized != 4 || len(rep.Failed) != 1 || rep.Failed["docs/bad.md"] == "" {
+		t.Fatalf("report: %+v", rep)
+	}
+	if len(rep.DomainsCreated) != 1 || rep.DomainsCreated[0] != "Coding" {
+		t.Fatalf("domains created (Internet Marketing must be reused): %+v", rep.DomainsCreated)
+	}
+	for _, c := range ai.calls {
+		if c.Loc == "docs/empty.md" {
+			t.Fatal("empty doc sent to the AI")
+		}
+		if c.Loc == "docs/ads.md" {
+			// Docs run in parallel, so "Coding" may already exist: require at least the seeded domain.
+			if len(c.Sections) != 1 || c.Sections[0].Key != "docs/ads.md#search" || len(c.Domains) < 1 {
+				t.Fatalf("request should skip human-written sections and list domains: %+v", c)
+			}
+		}
+	}
+
+	With(dir, func(s *Store) error {
+		if n, _ := s.Get("docs/ads.md"); n.Summary != "Doc Ads" || n.Author != AuthorAI || n.NeedsSummary {
+			t.Fatalf("doc annotated: %+v", n)
+		}
+		if n, _ := s.Get("docs/ads.md#social"); n.Summary != human {
+			t.Fatalf("human summary overwritten: %+v", n)
+		}
+		if ds, _ := s.DomainsOf("docs/code.md"); len(ds) != 1 || ds[0].Title != "Coding" {
+			t.Fatalf("domain assigned: %+v", ds)
+		}
+		if n, _ := s.Get("docs/bad.md"); !n.NeedsSummary {
+			t.Fatal("failed doc must stay pending")
+		}
+		return nil
+	})
+
+	// Nothing left except the failing doc.
+	ai.calls = nil
+	rep, _ = RunAI(context.Background(), dir, ai, AIOptions{})
+	if len(ai.calls) != 1 || ai.calls[0].Loc != "docs/bad.md" {
+		t.Fatalf("second run should only retry the failure: %+v", rep)
+	}
+}
+
+func TestExplainAndSearch(t *testing.T) {
+	s, _ := project(t, map[string]string{"ads.md": "# Ads\n## Rural reach\nInternet penetration in rural areas is 76%.\n## Budget\nSpend."})
+	s.Sync()
+	s.AssignDomain("docs/ads.md", "Internet Marketing", "user")
+
+	ex, err := s.Explain("how many rural internet users?", 3, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ex.Matches) == 0 || ex.Matches[0].Node.Key != "docs/ads.md#rural-reach" || !strings.Contains(ex.Matches[0].Excerpt, "76%") {
+		t.Fatalf("matches: %+v", ex.Matches)
+	}
+	md := ex.Markdown()
+	for _, want := range []string{"doc_section `docs/ads.md#rural-reach`", "loc: docs/ads.md:2", "(no summary yet)", "section_of"} {
+		if !strings.Contains(md, want) {
+			t.Fatalf("markdown missing %q:\n%s", want, md)
+		}
+	}
+	if doc := ex.Matches[1]; doc.Node.Key == "docs/ads.md" && (len(doc.Domains) != 1 || doc.Domains[0] != "Internet Marketing") {
+		t.Fatalf("doc domains: %+v", doc)
+	}
+	hits, _ := s.Search("rural budget", Filter{})
+	if len(hits) != 1 || hits[0].Node.Key != "docs/ads.md" {
+		t.Fatalf("search all terms: %+v", hits)
+	}
+}
+
+func TestExportImportAndReopen(t *testing.T) {
+	s, dir := project(t, map[string]string{"a.md": "# A\n## S\nx"})
+	s.Sync()
+	s.AssignDomain("docs/a.md", "Coding", "user")
+	sum := "Summary."
+	s.Annotate("docs/a.md#s", Annotation{Summary: &sum, Keyword: []string{"go"}, Author: "user"})
+	snap, err := s.Export()
+	if err != nil || len(snap.Nodes) != 3 || len(snap.Links) != 2 {
+		t.Fatalf("export: %v %+v", err, snap)
+	}
+
+	other, _ := project(t, nil)
+	r := other.Import(snap)
+	if r.Created != 3 || r.LinksCreated != 2 || len(r.Errors) != 0 {
+		t.Fatalf("import: %+v", r)
+	}
+	if r := other.Import(snap); r.Updated != 3 || r.LinksSkipped != 2 {
+		t.Fatalf("re-import: %+v", r)
+	}
+
+	s.Close()
+	s2, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s2.Close()
+	if n, err := s2.Get("docs/a.md#s"); err != nil || n.Summary != "Summary." {
+		t.Fatalf("reopen: %v %+v", err, n)
+	}
+}

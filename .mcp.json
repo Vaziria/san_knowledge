@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "knowledge": {
+      "type": "stdio",
+      "command": "bin/knowledge.exe",
+      "args": ["mcp"]
+    }
+  }
+}

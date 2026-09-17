@@ -45,7 +45,7 @@ func disableSliceSeparator(cmd *cli.Command) {
 
 // boolFlagNames never take a value, so a "-" after them is positional.
 var boolFlagNames = map[string]bool{"json": true, "force": true, "no-open": true, "help": true, "h": true,
-	"version": true, "v": true, "no-ai": true, "dry-run": true, "needs-summary": true, "no-sync": true}
+	"version": true, "v": true, "no-ai": true, "dry-run": true, "needs-summary": true, "no-sync": true, "refresh": true}
 
 // stdinArgLast moves a positional "-" (read stdin) to the end. urfave/cli stops
 // parsing flags at "-", which would silently ignore e.g. "import - --json".
@@ -141,7 +141,8 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 				Name: "mcp", Category: "tools", ArgsUsage: " ",
 				Usage: "run as an MCP server on stdio so AI chat sessions can use the knowledge graph",
 				Description: "Registered in .mcp.json as \"knowledge\". Syncs ./docs (without AI) on start.\n" +
-					"Tools: knowledge_explain, _search, _get, _list, _stats, _sync, _pending, _annotate, _add_domain, _assign_domain, _unassign_domain.",
+					"Tools: knowledge_explain, _search, _get, _list, _stats, _sync, _pending, _annotate, _add_domain, _assign_domain, _unassign_domain,\n" +
+					"_fetch, _save_web.",
 				Flags: []cli.Flag{&cli.BoolFlag{Name: "no-sync", Usage: "do not sync ./docs on start"}},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					dir, err := dataDir(cmd.String("data"))
@@ -158,7 +159,8 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 					"  knowledge query \"MATCH (n {node_type: 'domain'}) RETURN n.key, n.title\"\n" +
 					"  knowledge query \"MATCH (s)-[r:section_of]->(d {key: 'docs/knowledge.md'}) RETURN s, r, d\"\n" +
 					"Labels are titles without spaces/punctuation, e.g. MATCH (n:InternetMarketing).\n" +
-					"Properties: key, node_type, title, summary, keyword, loc, line_loc, level, needs_summary, author.\n" +
+					"Properties: key, node_type, title, summary, keyword, loc, line_loc, level, needs_summary, author,\n" +
+					"uri, last_fetched (web sources).\n" +
 					"Raw writes (CREATE/SET/DELETE) bypass the schema; prefer sync/annotate/assign.",
 				Action: withStore(1, (*app).query),
 			},
@@ -172,7 +174,17 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 					"writes summaries/keywords and picks or creates domains. Uses your Claude Code login (no API key).\n" +
 					"Summaries written by a person or frontmatter are never overwritten.",
 				Flags:  syncFlags,
-				Action: func(ctx context.Context, cmd *cli.Command) error { return syncCmd(ctx, cmd) },
+				Action: func(ctx context.Context, cmd *cli.Command) error { return syncCmd(ctx, cmd, nil) },
+			},
+			{
+				Name: "fetch", Category: "tools", ArgsUsage: "<url...>",
+				Usage: "save web pages as docs in " + kb.WebDir + ", then sync them",
+				Description: "Downloads each page, keeps its main content and converts it to markdown with \"uri:\" and\n" +
+					"\"last_fetched:\" frontmatter. Fetching a saved uri again rewrites the same file; unchanged sections\n" +
+					"keep their summaries. --refresh fetches every saved web source again. Then runs sync (see sync --help).\n" +
+					"Pages that need JavaScript or a login can be saved from an AI chat with the knowledge_save_web MCP tool.",
+				Flags:  append([]cli.Flag{&cli.BoolFlag{Name: "refresh", Usage: "fetch every saved web source again"}}, syncFlags...),
+				Action: func(ctx context.Context, cmd *cli.Command) error { return fetchCmd(ctx, cmd) },
 			},
 
 			// ---- nodes --------------------------------------------------------

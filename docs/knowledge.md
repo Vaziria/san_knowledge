@@ -64,3 +64,14 @@ for example:
     - edge `reference`, if doc/section reference to other doc like `[read this/ see this/etc.](link to doc)`
 
 
+## Website Source Knowledge.
+1. For extracting website, like ai agent fetching website.
+    the flow is fetch -> convert to document -> threat as like [document knowledge](#document-knowledge) and add with special properties.
+
+2. Special properties is:
+    - `uri`
+    - `last_fetched`
+
+3. all document placed to `docs/external_sources/web`
+
+

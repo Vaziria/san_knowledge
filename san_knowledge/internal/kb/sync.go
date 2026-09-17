@@ -149,7 +149,8 @@ func (s *Store) syncDoc(doc *ParsedDoc, r *SyncReport) error {
 	gn, err := s.nodeByKey(doc.Loc)
 	switch {
 	case errors.Is(err, ErrNotFound):
-		n := Node{Key: doc.Loc, NodeType: TypeDoc, Title: doc.Title, Loc: doc.Loc, Hash: doc.Hash, NeedsSummary: pending, Author: AuthorSync}
+		n := Node{Key: doc.Loc, NodeType: TypeDoc, Title: doc.Title, Loc: doc.Loc, Hash: doc.Hash, NeedsSummary: pending, Author: AuthorSync,
+			URI: fm.URI, LastFetched: fm.LastFetched}
 		if fm.Summary != "" {
 			n.Summary, n.NeedsSummary, n.Author = fm.Summary, false, AuthorFrontmatter
 		}
@@ -166,13 +167,22 @@ func (s *Store) syncDoc(doc *ParsedDoc, r *SyncReport) error {
 		if gn.GetString("node_type") != TypeDoc {
 			return errors.New("key is already used by a " + gn.GetString("node_type"))
 		}
+		patch := graphdb.Props{}
 		if gn.GetString("hash") != doc.Hash || gn.GetString("title") != doc.Title {
-			patch := graphdb.Props{"title": doc.Title, "hash": doc.Hash, "needs_summary": pending}
-			if fm.Summary != "" {
+			patch["title"], patch["hash"], patch["needs_summary"] = doc.Title, doc.Hash, pending
+		}
+		if gn.GetString("uri") != fm.URI || gn.GetString("last_fetched") != fm.LastFetched {
+			patch["uri"], patch["last_fetched"] = fm.URI, fm.LastFetched
+		}
+		if fm.Summary != "" && (gn.GetString("summary") != fm.Summary || gn.GetString("author") != AuthorFrontmatter) {
+			patch["summary"], patch["needs_summary"], patch["author"] = fm.Summary, false, AuthorFrontmatter
+		}
+		if len(fm.Keyword) > 0 && strings.Join(stringList(gn.Props["keyword"]), ",") != strings.Join(NormalizeKeyword(fm.Keyword), ",") {
+			patch["keyword"] = NormalizeKeyword(fm.Keyword)
+		}
+		if len(patch) > 0 {
+			if fm.Summary != "" { // a frontmatter summary never goes pending
 				patch["summary"], patch["needs_summary"], patch["author"] = fm.Summary, false, AuthorFrontmatter
-			}
-			if len(fm.Keyword) > 0 {
-				patch["keyword"] = NormalizeKeyword(fm.Keyword)
 			}
 			if err := s.updateNode(gn, patch); err != nil {
 				return err

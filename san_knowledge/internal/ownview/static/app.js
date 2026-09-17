@@ -87,10 +87,10 @@
   async function busy(text, fn) {
     $('busy-text').textContent = text;
     $('busy').hidden = false;
-    for (const id of ['btn-sync', 'btn-ai']) $(id).disabled = true;
+    for (const id of ['btn-sync', 'btn-ai', 'btn-fetch']) $(id).disabled = true;
     try { return await fn(); } finally {
       $('busy').hidden = true;
-      for (const id of ['btn-sync', 'btn-ai']) $(id).disabled = false;
+      for (const id of ['btn-sync', 'btn-ai', 'btn-fetch']) $(id).disabled = false;
     }
   }
 
@@ -436,6 +436,7 @@
       ),
       h('h2', { text: n.title || n.key }),
       n.loc ? h('div', { class: 'loc', text: locOf(n) }) : h('div', { class: 'key', text: n.key }),
+      n.uri ? sourceLine(n) : null,
       n.summary ? h('p', { class: 'summary', text: n.summary }) :
         h('p', { class: 'muted-note', text: isDomain ? 'No summary yet.' : 'No summary yet. Run “Summarize with AI” or write one.' }),
       h('div', { class: 'panel-actions' },
@@ -549,6 +550,16 @@
     } catch (err) { toast(err.message, true); }
   }
 
+  // Web sources: the page address (http/https only) and when it was fetched.
+  function sourceLine(n) {
+    const safe = /^https?:\/\//i.test(n.uri);
+    const when = n.last_fetched ? new Date(n.last_fetched) : null;
+    return h('div', { class: 'source' },
+      safe ? h('a', { href: n.uri, target: '_blank', rel: 'noopener noreferrer', text: n.uri }) : h('span', { text: n.uri }),
+      when && !isNaN(when) ? h('span', { class: 'footnote', text: `fetched ${when.toLocaleString()}` }) : null,
+    );
+  }
+
   // ---------- dialogs ----------
   const dialog = $('dialog');
   const field = (label, input, help) => h('label', { class: 'field' }, h('span', { text: label }), input, help ? h('small', { text: help }) : null);
@@ -629,6 +640,29 @@
     });
   }
 
+  function openFetchDialog() {
+    const url = h('input', { type: 'url', required: true, autocomplete: 'off', placeholder: 'https://…' });
+    formDialog('Fetch web page', [
+      field('URL', url, 'The page’s main content is saved as markdown in docs/external_sources/web and synced. Fetching a saved URL again refreshes it.'),
+    ], 'Fetch', async () => {
+      const u = url.value.trim();
+      queueMicrotask(() => runFetch(u)); // after the dialog closes, so the busy overlay is visible
+    }, url);
+  }
+
+  async function runFetch(url) {
+    await busy('Fetching page…', async () => {
+      try {
+        const r = await api('POST', '/api/fetch', { url });
+        const s = r.saved;
+        const pending = state.ai && r.sync.needs_summary ? ' · run “Summarize with AI” for summaries' : '';
+        toast(`${s.created ? 'Saved' : s.changed ? 'Updated' : 'Unchanged'}: ${s.loc}${pending}`);
+        await reload();
+        select(s.loc, true);
+      } catch (err) { toast(err.message, true); }
+    });
+  }
+
   // ---------- sync & AI ----------
   async function runSync() {
     await busy('Syncing ./docs…', async () => {
@@ -696,6 +730,7 @@
   $('search').addEventListener('search', () => { if (!$('search').value) clearExplain(); });
   $('btn-domain').addEventListener('click', openDomainDialog);
   $('btn-sync').addEventListener('click', runSync);
+  $('btn-fetch').addEventListener('click', openFetchDialog);
   $('btn-ai').addEventListener('click', runAI);
   document.querySelector('[data-action="sync"]').addEventListener('click', runSync);
   $('btn-fit').addEventListener('click', () => fitVisible(true));

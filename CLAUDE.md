@@ -27,6 +27,8 @@ Using the tool (run from the repo root; data dir is auto-resolved):
 bin\knowledge.exe --help                      # command tree (urfave/cli v3)
 bin\knowledge.exe sync                        # track ./docs, then AI writes summaries/keywords/domains (claude -p)
 bin\knowledge.exe sync --no-ai | --dry-run    # structure only | preview AI output without saving
+bin\knowledge.exe fetch https://example.com/page   # save a web page into docs/external_sources/web, then sync
+bin\knowledge.exe fetch --refresh --no-ai    # fetch every saved web source again
 bin\knowledge.exe explain "which commands does the tool have"
 bin\knowledge.exe query "MATCH (s)-[r:section_of]->(d {key: 'docs/knowledge.md'}) RETURN s, r, d"
 bin\knowledge.exe view                        # web UI on 127.0.0.1:7474
@@ -37,7 +39,7 @@ bin\knowledge.exe mcp                         # MCP stdio server (registered in 
 
 ```
 cmd/knowledge      urfave/cli v3 command tree (main.go) + sync/view/mcp entry points (tools.go)
-internal/kb        domain layer on goraphdb: schema.go, store.go, markdown.go (parser), sync.go, ai.go, explain.go
+internal/kb        domain layer on goraphdb: schema.go, store.go, markdown.go (parser), sync.go, ai.go, explain.go, web.go
 internal/ownview   Knowledge UI: JSON API + embedded static/ (vanilla JS + vendored cytoscape)
 internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio), no SDK
 ```
@@ -56,6 +58,7 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
   - doc: its project-relative path (`docs/x.md`)
   - section: path + `#` + slug heading path (`docs/x.md#parent/child`; duplicate sibling headings get `-2`)
 - Other properties: `summary`, `keyword` (list, normalized: lowercase, `-`/`_` → space), `loc`, `line_loc`, `level`, `hash`, `needs_summary`, `author`.
+- Web sources (spec "Website Source Knowledge") are ordinary `doc` nodes with `uri` and `last_fetched` on the doc node only (not its sections).
 
 **Sync (`kb.Sync`, no AI).**
 - Scans `docs/**/*.md`. The first `# ` heading is the doc title (not a section); every other heading becomes a section.
@@ -67,6 +70,7 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
   - `ResolveLink` tries the path relative to the linking file, then relative to the project root; a `#fragment` is matched to a heading slug, falling back to the doc.
   - Web links, images, inline code, fenced code and non-tracked files are ignored.
   - Stale `reference` edges are removed only if their author is `sync`.
+- The doc `hash` covers the text after frontmatter, so a refetch that only bumps `last_fetched` does not ask for a summary. Frontmatter-only edits are still applied.
 - Frontmatter `domain:`, `keyword:` and `summary:` are applied with author `frontmatter`; frontmatter domain edges are removed when no longer declared.
 - `view` and `mcp` run a structural sync on start (skip with `--no-sync`).
 
@@ -77,6 +81,16 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - `IsHumanAuthor`: summaries written by anyone other than `sync`/`ai` (e.g. `user`, `frontmatter`) are never overwritten.
 - A failed doc stays pending and is retried on the next sync.
 - `kb.Annotator` is the seam for tests: `fakeAI` / `fakeAnnotator`, and `newAnnotator` in `cmd/knowledge`.
+
+**Web sources (`kb/web.go`).**
+- A page is stored as markdown only, in `docs/external_sources/web/<host>/<path-slug>.md`, with `uri:` and `last_fetched:` frontmatter; sync puts them on the doc node. No raw HTML is kept.
+- Identity is the `uri` (normalized, `#fragment` dropped): saving a known uri rewrites its file and keeps other frontmatter (e.g. a hand-added `domain:`). A different uri mapping to an existing file name gets `-2`.
+- Two ways in, both ending in `SaveWeb` + `Sync`:
+  - the tool fetches: CLI `fetch`, MCP `knowledge_fetch`, UI "Fetch URL" (`POST /api/fetch`). `WebFetcher` does the GET, go-readability keeps the main content, html-to-markdown (with table plugin) converts it with absolute links; markdown/plain text responses are kept as-is.
+  - the agent supplies content: MCP `knowledge_save_web(uri, title, markdown)` for pages that need JavaScript or a login.
+- `unwrapHeadings` runs before readability: heading wrappers with short extra text (Wikipedia's `<div class="mw-heading">…[edit]`) would otherwise be dropped, losing the sections.
+- References come only from normal file links; absolute web links between saved pages are not matched to docs.
+- The download happens before the database is opened. `kb.Fetcher` is the test seam (`webFetcher` in `cmd/knowledge`, `mcpserver.Server.Fetcher`, `ownview.Options.Fetcher`).
 
 **Database locking.** bbolt allows one process at a time. `kb.Open` probes the file lock with a 5s timeout (goraphdb would otherwise block forever) and returns `kb.ErrLocked`. Short CLI commands open/close per invocation. The long-running `view` and `mcp`, and the AI step, must use `kb.With` per operation, never hold a store open; `kb.With` also serialises opens within one process. Tests assert the CLI works while the view runs.
 
@@ -105,17 +119,19 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - All content is rendered via `textContent`/`h()`, never `innerHTML`. `panel()` filters null children.
 - Node types use fixed palette slots 1–3 plus a shape; a dashed border means needs summary.
 - URL params: `?q=` runs explain, `?theme=light|dark`, `#k=<key>` selects a node.
-- To check visuals, run `view --no-open --addr 127.0.0.1:<port>` and screenshot with headless Edge (`--screenshot`; minimum window width ~500px).
+- A web source's panel shows its `uri` as a link (http/https only) and `last_fetched`.
+- To check visuals, run `view --no-open --addr 127.0.0.1:<port>` and screenshot with headless Edge (`--screenshot`; minimum window width ~500px). Stop that test view by its PID, never `taskkill /IM knowledge.exe`, which also kills the user's own view and Claude Code's knowledge MCP server.
 
 **MCP (`internal/mcpserver`).**
 - Stdout must carry only JSON-RPC; logs go to stderr. Writes default to author `ai`.
-- Tools: explain, search, get, list, stats, sync, pending, annotate, add/assign/unassign domain. There is deliberately no delete tool.
+- Tools: explain, search, get, list, stats, sync, pending, annotate, add/assign/unassign domain, fetch, save_web. There is deliberately no delete tool.
 - `.mcp.json` points at `bin/knowledge.exe mcp` (relative path, which works when Claude Code starts in the repo root).
 - End-to-end check: `claude -p "..." --mcp-config .mcp.json --strict-mcp-config --allowedTools mcp__knowledge__knowledge_explain`.
 
 ## Research workflow
 
 - Before answering questions about the project's research or docs, pull context (`knowledge_explain` or `bin\knowledge.exe explain`) and cite `loc` (file:line).
+- To keep a web source, use `knowledge_fetch` (or `knowledge_save_web` with the full page as markdown when fetching fails) rather than pasting it into a doc by hand.
 - Put research write-ups in `docs/` so they are tracked, then sync (`knowledge_sync`, or `bin\knowledge.exe sync` for AI summaries). In a chat session you can also summarize pending nodes yourself: `knowledge_pending`, then `knowledge_annotate`.
 - Figures quoted from BPS/APJII via news coverage should be flagged as such.
 - The marketplace-crawl MCP server (Tokopedia etc.) is available for product/price research.

@@ -44,11 +44,15 @@ type ParsedSection struct {
 //	domain: Internet Marketing
 //	keyword: [indonesia, demographics]
 //	summary: One line.
+//	uri: https://example.com/page     (web sources only)
+//	last_fetched: 2026-09-17T10:42:00+07:00
 //	---
 type Frontmatter struct {
-	Domain  []string
-	Keyword []string
-	Summary string
+	Domain      []string
+	Keyword     []string
+	Summary     string
+	URI         string
+	LastFetched string
 }
 
 var (
@@ -67,11 +71,14 @@ var (
 // parent is the nearest previous heading with a lower level.
 func ParseMarkdown(loc string, data []byte) *ParsedDoc {
 	text := strings.ReplaceAll(string(data), "\r\n", "\n")
-	doc := &ParsedDoc{Loc: loc, Text: text, Hash: fingerprint(text)}
+	doc := &ParsedDoc{Loc: loc, Text: text}
 	lines := strings.Split(text, "\n")
 
 	var start int
 	doc.Front, start = parseFrontmatter(lines)
+	// The fingerprint skips frontmatter, so a refetch that only bumps
+	// last_fetched does not ask for a new summary.
+	doc.Hash = fingerprint(strings.Join(lines[start:], "\n"))
 
 	type heading struct {
 		title string
@@ -250,6 +257,10 @@ func parseFrontmatter(lines []string) (Frontmatter, int) {
 			fm.Keyword = append(fm.Keyword, yamlList(v)...)
 		case "summary":
 			fm.Summary = strings.Trim(v, `"'`)
+		case "uri":
+			fm.URI = strings.Trim(v, `"'`)
+		case "last_fetched":
+			fm.LastFetched = strings.Trim(v, `"'`)
 		}
 	}
 	return Frontmatter{}, 0 // unterminated: not frontmatter

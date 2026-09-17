@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -28,6 +29,9 @@ var version = "dev"
 
 // newAnnotator is swapped in tests.
 var newAnnotator = func(model string) kb.Annotator { return kb.ClaudeCLI{Model: model} }
+
+// webFetcher is swapped in tests.
+var webFetcher kb.Fetcher = kb.DefaultFetcher
 
 // authorFrom reads --author (or $KNOWLEDGE_AUTHOR via the flag source).
 func authorFrom(cmd *cli.Command, def string) string {
@@ -51,7 +55,8 @@ func (c *app) explain() error {
 }
 
 // syncCmd tracks ./docs, then runs the AI step unless --no-ai.
-func syncCmd(ctx context.Context, cmd *cli.Command) error {
+// extra is merged into the --json output (used by fetch).
+func syncCmd(ctx context.Context, cmd *cli.Command, extra map[string]any) error {
 	dir, err := dataDir(cmd.String("data"))
 	if err != nil {
 		return err
@@ -96,10 +101,79 @@ func syncCmd(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 	if asJSON {
-		return emit(w, true, map[string]any{"sync": rep, "ai": aiRep}, nil)
+		v := map[string]any{"sync": rep, "ai": aiRep}
+		for k, x := range extra {
+			v[k] = x
+		}
+		return emit(w, true, v, nil)
 	}
 	if aiRep != nil && len(aiRep.Failed) > 0 {
 		return fmt.Errorf("AI step failed for %d doc(s); they stay pending and are retried on the next sync", len(aiRep.Failed))
+	}
+	return nil
+}
+
+// fetchCmd saves web pages into docs/external_sources/web, then syncs.
+func fetchCmd(ctx context.Context, cmd *cli.Command) error {
+	dir, err := dataDir(cmd.String("data"))
+	if err != nil {
+		return err
+	}
+	root := filepath.Dir(dir)
+	w, asJSON := cmd.Root().Writer, cmd.Bool("json")
+
+	uris := cmd.Args().Slice()
+	if cmd.Bool("refresh") {
+		saved, err := kb.ListWebDocs(root)
+		if err != nil {
+			return err
+		}
+		for _, d := range saved {
+			uris = append(uris, d.URI)
+		}
+	}
+	if len(uris) == 0 {
+		return errors.New("give at least one url, or --refresh")
+	}
+
+	saved := []*kb.WebSave{}
+	failed := map[string]string{}
+	for _, uri := range uris {
+		res, err := kb.FetchAndSave(ctx, root, webFetcher, uri)
+		if err != nil {
+			failed[uri] = err.Error()
+			if !asJSON {
+				fmt.Fprintf(w, "  ✗ %s: %v\n", uri, err)
+			}
+			continue
+		}
+		saved = append(saved, res)
+		if !asJSON {
+			state := "unchanged"
+			switch {
+			case res.Created:
+				state = "new"
+			case res.Changed:
+				state = "changed"
+			}
+			fmt.Fprintf(w, "  ✓ %s → %s (%s)\n", uri, res.Loc, state)
+		}
+	}
+	result := map[string]any{"fetched": saved, "failed": failed}
+	if len(saved) > 0 {
+		if !asJSON {
+			fmt.Fprintln(w)
+		}
+		if err := syncCmd(ctx, cmd, result); err != nil {
+			return err
+		}
+	} else if asJSON {
+		if err := emit(w, true, result, nil); err != nil {
+			return err
+		}
+	}
+	if len(failed) > 0 {
+		return fmt.Errorf("%d of %d page(s) could not be fetched", len(failed), len(uris))
 	}
 	return nil
 }
@@ -180,7 +254,7 @@ func view(cmd *cli.Command, dir string, out io.Writer) error {
 
 	srv := &http.Server{
 		Handler: ownview.Handler(ownview.Options{
-			Dir: dir, Open: opener(dir), Author: authorFrom(cmd, "user"), Annotator: newAnnotator(cmd.String("model")),
+			Dir: dir, Open: opener(dir), Author: authorFrom(cmd, "user"), Annotator: newAnnotator(cmd.String("model")), Fetcher: webFetcher,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
@@ -217,7 +291,9 @@ func serveMCP(cmd *cli.Command, dir string, in io.Reader, out io.Writer) error {
 		startupSync(dir, os.Stderr)
 	}
 	fmt.Fprintf(os.Stderr, "knowledge mcp: serving %s on stdio\n", dir)
-	return mcpserver.New(opener(dir), authorFrom(cmd, "ai"), version).Serve(in, out)
+	srv := mcpserver.New(opener(dir), authorFrom(cmd, "ai"), version)
+	srv.Fetcher = webFetcher
+	return srv.Serve(in, out)
 }
 
 func openBrowser(url string) error {

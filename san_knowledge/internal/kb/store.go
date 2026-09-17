@@ -55,7 +55,9 @@ type Node struct {
 	Level        int            `json:"level,omitempty"`
 	Hash         string         `json:"hash,omitempty"`
 	NeedsSummary bool           `json:"needs_summary,omitempty"`
-	Author       string         `json:"author,omitempty"` // who wrote summary/keyword
+	URI          string         `json:"uri,omitempty"`          // web sources: page address
+	LastFetched  string         `json:"last_fetched,omitempty"` // web sources: RFC 3339 fetch time
+	Author       string         `json:"author,omitempty"`       // who wrote summary/keyword
 	Created      string         `json:"created,omitempty"`
 	Updated      string         `json:"updated,omitempty"`
 	Props        map[string]any `json:"props,omitempty"`
@@ -705,7 +707,7 @@ func (s *Store) Import(snap *Snapshot) ImportResult {
 var reservedProps = map[string]bool{
 	"key": true, "node_type": true, "title": true, "summary": true, "keyword": true,
 	"loc": true, "line_loc": true, "level": true, "hash": true, "needs_summary": true,
-	"author": true, "created": true, "updated": true,
+	"author": true, "created": true, "updated": true, "uri": true, "last_fetched": true,
 }
 
 func fromNode(n Node) graphdb.Props {
@@ -734,6 +736,9 @@ func fromNode(n Node) graphdb.Props {
 	if n.Author != "" {
 		p["author"] = n.Author
 	}
+	if n.URI != "" {
+		p["uri"], p["last_fetched"] = n.URI, n.LastFetched
+	}
 	return p
 }
 
@@ -751,6 +756,8 @@ func toNode(gn *graphdb.Node) *Node {
 		Hash:         gn.GetString("hash"),
 		NeedsSummary: gn.Props["needs_summary"] == true,
 		Author:       gn.GetString("author"),
+		URI:          gn.GetString("uri"),
+		LastFetched:  gn.GetString("last_fetched"),
 		Created:      gn.GetString("created"),
 		Updated:      gn.GetString("updated"),
 	}

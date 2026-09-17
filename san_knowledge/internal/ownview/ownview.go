@@ -29,10 +29,14 @@ type Options struct {
 	Open      Opener
 	Author    string       // recorded on edits made in the UI
 	Annotator kb.Annotator // used by "Summarize with AI"; nil disables it
+	Fetcher   kb.Fetcher   // used by "Fetch URL"; nil means kb.DefaultFetcher
 }
 
 // Handler serves the UI and its JSON API.
 func Handler(o Options) http.Handler {
+	if o.Fetcher == nil {
+		o.Fetcher = kb.DefaultFetcher
+	}
 	h := &api{o: o}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/schema", h.schema)
@@ -46,6 +50,7 @@ func Handler(o Options) http.Handler {
 	mux.HandleFunc("DELETE /api/assign", h.unassign)
 	mux.HandleFunc("POST /api/sync", h.sync)
 	mux.HandleFunc("POST /api/ai", h.ai)
+	mux.HandleFunc("POST /api/fetch", h.fetch)
 
 	root, _ := fs.Sub(static, "static")
 	files := http.FileServer(http.FS(root))
@@ -248,4 +253,29 @@ func (h *api) ai(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"sync": syncRep, "ai": rep})
+}
+
+// fetch saves a web page into docs/external_sources/web and syncs it. The
+// download happens before the database is opened.
+func (h *api) fetch(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		URL string `json:"url"`
+	}
+	if err := decode(r, &body); err != nil {
+		writeErr(w, err)
+		return
+	}
+	page, err := h.o.Fetcher.Fetch(r.Context(), body.URL)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+	h.do(w, func(s *kb.Store) (any, error) {
+		saved, err := kb.SaveWeb(s.Root, *page)
+		if err != nil {
+			return nil, err
+		}
+		rep, err := s.Sync()
+		return map[string]any{"saved": saved, "sync": rep}, err
+	})
 }

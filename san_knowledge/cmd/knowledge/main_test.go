@@ -270,7 +270,7 @@ func TestMCP(t *testing.T) {
 	result := func(id float64) map[string]any { return resp[id]["result"].(map[string]any) }
 	text := func(id float64) string { return result(id)["content"].([]any)[0].(map[string]any)["text"].(string) }
 
-	if tools := result(2)["tools"].([]any); len(tools) != 11 {
+	if tools := result(2)["tools"].([]any); len(tools) != 13 {
 		t.Fatalf("tools/list: %d", len(tools))
 	}
 	if !strings.Contains(text(3), `"docs_added": [`) || !strings.Contains(text(4), `"total": 3`) || !strings.Contains(text(4), "76%") {
@@ -291,4 +291,76 @@ func TestMCP(t *testing.T) {
 	if out, err := knowledge(t, dir, "list", "--domain", "internet-marketing"); err != nil || !strings.Contains(out, "docs/ads.md") {
 		t.Fatalf("cli after mcp: %v\n%s", err, out)
 	}
+}
+
+func TestWebSources(t *testing.T) {
+	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/missing" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html")
+		io.WriteString(w, `<html><head><title>Page `+r.URL.Path+`</title></head><body><article><h1>Page `+r.URL.Path+`</h1>
+<p>E-commerce in Indonesia keeps growing, led by marketplaces and social commerce on short video apps.</p>
+<h2>Payments</h2><p>QRIS and e-wallets are the most common way people pay online in Indonesian cities.</p></article></body></html>`)
+	}))
+	defer site.Close()
+	dir := testProject(t, map[string]string{"ads.md": adsDoc})
+	root := filepath.Dir(dir)
+
+	// CLI: fetch saves the file and syncs it; a failing url is reported but does not stop the others.
+	out, err := knowledge(t, dir, "fetch", site.URL+"/cli", site.URL+"/missing", "--no-ai")
+	if err == nil || !strings.Contains(err.Error(), "1 of 2") || !strings.Contains(out, "(new)") || !strings.Contains(out, "docs:     +2") {
+		t.Fatalf("fetch: %v\n%s", err, out)
+	}
+	loc := kb.WebDir + "/127.0.0.1/cli.md"
+	if out, err := knowledge(t, dir, "get", loc, "--json"); err != nil || !strings.Contains(out, `"uri": "`+site.URL+`/cli"`) || !strings.Contains(out, `"last_fetched"`) {
+		t.Fatalf("get web doc: %v\n%s", err, out)
+	}
+	out, err = knowledge(t, dir, "fetch", "--refresh", "--no-ai", "--json")
+	if err != nil || !strings.Contains(out, `"fetched"`) || !strings.Contains(out, `"changed": false`) || !strings.Contains(out, `"sync"`) {
+		t.Fatalf("fetch --refresh: %v\n%s", err, out)
+	}
+	if _, err := knowledge(t, dir, "fetch", "--no-ai"); err == nil {
+		t.Fatal("fetch without urls should fail")
+	}
+
+	// MCP: knowledge_fetch and knowledge_save_web.
+	msgs := []string{
+		`{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"knowledge_fetch","arguments":{"url":"` + site.URL + `/mcp"}}}`,
+		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"knowledge_save_web","arguments":{"uri":"https://example.com/spa","title":"Single Page App","markdown":"Rendered by JavaScript.\n\n## Pricing\nRp 50.000 per month."}}}`,
+		`{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"knowledge_save_web","arguments":{"uri":"not a url","markdown":"x"}}}`,
+	}
+	var buf bytes.Buffer
+	if err := mcpserver.New(opener(dir), "ai", "test").Serve(strings.NewReader(strings.Join(msgs, "\n")+"\n"), &buf); err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	if len(lines) != 3 || !strings.Contains(lines[0], `127.0.0.1/mcp.md`) || !strings.Contains(lines[0], `needs_summary`) ||
+		!strings.Contains(lines[1], `example.com/spa.md`) || !strings.Contains(lines[2], `"isError":true`) {
+		t.Fatalf("mcp web tools:\n%s", buf.String())
+	}
+	data, err := os.ReadFile(filepath.Join(root, "docs", "external_sources", "web", "example.com", "spa.md"))
+	if err != nil || !strings.HasPrefix(string(data), "---\nuri: https://example.com/spa\nlast_fetched: ") || !strings.Contains(string(data), "# Single Page App\n") {
+		t.Fatalf("saved file: %v\n%s", err, data)
+	}
+
+	// UI: POST /api/fetch.
+	ts := httptest.NewServer(ownview.Handler(ownview.Options{Dir: dir, Open: opener(dir), Author: "user"}))
+	defer ts.Close()
+	resp, err := http.Post(ts.URL+"/api/fetch", "application/json", strings.NewReader(`{"url":"`+site.URL+`/ui"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r map[string]any
+	json.NewDecoder(resp.Body).Decode(&r)
+	resp.Body.Close()
+	if resp.StatusCode != 200 || r["saved"].(map[string]any)["loc"] != kb.WebDir+"/127.0.0.1/ui.md" {
+		t.Fatalf("api fetch: %d %v", resp.StatusCode, r)
+	}
+	resp, _ = http.Post(ts.URL+"/api/fetch", "application/json", strings.NewReader(`{"url":"ftp://x"}`))
+	if resp.StatusCode != 400 {
+		t.Fatalf("api fetch bad url: %d", resp.StatusCode)
+	}
+	resp.Body.Close()
 }

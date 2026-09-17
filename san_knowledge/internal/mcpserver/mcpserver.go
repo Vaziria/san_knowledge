@@ -8,6 +8,7 @@ package mcpserver
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,6 +23,9 @@ import (
 type Opener func(fn func(*kb.Store) error) error
 
 type Server struct {
+	// Fetcher downloads pages for knowledge_fetch; tests replace it.
+	Fetcher kb.Fetcher
+
 	open    Opener
 	author  string
 	version string
@@ -33,7 +37,7 @@ func New(open Opener, author, version string) *Server {
 	if author == "" {
 		author = kb.AuthorAI
 	}
-	return &Server{open: open, author: author, version: version}
+	return &Server{open: open, author: author, version: version, Fetcher: kb.DefaultFetcher}
 }
 
 var supportedVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
@@ -41,7 +45,8 @@ var supportedVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 const instructions = `Knowledge graph of this project, shared between the user and AI.
 Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs, key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section), reference (doc/section -> doc/section it links to with a markdown link).
 Before answering questions about the project's research or docs, call knowledge_explain to load context and cite the loc (file:line).
-Docs and sections come from the files: after editing files in ./docs call knowledge_sync. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.`
+Docs and sections come from the files: after editing files in ./docs call knowledge_sync. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.
+To keep a web page as knowledge, call knowledge_fetch with its url; if that fails or the page needs JavaScript or a login, read the page yourself and call knowledge_save_web with its full content as markdown. Web sources live in docs/external_sources/web and carry uri and last_fetched.`
 
 type request struct {
 	JSONRPC string          `json:"jsonrpc"`
@@ -199,6 +204,16 @@ func toolDefs() []any {
 		tool("knowledge_sync", "Sync docs",
 			"Update doc and doc_section nodes from the markdown files in ./docs (no AI). Call after creating, editing or deleting docs.",
 			schema(map[string]any{}), false, false),
+		tool("knowledge_fetch", "Fetch web page",
+			"Download a web page, keep its main content as markdown in docs/external_sources/web (with uri and last_fetched) and sync it into the graph. Fetching a saved url again refreshes the same doc. Afterwards summarize it with knowledge_pending and knowledge_annotate.",
+			schema(map[string]any{"url": str("http(s) address of the page")}, "url"), false, false),
+		tool("knowledge_save_web", "Save web page content",
+			"Save web page content you already have (e.g. a page that needs JavaScript or a login) as a doc in docs/external_sources/web, then sync it. Pass the page's full content as markdown, not a summary. Saving the same uri again replaces that doc.",
+			schema(map[string]any{
+				"uri":      str("http(s) address the content came from"),
+				"title":    str("Page title (used when the markdown has no leading # heading)"),
+				"markdown": str("Page content as markdown"),
+			}, "uri", "markdown"), false, false),
 		tool("knowledge_pending", "Nodes needing summaries",
 			"Nodes flagged needs_summary (new or changed content), with their current text, so you can write summaries with knowledge_annotate. Human-written summaries are listed but should be left to the user.",
 			schema(map[string]any{"limit": num("Max nodes (default 20)")}), true, false),
@@ -231,6 +246,21 @@ func (s *Server) call(name string, raw json.RawMessage) (string, error) {
 		raw = []byte("{}")
 	}
 	var text string
+	if name == "knowledge_fetch" {
+		// Download before opening the database so it is not locked meanwhile.
+		var a struct {
+			URL string `json:"url"`
+		}
+		if err := json.Unmarshal(raw, &a); err != nil {
+			return "", fmt.Errorf("invalid arguments: %w", err)
+		}
+		page, err := s.Fetcher.Fetch(context.Background(), a.URL)
+		if err != nil {
+			return "", err
+		}
+		raw, _ = json.Marshal(map[string]string{"uri": page.URI, "title": page.Title, "markdown": page.Markdown})
+		name = "knowledge_save_web"
+	}
 	err := s.open(func(st *kb.Store) error {
 		var err error
 		text, err = s.run(st, name, raw)
@@ -251,6 +281,8 @@ func (s *Server) run(st *kb.Store, name string, raw json.RawMessage) (string, er
 		NeedsSummary bool    `json:"needs_summary"`
 		Summary      *string `json:"summary"`
 		Title        string  `json:"title"`
+		URI          string  `json:"uri"`
+		Markdown     string  `json:"markdown"`
 	}
 	if err := json.Unmarshal(raw, &a); err != nil {
 		return "", fmt.Errorf("invalid arguments: %w", err)
@@ -319,6 +351,25 @@ func (s *Server) run(st *kb.Store, name string, raw json.RawMessage) (string, er
 			return "", err
 		}
 		return toJSON(stats), nil
+
+	case "knowledge_save_web":
+		saved, err := kb.SaveWeb(st.Root, kb.WebPage{URI: a.URI, Title: a.Title, Markdown: a.Markdown})
+		if err != nil {
+			return "", err
+		}
+		rep, err := st.Sync()
+		if err != nil {
+			return "", err
+		}
+		doc, err := st.Get(saved.Loc)
+		if err != nil {
+			return "", err
+		}
+		pending, err := st.List(kb.Filter{Loc: saved.Loc, NeedsSummary: true})
+		if err != nil {
+			return "", err
+		}
+		return toJSON(map[string]any{"saved": saved, "doc": doc, "needs_summary": len(pending), "sync_errors": rep.Errors}), nil
 
 	case "knowledge_sync":
 		rep, err := st.Sync()

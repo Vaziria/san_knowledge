@@ -45,7 +45,7 @@ func disableSliceSeparator(cmd *cli.Command) {
 
 // boolFlagNames never take a value, so a "-" after them is positional.
 var boolFlagNames = map[string]bool{"json": true, "force": true, "no-open": true, "help": true, "h": true,
-	"version": true, "v": true, "no-ai": true, "dry-run": true, "needs-summary": true, "no-sync": true, "refresh": true}
+	"version": true, "v": true, "no-ai": true, "dry-run": true, "needs-summary": true, "no-sync": true, "refresh": true, "redo-ai": true}
 
 // stdinArgLast moves a positional "-" (read stdin) to the end. urfave/cli stops
 // parsing flags at "-", which would silently ignore e.g. "import - --json".
@@ -86,8 +86,9 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 	syncFlags := []cli.Flag{
 		&cli.BoolFlag{Name: "no-ai", Usage: "structural sync only; do not call the AI"},
 		&cli.BoolFlag{Name: "dry-run", Usage: "show what the AI would write without saving it"},
-		&cli.StringFlag{Name: "model", Value: "haiku", Usage: "Claude model for the AI step"},
+		&cli.StringFlag{Name: "model", Value: "sonnet", Usage: "Claude model for the AI step"},
 		&cli.IntFlag{Name: "parallel", Value: 3, Usage: "concurrent AI calls"},
+		&cli.BoolFlag{Name: "redo-ai", Usage: "rewrite every AI-written summary and keyword list (yours are kept)"},
 	}
 
 	return &cli.Command{
@@ -118,7 +119,7 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 					&cli.StringFlag{Name: "addr", Usage: "listen address", Value: "127.0.0.1:7474"},
 					&cli.BoolFlag{Name: "no-open", Usage: "do not open the browser"},
 					&cli.BoolFlag{Name: "no-sync", Usage: "do not sync ./docs on start"},
-					&cli.StringFlag{Name: "model", Value: "haiku", Usage: "Claude model for \"Summarize with AI\""},
+					&cli.StringFlag{Name: "model", Value: "sonnet", Usage: "Claude model for \"Summarize with AI\""},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					dir, err := dataDir(cmd.String("data"))

@@ -457,6 +457,21 @@ func TestRunAI(t *testing.T) {
 	if len(ai.calls) != 1 || ai.calls[0].Loc != "docs/bad.md" {
 		t.Fatalf("second run should only retry the failure: %+v", rep)
 	}
+
+	// Redo: AI summaries go pending again; the human one does not.
+	With(dir, func(s *Store) error {
+		if n, err := s.RedoAISummaries(); err != nil || n != 4 {
+			t.Fatalf("redo: %d %v", n, err)
+		}
+		if n, _ := s.Get("docs/ads.md#social"); n.NeedsSummary {
+			t.Fatal("human summary must not be redone")
+		}
+		return nil
+	})
+	ai.calls = nil
+	if rep, _ = RunAI(context.Background(), dir, ai, AIOptions{}); rep.Summarized != 4 {
+		t.Fatalf("redo run: %+v", rep)
+	}
 }
 
 func TestExplainAndSearch(t *testing.T) {

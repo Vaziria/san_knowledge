@@ -27,6 +27,7 @@ Using the tool (run from the repo root; data dir is auto-resolved):
 bin\knowledge.exe --help                      # command tree (urfave/cli v3)
 bin\knowledge.exe sync                        # track ./docs, then AI writes summaries/keywords/domains (claude -p)
 bin\knowledge.exe sync --no-ai | --dry-run    # structure only | preview AI output without saving
+bin\knowledge.exe sync --redo-ai              # rewrite all AI-written summaries (e.g. after a model change)
 bin\knowledge.exe fetch https://example.com/page   # save a web page into docs/external_sources/web, then sync
 bin\knowledge.exe fetch --refresh --no-ai    # fetch every saved web source again
 bin\knowledge.exe explain "which commands does the tool have"
@@ -76,7 +77,7 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 
 **AI step (`kb.RunAI`, `ai.go`).**
 - One `claude -p` call per doc that has pending nodes or no domain. It uses the user's Claude Code login, no API key.
-- Flags: `--json-schema` for structured output, `--tools ""`, `--strict-mcp-config` (so it can't call knowledge mcp back), `--no-session-persistence`. The working dir is the temp dir, so project CLAUDE.md and hooks stay out. Default model `haiku`.
+- Flags: `--json-schema` for structured output, `--tools ""`, `--strict-mcp-config` (so it can't call knowledge mcp back), `--no-session-persistence`. The working dir is the temp dir, so project CLAUDE.md and hooks stay out. Default model `sonnet` (`--model` to change). `sync --redo-ai` (`kb.RedoAISummaries`) flags every AI-written summary as pending so it is rewritten, e.g. after changing the model; human and frontmatter summaries are untouched.
 - The DB is opened only to build requests and to apply results, never during the call, so view/mcp/CLI keep working.
 - `IsHumanAuthor`: summaries written by anyone other than `sync`/`ai` (e.g. `user`, `frontmatter`) are never overwritten.
 - A failed doc stays pending and is retried on the next sync.

@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	graphdb "github.com/mstrYoda/goraphdb"
 )
 
 // AnnotateRequest is what the AI sees for one document.
@@ -64,7 +66,7 @@ type Annotator interface {
 // user's existing Claude Code login — no API key needed.
 type ClaudeCLI struct {
 	Command string        // default "claude"
-	Model   string        // default "haiku"
+	Model   string        // default "sonnet"
 	Timeout time.Duration // per document, default 4 minutes
 }
 
@@ -98,7 +100,7 @@ func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*Annotat
 		cmdName = "claude"
 	}
 	if model == "" {
-		model = "haiku"
+		model = "sonnet"
 	}
 	if timeout == 0 {
 		timeout = 4 * time.Minute
@@ -398,4 +400,29 @@ func (s *Store) applyResult(req *AnnotateRequest, res *AnnotateResult, rep *AIRe
 	rep.DomainsCreated = append(rep.DomainsCreated, created...)
 	mu.Unlock()
 	return nil
+}
+
+// RedoAISummaries flags every doc and section summarized by the AI as
+// needing a summary again, so the next AI step rewrites it (e.g. with a
+// better model). Human and frontmatter summaries are left alone.
+func (s *Store) RedoAISummaries() (int, error) {
+	nodes, err := s.List(Filter{})
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, node := range nodes {
+		if node.NodeType == TypeDomain || node.Author != AuthorAI || node.Summary == "" || node.NeedsSummary {
+			continue
+		}
+		gn, err := s.nodeByKey(node.Key)
+		if err != nil {
+			return n, err
+		}
+		if err := s.updateNode(gn, graphdb.Props{"needs_summary": true}); err != nil {
+			return n, err
+		}
+		n++
+	}
+	return n, nil
 }

@@ -63,15 +63,29 @@ func syncCmd(ctx context.Context, cmd *cli.Command, extra map[string]any) error 
 	}
 	w, asJSON := cmd.Root().Writer, cmd.Bool("json")
 
+	redo := cmd.Bool("redo-ai")
+	if redo && (cmd.Bool("no-ai") || cmd.Bool("dry-run")) {
+		return errors.New("--redo-ai needs the AI step: drop --no-ai / --dry-run")
+	}
 	var rep *kb.SyncReport
+	redone := 0
 	if err := kb.With(dir, func(s *kb.Store) error {
-		rep, err = s.Sync()
+		if rep, err = s.Sync(); err != nil {
+			return err
+		}
+		if redo {
+			redone, err = s.RedoAISummaries()
+			rep.NeedsSummary += redone
+		}
 		return err
 	}); err != nil {
 		return err
 	}
 	if !asJSON {
 		printSyncReport(w, rep)
+		if redo {
+			fmt.Fprintf(w, "redo: %d AI-written summaries will be rewritten\n", redone)
+		}
 	}
 
 	var aiRep *kb.AIReport

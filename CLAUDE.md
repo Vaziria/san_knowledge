@@ -119,6 +119,7 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - Node keys contain `/` and `#`, so the API takes them as `?key=` query params.
 - All content is rendered via `textContent`/`h()`, never `innerHTML`. `panel()` filters null children.
 - Node types use fixed palette slots 1–3 plus a shape; a dashed border means needs summary.
+- Communities: `/api/graph` also returns `communities` (key → number, 0 = largest) from `kb.Leiden` (`kb/community.go`, deterministic, modularity, `?resolution=`). By default nodes are coloured by community (slots 1–8, rest `--other`; shape still shows type) and the cose layout keeps intra-community edges short. "Community | Type" toggles colouring (`?color=`, localStorage); "Re-layout" reruns the layout. Saved positions use the `knowledge-graph-positions-v2` localStorage key.
 - URL params: `?q=` runs explain, `?theme=light|dark`, `#k=<key>` selects a node.
 - A web source's panel shows its `uri` as a link (http/https only) and `last_fetched`.
 - To check visuals, run `view --no-open --addr 127.0.0.1:<port>` and screenshot with headless Edge (`--screenshot`; minimum window width ~500px). Stop that test view by its PID, never `taskkill /IM knowledge.exe`, which also kills the user's own view and Claude Code's knowledge MCP server.

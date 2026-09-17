@@ -186,7 +186,7 @@ func TestViewAPI(t *testing.T) {
 		t.Fatalf("sync: %d %v", code, r)
 	}
 	_, g := call("GET", "/api/graph", nil)
-	if len(g["nodes"].([]any)) != 3 || len(g["links"].([]any)) != 2 {
+	if len(g["nodes"].([]any)) != 3 || len(g["links"].([]any)) != 2 || len(g["communities"].(map[string]any)) != 3 {
 		t.Fatalf("graph: %v", g)
 	}
 	code, n := call("GET", "/api/node?key="+key("docs/ads.md#rural-reach"), nil)

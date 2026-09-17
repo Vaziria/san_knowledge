@@ -111,8 +111,21 @@ func (h *api) schema(w http.ResponseWriter, _ *http.Request) {
 	})
 }
 
-func (h *api) graph(w http.ResponseWriter, _ *http.Request) {
-	h.do(w, func(s *kb.Store) (any, error) { return s.Export() })
+// graph returns all nodes and links, plus a Leiden community number per node
+// key (?resolution= tunes the community size, default 1).
+func (h *api) graph(w http.ResponseWriter, r *http.Request) {
+	resolution, _ := strconv.ParseFloat(r.URL.Query().Get("resolution"), 64)
+	h.do(w, func(s *kb.Store) (any, error) {
+		snap, err := s.Export()
+		if err != nil {
+			return nil, err
+		}
+		keys := make([]string, len(snap.Nodes))
+		for i, n := range snap.Nodes {
+			keys[i] = n.Key
+		}
+		return map[string]any{"nodes": snap.Nodes, "links": snap.Links, "communities": kb.Leiden(keys, snap.Links, resolution)}, nil
+	})
 }
 
 func (h *api) explain(w http.ResponseWriter, r *http.Request) {

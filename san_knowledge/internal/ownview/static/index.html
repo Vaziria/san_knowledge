@@ -38,6 +38,10 @@
     <span class="legend-note"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.5 2"/></svg> needs summary</span>
     <span class="legend-note"><svg width="22" height="8" viewBox="0 0 22 8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2" stroke-dasharray="1 3" stroke-linecap="round"/></svg> reference</span>
     <span class="legend-note"><svg width="22" height="8" viewBox="0 0 22 8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 3"/></svg> domain</span>
+    <div class="seg small" role="group" aria-label="Colour nodes by">
+      <button class="seg-btn" id="color-community" type="button" title="Colour by Leiden community">Community</button>
+      <button class="seg-btn" id="color-type" type="button" title="Colour by node type">Type</button>
+    </div>
     <label class="select-filter">
       <span>Domain</span>
       <select id="domain-select"><option value="">All domains</option></select>
@@ -46,7 +50,9 @@
       <span>Keyword</span>
       <select id="keyword-select"><option value="">All keywords</option></select>
     </label>
+    <button class="btn ghost" id="btn-layout" type="button" title="Arrange the graph again, grouped by community">Re-layout</button>
     <button class="btn ghost" id="btn-fit" type="button">Fit</button>
+    <div class="legend communities" id="communities" aria-label="Leiden communities (click to show or hide)" hidden></div>
     <button class="btn ghost" id="btn-clear" type="button" hidden>Clear highlight</button>
   </div>
 

@@ -15,6 +15,9 @@
   const state = {
     nodes: [], links: [], byKey: new Map(), degree: new Map(), domainsOf: new Map(),
     hiddenTypes: new Set(), keyword: '', domain: '',
+    // Leiden communities from /api/graph (0 = largest). Nodes are coloured by
+    // community by default; shape still shows the type.
+    communities: new Map(), hiddenCommunities: new Set(), colorBy: 'community',
     selected: null, explain: null, explainMarkdown: '', mode: 'graph', ai: false,
     sort: { col: 'title', dir: 1 },
   };
@@ -40,10 +43,16 @@
 
   const typeInfo = (t) => TYPES[t] || { slot: 0, shape: 'ellipse', label: t, base: 16 };
   const typeColor = (t) => (typeInfo(t).slot ? css('--s' + typeInfo(t).slot) : css('--other'));
+  // The eight palette slots go to the largest communities; the rest share --other.
+  const PALETTE = 8;
+  const communityOf = (key) => state.communities.get(key) ?? -1;
+  const communityColor = (c) => (c >= 0 && c < PALETTE ? css('--s' + (c + 1)) : css('--other'));
+  const nodeColor = (n) => (state.colorBy === 'community' ? communityColor(communityOf(n.key)) : typeColor(n.node_type));
   const titleOf = (key) => (state.byKey.get(key) || {}).title || key;
   const locOf = (n) => (n.loc ? (n.line_loc ? `${n.loc}:${n.line_loc}` : n.loc) : '');
 
-  function swatch(type, size = 12) {
+  // A type swatch is neutral when colour means community; pass color to override.
+  function swatch(type, size = 12, color) {
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
     svg.setAttribute('width', size); svg.setAttribute('height', size);
@@ -57,7 +66,7 @@
     } else {
       el = document.createElementNS(ns, 'circle'); el.setAttribute('cx', 6); el.setAttribute('cy', 6); el.setAttribute('r', 5.5);
     }
-    el.setAttribute('fill', typeColor(type));
+    el.setAttribute('fill', color || (state.colorBy === 'community' ? css('--ink-2') : typeColor(type)));
     svg.append(el);
     return svg;
   }
@@ -95,7 +104,7 @@
   }
 
   // ---------- positions persist per browser (convenience only) ----------
-  const POS_KEY = 'knowledge-graph-positions';
+  const POS_KEY = 'knowledge-graph-positions-v2'; // v2: community layout
   function loadPositions() {
     try { return JSON.parse(localStorage.getItem(POS_KEY) || '{}'); } catch { return {}; }
   }
@@ -109,10 +118,22 @@
   // ---------- graph ----------
   let cy = null;
 
+  // Force layout grouped by Leiden community: edges inside a community are
+  // short and stiff, edges between communities long and loose.
+  const sameCommunity = (edge) => edge.source().data('community') === edge.target().data('community');
   const COSE = {
-    name: 'cose', padding: 40, nodeRepulsion: () => 60000, idealEdgeLength: () => 70,
+    name: 'cose', padding: 40, nodeRepulsion: () => 60000,
+    idealEdgeLength: (edge) => (sameCommunity(edge) ? 55 : 190),
+    edgeElasticity: (edge) => (sameCommunity(edge) ? 80 : 600),
     nodeOverlap: 20, gravity: 1, numIter: 2500, componentSpacing: 80, nodeDimensionsIncludeLabels: true,
   };
+
+  function runFullLayout() {
+    const scale = Math.max(1, Math.sqrt(cy.nodes().length / 20));
+    const w = Math.max(cy.width(), 600) * scale, hgt = Math.max(cy.height(), 400) * scale;
+    cy.layout({ ...COSE, animate: false, randomize: true, boundingBox: { x1: 0, y1: 0, w, h: hgt } }).run();
+    savePositions();
+  }
 
   function graphStyle() {
     const surface = css('--surface'), ink = css('--ink'), ink2 = css('--ink-2');
@@ -150,8 +171,8 @@
   function nodeData(n) {
     const deg = state.degree.get(n.key) || 0, info = typeInfo(n.node_type);
     return {
-      id: n.key, label: n.title || n.key, type: n.node_type,
-      color: typeColor(n.node_type), shape: info.shape,
+      id: n.key, label: n.title || n.key, type: n.node_type, community: communityOf(n.key),
+      color: nodeColor(n), shape: info.shape,
       size: Math.round(info.base + Math.min(deg, 12) * 2),
     };
   }
@@ -180,10 +201,7 @@
     }
 
     if (fresh.length && fresh.length === state.nodes.length) {
-      const scale = Math.max(1, Math.sqrt(fresh.length / 20));
-      const w = Math.max(cy.width(), 600) * scale, hgt = Math.max(cy.height(), 400) * scale;
-      cy.layout({ ...COSE, animate: false, randomize: true, boundingBox: { x1: 0, y1: 0, w, h: hgt } }).run();
-      savePositions();
+      runFullLayout();
     } else if (fresh.length) {
       for (const n of fresh) {
         const el = cy.getElementById(n.key);
@@ -216,7 +234,7 @@
       if (!n) return;
       tip.replaceChildren(...[
         h('div', { class: 'tt-title', text: n.title || n.key }),
-        h('div', { class: 'tt-kind' }, swatch(n.node_type, 10), [typeInfo(n.node_type).label, locOf(n), n.needs_summary ? 'needs summary' : ''].filter(Boolean).join(' · ')),
+        h('div', { class: 'tt-kind' }, swatch(n.node_type, 10, nodeColor(n)), [typeInfo(n.node_type).label, communityLabel(communityOf(n.key)), locOf(n), n.needs_summary ? 'needs summary' : ''].filter(Boolean).join(' · ')),
         n.summary ? h('div', { class: 'tt-sum', text: n.summary }) : null,
       ].filter(Boolean));
       const p = ev.target.renderedPosition(), box = $('graph').getBoundingClientRect();
@@ -248,6 +266,7 @@
 
   function visible(n) {
     if (state.hiddenTypes.has(n.node_type)) return false;
+    if (state.hiddenCommunities.has(communityOf(n.key))) return false;
     if (state.keyword && !(n.keyword || []).includes(state.keyword)) return false;
     if (state.domain) {
       if (n.node_type === 'domain') return n.key === state.domain;
@@ -349,6 +368,12 @@
       },
     }, swatch(t), typeInfo(t).label, h('span', { class: 'n', text: counts[t] || 0 }))));
 
+    for (const [id, c] of [['color-community', 'community'], ['color-type', 'type']]) {
+      $(id).classList.toggle('active', state.colorBy === c);
+      $(id).setAttribute('aria-pressed', String(state.colorBy === c));
+    }
+    renderCommunityLegend();
+
     const domains = state.nodes.filter((n) => n.node_type === 'domain').sort((a, b) => a.title.localeCompare(b.title));
     const dsel = $('domain-select');
     dsel.replaceChildren(h('option', { value: '', text: 'All domains' }), ...domains.map((d) => h('option', { value: d.key, text: d.title })));
@@ -362,6 +387,49 @@
     state.keyword = ksel.value;
   }
 
+  // A community is named after its best-connected node, preferring domains, then docs.
+  function communityNames() {
+    const best = new Map();
+    for (const n of state.nodes) {
+      const c = communityOf(n.key), cur = best.get(c);
+      const score = (x) => [-TYPE_ORDER.indexOf(x.node_type), state.degree.get(x.key) || 0];
+      const [a, b] = score(n), [ca, cb] = cur ? score(cur) : [-Infinity, -Infinity];
+      if (!cur || a > ca || (a === ca && b > cb)) best.set(c, n);
+    }
+    return new Map([...best].map(([c, n]) => [c, n.title || n.key]));
+  }
+  const communityLabel = (c) => (c >= 0 ? `community ${c + 1}` : '');
+
+  function renderCommunityLegend() {
+    const box = $('communities');
+    box.hidden = state.colorBy !== 'community' || state.communities.size === 0;
+    if (box.hidden) return;
+    const counts = new Map();
+    for (const n of state.nodes) counts.set(communityOf(n.key), (counts.get(communityOf(n.key)) || 0) + 1);
+    const names = communityNames();
+    const ids = [...counts.keys()].sort((a, b) => a - b);
+    box.replaceChildren(...ids.map((c) => {
+      const hidden = state.hiddenCommunities.has(c);
+      return h('button', {
+        class: 'chip', type: 'button', 'aria-pressed': String(!hidden),
+        title: `${hidden ? 'Show' : 'Hide'} community ${c + 1}: ${names.get(c)}`,
+        onclick: () => {
+          if (hidden) state.hiddenCommunities.delete(c); else state.hiddenCommunities.add(c);
+          renderFilters(); applyFilters();
+        },
+      }, swatch('doc_section', 12, communityColor(c)), h('span', { class: 't', text: names.get(c) }), h('span', { class: 'n', text: counts.get(c) }));
+    }));
+  }
+
+  function setColorBy(mode) {
+    state.colorBy = mode;
+    try { localStorage.setItem('knowledge-graph-color', mode); } catch { /* ignore */ }
+    if (cy) cy.nodes().forEach((el) => { const n = state.byKey.get(el.id()); if (n) el.data('color', nodeColor(n)); });
+    renderFilters();
+    renderPanel();
+    if (state.mode === 'table') renderTable();
+  }
+
   // ---------- panel ----------
   // replaceChildren would print null/false as text, so drop empty slots.
   function panel(...children) { $('panel').replaceChildren(...children.flat().filter((c) => c != null && c !== false)); }
@@ -369,7 +437,7 @@
   function nodeRow(key, meta, onRemove) {
     const n = state.byKey.get(key) || { key, title: key, node_type: '' };
     return h('li', { class: 'conn' },
-      h('span', { style: 'padding-top:4px' }, swatch(n.node_type)),
+      h('span', { style: 'padding-top:4px' }, swatch(n.node_type, 12, nodeColor(n))),
       h('div', {},
         h('button', { class: 'link', type: 'button', text: n.title || key, onclick: () => select(key, true) }),
         meta ? h('span', { class: 'meta', text: meta }) : null,
@@ -431,7 +499,8 @@
 
     panel(
       h('div', { class: 'chips-row' },
-        h('span', { class: 'kind-badge' }, swatch(n.node_type), typeInfo(n.node_type).label),
+        h('span', { class: 'kind-badge' }, swatch(n.node_type, 12, nodeColor(n)), typeInfo(n.node_type).label),
+        communityOf(n.key) >= 0 ? h('span', { class: 'chip-static', style: 'padding-right:8px', text: communityLabel(communityOf(n.key)) }) : null,
         n.needs_summary ? h('span', { class: 'badge', text: 'needs summary' }) : null,
       ),
       h('h2', { text: n.title || n.key }),
@@ -497,7 +566,7 @@
         onclick: () => select(m.node.key, true),
         onkeydown: (ev) => { if (ev.key === 'Enter') select(m.node.key, true); },
       },
-        h('div', { class: 'r-head' }, swatch(m.node.node_type), m.node.title || m.node.key),
+        h('div', { class: 'r-head' }, swatch(m.node.node_type, 12, nodeColor(m.node)), m.node.title || m.node.key),
         m.node.loc ? h('div', { class: 'loc', text: locOf(m.node) }) : null,
         m.node.summary ? h('div', { class: 'r-sum', text: m.node.summary }) :
           m.excerpt ? h('div', { class: 'r-sum' }, h('em', { text: 'No summary yet: ' }), m.excerpt.slice(0, 220)) : null,
@@ -693,6 +762,8 @@
     state.nodes = data.nodes || [];
     state.links = data.links || [];
     state.byKey = new Map(state.nodes.map((n) => [n.key, n]));
+    state.communities = new Map(Object.entries(data.communities || {}));
+    state.hiddenCommunities.clear(); // community numbers can change after a sync
     state.degree = new Map();
     state.domainsOf = new Map();
     for (const l of state.links) {
@@ -718,7 +789,7 @@
     else document.documentElement.removeAttribute('data-theme');
     if (cy) {
       cy.style(graphStyle());
-      cy.nodes().forEach((el) => el.data('color', typeColor(el.data('type'))));
+      cy.nodes().forEach((el) => { const n = state.byKey.get(el.id()); if (n) el.data('color', nodeColor(n)); });
     }
     renderFilters();
     renderPanel();
@@ -734,6 +805,9 @@
   $('btn-ai').addEventListener('click', runAI);
   document.querySelector('[data-action="sync"]').addEventListener('click', runSync);
   $('btn-fit').addEventListener('click', () => fitVisible(true));
+  $('btn-layout').addEventListener('click', () => { if (cy) { runFullLayout(); fitVisible(false); } });
+  $('color-community').addEventListener('click', () => setColorBy('community'));
+  $('color-type').addEventListener('click', () => setColorBy('type'));
   $('btn-clear').addEventListener('click', clearExplain);
   $('mode-graph').addEventListener('click', () => setMode('graph'));
   $('mode-table').addEventListener('click', () => setMode('table'));
@@ -772,6 +846,9 @@
     let theme = params.get('theme');
     if (!theme) { try { theme = localStorage.getItem('knowledge-graph-theme'); } catch { /* ignore */ } }
     if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+    let color = params.get('color');
+    if (!color) { try { color = localStorage.getItem('knowledge-graph-color'); } catch { /* ignore */ } }
+    if (color === 'community' || color === 'type') state.colorBy = color;
     try {
       const schema = await api('GET', '/api/schema');
       state.ai = !!schema.ai;

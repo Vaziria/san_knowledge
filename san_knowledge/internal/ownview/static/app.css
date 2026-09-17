@@ -121,6 +121,10 @@ h1 { font-size: 15px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
 .chip[aria-pressed="false"] { color: var(--muted); }
 .chip[aria-pressed="false"] svg { opacity: 0.35; }
 .chip .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend.communities { flex: 1 1 100%; }
+.legend.communities .chip { max-width: 240px; }
+.legend.communities .chip .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seg.small .seg-btn { padding: 4px 8px; font-size: 12px; }
 .legend-note { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; }
 .select-filter { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; }
 .select-filter:first-of-type { margin-left: auto; }

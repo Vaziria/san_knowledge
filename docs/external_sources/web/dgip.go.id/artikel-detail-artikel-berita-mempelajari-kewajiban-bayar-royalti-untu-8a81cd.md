@@ -1,0 +1,23 @@
+---
+uri: https://www.dgip.go.id/artikel/detail-artikel-berita/mempelajari-kewajiban-bayar-royalti-untuk-bisnis-non-musik?kategori=liputan-humas
+last_fetched: 2026-09-17T10:44:54Z
+---
+# Direktorat Jenderal Kekayaan Intelektual - Kementerian Hukum R.I.
+
+Jakarta — Direktorat Jenderal Kekayaan Intelektual (DJKI) Kementerian Hukum menegaskan bahwa setiap pelaku usaha yang memutar musik di ruang publik termasuk restoran, kafe, toko, pusat kebugaran, dan hotel wajib membayar royalti kepada pencipta dan pemilik hak terkait. Hal ini berlaku meskipun pelaku usaha telah berlangganan layanan seperti Spotify, YouTube Premium, Apple Music, atau layanan streaming lainnya.
+
+Direktur Hak Cipta dan Desain Industri, Agung Damarsasongko menjelaskan bahwa langganan pribadi seperti Spotify dan YouTube Premium tidak mencakup hak pemutaran musik untuk tujuan komersial di ruang publik. “Layanan streaming bersifat personal. Ketika musik diperdengarkan kepada publik di ruang usaha, itu sudah masuk kategori penggunaan komersial, sehingga dibutuhkan lisensi tambahan melalui mekanisme yang sah,” jelas Agung pada 28 Juli 2025 di Kantor DJKI, Jakarta Selatan.
+
+Pembayaran royalti dilakukan melalui Lembaga Manajemen Kolektif Nasional (LMKN) sesuai amanat Undang-Undang Nomor 28 Tahun 2014 tentang Hak Cipta dan Peraturan Pemerintah Nomor 56 Tahun 2021 tentang Pengelolaan Royalti Hak Cipta Lagu dan/atau Musik. LMKN bertugas menghimpun dan mendistribusikan royalti kepada para pencipta dan pemilik hak terkait. Skema ini memastikan transparansi dan keadilan bagi seluruh pelaku industri musik, serta memudahkan pelaku usaha karena tidak perlu mengurus lisensi satu per satu dari setiap pencipta lagu. Hal ini memberikan keseimbangan agar pencipta atau pemilik hak terkait musik/lagu mendapatkan hak ekonominya serta pengguna merasa nyaman dalam berusaha atau menggunakan lagu. 
+
+Agung juga menanggapi kekhawatiran sebagian pelaku usaha yang menyatakan akan memblokir pemutaran lagu-lagu Indonesia demi menghindari pembayaran royalti. “Itu justru akan melemahkan ekosistem musik lokal dan tidak memberikan apresiasi kepada pencipta/pemegang hak cipta. Musik adalah bagian dari identitas budaya. Ketika pelaku usaha enggan memberikan apresiasi yang layak kepada pencipta lagu Indonesia, yang dirugikan bukan hanya seniman, tetapi juga konsumen dan iklim kreatif nasional secara keseluruhan,” tegasnya.
+
+Menanggapi alternatif lain seperti pemutaran musik instrumental bebas lisensi atau lagu dari luar negeri, Agung menyampaikan bahwa pelaku usaha tetap perlu berhati-hati. “Tidak semua musik instrumental bebas dari perlindungan hak cipta. Beberapa lagu yang diklaim 'no copyright' justru bisa menjerat pelaku usaha dalam pelanggaran apabila digunakan tanpa verifikasi sumber. Termasuk lagu luar negeri jika mereka dilindungi hak cipta, kewajiban royalti tetap berlaku,” katanya.
+
+Jika pelaku usaha tidak memiliki anggaran untuk membayar royalti musik, alternatif yang dapat dipilih adalah menggunakan musik bebas lisensi (royalty-free) atau musik dengan lisensi Creative Commons yang memperbolehkan penggunaan komersial, memutar musik ciptaan sendiri, menggunakan suara alam/ambience, atau bekerja sama langsung dengan musisi independen yang bersedia memberikan izin tanpa biaya.
+
+Mengenai skema pembayaran, pelaku usaha dapat mendaftarkan usahanya melalui sistem digital LMKN dan membayar royalti sesuai klasifikasi usaha dan luas ruang pemutaran musik. Di beberapa negara seperti Amerika Serikat, Jepang, Inggris, dan Korea Selatan, sistem serupa sudah diberlakukan sejak lama. “Namun tujuan Indonesia bukan untuk menambah pemasukan negara, melainkan memberikan kepastian hukum serta memastikan bahwa pelaku industri kreatif mendapatkan hak ekonominya secara adil,” jelas Agung.
+
+DJKI juga memastikan bahwa usaha mikro, kecil, dan menengah (UMKM) tidak dipukul rata. Terdapat mekanisme keringanan atau pembebasan tarif royalti sesuai ketentuan yang diatur oleh LMKN, berdasarkan ukuran ruang usaha, kapasitas pengunjung, serta tingkat pemanfaatan musik dalam operasional harian. “Kami mengimbau pelaku UMKM untuk mengajukan permohonan keringanan secara resmi agar mendapatkan perlindungan hukum sekaligus mendukung ekosistem musik nasional,” tambahnya.
+
+Terakhir, Agung mengingatkan bahwa pelanggaran terhadap kewajiban pembayaran royalti dapat dikenakan sanksi hukum, namun sesuai pasal 95 ayat 4 UU Hak Cipta untuk melakukan mediasi terlebih dahulu. “Pelindungan hak cipta bukan semata soal kewajiban hukum, tapi bentuk penghargaan nyata terhadap kerja keras para pencipta yang memberi nilai tambah pada pengalaman usaha Anda,” tutupnya.

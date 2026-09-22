@@ -10,18 +10,19 @@ Marketing research scoped to the **Indonesian market**, plus `knowledge`, a Go t
 
 ## Commands
 
-All Go work happens in `san_knowledge/` (module name `san_knowledge`, Go 1.25, Windows/PowerShell environment).
+All Go work happens in `san_knowledge/` (module name `san_knowledge`, Go 1.25). Both build scripts produce `bin/knowledge.exe` (Windows) and `bin/knowledge` (Linux); use the one for the current OS.
 
 ```powershell
-pwsh san_knowledge/build.ps1                  # go vet + go test + build bin/knowledge.exe (stamps main.version)
+pwsh san_knowledge/build.ps1                  # go vet + go test + build both binaries (stamps main.version)
+bash san_knowledge/build.sh                   # same, from Linux
 cd san_knowledge; go test ./...               # all tests
 go test ./internal/kb -run TestSyncLifecycle -v   # single test
 go test ./cmd/knowledge -run TestMCP -v
 ```
 
-Rebuild `bin/knowledge.exe` after any change. The MCP server and the UI run from that binary, and Windows can't overwrite it while a `view` or `mcp` process is still running.
+Rebuild after any change. The MCP server and the UI run from the binary (`.mcp.json` points at `bin/knowledge`, the Linux one), and Windows can't overwrite it while a `view` or `mcp` process is still running.
 
-Using the tool (run from the repo root; data dir is auto-resolved):
+Using the tool (run from the repo root; data dir is auto-resolved; on Linux use `bin/knowledge`):
 
 ```powershell
 bin\knowledge.exe --help                      # command tree (urfave/cli v3)

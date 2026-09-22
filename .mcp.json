@@ -2,7 +2,7 @@
   "mcpServers": {
     "knowledge": {
       "type": "stdio",
-      "command": "bin/knowledge.exe",
+      "command": "bin/knowledge",
       "args": ["mcp"]
     }
   }

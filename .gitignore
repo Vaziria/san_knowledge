@@ -1,4 +1,5 @@
-# Build output (rebuild with san_knowledge/build.ps1)
+# Build output (rebuild with san_knowledge/build.sh or build.ps1)
+bin/knowledge
 bin/*.exe
 bin/*.exe~
 

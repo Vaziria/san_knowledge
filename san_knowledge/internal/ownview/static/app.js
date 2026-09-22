@@ -192,7 +192,10 @@
     if (!cy) {
       cy = cytoscape({
         container: $('graph'), elements, style: graphStyle(),
-        minZoom: 0.1, maxZoom: 3, wheelSensitivity: 0.25, boxSelectionEnabled: false,
+        minZoom: 0.1, maxZoom: 3, boxSelectionEnabled: false,
+        // Redraw the whole graph (outlined labels, dashed/dotted beziers) only when
+        // the viewport settles; during pan/zoom a cached bitmap is scaled instead.
+        textureOnViewport: true,
       });
       bindGraphEvents();
     } else {

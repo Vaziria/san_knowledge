@@ -264,6 +264,29 @@ does not compile on Windows.
 Four things that cost real time and are invisible until they bite. All four are
 covered by tests in `internal/agent`.
 
+### A race in gliderlabs
+
+`gliderlabs/ssh` v0.3.8 has a data race on the pty, found by `go test -race`
+in CI rather than locally — the Windows runs never happened to interleave.
+
+`Session.Pty()` copies `*sess.pty` (`session.go:212`). The request loop writes
+`sess.pty.Window = win` when a `window-change` arrives (`session.go:352`). The
+session handler runs in a goroutine that loop spawns at `session.go:261` while
+it keeps processing requests, so a resize arriving before the handler has read
+the pty races it.
+
+Nothing on our side can fix this: `sess.pty` is unexported, and calling
+`Session.Pty()` from the handler is the only API there is. In practice the
+damage is small — a torn `Window` means one resize read with a stale width or
+height, corrected by the next one — but it is a real race and `-race` fails
+whenever it lands.
+
+`TestPTYResize` now waits for shell output before resizing, which proves the
+handler's read already happened. That makes the test deterministic without
+pretending the bug is gone; it is a real exposure for a client that resizes
+the instant a session opens. A genuine fix means patching upstream and
+carrying a `replace`, which is a bigger decision than this note.
+
 **gliderlabs does not initialise handler maps on the `HandleConn` path.**
 `ChannelHandlers`, `RequestHandlers` and `SubsystemHandlers` are filled from
 the package defaults in `ensureHandlers()`, which runs from `Serve()` — and we
@@ -442,6 +465,19 @@ having no `HostKeyAlias` of their own. Those are **printed, not written**, for
 the reason the ssh config block is: the hosts file is not ours, and it is worse
 than `~/.ssh/config` on both counts -- it needs administrator rights and it is
 shared with every process on the machine.
+
+**Those two uses have a usability trap between them.** `connect` prints the
+alias as part of an `ssh` command line, where it reads like a hostname, but in
+that position it is a `HostKeyAlias` and resolves nowhere. Someone who takes it
+for a hostname and runs `ssh dev.tunnels.internal` gets a DNS failure, before
+any code here runs — so nothing in the tool is in a position to explain it, and
+the explanation lives in `client hosts`, which you would have to already know
+to run.
+
+The fix is not to make the alias resolve. It is to notice the shape: `proxy`
+and `check` can strip a `.tunnels.internal` suffix from an argument and point
+at `ssh <name>`, and the DNS failure itself can be pre-empted by saying in
+`connect`'s output that the alias is bookkeeping. Not built yet.
 
 ### `client proxy` owns stdout
 

@@ -29,8 +29,11 @@ golang/packages/san_tunnels/
   gen/                                 buf output (protoc-gen-go, -connect-go)
   cmd/san_tunnels/main.go              urfave/cli v3 tree
   internal/streamconn/                 net.Conn over stream callbacks
-  internal/wsconn/                     net.Conn over a WebSocket, framing convention
+  internal/wsconn/ wsconn.go           net.Conn over a WebSocket, framing convention
+                   keepalive.go        pings, from both ends
+  internal/invite/                     the registration blob, spoken by both sides
   internal/agent/  keys.go             host key, our own authorized_keys
+                   tlskey.go           self-signed certificate, generated once
                    sshd.go             embedded SSH server, PTY, exec
                    service.go          Resolve + Handle, allowlist, Forward/Ping
                    ws.go               WebSocket door, duplex echo probe
@@ -38,6 +41,9 @@ golang/packages/san_tunnels/
   internal/client/ client.go           Target, Transport, Open dispatch
                    ws.go               WebSocket dial, HTTP/1.1 transport, checkWS
                    proxy.go            stdio bridge, Check
+                   connect.go          local listener, HostAlias, splice
+                   trust.go            fingerprint pinning, trust on first use
+                   probe.go            read a certificate to show it
                    config.go           agent name resolution, ssh config block
   build.sh / build.ps1                 vet, test, build both binaries
 ```
@@ -46,7 +52,9 @@ Built and verified end to end against the real OpenSSH client, **over both
 transports**: exec, exit-code propagation, interactive PTY with resize,
 host-key pinning, unauthorized-key rejection, token enforcement, TCP endpoint
 forwarding, half-close propagation, and HTTP/1.1 rejection on the Connect
-door alongside HTTP/1.1 acceptance on the WebSocket one.
+door alongside HTTP/1.1 acceptance on the WebSocket one. The registration
+path is verified the same way: `init`, `invite`, `add --from`, `check`, then
+a real `ssh` session over what that produced.
 
 It is a git submodule as item 3 describes, tracking
 `https://github.com/wargasipil/san_tunnels.git` on `main`.
@@ -322,24 +330,118 @@ rather than a code change: the name resolves to the hub instead of the target.
 
 ```
 san_tunnels server                     run the agent (default action)
+san_tunnels server init                generate host key, certificate and token
+san_tunnels server invite --url <url>  print a registration token for an entry host
 san_tunnels server authorize <pubkey>  append to our authorized_keys
 san_tunnels server hostkey             print the SSH host key fingerprint
 san_tunnels server fingerprint         print the SSH and TLS fingerprints to pin
 san_tunnels server endpoints           list the allowlist
 
+san_tunnels client add <name> [url]    register an agent; --from <invite>
 san_tunnels client proxy <name>        ProxyCommand: stdio <-> tunnel
+san_tunnels client connect <name>      bind a local port onto an endpoint
 san_tunnels client config <name>       print the ~/.ssh/config block
 san_tunnels client check <name>        preflight probe
-san_tunnels client list                configured agents, with transport
+san_tunnels client list                configured agents, with transport and port
+san_tunnels client hosts               print hosts-file lines for the local names
 ```
 
 Flags worth fixing now:
 
-- `server`: `--listen`, `--tls-cert` / `--tls-key` (or `--h2c` for cleartext
-  behind an L4 proxy), `--token-file`, `--authorized-keys`, `--host-key`,
-  `--shell`, `--endpoint`, `--ws-origin`.
+- `server`: `--listen`, `--tls-auto` / `--tls-host` (or `--tls-cert` /
+  `--tls-key` for your own, or `--h2c` for cleartext behind an L4 proxy),
+  `--token-file`, `--authorized-keys`, `--host-key`, `--shell`, `--endpoint`,
+  `--ws-origin`.
 - `client`: `--config`, `--token`, `--endpoint` (default `shell`),
-  `--transport` (`connect` or `ws`), `--insecure` for dev only.
+  `--transport` (`connect` or `ws`), `--tls-fingerprint`, `--listen` and
+  `--port` for `connect`, `--insecure` for dev only.
+
+## Registration.
+
+Setting an entry host up by hand means copying a URL, a token and a
+certificate fingerprint without mistyping any of them. The fingerprint is the
+one people skip, and it is the one that closes the trust-on-first-use window,
+so the manual path quietly trades away the property the pinning was for.
+
+```
+# on the target
+san_tunnels server init
+san_tunnels server authorize "$(cat ~/.ssh/id_ed25519.pub)"
+san_tunnels server invite --url https://box-01.example:8443
+  -> san1_eyJ1cmwiOiJodHRwczovL2JveC0wMS5leGFtcGxlOjg0NDMi...
+
+# on the entry host
+san_tunnels client add box-01 --from san1_eyJ1cmwiOi...
+```
+
+**`server init` generates the token.** The host key and the certificate were
+already created on first run; the token was the one thing that had to be
+invented, which is why the overwhelmingly common deployment had none at all --
+and with no token every allowlisted TCP endpoint is reachable by anyone who
+can dial the port, because only `shell` has SSH behind it. Generating 32 bytes
+of CSPRNG output by default inverts the failure: the token now has to be
+removed on purpose. An existing one is never replaced without `--force`, since
+that locks out every client already holding it.
+
+**The invite is a secret.** It carries the token, so it is shaped like one:
+the `san1_` prefix exists for the same reason GitHub's `ghp_` does, so secret
+scanners and pre-commit hooks can recognise it on sight. It goes to stdout and
+its guidance to stderr, so piping yields just the blob.
+
+**What it buys is the fingerprint arriving out of band.** `client add --from`
+pins the certificate before the first connection, so there is no first-use
+window to eyeball. Without an invite, `client add` falls back to reading the
+certificate off the connection and pinning that -- which proves nothing by
+itself, since it came from the very connection it is meant to authenticate, so
+the output says so and names `server fingerprint` to compare against.
+
+`client add` takes flags for scripting and prompts only when a value is
+missing **and** stdin is a terminal; otherwise it errors. A script that hangs
+waiting for input nobody is there to give is worse than one that fails, and
+`term.IsTerminal` rather than a `ModeCharDevice` check, because on Windows
+`NUL` is itself a character device and redirecting from `/dev/null` would
+otherwise look like a terminal.
+
+## Local ports.
+
+`client connect` binds a loopback port and gives each accepted connection its
+own tunnel. It is the counterpart to `proxy`, not a replacement:
+
+|                          | `proxy` (ProxyCommand) | `connect` (local port) |
+|---|---|---|
+| Opens a port on the entry host | no | yes, loopback only |
+| `known_hosts` identity   | the real agent name    | needs `HostKeyAlias` |
+| Lifetime                 | exactly the ssh session | until Ctrl-C |
+| GUI clients, TCP tools   | cannot use it          | the only way |
+
+The last row is why it exists. The allowlisted TCP endpoints had no usable
+client path at all before it: `proxy --endpoint postgres` writes the stream to
+stdout, and `psql` cannot be pointed at stdout. Neither can PuTTY, WinSCP or a
+database GUI run a ProxyCommand.
+
+**Loopback, and a free port, by default.** Binding anything but loopback would
+turn the entry host into an unauthenticated gateway to the target for the
+whole network. A configured `"port"` in the client config pins it, and is then
+bound exactly or not at all -- never quietly moved to a free one, because ssh
+records the port in `known_hosts`, so drifting reads as the host key having
+changed, and a warning people learn to wave through is worse than a collision.
+
+**`<name>.tunnels.internal`** is the local name for an agent. ICANN reserved
+`.internal` for private use in 2024, so it can never be delegated out from
+under us -- unlike an invented TLD, which is only safe until it is not: `.dev`
+and `.zip` were both that bet, and `.dev` arriving with enforced HSTS broke a
+great many local setups overnight. `.localhost` would resolve for free under
+systemd-resolved, but not on Windows or macOS, and behaving the same on all
+three is worth more than a partial freebie.
+
+The name is used two ways. As ssh's `HostKeyAlias` it is pure bookkeeping and
+needs no resolution at all, which is what `connect` prints: every agent gets
+its own `known_hosts` entry however the port moves. As a real hostname it needs
+the hosts-file lines `client hosts` prints, which is what GUI clients need,
+having no `HostKeyAlias` of their own. Those are **printed, not written**, for
+the reason the ssh config block is: the hosts file is not ours, and it is worse
+than `~/.ssh/config` on both counts -- it needs administrator rights and it is
+shared with every process on the machine.
 
 ### `client proxy` owns stdout
 

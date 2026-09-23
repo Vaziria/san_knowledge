@@ -1,0 +1,8 @@
+# Downloaded by setup.ps1: native runtime (~26 MB) and models (~40 MB each).
+libvosk.dll
+models/
+transcript.exe
+
+# Vendored so the binding's cgo paths resolve locally; setup.ps1 recreates it
+# and drops vosk_api.h into vendor/github.com/alphacep/vosk-api/src.
+vendor/

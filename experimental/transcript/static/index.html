@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transcript</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="row">
+    <button id="toggle" class="primary">Start</button>
+    <label>Model
+      <select id="model"></select>
+    </label>
+    <span id="meter"><i></i></span>
+    <span class="spacer"></span>
+    <button id="clear">Clear</button>
+    <button id="copy">Copy</button>
+  </div>
+  <div class="row">
+    <label class="grow">Grammar
+      <input id="grammar" type="text" autocomplete="off"
+             placeholder="optional: comma-separated phrases, e.g. sync sekarang, buka dokumen, stop">
+    </label>
+  </div>
+</header>
+
+<div id="banner" hidden></div>
+
+<main id="transcript">
+  <p class="hint">Press Start and speak. Grey text is Vosk's running guess; it
+    turns solid when Vosk decides the utterance ended.</p>
+</main>
+
+<footer>
+  <span id="status">idle</span>
+  <span class="spacer"></span>
+  <span id="stats"></span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

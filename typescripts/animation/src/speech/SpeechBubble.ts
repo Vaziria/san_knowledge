@@ -187,7 +187,7 @@ export class SpeechBubble extends THREE.Group {
     const { canvas, tip } = draw(wrap(words), this.fill, this.ink);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
-    const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false });
+    const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false, fog: false }); // words never fade in fog
     this.sprite = new THREE.Sprite(material);
     this.sprite.center.set(0.5, tip); // the tail's tip sits at the origin
     this.sprite.layers.set(OVERLAY_LAYER);

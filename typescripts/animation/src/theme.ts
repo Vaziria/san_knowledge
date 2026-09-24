@@ -16,6 +16,7 @@ export interface Theme {
     ground: Color; // hemisphere light bounced off the floor
     water: Color; // a lake's surface; the lakebed fades toward it with depth
     grass: Color; // a lawn's blades (the ground between them is a shade darker), and any foliage, such as leaves
+    flower: Color; // blossoms, such as a chive's flower heads; must stand out from grass
     stone: Color; // rocks lying about, such as on a lakeside; must stand out from the floor
     light: Color; // key (sun) light
     ambientIntensity: number;
@@ -30,6 +31,7 @@ export interface Theme {
     marker: Color; // indicators on knobs and wheels; must contrast with accent
     metal: Color; // metal parts: plates, pedals
     wood: Color; // bare or varnished wood: planks, benches, a rudder; a natural material like metal
+    fur: Color; // an animal's coat; each animal mixes it with trim, light and dark into its own (a fox toward trim, a wolf toward grey)
     accent: Color; // every control (knobs, pads): the brand's accent, or the complement if it has none
   };
   finish: {
@@ -52,6 +54,7 @@ export const pastel: Theme = {
     ground: 0xf2c6d6,
     water: 0xe6adc4, // a step deeper than ground, same pink
     grass: 0xeecbd9, // a pink lawn between floor and ground; mint stays for controls
+    flower: 0xc9a3dc, // lilac, toward the dark purple, deeper than the pink lawn
     stone: 0xcfa9ba, // a greyed pink, a step below ground
     light: 0xfff4ec,
     ambientIntensity: 1.2,
@@ -66,6 +69,7 @@ export const pastel: Theme = {
     marker: 0x2b2233,
     metal: 0xe8c26a,
     wood: 0xebcfa8, // pale maple, beside the gold metal
+    fur: 0xd9b39a, // a warm tan, deeper than the pale maple
     accent: 0x8ee3c8, // mint, opposite pink
   },
   finish: { roughness: 0.45, clearcoat: 1, clearcoatRoughness: 0.15 },
@@ -80,6 +84,7 @@ export const studio: Theme = {
     ground: 0x333333,
     water: 0x202329, // a cool dark grey, a step below the floor
     grass: 0x323533, // a dark grey lawn, a step above the floor
+    flower: 0x8d8894, // a light grey with a touch of violet, above the dark lawn
     stone: 0x4a4a4e, // mid grey, lighter than the floor so rocks show
     light: 0xffffff,
     ambientIntensity: 0.8,
@@ -94,6 +99,7 @@ export const studio: Theme = {
     marker: 0xffffff,
     metal: 0xb08d3c,
     wood: 0x6b4a33, // dark walnut
+    fur: 0x7a5a44, // a dark brown, a shade warmer than the walnut
     accent: 0xff5a1f,
   },
   finish: { roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.1 },
@@ -121,6 +127,7 @@ export const purple: Theme = {
     ground: violet[200],
     water: violet[200],
     grass: violet[200],
+    flower: violet[400],
     stone: 0xa597c9, // a greyed violet between 200 and 400
     light: 0xfbf8ff,
     ambientIntensity: 1.1,
@@ -135,6 +142,7 @@ export const purple: Theme = {
     marker: violet[900],
     metal: 0xe0c068,
     wood: 0xd4ae78, // honey, beside the gold metal and the yellow accent
+    fur: 0xa9876a, // a muted brown, natural like the honey wood
     accent: 0xffc94d, // yellow, opposite violet
   },
   finish: { roughness: 0.45, clearcoat: 1, clearcoatRoughness: 0.15 },
@@ -163,6 +171,7 @@ export const getresolved: Theme = {
     ground: 0xe8edf3, // --line
     water: 0xc5cee1, // slate 300 #CBD5E1 with 5% indigo, the most tint the brand allows
     grass: 0xe2e8f0, // slate 200: green is only for controls, so a neutral lawn
+    flower: 0x919eba, // slate 400 with 5% indigo, the most tint the brand allows; darker than the lawn
     stone: 0x94a3b8, // slate 400 (dark --muted), a neutral grey
     light: 0xffffff,
     ambientIntensity: 1.1,
@@ -177,6 +186,7 @@ export const getresolved: Theme = {
     marker: brand.ink, // on green; white on green is too faint
     metal: brand.slate,
     wood: 0xcbd5e1, // slate 300: the brand has no brown, so weathered grey wood, neutral like its surfaces
+    fur: 0x7c8aa0, // between slate 400 and 500: no brown in the brand, so grey fur
     accent: brand.green, // --accent, the resolve point
   },
   // Clean and modern, no heavy gloss: the brand forbids added effects.
@@ -193,6 +203,7 @@ export const getresolvedDark: Theme = {
     ground: 0x18223c, // dark --surface-2
     water: 0x22304d, // dark --line
     grass: 0x18223c, // dark --surface-2, a neutral lawn as in the light theme
+    flower: 0x919eba, // as in the light theme, lighter than the dark lawn
     stone: 0x475569, // slate 600 (--muted text), a neutral grey above the dark floor
     light: 0xffffff,
     ambientIntensity: 0.9,
@@ -207,6 +218,7 @@ export const getresolvedDark: Theme = {
     marker: brand.ink,
     metal: 0x94a3b8, // dark --muted
     wood: brand.slate, // weathered grey wood, as in the light theme
+    fur: 0x94a3b8, // slate 400, grey fur lighter than the dark floor
     accent: brand.greenLight, // dark --accent
   },
   finish: { roughness: 0.5, clearcoat: 0.4, clearcoatRoughness: 0.3 },
@@ -223,6 +235,7 @@ export const felt: Theme = {
     ground: 0x9d9893,
     water: 0x93a4ab, // muted grey-blue, a natural lake in felt
     grass: 0x7c8f5a, // muted sage green, natural grass in felt
+    flower: 0xa98bbd, // muted lilac felt, like chive flowers
     stone: 0x8f8a85, // warm grey stone, darker than the floor
     light: 0xfff6ee,
     ambientIntensity: 1.2,
@@ -237,6 +250,7 @@ export const felt: Theme = {
     marker: 0xf2efe8,
     metal: 0x9a9a9a,
     wood: 0xb07d4f, // natural wood
+    fur: 0x9a6b45, // warm brown felt, a natural coat
     accent: 0xf08a1c,
   },
   finish: {

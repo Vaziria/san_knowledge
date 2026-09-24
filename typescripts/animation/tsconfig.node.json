@@ -15,5 +15,5 @@
     "noFallthroughCasesInSwitch": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["vite.config.ts", "osc-bridge.ts", "osc-send.ts"]
+  "include": ["vite.config.ts", "osc-bridge.ts", "osc-send.ts", "stream-bridge.ts"]
 }

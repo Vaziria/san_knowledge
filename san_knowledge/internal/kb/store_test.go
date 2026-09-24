@@ -200,6 +200,69 @@ func TestSyncReferences(t *testing.T) {
 	}
 }
 
+// writeFile writes a file relative to the project root (writeDoc writes into docs/).
+func writeFile(t *testing.T, root, name, body string) {
+	t.Helper()
+	p := filepath.Join(root, filepath.FromSlash(name))
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSyncTrackedFolders(t *testing.T) {
+	s, dir := project(t, map[string]string{
+		"rules.md": "# Rules\nSee the [fish spec](../app/src/Fish/Fish.md#behaviour).",
+	})
+	writeFile(t, s.Root, "app/src/Fish/Fish.md", "# Fish Figure.\n## Behaviour\nSwims.")
+	writeFile(t, s.Root, "app/node_modules/pkg/README.md", "# A package\ntext")
+	writeFile(t, s.Root, "app/.vite/cache.md", "# Cache\ntext")
+	writeFile(t, s.Root, "other/notes.md", "# Not tracked\ntext")
+
+	// Without a config only docs/ is tracked.
+	if locs, err := s.ScanDocs(); err != nil || len(locs) != 1 || locs[0] != "docs/rules.md" {
+		t.Fatalf("docs only: %v %v", locs, err)
+	}
+
+	writeFile(t, s.Root, "knowledge_data/"+ConfigFile, `{"track": ["app", "./app/", "docs"]}`)
+	if dirs, err := TrackedDirs(dir); err != nil || strings.Join(dirs, ",") != "docs,app" {
+		t.Fatalf("tracked dirs: %v %v", dirs, err)
+	}
+	r, err := s.Sync()
+	if err != nil || len(r.Errors) > 0 {
+		t.Fatalf("sync: %v %+v", err, r)
+	}
+	if got := strings.Join(r.DocsAdded, ","); got != "app/src/Fish/Fish.md,docs/rules.md" {
+		t.Fatalf("docs added (packages and hidden folders skipped): %s", got)
+	}
+	if _, err := s.Get("app/src/Fish/Fish.md#behaviour"); err != nil {
+		t.Fatalf("section of a tracked folder's doc: %v", err)
+	}
+	out, _, _ := s.Links("docs/rules.md")
+	if len(out) != 1 || out[0].Rel != RelReference || out[0].To != "app/src/Fish/Fish.md#behaviour" {
+		t.Fatalf("reference from docs/ into a tracked folder: %+v", out)
+	}
+
+	// Dropping the folder from the config removes its docs on the next sync.
+	writeFile(t, s.Root, "knowledge_data/"+ConfigFile, `{"track": []}`)
+	if r, _ := s.Sync(); len(r.DocsRemoved) != 1 || r.DocsRemoved[0] != "app/src/Fish/Fish.md" {
+		t.Fatalf("untracked folder: %+v", r)
+	}
+
+	// A broken config or a folder outside the project fails instead of deleting docs.
+	for _, bad := range []string{`{"track": [`, `{"track": ["../elsewhere"]}`, `{"track": [""]}`} {
+		writeFile(t, s.Root, "knowledge_data/"+ConfigFile, bad)
+		if _, err := s.Sync(); err == nil {
+			t.Fatalf("config %s accepted", bad)
+		}
+	}
+	if _, err := s.Get("docs/rules.md"); err != nil {
+		t.Fatalf("docs kept after a failed sync: %v", err)
+	}
+}
+
 func TestNormalizeKeyword(t *testing.T) {
 	got := NormalizeKeyword([]string{"CLI-Tool", "cli tool", " graph_database , Graph  Database", ""})
 	if strings.Join(got, "|") != "cli tool|graph database" {

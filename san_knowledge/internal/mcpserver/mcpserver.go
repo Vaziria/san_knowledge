@@ -1,7 +1,8 @@
 // Package mcpserver exposes the knowledge graph to AI chat sessions over the
 // Model Context Protocol (JSON-RPC 2.0, newline-delimited on stdio).
 //
-// Docs and sections are managed by sync from ./docs, so there are no tools to
+// Docs and sections are managed by sync from the tracked folders (./docs and
+// the "track" list in knowledge_data/config.json), so there are no tools to
 // create or delete them: a session reads the graph, writes summaries and
 // keywords, and manages domains.
 package mcpserver
@@ -43,9 +44,9 @@ func New(open Opener, author, version string) *Server {
 var supportedVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 
 const instructions = `Knowledge graph of this project, shared between the user and AI.
-Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs, key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section), reference (doc/section -> doc/section it links to with a markdown link).
+Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs or in a folder listed under "track" in knowledge_data/config.json, such as the figure specs in typescripts/animation; key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section), reference (doc/section -> doc/section it links to with a markdown link).
 Before answering questions about the project's research or docs, call knowledge_explain to load context and cite the loc (file:line).
-Docs and sections come from the files: after editing files in ./docs call knowledge_sync. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.
+Docs and sections come from the files: after editing tracked markdown files call knowledge_sync. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.
 To keep a web page as knowledge, call knowledge_fetch with its url; if that fails or the page needs JavaScript or a login, read the page yourself and call knowledge_save_web with its full content as markdown. Web sources live in docs/external_sources/web and carry uri and last_fetched.`
 
 type request struct {
@@ -202,7 +203,7 @@ func toolDefs() []any {
 			"Counts of nodes and edges by type, keywords, nodes needing summaries and docs without a domain.",
 			schema(map[string]any{}), true, false),
 		tool("knowledge_sync", "Sync docs",
-			"Update doc and doc_section nodes from the markdown files in ./docs (no AI). Call after creating, editing or deleting docs.",
+			"Update doc and doc_section nodes from the markdown files in ./docs and the other tracked folders (knowledge_data/config.json) (no AI). Call after creating, editing or deleting docs.",
 			schema(map[string]any{}), false, false),
 		tool("knowledge_fetch", "Fetch web page",
 			"Download a web page, keep its main content as markdown in docs/external_sources/web (with uri and last_fetched) and sync it into the graph. Fetching a saved url again refreshes the same doc. Afterwards summarize it with knowledge_pending and knowledge_annotate.",

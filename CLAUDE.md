@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Marketing research scoped to the **Indonesian market**, plus `knowledge`, a Go tool that turns the project's documents into a knowledge graph so the user and AI can collaborate. Research write-ups are markdown; files under `docs/` are tracked in the graph (`knowledge_data/`).
+Marketing research scoped to the **Indonesian market**, plus `knowledge`, a Go tool that turns the project's documents into a knowledge graph so the user and AI can collaborate. Research write-ups are markdown; files under `docs/`, and the folders listed in `knowledge_data/config.json` (the figure specs in `typescripts/animation`), are tracked in the graph (`knowledge_data/`).
 
 `docs/knowledge.md` is the user's spec for the tool. **Do not edit it.** It says "AI Supposed Not Edit This File". Implement what it says instead; when it changes, re-read it and bring the code in line.
 
@@ -20,13 +20,13 @@ go test ./internal/kb -run TestSyncLifecycle -v   # single test
 go test ./cmd/knowledge -run TestMCP -v
 ```
 
-Rebuild after any change. The MCP server and the UI run from the binary (`.mcp.json` points at `bin/knowledge`, the Linux one), and Windows can't overwrite it while a `view` or `mcp` process is still running.
+Rebuild after any change. The MCP server and the UI run from the binary (`.mcp.json` points at `bin/knowledge`, the Linux one), and Windows can't overwrite it while a `view` or `mcp` process is still running. Windows does allow renaming a running exe, so move it to `bin/knowledge.exe~` (git-ignored) and build. Running servers keep the old code until they restart (`/mcp` reconnect in each open session). Until then, an old server's sync uses the old rules.
 
 Using the tool (run from the repo root; data dir is auto-resolved; on Linux use `bin/knowledge`):
 
 ```powershell
 bin\knowledge.exe --help                      # command tree (urfave/cli v3)
-bin\knowledge.exe sync                        # track ./docs, then AI writes summaries/keywords/domains (claude -p)
+bin\knowledge.exe sync                        # track ./docs + config folders, then AI writes summaries/keywords/domains (claude -p)
 bin\knowledge.exe sync --no-ai | --dry-run    # structure only | preview AI output without saving
 bin\knowledge.exe sync --redo-ai              # rewrite all AI-written summaries (e.g. after a model change)
 bin\knowledge.exe fetch https://example.com/page   # save a web page into docs/external_sources/web, then sync
@@ -63,7 +63,8 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - Web sources (spec "Website Source Knowledge") are ordinary `doc` nodes with `uri` and `last_fetched` on the doc node only (not its sections).
 
 **Sync (`kb.Sync`, no AI).**
-- Scans `docs/**/*.md`. The first `# ` heading is the doc title (not a section); every other heading becomes a section.
+- Scans `docs/**/*.md`, plus `**/*.md` in each folder listed under `track` in `knowledge_data/config.json` (`{"track": ["typescripts/animation"]}`; project-relative, checked in). `node_modules`, `vendor` and hidden folders are skipped. `docs/` is always tracked, since web sources are saved there. A broken config or a folder outside the project fails the sync rather than deleting docs; dropping a folder from the list removes its docs on the next sync. This goes beyond the spec's "track every doc in `./docs`" at the user's request (2026-09-24).
+- The first `# ` heading is the doc title (not a section); every other heading becomes a section.
 - Change detection uses per-section text fingerprints. Changed text sets `needs_summary` and keeps the old summary.
 - Removed files and headings are deleted. A renamed heading with unchanged text carries over its summary, keywords and domains.
 - Empty docs, and headings with no text of their own, never need a summary.

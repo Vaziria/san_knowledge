@@ -98,7 +98,8 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 		Description: "Nodes: domain, doc, doc_section (node_type property; the graph label is the title).\n" +
 			"Edges: domain_of (doc|doc_section -> domain), section_of (doc_section -> doc|doc_section),\n" +
 			"reference (doc|doc_section -> doc|doc_section it links to with [text](other.md#heading)).\n" +
-			"Docs in ./docs are tracked by \"knowledge sync\".",
+			"Markdown files in ./docs and in the folders listed under \"track\" in knowledge_data/config.json\n" +
+			"are tracked by \"knowledge sync\" (node_modules, vendor and hidden folders are skipped).",
 		Reader:                stdin,
 		Writer:                out,
 		ErrWriter:             os.Stderr,
@@ -118,7 +119,7 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "addr", Usage: "listen address", Value: "127.0.0.1:7474"},
 					&cli.BoolFlag{Name: "no-open", Usage: "do not open the browser"},
-					&cli.BoolFlag{Name: "no-sync", Usage: "do not sync ./docs on start"},
+					&cli.BoolFlag{Name: "no-sync", Usage: "do not sync the tracked docs on start"},
 					&cli.StringFlag{Name: "model", Value: "sonnet", Usage: "Claude model for \"Summarize with AI\""},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -141,10 +142,10 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 			{
 				Name: "mcp", Category: "tools", ArgsUsage: " ",
 				Usage: "run as an MCP server on stdio so AI chat sessions can use the knowledge graph",
-				Description: "Registered in .mcp.json as \"knowledge\". Syncs ./docs (without AI) on start.\n" +
+				Description: "Registered in .mcp.json as \"knowledge\". Syncs the tracked docs (without AI) on start.\n" +
 					"Tools: knowledge_explain, _search, _get, _list, _stats, _sync, _pending, _annotate, _add_domain, _assign_domain, _unassign_domain,\n" +
 					"_fetch, _save_web.",
-				Flags: []cli.Flag{&cli.BoolFlag{Name: "no-sync", Usage: "do not sync ./docs on start"}},
+				Flags: []cli.Flag{&cli.BoolFlag{Name: "no-sync", Usage: "do not sync the tracked docs on start"}},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					dir, err := dataDir(cmd.String("data"))
 					if err != nil {
@@ -167,7 +168,7 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 			},
 			{
 				Name: "sync", Category: "tools", ArgsUsage: " ",
-				Usage: "track ./docs: update doc/doc_section nodes, then let the AI write summaries, keywords and domains",
+				Usage: "track ./docs and the config's folders: update doc/doc_section nodes, then let the AI write summaries, keywords and domains",
 				Description: "Step 1 (no AI): markdown files in ./docs become doc and doc_section nodes; changed content is\n" +
 					"flagged needs_summary; removed files/headings are deleted; links to other docs become reference\n" +
 					"edges; frontmatter \"domain:\", \"keyword:\" and\n" +
@@ -252,8 +253,13 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 					if err != nil {
 						return err
 					}
+					tracked, err := kb.TrackedDirs(dir)
+					if err != nil {
+						return err
+					}
 					w := cmd.Root().Writer
-					return emit(w, cmd.Bool("json"), map[string]string{"data": dir, "docs": filepath.Join(filepath.Dir(dir), kb.DocsDir)}, func() { fmt.Fprintln(w, dir) })
+					return emit(w, cmd.Bool("json"), map[string]any{"data": dir, "docs": filepath.Join(filepath.Dir(dir), kb.DocsDir), "tracked": tracked},
+						func() { fmt.Fprintln(w, dir) })
 				},
 			},
 		},

@@ -1,7 +1,9 @@
 package kb
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -11,8 +13,65 @@ import (
 	graphdb "github.com/mstrYoda/goraphdb"
 )
 
-// DocsDir is where tracked documents live, relative to the project root.
+// DocsDir is where documents live, relative to the project root. It is always
+// tracked, since saved web pages go there too.
 const DocsDir = "docs"
+
+// ConfigFile, in the data directory, lists the folders tracked besides docs/,
+// relative to the project root:
+//
+//	{"track": ["typescripts/animation"]}
+const ConfigFile = "config.json"
+
+// Config is the data directory's ConfigFile. A missing file is an empty config.
+type Config struct {
+	Track []string `json:"track"` // folders whose markdown files are tracked besides docs/
+}
+
+// LoadConfig reads the ConfigFile in the data directory dir.
+func LoadConfig(dir string) (Config, error) {
+	var c Config
+	data, err := os.ReadFile(filepath.Join(dir, ConfigFile))
+	if errors.Is(err, fs.ErrNotExist) {
+		return c, nil
+	}
+	if err != nil {
+		return c, err
+	}
+	if err := json.Unmarshal(data, &c); err != nil {
+		return c, fmt.Errorf("%s: %w", ConfigFile, err)
+	}
+	return c, nil
+}
+
+// TrackedDirs returns the project-relative folders whose markdown files are
+// tracked: docs/ first, then the config's, without repeats. An unreadable
+// config is an error, so a typo never makes sync delete docs.
+func TrackedDirs(dir string) ([]string, error) {
+	c, err := LoadConfig(dir)
+	if err != nil {
+		return nil, err
+	}
+	dirs := []string{DocsDir}
+	seen := map[string]bool{DocsDir: true}
+	for _, d := range c.Track {
+		clean := filepath.Clean(filepath.FromSlash(strings.TrimSpace(d)))
+		if strings.TrimSpace(d) == "" || !filepath.IsLocal(clean) {
+			return nil, fmt.Errorf("%s: track %q must be a folder inside the project", ConfigFile, d)
+		}
+		if clean = filepath.ToSlash(clean); !seen[clean] {
+			seen[clean] = true
+			dirs = append(dirs, clean)
+		}
+	}
+	return dirs, nil
+}
+
+// skipDir reports folders never scanned: hidden ones (.git, .vite) and
+// installed packages, whose READMEs are not the project's knowledge.
+func skipDir(name string) bool {
+	return strings.HasPrefix(name, ".") || name == "node_modules" || name == "vendor"
+}
 
 // AuthorFrontmatter marks summary/keyword/domain taken from a doc's frontmatter.
 const AuthorFrontmatter = "frontmatter"
@@ -38,29 +97,49 @@ func IsHumanAuthor(author string) bool {
 	return author != "" && author != AuthorSync && author != AuthorAI
 }
 
-// ScanDocs returns the project-relative locs of all markdown files in docs/.
+// ScanDocs returns the project-relative locs of all markdown files in the
+// tracked folders (TrackedDirs), sorted and without repeats.
 func (s *Store) ScanDocs() ([]string, error) {
-	root := filepath.Join(s.Root, DocsDir)
+	dirs, err := TrackedDirs(s.Dir)
+	if err != nil {
+		return nil, err
+	}
+	seen := map[string]bool{}
 	var locs []string
-	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			if errors.Is(err, fs.ErrNotExist) {
-				return filepath.SkipDir
+	for _, dir := range dirs {
+		root := filepath.Join(s.Root, filepath.FromSlash(dir))
+		err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+			if err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					return filepath.SkipDir
+				}
+				return err
 			}
-			return err
-		}
-		if d.IsDir() || !strings.EqualFold(filepath.Ext(p), ".md") {
+			if d.IsDir() {
+				if p != root && skipDir(d.Name()) {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if !strings.EqualFold(filepath.Ext(p), ".md") {
+				return nil
+			}
+			rel, err := filepath.Rel(s.Root, p)
+			if err != nil {
+				return err
+			}
+			if loc := filepath.ToSlash(rel); !seen[loc] {
+				seen[loc] = true
+				locs = append(locs, loc)
+			}
 			return nil
-		}
-		rel, err := filepath.Rel(s.Root, p)
+		})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		locs = append(locs, filepath.ToSlash(rel))
-		return nil
-	})
+	}
 	sort.Strings(locs)
-	return locs, err
+	return locs, nil
 }
 
 // ParseDoc reads and parses a tracked doc by its loc.
@@ -72,7 +151,7 @@ func (s *Store) ParseDoc(loc string) (*ParsedDoc, error) {
 	return ParseMarkdown(loc, data), nil
 }
 
-// Sync makes the graph match the markdown files in docs/: doc and
+// Sync makes the graph match the markdown files in the tracked folders: doc and
 // doc_section nodes, section_of edges and frontmatter domains. It never calls
 // an AI; changed content is flagged needs_summary instead.
 func (s *Store) Sync() (*SyncReport, error) {

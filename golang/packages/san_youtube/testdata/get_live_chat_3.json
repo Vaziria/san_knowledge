@@ -1,0 +1,14 @@
+{
+  "responseContext": {"mainAppWebResponseContext": {"loggedOut": true}},
+  "continuationContents": {
+    "liveChatContinuation": {
+      "continuations": [
+        {"reloadContinuationData": {"continuation": "live-chat-reload-2"}}
+      ],
+      "actions": [
+        {"addChatItemAction": {"item": {"liveChatTextMessageRenderer": {"message": {"runs": [{"text": "spam spam"}]}, "authorName": {"simpleText": "@viewer-seven"}, "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-07=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]}, "id": "n-3", "timestampUsec": "1790188412000000", "authorExternalChannelId": "UCfakeViewer000000000007"}}, "clientId": "CFakeClientId13"}},
+        {"markChatItemAsDeletedAction": {"deletedStateMessage": {"runs": [{"text": "[message deleted]"}]}, "targetItemId": "n-1"}}
+      ]
+    }
+  }
+}

@@ -1,0 +1,388 @@
+[
+  {
+    "clickTrackingParams": "CAEQl98BIhMIfakeTracking",
+    "addChatItemAction": {
+      "item": {
+        "liveChatTextMessageRenderer": {
+          "message": {
+            "runs": [
+              {"text": "Cek di google "},
+              {
+                "emoji": {
+                  "emojiId": "🧡",
+                  "shortcuts": [":orange_heart:"],
+                  "searchTerms": ["orange", "heart"],
+                  "image": {
+                    "thumbnails": [{"url": "https://fonts.gstatic.com/s/e/notoemoji/15.1/1f9e1/72.png"}],
+                    "accessibility": {"accessibilityData": {"label": "🧡"}}
+                  }
+                }
+              },
+              {"text": " halo semua"}
+            ]
+          },
+          "authorName": {"simpleText": "@viewer-one"},
+          "authorPhoto": {
+            "thumbnails": [
+              {"url": "https://yt4.ggpht.com/fake-viewer-01=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+              {"url": "https://yt4.ggpht.com/fake-viewer-01=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+            ]
+          },
+          "contextMenuEndpoint": {
+            "commandMetadata": {"webCommandMetadata": {"ignoreNavigation": true}},
+            "liveChatItemContextMenuEndpoint": {"params": "ZmFrZS1wYXJhbXM="}
+          },
+          "id": "text-1",
+          "timestampUsec": "1790188400000000",
+          "authorExternalChannelId": "UCfakeViewer000000000001",
+          "contextMenuAccessibility": {"accessibilityData": {"label": "Chat actions"}},
+          "trackingParams": "CAEQl98BIhMIfakeTracking"
+        }
+      },
+      "clientId": "CNbiyKfakeClientId1"
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatTextMessageRenderer": {
+          "message": {
+            "runs": [
+              {"text": "Join here: "},
+              {
+                "text": "https://bit.ly/fake-join",
+                "navigationEndpoint": {
+                  "commandMetadata": {
+                    "webCommandMetadata": {
+                      "url": "https://www.youtube.com/redirect?event=live_chat&redir_token=ZmFrZQ&q=https%3A%2F%2Fbit.ly%2Ffake-join",
+                      "webPageType": "WEB_PAGE_TYPE_UNKNOWN",
+                      "rootVe": 83769
+                    }
+                  },
+                  "urlEndpoint": {
+                    "url": "https://www.youtube.com/redirect?event=live_chat&redir_token=ZmFrZQ&q=https%3A%2F%2Fbit.ly%2Ffake-join",
+                    "target": "TARGET_NEW_WINDOW",
+                    "nofollow": true
+                  }
+                }
+              },
+              {"text": " "},
+              {
+                "emoji": {
+                  "emojiId": "UCkszU2WH9gy1mb0dV-11UJg/CIW60IPp_dYCFcuqTgodEu4IlQ",
+                  "shortcuts": [":yt:"],
+                  "searchTerms": ["yt"],
+                  "image": {
+                    "thumbnails": [
+                      {"url": "https://yt3.ggpht.com/fake-emoji-yt=w24-h24-c-k-nd", "width": 24, "height": 24},
+                      {"url": "https://yt3.ggpht.com/fake-emoji-yt=w48-h48-c-k-nd", "width": 48, "height": 48}
+                    ],
+                    "accessibility": {"accessibilityData": {"label": "yt"}}
+                  },
+                  "isCustomEmoji": true
+                }
+              }
+            ]
+          },
+          "authorName": {"simpleText": "@fakechannel"},
+          "authorPhoto": {
+            "thumbnails": [
+              {"url": "https://yt4.ggpht.com/fake-channel=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+              {"url": "https://yt4.ggpht.com/fake-channel=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+            ]
+          },
+          "id": "text-2",
+          "timestampUsec": "1790188401000000",
+          "authorBadges": [
+            {"liveChatAuthorBadgeRenderer": {"icon": {"iconType": "VERIFIED"}, "tooltip": "Verified", "accessibility": {"accessibilityData": {"label": "Verified"}}}},
+            {"liveChatAuthorBadgeRenderer": {"icon": {"iconType": "OWNER"}, "tooltip": "Owner", "accessibility": {"accessibilityData": {"label": "Owner"}}}}
+          ],
+          "authorExternalChannelId": "UCfakeChannel00000000001"
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatTextMessageRenderer": {
+          "message": {"runs": [{"text": "tolong jaga bahasa ya"}]},
+          "authorName": {"simpleText": "@viewer-two"},
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-02=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "id": "text-3",
+          "timestampUsec": "1790188402000000",
+          "authorBadges": [
+            {"liveChatAuthorBadgeRenderer": {"icon": {"iconType": "MODERATOR"}, "tooltip": "Moderator", "accessibility": {"accessibilityData": {"label": "Moderator"}}}},
+            {
+              "liveChatAuthorBadgeRenderer": {
+                "customThumbnail": {
+                  "thumbnails": [
+                    {"url": "https://yt3.ggpht.com/fake-member-badge=s16-c-k", "width": 16, "height": 16},
+                    {"url": "https://yt3.ggpht.com/fake-member-badge=s32-c-k", "width": 32, "height": 32}
+                  ]
+                },
+                "tooltip": "Member (6 months)",
+                "accessibility": {"accessibilityData": {"label": "Member (6 months)"}}
+              }
+            }
+          ],
+          "authorExternalChannelId": "UCfakeViewer000000000002"
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatPaidMessageRenderer": {
+          "id": "paid-1",
+          "timestampUsec": "1790188403000000",
+          "authorName": {"simpleText": "@viewer-three"},
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-03=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32}, {"url": "https://yt4.ggpht.com/fake-viewer-03=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "purchaseAmountText": {"simpleText": "IDR 159,000"},
+          "message": {"runs": [{"text": "semangat terus"}]},
+          "headerBackgroundColor": 4294947584,
+          "headerTextColor": 3741319168,
+          "bodyBackgroundColor": 4294953512,
+          "bodyTextColor": 3741319168,
+          "authorExternalChannelId": "UCfakeViewer000000000003",
+          "authorNameTextColor": 2315255808,
+          "timestampColor": 2147483648,
+          "creatorHeartButton": {
+            "creatorHeartViewModel": {
+              "heartedHoverText": "❤ by @fakechannel",
+              "heartedAccessibilityLabel": "Remove heart",
+              "unheartedAccessibilityLabel": "Heart"
+            }
+          },
+          "isV2Style": true
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatPaidMessageRenderer": {
+          "id": "paid-2",
+          "timestampUsec": "1790188404000000",
+          "authorName": {"simpleText": "@viewer-four"},
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-04=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "purchaseAmountText": {"simpleText": "Rp 20.000"},
+          "authorExternalChannelId": "UCfakeViewer000000000004",
+          "isV2Style": true
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatPaidStickerRenderer": {
+          "id": "sticker-1",
+          "timestampUsec": "1790188405000000",
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-05=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "authorName": {"simpleText": "@viewer-five"},
+          "authorExternalChannelId": "UCfakeViewer000000000005",
+          "sticker": {
+            "thumbnails": [
+              {"url": "//lh3.googleusercontent.com/fake-sticker=s40-rp", "width": 40, "height": 40},
+              {"url": "//lh3.googleusercontent.com/fake-sticker=s80-rp", "width": 80, "height": 80}
+            ],
+            "accessibility": {"accessibilityData": {"label": "Cat waving hello"}}
+          },
+          "moneyChipBackgroundColor": 4280191205,
+          "moneyChipTextColor": 4294967295,
+          "purchaseAmountText": {"simpleText": "$2.00"},
+          "stickerDisplayWidth": 40,
+          "stickerDisplayHeight": 40,
+          "backgroundColor": 4279592384,
+          "authorNameTextColor": 3019898879
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatMembershipItemRenderer": {
+          "id": "member-1",
+          "timestampUsec": "1790188406000000",
+          "authorExternalChannelId": "UCfakeViewer000000000006",
+          "headerSubtext": {"runs": [{"text": "Welcome to "}, {"text": "Kenalan"}, {"text": "!"}]},
+          "authorName": {"simpleText": "@viewer-six"},
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-06=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32}, {"url": "https://yt4.ggpht.com/fake-viewer-06=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "authorBadges": [
+            {
+              "liveChatAuthorBadgeRenderer": {
+                "customThumbnail": {"thumbnails": [{"url": "https://yt3.ggpht.com/fake-new-member-badge=s16-c-k", "width": 16, "height": 16}]},
+                "tooltip": "New member"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatMembershipItemRenderer": {
+          "id": "milestone-1",
+          "timestampUsec": "1790188407000000",
+          "authorExternalChannelId": "UCfakeViewer000000000007",
+          "headerPrimaryText": {"runs": [{"text": "Member for "}, {"text": "2"}, {"text": " years"}]},
+          "headerSubtext": {"simpleText": "Kenalan"},
+          "message": {"runs": [{"text": "dua tahun nonton "}, {"emoji": {"emojiId": "🎉", "shortcuts": [":party_popper:"], "image": {"thumbnails": [{"url": "https://fonts.gstatic.com/s/e/notoemoji/15.1/1f389/72.png"}]}}}]},
+          "authorName": {"simpleText": "@viewer-seven"},
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-07=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "authorBadges": [
+            {
+              "liveChatAuthorBadgeRenderer": {
+                "customThumbnail": {"thumbnails": [{"url": "https://yt3.ggpht.com/fake-member-badge-2y=s16-c-k", "width": 16, "height": 16}]},
+                "tooltip": "Member (2 years)"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatSponsorshipsGiftPurchaseAnnouncementRenderer": {
+          "id": "gift-1",
+          "timestampUsec": "1790188408000000",
+          "authorExternalChannelId": "UCfakeViewer000000000008",
+          "header": {
+            "liveChatSponsorshipsHeaderRenderer": {
+              "authorName": {"simpleText": "@viewer-eight"},
+              "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-08=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+              "primaryText": {"runs": [{"text": "Sent ", "bold": true}, {"text": "5", "bold": true}, {"text": " ", "bold": true}, {"text": "Kenalan", "bold": true}, {"text": " gift memberships", "bold": true}]},
+              "authorBadges": [
+                {"liveChatAuthorBadgeRenderer": {"customThumbnail": {"thumbnails": [{"url": "https://yt3.ggpht.com/fake-member-badge=s16-c-k", "width": 16, "height": 16}]}, "tooltip": "Member (1 month)"}}
+              ],
+              "image": {"thumbnails": [{"url": "https://www.gstatic.com/youtube/img/sponsorships/sponsorships_gift_purchase_announcement_artwork.png"}]}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatSponsorshipsGiftRedemptionAnnouncementRenderer": {
+          "id": "redeem-1",
+          "timestampUsec": "1790188409000000",
+          "authorExternalChannelId": "UCfakeViewer000000000009",
+          "authorName": {"simpleText": "@viewer-nine"},
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-09=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "message": {"runs": [{"text": "received a gift membership by ", "italics": true}, {"text": "@viewer-eight", "bold": true, "italics": true}]}
+        }
+      }
+    }
+  },
+  {
+    "markChatItemAsDeletedAction": {
+      "deletedStateMessage": {"runs": [{"text": "[message retracted]"}]},
+      "targetItemId": "text-3",
+      "showOriginalContentMessage": {"runs": [{"text": "View deleted message"}]}
+    }
+  },
+  {
+    "markChatItemsByAuthorAsDeletedAction": {
+      "deletedStateMessage": {"runs": [{"text": "[message deleted]"}]},
+      "externalChannelId": "UCfakeViewer000000000004",
+      "showOriginalContentMessage": {"runs": [{"text": "View deleted message"}]}
+    }
+  },
+  {
+    "removeChatItemAction": {
+      "targetItemId": "text-1"
+    }
+  },
+  {
+    "removeChatItemByAuthorAction": {
+      "externalChannelId": "UCfakeViewer000000000005"
+    }
+  },
+  {
+    "replaceChatItemAction": {
+      "targetItemId": "placeholder-1",
+      "replacementItem": {
+        "liveChatTextMessageRenderer": {
+          "message": {"runs": [{"text": "pesan yang ditahan tadi"}]},
+          "authorName": {"simpleText": "@viewer-ten"},
+          "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-10=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+          "id": "text-4",
+          "timestampUsec": "1790188410000000",
+          "authorExternalChannelId": "UCfakeViewer000000000010"
+        }
+      }
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatPlaceholderItemRenderer": {
+          "id": "placeholder-1",
+          "timestampUsec": "1790188406696936"
+        }
+      },
+      "clientId": "COW3qpHfakeClientId2"
+    }
+  },
+  {
+    "addChatItemAction": {
+      "item": {
+        "liveChatViewerEngagementMessageRenderer": {
+          "id": "engagement-1",
+          "timestampUsec": "1790188401244902",
+          "icon": {"iconType": "YOUTUBE_ROUND"},
+          "message": {"runs": [{"text": "Subscribers-only mode. Messages that appear are from people who’ve subscribed to this channel for "}, {"text": "5 minutes"}, {"text": " or longer."}]}
+        }
+      }
+    }
+  },
+  {
+    "addLiveChatTickerItemAction": {
+      "item": {
+        "liveChatTickerPaidMessageItemRenderer": {
+          "id": "paid-1",
+          "amount": {"simpleText": "IDR 159,000"},
+          "authorExternalChannelId": "UCfakeViewer000000000003",
+          "fullDurationSec": 120
+        }
+      },
+      "durationSec": "120"
+    }
+  },
+  {
+    "addBannerToLiveChatCommand": {
+      "bannerRenderer": {
+        "liveChatBannerRenderer": {
+          "header": {"liveChatBannerHeaderRenderer": {"icon": {"iconType": "KEEP"}, "text": {"runs": [{"text": "Pinned by "}, {"text": "@fakechannel"}]}}},
+          "contents": {
+            "liveChatTextMessageRenderer": {
+              "message": {"runs": [{"text": "a pinned message"}]},
+              "authorName": {"simpleText": "@fakechannel"},
+              "id": "pinned-1",
+              "timestampUsec": "1778487979101541",
+              "authorExternalChannelId": "UCfakeChannel00000000001"
+            }
+          },
+          "actionId": "banner-1",
+          "targetId": "live-chat-banner",
+          "bannerType": "LIVE_CHAT_BANNER_TYPE_PINNED_MESSAGE"
+        }
+      }
+    }
+  },
+  {
+    "someActionFromTheFuture": {
+      "item": {"liveChatTextMessageRenderer": {"id": "future-1"}}
+    }
+  }
+]

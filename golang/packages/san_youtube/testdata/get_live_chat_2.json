@@ -1,0 +1,18 @@
+{
+  "responseContext": {"mainAppWebResponseContext": {"loggedOut": true}},
+  "continuationContents": {
+    "liveChatContinuation": {
+      "continuations": [
+        {"timedContinuationData": {"timeoutMs": 2000, "continuation": "live-chat-3"}}
+      ],
+      "actions": [
+        {"addChatItemAction": {"item": {"liveChatTextMessageRenderer": {"message": {"runs": [{"text": "beritanya jelas"}]}, "authorName": {"simpleText": "@viewer-three"}, "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-03=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]}, "id": "h-3", "timestampUsec": "1790188402000000", "authorExternalChannelId": "UCfakeViewer000000000003"}}, "clientId": "CFakeClientId03"}},
+        {"addChatItemAction": {"item": {"liveChatTextMessageRenderer": {"message": {"runs": [{"text": "lanjut"}]}, "authorName": {"simpleText": "@viewer-five"}, "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-05=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]}, "id": "n-1", "timestampUsec": "1790188410000000", "authorExternalChannelId": "UCfakeViewer000000000005"}}, "clientId": "CFakeClientId11"}},
+        {"addChatItemAction": {"item": {"liveChatTextMessageRenderer": {"message": {"runs": [{"text": "mantap"}]}, "authorName": {"simpleText": "@viewer-six"}, "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-06=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]}, "id": "n-2", "timestampUsec": "1790188411000000", "authorExternalChannelId": "UCfakeViewer000000000006"}}, "clientId": "CFakeClientId12"}},
+        {"replaceChatItemAction": {"targetItemId": "h-2", "replacementItem": {"liveChatTextMessageRenderer": {"message": {"runs": [{"text": "hadir "}, {"emoji": {"emojiId": "👋", "shortcuts": [":waving_hand:"], "image": {"thumbnails": [{"url": "https://fonts.gstatic.com/s/e/notoemoji/15.1/1f44b/72.png"}]}}}]}, "authorName": {"simpleText": "@viewer-two"}, "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-02=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]}, "id": "h-2", "timestampUsec": "1790188401000000", "authorExternalChannelId": "UCfakeViewer000000000002"}}}},
+        {"replaceChatItemAction": {"targetItemId": "placeholder-9", "replacementItem": {"liveChatTextMessageRenderer": {"message": {"runs": [{"text": "pesan yang sempat ditahan"}]}, "authorName": {"simpleText": "@viewer-nine"}, "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/fake-viewer-09=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]}, "id": "r-1", "timestampUsec": "1790188403500000", "authorExternalChannelId": "UCfakeViewer000000000009"}}}}
+      ]
+    }
+  },
+  "liveChatStreamingResponseExtension": {"lastPublishAtUsec": "1790188411000000"}
+}

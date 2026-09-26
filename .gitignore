@@ -8,6 +8,9 @@ bin/*.exe~
 knowledge_data/*.db
 knowledge_data/*.db.lock
 
+# graphify's code graph: rebuilt from the code with `graphify update .`
+graphify-out/
+
 # Personal Claude Code settings
 .claude/settings.local.json
 

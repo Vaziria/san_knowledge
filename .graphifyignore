@@ -1,0 +1,11 @@
+# graphify maps the code only (CLAUDE.md, "graphify"); knowledge holds the docs.
+# What .gitignore leaves out (node_modules, dist, bin, models, vendor) is
+# left out here too.
+
+# Vendored and generated code, and test fixtures (recorded responses)
+san_knowledge/internal/ownview/static/vendor/
+golang/packages/san_tunnels/gen/
+**/testdata/
+
+# Saved web pages (knowledge's web sources)
+docs/external_sources/

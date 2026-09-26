@@ -46,7 +46,7 @@ var supportedVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 const instructions = `Knowledge graph of this project, shared between the user and AI.
 Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs or in a folder listed under "track" in knowledge_data/config.json, such as the figure specs in typescripts/animation; key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section), reference (doc/section -> doc/section it links to with a markdown link).
 Before answering questions about the project's research or docs, call knowledge_explain to load context and cite the loc (file:line).
-Docs and sections come from the files: after editing tracked markdown files call knowledge_sync. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.
+Docs and sections come from the files: after editing tracked markdown files, ask the user before calling knowledge_sync (once, when the edits are done, not after each edit), and ask before writing summaries too. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.
 To keep a web page as knowledge, call knowledge_fetch with its url; if that fails or the page needs JavaScript or a login, read the page yourself and call knowledge_save_web with its full content as markdown. Web sources live in docs/external_sources/web and carry uri and last_fetched.`
 
 type request struct {
@@ -203,13 +203,13 @@ func toolDefs() []any {
 			"Counts of nodes and edges by type, keywords, nodes needing summaries and docs without a domain.",
 			schema(map[string]any{}), true, false),
 		tool("knowledge_sync", "Sync docs",
-			"Update doc and doc_section nodes from the markdown files in ./docs and the other tracked folders (knowledge_data/config.json) (no AI). Call after creating, editing or deleting docs.",
+			"Update doc and doc_section nodes from the markdown files in ./docs and the other tracked folders (knowledge_data/config.json) (no AI). Ask the user first, once the edits are done, not after each edit.",
 			schema(map[string]any{}), false, false),
 		tool("knowledge_fetch", "Fetch web page",
-			"Download a web page, keep its main content as markdown in docs/external_sources/web (with uri and last_fetched) and sync it into the graph. Fetching a saved url again refreshes the same doc. Afterwards summarize it with knowledge_pending and knowledge_annotate.",
+			"Download a web page, keep its main content as markdown in docs/external_sources/web (with uri and last_fetched) and sync it into the graph. Fetching a saved url again refreshes the same doc. Ask the user before fetching a page they did not ask to keep, and before summarizing it (knowledge_pending, knowledge_annotate).",
 			schema(map[string]any{"url": str("http(s) address of the page")}, "url"), false, false),
 		tool("knowledge_save_web", "Save web page content",
-			"Save web page content you already have (e.g. a page that needs JavaScript or a login) as a doc in docs/external_sources/web, then sync it. Pass the page's full content as markdown, not a summary. Saving the same uri again replaces that doc.",
+			"Save web page content you already have (e.g. a page that needs JavaScript or a login) as a doc in docs/external_sources/web, then sync it. Ask the user first unless they asked for the page to be kept. Pass the page's full content as markdown, not a summary. Saving the same uri again replaces that doc.",
 			schema(map[string]any{
 				"uri":      str("http(s) address the content came from"),
 				"title":    str("Page title (used when the markdown has no leading # heading)"),

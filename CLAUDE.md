@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Marketing research scoped to the **Indonesian market**, plus `knowledge`, a Go tool that turns the project's documents into a knowledge graph so the user and AI can collaborate. Research write-ups are markdown; files under `docs/`, and the folders listed in `knowledge_data/config.json` (the figure specs in `typescripts/animation`), are tracked in the graph (`knowledge_data/`).
+Marketing research scoped to the **Indonesian market**, plus `knowledge`, a Go tool that turns the project's documents into a knowledge graph so the user and AI can collaborate. Research write-ups are markdown; files under `docs/`, and the folders listed in `knowledge_data/config.json` (the figure specs in `typescripts/animation`, and its state files in `typescripts/animation/docs/states/`), are tracked in the graph (`knowledge_data/`).
 
 `docs/knowledge.md` is the user's spec for the tool. **Do not edit it.** It says "AI Supposed Not Edit This File". Implement what it says instead; when it changes, re-read it and bring the code in line.
 
@@ -136,9 +136,28 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 
 - Before answering questions about the project's research or docs, pull context (`knowledge_explain` or `bin\knowledge.exe explain`) and cite `loc` (file:line).
 - To keep a web source, use `knowledge_fetch` (or `knowledge_save_web` with the full page as markdown when fetching fails) rather than pasting it into a doc by hand.
-- Put research write-ups in `docs/` so they are tracked, then sync (`knowledge_sync`, or `bin\knowledge.exe sync` for AI summaries). In a chat session you can also summarize pending nodes yourself: `knowledge_pending`, then `knowledge_annotate`.
+- Put research write-ups in `docs/` so they are tracked.
+- **Ask the user before syncing the knowledge graph** (the user, 2026-09-25: "dont agresively sync knowledge, ask me first, make it as rule"). This covers:
+  - `knowledge_sync`, and `bin\knowledge.exe sync` with any flags. The AI step runs `claude -p` once per pending doc on the user's login.
+  - Writing summaries for pending nodes (`knowledge_pending`, then `knowledge_annotate`).
+  - `knowledge_fetch`, `knowledge_save_web` and `fetch`, which sync as they save, unless the user asked for that page to be kept.
+
+  Finish the edits first, then ask once: which files changed, how many nodes would need summaries, and whether to run the AI step or write the summaries in the chat. Don't sync after every edit. A task file's "call `knowledge_sync`" means ask then. The structural sync `view` and `mcp` run on start is not covered.
 - Figures quoted from BPS/APJII via news coverage should be flagged as such.
 - The marketplace-crawl MCP server (Tokopedia etc.) is available for product/price research.
+
+## Tasks
+
+`tasks/` is a queue of work shared by every session, one spec per markdown file. The user either gives a task directly or writes it there, and whichever session is free takes the next one, so no session sits waiting for another.
+
+- When you finish your work, or when asked to do the tasks, take tasks one after another until no `.md` file is left directly in `tasks/`.
+- Take them in name order (the user can number them). Skip a file changed in the last minute: the user may still be writing it.
+- Look in `tasks/doing/` first. If a task touches the same code as one another session is doing, take a different one first. A line `After: <file name>` means: only once that task is in `tasks/done/`.
+- **Take** a task by moving it into `tasks/doing/` with `mv`: if the move fails, another session took it. Add `Taken: <date time>` at its end.
+- **Done:** move it to `tasks/done/` with a `## Done` section at its end: what changed, how it was checked, anything left for the user. Work in `typescripts/animation` also brings its areas' state files in `typescripts/animation/docs/states/`, and their `index.md`, up to date first (rules.md, Project rule 8).
+- **Needs the user:** move it to `tasks/blocked/` with a `## Question` section at its end, and go on with the next. The user answers in the file and moves it back to `tasks/`.
+- If every task left waits on one that another session is doing, check again every few minutes rather than stopping.
+- The task file is the spec: follow it as you would a figure spec. Commit only if it says so.
 
 ## Git
 

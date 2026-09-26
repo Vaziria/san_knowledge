@@ -9,7 +9,8 @@ import { RosemaryGrass } from '../../figures/Grass/RosemaryGrass';
 import { TimothyGrass } from '../../figures/Grass/TimothyGrass';
 import type { Theme } from '../../theme';
 import { materialsOf, sway, type Wind } from '../wind';
-import { BANK_WIDTH, groundHeight, shoreRadius } from './Ground';
+import type { Boulders } from './Boulders';
+import { BANK_WIDTH, CLEAR as LANDING_CLEAR, groundHeight, shoreRadius } from './Ground';
 
 // A meadow on the uneven land round the lake: patches of the grass figures'
 // kinds (figures/Grass), each patch one kind, as grass spreads, from low mats
@@ -23,7 +24,7 @@ import { BANK_WIDTH, groundHeight, shoreRadius } from './Ground';
 // every load.
 //
 // None grow near `keepClear` (where standing figures go) or right against a
-// tree's trunk (`trunks`), but more patches ring keepClear (AROUND), where
+// tree's trunk (`trunks`) or a boulder, but more patches ring keepClear (AROUND), where
 // the preview cameras look, and the rest lie thicker toward the water. Plants
 // within NEAR of keepClear, which the cameras see up close, are grown with
 // most of their leaves (NEAR_DETAIL); the rest with far fewer and coarser
@@ -62,9 +63,10 @@ const SIZE = [0.55, 1.35] as const; // of the kind's size, for a patch
 const EACH = [0.8, 1.2] as const; // of the patch's size, for a plant in it
 const STRETCH = 0.15; // each is up to this share taller and slimmer, or shorter and broader
 const TINT = [0.88, 1.08] as const; // each is a little lighter or darker
-const CLEAR = 2.6; // m kept free round keepClear
+const CLEAR = 0.4; // m kept free beyond the landing's clearing (2.6 m round keepClear by default)
 const TRUNK = 1.2; // m kept free round a tree's trunk
-const NEAR = 7; // m from keepClear: closer plants are grown with NEAR_DETAIL, and the AROUND patches lie within it
+const BOULDER_GAP = 0.3; // m kept free round a boulder, so no plant grows through it
+const NEAR = 4.8; // m beyond the clearing (7 m from keepClear by default): closer plants are grown with NEAR_DETAIL, and the AROUND patches lie within it
 const NEAR_DETAIL = 0.4; // the share of their leaves and stems plants grow there
 const FAR_DETAIL = 0.2; // and the rest, coarsened too (see coarsen() in figures/Grass/parts.ts)
 const BEND = { sway: 0.22, reach: 1 };
@@ -73,15 +75,17 @@ const SEED = 11;
 const UP = new THREE.Vector3(0, 1, 0);
 
 // The way the ground faces at a point.
-function groundNormal(x: number, z: number): THREE.Vector3 {
+function groundNormal(x: number, z: number, clear: number): THREE.Vector3 {
   const e = 0.05;
-  const dx = (groundHeight(x + e, z) - groundHeight(x - e, z)) / (2 * e);
-  const dz = (groundHeight(x, z + e) - groundHeight(x, z - e)) / (2 * e);
+  const dx = (groundHeight(x + e, z, clear) - groundHeight(x - e, z, clear)) / (2 * e);
+  const dz = (groundHeight(x, z + e, clear) - groundHeight(x, z - e, clear)) / (2 * e);
   return new THREE.Vector3(-dx, 1, -dz).normalize();
 }
 
 export class Meadow extends THREE.Group {
-  constructor(theme: Theme, keepClear: THREE.Vector3, trunks: THREE.Vector3[], wind: Wind) {
+  // `boulders` keeps the plants off the boulders, and off whatever else lies
+  // on the land (the lake's mud pits too).
+  constructor(theme: Theme, keepClear: THREE.Vector3, trunks: THREE.Vector3[], boulders: Pick<Boulders, 'near'>, wind: Wind, clear = LANDING_CLEAR) {
     super();
     this.name = 'meadow';
     const random = seededRandom(SEED);
@@ -102,7 +106,7 @@ export class Meadow extends THREE.Group {
       const angle = 2 * Math.PI * random();
       let middle: THREE.Vector2;
       if (p < AROUND) {
-        const out = between(random, CLEAR + 0.5 * patch.spread, NEAR);
+        const out = between(random, clear + CLEAR + 0.5 * patch.spread, clear + NEAR);
         middle = new THREE.Vector2(keepClear.x + out * Math.cos(angle), keepClear.z + out * Math.sin(angle));
       } else {
         const r = shoreRadius(angle) + BANK_WIDTH + FROM + SPREAD * random() ** THICKER;
@@ -117,22 +121,23 @@ export class Meadow extends THREE.Group {
         const x = middle.x + out * Math.cos(round);
         const z = middle.y + out * Math.sin(round);
         const fromClear = Math.hypot(x - keepClear.x, z - keepClear.z);
-        if (fromClear < CLEAR) continue;
+        if (fromClear < clear + CLEAR) continue;
         if (Math.hypot(x, z) - shoreRadius(Math.atan2(z, x)) - BANK_WIDTH < FROM) continue; // down the bank
         if (trunks.some((t) => Math.hypot(x - t.x, z - t.z) < TRUNK)) continue;
+        if (boulders.near(x, z, BOULDER_GAP)) continue;
 
         const s = size * between(random, ...EACH);
         const stretch = 1 + STRETCH * (2 * random() - 1);
-        lean.setFromUnitVectors(UP, groundNormal(x, z));
+        lean.setFromUnitVectors(UP, groundNormal(x, z, clear));
         lean.slerp(new THREE.Quaternion(), 1 - patch.follow);
         turn.setFromAxisAngle(UP, 2 * Math.PI * random());
         const matrix = new THREE.Matrix4().compose(
-          new THREE.Vector3(x, groundHeight(x, z), z),
+          new THREE.Vector3(x, groundHeight(x, z, clear), z),
           lean.clone().multiply(turn),
           new THREE.Vector3(s / Math.sqrt(stretch), s * stretch, s / Math.sqrt(stretch)),
         );
         const plant = { matrix, tint: shade * between(random, 0.95, 1.05) };
-        planted.get(patch)![fromClear < NEAR ? 'near' : 'far'].push(plant);
+        planted.get(patch)![fromClear < clear + NEAR ? 'near' : 'far'].push(plant);
       }
     }
 

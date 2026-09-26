@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { between, seededRandom } from '../../figures/Grass/parts';
 import type { Theme } from '../../theme';
 import { sway, type Wind } from '../wind';
-import { BANK_WIDTH, groundHeight, shoreRadius } from './Ground';
+import type { Boulders } from './Boulders';
+import { BANK_WIDTH, CLEAR, groundHeight, shoreRadius } from './Ground';
 
 // The sward: short grass covering the uneven land round the lake, the ground
 // the meadow's plants (Meadow.ts) grow out of. It is tufts of pointed blades,
@@ -13,14 +14,24 @@ import { BANK_WIDTH, groundHeight, shoreRadius } from './Ground';
 // keepClear they are mown short, 2–4.5 cm like the grass environment's lawn,
 // below a keyboard's keys. The colour is the theme's grass colour; the land
 // under them is a lawn a shade darker (Ground.ts). They are placed by a seeded
-// random generator, so the lake is the same on every load.
+// random generator, so the lake is the same on every load. None grow under a
+// boulder, though they come up against it.
 //
 // Each shape is one instanced mesh. A blade's two sides are both front faces
 // with normals pointing up, so it is lit like the ground from either side, as
 // in the grass environment. Tufts take shadows but cast none. They bend in
 // the wind (../wind.ts), their tips 7 cm at 25 cm up in a full wind.
 
-const SHAPES = [
+// A tuft's shape: how many blades, how wide each is at its base and how far
+// the blades spread out and lean over, as shares of the height.
+export interface TuftShape {
+  blades: number;
+  width: number;
+  spread: number;
+  lean: number;
+}
+
+const SHAPES: TuftShape[] = [
   { blades: 6, width: 0.1, spread: 0.35, lean: 0.3 }, // upright, broad-bladed
   { blades: 5, width: 0.08, spread: 0.7, lean: 0.45 }, // spreading
   { blades: 8, width: 0.05, spread: 0.55, lean: 0.6 }, // fine, floppy
@@ -31,11 +42,12 @@ const REACH = 14; // m past the top of the bank the sward covers
 const FALL = 5; // m over which it thins to about a third, going up the land
 const FROM = 0.05; // m past the top of the bank where it starts
 const HEIGHT = [0.07, 0.26] as const; // m, more of them short
-const MOWN = { height: [0.02, 0.045] as const, radius: 2.2, over: 1.2 }; // m round keepClear, and over which it grows back
-const AROUND_RADIUS = 7; // m round keepClear the extra tufts cover
+const MOWN = { height: [0.02, 0.045] as const, over: 1.2 }; // m: mown within the landing's clearing (2.2 m round keepClear by default), growing back over `over`
+const AROUND_REACH = 4.8; // m beyond the clearing the extra tufts cover (7 m round keepClear by default)
 const FOLLOW = 0.7; // how far a tuft leans with the ground's slope
 const TINT = [0.72, 1.05] as const; // darkest and lightest tuft, times the grass colour
 const TRUNK = 0.4; // m kept free round a tree's trunk
+const BOULDER_GAP = -0.1; // m from a boulder's footprint: under 0, tufts grow a little way in, where its sides rise over them
 const BEND = { sway: 0.07, reach: 0.25 };
 const SEED = 5;
 
@@ -48,8 +60,8 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 // A tuft, 1 unit tall: `blades` pointed blades round a small foot, each
 // leaning out a little and bending over toward its tip, of widths and heights
-// a little unlike.
-function tuftGeometry(shape: (typeof SHAPES)[number], random: () => number): THREE.BufferGeometry {
+// a little unlike. The border's tall grass uses it too (../Border.ts).
+export function tuftGeometry(shape: TuftShape, random: () => number): THREE.BufferGeometry {
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
@@ -95,10 +107,10 @@ function tuftGeometry(shape: (typeof SHAPES)[number], random: () => number): THR
 }
 
 // The way the ground faces at a point.
-function groundNormal(x: number, z: number): THREE.Vector3 {
+function groundNormal(x: number, z: number, clear: number): THREE.Vector3 {
   const e = 0.05;
-  const dx = (groundHeight(x + e, z) - groundHeight(x - e, z)) / (2 * e);
-  const dz = (groundHeight(x, z + e) - groundHeight(x, z - e)) / (2 * e);
+  const dx = (groundHeight(x + e, z, clear) - groundHeight(x - e, z, clear)) / (2 * e);
+  const dz = (groundHeight(x, z + e, clear) - groundHeight(x, z - e, clear)) / (2 * e);
   return new THREE.Vector3(-dx, 1, -dz).normalize();
 }
 
@@ -108,7 +120,9 @@ function pastBank(x: number, z: number): number {
 }
 
 export class Sward extends THREE.Group {
-  constructor(theme: Theme, keepClear: THREE.Vector3, trunks: THREE.Vector3[], wind: Wind) {
+  // `boulders` keeps the tufts off the boulders, and off whatever else lies
+  // on the land (the lake's mud pits too).
+  constructor(theme: Theme, keepClear: THREE.Vector3, trunks: THREE.Vector3[], boulders: Pick<Boulders, 'near'>, wind: Wind, clear = CLEAR) {
     super();
     this.name = 'sward';
     const random = seededRandom(SEED);
@@ -126,7 +140,7 @@ export class Sward extends THREE.Group {
     }
     for (let k = 0; k < AROUND; k++) {
       const angle = 2 * Math.PI * random();
-      const r = MOWN.radius + (AROUND_RADIUS - MOWN.radius) * random() ** 1.3;
+      const r = clear + AROUND_REACH * random() ** 1.3;
       spots.push(new THREE.Vector2(keepClear.x + r * Math.cos(angle), keepClear.z + r * Math.sin(angle)));
     }
 
@@ -139,7 +153,8 @@ export class Sward extends THREE.Group {
     for (const spot of spots) {
       if (pastBank(spot.x, spot.y) < FROM) continue; // down the bank or in the water
       if (trunks.some((t) => Math.hypot(spot.x - t.x, spot.y - t.z) < TRUNK)) continue;
-      const mown = 1 - THREE.MathUtils.smoothstep(Math.hypot(spot.x - keepClear.x, spot.y - keepClear.z), MOWN.radius, MOWN.radius + MOWN.over);
+      if (boulders.near(spot.x, spot.y, BOULDER_GAP)) continue;
+      const mown = 1 - THREE.MathUtils.smoothstep(Math.hypot(spot.x - keepClear.x, spot.y - keepClear.z), clear, clear + MOWN.over);
       const short = random() ** 1.3;
       const height = THREE.MathUtils.lerp(
         THREE.MathUtils.lerp(HEIGHT[0], HEIGHT[1], short),
@@ -147,11 +162,11 @@ export class Sward extends THREE.Group {
         mown,
       );
       const shape = Math.floor(random() * SHAPES.length);
-      lean.setFromUnitVectors(UP, groundNormal(spot.x, spot.y)).slerp(new THREE.Quaternion(), 1 - FOLLOW);
+      lean.setFromUnitVectors(UP, groundNormal(spot.x, spot.y, clear)).slerp(new THREE.Quaternion(), 1 - FOLLOW);
       turn.setFromAxisAngle(UP, 2 * Math.PI * random());
       placed[shape].push(
         new THREE.Matrix4().compose(
-          new THREE.Vector3(spot.x, groundHeight(spot.x, spot.y), spot.y),
+          new THREE.Vector3(spot.x, groundHeight(spot.x, spot.y, clear), spot.y),
           lean.clone().multiply(turn),
           new THREE.Vector3(height, height, height),
         ),

@@ -1,10 +1,13 @@
-import { Box, Check, ChevronRight, Folder, FolderOpen, Search, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Box, Check, ChevronRight, Folder, FolderOpen, Puzzle, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { Input } from './ui/input';
 
 // A folder tree to pick one leaf from, with a search box above it, like a
-// document tree. Folders open and close; typing keeps only the leaves whose
-// name or folder holds the text, and opens their folders while it does.
+// document tree. Folders open and close. A leaf can hold leaves of its own (a
+// figure's parts): clicking it picks it, and its arrow opens it. Typing keeps
+// only the leaves whose folders and name hold every word typed, and opens
+// their folders while it does; a leaf's own leaves also need a word in their
+// own name, so "bear" finds the bear, and "bear head" or "head" its head.
 // Keys: the arrows move and open or close folders, Enter picks, and typing in
 // the tree goes on in the search box. Enter in the search box picks the first
 // match. It fills the height its parent gives it, and the tree scrolls under
@@ -13,17 +16,19 @@ import { Input } from './ui/input';
 export interface TreeNode {
   name: string; // shown, and what the search matches
   value?: string; // a leaf's value
-  children?: TreeNode[]; // a folder's contents
+  children?: TreeNode[]; // a folder's contents, or a leaf's own leaves
 }
 
 interface Row {
   key: string; // a leaf's value, or a folder's path ("/Tree")
   name: string;
   depth: number;
-  parent: string | null; // the key of the folder it is in
+  parent: string | null; // the key of the folder or leaf it is in
   value?: string; // leaves only
   count?: number; // folders only: how many leaves are inside
-  open?: boolean; // folders only
+  open?: boolean; // folders, and leaves with leaves of their own
+  match?: boolean; // leaves only: it holds the search (a leaf shown only for its own leaves doesn't)
+  inner?: boolean; // a leaf's own leaf
 }
 
 export function SearchTree({
@@ -59,7 +64,7 @@ export function SearchTree({
   }, [value]);
 
   const text = query.trim().toLowerCase();
-  const rows = useMemo(() => rowsOf(nodes, '', 0, null, open, text), [nodes, open, text]);
+  const rows = useMemo(() => rowsOf(nodes, '', 0, null, open, text.split(/\s+/).filter(Boolean), false), [nodes, open, text]);
   // The one row reached with Tab: the last one focused, else the picked leaf.
   const active = rows.find((r) => r.key === focused) ?? rows.find((r) => r.value === value) ?? rows[0];
 
@@ -135,7 +140,7 @@ export function SearchTree({
               e.preventDefault();
               focus(rows[0]);
             } else if (e.key === 'Enter') {
-              const first = rows.find((r) => r.value !== undefined);
+              const first = rows.find((r) => r.match);
               if (first) onChange(first.value!);
             } else if (e.key === 'Escape' && query) {
               e.preventDefault();
@@ -184,8 +189,24 @@ export function SearchTree({
             >
               {leaf ? (
                 <>
-                  <span className="size-4 shrink-0" />
-                  <Box className="size-4 shrink-0 text-muted-foreground" />
+                  {row.open === undefined ? (
+                    <span className="size-4 shrink-0" />
+                  ) : (
+                    // Its arrow opens it; the rest of the row picks it.
+                    <ChevronRight
+                      className={`size-4 shrink-0 text-muted-foreground transition-transform hover:text-foreground ${row.open ? 'rotate-90' : ''}`}
+                      onClick={(e: MouseEvent) => {
+                        e.stopPropagation();
+                        setFocused(row.key);
+                        toggle(row);
+                      }}
+                    />
+                  )}
+                  {row.inner ? (
+                    <Puzzle className="size-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <Box className="size-4 shrink-0 text-muted-foreground" />
+                  )}
                 </>
               ) : (
                 <>
@@ -211,37 +232,53 @@ export function SearchTree({
   );
 }
 
-// The rows shown, in order: open folders show what is inside them. While
-// searching (text) only matching leaves and the folders holding them show.
-function rowsOf(nodes: TreeNode[], path: string, depth: number, parent: string | null, open: Set<string>, text: string): Row[] {
+// The rows shown, in order: open folders (and leaves) show what is inside
+// them. While searching (words) only matching leaves and the folders and
+// leaves holding them show. `inner`: these are a leaf's own leaves.
+function rowsOf(
+  nodes: TreeNode[],
+  path: string,
+  depth: number,
+  parent: string | null,
+  open: Set<string>,
+  words: string[],
+  inner: boolean,
+): Row[] {
   const rows: Row[] = [];
   for (const node of nodes) {
-    const key = `${path}/${node.name}`;
-    if (node.children) {
-      const inside = rowsOf(node.children, key, depth + 1, key, open, text);
-      if (text && inside.length === 0) continue;
-      const isOpen = text !== '' || open.has(key);
-      rows.push({ key, name: node.name, depth, parent, count: leaves(node), open: isOpen });
-      if (isOpen) rows.push(...inside);
-    } else if (!text || key.toLowerCase().includes(text)) {
-      rows.push({ key: node.value!, name: node.name, depth, parent, value: node.value });
-    }
+    const where = `${path}/${node.name}`;
+    const key = node.value ?? where;
+    const match =
+      node.value !== undefined &&
+      words.every((word) => where.toLowerCase().includes(word)) &&
+      (!inner || words.length === 0 || words.some((word) => node.name.toLowerCase().includes(word)));
+    const inside = node.children ? rowsOf(node.children, where, depth + 1, key, open, words, node.value !== undefined) : [];
+    if (words.length > 0 && !match && inside.length === 0) continue;
+    const row: Row = { key, name: node.name, depth, parent, value: node.value };
+    if (node.value !== undefined) Object.assign(row, { match, inner });
+    else row.count = leaves(node);
+    // While searching, what holds a match is open.
+    if (node.children) row.open = words.length > 0 ? inside.length > 0 : open.has(key);
+    rows.push(row);
+    if (row.open) rows.push(...inside);
   }
   return rows;
 }
 
+// The leaves in a folder, not counting leaves' own.
 function leaves(node: TreeNode): number {
-  return node.children ? node.children.reduce((n, child) => n + leaves(child), 0) : 1;
+  return node.value !== undefined ? 1 : (node.children ?? []).reduce((n, child) => n + leaves(child), 0);
 }
 
-// The keys of the folders holding the leaf with this value, outermost first.
+// The keys of the folders (and leaves) holding the leaf with this value,
+// outermost first.
 function foldersAbove(nodes: TreeNode[], value: string, path = ''): string[] {
   for (const node of nodes) {
-    const key = `${path}/${node.name}`;
+    const where = `${path}/${node.name}`;
     if (node.value === value) return [];
     if (node.children) {
-      const inner = foldersAbove(node.children, value, key);
-      if (inner.length > 0 || node.children.some((child) => child.value === value)) return [key, ...inner];
+      const inner = foldersAbove(node.children, value, where);
+      if (inner.length > 0 || node.children.some((child) => child.value === value)) return [node.value ?? where, ...inner];
     }
   }
   return [];

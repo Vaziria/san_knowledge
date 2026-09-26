@@ -17,6 +17,14 @@ import { createWind, type Wind } from '../wind';
 // the camera stays clear. The wind (../wind.ts) sways the sward, the meadow
 // and the trees' crowns, and the water (Water.ts) roughens in it. Both ease
 // in and out, so nothing snaps.
+//
+// Showers come and go too, as the user asked ("add randomly rain in lake
+// environtment"): a shower lasts 40-90 s, with 2-4 minutes of dry weather
+// between, the first 40 s after the lake is shown. `rain` says how hard it
+// rains now (0 dry, up to 1), easing in and out over a few seconds; Rain.ts
+// draws it and the lake greys over with it (Lake.ts). A heavy shower brings a
+// light haze. Showers keep a generator of their own, so the fog and the wind
+// keep their times.
 
 const FOG = {
   first: 25, // s until the first fog
@@ -37,7 +45,16 @@ const WIND = {
   veer: 0.8, // radians a spell may blow either side of that
   turn: 6, // s to swing round to a new spell's direction, about a third of the way
 };
+const RAIN = {
+  first: 40, // s until the first shower
+  lasts: [40, 90] as const, // s a shower lasts
+  gap: [120, 240] as const, // s of dry weather between showers
+  level: [0.65, 1] as const, // how hard a shower rains
+  ease: 3, // s it takes to follow a change, about a third of the way
+  haze: 0.035, // the fog's density in the heaviest shower: the far shore dims a little
+};
 const SEED = 3;
+const RAIN_SEED = 13;
 
 export class Weather {
   readonly fog: THREE.FogExp2;
@@ -51,6 +68,11 @@ export class Weather {
   private windNext = WIND.first;
   private windLevel = WIND.breath;
   private readonly heading = new THREE.Vector2(Math.cos(WIND.prevailing), Math.sin(WIND.prevailing));
+  rain = 0; // how hard it rains now: 0 dry, up to 1
+  private readonly showers = seededRandom(RAIN_SEED);
+  private rainOn = false;
+  private rainNext = RAIN.first;
+  private rainTarget = 0;
 
   constructor(theme: Theme) {
     this.fog = new THREE.FogExp2(new THREE.Color(theme.scene.background), 0);
@@ -69,7 +91,17 @@ export class Weather {
       this.fogNext = this.time + between(random, shortest, longest);
       this.fogTarget = this.fogOn ? between(random, ...FOG.density) : 0;
     }
-    this.fog.density += (this.fogTarget - this.fog.density) * (1 - Math.exp(-delta / FOG.ease));
+    if (this.time >= this.rainNext) {
+      this.rainOn = !this.rainOn;
+      const [shortest, longest] = this.rainOn ? RAIN.lasts : RAIN.gap;
+      this.rainNext = this.time + between(this.showers, shortest, longest);
+      this.rainTarget = this.rainOn ? between(this.showers, ...RAIN.level) : 0;
+    }
+    this.rain += (this.rainTarget - this.rain) * (1 - Math.exp(-delta / RAIN.ease));
+
+    // The fog thickens to at least a shower's haze.
+    const fogTarget = Math.max(this.fogTarget, RAIN.haze * this.rain);
+    this.fog.density += (fogTarget - this.fog.density) * (1 - Math.exp(-delta / FOG.ease));
 
     if (this.time >= this.windNext) {
       this.windOn = !this.windOn;

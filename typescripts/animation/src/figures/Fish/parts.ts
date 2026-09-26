@@ -1,26 +1,30 @@
 import * as THREE from 'three';
 import { gloss, surface, type Theme } from '../../theme';
+import { palette, polygons } from '../animals/parts';
+import type { Point, Triangle } from './models';
 
 // Helpers shared by the fish's parts.
 
-const FIN_THICKNESS = 0.0025;
-
-// Materials for every part, built once per fish from the theme. The body is
-// painted per vertex, from the back colour to the belly colour, so its
-// material is white and takes the colours from the vertices.
+// Materials for every part, built once per fish from the theme. Every face
+// is flat and of one colour, its vertices' colour (models.ts maps each
+// model's colours onto the theme), so the materials are white and take the
+// colours from the vertices. Closed surfaces (the body, the piranha's jaw)
+// are drawn from outside only. A thin sheet (a fin, the tail fin, a tooth)
+// is drawn as two meshes of the same geometry, its front (`sheet`) and its
+// back (`sheetBack`), and only the front casts a shadow (rules.md, Building
+// shapes 9), from whichever of its sides faces the sun: a sheet's front turned
+// to the sun would otherwise cast none, since a front-sided material casts
+// from its back faces. Eyes are glossy, as on any material.
 export function createMaterials(theme: Theme) {
-  const c = theme.colors;
   const skin = surface(theme, 0xffffff);
   skin.vertexColors = true;
-  return {
-    skin,
-    back: new THREE.Color(c.body), // the back, down to the sides
-    belly: new THREE.Color(c.light), // the belly, up to the sides
-    fin: surface(theme, c.trim), // every fin and the tail
-    white: gloss(c.light), // eyeballs and their highlights
-    pupil: gloss(c.dark), // eyes are glossy whatever the finish
-    mouth: surface(theme, c.dark),
-  };
+  const sheet = skin.clone();
+  sheet.shadowSide = THREE.DoubleSide;
+  const sheetBack = skin.clone();
+  sheetBack.side = THREE.BackSide;
+  const eye = gloss(0xffffff);
+  eye.vertexColors = true;
+  return { skin, sheet, sheetBack, eye, palette: palette(theme) };
 }
 
 export type FishMaterials = ReturnType<typeof createMaterials>;
@@ -35,39 +39,89 @@ export function mesh(geo: THREE.BufferGeometry, mat: THREE.Material): THREE.Mesh
   return m;
 }
 
-// A thin fin from an outline drawn from the side: the outline's x runs along
-// the fish (+z, toward the snout) and its y is up. The fin stands in the fish's
-// middle plane (x = 0), FIN_THICKNESS thick.
-export function finGeometry(outline: THREE.Shape): THREE.BufferGeometry {
-  const geo = new THREE.ExtrudeGeometry(outline, { depth: FIN_THICKNESS, bevelEnabled: false, curveSegments: 16 });
-  geo.translate(0, 0, -FIN_THICKNESS / 2);
-  geo.rotateY(-Math.PI / 2); // the outline's x becomes +z, its thickness x
-  return geo;
+// A thin sheet: its front, which casts the shadow, and its back.
+export function sheet(geo: THREE.BufferGeometry, m: FishMaterials): [front: THREE.Mesh, back: THREE.Mesh] {
+  const back = mesh(geo, m.sheetBack);
+  back.castShadow = false;
+  return [mesh(geo, m.sheet), back];
 }
 
-// A closed tube from a grid of points: rows along the tube, columns around it.
-// The last column joins the first, so the tube has no seam. Each quad is split
-// into two triangles wound so that their front faces the side given by
-// (column direction) x (row direction).
-export function tubeGeometry(rows: number, columns: number, point: (row: number, column: number) => THREE.Vector3): THREE.BufferGeometry {
-  const positions: number[] = [];
-  for (let i = 0; i <= rows; i++) {
-    for (let j = 0; j < columns; j++) {
-      const p = point(i, j);
-      positions.push(p.x, p.y, p.z);
-    }
+// Flat triangles from a model's named points (in its units) and triangles,
+// each of its colour, in meters: `unit` m a unit. A triangle's corners go
+// anticlockwise seen from its front.
+export function triangles<C extends string>(points: Readonly<Record<string, Point>>, faces: readonly Triangle<C>[], colors: Record<C, THREE.Color>, unit: number): THREE.BufferGeometry {
+  const at = (name: string) => new THREE.Vector3(...points[name]).multiplyScalar(unit);
+  return polygons(
+    faces.map(([a, b, c]) => [at(a), at(b), at(c)]),
+    (_normal, face) => colors[faces[face][3]],
+  );
+}
+
+// A surface whose corners move (the body, bent every frame): flat triangles
+// between points that are moved in place, in a model's units, each triangle
+// of one colour, drawn `scale` m a unit. update() writes where the corners
+// are now, and each face's own normal. The geometry's bounding box is dropped
+// then, so a Box3 of the fish measures the pose of the moment; its bounding
+// sphere is set by its owner to hold any pose.
+export class LiveFaces {
+  readonly geometry = new THREE.BufferGeometry();
+  private readonly corners: THREE.Vector3[];
+  private readonly scale: number;
+
+  constructor(faces: readonly (readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3])[], colors: readonly THREE.Color[], scale: number) {
+    this.corners = faces.flat();
+    this.scale = scale;
+    const count = this.corners.length;
+    const color = new Float32Array(count * 3);
+    colors.forEach((c, f) => {
+      for (let k = 0; k < 3; k++) color.set([c.r, c.g, c.b], (3 * f + k) * 3);
+    });
+    this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+    this.geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+    this.geometry.setAttribute('color', new THREE.BufferAttribute(color, 3));
+    this.update();
   }
-  const at = (i: number, j: number) => i * columns + (j % columns);
-  const indices: number[] = [];
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < columns; j++) {
-      indices.push(at(i, j), at(i, j + 1), at(i + 1, j));
-      indices.push(at(i, j + 1), at(i + 1, j + 1), at(i + 1, j));
+
+  update(): void {
+    const position = this.geometry.getAttribute('position') as THREE.BufferAttribute;
+    const normal = this.geometry.getAttribute('normal') as THREE.BufferAttribute;
+    const p = position.array as Float32Array;
+    const n = normal.array as Float32Array;
+    const { corners, scale } = this;
+    for (let i = 0; i < corners.length; i += 3) {
+      const a = corners[i];
+      const b = corners[i + 1];
+      const c = corners[i + 2];
+      // (b - a) x (c - a), the face's normal; a face with no area (a fin's
+      // strip where it stands out 0) keeps the one it had.
+      const ux = b.x - a.x, uy = b.y - a.y, uz = b.z - a.z; // prettier-ignore
+      const vx = c.x - a.x, vy = c.y - a.y, vz = c.z - a.z; // prettier-ignore
+      let nx = uy * vz - uz * vy;
+      let ny = uz * vx - ux * vz;
+      let nz = ux * vy - uy * vx;
+      const length = Math.hypot(nx, ny, nz);
+      if (length > 1e-12) {
+        nx /= length;
+        ny /= length;
+        nz /= length;
+      } else if (n[i * 3] || n[i * 3 + 1] || n[i * 3 + 2]) {
+        [nx, ny, nz] = [n[i * 3], n[i * 3 + 1], n[i * 3 + 2]];
+      } else {
+        [nx, ny, nz] = [0, 1, 0];
+      }
+      for (let k = 0; k < 3; k++) {
+        const v = corners[i + k];
+        const o = (i + k) * 3;
+        p[o] = v.x * scale;
+        p[o + 1] = v.y * scale;
+        p[o + 2] = v.z * scale;
+        n[o] = nx;
+        n[o + 1] = ny;
+        n[o + 2] = nz;
+      }
     }
+    position.needsUpdate = true;
+    normal.needsUpdate = true;
+    this.geometry.boundingBox = null;
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
 }

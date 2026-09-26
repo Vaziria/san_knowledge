@@ -1,71 +1,172 @@
 import * as THREE from 'three';
-import { defaultTheme } from '../../theme';
+import { keepSharp } from '../../effects/kuwahara';
+import { defaultTheme, gloss, surface } from '../../theme';
 import { Animal, type AnimalShape, type Motion } from './Animal';
-import { blob, createMaterials, mesh, mix, palette, type AnimalOptions } from './parts';
+import { createMaterials, mesh, mix, palette, polygons, type AnimalOptions, type Palette } from './parts';
+import { EYE, FLAT, HEAD, LENGTH, NECK_COLOR, SEGMENTS, SIDES, TAIL_COLOR, TAIL_TIP, TONGUE, WAVE, fadeAt, liftAt, panelColor, radiusAt, type Paint } from './snakeModel';
 
-// A snake, 1.4 m long and 5.5 cm thick at its thickest, lying on the ground
-// in an S: a slim neck behind a flat, rounded head, a body swelling and then
-// tapering to a fine tail. An olive coat (the fur colour toward the grass
-// colour) with dark saddles across its back, light beneath.
+// A green snake, low poly like folded paper, in the shape the user modelled
+// (snakeModel.ts): its body 1.4 m long, 1.54 m from its snout to the tip of
+// its tail as it lies, and 10.7 cm thick. One tube of 48 six-sided rings, a
+// little flatter than round: a thin tail thickening into the body, then a
+// slightly thinner neck rising to hold the head 22 to 32 cm off the ground;
+// a flat wedge of a head with small yellow eyes, each with a dark slit, and
+// a thin forked tongue that flicks out for half a second every 2.5 s while
+// it moves. Every face is flat and of one colour: green scales (the grass
+// colour) with a dark zig-zag down the back, small dark blotches on the
+// sides, a pale yellow belly and a dark tail tip.
 //
 // Units are meters, it faces +z, and the origin is on the ground under the
-// middle of its length. Its parts are the body (one tube along its spine,
-// reshaped every frame) and the head, a group with its origin where the head
-// meets the neck. Animation behaviour follows its spec, Snake.md: Jump(),
-// Hold(figure), Walk(), Run() and Speech(text), plus Stop() (Animal.ts).
+// middle of its body. Its parts are the body (the tube, reshaped every
+// frame) and the head, a group with its origin where the model puts it,
+// past the neck's end, holding the eyes, the tongue and the mouth.
+// Animation behaviour follows its spec, Snake.md: Jump(), Hold(figure),
+// Walk(), Run() and Speech(text), plus Stop() (Animal.ts).
 //
 // It has no legs, so it walks and runs by slithering (lateral undulation):
-// its body lies along a wave fixed on the ground, and as it moves forward
-// every part of it follows the same wave, so nothing slides sideways, like
-// feet that stay planted. Walking is a slow glide, running a quicker one
-// with a tighter wave. Standing still it holds its last curves. Its head is
-// held a little off the ground and turns along the curve; it lifts higher
-// to carry what it holds. Its jump springs the whole body off the ground,
-// bowed up in the middle. It carries a figure up to 12 cm across in its mouth.
+// its body lies along a wave fixed on the ground, the model's wave, and as
+// it moves forward every part follows the same wave, so nothing slides
+// sideways, like feet that stay planted; the head end swings less, as the
+// model's does. (The model's wave instead runs along a body that stays in
+// one place, which would slide sideways if it moved.) Turning, the wave lies
+// along the curve it is walking, so on a circle nothing slides either.
+// Walking is a slow glide on the model's wave, running a quicker one with a
+// tighter wave. Standing still it keeps its last curves. Its jump springs
+// the whole body off the ground, bowed up in the middle, and it lifts its
+// head a little higher to carry what it holds. It carries a figure up to
+// 12 cm across in its mouth.
 
-const LENGTH = 1.4;
-const RADIUS = 0.0275; // m at its thickest
-const NECK = 0.06; // share of the length behind the head where it is slimmest
-const THICKEST = 0.3; // share of the length where it is thickest
-const RINGS = 64; // along the body
-const SIDES = 12;
-const HEAD = { length: 0.065, width: 0.046, height: 0.028 };
-const EYE = 0.0055;
+const UNIT = 0.14; // m per unit of the model: its body (LENGTH, 10 units) is 1.4 m, as the snake was
+const MIDDLE = LENGTH / 2; // the body's middle (in the model's s), over the origin
+const REST_PHASE = WAVE.number * MIDDLE; // the wave's phase at the middle when it is built: the model's pose at its start
 
-// The wave the body lies along, by gait: its wavelength and height either
-// side, both in meters.
-const WAVE = { rest: { length: 0.8, height: 0.12 }, walk: { length: 0.8, height: 0.14 }, run: { length: 0.6, height: 0.1 } };
-const STILL_HEAD = 0.5; // share of the wave the head swings, so it stays steadier than the body
-const STEADIED = 0.15; // share of the length behind the head that swings less; it slides a little sideways as it passes on, the rest none
-const HEAD_LIFT = { rest: 0.025, holding: 0.07 }; // m the head is off the ground
-const LIFTED = 0.18; // share of the length behind the head that rises with it
-const BOW = 0.5; // share of the jump the middle of the body bows up
-const SADDLES = 0.11; // m from one dark saddle to the next
+// The wave by gait, as shares of the model's (its number, and its height to
+// either side): walking and standing the model's own; running quicker and
+// tighter. It changes only while the snake moves, so standing still it
+// keeps its last curves.
+const RUN_WAVE = { number: 1 / 0.75, height: 0.7 };
+const WAVE_EASE = 3; // how fast the wave changes between gaits, per second of moving
+
+// Turning: the body lies along an arc of the curve it walks, taken from how
+// fast it turns for how far it goes, eased over BEND.ease m of going, and no
+// tighter than BEND.most (1/m). A turn of more than PUT in one frame is the
+// snake being put somewhere, not steered.
+const BEND = { most: 1 / 0.6, ease: 0.4 };
+const PUT = 0.5; // rad
 
 const WALK = { stride: 0.3, cadence: 1, duty: 1 }; // m/s: it glides, so the "stride" is its speed
 const RUN = { stride: 0.9, cadence: 1, duty: 1 };
 const JUMP = 0.2;
+const BOW = 0.5; // share of the jump the middle of the body bows up
 const HOLD = 0.12;
-const BUBBLE = new THREE.Vector3(0, 0.12, LENGTH / 2);
-const BUBBLE_SCALE = 1.2; // times the penguin's: the camera stands back to take in its length, though its head is low
+const HOLD_RAISE = 0.15; // the neck lifts this much higher, as a share of its lift, while it holds something
+const MOUTH = new THREE.Vector3(0, -0.08, 0.66).multiplyScalar(UNIT); // in the head: where a held figure goes, under the snout
+const BUBBLE_ABOVE = 0.1; // m above the head
+const BUBBLE_SCALE = 1.2; // times the penguin's: the camera stands back to take in its length, though it is low
+const REACH = 1; // m from the origin the body never goes beyond, for its bounding sphere
 
-// The body's radius at a share of its length from the head: slim at the
-// neck, swelling to its thickest, then tapering to the tail.
-function radius(s: number): number {
-  const neck = 0.55 + 0.45 * THREE.MathUtils.smoothstep(s, NECK, THICKEST);
-  const tail = s < THICKEST ? 1 : Math.pow(Math.max(0, 1 - (s - THICKEST) / (1 - THICKEST)), 0.75);
-  return RADIUS * Math.max(0.06, neck * tail);
+const TRIANGLES = (SEGMENTS - 1) * SIDES * 2 + SIDES * 2; // tube sides, the tail's point and the neck's end
+const ROUND = Array.from({ length: SIDES }, (_, k) => Math.PI / 2 + (2 * Math.PI * k) / SIDES); // corner k's angle round its ring, from the top
+
+// Each ring's place along the body (s), its radius (m), how far it swings
+// with the wave, how high it rests and how high the neck lifts it (m), and
+// how far it bows up in a jump (a share).
+const RINGS = Array.from({ length: SEGMENTS }, (_, i) => {
+  const s = (i / (SEGMENTS - 1)) * LENGTH;
+  return { s, radius: radiusAt(s) * UNIT, fade: fadeAt(s), rest: radiusAt(s) * FLAT * UNIT, lift: liftAt(s) * UNIT, bow: Math.sin((Math.PI * s) / LENGTH) };
+});
+
+// The body's pose: the wave's phase at the middle (it grows as the snake
+// goes forward, so the wave stays where it is on the ground), the wave's
+// number and height (per unit of the model and in m), the curve its middle
+// follows (1/m, > 0 toward +x), how much higher the neck lifts, and how far
+// the middle bows up (m).
+interface Curves {
+  phase: number;
+  number: number;
+  height: number;
+  curve: number;
+  raise: number;
+  bow: number;
+}
+
+const REST: Curves = { phase: REST_PHASE, number: WAVE.number, height: WAVE.height * UNIT, curve: 0, raise: 0, bow: 0 };
+
+// Reused by head(), pose(), reshape() and tongueGeometry().
+const UP = new THREE.Vector3(0, 1, 0);
+const tangent = new THREE.Vector3();
+const side = new THREE.Vector3();
+const up = new THREE.Vector3();
+const basis = new THREE.Matrix4();
+const e1 = new THREE.Vector3();
+const e2 = new THREE.Vector3();
+const forward = new THREE.Vector3();
+
+// The middle of each ring, in the rig's axes. Straight, ring i is where the
+// model puts it, z = (s - MIDDLE) units along the body, swinging to the side
+// on the wave; turning, the line it swings about bends round an arc of
+// `curve` through the origin, and it swings square to the arc.
+function spine(centers: THREE.Vector3[], c: Curves): void {
+  for (let i = 0; i < SEGMENTS; i++) {
+    const ring = RINGS[i];
+    const u = (ring.s - MIDDLE) * UNIT; // m along the arc from the middle
+    const swing = c.height * ring.fade * Math.sin(c.phase + c.number * (ring.s - MIDDLE));
+    const a = c.curve * u; // how far the arc has turned by then
+    const x = Math.abs(c.curve) < 1e-9 ? 0 : (2 * Math.sin(a / 2) ** 2) / c.curve;
+    const z = Math.abs(c.curve) < 1e-9 ? u : Math.sin(a) / c.curve;
+    const y = ring.rest + ring.lift * (1 + c.raise) + c.bow * ring.bow;
+    centers[i].set(x + Math.cos(a) * swing, y, z - Math.sin(a) * swing);
+  }
+}
+
+// Where the head goes, past the end of the neck along it, and how it turns:
+// pointing along the neck, but kept fairly level, as the model does.
+function head(centers: THREE.Vector3[], position: THREE.Vector3, quaternion: THREE.Quaternion): void {
+  const last = centers[SEGMENTS - 1];
+  tangent.subVectors(last, centers[SEGMENTS - 2]).normalize();
+  position.copy(last).addScaledVector(tangent, HEAD.ahead * UNIT);
+  e1.set(tangent.x, tangent.y * HEAD.level, tangent.z).normalize(); // its +z
+  e2.crossVectors(UP, e1).normalize(); // its +x
+  up.crossVectors(e1, e2);
+  quaternion.setFromRotationMatrix(basis.makeBasis(e2, up, e1));
+}
+
+// Where the head is at rest, for its speech bubble.
+const HEAD_REST = (() => {
+  const centers = RINGS.map(() => new THREE.Vector3());
+  spine(centers, REST);
+  const position = new THREE.Vector3();
+  head(centers, position, new THREE.Quaternion());
+  return position;
+})();
+const BUBBLE = HEAD_REST.clone().add(new THREE.Vector3(0, BUBBLE_ABOVE, 0));
+
+// The model's colours, mixed from the theme's.
+function paints(p: Palette): Record<Paint, THREE.Color> {
+  const green = p.grass.clone(); // its scales
+  return {
+    green,
+    dark: mix(green, p.dark, 0.8), // the zig-zag, the blotches, the tail's tip, the eyes' slits
+    belly: mix(mix(p.light, p.glow, 0.6), green, 0.15), // pale yellow-cream
+    eye: p.glow.clone(), // yellow
+    red: mix(p.trim, p.dark, 0.15), // the tongue: the theme has no red, so the trim's orange, deepened
+  };
 }
 
 export class Snake extends Animal {
   readonly body: THREE.Mesh;
   readonly head = new THREE.Group();
 
-  private readonly geometry: THREE.BufferGeometry;
-  private travel = 0; // m moved along its wave so far
-  private wave = { ...WAVE.rest };
-  private lift: number = HEAD_LIFT.rest;
-  private readonly spine = Array.from({ length: RINGS }, () => new THREE.Vector3());
+  private readonly tongue: THREE.Mesh;
+  private readonly positions: THREE.BufferAttribute;
+  private readonly normals: THREE.BufferAttribute;
+  private readonly centers = RINGS.map(() => new THREE.Vector3());
+  private readonly corners = Array.from({ length: SEGMENTS * SIDES }, () => new THREE.Vector3());
+  private readonly tip = new THREE.Vector3();
+  private readonly curves: Curves = { ...REST };
+  private heading: number | null = null; // which way it faced last frame, to tell how fast it turns
+  private flick = 0; // s into the tongue's cycle
+  private flicking = false; // whether the tongue flicks out this cycle
 
   constructor(options: AnimalOptions = {}) {
     const theme = options.theme ?? defaultTheme;
@@ -73,114 +174,214 @@ export class Snake extends Animal {
     super(theme, shape);
     this.name = 'snake';
     const m = createMaterials(theme);
-    const p = palette(theme);
-    const coat = mix(p.fur, p.grass, 0.5);
-    const saddle = mix(coat, p.dark, 0.6);
-    const belly = mix(coat, p.light, 0.6);
+    const colors = paints(palette(theme));
 
-    // The body: RINGS rings of SIDES vertices, reshaped every frame (reshape()),
-    // closed at the tail. Its colours stay with the body as it moves: dark
-    // saddles across the back, light beneath.
-    const positions = new Float32Array((RINGS * SIDES + 1) * 3);
-    const colors: number[] = [];
-    const c = new THREE.Color();
-    for (let i = 0; i < RINGS; i++) {
-      const s = i / (RINGS - 1);
-      const band = Math.sin((2 * Math.PI * s * LENGTH) / SADDLES) > 0.35 && s > NECK + 0.04;
-      for (let j = 0; j < SIDES; j++) {
-        const up = Math.sin((j / SIDES) * 2 * Math.PI - Math.PI / 2); // -1 underneath, 1 on top
-        c.copy(band && up > -0.1 ? saddle : coat).lerp(belly, THREE.MathUtils.smoothstep(-up, 0.3, 0.7));
-        colors.push(c.r, c.g, c.b);
+    // The body: flat faces, each of one colour, which stays with it as it
+    // moves; their corners and normals are set every frame (reshape()).
+    const vertices = TRIANGLES * 3;
+    this.positions = new THREE.BufferAttribute(new Float32Array(vertices * 3), 3).setUsage(THREE.DynamicDrawUsage);
+    this.normals = new THREE.BufferAttribute(new Float32Array(vertices * 3), 3).setUsage(THREE.DynamicDrawUsage);
+    const paint: Paint[] = [];
+    for (let i = 0; i < SEGMENTS - 1; i++) for (let k = 0; k < SIDES; k++) paint.push(panelColor(i, k), panelColor(i, k));
+    for (let k = 0; k < SIDES; k++) paint.push(TAIL_COLOR);
+    for (let k = 0; k < SIDES; k++) paint.push(NECK_COLOR);
+    const color = new Float32Array(vertices * 3);
+    paint.forEach((name, t) => {
+      for (let v = 0; v < 3; v++) colors[name].toArray(color, (3 * t + v) * 3);
+    });
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', this.positions);
+    geometry.setAttribute('normal', this.normals);
+    geometry.setAttribute('color', new THREE.BufferAttribute(color, 3));
+    // It changes shape every frame, so it isn't culled (its bounds would go
+    // stale), and its sphere is one no pose goes beyond.
+    geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), REACH);
+    this.body = mesh(geometry, m.coat);
+    this.body.frustumCulled = false;
+
+    // The head: the model's faces, the left half mirrored from the right.
+    const point = (p: readonly number[], x: number) => new THREE.Vector3(p[0] * x, p[1], p[2]).multiplyScalar(UNIT);
+    const faces: THREE.Vector3[][] = [];
+    const facePaint: Paint[] = [];
+    for (const [a, b, c, name] of [...HEAD.faces, ...HEAD.back]) {
+      const [pa, pb, pc] = [HEAD.points[a], HEAD.points[b], HEAD.points[c]];
+      faces.push([point(pa, 1), point(pb, 1), point(pc, 1)], [point(pa, -1), point(pc, -1), point(pb, -1)]);
+      facePaint.push(name, name);
+    }
+    this.head.add(mesh(polygons(faces, (_n, f) => colors[facePaint[f]]), m.coat));
+
+    // The eyes, glossy: yellow in front, the dark slit behind, closed at
+    // their base. They are small (2 cm), and at the preview's distance the
+    // painterly filter wiped them out, so they are kept out of it.
+    const eyeFaces: THREE.Vector3[][] = [];
+    const eyePaint: Paint[] = [];
+    for (const x of [1, -1]) {
+      const corner = (name: keyof typeof EYE.points) => point([EYE.at[0] + EYE.points[name][0], EYE.at[1] + EYE.points[name][1], EYE.at[2] + EYE.points[name][2]], x);
+      const turned = <T>(list: readonly T[]) => (x > 0 ? [...list] : [...list].reverse());
+      for (const [a, b, c, name] of EYE.faces) {
+        eyeFaces.push(turned([a, b, c]).map(corner));
+        eyePaint.push(name);
       }
+      eyeFaces.push(turned(EYE.base).map(corner));
+      eyePaint.push('dark');
     }
-    colors.push(coat.r, coat.g, coat.b); // the tail's tip
-    const indices: number[] = [];
-    const at = (i: number, j: number) => i * SIDES + (j % SIDES);
-    for (let i = 0; i < RINGS - 1; i++) {
-      for (let j = 0; j < SIDES; j++) indices.push(at(i, j), at(i + 1, j), at(i, j + 1), at(i, j + 1), at(i + 1, j), at(i + 1, j + 1));
-    }
-    const tip = RINGS * SIDES;
-    for (let j = 0; j < SIDES; j++) indices.push(at(RINGS - 1, j), tip, at(RINGS - 1, j + 1));
-    this.geometry = new THREE.BufferGeometry();
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    this.geometry.setIndex(indices);
-    this.body = mesh(this.geometry, m.coat);
-    this.body.frustumCulled = false; // it changes shape, so its bounds would go stale
+    const eyes = gloss(0xffffff);
+    eyes.vertexColors = true;
+    keepSharp(eyes);
+    this.head.add(mesh(polygons(eyeFaces, (_n, f) => colors[eyePaint[f]]), eyes));
 
-    // The head: flat and rounded, a little wider than the neck, with eyes
-    // on top of its sides and the mouth at its front.
-    const face = (_u: number, out: THREE.Vector3) => (out.y < -0.2 ? belly : coat);
-    this.head.add(mesh(blob(new THREE.Vector3(0, 0, HEAD.length * 0.45), new THREE.Vector3(HEAD.width / 2, HEAD.height / 2, HEAD.length / 2), face, { top: 0.15 }, new THREE.Euler(Math.PI / 2, 0, 0)), m.coat));
-    for (const side of [-1, 1]) {
-      const eye = mesh(new THREE.SphereGeometry(EYE, 10, 8), m.eye);
-      eye.position.set(side * HEAD.width * 0.36, HEAD.height * 0.22, HEAD.length * 0.62);
-      const shine = mesh(new THREE.SphereGeometry(EYE * 0.35, 6, 4), m.shine);
-      shine.position.copy(eye.position).add(new THREE.Vector3(side * 0.001, 0.002, 0.002));
-      this.head.add(eye, shine);
-    }
-    this.holder.position.set(0, -HEAD.height * 0.2, HEAD.length * 0.95);
+    // The tongue: the model's three flat triangles, given a thickness as
+    // deep as its stem is wide, so it shows edge on, and kept out of the
+    // painterly filter, which would average it away.
+    const tongue = surface(theme, colors.red);
+    keepSharp(tongue);
+    this.tongue = new THREE.Mesh(tongueGeometry(), tongue);
+    this.tongue.position.fromArray(TONGUE.at).multiplyScalar(UNIT);
+    this.tongue.visible = false;
+    this.head.add(this.tongue);
+
+    this.holder.position.copy(MOUTH);
     this.head.add(this.holder);
-
     this.rig.add(this.body, this.head);
     this.update(0);
   }
 
   protected pose(mo: Motion): void {
-    const ease = 1 - Math.exp(-3 * mo.delta);
-    const target = mo.moving < 0.01 ? WAVE.rest : mo.running > 0.5 ? WAVE.run : WAVE.walk;
-    this.wave.length += (target.length - this.wave.length) * ease;
-    this.wave.height += (target.height - this.wave.height) * ease;
-    this.lift += (THREE.MathUtils.lerp(HEAD_LIFT.rest, HEAD_LIFT.holding, mo.holding) - this.lift) * ease;
-    this.travel += (mo.stride * mo.delta) / mo.duty; // its own speed, as the base moves it forward
+    const c = this.curves;
+    const moved = this.speed * mo.delta; // m it went forward this frame
 
-    // The spine: each point a share s of the length back from the head, on
-    // the ground's wave where that part of the body is now. The head's end
-    // swings less, and rises off the ground; in a jump the middle bows up.
-    this.rig.position.y = mo.height;
-    const k = (2 * Math.PI) / this.wave.length;
-    for (let i = 0; i < RINGS; i++) {
-      const s = i / (RINGS - 1);
-      const z = LENGTH / 2 - s * LENGTH;
-      const swing = THREE.MathUtils.lerp(STILL_HEAD, 1, THREE.MathUtils.smoothstep(s, 0, STEADIED));
-      const x = this.wave.height * swing * Math.sin(k * (this.travel + z));
-      const rise = this.lift * (1 - THREE.MathUtils.smoothstep(s, 0, LIFTED)) + BOW * mo.height * Math.sin(Math.PI * s) * (mo.height > 0 ? 1 : 0);
-      this.spine[i].set(x, radius(s) + rise, z);
+    // The wave by gait, changing only while it moves.
+    const ease = 1 - Math.exp(-WAVE_EASE * mo.delta * mo.moving);
+    c.number += (WAVE.number * THREE.MathUtils.lerp(1, RUN_WAVE.number, mo.running) - c.number) * ease;
+    c.height += (WAVE.height * UNIT * THREE.MathUtils.lerp(1, RUN_WAVE.height, mo.running) - c.height) * ease;
+    // Going forward along the wave, which stays on the ground.
+    c.phase += (c.number / UNIT) * moved;
+
+    // The curve it walks: how far it turned for how far it went.
+    forward.set(0, 0, 1).applyQuaternion(this.quaternion);
+    const heading = Math.atan2(forward.x, forward.z);
+    if (this.heading !== null && moved > 1e-6) {
+      const turn = THREE.MathUtils.euclideanModulo(heading - this.heading + Math.PI, 2 * Math.PI) - Math.PI;
+      if (Math.abs(turn) < PUT) c.curve += (THREE.MathUtils.clamp(turn / moved, -BEND.most, BEND.most) - c.curve) * (1 - Math.exp(-moved / BEND.ease));
     }
-    this.reshape();
+    this.heading = heading;
 
-    // The head sits on the front of the spine, turned along it.
-    const front = this.spine[0];
-    const next = this.spine[2];
-    this.head.position.copy(front);
-    this.head.rotation.set(Math.atan2(next.y - front.y, front.z - next.z), Math.atan2(front.x - next.x, front.z - next.z), 0, 'YXZ');
-    this.bubbleShift.set(front.x, front.y - HEAD_LIFT.rest, 0);
+    // Off the ground in a jump, bowed up in the middle; the neck higher
+    // while it carries something.
+    this.rig.position.y = mo.height;
+    c.bow = mo.height > 0 ? BOW * mo.height : 0;
+    c.raise = HOLD_RAISE * mo.holding;
+    spine(this.centers, c);
+    this.reshape();
+    head(this.centers, this.head.position, this.head.quaternion);
+
+    // The tongue flicks out for a moment every few seconds while it moves
+    // (but not past what it carries).
+    this.flick += mo.delta;
+    if (this.flick >= TONGUE.every) {
+      this.flick %= TONGUE.every;
+      this.flicking = mo.moving > 0.5;
+    }
+    const out = this.flick < TONGUE.out ? Math.sin((this.flick / TONGUE.out) * Math.PI) : 0;
+    this.tongue.scale.z = Math.max(out, 0.001);
+    this.tongue.visible = this.flicking && out > 0.02 && mo.holding < 0.5;
+
+    this.bubbleShift.subVectors(this.head.position, HEAD_REST);
   }
 
-  // Puts the body's rings round the spine, and the tail's tip on its end.
+  // Puts the rings round the spine, as the model does (each square to the
+  // line through its neighbours, its first corner on top, a little flatter
+  // than round), and writes the faces, turned to face out.
   private reshape(): void {
-    const position = this.geometry.getAttribute('position') as THREE.BufferAttribute;
-    const tangent = new THREE.Vector3();
-    const side = new THREE.Vector3();
-    const up = new THREE.Vector3();
-    const UP = new THREE.Vector3(0, 1, 0);
-    for (let i = 0; i < RINGS; i++) {
-      const s = i / (RINGS - 1);
-      tangent.subVectors(this.spine[Math.max(0, i - 1)], this.spine[Math.min(RINGS - 1, i + 1)]).normalize(); // toward the head
-      side.crossVectors(UP, tangent).normalize();
-      up.crossVectors(tangent, side);
-      const r = radius(s);
-      for (let j = 0; j < SIDES; j++) {
-        const angle = (j / SIDES) * 2 * Math.PI - Math.PI / 2;
-        const p = this.spine[i];
-        position.setXYZ(i * SIDES + j, p.x + r * (side.x * Math.cos(angle) + up.x * Math.sin(angle) * 0.85), p.y + r * (side.y * Math.cos(angle) + up.y * Math.sin(angle) * 0.85), p.z + r * (side.z * Math.cos(angle) + up.z * Math.sin(angle) * 0.85));
+    const { centers, corners } = this;
+    for (let i = 0; i < SEGMENTS; i++) {
+      tangent.subVectors(centers[Math.min(i + 1, SEGMENTS - 1)], centers[Math.max(i - 1, 0)]).normalize();
+      side.crossVectors(tangent, UP).normalize();
+      up.crossVectors(side, tangent).normalize();
+      const r = RINGS[i].radius;
+      for (let k = 0; k < SIDES; k++) {
+        corners[i * SIDES + k]
+          .copy(centers[i])
+          .addScaledVector(side, Math.cos(ROUND[k]) * r)
+          .addScaledVector(up, Math.sin(ROUND[k]) * r * FLAT);
       }
     }
-    const end = this.spine[RINGS - 1];
-    const before = this.spine[RINGS - 2];
-    position.setXYZ(RINGS * SIDES, end.x + (end.x - before.x) * 0.5, end.y, end.z + (end.z - before.z) * 0.5);
-    position.needsUpdate = true;
-    this.geometry.computeVertexNormals();
-    this.geometry.computeBoundingSphere();
+    tangent.subVectors(centers[1], centers[0]).normalize();
+    this.tip.copy(centers[0]).addScaledVector(tangent, -TAIL_TIP * UNIT);
+
+    let t = 0;
+    for (let i = 0; i < SEGMENTS - 1; i++) {
+      const ring = i * SIDES;
+      const next = ring + SIDES;
+      for (let k = 0; k < SIDES; k++) {
+        const k1 = (k + 1) % SIDES;
+        t = this.face(t, corners[ring + k], corners[next + k1], corners[ring + k1]);
+        t = this.face(t, corners[ring + k], corners[next + k], corners[next + k1]);
+      }
+    }
+    const last = (SEGMENTS - 1) * SIDES;
+    for (let k = 0; k < SIDES; k++) t = this.face(t, corners[k], corners[(k + 1) % SIDES], this.tip);
+    for (let k = 0; k < SIDES; k++) t = this.face(t, corners[last + ((k + 1) % SIDES)], corners[last + k], centers[SEGMENTS - 1]);
+    this.positions.needsUpdate = true;
+    this.normals.needsUpdate = true;
+    this.body.geometry.boundingBox = null; // measured again when next asked for, in the pose of the moment
   }
+
+  // Writes triangle t, flat: its corners and its normal.
+  private face(t: number, a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3): number {
+    const ux = b.x - a.x;
+    const uy = b.y - a.y;
+    const uz = b.z - a.z;
+    const vx = c.x - a.x;
+    const vy = c.y - a.y;
+    const vz = c.z - a.z;
+    let nx = uy * vz - uz * vy;
+    let ny = uz * vx - ux * vz;
+    let nz = ux * vy - uy * vx;
+    const length = Math.hypot(nx, ny, nz) || 1;
+    nx /= length;
+    ny /= length;
+    nz /= length;
+    const p = this.positions.array;
+    const n = this.normals.array;
+    let i = t * 9;
+    p[i] = a.x;
+    p[i + 1] = a.y;
+    p[i + 2] = a.z;
+    p[i + 3] = b.x;
+    p[i + 4] = b.y;
+    p[i + 5] = b.z;
+    p[i + 6] = c.x;
+    p[i + 7] = c.y;
+    p[i + 8] = c.z;
+    for (let v = 0; v < 3; v++, i += 3) {
+      n[i] = nx;
+      n[i + 1] = ny;
+      n[i + 2] = nz;
+    }
+    return t + 1;
+  }
+}
+
+// The tongue: each of the model's triangles made a thin slab, as deep as the
+// stem is wide, its faces facing out. Its root is at the origin, and it
+// points along +z.
+function tongueGeometry(): THREE.BufferGeometry {
+  const depth = TONGUE.width * UNIT; // half its thickness
+  const faces: THREE.Vector3[][] = [];
+  for (const triangle of TONGUE.triangles) {
+    const top = triangle.map(([x, y, z]) => new THREE.Vector3(x, y, z).multiplyScalar(UNIT).setY(depth));
+    const bottom = top.map((p) => p.clone().setY(-depth));
+    const middle = new THREE.Vector3();
+    for (const p of top) middle.add(p);
+    middle.divideScalar(3).setY(0);
+    const slab = [top, [...bottom].reverse(), ...[0, 1, 2].map((k) => [top[k], bottom[k], bottom[(k + 1) % 3], top[(k + 1) % 3]])];
+    for (const face of slab) {
+      // Facing away from the slab's middle.
+      e1.subVectors(face[1], face[0]).cross(e2.subVectors(face[2], face[0]));
+      e2.copy(face[0]).add(face[1]).add(face[2]).divideScalar(3).sub(middle);
+      faces.push(e1.dot(e2) < 0 ? [...face].reverse() : face);
+    }
+  }
+  return polygons(faces);
 }

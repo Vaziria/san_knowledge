@@ -11,6 +11,10 @@ import type { Theme } from '../theme';
 // its lines. The bubbles pop up from the tail one after another, each staying
 // long enough to read, then pop away.
 //
+// A bubble can name who speaks (the lake meeting's viewers): the name heads
+// every bubble of what they say, in bold and a little smaller, and is not
+// counted among its words.
+//
 // Its origin is the tip of the tail: place it just above the speaker's head.
 // Sizes are in meters, so the bubble belongs to the scene and grows as the
 // camera comes closer. It always faces the camera (a sprite) and is drawn on
@@ -27,6 +31,8 @@ const CORNER = 0.03; // m, the box's corner radius
 const OUTLINE = 0.004; // m
 const TAIL = { width: 0.036, length: 0.035 }; // m
 const FONT = (px: number) => `600 ${px}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+const NAME_FONT = (px: number) => `800 ${px}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+const NAME_SIZE = 0.8; // the speaker's name, in ems of the text
 const PX_PER_M = 1600; // the drawing's resolution: sharp even up close
 
 // Timing, in seconds: a bubble pops up, stays for its reading time (about 16
@@ -86,13 +92,28 @@ function wrap(text: string): string[] {
   return lines;
 }
 
-// A bubble holding the given lines, drawn on a canvas, and where its tail's
-// tip is (as a share of the canvas height, from the bottom).
-function draw(lines: string[], fill: string, ink: string): { canvas: HTMLCanvasElement; tip: number } {
+// A name cut to fit one line, with an ellipsis where it was cut.
+function fitName(ctx: CanvasRenderingContext2D, name: string): string {
+  if (ctx.measureText(name).width <= px(MAX_WIDTH)) return name;
+  let cut = name.length - 1;
+  while (cut > 1 && ctx.measureText(`${name.slice(0, cut)}…`).width > px(MAX_WIDTH)) cut--;
+  return `${name.slice(0, cut)}…`;
+}
+
+// A bubble holding the given lines, under the speaker's name if it has one,
+// drawn on a canvas, and where its tail's tip is (as a share of the canvas
+// height, from the bottom).
+function draw(lines: string[], speaker: string, fill: string, ink: string): { canvas: HTMLCanvasElement; tip: number } {
   const ctx = measuring();
   const lineHeight = px(FONT_SIZE * LINE_HEIGHT);
-  const boxWidth = Math.max(...lines.map((l) => ctx.measureText(l).width)) + 2 * px(PADDING);
-  const boxHeight = lines.length * lineHeight + 2 * px(PADDING);
+  const textWidth = Math.max(...lines.map((l) => ctx.measureText(l).width));
+  const nameSize = px(FONT_SIZE * NAME_SIZE);
+  ctx.font = NAME_FONT(nameSize);
+  const name = speaker ? fitName(ctx, speaker) : '';
+  const nameWidth = name ? ctx.measureText(name).width : 0;
+  const nameHeight = name ? nameSize * LINE_HEIGHT : 0;
+  const boxWidth = Math.max(textWidth, nameWidth) + 2 * px(PADDING);
+  const boxHeight = nameHeight + lines.length * lineHeight + 2 * px(PADDING);
   const margin = px(OUTLINE); // room for the outline outside the box
 
   const canvas = document.createElement('canvas');
@@ -122,11 +143,15 @@ function draw(lines: string[], fill: string, ink: string): { canvas: HTMLCanvasE
   g.strokeStyle = ink;
   g.stroke();
 
-  g.font = FONT(px(FONT_SIZE));
   g.fillStyle = ink;
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  lines.forEach((line, i) => g.fillText(line, middle, y0 + px(PADDING) + (i + 0.5) * lineHeight));
+  if (name) {
+    g.font = NAME_FONT(nameSize);
+    g.fillText(name, middle, y0 + px(PADDING) + nameHeight / 2);
+  }
+  g.font = FONT(px(FONT_SIZE));
+  lines.forEach((line, i) => g.fillText(line, middle, y0 + px(PADDING) + nameHeight + (i + 0.5) * lineHeight));
   return { canvas, tip: (canvas.height - tipY) / canvas.height };
 }
 
@@ -143,6 +168,7 @@ export class SpeechBubble extends THREE.Group {
   private sprite: THREE.Sprite | null = null;
   private readonly size = new THREE.Vector2(); // m, the shown bubble at full size
   private bubbles: string[] = []; // what each bubble still to show says, the shown one first
+  private speaker = ''; // who says it, named on each bubble; '' for no name
   private elapsed = 0; // seconds since the shown bubble began
   private stay = 0; // seconds it stays up at full size
 
@@ -159,10 +185,12 @@ export class SpeechBubble extends THREE.Group {
   }
 
   // Says the text, in as many bubbles as it takes, replacing anything it was
-  // still saying. An empty text just stops it.
-  say(text: string): void {
+  // still saying, each bubble headed by the speaker's name if one is given.
+  // An empty text just stops it.
+  say(text: string, speaker = ''): void {
     this.hide();
     this.bubbles = splitSpeech(text);
+    this.speaker = speaker.trim();
     if (this.speaking) this.begin();
   }
 
@@ -184,7 +212,7 @@ export class SpeechBubble extends THREE.Group {
 
   private begin(): void {
     const words = this.bubbles[0];
-    const { canvas, tip } = draw(wrap(words), this.fill, this.ink);
+    const { canvas, tip } = draw(wrap(words), this.speaker, this.fill, this.ink);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false, fog: false }); // words never fade in fog

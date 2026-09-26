@@ -5,8 +5,11 @@ import { SHORE_MAX } from './Ground';
 import { Splashes } from './Splash';
 
 // The lake's water: a see-through sheet at the water level (y = 0) moving in
-// small waves. It is a square a little wider than the lake; past the shore it
-// runs under the land, which hides it.
+// small waves. It is a square a little wider than the lake, less the cells
+// over land the waves never reach (`bedAt`), which the land would hide
+// anyway; past the shore the rest runs under the land, which hides it. The
+// swamps dug into the land by the lake (Swamps.ts) lie below its level, and
+// the lake's water would show in them.
 //
 // The waves are a few sine waves crossing each other. Each travels at the
 // speed deep water gives its length, so longer waves travel faster. The same
@@ -19,7 +22,9 @@ import { Splashes } from './Splash';
 //
 // In wind (setWind, from the lake's weather) the waves grow higher, a short
 // ripple runs downwind across them, and the surface roughens so its glint
-// dulls; heightAt() follows, so a floating figure rocks more.
+// dulls; heightAt() follows, so a floating figure rocks more. At night
+// (setNight, from the lake's time of day) the glint dulls too: the moon's
+// light is dim, and a sharp glint of it read as a lamp on the water.
 
 const SIZE = 2 * (SHORE_MAX + 1);
 const SEGMENTS = 128; // along each side: 18 cm squares, 6 per shortest wave
@@ -29,6 +34,8 @@ const ROUGHNESS = 0.12; // low: a calm surface with a clear sun glint
 const WIND_WAVES = 1.2; // in a full wind the waves are this much higher again
 const RIPPLE = { length: 0.9, height: 0.02 }; // m: the short wave a full wind raises, running downwind
 const WIND_ROUGHNESS = 0.25; // how much rougher the surface is in a full wind
+const NIGHT_ROUGHNESS = 0.2; // and at night
+const RAIN_ROUGHNESS = 0.3; // and in the heaviest shower, pocked by its drops
 
 // [length (m), height from trough to crest (m), direction it travels (radians
 // from +x toward +z), phase].
@@ -45,6 +52,11 @@ interface Wave {
   amplitude: number;
   phase: number;
 }
+
+// m above the still water the waves reach at most: every crest together, in a
+// full wind, with the ripple on them. A cell of the sheet over land higher
+// than this at all its corners is left out.
+const HIGHEST = WAVES.reduce((sum, [, height]) => sum + height / 2, 0) * (1 + WIND_WAVES) + RIPPLE.height / 2;
 
 const waves: Wave[] = WAVES.map(([length, height, direction, phase]) => {
   const k = (2 * Math.PI) / length;
@@ -64,13 +76,29 @@ export class Water extends THREE.Group {
   private readonly splashes: Splashes;
   // The waves as they are now: the calm ones, higher in wind, and the ripple.
   private current: Wave[] = waves;
+  private night = 0;
+  private rain = 0;
 
-  constructor(theme: Theme) {
+  // `bedAt` is the lake's ground before anything is dug into it (Ground.ts
+  // groundHeight): the land past the bank never dips below 8 cm, and the
+  // waves reach 7.8 cm (HIGHEST). The whole square without it.
+  constructor(theme: Theme, bedAt?: (x: number, z: number) => number) {
     super();
     this.name = 'water';
 
     this.geometry = new THREE.PlaneGeometry(SIZE, SIZE, SEGMENTS, SEGMENTS);
     this.geometry.rotateX(-Math.PI / 2);
+    if (bedAt) {
+      const position = this.geometry.attributes.position;
+      const wet = Array.from({ length: position.count }, (_, i) => bedAt(position.getX(i), position.getZ(i)) < HIGHEST);
+      const index = this.geometry.index!;
+      const kept: number[] = [];
+      for (let i = 0; i < index.count; i += 3) {
+        const [a, b, c] = [index.getX(i), index.getX(i + 1), index.getX(i + 2)];
+        if (wet[a] || wet[b] || wet[c]) kept.push(a, b, c);
+      }
+      this.geometry.setIndex(kept);
+    }
 
     const material = (this.material = new THREE.MeshStandardMaterial({
       color: theme.scene.water,
@@ -105,7 +133,15 @@ export class Water extends THREE.Group {
       ...waves.map((w) => ({ ...w, amplitude: w.amplitude * higher })),
       { kx: k * direction.x, kz: k * direction.y, omega: Math.sqrt(GRAVITY * k), amplitude: (RIPPLE.height / 2) * strength, phase: 0 },
     ];
-    this.material.roughness = ROUGHNESS + WIND_ROUGHNESS * strength;
+    this.material.roughness = ROUGHNESS + WIND_ROUGHNESS * strength + NIGHT_ROUGHNESS * this.night + RAIN_ROUGHNESS * this.rain;
+  }
+
+  // How far into the night it is (0 day, 1 night; DayNight.ts), and how hard
+  // it rains (Weather.ts): both dull the glint. Call before setWind() each
+  // frame.
+  setNight(night: number, rain = 0): void {
+    this.night = night;
+    this.rain = rain;
   }
 
   // Throws up a splash where something breaks the surface at a point of the

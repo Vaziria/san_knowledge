@@ -3,12 +3,13 @@ import { behaviours } from './behaviours';
 import { settings, settingsFromQuery } from './settings';
 import type { Stage } from './Stage';
 import { record, type Follow } from './stream';
+import { holdOnly } from './walk';
 
 // The page as the dev server's hidden browser opens it to draw the stream
 // (the Stream tab's "stream only"; stream-bridge.ts): ?renderer=1280x720 and
 // the panel's settings. No panel: it draws the scene at the stream's size,
 // records it for the dev server (stream.ts), and follows the panel, whose
-// settings and behaviours come as the Vite event 'stream:follow'. A small
+// settings, behaviours and walking come as the Vite event 'stream:follow'. A small
 // picture of it goes to the dev server every second, for the panel, and its
 // errors go to the dev server's terminal, since nobody sees this page.
 
@@ -46,6 +47,7 @@ export function drawForStream(stage: Stage): void {
       }
     }
     if (change.restart) behaviours.getState().restart();
+    if (change.walk) holdOnly(change.walk);
   });
 
   // Once the dev server takes no more (the stream is over, and this is a

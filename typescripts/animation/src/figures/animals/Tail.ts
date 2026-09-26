@@ -1,11 +1,16 @@
 import * as THREE from 'three';
-import { capsule, mesh, solid, type AnimalMaterials } from './parts';
+import { capsule, loftGeometry, lofted, mesh, solid, type AnimalMaterials, type Loft } from './parts';
 
 // A tail, from where it leaves the rump (its origin) backward (-z): thin and
 // tapering for a cat, a thick brush for a fox or wolf, a stub for a bear or a
 // deer. It sets off `droop` radians below level (a negative droop carries it
 // up) and curves `curl` radians further up by its tip. Its tip has a colour
 // of its own (a fox's white tip). The animal swings it about its origin.
+//
+// Or it is modelled by hand (a TailModel, from the user's models): a loft
+// from its root, flat faces of one colour each: the colour the model paints
+// it (`paint`, one per face), or else the coat, and the tip's colour from
+// band `tip` on (the wolf).
 
 export interface TailShape {
   length: number; // m
@@ -15,13 +20,23 @@ export interface TailShape {
   curl: number; // radians it curves up by its tip
 }
 
+export interface TailModel extends Loft {
+  tip?: number; // the first band in the tip's colour (none when left out)
+}
+
 const ROWS = 14;
 const TIP = 0.78; // how far along the tip colour begins
 
 export class Tail extends THREE.Group {
-  constructor(m: AnimalMaterials, shape: TailShape, coat: THREE.Color, tip: THREE.Color) {
+  constructor(m: AnimalMaterials, shape: TailShape | TailModel, coat: THREE.Color, tip: THREE.Color, paint?: readonly THREE.Color[]) {
     super();
     this.name = 'tail';
+    if ('sections' in shape) {
+      const surface = lofted(shape);
+      const from = shape.tip ?? Infinity;
+      this.add(mesh(loftGeometry(surface, (face) => paint?.[face] ?? (surface.band[face] >= from ? tip : coat)), m.coat));
+      return;
+    }
     const points = [new THREE.Vector3(0, 0, shape.radius * 0.8)]; // starting inside the rump
     const p = new THREE.Vector3();
     const steps = 6;
@@ -46,6 +61,7 @@ export class Tail extends THREE.Group {
           (u) => c.copy(coat).lerp(tip, THREE.MathUtils.smoothstep(u, TIP, TIP + 0.08)),
           ROWS,
           14,
+          m.look,
         ),
         m.coat,
       ),

@@ -40,7 +40,7 @@ export class ElmTree extends THREE.Group {
   constructor(options: TreeOptions = {}) {
     super();
     this.name = 'elm tree';
-    const m = createMaterials(options.theme ?? defaultTheme, FOLIAGE_SHADE);
+    const m = createMaterials(options.theme ?? defaultTheme, FOLIAGE_SHADE, options.autumn);
     const random = seededRandom(options.seed ?? SEED);
 
     const trunk = TRUNK.map(([x, y, z]) => new THREE.Vector3(x, y, z));

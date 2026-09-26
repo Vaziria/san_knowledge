@@ -6,6 +6,8 @@ import {
   setRender,
   startStream,
   stopStream,
+  store,
+  stored,
   useStreamOptions,
   useStreaming,
   YOUTUBE_URL,
@@ -20,19 +22,13 @@ import { Action, Select, TextField, Toggle } from './controls';
 // the stream key to paste here (Create, Go live, Stream). Render says where
 // the scene is drawn: here and in the stream, only in the stream (drawn by
 // the dev server), or only here. GPU has the dev server's side use the
-// graphics card. The URL, Render and GPU are kept in this browser; the key is
-// not kept anywhere, so after a reload it is pasted again. Rows share the
+// graphics card. The URL, the key (once pasted; an emptied field forgets it),
+// the quality, Render and GPU are kept in this browser. Rows share the
 // panel's three columns, like the Settings tab.
 
 const URL_KEY = 'animation-stream-url';
-
-function savedUrl(): string {
-  try {
-    return localStorage.getItem(URL_KEY) || YOUTUBE_URL;
-  } catch {
-    return YOUTUBE_URL; // storage can be blocked
-  }
-}
+const KEY_KEY = 'animation-stream-key';
+const QUALITY_KEY = 'animation-stream-quality';
 
 const RENDER_OPTIONS = RENDERS.map(({ value, label }) => ({ value, label }));
 const QUALITY_OPTIONS = QUALITY_NAMES.map((name) => ({ value: name, label: `${name}, 30 fps` }));
@@ -40,31 +36,38 @@ const QUALITY_OPTIONS = QUALITY_NAMES.map((name) => ({ value: name, label: `${na
 const NOTES: Record<Render, string> = {
   both:
     'Streams the scene as it is drawn here, without the panel, with silent sound. Keep this tab shown: a hidden tab ' +
-    'stops drawing, and the stream freezes. GPU: ffmpeg encodes on the graphics card, or on the CPU.',
+    'stops drawing, and the stream freezes. A reload carries on; closed for a minute, the stream ends. GPU: ffmpeg ' +
+    'encodes on the graphics card, or on the CPU.',
   stream:
     "The dev server draws the scene for the stream in a hidden browser, and this page doesn't: it steers the stream " +
     'with the panel (figure, story, environment, look, behaviours). It streams until Stop, with this page hidden or ' +
-    'closed. GPU: drawing and encoding on the graphics card, or on the CPU (slower).',
+    'closed, and through code changes. GPU: drawing and encoding on the graphics card, or on the CPU (slower).',
   web: 'The scene is drawn here only; nothing is streamed.',
+};
+
+// Why the stream shows its last picture again, by who draws it.
+const FROZEN: Record<StreamStatus['drawnBy'], string> = {
+  server: 'the hidden page is loading, or its code is broken (see the terminal)',
+  page: 'the page is loading or hidden, or its code is broken',
 };
 
 export function StreamTab() {
   const status = useStreaming((s) => s);
   const render = useStreamOptions((o) => o.render);
   const gpu = useStreamOptions((o) => o.gpu);
-  const [url, setUrl] = useState(savedUrl);
-  const [key, setKey] = useState('');
-  const [quality, setQuality] = useState<Quality>('720p');
+  const [url, setUrl] = useState(() => stored(URL_KEY) || YOUTUBE_URL);
+  const [key, setKey] = useState(() => stored(KEY_KEY) ?? '');
+  const [quality, setQuality] = useState<Quality>(() => QUALITY_NAMES.find((name) => name === stored(QUALITY_KEY)) ?? '720p');
   const busy = status.state === 'starting' || status.state === 'live' || status.state === 'stopping';
   const off = render === 'web'; // nothing to stream
 
   const changeUrl = (value: string) => {
     setUrl(value);
-    try {
-      localStorage.setItem(URL_KEY, value);
-    } catch {
-      // not remembered, that's all
-    }
+    store(URL_KEY, value);
+  };
+  const changeKey = (value: string) => {
+    setKey(value);
+    store(KEY_KEY, value.trim() ? value : null);
   };
   const pickRender = (value: string) => {
     const found = RENDERS.find((r) => r.value === value);
@@ -72,7 +75,9 @@ export function StreamTab() {
   };
   const pickQuality = (value: string) => {
     const found = QUALITY_NAMES.find((name) => name === value);
-    if (found) setQuality(found);
+    if (!found) return;
+    setQuality(found);
+    store(QUALITY_KEY, found);
   };
 
   return (
@@ -86,7 +91,7 @@ export function StreamTab() {
         value={key}
         placeholder="from YouTube Studio"
         disabled={busy || off}
-        onChange={setKey}
+        onChange={changeKey}
       />
       <Select label="Quality" value={quality} options={QUALITY_OPTIONS} disabled={busy || off} onChange={pickQuality} />
       {busy ? (
@@ -114,7 +119,8 @@ export function StreamTab() {
 }
 
 // How the stream goes: connecting, live with its time, frame rate and
-// bitrate, or what went wrong.
+// bitrate (or how long the picture has stood still, and why), or what went
+// wrong.
 function StatusLine({ status }: { status: StreamStatus }) {
   const line = 'col-span-full text-xs';
   switch (status.state) {
@@ -122,10 +128,17 @@ function StatusLine({ status }: { status: StreamStatus }) {
       return <p className={line}>Connecting…</p>;
     case 'live':
       return (
-        <p className={`${line} font-medium`}>
-          <span className="text-destructive">● Live</span> · {clock(status.seconds)} · {Math.round(status.fps)} fps ·{' '}
-          {status.kbps} kbit/s
-        </p>
+        <>
+          <p className={`${line} font-medium`}>
+            <span className="text-destructive">● Live</span> · {clock(status.seconds)} · {Math.round(status.fps)} fps ·{' '}
+            {status.kbps} kbit/s
+          </p>
+          {status.frozen > 0 && (
+            <p className={`${line} text-muted-foreground`}>
+              The same picture for {status.frozen} s: {FROZEN[status.drawnBy]}. The stream carries on.
+            </p>
+          )}
+        </>
       );
     case 'stopping':
       return <p className={line}>Stopping…</p>;

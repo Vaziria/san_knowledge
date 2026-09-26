@@ -2,18 +2,22 @@ import * as THREE from 'three';
 import { demoStopper, type Behaviour } from './behaviours';
 import { Floor } from './environtments/Floor/Floor';
 import { Grass } from './environtments/Grass/Grass';
-import { Lake } from './environtments/Lake/Lake';
+import { deckPoint, FAR_SHORE } from './environtments/Lake/DockSite';
+import { Lake, type LakeOptions } from './environtments/Lake/Lake';
 import type { Animal } from './figures/animals/Animal';
 import { Bear } from './figures/animals/Bear';
 import { Bird } from './figures/animals/Bird';
 import { Cat } from './figures/animals/Cat';
 import { Deer } from './figures/animals/Deer';
 import { Fox } from './figures/animals/Fox';
+import { Frog } from './figures/animals/Frog';
+import { Lion } from './figures/animals/Lion';
 import type { AnimalOptions } from './figures/animals/parts';
+import { Penguin } from './figures/animals/Penguin';
 import { Snake } from './figures/animals/Snake';
 import { Wolf } from './figures/animals/Wolf';
 import { Boat } from './figures/Boat/Boat';
-import { DIRECTIONS, Fish, type Direction } from './figures/Fish/Fish';
+import { DIRECTIONS, Fish, type Direction, type FishKind } from './figures/Fish/Fish';
 import { FishingRod } from './figures/FishingRod/FishingRod';
 import { BermudaGrass } from './figures/Grass/BermudaGrass';
 import { ChivesGrass } from './figures/Grass/ChivesGrass';
@@ -26,8 +30,11 @@ import { TimothyGrass } from './figures/Grass/TimothyGrass';
 import { MidiPiano } from './figures/MidiPiano';
 import { Cliff } from './figures/objects/Cliff';
 import { Cloud } from './figures/objects/Cloud';
+import { Firefly } from './figures/objects/Firefly';
 import { Fog } from './figures/objects/Fog';
-import { Penguin } from './figures/Penguin/Penguin';
+import { Dock } from './figures/objects/Dock';
+import { Log } from './figures/objects/Log';
+import { MudPit } from './figures/objects/MudPit';
 import { CedarTree } from './figures/Tree/CedarTree';
 import { ChestnutTree } from './figures/Tree/ChestnutTree';
 import { ElmTree } from './figures/Tree/ElmTree';
@@ -66,6 +73,30 @@ export interface Preview {
   // (see behaviours.ts). Running one stops the demo, so the figure does only
   // what it is told; the panel's Restart demo builds the preview again.
   behaviours?: Behaviour[];
+  // The space the figures move about in, for the sun's shadow to cover, when
+  // it is more than the figure fills when shown (a story's meeting, whose
+  // animals come and go). Without it, the shadow fits the figure.
+  bounds?: THREE.Box3;
+  // The shadow follows what the camera looks at, at the size of `bounds`,
+  // rather than staying round the figure's spot: for figures all over the
+  // land (the lake meeting's roaming animals), which one shadow over all of
+  // it would blur.
+  followShadow?: boolean;
+  // For a story that moves the camera itself (the lake meeting follows
+  // whoever speaks): where the camera should be now. The stage follows it,
+  // gliding there or cutting at once, while the camera's view is the
+  // figure's own. Dragging the view, picking a direction or walking hands the
+  // camera to the viewer, until the story claims it back (Shot.claim).
+  shot?(): Shot;
+}
+
+export interface Shot {
+  camera: THREE.Vector3;
+  target: THREE.Vector3;
+  cut: boolean; // jump there at once instead of gliding
+  // Something new to show (the lake meeting's next comment or command): the
+  // stage takes the camera back from the viewer, so it isn't missed.
+  claim: boolean;
 }
 
 export const previews: Record<string, (theme: Theme, environment: Environment) => Preview> = {
@@ -100,67 +131,11 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
       },
     };
   },
-  // In water the fish swims a square, in a loop: right along the surface,
-  // leaping out of the water on the way, diving on the way back, left at
-  // depth, and rising on the way forward. Each side ends where the fish
-  // crosses the square's edge and the turns at the corners are the fish's
-  // own, so the square stays in place although the leap carries the fish
-  // faster than it swims. The water splashes where the leap breaks its
-  // surface. Without water it rests on the floor.
-  fish: (theme, environment) => {
-    const fish = new Fish({ theme });
-    const water = environment.water;
-    if (!water) {
-      return { figure: fish, camera: [0.35, 0.22, 0.45], target: [0, 0.06, 0], update() {} };
-    }
-    fish.addEventListener('splash', ({ x, z, velocity }) => water.splash(x, z, velocity));
-
-    const half = 1; // half a side of the square, m
-    const leapAt = -0.7; // swimming right, it leaps once past this x
-    const leap = 0.3; // m, how far the leap clears the water
-    const steps: [start: () => void, done: () => boolean][] = [
-      [() => fish.SwimOnSurface('right'), () => fish.position.x > leapAt],
-      [() => fish.JumpOutFromWater(leap), () => !fish.jumping && fish.position.x > half],
-      [() => fish.SwimOnDepth('back'), () => fish.position.z < -half],
-      [() => fish.SwimOnDepth('left'), () => fish.position.x < -half],
-      [() => fish.SwimOnSurface('forward'), () => fish.position.z > half],
-    ];
-    fish.position.set(-half, fish.surfaceY, half); // the corner where it starts right
-    fish.rotation.y = Math.PI / 2; // facing right
-    let step = -1;
-    let demo = true;
-    const act = demoStopper(() => (demo = false));
-    const direction = { name: 'direction', value: 'right', options: DIRECTIONS };
-
-    return {
-      figure: fish,
-      place: 'water',
-      camera: [1.8, 1.4, 2.4],
-      target: [0, -0.2, 0],
-      update(_elapsed, delta) {
-        if (demo && (step < 0 || steps[step][1]())) {
-          step = (step + 1) % steps.length;
-          steps[step][0]();
-        }
-        fish.update(delta);
-      },
-      // Swimming and leaping need water, so these are offered only on the lake.
-      behaviours: [
-        { name: 'SwimOnSurface', params: [direction], run: act((d) => fish.SwimOnSurface(d as Direction)) },
-        { name: 'SwimOnDepth', params: [direction], run: act((d) => fish.SwimOnDepth(d as Direction)) },
-        {
-          name: 'JumpOutFromWater',
-          params: [{ name: 'height', value: String(leap) }],
-          run: act((text) => {
-            const height = Number(text);
-            if (text.trim() === '' || !Number.isFinite(height)) throw new Error(`height "${text}" is not a number of meters`);
-            fish.JumpOutFromWater(height);
-          }),
-        },
-        { name: 'Stop', run: act(() => fish.Stop()) },
-      ],
-    };
-  },
+  // The fish, in its three kinds (Fish.ts), each swimming its square with a
+  // leap in it (fish() below).
+  salmon: fish('salmon'),
+  piranha: fish('piranha'),
+  clownfish: fish('clownfish'),
   // The rod's spec has no behaviour yet, so it is held still, as if by an
   // unseen hand 1 m up, tip raised. update() keeps its line hanging straight.
   'fishing-rod': (theme) => {
@@ -195,7 +170,7 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
     // makes it.
     const radius = 0.22;
     const lap = 2 * Math.PI;
-    const slowing = 0.26; // radians it turns while slowing from a run to a stop
+    const slowing = 0.41; // radians it turns while slowing from a run to a stop (an animal's gait eases at 4 a second)
     penguin.position.set(-radius, 0, 0); // on the circle, facing +z along it
     let finish = 0; // heading (rotation.y) at the end of the two laps
     const steps: [start: () => void, done: (seconds: number) => boolean][] = [
@@ -264,12 +239,14 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
   // The animals share the penguin's behaviours without Flap(), and a demo
   // like its own round a circle sized to each (animal() below).
   cat: animal(Cat, 'cat', 0.5),
-  wolf: animal(Wolf, 'wolf', 1.1),
+  wolf: animal(Wolf, 'wolf', 1.3),
   deer: animal(Deer, 'deer', 1.6),
   bird: animal(Bird, 'bird', 0.2),
   bear: animal(Bear, 'bear', 1.6),
-  fox: animal(Fox, 'fox', 0.7),
+  fox: animal(Fox, 'fox', 0.85),
   snake: animal(Snake, 'snake', 0.8),
+  frog: animal(Frog, 'frog', 0.2),
+  lion: animal(Lion, 'lion', 1.6),
   'midi-piano': (theme) => {
     const midiPiano = new MidiPiano({ theme });
 
@@ -332,9 +309,9 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
   'red-fescue-grass': plant(RedFescueGrass),
   'chives-grass': plant(ChivesGrass),
   'rosemary-grass': plant(RosemaryGrass),
-  // The objects' specs name no behaviour. The cliff and the cloud stay still;
-  // the fog drifts and swirls on its own, its idle motion like the lake's
-  // waves. Each is seen whole, from in front and a little to the right.
+  // The objects' specs name no behaviour. The cliff, the cloud and the log
+  // stay still; the fog drifts and swirls on its own, its idle motion like the
+  // lake's waves. Each is seen whole, from in front and a little to the right.
   cliff: (theme) => ({ figure: new Cliff({ theme }), camera: [8, 3.4, 10.5], target: [0, 2.6, 0], update() {} }),
   // The cloud doesn't float by itself, so the preview lifts it, and looks up
   // at it from about eye height, where its grey underside shows.
@@ -351,6 +328,45 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
       target: [0, 0.5, 0],
       update(_elapsed, delta) {
         fog.update(delta);
+      },
+    };
+  },
+  // The log is seen from a little above too, so the sawn end at its thin end
+  // shows. The camera looks right of its middle, which puts it left of the
+  // middle of the screen, clear of the panel.
+  log: (theme) => ({ figure: new Log({ theme }), camera: [2.85, 1.4, 2.65], target: [0.9, 0.2, 0], update() {} }),
+  // The mud pit lies still on the floor: on the lawn its 2-4 cm blades would
+  // grow through it. Seen from a little above, so the rim and the puddles show.
+  'mud-pit': (theme) => ({ figure: new MudPit({ theme }), camera: [1.9, 1.5, 2.3], target: [0, 0, 0], update() {} }),
+  // The dock stands at the lake where the lake meeting has it: from the far
+  // bank out over the water, its posts down to the bed, the grass cleared
+  // from under it, and its deck ground for the walking camera. It is seen
+  // from beside it, a little above. In another environment it stands on the
+  // ground, its posts going down into it.
+  dock: (theme, environment) => {
+    const lake = environment.scenery instanceof Lake ? environment.scenery : null;
+    const deck = lake?.siteDock({ angle: FAR_SHORE }) ?? null;
+    if (!lake || !deck) return { figure: new Dock({ theme }), camera: [4.6, 2.2, 5.6], target: [0, 0.2, 3], update() {} };
+    const land = environment.land;
+    const dock = lake.buildDock(theme, deck);
+    dock.position.sub(land);
+    // From over the water past its far end, a little to its side, looking
+    // back at it and the bank: from the land beside it, a tree hung in front.
+    const middle = deckPoint(deck, 0, deck.length * 0.45);
+    const out = deckPoint(deck, -3.5, deck.length + 4);
+    return { figure: dock, camera: [out.x - land.x, 2.6 - land.y, out.z - land.z], target: [middle.x - land.x, 0.3 - land.y, middle.z - land.z], update() {} };
+  },
+  // The firefly hovers in place, bobbing and flashing on its own, seen from
+  // close up, three-quarters from the front: it is 2 cm long. It stays on
+  // the floor, where a lawn's 2-4 cm blades would hide it.
+  firefly: (theme) => {
+    const firefly = new Firefly({ theme });
+    return {
+      figure: firefly,
+      camera: [-0.046, 0.044, 0.056],
+      target: [0.004, 0.022, 0.001],
+      update(_elapsed, delta) {
+        firefly.update(delta);
       },
     };
   },
@@ -386,10 +402,79 @@ function plant(Kind: new (options: GrassOptions) => THREE.Object3D) {
   };
 }
 
+// A fish of one kind. In water it swims a square, in a loop: right along
+// the surface, leaping out of the water on the way, diving on the way back,
+// left at depth, and rising on the way forward. Each side ends where the fish
+// crosses the square's edge and the turns at the corners are the fish's own,
+// so the square stays in place although the leap carries the fish faster
+// than it swims. The water splashes where the leap breaks its surface. The
+// square, the leap and the camera are the salmon's times the kind's size
+// (Fish.size), as its own depths and speeds are, so every kind fills the
+// view alike. Without water it rests on the floor.
+function fish(kind: FishKind) {
+  return (theme: Theme, environment: Environment): Preview => {
+    const fish = new Fish({ theme, kind });
+    const s = fish.size;
+    const water = environment.water;
+    if (!water) {
+      const middle = new THREE.Box3().setFromObject(fish).getCenter(new THREE.Vector3()).y;
+      return { figure: fish, camera: [0.35 * s, middle + 0.16 * s, 0.45 * s], target: [0, middle, 0], update() {} };
+    }
+    fish.addEventListener('splash', ({ x, z, velocity }) => water.splash(x, z, velocity));
+
+    const half = 1 * s; // half a side of the square, m
+    const leapAt = -0.7 * s; // swimming right, it leaps once past this x
+    const leap = Math.round(30 * s) / 100; // m, how far the leap clears the water: 0.3 for the salmon
+    const steps: [start: () => void, done: () => boolean][] = [
+      [() => fish.SwimOnSurface('right'), () => fish.position.x > leapAt],
+      [() => fish.JumpOutFromWater(leap), () => !fish.jumping && fish.position.x > half],
+      [() => fish.SwimOnDepth('back'), () => fish.position.z < -half],
+      [() => fish.SwimOnDepth('left'), () => fish.position.x < -half],
+      [() => fish.SwimOnSurface('forward'), () => fish.position.z > half],
+    ];
+    fish.position.set(-half, fish.surfaceY, half); // the corner where it starts right
+    fish.rotation.y = Math.PI / 2; // facing right
+    let step = -1;
+    let demo = true;
+    const act = demoStopper(() => (demo = false));
+    const direction = { name: 'direction', value: 'right', options: DIRECTIONS };
+
+    return {
+      figure: fish,
+      place: 'water',
+      camera: [1.8 * s, 1.4 * s, 2.4 * s],
+      target: [0, -0.2 * s, 0],
+      update(_elapsed, delta) {
+        if (demo && (step < 0 || steps[step][1]())) {
+          step = (step + 1) % steps.length;
+          steps[step][0]();
+        }
+        fish.update(delta);
+      },
+      // Swimming and leaping need water, so these are offered only on the lake.
+      behaviours: [
+        { name: 'SwimOnSurface', params: [direction], run: act((d) => fish.SwimOnSurface(d as Direction)) },
+        { name: 'SwimOnDepth', params: [direction], run: act((d) => fish.SwimOnDepth(d as Direction)) },
+        {
+          name: 'JumpOutFromWater',
+          params: [{ name: 'height', value: String(leap) }],
+          run: act((text) => {
+            const height = Number(text);
+            if (text.trim() === '' || !Number.isFinite(height)) throw new Error(`height "${text}" is not a number of meters`);
+            fish.JumpOutFromWater(height);
+          }),
+        },
+        { name: 'Stop', run: act(() => fish.Stop()) },
+      ],
+    };
+  };
+}
+
 // An animal's demo, in a loop, like the penguin's: it says what it will do,
 // jumps, carries a fish in its mouth for a while and puts it down, then
 // walks half a lap and runs a lap of a circle `radius` meters round,
-// stopping back where it began. The animal moves itself forward; the preview
+// stopping on the far side, and back where it began the next time round.
+// The animal moves itself forward; the preview
 // steers it, turning it by speed / radius so it keeps to the circle at any
 // speed, also when a behaviour button makes it walk. The camera stands back
 // far enough to see the whole circle, on the side it starts. The first
@@ -405,7 +490,14 @@ function animal(Kind: new (options: AnimalOptions) => Animal, name: string, radi
       'fishing-rod': new FishingRod({ theme }),
       'midi-piano': new MidiPiano({ theme }),
     };
-    const size = new THREE.Box3().setFromObject(figure).getSize(new THREE.Vector3());
+    const box = new THREE.Box3().setFromObject(figure);
+    const size = box.getSize(new THREE.Vector3());
+    // An animal off the ground would be framed where it is: the view is
+    // lifted by its height off the ground and stands back to take in its top
+    // (the firefly's, when it was an animal). For the animals on the ground
+    // both are what they were.
+    const lift = Math.max(0, box.min.y);
+    const top = Math.max(size.y, box.max.y);
     const lap = 2 * Math.PI;
     figure.position.set(-radius, 0, 0); // on the circle, facing +z along it
     let finish = 0; // heading (rotation.y) at the end of the laps
@@ -416,8 +508,12 @@ function animal(Kind: new (options: AnimalOptions) => Animal, name: string, radi
       [() => figure.Hold(null), (s) => s > 0.5],
       [
         () => {
-          // Counted from the nearest whole lap, so small misses don't add up.
-          finish = (Math.round(figure.rotation.y / lap) + 1.5) * lap;
+          // Counted from the nearest half lap, so small misses don't add up:
+          // a loop is a lap and a half, so it stops on the far side of the
+          // circle, then back where it began. Rounded to whole laps, every
+          // loop after the first walked 0.03 of a lap, and the circle crept
+          // inward, a few percent of its radius a loop.
+          finish = (Math.round((2 * figure.rotation.y) / lap) / 2 + 1.5) * lap;
           figure.Walk();
         },
         () => figure.rotation.y > finish - lap,
@@ -437,7 +533,7 @@ function animal(Kind: new (options: AnimalOptions) => Animal, name: string, radi
     });
 
     const reach = radius + Math.max(size.x, size.z) / 2;
-    const distance = 1.5 * reach + 1.1 * size.y;
+    const distance = 1.5 * reach + 1.1 * top;
     // From the side of the circle it starts on (-x), so it is near the camera
     // and seen three-quarters from the side.
     const view = new THREE.Vector3(-0.75, 0.35, 0.55).normalize().multiplyScalar(distance);
@@ -447,8 +543,8 @@ function animal(Kind: new (options: AnimalOptions) => Animal, name: string, radi
     const preview: Preview = {
       figure,
       props: Object.values(holdable),
-      camera: [view.x + aim.x, view.y + 0.3 * size.y, view.z + aim.z],
-      target: [aim.x, 0.3 * size.y, aim.z],
+      camera: [view.x + aim.x, lift + view.y + 0.3 * size.y, view.z + aim.z],
+      target: [aim.x, lift + 0.3 * size.y, aim.z],
       update(elapsed, delta) {
         if (demo && (step < 0 || steps[step][1](elapsed - stepStart))) {
           step = (step + 1) % steps.length;
@@ -501,37 +597,85 @@ export interface Environment {
   // The scene's fog while it is shown, which it thickens and thins itself
   // (the lake's weather); none when left out.
   fog?: THREE.Fog | THREE.FogExp2;
+  // Day and night, for an environment that has them (the lake): how far into
+  // the night it is now (0 by day, 1 at night), how far its light is toward
+  // the night's (`dim`: the night, and a step more under a shower's cloud),
+  // by which the stage dims its lights and darkens the background every frame
+  // (sceneAt() in theme.ts), and set(), which hands it the Time of day
+  // setting. Without it, always day.
+  dayNight?: { readonly night: number; readonly dim: number; set(time: TimeOfDay): void };
+  // Where the walking camera goes (camera "walk"): the height it stands at,
+  // the ground's or the still water's, and how far from the scenery's middle
+  // the ground reaches, in the scenery's coordinates. Without it, flat ground
+  // at the scenery's level, everywhere.
+  ground?: { heightAt(x: number, z: number): number; reach: number };
 }
 
+// The Time of day setting (?time=): day and night taking turns on their own,
+// or held at one of them. Only an environment with day and night (the lake)
+// follows it; the others stay in day.
+export const TIMES_OF_DAY = ['cycle', 'day', 'night'] as const;
+export type TimeOfDay = (typeof TIMES_OF_DAY)[number];
+
 export const environments: Record<string, (theme: Theme) => Environment> = {
-  floor: (theme) => ({ scenery: new Floor({ theme }), land: new THREE.Vector3(), update() {} }),
-  lake: (theme) => {
-    const lake = new Lake({ theme });
+  floor: (theme) => {
+    const floor = new Floor({ theme });
+    return { scenery: floor, land: new THREE.Vector3(), update() {}, ground: { heightAt: () => 0, reach: reachOf(floor) } };
+  },
+  lake: (theme) => lakeEnvironment(theme),
+  grass: (theme) => {
+    const grass = new Grass({ theme });
     return {
-      scenery: lake,
-      land: Lake.LANDING.clone(),
-      water: {
-        at: new THREE.Vector3(),
-        heightAt: (x, z) => lake.surfaceAt(x, z),
-        splash: (x, z, velocity) => lake.water.splash(x, z, velocity),
-      },
-      update: (delta) => lake.update(delta),
-      fog: lake.weather.fog,
+      scenery: grass,
+      land: new THREE.Vector3(),
+      update: (delta) => grass.update(delta),
+      // The ground's, not the border's, whose cliffs and mist stand past it.
+      ground: { heightAt: () => 0, reach: reachOf(grass.ground) },
     };
   },
-  grass: (theme) => ({ scenery: new Grass({ theme }), land: new THREE.Vector3(), update() {} }),
 };
 
+// The lake, as an environment. A story whose figures need more level room
+// than one figure's builds it with a wider clearing (LakeOptions.clear).
+export function lakeEnvironment(theme: Theme, options: Omit<LakeOptions, 'theme'> = {}): Environment {
+  const lake = new Lake({ ...options, theme });
+  return {
+    scenery: lake,
+    land: Lake.LANDING.clone(),
+    water: {
+      at: new THREE.Vector3(),
+      heightAt: (x, z) => lake.surfaceAt(x, z),
+      splash: (x, z, velocity) => lake.water.splash(x, z, velocity),
+    },
+    update: (delta) => lake.update(delta),
+    fog: lake.weather.fog,
+    dayNight: lake.dayNight,
+    // Over the water, on its still surface (y = 0), and on a dock's deck.
+    ground: { heightAt: (x, z) => Math.max(lake.groundAt(x, z), 0, lake.deckAt(x, z)), reach: reachOf(lake.ground) },
+  };
+}
+
+// How far a ground reaches from its middle: a meter short of its nearest
+// edge, measured from its meshes.
+function reachOf(ground: THREE.Object3D): number {
+  const box = new THREE.Box3().setFromObject(ground);
+  return Math.max(0, Math.min(-box.min.x, box.max.x, -box.min.z, box.max.z) - 1);
+}
+
 // The environment a figure starts in until one is picked: the boat and the
-// fish on the lake, trees on the grass, the rest on the floor.
+// fish (its three kinds) on the lake, trees on the grass, the rest on the
+// floor.
 const figureEnvironments: Record<string, string> = {
   boat: 'lake',
-  fish: 'lake',
+  salmon: 'lake',
+  piranha: 'lake',
+  clownfish: 'lake',
   ...Object.fromEntries(Object.keys(previews).filter((name) => name.endsWith('-tree')).map((name) => [name, 'grass'])),
   // Objects too big for the floor's 20 m square.
   cliff: 'grass',
   cloud: 'grass',
   fog: 'grass',
+  dock: 'lake', // it stands in the water
 };
 
 export function figureEnvironment(figure: string): string {

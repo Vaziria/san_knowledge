@@ -11,6 +11,10 @@ export interface TreeOptions {
   // The seed the tree grows from: the same seed always grows the same tree,
   // another seed another tree of the same kind. Each kind has its own default.
   seed?: number;
+  // Leaves turned for autumn: in the theme's autumn colour instead of its
+  // grass colour, some clumps browner, paler or still green (see
+  // createMaterials).
+  autumn?: boolean;
 }
 
 // Materials for every part, built once per tree from the theme: bark in the
@@ -19,10 +23,35 @@ export interface TreeOptions {
 // than broadleaves. The foliage is shaded per vertex (undersides and the
 // inside of the crown darker), so its material takes those shades from the
 // vertex colours.
-export function createMaterials(theme: Theme, shade: number) {
-  const foliage = surface(theme, new THREE.Color(theme.scene.grass).multiplyScalar(shade));
+//
+// In autumn the leaves are the theme's autumn colour instead, and each clump
+// takes one of AUTUMN_TINTS at random (`leafTints`, which the crown puts in
+// its vertex colours): the autumn colour itself, turned part of the way
+// toward the wood colour (browner) or the grass colour (still green), or
+// lightened (faded), so a crown is mottled like a real one in autumn. Each
+// tint comes up `weight` times as often. Faded leaves are the autumn colour
+// lightened, not mixed toward the theme's light colour, which in a dark theme
+// turned them nearly white.
+const AUTUMN_TINTS: { toward?: 'wood' | 'grass'; share?: number; light?: number; weight: number }[] = [
+  { weight: 3 },
+  { toward: 'wood', share: 0.4, weight: 2 },
+  { light: 1.25, weight: 1 },
+  { toward: 'grass', share: 0.45, weight: 1 },
+];
+
+export function createMaterials(theme: Theme, shade: number, autumn = false) {
+  const leaves = new THREE.Color(autumn ? theme.scene.autumn : theme.scene.grass).multiplyScalar(shade);
+  const foliage = surface(theme, autumn ? 0xffffff : leaves);
   foliage.vertexColors = true;
-  return { bark: bark(theme), foliage };
+  const others = { wood: theme.colors.wood, grass: theme.scene.grass };
+  const leafTints = autumn
+    ? AUTUMN_TINTS.flatMap((t) => {
+        const tint = leaves.clone().multiplyScalar(t.light ?? 1);
+        if (t.toward) tint.lerp(new THREE.Color(others[t.toward]).multiplyScalar(shade), t.share ?? 0);
+        return Array<THREE.Color>(t.weight).fill(tint);
+      })
+    : undefined;
+  return { bark: bark(theme), foliage, leafTints };
 }
 
 export type TreeMaterials = ReturnType<typeof createMaterials>;

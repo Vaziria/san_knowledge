@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { defaultTheme, type Theme } from '../../theme';
+import { Border } from '../Border';
+import { hazeEdge } from '../haze';
+import { Sky } from '../Sky';
 
 // A lawn: short grass, thick in the middle where a figure stands and thinning
 // out, on ground a shade darker than the blades that runs to the horizon. The
@@ -10,6 +13,15 @@ import { defaultTheme, type Theme } from '../../theme';
 // sized and shaded at random for each blade, from a fixed seed so the lawn is
 // the same every time. Blades take shadows but cast none, which would cost a
 // shadow pass over thousands of blades.
+//
+// Where the ground ends, 40 m out, the border (../Border.ts) hides the edge,
+// as on the lake: high cliffs along parts of it, mist drifting round it and
+// tall grass up to it (Grass.md), and the ground fades into the sky's colour
+// over its last meters (../haze.ts).
+//
+// Over it is the sky (../Sky.ts), as on the lake, with the sun and clouds.
+// The lawn has no weather, so its clouds drift toward +x and its sky never
+// greys over. Call update(delta) once a frame for the mist and the clouds.
 
 const GROUND_RADIUS = 40;
 const LAWN_RADIUS = 4; // blades grow this far from the middle
@@ -30,17 +42,25 @@ export interface GrassOptions {
 }
 
 export class Grass extends THREE.Group {
+  readonly ground: THREE.Mesh;
+  readonly border: Border;
+  readonly sky: Sky;
+
   constructor(options: GrassOptions = {}) {
     super();
     this.name = 'grass';
-    const color = new THREE.Color((options.theme ?? defaultTheme).scene.grass);
+    const theme = options.theme ?? defaultTheme;
+    const color = new THREE.Color(theme.scene.grass);
 
-    const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(GROUND_RADIUS, 64),
-      new THREE.MeshStandardMaterial({ color: color.clone().multiplyScalar(GROUND_SHADE), roughness: 1 }),
-    );
-    ground.rotation.x = -Math.PI / 2;
+    // Laid down in its geometry rather than turned, so its own x and z are
+    // the lawn's, which the haze measures from the middle.
+    const material = new THREE.MeshStandardMaterial({ color: color.clone().multiplyScalar(GROUND_SHADE), roughness: 1 });
+    hazeEdge(material, theme.scene.background, GROUND_RADIUS);
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(GROUND_RADIUS, 64).rotateX(-Math.PI / 2), material);
     ground.receiveShadow = true;
+    this.ground = ground;
+    this.border = new Border({ theme, radius: GROUND_RADIUS });
+    this.sky = new Sky({ theme });
 
     const blades = new THREE.InstancedMesh(
       bladeGeometry(),
@@ -66,7 +86,13 @@ export class Grass extends THREE.Group {
       blades.setColorAt(i, shade.setScalar(THREE.MathUtils.lerp(BLADE_SHADE[0], BLADE_SHADE[1], random())));
     }
 
-    this.add(ground, blades);
+    this.add(ground, blades, this.border, this.sky);
+  }
+
+  // Moves the border's mist and the clouds on; call once per frame.
+  update(delta: number): void {
+    this.border.update(delta);
+    this.sky.update(delta);
   }
 }
 

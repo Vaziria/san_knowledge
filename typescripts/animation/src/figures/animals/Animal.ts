@@ -151,14 +151,22 @@ export abstract class Animal extends THREE.Group {
   // Says the text in a speech bubble above its head. A bubble holds at most
   // nine words, so longer text is split into several, shown one after
   // another, each long enough to read. Saying something new cuts off what it
-  // was saying; Speech('') just stops. Named as in the spec.
-  Speech(text: string): void {
-    this.bubble.say(text);
+  // was saying; Speech('') just stops. Named as in the spec. Beyond the
+  // spec, `speaker` names who speaks at the top of each bubble (a viewer, at
+  // the lake meeting).
+  Speech(text: string, speaker = ''): void {
+    this.bubble.say(text, speaker);
   }
 
   // Whether a speech bubble is still showing.
   get speaking(): boolean {
     return this.bubble.speaking;
+  }
+
+  // The speech bubble, whose origin is its tail's tip, for framing what is
+  // said (the lake meeting's camera).
+  get speechBubble(): THREE.Object3D {
+    return this.bubble;
   }
 
   update(delta: number): void {

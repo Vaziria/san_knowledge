@@ -46,7 +46,7 @@ export class PineTree extends THREE.Group {
   constructor(options: TreeOptions = {}) {
     super();
     this.name = 'pine tree';
-    const m = createMaterials(options.theme ?? defaultTheme, FOLIAGE_SHADE);
+    const m = createMaterials(options.theme ?? defaultTheme, FOLIAGE_SHADE, options.autumn);
     const random = seededRandom(options.seed ?? SEED);
 
     const clouds = [TOP_CLOUD];

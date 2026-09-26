@@ -1,5 +1,6 @@
 import { MidiPiano } from '../../figures/MidiPiano';
 import { onOsc, type OscMessage } from '../../osc';
+import { environments } from '../../previews';
 import type { Story } from '../../stories';
 
 // Piano play (piano_play.md): the MIDI piano on the grass, playing the chords
@@ -17,7 +18,7 @@ import type { Story } from '../../stories';
 // It can also be played by hand: click or touch a key and it stays down
 // until you let go, one key per finger.
 export const pianoPlay: Story = {
-  environment: 'grass',
+  environment: environments.grass,
   create: (theme) => {
     const piano = new MidiPiano({ theme });
     return {

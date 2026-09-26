@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 import type { Preview } from './previews';
 
-// The camera's direction, the panel's Camera menu and ?camera=<name>: which
-// way the camera looks at the shown figure. "figure" is the view the
+// The camera's direction, the Camera tab's View menu and ?camera=<name>:
+// which way the camera looks at the shown figure. "figure" is the view the
 // figure's preview starts from; the eight around it are named from the
 // figure's side (it faces +z, and its left is -x); "top" looks straight down,
-// its front toward the bottom of the screen. "free" is wherever the view was
-// dragged: the stage reports it (Stage.onDirectionLost), so picking a
-// direction again after dragging away from it moves the camera back.
+// its front toward the bottom of the screen. "walk" walks the camera round
+// the scene at eye height, from where it is (the stage's walking, steered by
+// walk.ts). "free" is wherever the view was dragged: the stage reports it
+// (Stage.onDirectionLost), so picking a direction again after dragging away
+// from it moves the camera back.
 //
 // A direction keeps the preview's target, its distance and, round the sides,
 // the height it looks from, so a figure is framed as its preview frames it:
@@ -25,6 +27,7 @@ export const CAMERA_DIRECTIONS = [
   { value: 'left', label: 'left' },
   { value: 'front-left', label: 'front left' },
   { value: 'top', label: 'top' },
+  { value: 'walk', label: 'walk' },
   { value: 'free', label: 'free (dragged)' },
 ] as const;
 
@@ -59,9 +62,9 @@ export interface CameraView {
   offset: THREE.Spherical; // the camera, from the target
 }
 
-// Where a direction puts the camera for a preview. "free" has no place of
-// its own, so it is the preview's view, where the camera goes for a new
-// figure.
+// Where a direction puts the camera for a preview. "free" and "walk" have no
+// place of their own, so they are the preview's view, where the camera goes
+// for a new figure (and starts walking from).
 export function cameraView(direction: CameraDirection, preview: Preview): CameraView {
   const target = new THREE.Vector3(...preview.target);
   const offset = new THREE.Spherical().setFromVector3(new THREE.Vector3(...preview.camera).sub(target));

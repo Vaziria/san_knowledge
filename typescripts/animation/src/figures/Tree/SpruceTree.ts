@@ -54,7 +54,7 @@ export class SpruceTree extends THREE.Group {
   constructor(options: TreeOptions = {}) {
     super();
     this.name = 'spruce tree';
-    const m = createMaterials(options.theme ?? defaultTheme, FOLIAGE_SHADE);
+    const m = createMaterials(options.theme ?? defaultTheme, FOLIAGE_SHADE, options.autumn);
     const random = seededRandom(options.seed ?? SEED);
 
     // The trunk, tapering evenly to the top, with a slight crook.

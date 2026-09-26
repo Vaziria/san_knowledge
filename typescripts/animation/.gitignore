@@ -1,2 +1,5 @@
 node_modules
 dist
+
+# Music for the Audio tab (audio-bridge.ts): big, and not ours to publish.
+/audio/

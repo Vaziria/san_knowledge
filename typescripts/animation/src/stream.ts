@@ -2,6 +2,8 @@ import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import { settings, settingsFromQuery, settingsQuery } from './settings';
 import type { Stage } from './Stage';
+import { audioChoice, audioOptions, setAudio, type AudioChoice } from './audio';
+import { walking } from './walk';
 
 // Live streaming the scene to YouTube, for the panel's Stream tab. A page
 // records the scene's canvas (only the scene: the panel is not in it) with
@@ -11,19 +13,26 @@ import type { Stage } from './Stage';
 //
 // The Stream tab's Render option says where the scene is drawn:
 // - web + stream: here, and this page's drawing is what streams. The canvas
-//   draws only while the tab is shown: a hidden tab freezes the stream.
+//   draws only while the tab is shown: a hidden tab freezes the stream. A
+//   reload (a code change) carries on: the page keeps the stream's session in
+//   sessionStorage, which only this tab has, and records again as it loads;
+//   the stream shows its last picture meanwhile. Closed for a minute, the
+//   stream ends.
 // - stream only: not here. The dev server draws it in a hidden browser that
 //   opens this page as the stream's renderer (streamRenderer.ts), and this
-//   page steers it: its settings and behaviours go there (follow). It streams
-//   until Stop, whether or not this page stays open.
+//   page steers it: its settings, behaviours and walking go there (follow).
+//   It streams until Stop, whether or not this page stays open.
 // - web only: here, and nothing streams.
 // The GPU switch has the dev server's side use the graphics card: ffmpeg's
-// encoding, and the hidden browser's drawing.
+// encoding, and the hidden browser's drawing. The sound is the Audio tab's
+// (audio.ts): the dev server plays it into the stream (audio-bridge.ts), and
+// each change while live goes there too.
 //
 // Streaming is an action, like the behaviours, not a setting: nothing of it
-// is in the URL, and the stream key is never stored. Render and GPU are kept
-// in this browser. The status comes from the dev server once a second while a
-// stream runs. It only works under `npm run dev`, which has the bridge.
+// is in the URL. Render and GPU are kept in this browser, and the Stream tab
+// keeps the URL, the key and the quality. The status comes from the dev
+// server once a second while a stream runs. It only works under `npm run
+// dev`, which has the bridge.
 
 // How the stream goes, as the dev server reports it; stream-bridge.ts has
 // the same shapes.
@@ -39,16 +48,20 @@ export interface StreamStatus {
   scene: string; // what the hidden browser draws: the settings as a query string
   frames: number; // sent so far
   fps: number; // new pictures a second, not counting the repeats that keep it at 30
+  frozen: number; // s the last picture has been sent again for, as no new one came; 0 while they come
   kbps: number; // the bitrate going out
   seconds: number; // of stream sent
+  audio: { choice: AudioChoice; playing: string; problem: string } | null; // its sound, while it streams
 }
 
 // A change for the dev server's hidden browser: the settings (as a query
-// string), a behaviour run, or the demo restarted.
+// string), a behaviour run, the demo restarted, or what is held down to walk
+// the camera (walk.ts).
 export interface Follow {
   scene?: string;
   behaviour?: { name: string; args: string[] };
   restart?: true;
+  walk?: string[];
 }
 
 // The sizes the dev server streams at (QUALITIES in stream-bridge.ts).
@@ -76,6 +89,8 @@ const NO_RECORDER = 'This browser cannot record the canvas (no WebM MediaRecorde
 const POLL_MS = 1000;
 const RENDER_KEY = 'animation-stream-render';
 const GPU_KEY = 'animation-stream-gpu';
+const SESSION_KEY = 'animation-stream-session'; // the stream this tab draws, in its sessionStorage
+const tab = () => sessionStorage; // this tab's own storage, which a reload keeps
 
 export interface StreamOptions {
   render: Render;
@@ -114,9 +129,10 @@ export interface Recording {
 }
 
 // Records a canvas and posts it to the dev server, piece after piece, after
-// saying what draws it (graphics, the WebGL renderer). onFail says why it
-// stopped early; null when this browser can't record.
-export function record(canvas: HTMLCanvasElement, graphics: string, onFail: (message: string) => void): Recording | null {
+// saying what draws it (graphics, the WebGL renderer) and, for the page that
+// started the stream, its session. onFail says why it stopped early; null
+// when this browser can't record.
+export function record(canvas: HTMLCanvasElement, graphics: string, onFail: (message: string) => void, session = ''): Recording | null {
   const type = recordingType();
   if (!type) {
     onFail(NO_RECORDER);
@@ -139,7 +155,7 @@ export function record(canvas: HTMLCanvasElement, graphics: string, onFail: (mes
     onFail(problem);
   };
   // Every post waits for the one before, so the pieces arrive in order.
-  let sending: Promise<unknown> = post('/__stream/recording', { id, graphics }).then(fail);
+  let sending: Promise<unknown> = post('/__stream/recording', { id, graphics, session }).then(fail);
   recorder.ondataavailable = (event) => {
     if (event.data.size === 0) return;
     sending = sending.then(async () => {
@@ -165,6 +181,7 @@ export function record(canvas: HTMLCanvasElement, graphics: string, onFail: (mes
 let stage: Stage | null = null; // this page's, which a web + stream recording records
 let recording: Recording | null = null; // this page's, while it streams what it draws
 let following: Promise<unknown> = Promise.resolve(); // changes go to the hidden browser in order
+let sounding: Promise<unknown> = Promise.resolve(); // and the sound's to the dev server
 let poll: number | null = null;
 
 // Sets up streaming for the panel's page (main.tsx), not for the hidden
@@ -176,20 +193,33 @@ export function connectStream(source: Stage): void {
   void fetch('/__stream/status', { cache: 'no-store' })
     .then((answer) => (answer.ok ? (answer.json() as Promise<StreamStatus>) : null))
     .then((status) => {
-      if (!status || !running(status.state)) return;
+      if (!status || !running(status.state)) return forget();
       streaming.setState(status);
       if (status.drawnBy === 'server') {
         setRender('stream');
         if (status.scene) settings.setState(settingsFromQuery(status.scene));
+      } else {
+        // This tab's stream, before a reload: it records again.
+        const session = stored(SESSION_KEY, tab);
+        if (session && status.state !== 'stopping' && !recording) {
+          setRender('both');
+          recording = recordHere(session);
+        }
       }
+      // The panel shows the sound that streams.
+      if (status.audio) setAudio(status.audio.choice);
       watch();
     })
     .catch(() => {});
-  // The settings go to the hidden browser while it draws the stream.
+  // The settings go to the hidden browser while it draws the stream, and so
+  // does what is held down to walk the camera.
   settings.subscribe((s) => follow({ scene: settingsQuery(s) }));
-  // Closing or reloading the page ends a stream of what it draws.
-  window.addEventListener('pagehide', () => {
-    if (recording) navigator.sendBeacon('/__stream/stop');
+  walking.subscribe((w) => follow({ walk: w.held }));
+  // The sound changes while live, however the stream is drawn.
+  audioOptions.subscribe((now, before) => {
+    if (JSON.stringify(audioChoice(now)) === JSON.stringify(audioChoice(before))) return; // only Play here
+    if (!running(streaming.getState().state)) return;
+    sounding = sounding.then(() => post('/__stream/audio', audioChoice(now)));
   });
 }
 
@@ -209,7 +239,15 @@ export async function startStream(url: string, key: string, quality: Quality): P
     answer = await fetch('/__stream/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url.trim(), key: key.trim(), quality, drawnBy, gpu, scene: settingsQuery(settings.getState()) }),
+      body: JSON.stringify({
+        url: url.trim(),
+        key: key.trim(),
+        quality,
+        drawnBy,
+        gpu,
+        scene: settingsQuery(settings.getState()),
+        audio: audioChoice(),
+      }),
     });
   } catch {
     return fail('The dev server did not answer. Streaming needs npm run dev.');
@@ -217,12 +255,19 @@ export async function startStream(url: string, key: string, quality: Quality): P
   if (answer.status === 404) return fail('This server has no stream bridge. Streaming needs npm run dev.');
   if (!answer.ok) return fail((await answer.text()).trim() || `The dev server said ${answer.status}.`);
   if (drawnBy === 'page') {
-    recording = record(stage.canvas, stage.graphics, (message) => {
-      fail(message);
-      void post('/__stream/stop', {});
-    });
+    const { session = '' } = (await answer.json().catch(() => ({}))) as { session?: string };
+    store(SESSION_KEY, session, tab);
+    recording = recordHere(session);
   }
   watch();
+}
+
+// Records this page's drawing for the stream; a recording that fails ends it.
+function recordHere(session: string): Recording | null {
+  return record(stage!.canvas, stage!.graphics, (message) => {
+    fail(message);
+    void post('/__stream/stop', {});
+  }, session);
 }
 
 // Stops streaming: a recording here ends and its last piece is sent, then
@@ -230,6 +275,7 @@ export async function startStream(url: string, key: string, quality: Quality): P
 export function stopStream(): void {
   const ending = recording;
   recording = null;
+  forget();
   if (ending) void ending.stop().then(() => post('/__stream/stop', {}));
   else void post('/__stream/stop', {});
   if (streaming.getState().state !== 'off') streaming.setState({ state: 'stopping' });
@@ -247,7 +293,13 @@ export function follow(change: Follow): void {
 function fail(message: string): void {
   recording?.cancel();
   recording = null;
+  forget();
   streaming.setState({ state: 'error', message });
+}
+
+// This tab draws no stream (any more).
+function forget(): void {
+  store(SESSION_KEY, null, tab);
 }
 
 // Asks the dev server how the stream goes, once a second, until it is over.
@@ -268,6 +320,7 @@ function watch(): void {
     if (status.state === 'error' && recording) fail(status.message);
     streaming.setState(status);
     if ((status.state === 'off' || status.state === 'error') && !recording) {
+      forget();
       window.clearInterval(poll!);
       poll = null;
     }
@@ -306,22 +359,26 @@ function idle(): StreamStatus {
     scene: '',
     frames: 0,
     fps: 0,
+    frozen: 0,
     kbps: 0,
     seconds: 0,
+    audio: null,
   };
 }
 
-function stored(key: string): string | null {
+export function stored(key: string, storage: () => Storage = () => localStorage): string | null {
   try {
-    return localStorage.getItem(key);
+    return storage().getItem(key);
   } catch {
     return null; // storage can be blocked
   }
 }
 
-function store(key: string, value: string): void {
+// Keeps a value in this browser, or forgets it (null).
+export function store(key: string, value: string | null, storage: () => Storage = () => localStorage): void {
   try {
-    localStorage.setItem(key, value);
+    if (value === null) storage().removeItem(key);
+    else storage().setItem(key, value);
   } catch {
     // not remembered, that's all
   }

@@ -231,9 +231,19 @@ function softPuff(): THREE.DataTexture {
 // depth, so puffs behind one another all show. Its vertex shader turns each
 // puff's square to face the camera, sized and turned by the puff, and its
 // fragment shader thins each puff by its own opacity and fades it out near
-// the ground (the fog's y = 0). It takes the scene's fog like anything else.
-function puffMaterial(color: THREE.Color): THREE.MeshBasicMaterial {
+// the ground (the fog's y = 0), over `fade` m. It takes the scene's fog like
+// anything else.
+//
+// The border's mist (environtments/Border.ts) drifts over uneven land, so it
+// passes `ground`: each puff then fades out above its own ground height, the
+// instanced attribute puffGround (m, in the object's coordinates), instead
+// of above the object's origin.
+export function puffMaterial(
+  color: THREE.Color,
+  { fade = GROUND_FADE, ground = false }: { fade?: number; ground?: boolean } = {},
+): THREE.MeshBasicMaterial {
   const material = new THREE.MeshBasicMaterial({ color, map: softPuff(), transparent: true, depthWrite: false });
+  const below = ground ? '- puffGround' : '';
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -241,6 +251,7 @@ function puffMaterial(color: THREE.Color): THREE.MeshBasicMaterial {
         /* glsl */ `#include <common>
         attribute float puffOpacity;
         attribute float puffTurn;
+        ${ground ? 'attribute float puffGround;' : ''}
         varying float vPuffOpacity;
         varying float vPuffHeight;`,
       )
@@ -256,7 +267,7 @@ function puffMaterial(color: THREE.Color): THREE.MeshBasicMaterial {
         vPuffOpacity = puffOpacity;
         // The corner's height above the fog's origin: back from the view to
         // the world (the view matrix only turns and moves).
-        vPuffHeight = ( ( mvPosition.xyz - viewMatrix[ 3 ].xyz ) * mat3( viewMatrix ) ).y - modelMatrix[ 3 ].y;`,
+        vPuffHeight = ( ( mvPosition.xyz - viewMatrix[ 3 ].xyz ) * mat3( viewMatrix ) ).y - modelMatrix[ 3 ].y ${below};`,
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
@@ -267,10 +278,10 @@ function puffMaterial(color: THREE.Color): THREE.MeshBasicMaterial {
       )
       .replace(
         '#include <alphatest_fragment>',
-        /* glsl */ `diffuseColor.a *= vPuffOpacity * smoothstep( 0.0, ${GROUND_FADE.toFixed(3)}, vPuffHeight );
+        /* glsl */ `diffuseColor.a *= vPuffOpacity * smoothstep( 0.0, ${fade.toFixed(3)}, vPuffHeight );
         #include <alphatest_fragment>`,
       );
   };
-  material.customProgramCacheKey = () => 'fog-puff';
+  material.customProgramCacheKey = () => `fog-puff-${fade}-${ground}`;
   return material;
 }

@@ -11,16 +11,32 @@ export interface Theme {
   name: string;
   scene: {
     background: Color;
+    zenith: Color; // the sky straight overhead: a sky deepens to it from background at the horizon
     floor: Color;
     sky: Color; // hemisphere light from above
     ground: Color; // hemisphere light bounced off the floor
     water: Color; // a lake's surface; the lakebed fades toward it with depth
     grass: Color; // a lawn's blades (the ground between them is a shade darker), and any foliage, such as leaves
+    autumn: Color; // leaves turned in autumn, such as an autumn maple's; must stand out from grass
     flower: Color; // blossoms, such as a chive's flower heads; must stand out from grass
     stone: Color; // rocks lying about, such as on a lakeside; must stand out from the floor
+    sand: Color; // loose sand lying on the land, such as a beach (environtments/terrains/SandTerrain.ts); must stand out from the floor
     light: Color; // key (sun) light
     ambientIntensity: number;
     lightIntensity: number;
+    // The same at night, for an environment with day and night (the lake):
+    // the sky at the horizon and overhead, and dimmer, cooler lights, the key
+    // light turned moonlight. sceneAt() mixes them with the day's at dusk and
+    // dawn. Dim, not black: a figure must still read.
+    night: {
+      background: Color;
+      zenith: Color;
+      sky: Color;
+      ground: Color;
+      light: Color;
+      ambientIntensity: number;
+      lightIntensity: number;
+    };
   };
   colors: {
     body: Color; // main surface, the brand's primary colour
@@ -33,6 +49,7 @@ export interface Theme {
     wood: Color; // bare or varnished wood: planks, benches, a rudder; a natural material like metal
     fur: Color; // an animal's coat; each animal mixes it with trim, light and dark into its own (a fox toward trim, a wolf toward grey)
     accent: Color; // every control (knobs, pads): the brand's accent, or the complement if it has none
+    glow: Color; // something that gives off light, such as a firefly's lantern: emissive, so it shows exactly this colour
   };
   finish: {
     roughness: number;
@@ -45,201 +62,34 @@ export interface Theme {
   };
 }
 
-export const pastel: Theme = {
-  name: 'pastel',
-  scene: {
-    background: 0xf7eef3,
-    floor: 0xefdde7,
-    sky: 0xffffff,
-    ground: 0xf2c6d6,
-    water: 0xe6adc4, // a step deeper than ground, same pink
-    grass: 0xeecbd9, // a pink lawn between floor and ground; mint stays for controls
-    flower: 0xc9a3dc, // lilac, toward the dark purple, deeper than the pink lawn
-    stone: 0xcfa9ba, // a greyed pink, a step below ground
-    light: 0xfff4ec,
-    ambientIntensity: 1.2,
-    lightIntensity: 2.2,
-  },
-  colors: {
-    body: 0xffb7c5,
-    trim: 0xff8fa8,
-    light: 0xfff8ee,
-    dark: 0x6b4e8c,
-    ink: 0x2b2233,
-    marker: 0x2b2233,
-    metal: 0xe8c26a,
-    wood: 0xebcfa8, // pale maple, beside the gold metal
-    fur: 0xd9b39a, // a warm tan, deeper than the pale maple
-    accent: 0x8ee3c8, // mint, opposite pink
-  },
-  finish: { roughness: 0.45, clearcoat: 1, clearcoatRoughness: 0.15 },
-};
-
-export const studio: Theme = {
-  name: 'studio',
-  scene: {
-    background: 0x1a1a1c,
-    floor: 0x2a2a2d,
-    sky: 0xffffff,
-    ground: 0x333333,
-    water: 0x202329, // a cool dark grey, a step below the floor
-    grass: 0x323533, // a dark grey lawn, a step above the floor
-    flower: 0x8d8894, // a light grey with a touch of violet, above the dark lawn
-    stone: 0x4a4a4e, // mid grey, lighter than the floor so rocks show
-    light: 0xffffff,
-    ambientIntensity: 0.8,
-    lightIntensity: 2.5,
-  },
-  colors: {
-    body: 0x111111,
-    trim: 0x2c2c31,
-    light: 0xf5f3ee,
-    dark: 0x151515,
-    ink: 0xf5f3ee,
-    marker: 0xffffff,
-    metal: 0xb08d3c,
-    wood: 0x6b4a33, // dark walnut
-    fur: 0x7a5a44, // a dark brown, a shade warmer than the walnut
-    accent: 0xff5a1f,
-  },
-  finish: { roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.1 },
-};
-
-// One violet hue (~260°) in steps from 50 (palest) to 900 (darkest), so every
-// purple in the scene belongs to the same family. Gold metal and the yellow
-// accent sit opposite violet on the colour wheel and give it warmth.
-const violet = {
-  50: 0xf4f0fb,
-  100: 0xe7dff6,
-  200: 0xcbb8f0,
-  400: 0x9b7be0,
-  600: 0x6d4bc4,
-  800: 0x3b2a66,
-  900: 0x24193f,
-};
-
-export const purple: Theme = {
-  name: 'purple',
-  scene: {
-    background: violet[50],
-    floor: violet[100],
-    sky: 0xffffff,
-    ground: violet[200],
-    water: violet[200],
-    grass: violet[200],
-    flower: violet[400],
-    stone: 0xa597c9, // a greyed violet between 200 and 400
-    light: 0xfbf8ff,
-    ambientIntensity: 1.1,
-    lightIntensity: 2.3,
-  },
-  colors: {
-    body: violet[400],
-    trim: violet[600],
-    light: 0xfbf8ff,
-    dark: violet[800],
-    ink: violet[900],
-    marker: violet[900],
-    metal: 0xe0c068,
-    wood: 0xd4ae78, // honey, beside the gold metal and the yellow accent
-    fur: 0xa9876a, // a muted brown, natural like the honey wood
-    accent: 0xffc94d, // yellow, opposite violet
-  },
-  finish: { roughness: 0.45, clearcoat: 1, clearcoatRoughness: 0.15 },
-};
-
-// getresolved.id brand, from wargasipil/getresolved@dev: branding/guidelines/brand.html
-// and the tokens in frontend/src/shared/index.css. Rules: docs/3d_modelling/brand_getresolved.md.
-// Indigo is the primary, green is the accent the brand chose (not the colour-wheel
-// complement), ink is the dark, and surfaces are neutral cool greys, not tinted.
-const brand = {
-  indigo: 0x4f46e5,
-  indigoDeep: 0x4338ca,
-  indigoLight: 0x818cf8,
-  green: 0x10b981,
-  greenLight: 0x34d399,
-  ink: 0x0f172a,
-  slate: 0x64748b,
-};
-
-export const getresolved: Theme = {
-  name: 'getresolved',
-  scene: {
-    background: 0xf6f8fb, // --bg
-    floor: 0xeef2f7, // --band, a step deeper than --bg
-    sky: 0xffffff,
-    ground: 0xe8edf3, // --line
-    water: 0xc5cee1, // slate 300 #CBD5E1 with 5% indigo, the most tint the brand allows
-    grass: 0xe2e8f0, // slate 200: green is only for controls, so a neutral lawn
-    flower: 0x919eba, // slate 400 with 5% indigo, the most tint the brand allows; darker than the lawn
-    stone: 0x94a3b8, // slate 400 (dark --muted), a neutral grey
-    light: 0xffffff,
-    ambientIntensity: 1.1,
-    lightIntensity: 2.3,
-  },
-  colors: {
-    body: brand.indigo, // --primary
-    trim: brand.indigoDeep, // --primary-hover, "depth"
-    light: 0xffffff, // --surface
-    dark: brand.ink,
-    ink: 0xffffff, // white on indigo, as in the mark's ring
-    marker: brand.ink, // on green; white on green is too faint
-    metal: brand.slate,
-    wood: 0xcbd5e1, // slate 300: the brand has no brown, so weathered grey wood, neutral like its surfaces
-    fur: 0x7c8aa0, // between slate 400 and 500: no brown in the brand, so grey fur
-    accent: brand.green, // --accent, the resolve point
-  },
-  // Clean and modern, no heavy gloss: the brand forbids added effects.
-  finish: { roughness: 0.5, clearcoat: 0.4, clearcoatRoughness: 0.3 },
-};
-
-// The brand's dark mode swaps primary and accent to their light variants.
-export const getresolvedDark: Theme = {
-  name: 'getresolved-dark',
-  scene: {
-    background: 0x0b1020, // dark --bg
-    floor: 0x111a30, // dark --surface
-    sky: 0xe2e8f0,
-    ground: 0x18223c, // dark --surface-2
-    water: 0x22304d, // dark --line
-    grass: 0x18223c, // dark --surface-2, a neutral lawn as in the light theme
-    flower: 0x919eba, // as in the light theme, lighter than the dark lawn
-    stone: 0x475569, // slate 600 (--muted text), a neutral grey above the dark floor
-    light: 0xffffff,
-    ambientIntensity: 0.9,
-    lightIntensity: 2.3,
-  },
-  colors: {
-    body: brand.indigoLight, // dark --primary
-    trim: brand.indigo,
-    light: 0xffffff,
-    dark: brand.ink,
-    ink: brand.ink, // white is too faint on indigo-light
-    marker: brand.ink,
-    metal: 0x94a3b8, // dark --muted
-    wood: brand.slate, // weathered grey wood, as in the light theme
-    fur: 0x94a3b8, // slate 400, grey fur lighter than the dark floor
-    accent: brand.greenLight, // dark --accent
-  },
-  finish: { roughness: 0.5, clearcoat: 0.4, clearcoatRoughness: 0.3 },
-};
-
 // A felt toy in natural penguin colours, from the penguin reference image:
 // black felt, off-white belly and face, orange beak and feet, on warm grey.
 export const felt: Theme = {
   name: 'felt',
   scene: {
     background: 0xbdb8b3,
+    zenith: 0x93b3d3, // muted sky-blue felt over the warm grey horizon
     floor: 0xc4bfba,
     sky: 0xffffff,
     ground: 0x9d9893,
     water: 0x93a4ab, // muted grey-blue, a natural lake in felt
     grass: 0x7c8f5a, // muted sage green, natural grass in felt
+    autumn: 0xc07a3e, // muted rust-orange felt, like a maple in autumn
     flower: 0xa98bbd, // muted lilac felt, like chive flowers
     stone: 0x8f8a85, // warm grey stone, darker than the floor
+    sand: 0xd8c6a2, // muted sand-beige felt, warmer and a little lighter than the floor
     light: 0xfff6ee,
     ambientIntensity: 1.2,
     lightIntensity: 2.2,
+    night: {
+      background: 0x2b3242, // dusky blue-grey felt at the horizon
+      zenith: 0x141b2e, // deep navy felt overhead
+      sky: 0x9fb2d9,
+      ground: 0x3b3a40,
+      light: 0xc9d6f2, // pale blue moonlight
+      ambientIntensity: 0.45,
+      lightIntensity: 0.75,
+    },
   },
   colors: {
     body: 0x1f1f22,
@@ -252,6 +102,7 @@ export const felt: Theme = {
     wood: 0xb07d4f, // natural wood
     fur: 0x9a6b45, // warm brown felt, a natural coat
     accent: 0xf08a1c,
+    glow: 0xf7d64a, // warm yellow felt, like a firefly's lantern
   },
   finish: {
     roughness: 1,
@@ -263,15 +114,9 @@ export const felt: Theme = {
   },
 };
 
-export const themes: Record<string, Theme> = {
-  getresolved,
-  'getresolved-dark': getresolvedDark,
-  felt,
-  pastel,
-  purple,
-  studio,
-};
-// Every figure starts in felt; pick another in the panel or with ?theme=.
+// Felt is the only theme: the user dropped the others (getresolved and its
+// dark mode, pastel, purple, studio) on 2026-09-26, "just keep felt, we dont
+// need other". Every figure and environment still takes it as its `theme`.
 export const defaultTheme = felt;
 
 // A surface in the theme's finish.
@@ -308,10 +153,36 @@ export function bark(theme: Theme): THREE.MeshPhysicalMaterial {
 }
 
 // Colour-accurate output: hex colours are sRGB and no tone mapping is applied,
-// so a lit face shows its hex value times its shading. Measured on the brand
-// indigo #4F46E5: none renders #4941D3, Neutral #3224CE (it darkens the low
-// channels, oversaturating the colour).
+// so a lit face shows its hex value times its shading. Measured on the
+// getresolved brand's indigo #4F46E5 (a theme since dropped): none renders
+// #4941D3, Neutral #3224CE (it darkens the low channels, oversaturating the
+// colour).
 export function applyRendererTheme(renderer: THREE.WebGLRenderer): void {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
+}
+
+// The scene's sky and lights at a time of day: the theme's own by day (night
+// 0), its night values at night (1), and mixed between them at dusk and dawn.
+// Colours mix as three.js keeps them, linear, as light adds up.
+export interface SceneAt {
+  background: THREE.Color;
+  zenith: THREE.Color;
+  sky: THREE.Color;
+  ground: THREE.Color;
+  light: THREE.Color;
+  ambientIntensity: number;
+  lightIntensity: number;
+}
+
+const nightColor = new THREE.Color(); // reused by sceneAt()
+
+export function sceneAt(theme: Theme, night: number, out?: SceneAt): SceneAt {
+  const day = theme.scene;
+  const dark = day.night;
+  const at = out ?? { background: new THREE.Color(), zenith: new THREE.Color(), sky: new THREE.Color(), ground: new THREE.Color(), light: new THREE.Color(), ambientIntensity: 0, lightIntensity: 0 };
+  for (const key of ['background', 'zenith', 'sky', 'ground', 'light'] as const) at[key].set(day[key]).lerp(nightColor.set(dark[key]), night);
+  at.ambientIntensity = THREE.MathUtils.lerp(day.ambientIntensity, dark.ambientIntensity, night);
+  at.lightIntensity = THREE.MathUtils.lerp(day.lightIntensity, dark.lightIntensity, night);
+  return at;
 }

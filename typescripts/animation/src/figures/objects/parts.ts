@@ -40,8 +40,9 @@ export function sizeOf(options: ObjectOptions, size: Size): Size {
 // Stretches geometries together so that they fill exactly the box of `size`:
 // centered on x and z, from y = 0 up. The objects are built at about the size
 // asked for, so this only corrects what their random shapes missed by.
-// applyMatrix4 turns the normals too.
-export function fit(geometries: THREE.BufferGeometry[], size: Size): void {
+// applyMatrix4 turns the normals too. Returns the stretch, for a point
+// planned before it.
+export function fit(geometries: THREE.BufferGeometry[], size: Size): THREE.Matrix4 {
   const box = new THREE.Box3();
   for (const geo of geometries) {
     geo.computeBoundingBox();
@@ -56,6 +57,7 @@ export function fit(geometries: THREE.BufferGeometry[], size: Size): void {
     geo.computeBoundingBox();
     geo.computeBoundingSphere();
   }
+  return matrix;
 }
 
 // Smooth value noise from -1 to 1, with features about a unit apart. Each

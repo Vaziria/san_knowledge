@@ -138,7 +138,10 @@ export function Select({
         <SelectTrigger className="col-span-2 w-full min-w-0">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        {/* The list drops below the menu. Laid over it with the picked option
+            on the menu (the default), the options above the picked one went
+            under a scroll arrow at the top of the screen, where the panel is. */}
+        <SelectContent alignItemWithTrigger={false}>
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -254,7 +257,7 @@ export function Choice({
       <SelectTrigger className="min-w-0 flex-1" aria-label={name}>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent alignItemWithTrigger={false}>
         {options.map((option) => (
           <SelectItem key={option} value={option}>
             {option}

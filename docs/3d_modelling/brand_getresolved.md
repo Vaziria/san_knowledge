@@ -7,7 +7,7 @@ The colour rules of the **getresolved.id** brand, and how they apply to 3D figur
 - `frontend/src/shared/index.css`, the design-system tokens the apps use, including dark mode.
 - `branding/assets/logos/getresolved-mark.svg`, the mark (app icon), for its gradients.
 
-In this project, the brand is the `getresolved` and `getresolved-dark` themes in `typescripts/animation/src/theme.ts`. The default theme is `felt`, so pick `getresolved` in the preview's Theme menu or with `?theme=getresolved`.
+In this project, the brand was the `getresolved` and `getresolved-dark` themes in `typescripts/animation/src/theme.ts`. The user dropped every theme but `felt` on 2026-09-26 ("just keep felt, we dont need other"), these two with the rest, so nothing uses the brand now. This doc keeps its colours and how they were mapped onto the theme roles, in case the brand comes back. The themes' last committed code is in commit 278ad67. Later changes to them were never committed and went with them, though the table below keeps the brand's sky, night and glow.
 
 ## Brand colours
 
@@ -59,10 +59,13 @@ How each brand colour maps onto the theme roles (see [rules.md](rules.md#colour-
 | `metal` | Slate `#64748B` | `#94A3B8` | the brand has no metal colour, so the muted neutral |
 | `wood` | Slate 300 `#CBD5E1` | Slate `#64748B` | the brand has no brown, and a brown would be a second hue beside green, so weathered grey wood from its neutrals |
 | background / floor | `#F6F8FB` / `#EEF2F7` | `#0B1020` / `#111A30` | page background / band (light), surface (dark) |
+| zenith (the sky overhead) | `#DBE0EF` | `#111A30` | light: slate 200 `#E2E8F0` with 5% indigo, the most tint rule 2 allows; dark: surface, a step up from the background. The sky deepens to it from the background at the horizon |
 | hemisphere ground | `#E8EDF3` | `#18223C` | line / surface-2 |
 | water (lake) | `#C5CEE1` | `#22304D` | light: slate 300 `#CBD5E1` with 5% indigo, the most tint rule 2 allows; dark: line. The brand has no water or blue colour |
 | stone (lakeside rocks) | `#94A3B8` | `#475569` | slate 400 (dark --muted) and slate 600 (--muted text): neutral greys that stand out from the floor |
 | grass (a lawn) | `#E2E8F0` | `#18223C` | slate 200 and dark --surface-2: green is kept for controls, so a neutral lawn |
+| night (the lake's) | horizon Ink `#0F172A`, zenith `#0B1020`, sky light `#94A3B8`, ground `#18223C`, moon `#E2E8F0` | the same | the brand's dark mode: ink and dark --bg for the sky, dark --muted from above, dark --surface-2 bounced, and dark --text as the moon. The dark theme's day is already dark, so there its night is mostly the dimmer light |
+| `glow` (a firefly's lantern) | Indigo Light `#818CF8` | `#A5B4FC` | the brand has no yellow and green is only for controls, so its light indigo: the mark's gradient start, and in dark mode the primary's hover, a step lighter than the indigo-light body |
 
 Rules specific to 3D:
 

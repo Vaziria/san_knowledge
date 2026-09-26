@@ -284,3 +284,28 @@ specifically to use the subscription from code.
   `[data-testid="stop-button"]` are what the current app uses, but nothing here
   has confirmed them against the live site. If the first spike run fails, this
   is the first place to look, and `WithSelectors` is the fix.
+
+## First run against the live site (2026-09-25).
+
+Chrome 154, a fresh profile in `%LOCALAPPDATA%\go_gpt\chrome-profile`, not
+logged in. `spike` attached, opened its tab and installed the tee, then failed
+with `composer did not appear within 1m0s`.
+
+Logged out, chatgpt.com serves a different app, `unauth-mweb`, and none of
+the design's assumptions about the page hold there:
+
+- The composer is `<textarea name="prompt" id="mobile-composer-prompt">`, not
+  `#prompt-textarea`. There is no `data-testid` anywhere on the page, so the
+  login and stop selectors match nothing either.
+- The answer streams from `POST /unauth-mweb/conversation/updates` as
+  `text/vnd.openai.web-mobile-partial+html`: partial HTML, not the SSE the
+  parser reads, and not a path the fetch wrapper matches. Sentinel
+  `chat-requirements/prepare` and `finalize` calls come first, and the page
+  solves them itself, as the design expects.
+- The conversation URL is `/uc/<uuid>`, not `/c/<uuid>`.
+
+The input side does work: focusing that textarea, `Input.insertText` and Enter
+sent the prompt, and the page answered ("Ibu kota Indonesia adalah Jakarta.").
+Supporting logged-out use would need its own parser for the partial-HTML
+stream. The logged-in app, which is the point of the package, is still
+untested: log in once by hand in that profile and run `spike` again.

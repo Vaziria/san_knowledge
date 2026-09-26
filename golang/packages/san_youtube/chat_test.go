@@ -421,6 +421,44 @@ func TestPollDelayFallback(t *testing.T) {
 	wantDurations(t, *sleeps, []time.Duration{10 * time.Second, 2 * time.Second, 3 * time.Second, 10 * time.Second})
 }
 
+// WithPollInterval polls sooner than YouTube asks, and keeps a wait YouTube
+// asks for that is shorter still. The messages are the same.
+func TestPollInterval(t *testing.T) {
+	f := liveFake(t)
+	c, sleeps := newTestClient(t, f)
+	ch, err := c.Open(t.Context(), "LIVEVIDEO01", WithPollInterval(3*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	msgs, err := readAll(t, t.Context(), ch)
+	if !errors.Is(err, ErrEnded) {
+		t.Fatalf("final error = %v, want ErrEnded", err)
+	}
+	// YouTube asks for 10 s, 2 s, nothing (the 5 s fallback) and 10 s.
+	wantDurations(t, *sleeps, []time.Duration{3 * time.Second, 2 * time.Second, 3 * time.Second, 3 * time.Second})
+	if len(msgs) != 11 {
+		t.Errorf("%d messages, want the 11 of TestChat", len(msgs))
+	}
+}
+
+// After a 429, the chat waits as YouTube asks again: it is being told to
+// slow down.
+func TestPollIntervalSlowsDownAfterRateLimit(t *testing.T) {
+	f := liveFake(t)
+	f.polls["live-chat-2"] = []reply{status(429), page("get_live_chat_2.json")}
+	c, sleeps := newTestClient(t, f)
+	ch, err := c.Open(t.Context(), "LIVEVIDEO01", WithPollInterval(time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readAll(t, t.Context(), ch); !errors.Is(err, ErrEnded) {
+		t.Fatalf("final error = %v, want ErrEnded", err)
+	}
+	// 1 s instead of YouTube's 10 s; the 429's 1 s backoff; then YouTube's
+	// own 2 s, 5 s fallback and 10 s.
+	wantDurations(t, *sleeps, []time.Duration{time.Second, time.Second, 2 * time.Second, 5 * time.Second, 10 * time.Second})
+}
+
 // An answer with messages and no continuation delivers the messages, then
 // ends. So does every later call.
 func TestEndsAfterTheLastMessages(t *testing.T) {

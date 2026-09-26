@@ -74,6 +74,7 @@ Options:
 | `WithUserAgent(ua)`, `WithBaseURL(u)` | override the browser User-Agent, or point at a fake server |
 | `WithoutHistory()` (per chat) | skip the recent messages a chat starts with. `Open` reads them itself, so everything sent after `Open` still comes. |
 | `WithPollDelay(d)` (per chat) | the wait between polls when YouTube does not give one (default 5 s) |
+| `WithPollInterval(d)` (per chat) | poll at least every `d`, sooner than YouTube asks (about 10 s), so messages arrive within about `d`, for that many more requests. After YouTube answers 429, the chat waits as YouTube asks for 10 minutes. |
 
 ### Messages
 
@@ -135,6 +136,7 @@ san_youtube [flags] <video URL | video ID | @handle | channel URL>
   -new       skip the recent history the chat starts with
   -for 1m    stop after this long (default: until the stream ends or Ctrl+C)
   -lang id   language of YouTube's own texts
+  -poll 1s   poll at least this often, instead of as YouTube asks (about every 10 s)
 ```
 
 ```
@@ -230,7 +232,9 @@ with `-short`.
 - **Delay.** The browser gets push notifications that tell it when to poll.
   This package has no push, so it polls at the `timeoutMs` YouTube gives,
   about every 10 seconds for a viewer who is not logged in. Messages arrive in
-  batches at that pace, with their real timestamps.
+  batches at that pace, with their real timestamps. `WithPollInterval` (`-poll`
+  on the command line) polls sooner, for more requests; YouTube's answer to too
+  many is a 429, and after one the chat keeps to YouTube's pace for 10 minutes.
 - **No login.** It cannot read members-only streams and it cannot send
   messages. Chats of finished streams (replays) are not read; they give
   `ErrEnded`.

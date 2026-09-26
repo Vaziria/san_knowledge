@@ -12,19 +12,42 @@ import (
 )
 
 type chatOptions struct {
-	pollDelay   time.Duration
-	skipHistory bool
+	pollDelay    time.Duration
+	pollInterval time.Duration
+	skipHistory  bool
 }
 
 type ChatOption func(*chatOptions)
 
+// rateLimitCooldown is how long a chat polls at YouTube's own pace after
+// YouTube answered 429 (too many requests), before WithPollInterval's shorter
+// waits come back.
+const rateLimitCooldown = 10 * time.Minute
+
 // WithPollDelay sets how long to wait before the next poll when YouTube's
-// answer does not say. It normally does, and that is always what is waited.
-// The default is 5 seconds.
+// answer does not say. It normally does, and that is what is waited, unless
+// WithPollInterval asks for less. The default is 5 seconds.
 func WithPollDelay(d time.Duration) ChatOption {
 	return func(o *chatOptions) {
 		if d > 0 {
 			o.pollDelay = d
+		}
+	}
+}
+
+// WithPollInterval polls at least every d, sooner than YouTube asks. The chat
+// window on youtube.com is woken by push notifications, which this package
+// does not have, so without this it waits as long as each answer says (about
+// 10 seconds for a reader who is not logged in), and messages come in batches
+// that far apart. With it, a message arrives within about d, for as many more
+// requests: ten times as many at 1 second. A shorter wait that YouTube asks
+// for is still kept. Once YouTube answers 429 (too many requests), to this
+// chat or any other on the same Client, the chat waits as YouTube asks for
+// ten minutes, then goes back to d.
+func WithPollInterval(d time.Duration) ChatOption {
+	return func(o *chatOptions) {
+		if d > 0 {
+			o.pollInterval = d
 		}
 	}
 }
@@ -144,6 +167,10 @@ func (ch *Chat) fetch(ctx context.Context) error {
 	ch.wait = time.Duration(next.TimeoutMs) * time.Millisecond
 	if ch.wait <= 0 {
 		ch.wait = ch.opts.pollDelay
+	}
+	// Sooner than YouTube asks, unless it lately said to slow down.
+	if d := ch.opts.pollInterval; d > 0 && ch.wait > d && !ch.c.limitedWithin(rateLimitCooldown) {
+		ch.wait = d
 	}
 	return nil
 }

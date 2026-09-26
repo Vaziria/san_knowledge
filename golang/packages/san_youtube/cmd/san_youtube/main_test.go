@@ -56,6 +56,19 @@ func TestRunNeedsOneStream(t *testing.T) {
 	}
 }
 
+// -poll takes a duration, and a bad one stops it before any request.
+func TestRunPollFlag(t *testing.T) {
+	var out, errOut bytes.Buffer
+	if err := run(t.Context(), []string{"-poll", "soon", "@KompasTV"}, &out, &errOut); err == nil || !strings.Contains(err.Error(), "-poll") {
+		t.Errorf("run -poll soon = %v, want a bad value for -poll", err)
+	}
+	out.Reset()
+	errOut.Reset()
+	if err := run(t.Context(), []string{"-h"}, &out, &errOut); err != nil || !strings.Contains(errOut.String(), "-poll") {
+		t.Errorf("run -h = %v, and the usage should list -poll: %q", err, errOut.String())
+	}
+}
+
 func TestRunRejectsBadInputWithoutNetwork(t *testing.T) {
 	var out, errOut bytes.Buffer
 	err := run(t.Context(), []string{"https://example.com/not-youtube"}, &out, &errOut)

@@ -44,6 +44,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		newOnly = fs.Bool("new", false, "skip the recent history the chat starts with")
 		dur     = fs.Duration("for", 0, "stop after this long, e.g. 1m (0: until the stream ends or Ctrl+C)")
 		lang    = fs.String("lang", "en", `language for YouTube's own texts; "id" shows amounts as "Rp 20.000"`)
+		poll    = fs.Duration("poll", 0, "poll at least this often, e.g. 1s, instead of as YouTube asks (about every 10s); YouTube's pace again for 10 minutes after it says too many requests")
 	)
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: san_youtube [flags] <video URL | video ID | @handle | channel URL>")
@@ -69,6 +70,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	var chatOpts []san_youtube.ChatOption
 	if *newOnly {
 		chatOpts = append(chatOpts, san_youtube.WithoutHistory())
+	}
+	if *poll > 0 {
+		chatOpts = append(chatOpts, san_youtube.WithPollInterval(*poll))
 	}
 	client := san_youtube.New(san_youtube.WithLanguage(*lang))
 	chat, err := client.Open(ctx, fs.Arg(0), chatOpts...)

@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -45,6 +46,15 @@ type Client struct {
 
 	mu      sync.Mutex
 	cookies map[string]string
+	// limited is when YouTube last answered 429, in Unix nanoseconds; 0 if it
+	// never has. WithPollInterval slows down for a while after it.
+	limited atomic.Int64
+}
+
+// limitedWithin reports whether YouTube answered 429 in the last d.
+func (c *Client) limitedWithin(d time.Duration) bool {
+	at := c.limited.Load()
+	return at != 0 && c.opts.now().Sub(time.Unix(0, at)) < d
 }
 
 type options struct {

@@ -45,6 +45,7 @@ func (c *Client) send(ctx context.Context, method, rawURL string, body []byte, h
 		case err != nil:
 			last = fmt.Errorf("san_youtube: %s %s: %w", method, stripQuery(rawURL), err)
 		case resp.status == http.StatusTooManyRequests:
+			c.limited.Store(c.opts.now().UnixNano())
 			last = fmt.Errorf("%w: HTTP 429 from %s", ErrRateLimited, stripQuery(resp.url.String()))
 		case resp.status >= 500:
 			last = &StatusError{Code: resp.status, URL: stripQuery(rawURL)}

@@ -4,7 +4,7 @@ import { playHere } from './audio';
 import { Panel } from './panel/Panel';
 import { StreamPreview } from './panel/StreamTab';
 import { partPreview } from './parts';
-import { environments, previews } from './previews';
+import { environmentIn, previews } from './previews';
 import { environmentOf, setCamera, settings, type Settings } from './settings';
 import { Stage } from './Stage';
 import { stories } from './stories';
@@ -34,12 +34,15 @@ function apply(s: Settings): void {
   stage.setTimeOfDay(s.time);
   // Before show(), so a new figure appears from the picked direction at once.
   stage.setCameraDirection(s.camera);
-  // A story brings its own figures and environment, and a terrain its own
-  // land (terrains.ts); otherwise the picked figure, or only the picked part
-  // of it.
-  const own = s.story ? stories[s.story] : s.terrain ? terrains[s.terrain] : null;
-  if (own) stage.show(own.create, own.environment, defaultTheme);
-  else stage.show(s.part ? partPreview(s.figure, s.part) : previews[s.figure], environments[environmentOf(s)], defaultTheme);
+  // A story brings its own figures and environment (in the picked season,
+  // for one at the forest lake), and a terrain its own land (terrains.ts);
+  // otherwise the picked figure, or only the picked part of it, in the
+  // picked environment, in the picked season if it has seasons (the forest
+  // lake; a new season rebuilds it).
+  const story = s.story ? stories[s.story] : null;
+  const own = story ?? (s.terrain ? terrains[s.terrain] : null);
+  if (own) stage.show(own.create, story?.environmentIn?.(s.season) ?? own.environment, defaultTheme);
+  else stage.show(s.part ? partPreview(s.figure, s.part) : previews[s.figure], environmentIn(environmentOf(s), s.season), defaultTheme);
   stage.setKuwahara(s.kuwahara.on ? s.kuwahara.radius : 0);
 }
 apply(settings.getState());

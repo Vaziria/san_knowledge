@@ -334,7 +334,10 @@ export const LOFT_SIDES = 6;
 // ring i and i + 1); an end takes the band next to it. Its hub is the middle
 // the user's models colour it from (their colorFor(band, centre, ring)): a
 // band's face, the middle of its two rings; an end's, the middle of the ring
-// it closes.
+// it closes. Its centre is the middle of its corners as the models work it
+// out, in the order they take them before a face is turned to face out: the
+// same sums in the same order, so a face whose centre lies exactly on one of
+// their colour lines (a crocodile's tail's end) falls on the same side.
 export interface Lofted {
   centers: THREE.Vector3[]; // each section's middle
   points: THREE.Vector3[];
@@ -342,6 +345,7 @@ export interface Lofted {
   faces: (readonly [number, number, number])[];
   band: number[];
   hub: THREE.Vector3[];
+  centre: THREE.Vector3[];
 }
 
 const LOFT_X = new THREE.Vector3(1, 0, 0);
@@ -383,6 +387,7 @@ export function lofted(loft: Loft): Lofted {
   const faces: (readonly [number, number, number])[] = [];
   const band: number[] = [];
   const hub: THREE.Vector3[] = [];
+  const centre: THREE.Vector3[] = [];
   const n = new THREE.Vector3();
   const e = new THREE.Vector3();
   const add = (a: number, b: number, c: number, inside: THREE.Vector3, of: number, from: THREE.Vector3) => {
@@ -392,6 +397,7 @@ export function lofted(loft: Loft): Lofted {
     faces.push(n.dot(e) < 0 ? [a, c, b] : [a, b, c]);
     band.push(of);
     hub.push(from);
+    centre.push(new THREE.Vector3((p.x + q.x + r.x) / 3, (p.y + q.y + r.y) / 3, (p.z + q.z + r.z) / 3));
   };
   for (let i = 0; i < sections.length - 1; i++) {
     const middle = new THREE.Vector3().addVectors(centers[i], centers[i + 1]).multiplyScalar(0.5);
@@ -410,7 +416,7 @@ export function lofted(loft: Loft): Lofted {
   const last = sections.length - 1;
   close(loft.start, 0, 1, 0);
   close(loft.end, last, last - 1, last - 1);
-  return { centers, points, ring, faces, band, hub };
+  return { centers, points, ring, faces, band, hub, centre };
 }
 
 // How the user's models colour a lofted part (their colorFor): by the band a
@@ -419,12 +425,7 @@ export function lofted(loft: Loft): Lofted {
 export type Paint<T> = (band: number, centre: THREE.Vector3, hub: THREE.Vector3) => T;
 
 export function paintLoft<T>(surface: Lofted, paint: Paint<T>): T[] {
-  const centre = new THREE.Vector3();
-  return surface.faces.map((face, f) => {
-    centre.set(0, 0, 0);
-    for (const i of face) centre.add(surface.points[i]);
-    return paint(surface.band[f], centre.divideScalar(3), surface.hub[f]);
-  });
+  return surface.faces.map((_face, f) => paint(surface.band[f], surface.centre[f], surface.hub[f]));
 }
 
 // A loft's surface as flat faces (polygons()), each coloured by `color`,

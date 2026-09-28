@@ -1,4 +1,9 @@
-import type { Fish } from '../../figures/Fish/Fish';
+// A fish that leaps: the lake meeting's (Fish), or the forest lake
+// meeting's, through a stand-in for its own Jump() (forest_lake_meeting/).
+interface Leaper {
+  readonly jumping: boolean;
+  JumpOutFromWater(height: number): void;
+}
 
 // The meeting's fish leaping out of the water now and then of its own accord
 // (Meeting.ts), as the user asked ("sometimes fish jumpout from water"):
@@ -14,11 +19,11 @@ const HEIGHT = [0.15, 0.28] as const; // m its lowest point clears the water by 
 const AFTER_SUPPORTER = 20; // s after a supporter's leap before one of its own
 
 export class FishLeaps {
-  private readonly fish: Fish;
+  private readonly fish: Leaper;
   private readonly random: () => number;
   private wait: number; // s until its next leap
 
-  constructor(fish: Fish, random: () => number = Math.random) {
+  constructor(fish: Leaper, random: () => number = Math.random) {
     this.fish = fish;
     this.random = random;
     this.wait = between(this.random, EVERY);

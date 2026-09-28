@@ -2,7 +2,7 @@ import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import { isCameraDirection, type CameraDirection } from './camera';
 import { hasPart } from './parts';
-import { defaultFigure, environments, figureEnvironment, previews, TIMES_OF_DAY, type TimeOfDay } from './previews';
+import { defaultFigure, environments, figureEnvironment, previews, SEASONS, TIMES_OF_DAY, type Season, type TimeOfDay } from './previews';
 import { stories } from './stories';
 import { terrains } from './terrains';
 
@@ -27,6 +27,7 @@ export interface Settings {
   walkSpeed: number; // m/s: how fast the camera walks (camera "walk")
   eyeHeight: number; // m: how high over the ground the walking camera looks from
   time: TimeOfDay; // day and night taking turns (cycle), or held at one; only the lake has night
+  season: Season; // the season the forest lake is shown in; only it has seasons
 }
 
 export const KUWAHARA_DEFAULT_RADIUS = 5;
@@ -47,6 +48,8 @@ export const EYE_HEIGHT = { least: 0.2, most: 10, usual: 1.6 }; // m
 // ?walkSpeed=<m/s> and ?eyeHeight=<m> are for walking, 1.4 and 1.6 by default.
 // ?time=day or night holds the lake at that time of day; cycle, the
 // default, lets them take turns.
+// ?season=summer, autumn or winter shows the forest lake in that season,
+// spring by default.
 function fromUrl(params: URLSearchParams): Settings {
   const story = params.get('story') ?? '';
   const terrain = params.get('terrain') ?? '';
@@ -57,6 +60,7 @@ function fromUrl(params: URLSearchParams): Settings {
   const radius = Number(params.get('kuwahara') ?? KUWAHARA_DEFAULT_RADIUS);
   const camera = params.get('camera') ?? '';
   const time = params.get('time') ?? '';
+  const season = params.get('season') ?? '';
   return {
     story: Object.hasOwn(stories, story) ? story : null,
     terrain: Object.hasOwn(terrains, terrain) ? terrain : null,
@@ -71,6 +75,7 @@ function fromUrl(params: URLSearchParams): Settings {
     walkSpeed: tenths(params.get('walkSpeed'), WALK_SPEED),
     eyeHeight: tenths(params.get('eyeHeight'), EYE_HEIGHT),
     time: TIMES_OF_DAY.find((t) => t === time) ?? 'cycle',
+    season: SEASONS.find((s) => s === season) ?? 'spring',
   };
 }
 
@@ -95,6 +100,7 @@ const toParam: { [K in keyof Settings]: (value: Settings[K]) => string | null } 
   walkSpeed: (speed) => String(speed),
   eyeHeight: (height) => String(height),
   time: (time) => (time === 'cycle' ? null : time),
+  season: (season) => (season === 'spring' ? null : season),
 };
 
 export const settings = createStore<Settings>()(() => fromUrl(new URLSearchParams(location.search)));
@@ -194,4 +200,8 @@ export function setEyeHeight(eyeHeight: number): void {
 
 export function setTime(time: TimeOfDay): void {
   settings.setState({ time });
+}
+
+export function setSeason(season: Season): void {
+  settings.setState({ season });
 }

@@ -2,14 +2,15 @@ import * as THREE from 'three';
 import { defaultTheme } from '../../theme';
 import { Animal, type AnimalShape, type Gait, type Motion } from './Animal';
 import { Body, type NeckShape, type TorsoShape } from './Body';
-import { Head, headSize, type Extra, type HeadModel, type HeadShape } from './Head';
+import { Head, headSize, type Dress, type Extra, type HeadModel, type HeadShape } from './Head';
 import { Leg, legBones, LOWER_RADIUS, REACH_SHARE, type LegModel, type LegShape } from './Leg';
 import { createMaterials, lofted, paintLoft, palette, scaleLoft, twoTone, type AnimalOptions, type Loft, type Look, type Paint, type Palette } from './parts';
 import { Tail, type TailModel, type TailShape } from './Tail';
 
-// A four-legged animal (the cat, fox, wolf, deer, bear and lion), built from
-// a Build: the numbers of its body, head, legs and tail, its colours and its
-// gaits. Its parts are a body (torso and neck), a head, a tail and four legs,
+// A four-legged animal (the cat, fox, wolf, deer, bear and lion, and the nine
+// from the user's animal park: the crocodile, ox, antelope, tiger, coyote,
+// raccoon, monkey, pig and squirrel), built from a Build: the numbers of its
+// body, head, legs and tail, its colours and its gaits. Its parts are a body (torso and neck), a head, a tail and four legs,
 // each a group with its origin at its joint, exposed for animation. Units are
 // meters, it faces +z, and the origin is on the ground under the middle of
 // its torso.
@@ -19,7 +20,11 @@ import { Tail, type TailModel, type TailShape } from './Tail';
 // one, lofted legs and tail and a head of flat faces, each where the model
 // puts it and painted as the model paints it. Its legs bend at two of their
 // rings (Leg.ts), and standing still it stands as the model does, its feet
-// where the model has them and its legs as straight. The models' front legs
+// where the model has them and its legs as straight, but that one pair of
+// legs bends a little to reach the ground when the model stands its feet at
+// two heights (layout()). A splayed leg (the crocodile's) is turned out at
+// its joint as its model turns it, and its foot keeps that roll on the
+// ground. The models' front legs
 // are all but straight, so to walk or run it first lowers its body to where
 // the other animals stand (REST_REACH), and then as much further as it must
 // for every leg to reach its foot, so its planted feet reach the ground at
@@ -30,7 +35,8 @@ import { Tail, type TailModel, type TailShape } from './Tail';
 // (the hind feet close together, then the fore), rocking its body. Each foot
 // is placed on the ground and its leg bent to reach it (Leg.reach), so a
 // planted foot stays put while the body moves on; a swinging foot rises no
-// higher than lets its leg fold without folding shut. The head steadies against
+// higher than lets its leg fold without folding shut, and goes no lower than
+// the ground. The head steadies against
 // the body's rocking, nods as it walks and lifts to carry what it holds, and
 // the tail swings. A jump crouches, draws the legs up in the air, tips the
 // nose up leaving and down landing, and bends to take the landing.
@@ -96,15 +102,23 @@ type Point = readonly [x: number, y: number, z: number];
 // `scale` times the animal's, from `at`; it turns about the body's end, where
 // the neck ends. A lofted part's `paint` names each face's colour as the
 // user's model does (its colorFor), in the part's own units; without it the
-// part is shaded from the coat (the wolf).
+// part is shaded from the coat (the wolf). What a model adds to its body or
+// tail (`extras`: the crocodile's scutes) is built in the part's units, as a
+// head's extras are in the head's, and goes with the part.
 export interface Model<Name extends string = string> {
   unit: number;
-  body: Painted<Loft>; // the torso and neck in one, from the rump to where the head joins it (the middle of its last section)
+  body: Painted<Loft> & { extras?: readonly Extra[] }; // the torso and neck in one, from the rump to where the head joins it (the middle of its last section)
   head: Omit<HeadModel<Name>, 'unit' | 'origin'> & { at: Point; scale: number; extras?: readonly Extra[] };
-  tail: Painted<TailModel> & { at: Point };
-  front: Painted<LegModel> & { at: Point };
-  hind: Painted<LegModel> & { at: Point };
+  tail: Painted<TailModel> & { at: Point; extras?: readonly Extra[] };
+  front: ModelLeg;
+  hind: ModelLeg;
 }
+
+// A modelled leg where the model puts it: `scale` times the animal's units
+// (the crocodile's and monkey's hind legs, 1.1), and turned `splay` radians
+// out at its joint about the body's length, its foot out to the side (the
+// crocodile's), as the model's page turns it.
+export type ModelLeg = Painted<LegModel> & { at: Point; scale?: number; splay?: number };
 
 type Painted<T extends Loft> = T & { paint?: Paint<string> };
 
@@ -118,6 +132,11 @@ export interface ModelBuild {
   run?: Gait;
   jump: number;
   hold: number;
+  // How much of the rig's pitching it does (1 when left out): its body's
+  // rocking at a gallop and tipping in a jump, and its head's nodding and
+  // lowering. The crocodile, long and low, does little: tipped as far as the
+  // others, its tail and snout went into the ground.
+  pitch?: number;
 }
 
 const REST_REACH = 0.95; // a standing leg's reach, as a share of its full length
@@ -183,23 +202,37 @@ interface Stance {
   y: number;
   z: number;
   foot: number; // m its foot stands ahead of the joint at rest
+  out: number; // m its foot stands out to the side of the joint at rest (a splayed leg's)
   ankle: number; // m, the ankle's height above the ground at rest
   length: number; // m, from the joint to the ankle, the leg straight
-  stand: number; // how far the joint is above the ankle at rest, as a share of `length` (the front leg's sets how high the body stands)
+  stand: number; // how far the joint is above the ankle at rest, as a share of `length`
   bend: 1 | -1;
+}
+
+// A modelled leg in meters, `scale` times the animal's units.
+function legLoft(leg: ModelLeg, unit: number): LegModel {
+  return scaleLoft(leg, unit * (leg.scale ?? 1));
 }
 
 function stance(build: Build | ModelBuild, front: boolean): Stance {
   if (!('model' in build)) {
     const joint = front ? build.front : build.hind;
-    return { x: joint.x, y: joint.y, z: joint.z, foot: 0, ankle: ankle(joint), length: length(joint), stand: REST_REACH, bend: joint.bend };
+    return { x: joint.x, y: joint.y, z: joint.z, foot: 0, out: 0, ankle: ankle(joint), length: length(joint), stand: REST_REACH, bend: joint.bend };
   }
   const { unit } = build.model;
   const leg = front ? build.model.front : build.model.hind;
-  const bones = legBones(scaleLoft(leg, unit));
+  const bones = legBones(legLoft(leg, unit));
   const reach = bones.upper + bones.lower;
   const [x, y, z] = leg.at;
-  return { x: x * unit, y: y * unit, z: z * unit, foot: bones.ankle.z, ankle: bones.height, length: reach, stand: -bones.ankle.y / reach, bend: leg.bend };
+  const place = { x: x * unit, y: y * unit, z: z * unit, foot: bones.ankle.z, length: reach, bend: leg.bend };
+  if (!leg.splay) return { ...place, out: 0, ankle: bones.height, stand: -bones.ankle.y / reach };
+  // Turned out at its joint (the right leg toward +x), the ankle comes out to
+  // the side and up a little, and the foot tips with the leg, its inner edge
+  // lowest.
+  const [cos, sin] = [Math.cos(leg.splay), Math.sin(leg.splay)];
+  const low = Math.min(...bones.surface.points.filter((_p, i) => bones.surface.ring[i] >= leg.ankle).map((p) => p.x * sin + p.y * cos));
+  const ankleY = bones.ankle.y * cos;
+  return { ...place, out: -bones.ankle.y * sin, ankle: ankleY - low, stand: -ankleY / reach };
 }
 
 // A model's head as a HeadModel, in meters, turning about the body's end.
@@ -209,12 +242,26 @@ function headOf(model: Model): HeadModel {
   return { ...head, unit: model.unit * scale, origin: [-at[0] / scale, (y - at[1]) / scale, (z - at[2]) / scale] };
 }
 
+// Whether a leg standing as modelled still reaches the ground with its joint
+// `drop` m higher.
+function reaches(s: Stance, drop: number): boolean {
+  return Math.hypot(s.out, s.stand * s.length + drop, s.foot) <= REACH_SHARE * s.length;
+}
+
 // Where the animal's legs, body and head are at rest, and so where its
-// speech bubble goes.
+// speech bubble goes. The front legs stand as modelled and set how high the
+// body stands, and the hind legs bend or stretch a little to reach the
+// ground: its model's feet are rarely all at one height (the pages stand the
+// front paws 1 to 2.5 mm higher than the hind ones, the crocodile's 3.4 cm).
+// Only when the hind legs can't reach the ground from there (the raccoon's,
+// which its page stands 1.1 cm high) do they stand as modelled instead, and
+// the front legs bend to meet the ground.
 function layout(build: Build | ModelBuild) {
   const front = stance(build, true);
   const hind = stance(build, false);
-  const torsoY = front.ankle + front.stand * front.length - front.y;
+  const [onFront, onHind] = [front, hind].map((s) => s.ankle + s.stand * s.length - s.y); // how high the body stands on each pair
+  const standing = onFront <= onHind || reaches(hind, onFront - onHind) ? front : hind; // the pair standing as modelled
+  const torsoY = standing === front ? onFront : onHind;
   let neckBase = new THREE.Vector3(); // where the neck leaves the chest (a rounded build's)
   let head: THREE.Vector3; // where the head joins the neck, from the torso's middle
   let size: { top: number; length: number };
@@ -230,7 +277,7 @@ function layout(build: Build | ModelBuild) {
     size = headSize(build.head);
   }
   head.add(new THREE.Vector3(0, torsoY, 0));
-  return { front, hind, torsoY, neckBase, bubble: new THREE.Vector3(0, head.y + size.top + 0.04, head.z + size.length * 0.35) };
+  return { front, hind, torsoY, standing, neckBase, bubble: new THREE.Vector3(0, head.y + size.top + 0.04, head.z + size.length * 0.35) };
 }
 
 type Layout = ReturnType<typeof layout>;
@@ -261,6 +308,7 @@ export class Quadruped extends Animal {
   private readonly stances: { front: Stance; hind: Stance };
   private readonly slack: number; // m it lowers its body to walk or run, beyond the other animals: a model's legs stand straighter
   private readonly level: boolean; // keeps its feet level with the ground as its body rocks (a model's)
+  private readonly pitch: number; // how much of the rig's pitching it does (ModelBuild)
   private readonly upright?: Upright;
   private readonly headRest: THREE.Vector3; // where the head is on all fours, in the rig
   private time = 0;
@@ -276,6 +324,7 @@ export class Quadruped extends Animal {
   private readonly targets = LEGS.map(() => new THREE.Vector3()); // each foot's, in the rig, this frame
   private readonly tips = LEGS.map(() => 0);
   private readonly swinging = LEGS.map(() => false);
+  private readonly rolls: number[]; // each foot's roll on the ground, a splayed leg's (radians, the right leg's positive)
 
   protected constructor(options: AnimalOptions, build: Build | ModelBuild) {
     const theme = options.theme ?? defaultTheme;
@@ -286,11 +335,14 @@ export class Quadruped extends Animal {
     this.rear = this.upright ? 1 : 0;
     const colors: Colors = build.colors(palette(theme));
     const m = createMaterials(theme, 'model' in build ? undefined : build.look, colors.eye);
-    const { front, hind, torsoY, neckBase } = place;
+    const { front, hind, torsoY, standing, neckBase } = place;
     this.torsoY = torsoY;
     this.stances = { front, hind };
-    this.slack = (front.stand - REST_REACH) * front.length;
+    // A splayed leg's reach is along its turned plane.
+    const reach = standing.out ? Math.hypot(standing.stand * standing.length, standing.out) / standing.length : standing.stand;
+    this.slack = (reach - REST_REACH) * standing.length;
     this.level = 'model' in build;
+    this.pitch = 'model' in build ? (build.pitch ?? 1) : 1;
 
     // A modelled part's faces in the colours its model paints them.
     const painted = (part: Painted<Loft>) =>
@@ -307,6 +359,10 @@ export class Quadruped extends Animal {
       this.head = new Head(m, headOf(model), colors);
       this.tail = new Tail(m, scaleLoft(model.tail, model.unit), colors.coat, colors.tail, painted(model.tail));
       this.tail.position.fromArray(model.tail.at).multiplyScalar(model.unit);
+      // What the model adds to its body and tail, in their units.
+      const dress: Dress = { m, colors, unit: model.unit, point: (p) => new THREE.Vector3(...p).multiplyScalar(model.unit) };
+      for (const extra of model.body.extras ?? []) this.body.add(extra(dress));
+      for (const extra of model.tail.extras ?? []) this.tail.add(extra(dress));
     } else {
       this.body = new Body(m, { torso: build.torso, neck: { ...build.neck, base: neckBase } }, colors.coat, colors.belly);
       this.head = new Head(m, build.head, colors);
@@ -325,7 +381,7 @@ export class Quadruped extends Animal {
       let leg: Leg;
       if ('model' in build) {
         const model = isFront ? build.model.front : build.model.hind;
-        leg = new Leg(m, scaleLoft(model, build.model.unit), legShade, painted(model));
+        leg = new Leg(m, legLoft(model, build.model.unit), legShade, painted(model), side * (model.splay ?? 0));
       } else {
         leg = new Leg(m, isFront ? build.front : build.hind, legShade);
       }
@@ -337,6 +393,7 @@ export class Quadruped extends Animal {
     this.rightHindLeg = make(false, 1);
     this.rightFrontLeg = make(true, 1);
     this.legs = [this.leftHindLeg, this.leftFrontLeg, this.rightHindLeg, this.rightFrontLeg];
+    this.rolls = LEGS.map(([side, isFront]) => ('model' in build ? side * ((isFront ? build.model.front : build.model.hind).splay ?? 0) : 0));
 
     this.torso.position.y = torsoY;
     this.hips.position.set(0, hind.y, hind.z);
@@ -370,7 +427,7 @@ export class Quadruped extends Animal {
     // to crouch, tipping in a jump; a model sinks first to where the others
     // stand.
     const bob = legLength * (BOB.walk * walking * -Math.cos(2 * turn) + BOB.run * galloping * Math.cos(turn));
-    const rock = ROCK * galloping * Math.sin(turn) + JUMP_PITCH * mo.air;
+    const rock = ROCK * this.pitch * galloping * Math.sin(turn) + JUMP_PITCH * this.pitch * mo.air;
     this.rig.position.y = mo.height;
     const sink = legLength * (LOWER.walk * walking + LOWER.run * galloping + CROUCH * mo.crouch) + this.slack * mo.moving;
     this.torso.position.y = this.torsoY + bob - sink;
@@ -397,7 +454,7 @@ export class Quadruped extends Animal {
         y = Math.max(y, this.legs[k].drop(tip) - this.legs[k].drop(0));
       }
       y += TUCK * joint.length * mo.tuck;
-      this.targets[k].set(side * joint.x, joint.ankle + y, joint.z + joint.foot + z);
+      this.targets[k].set(side * (joint.x + joint.out), joint.ankle + y, joint.z + joint.foot + z);
       this.tips[k] = tip;
     });
 
@@ -438,7 +495,22 @@ export class Quadruped extends Animal {
       let tip = this.tips[k];
       if (!up) {
         this.target.applyMatrix4(this.inverse).sub(leg.position);
-        if (this.swinging[k]) this.fold(leg, this.target);
+        if (this.rolls[k]) leg.keepRoll(this.rolls[k] - this.torso.rotation.z); // a splayed foot's roll, on the ground as the body sways
+        if (this.swinging[k]) {
+          // A foot lowered so its leg won't fold shut goes no lower than the
+          // ground: it peels less, so its toes stay above it, and if even a
+          // flat foot would go under, it is lowered only to the ground and
+          // the leg folds further. The small animals' long feet (the
+          // squirrel's, the raccoon's) went up to 10 mm into the ground; the
+          // others' never come so low, so nothing changes for them.
+          const lowered = this.fold(leg, this.target);
+          if (lowered > 0) {
+            const room = this.targets[k].y - lowered - joint.ankle + leg.drop(0); // how far below the ankle the foot may reach, lowered
+            tip = leg.tipWithin(room, tip);
+            const under = leg.drop(tip) - room;
+            if (under > 0) this.target.addScaledVector(this.down, -under);
+          }
+        }
         leg.reach(this.target, tip - lean);
         return;
       }
@@ -457,7 +529,7 @@ export class Quadruped extends Animal {
 
     // The head keeps looking ahead, nods walking, stretches out galloping and
     // lifts to carry what it holds.
-    this.head.rotation.x = -STEADY * rock + NOD * walking * Math.sin(2 * turn) + RUN_HEAD * galloping - HOLD_LIFT * mo.holding;
+    this.head.rotation.x = -STEADY * rock + NOD * this.pitch * walking * Math.sin(2 * turn) + RUN_HEAD * this.pitch * galloping - HOLD_LIFT * mo.holding;
     // Up on its hind legs, it tips its head back down to look ahead, and its
     // speech bubble follows the head up.
     if (up) {
@@ -478,11 +550,14 @@ export class Quadruped extends Animal {
   // lion's models have hind legs long above the hock and short below it, and
   // a galloping foot lifted as high as the others' folded them flat, the hock
   // 2 to 3 mm into the ground. The other animals' legs never come that near.
-  private fold(leg: Leg, target: THREE.Vector3): void {
+  // Returns how far it lowered it, in m.
+  private fold(leg: Leg, target: THREE.Vector3): number {
     const nearest = FOLD * leg.shortest;
     const near = target.lengthSq();
-    if (near >= nearest * nearest) return;
+    if (near >= nearest * nearest) return 0;
     const along = target.dot(this.down.set(0, -1, 0).transformDirection(this.inverse));
-    target.addScaledVector(this.down, -along + Math.sqrt(along * along + nearest * nearest - near));
+    const lower = -along + Math.sqrt(along * along + nearest * nearest - near);
+    target.addScaledVector(this.down, lower);
+    return lower;
   }
 }

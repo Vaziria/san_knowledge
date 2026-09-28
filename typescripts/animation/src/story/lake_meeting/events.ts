@@ -5,6 +5,11 @@
 // panel's page, the stream's hidden browser, one reloaded after a code
 // change) shows the same animals. Shared by both sides, so it imports
 // nothing.
+//
+// The forest lake meeting (forest_lake_meeting/events.ts) says the same
+// things about its own animals: the types take the kinds and commands a
+// meeting has, the lake's by default, and its rules (MeetingRules) tell the
+// dev server what a message can ask for.
 
 // The kinds a viewer's animal can be; the Bear is the host's.
 export const KINDS = ['cat', 'wolf', 'deer', 'bird', 'fox', 'snake', 'penguin', 'frog', 'lion'] as const;
@@ -17,40 +22,58 @@ export type Command = (typeof COMMANDS)[number];
 
 export const HOST = 'host'; // the Bear, the channel owner's
 
-export interface Member {
+// What a meeting's animals can be and do, for the dev server to read chat
+// by (meeting.ts): the kinds a viewer's animal can be (!cat), the commands
+// (!jump), the host's kind, and which kinds can do which command.
+export interface MeetingRules<K extends string = Kind, C extends string = Command> {
+  kinds: readonly K[];
+  commands: readonly C[];
+  host: string; // the host's kind
+  can(command: C, kind: string): boolean;
+}
+
+// The lake meeting's: only a penguin flaps.
+export const RULES: MeetingRules = {
+  kinds: KINDS,
+  commands: COMMANDS,
+  host: 'bear',
+  can: (command, kind) => command !== 'flap' || kind === 'penguin',
+};
+
+export interface Member<K extends string = Kind> {
   id: string; // the viewer's channel, or bot-<n>
   name: string; // as the chat shows it; empty for a bot
-  kind: Kind;
+  kind: K;
   bot: boolean;
 }
 
-export type MeetingEvent =
+export type MeetingEvent<K extends string = Kind, C extends string = Command> =
   // An animal walks in: a viewer's first message, or a bot filling in.
-  | { type: 'join'; member: Member }
+  | { type: 'join'; member: Member<K> }
   // It walks away (quiet for 10 minutes, or a bot making room), is destroyed
   // (the oldest, when the meeting is full), or is removed by a moderator.
   | { type: 'leave'; id: string; how: 'walk' | 'destroy' | 'remove' }
   // A viewer picked another kind (!fox).
-  | { type: 'switch'; id: string; kind: Kind }
+  | { type: 'switch'; id: string; kind: K }
   // A comment, for its animal to say. `message` is its chat id, for deleting.
   | { type: 'say'; id: string; name: string; text: string; message: string }
-  | { type: 'command'; id: string; command: Command }
+  | { type: 'command'; id: string; command: C }
   // A Super Chat, a Super Sticker, a new member or gifted memberships: the
   // fish leaps `height` m out of the water. `what` says what it was for.
   | { type: 'support'; id: string; name: string; what: string; height: number }
   // A message was deleted: out of its bubble, or its turn.
   | { type: 'delete'; message: string };
 
-export interface Numbered {
+export interface Numbered<K extends string = Kind, C extends string = Command> {
   seq: number;
-  event: MeetingEvent;
+  event: MeetingEvent<K, C>;
 }
 
 // The meeting now: every animal but the host, in the order they joined, and
 // the number of the last event, so a page applies only later ones.
-export interface MeetingState {
+export interface MeetingState<K extends string = Kind> {
   seq: number;
-  members: Member[];
+  members: Member<K>[];
 }
 
 // Where reading the chat stands, for the Story tab.

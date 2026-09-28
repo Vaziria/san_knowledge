@@ -21,6 +21,13 @@ import { onDeck, type Deck } from '../../environtments/Lake/DockSite';
 //
 // Coordinates are the meeting's (its origin at the landing); `middle` is the
 // lake's middle in them.
+//
+// The forest lake meeting (forest_lake_meeting/) uses it too, with water at
+// other levels than the lake's (its rivers and stream: `wet`), thousands of
+// trunks and rocks (sorted into BUCKET m squares, each listing those within
+// NEAR m of it: no farther one changes what an animal may do), and an island
+// no animal can reach (`home`: only land an animal can walk to from the
+// landing counts).
 
 export interface Circle {
   x: number;
@@ -34,6 +41,13 @@ export interface LandOptions {
   reach: number; // m from the middle to the land's end
   obstacles: Circle[];
   decks?: Deck[]; // docks' decks, in the same coordinates; `ground` gives their height
+  // Whether a point whose ground is `height` is water, or its wet edge. Left
+  // out, ground lower than WET over the still water (y 0) is.
+  wet?(x: number, z: number, height: number): boolean;
+  // Where every place an animal may stand is walked to from (the landing):
+  // land it can't walk to from there (an island) is kept off. Left out, all
+  // of it counts.
+  home?: THREE.Vector2;
 }
 
 const OUT = 2; // m from a deck's landward end a spot on it is at least: out over the water
@@ -43,6 +57,9 @@ const WET = 0.12; // m above the still water: the bank lower than this counts as
 const STEEP = 0.35; // m of rise a meter: steeper ground is kept off
 const END = 7; // m in from the land's end: the border's tall grass and mist are there
 export const GAP = 0.25; // m kept between an animal and anything
+const BUCKET = 4; // m, the squares the obstacles are sorted into
+const NEAR = 8; // m: an obstacle's edge farther than this from a place leaves its clearance past anything an animal needs
+const SMALLEST = 0.04; // m round the smallest animal (a frog), for the land that can be walked to from `home`
 
 export class Land {
   private readonly size: number; // cells across
@@ -52,8 +69,9 @@ export class Land {
   private readonly reach: number;
   private readonly decks: Deck[];
   private readonly deckCells: Float32Array; // a cell whose middle is on a deck: its exact clearance there; NaN elsewhere
+  private readonly reached: Uint8Array | null; // with `home`: 1 for a cell that can be walked to from it
 
-  constructor({ ground, middle, reach, obstacles, decks = [] }: LandOptions) {
+  constructor({ ground, middle, reach, obstacles, decks = [], wet = (_x, _z, height) => height < WET, home }: LandOptions) {
     this.middle = middle.clone();
     this.reach = reach - END;
     this.decks = decks;
@@ -70,7 +88,7 @@ export class Land {
         const out = Math.hypot(this.x(i) - middle.x, this.z(j) - middle.y) > this.reach;
         const edge = i === 0 || j === 0 || i === size - 1 || j === size - 1;
         const steep = !edge && Math.hypot(heights[k + 1] - heights[k - 1], heights[k + size] - heights[k - size]) / (2 * CELL) > STEEP;
-        if (out || edge || heights[k] < WET || steep) far[k] = 0;
+        if (out || edge || steep || wet(this.x(i), this.z(j), heights[k])) far[k] = 0;
       }
     }
     // How far each cell is from those (a two-pass chamfer distance: straight
@@ -93,11 +111,14 @@ export class Land {
     // diagonal, so that it holds for every point of the cell, not only its
     // middle.
     const clearance = (this.clearance = new Float32Array(size * size));
+    const buckets = sortObstacles(obstacles, this.corner, size * CELL);
+    const across = Math.ceil((size * CELL) / BUCKET);
     for (let j = 0; j < size; j++) {
       for (let i = 0; i < size; i++) {
         const k = j * size + i;
         let most = Math.max(0, (far[k] - 0.5) * CELL);
-        for (const o of obstacles) most = Math.min(most, Math.hypot(this.x(i) - o.x, this.z(j) - o.z) - o.radius);
+        const near = buckets[Math.floor((j * CELL) / BUCKET) * across + Math.floor((i * CELL) / BUCKET)];
+        for (const o of near) most = Math.min(most, Math.hypot(this.x(i) - o.x, this.z(j) - o.z) - o.radius);
         clearance[k] = Math.max(0, most - (CELL * Math.SQRT2) / 2);
       }
     }
@@ -110,6 +131,46 @@ export class Land {
         }
       }
     }
+    this.reached = home ? this.walkedTo(home) : null;
+  }
+
+  // The cells the smallest animal can walk to from `home`, over land and
+  // decks; every other cell is kept off.
+  private walkedTo(home: THREE.Vector2): Uint8Array {
+    const size = this.size;
+    const reached = new Uint8Array(size * size);
+    const room = (k: number) => (Number.isNaN(this.deckCells[k]) ? this.clearance[k] : this.deckCells[k]);
+    const passable = (k: number) => room(k) >= SMALLEST + GAP;
+    const start = this.nearestPassable(this.cell(home), passable);
+    if (start >= 0) {
+      const queue = [start];
+      reached[start] = 1;
+      while (queue.length > 0) {
+        const k = queue.pop()!;
+        const i = k % size;
+        const j = Math.floor(k / size);
+        for (let dj = -1; dj <= 1; dj++) {
+          for (let di = -1; di <= 1; di++) {
+            const ni = i + di;
+            const nj = j + dj;
+            if ((di === 0 && dj === 0) || ni < 0 || nj < 0 || ni >= size || nj >= size) continue;
+            const n = nj * size + ni;
+            if (reached[n] || !passable(n)) continue;
+            // As a way goes (path()): no corner cut past a cell that can't be passed.
+            const onDecks = !Number.isNaN(this.deckCells[k]) && !Number.isNaN(this.deckCells[n]);
+            if (di !== 0 && dj !== 0 && !onDecks && (!passable(j * size + ni) || !passable(nj * size + i))) continue;
+            reached[n] = 1;
+            queue.push(n);
+          }
+        }
+      }
+    }
+    for (let k = 0; k < size * size; k++) {
+      if (reached[k]) continue;
+      this.clearance[k] = 0;
+      if (!Number.isNaN(this.deckCells[k])) this.deckCells[k] = 0;
+    }
+    return reached;
   }
 
   // How far a point on a deck is from its sides and far end, or -1 off every
@@ -146,11 +207,13 @@ export class Land {
   // How far a point is from the nearest place no animal may be (the nearest
   // cell's; on a deck, its own).
   clearanceAt(x: number, z: number): number {
-    const room = this.decks.length ? this.deckRoom(x, z) : -1;
-    if (room >= 0) return room;
     const i = Math.floor((x - this.corner.x) / CELL);
     const j = Math.floor((z - this.corner.y) / CELL);
-    if (i < 0 || j < 0 || i >= this.size || j >= this.size) return 0;
+    const inside = i >= 0 && j >= 0 && i < this.size && j < this.size;
+    if (inside && this.reached && !this.reached[j * this.size + i]) return 0;
+    const room = this.decks.length ? this.deckRoom(x, z) : -1;
+    if (room >= 0) return room;
+    if (!inside) return 0;
     return this.clearance[j * this.size + i];
   }
 
@@ -347,6 +410,30 @@ export class Land {
     }
     return best;
   }
+}
+
+// The obstacles sorted into BUCKET m squares over a grid `extent` m across
+// from `corner`, row by row: each square lists those whose edge comes within
+// NEAR m of it.
+function sortObstacles(obstacles: readonly Circle[], corner: THREE.Vector2, extent: number): Circle[][] {
+  const across = Math.ceil(extent / BUCKET);
+  const buckets: Circle[][] = Array.from({ length: across * across }, () => []);
+  for (const o of obstacles) {
+    const reach = NEAR + o.radius;
+    const i0 = Math.max(0, Math.floor((o.x - reach - corner.x) / BUCKET));
+    const i1 = Math.min(across - 1, Math.floor((o.x + reach - corner.x) / BUCKET));
+    const j0 = Math.max(0, Math.floor((o.z - reach - corner.y) / BUCKET));
+    const j1 = Math.min(across - 1, Math.floor((o.z + reach - corner.y) / BUCKET));
+    for (let j = j0; j <= j1; j++) {
+      for (let i = i0; i <= i1; i++) {
+        // The square's nearest point to the obstacle's middle.
+        const x = THREE.MathUtils.clamp(o.x, corner.x + i * BUCKET, corner.x + (i + 1) * BUCKET);
+        const z = THREE.MathUtils.clamp(o.z, corner.y + j * BUCKET, corner.y + (j + 1) * BUCKET);
+        if (Math.hypot(x - o.x, z - o.z) <= reach) buckets[j * across + i].push(o);
+      }
+    }
+  }
+  return buckets;
 }
 
 // A binary min-heap of cells by their estimated cost.

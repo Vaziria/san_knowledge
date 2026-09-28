@@ -50,7 +50,6 @@ Updated 2026-09-26 by the fish made three kinds from the user's low poly models 
 - **Fish, as its models have them:** the salmon's pink stripe never shows (with eight corners no face lies in its band; one threshold to show it), the body wave runs toward the head (a real fish's runs toward the tail; one sign), and part of each pectoral stroke takes the fin inside the body. Felt has no red, so the piranha's reds are rust. The piranha's teeth read only close up and the clownfish's thin dark edges only in a large window; the filter takes them at the preview's distance. The lake's splash drops are sized for the salmon, so the clownfish's leap throws drops as big as itself (`Splash.ts`, not changed). Bending the body costs about 40 µs a frame (the smooth fish 1.8): fine for one fish, not for a school.
 - **Fish:** a leap's length follows from its height, and the fish knows nothing of the shore. At the meeting a supporter's leap, started anywhere on its loop, can land it on the lake bed by the shore (task 13; [lake_meeting.md](lake_meeting.md)).
 - **The boat and the rod do nothing of their own:** the rudder turns on the transom but nothing turns it, and the rod's preview holds it still 1 m up, as if by an unseen hand.
-- **Not committed:** the firefly, the mud pit and the log are new files only in the working tree, and so is the fog's `puffMaterial` change.
 - The header of `objects/parts.ts` still says it is for the cliff, the cloud and the fog; the log uses `fit()` and the terrains its `wobble()` too.
 
 ## Open questions

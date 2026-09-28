@@ -1,14 +1,23 @@
-# 9 new animal draft
+# Pig
 
-# Shape reference.
+Draft for the user to correct: Claude wrote this title and the behaviours on 2026-09-26, building the pig from the shape reference below, which is the user's: their "9 new animal draft" (the low-poly animal park), split into one page per animal, with only the pig's part of it, its own title and heading, and showing the pig first. It has the other animals' behaviours, numbered as theirs are.
 
+## Animation Behavior.
+2. `Jump()`
+3. `Hold(Figure figure)`
+4. `Walk()`
+5. `Run()`
+6. `Speech(text string)`, its show Speech Bubble and show text, when text to long, its split to multiple Bubble that show and hide sequentially
+
+
+# Shape Reference
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Low-poly animal park — Three.js BufferGeometry</title>
+<title>Low-poly pig — Three.js BufferGeometry</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -66,7 +75,7 @@
 <body>
 <div id="stage"></div>
 <header>
-  <h1>Low-poly animal park</h1>
+  <h1>Low-poly pig</h1>
   <p id="stats">Drag to orbit, scroll or pinch to zoom</p>
   <div id="picker" role="group" aria-label="Choose an animal"></div>
 </header>
@@ -367,384 +376,6 @@ function makeAnimal(spec) {
    ================================================================= */
 const SPECS = {};
 
-/* ---------------- CROCODILE ---------------- */
-{
-  const C = { green: [0.33, 0.42, 0.22], dark: [0.19, 0.26, 0.13], belly: [0.80, 0.76, 0.52],
-              eye: [0.92, 0.80, 0.20], tooth: [0.97, 0.96, 0.88] };
-  const tailSections = [[0, 0, 0.50, 0.40], [0, -1.2, 0.42, 0.35], [-0.05, -2.4, 0.32, 0.30],
-                        [-0.10, -3.6, 0.22, 0.22], [-0.12, -4.6, 0.13, 0.14]];
-  SPECS.crocodile = {
-    name: 'crocodile', label: 'Crocodile',
-    head: {
-      w: 0.75, h: 0.5, snout: 2.3, snoutW: 2.6, snoutDrop: 0.05, ear: { show: false },
-      colors: { top: C.green, snoutTop: C.dark, muzzle: C.green, chin: C.belly, throat: C.belly,
-                cheekLow: C.belly, nose: C.dark, eye: C.green },
-      pos: [0, 0.40, 3.20], scale: 0.7,
-      extras(head) {
-        // teeth sticking down along both sides of the long snout
-        const tris = [];
-        for (let z = 1.6; z < 4.0; z += 0.26)
-          for (const s of [1, -1]) {
-            const x = s * (0.60 - (z - 1.35) * 0.045);
-            tris.push({ a: [x, -0.06, z - 0.06], b: [x, -0.06, z + 0.06], c: [x * 0.98, -0.24, z], color: C.tooth });
-          }
-        head.add(mesh(trisToGeometry(tris), shellMat));
-        // eyes on top of the head, on little bumps
-        const bump = loft([[0, -0.15, 0.14, 0.10], [0, 0.15, 0.14, 0.10]],
-                          { startCap: [0, -0.28], endCap: [0, 0.28], colorFor: () => C.green });
-        addPair(head, bump, [0.34, 0.78, 0.45], [0, 0, 0], solidMat);
-        addPair(head, eyeDisc(C.eye, 0.1), [0.45, 0.84, 0.47], [0, -0.3, 0.6]);
-      },
-    },
-    body: {
-      sections: [[0.45, -3.0, 0.55, 0.40], [0.50, -2.2, 1.05, 0.60], [0.50, -0.8, 1.20, 0.65],
-                 [0.50, 0.6, 1.15, 0.62], [0.50, 1.8, 0.90, 0.52], [0.48, 2.5, 0.70, 0.45]],
-      opts: { startCap: 'flat', endCap: 'flat',
-              colorFor: (i, c, r) => c.y < r.y - 0.3 ? C.belly : (c.y > r.y + 0.3 && i % 2 ? C.dark : C.green) },
-    },
-    frontLeg: {
-      sections: [[0, 0, 0.28, 0.30], [-0.45, 0.05, 0.22, 0.24], [-0.80, 0.12, 0.18, 0.20],
-                 [-0.95, 0.30, 0.26, 0.10], [-0.98, 0.50, 0.30, 0.06]],
-      opts: { startCap: 'flat', endCap: [-1.0, 0.65], colorFor: i => (i >= 3 ? C.dark : C.green) },
-      pos: [0.95, 0.45, 1.6], splay: 0.5,
-    },
-    backLeg: {
-      sections: [[0, 0, 0.30, 0.32], [-0.45, 0.05, 0.24, 0.26], [-0.80, 0.12, 0.19, 0.21],
-                 [-0.95, 0.30, 0.28, 0.10], [-0.98, 0.55, 0.32, 0.06]],
-      opts: { startCap: 'flat', endCap: [-1.0, 0.72], colorFor: i => (i >= 3 ? C.dark : C.green) },
-      pos: [1.0, 0.45, -1.9], splay: 0.5, scale: 1.1,
-    },
-    tail: {
-      sections: tailSections,
-      opts: { startCap: 'flat', endCap: [-0.14, -5.4],
-              colorFor: (i, c, r) => c.y < r.y - 0.2 ? C.belly : (Math.floor(-c.z * 1.6) % 2 ? C.dark : C.green) },
-      pos: [0, 0.45, -2.95],
-      extras: tail => tail.add(mesh(ridge(tailSections, 16, 0.18, C.dark), shellMat)),
-    },
-    extras(g) {   // two rows of scutes along the back
-      g.add(mesh(ridge([[0.5, -2.9, 0.3, 0.6], [0.5, 1.6, 0.3, 0.5]], 14, 0.12, C.dark, [-0.25, 0.25]), shellMat));
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.3, tailSpeed: 1.2, headAmount: 0.06 },
-  };
-}
-
-/* ---------------- OX ---------------- */
-{
-  const C = { brown: [0.42, 0.26, 0.15], dark: [0.20, 0.13, 0.08], muzzle: [0.80, 0.70, 0.60],
-              nose: [0.55, 0.42, 0.42], horn: [0.90, 0.85, 0.72], hornTip: [0.30, 0.27, 0.22] };
-  const hoof = n => (i => (i >= n ? C.dark : C.brown));
-  SPECS.ox = {
-    name: 'ox', label: 'Ox',
-    head: {
-      w: 1.1, h: 1.0, snout: 0.75, snoutW: 1.6, snoutDrop: -0.3,
-      ear: { scale: 0.9, tip: [1.75, 1.0, -0.4] },
-      colors: { top: C.brown, muzzle: C.muzzle, snoutTop: C.brown, nose: C.nose, chin: C.muzzle,
-                throat: C.brown, eye: C.dark, earIn: [0.72, 0.56, 0.46] },
-      pos: [0, 0.30, 4.10], scale: 0.95,
-      extras(head) {
-        // horns: out to the side, then curving up (drawn along z, turned to point along x)
-        const L = 1.9;   // horn length  (1 = the old small horns)
-        const T = 1.6;   // horn thickness
-        const horn = loft([
-          [0.00 * L, 0.00 * L, 0.16 * T, 0.16 * T],
-          [0.03 * L, 0.35 * L, 0.14 * T, 0.14 * T],
-          [0.10 * L, 0.70 * L, 0.12 * T, 0.12 * T],
-          [0.28 * L, 1.00 * L, 0.10 * T, 0.10 * T],
-          [0.55 * L, 1.22 * L, 0.07 * T, 0.07 * T],
-        ], { startCap: 'flat', endCap: [0.85 * L, 1.32 * L], colorFor: i => (i >= 3 ? C.hornTip : C.horn) });
-        addPair(head, horn, [0.50, 1.45, -0.20], [0, Math.PI / 2, 0]);
-      },
-    },
-    body: {
-      sections: [[0.40, -2.8, 0.60, 0.60], [0.50, -2.3, 1.25, 1.25], [0.55, -1.0, 1.30, 1.30],
-                 [0.50, 0.4, 1.40, 1.45], [0.80, 1.6, 1.35, 1.50], [0.70, 2.5, 1.00, 1.10], [0.50, 3.1, 0.80, 0.85]],
-      opts: { startCap: [0.45, -3.1], endCap: 'flat', colorFor: () => C.brown },
-    },
-    frontLeg: {
-      sections: [[0, 0, 0.45, 0.60], [-0.9, -0.05, 0.34, 0.45], [-1.7, 0.05, 0.22, 0.26], [-2.4, 0.05, 0.20, 0.22],
-                 [-2.65, 0.10, 0.22, 0.23], [-2.85, 0.18, 0.25, 0.25], [-3.0, 0.22, 0.26, 0.20]],
-      opts: { startCap: 'flat', endCap: 'flat', colorFor: hoof(5) }, pos: [0.75, 0.2, 1.6],
-    },
-    backLeg: {
-      sections: [[0, 0, 0.55, 0.85], [-0.7, 0.10, 0.45, 0.65], [-1.3, 0.20, 0.28, 0.32], [-1.8, -0.10, 0.22, 0.26],
-                 [-2.2, -0.30, 0.20, 0.24], [-2.65, -0.20, 0.19, 0.22], [-2.85, -0.10, 0.24, 0.25], [-3.0, -0.05, 0.26, 0.20]],
-      opts: { startCap: 'flat', endCap: 'flat', colorFor: hoof(6) }, pos: [0.8, 0.2, -2.1],
-    },
-    tail: {
-      sections: [[0, 0, 0.12, 0.12], [-0.4, -0.30, 0.08, 0.08], [-1.2, -0.40, 0.07, 0.07], [-2.0, -0.40, 0.06, 0.06],
-                 [-2.3, -0.38, 0.14, 0.14], [-2.6, -0.35, 0.15, 0.15]],
-      opts: { startCap: 'flat', endCap: [-2.85, -0.33], colorFor: i => (i >= 3 ? C.dark : C.brown) },
-      pos: [0, 1.3, -2.9],
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.25, tailSpeed: 2, headAmount: 0.12 },
-  };
-}
-
-/* ---------------- ANTELOPE (gazelle) ---------------- */
-{
-  const C = { tan: [0.80, 0.56, 0.30], white: [0.95, 0.93, 0.88], dark: [0.24, 0.16, 0.10],
-              horn: [0.18, 0.16, 0.14], ring: [0.34, 0.31, 0.27], black: [0.08, 0.07, 0.07] };
-  SPECS.antelope = {
-    name: 'antelope', label: 'Antelope',
-    head: {
-      w: 0.72, h: 0.8, snout: 1.1, snoutW: 0.8, snoutDrop: -0.1,
-      ear: { scale: 1.1, tip: [1.25, 2.0, -0.55] },
-      colors: { top: C.tan, brow: C.white, mask: C.dark, cheekLow: C.white, muzzle: C.tan, chin: C.white,
-                throat: C.white, nose: C.black, eye: C.black, earIn: C.white },
-      pos: [0, 2.53, 3.50], scale: 0.72,
-      extras(head) {
-        // long ringed horns sweeping up and back
-        const secs = [];
-        for (let j = 0; j <= 8; j++) {
-          const u = j / 8;
-          secs.push([u * 2.4, -0.7 * Math.sin(u * 2.2), 0.12 - u * 0.08, 0.12 - u * 0.08]);
-        }
-        const horn = loft(secs, { startCap: 'flat', endCap: [2.65, -0.45], colorFor: i => (i % 2 ? C.ring : C.horn) });
-        addPair(head, horn, [0.28, 1.45, 0.15], [0, 0, -0.18]);
-      },
-    },
-    body: {
-      sections: [[0.35, -2.2, 0.40, 0.40], [0.40, -1.75, 0.72, 0.78], [0.45, -0.65, 0.66, 0.66], [0.35, 0.45, 0.72, 0.85],
-                 [0.50, 1.45, 0.62, 0.80], [1.20, 2.10, 0.42, 0.46], [2.00, 2.50, 0.33, 0.37], [2.60, 2.75, 0.30, 0.34]],
-      opts: {
-        startCap: [0.40, -2.45], endCap: 'flat',
-        colorFor: (i, c, r) => {
-          const d = c.y - r.y;
-          if (i >= 1 && i <= 3 && d < -0.45) return C.white;                 // belly
-          if (i >= 1 && i <= 3 && d < -0.22) return C.dark;                  // dark side stripe
-          if (i >= 5 && c.z > r.z + 0.15) return C.white;                    // throat
-          return C.tan;
-        },
-      },
-    },
-    frontLeg: {
-      sections: [[0, 0, 0.28, 0.44], [-0.8, -0.05, 0.20, 0.30], [-1.55, 0.05, 0.12, 0.15], [-1.9, 0.05, 0.10, 0.12],
-                 [-3.1, 0.10, 0.075, 0.09], [-3.35, 0.12, 0.10, 0.10], [-3.6, 0.18, 0.11, 0.12], [-3.72, 0.24, 0.12, 0.08]],
-      opts: { startCap: 'flat', endCap: [-3.75, 0.30], colorFor: i => (i >= 6 ? C.black : C.tan) }, pos: [0.38, 0.2, 1.15],
-    },
-    backLeg: {
-      sections: [[0, 0, 0.36, 0.62], [-0.6, 0.13, 0.30, 0.48], [-1.1, 0.18, 0.17, 0.22], [-1.6, -0.15, 0.13, 0.17],
-                 [-2.05, -0.42, 0.10, 0.14], [-3.0, -0.30, 0.075, 0.09], [-3.3, -0.20, 0.10, 0.10], [-3.55, -0.12, 0.11, 0.12],
-                 [-3.72, -0.06, 0.12, 0.08]],
-      opts: { startCap: 'flat', endCap: [-3.75, 0], colorFor: i => (i >= 7 ? C.black : C.tan) }, pos: [0.40, 0.2, -1.65],
-    },
-    tail: {
-      sections: [[0, 0, 0.10, 0.08], [-0.15, -0.30, 0.09, 0.07], [-0.35, -0.50, 0.06, 0.05]],
-      opts: { startCap: 'flat', endCap: [-0.5, -0.6], colorFor: () => C.black }, pos: [0, 0.8, -2.25],
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.5, tailSpeed: 6, headAmount: 0.2 },
-  };
-}
-
-/* ---------------- TIGER ---------------- */
-{
-  const C = { orange: [0.93, 0.52, 0.13], black: [0.10, 0.08, 0.07], white: [0.96, 0.94, 0.88],
-              nose: [0.82, 0.52, 0.47], eye: [0.86, 0.70, 0.20] };
-  const striped = (v, base) => (stripe(v, 0.72) ? C.black : base);   // narrow black bands
-  SPECS.tiger = {
-    name: 'tiger', label: 'Tiger',
-    head: {
-      w: 1.05, h: 1.0, snout: 0.55, snoutW: 1.45, snoutDrop: -0.15,
-      ear: { scale: 0.75, tip: [0.95, 1.95, -0.05] },
-      colors: { top: C.orange, brow: C.white, muzzle: C.white, snoutTop: C.orange, chin: C.white,
-                cheekLow: C.white, nose: C.nose, eye: C.eye, earIn: C.white, earBack: C.black },
-      // stripes on the forehead and the sides of the head
-      faceColor: (region, c) => (region === 'top' || region === 'side') && stripe(c[0] * 7 + c[2] * 2, 0.7) ? C.black : null,
-      pos: [0, 1.25, 3.64], scale: 0.85,
-    },
-    body: {
-      sections: [[0.40, -2.6, 0.55, 0.55], [0.50, -2.05, 0.92, 0.98], [0.55, -0.8, 0.85, 0.88], [0.45, 0.5, 0.95, 1.05],
-                 [0.60, 1.6, 0.92, 1.08], [1.10, 2.35, 0.70, 0.78], [1.50, 2.75, 0.60, 0.66]],
-      opts: {
-        startCap: [0.40, -2.85], endCap: 'flat',
-        colorFor: (i, c, r) => (c.y < r.y - 0.55 ? C.white : striped(c.z * 3.2 + c.y * 0.8, C.orange)),
-      },
-    },
-    frontLeg: {
-      sections: [[0, 0, 0.40, 0.58], [-0.9, -0.05, 0.30, 0.43], [-1.7, 0.05, 0.22, 0.26], [-2.5, 0.05, 0.20, 0.23],
-                 [-2.75, 0.12, 0.24, 0.24], [-2.9, 0.30, 0.31, 0.19], [-2.95, 0.55, 0.31, 0.14]],
-      opts: { startCap: 'flat', endCap: [-2.97, 0.72], colorFor: (i, c) => (i < 4 ? striped(c.y * 5, C.orange) : C.orange) },
-      pos: [0.56, 0.2, 1.4],
-    },
-    backLeg: {
-      sections: [[0, 0, 0.50, 0.82], [-0.6, 0.15, 0.42, 0.68], [-1.1, 0.30, 0.27, 0.32], [-1.6, 0, 0.21, 0.25],
-                 [-2.05, -0.32, 0.18, 0.22], [-2.55, -0.20, 0.17, 0.20], [-2.78, -0.05, 0.23, 0.23],
-                 [-2.9, 0.15, 0.31, 0.19], [-2.95, 0.42, 0.31, 0.14]],
-      opts: { startCap: 'flat', endCap: [-2.97, 0.62], colorFor: (i, c) => (i < 6 ? striped(c.y * 5, C.orange) : C.orange) },
-      pos: [0.58, 0.2, -2.0],
-    },
-    tail: {
-      sections: [[0, 0, 0.16, 0.16], [0.05, -0.5, 0.14, 0.14], [-0.35, -1.0, 0.13, 0.13], [-0.95, -1.35, 0.12, 0.12],
-                 [-1.6, -1.5, 0.11, 0.11], [-2.1, -1.35, 0.10, 0.10], [-2.45, -1.05, 0.09, 0.09]],
-      opts: { startCap: 'flat', endCap: [-2.65, -0.85], colorFor: i => (i >= 5 || i % 2 ? C.black : C.orange) },
-      pos: [0, 0.9, -2.7],
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.35, tailSpeed: 1.6, headAmount: 0.2 },
-  };
-}
-
-/* ---------------- COYOTE ---------------- */
-{
-  const C = { fur: [0.70, 0.58, 0.42], grey: [0.55, 0.50, 0.45], cream: [0.93, 0.88, 0.78],
-              black: [0.10, 0.09, 0.08], eye: [0.85, 0.65, 0.20] };
-  SPECS.coyote = {
-    name: 'coyote', label: 'Coyote',
-    head: {
-      w: 0.85, h: 0.9, snout: 1.1, snoutW: 0.85,
-      ear: { scale: 1.25, tip: [1.15, 2.85, -0.25] },
-      colors: { top: C.grey, side: C.fur, snoutTop: C.fur, muzzle: C.cream, cheekLow: C.cream, chin: C.cream,
-                nose: C.black, eye: C.eye, earIn: C.cream, earBack: C.fur },
-      pos: [0, 1.26, 3.66], scale: 0.72,
-    },
-    body: {
-      sections: [[0.25, -2.5, 0.45, 0.45], [0.30, -1.95, 0.82, 0.88], [0.45, -0.8, 0.70, 0.72], [0.25, 0.55, 0.85, 1.0],
-                 [0.35, 1.7, 0.80, 0.98], [0.85, 2.5, 0.55, 0.60], [1.45, 2.9, 0.45, 0.50]],
-      opts: { startCap: [0.25, -2.75], endCap: 'flat',
-              colorFor: (i, c, r) => (c.y < r.y - 0.5 ? C.cream : c.y > r.y + 0.5 ? C.grey : C.fur) },
-    },
-    frontLeg: {
-      sections: [[0, 0, 0.32, 0.48], [-0.9, -0.05, 0.24, 0.34], [-1.6, 0.05, 0.16, 0.19], [-2.5, 0.05, 0.14, 0.16],
-                 [-2.78, 0.12, 0.18, 0.19], [-2.96, 0.30, 0.26, 0.18], [-3.05, 0.55, 0.27, 0.13]],
-      opts: { startCap: 'flat', endCap: [-3.08, 0.75], colorFor: () => C.fur }, pos: [0.5, 0.2, 1.45],
-    },
-    backLeg: {
-      sections: [[0, 0, 0.40, 0.66], [-0.55, 0.15, 0.35, 0.55], [-1.05, 0.30, 0.22, 0.28], [-1.55, 0, 0.17, 0.20],
-                 [-1.95, -0.30, 0.14, 0.18], [-2.5, -0.18, 0.13, 0.15], [-2.8, -0.05, 0.18, 0.19],
-                 [-2.96, 0.15, 0.26, 0.18], [-3.05, 0.43, 0.27, 0.13]],
-      opts: { startCap: 'flat', endCap: [-3.08, 0.65], colorFor: () => C.fur }, pos: [0.5, 0.2, -1.85],
-    },
-    tail: {   // bushy tail hanging low, black tip
-      sections: [[0, 0, 0.18, 0.18], [-0.2, -0.5, 0.30, 0.28], [-0.7, -0.95, 0.36, 0.34], [-1.3, -1.2, 0.34, 0.32], [-1.85, -1.3, 0.25, 0.24]],
-      opts: { startCap: 'flat', endCap: [-2.25, -1.3], colorFor: i => (i >= 3 ? C.black : C.fur) },
-      pos: [0, 0.8, -2.55],
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.3, tailSpeed: 3, headAmount: 0.22 },
-  };
-}
-
-/* ---------------- RACCOON ---------------- */
-{
-  const C = { grey: [0.55, 0.54, 0.52], light: [0.82, 0.80, 0.76], dark: [0.13, 0.12, 0.12], white: [0.95, 0.94, 0.92] };
-  const tail = [];
-  for (let j = 0; j <= 8; j++) { const u = j / 8; tail.push([0.05 * Math.sin(u * 3) - u * 0.55, -u * 2.3, 0.2 + Math.sin(u * Math.PI) * 0.15, 0.2 + Math.sin(u * Math.PI) * 0.15]); }
-  SPECS.raccoon = {
-    name: 'raccoon', label: 'Raccoon',
-    head: {
-      w: 1.0, h: 0.9, snout: 0.8, snoutW: 0.7, snoutDrop: -0.05,
-      ear: { scale: 0.75, tip: [1.0, 2.0, -0.2] },
-      colors: { top: C.grey, brow: C.white, mask: C.dark, cheek: C.light, cheekLow: C.dark, bridge: C.dark,
-                snoutTop: C.dark, muzzle: C.white, chin: C.white, throat: C.light, nose: C.dark,
-                eye: [0.02, 0.02, 0.02], earIn: C.white, earBack: C.dark },
-      pos: [0, 0.48, 2.5], scale: 0.62,
-    },
-    body: {
-      sections: [[0.50, -1.9, 0.50, 0.50], [0.60, -1.45, 0.95, 0.95], [0.65, -0.5, 1.00, 1.00],
-                 [0.50, 0.5, 0.92, 0.95], [0.45, 1.3, 0.78, 0.82], [0.60, 1.85, 0.55, 0.58]],
-      opts: { startCap: [0.5, -2.1], endCap: 'flat', colorFor: (i, c, r) => (c.y < r.y - 0.5 ? C.light : C.grey) },
-    },
-    frontLeg: {
-      sections: [[0, 0, 0.30, 0.40], [-0.6, 0, 0.22, 0.28], [-1.1, 0.05, 0.16, 0.18], [-1.35, 0.12, 0.18, 0.18],
-                 [-1.5, 0.30, 0.22, 0.12], [-1.53, 0.50, 0.22, 0.09]],
-      opts: { startCap: 'flat', endCap: [-1.55, 0.62], colorFor: i => (i >= 2 ? C.dark : C.grey) }, pos: [0.55, 0.2, 1.2],
-    },
-    backLeg: {
-      sections: [[0, 0, 0.38, 0.60], [-0.5, 0.10, 0.30, 0.45], [-0.95, 0.15, 0.20, 0.24], [-1.25, 0, 0.17, 0.19],
-                 [-1.45, 0.15, 0.22, 0.14], [-1.53, 0.45, 0.22, 0.09]],
-      opts: { startCap: 'flat', endCap: [-1.55, 0.62], colorFor: i => (i >= 3 ? C.dark : C.grey) }, pos: [0.6, 0.3, -1.3],
-    },
-    tail: {   // bushy tail with dark rings
-      sections: tail,
-      opts: { startCap: 'flat', endCap: [-0.62, -2.5], colorFor: i => (i % 2 || i >= 7 ? C.dark : C.light) },
-      pos: [0, 0.75, -1.95],
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.3, tailSpeed: 2.5, headAmount: 0.25 },
-  };
-}
-
-/* ---------------- MONKEY (walking on all fours, like a macaque or capuchin) ----------------
-   Primates are built differently from dogs and cats, so the monkey does NOT use the
-   stretched wolf head. It gets its own head: a round skull, a flat face, eyes that
-   look forward, a brow ridge, a short muzzle and round ears low on the sides.
-   Its arms bend backward at the elbow and it walks on flat palms and soles.       */
-{
-  const C = { fur: [0.45, 0.30, 0.18], dark: [0.33, 0.21, 0.12], light: [0.68, 0.53, 0.37],
-              face: [0.93, 0.74, 0.60], nose: [0.70, 0.48, 0.40], mouth: [0.40, 0.22, 0.18],
-              eye: [0.55, 0.36, 0.16] };
-
-  function buildMonkeyHead() {
-    const head = new THREE.Group();
-
-    // 1) round skull: a loft along z that ends in a flat face
-    const skull = loft([
-      [ 0.10, -0.75, 0.30, 0.30],
-      [ 0.05, -0.50, 0.62, 0.62],
-      [ 0.00, -0.05, 0.75, 0.72],   // widest (the braincase is large)
-      [ 0.00,  0.35, 0.72, 0.70],
-      [-0.05,  0.60, 0.60, 0.60],   // flat face plane
-    ], {
-      sides: 8, startCap: [0.10, -0.85], endCap: 'flat',
-      colorFor: (i, c) =>
-        c.z > 0.45 && c.y < 0.38 ? C.face :                 // bare face (mask shape)
-        c.z > 0.2 && c.y < -0.25 ? C.face : C.fur,          // bare cheeks under the face
-    });
-    head.add(mesh(skull, shellMat));
-
-    // 2) short muzzle sticking out below the eyes
-    const muzzle = loft([
-      [-0.30, 0.45, 0.32, 0.26],
-      [-0.33, 0.75, 0.28, 0.22],
-      [-0.35, 0.90, 0.22, 0.17],
-    ], { startCap: 'flat', endCap: 'flat',
-         colorFor: (i, c, r) => (i === 1 && c.z > 0.82 && c.y > r.y ? C.nose : c.y < r.y - 0.12 && c.z > 0.8 ? C.mouth : C.face) });
-    head.add(mesh(muzzle, shellMat));
-
-    // 3) brow ridge: a slanted band of fur above the eyes
-    const B = { l: [0.50, 0.30, 0.52], m: [0, 0.26, 0.70], lt: [0.50, 0.40, 0.46], mt: [0, 0.37, 0.64] };
-    const brow = [];
-    for (const s of [1, -1]) {
-      const f = p => [p[0] * s, p[1], p[2]];
-      brow.push({ a: f(B.l), b: f(B.m), c: f(B.mt), color: C.dark });
-      brow.push({ a: f(B.l), b: f(B.mt), c: f(B.lt), color: C.dark });
-    }
-    head.add(mesh(trisToGeometry(brow), shellMat));
-
-    // 4) eyes close together, facing FORWARD (a disc facing +x turned to face +z)
-    addPair(head, eyeDisc(C.eye, 0.11), [0.24, 0.12, 0.66], [0, -Math.PI / 2, 0]);
-
-    // 5) round flat ears low on the sides, at eye level
-    addPair(head, eyeDisc(C.dark, 0.24, C.face), [0.74, 0.05, -0.10], [0, -0.35, 0]);
-    return head;
-  }
-
-  SPECS.monkey = {
-    name: 'monkey', label: 'Monkey',
-    head: { build: buildMonkeyHead, pos: [0, 1.30, 2.45], scale: 0.9 },
-    body: {   // deep chest, narrow waist, broad shoulders, flat back
-      sections: [[0.45, -1.7, 0.45, 0.45], [0.55, -1.3, 0.70, 0.72], [0.60, -0.4, 0.60, 0.62],
-                 [0.62, 0.6, 0.75, 0.82], [0.75, 1.4, 0.78, 0.78], [0.95, 1.9, 0.42, 0.45]],
-      opts: { startCap: [0.45, -1.9], endCap: 'flat', colorFor: (i, c, r) => (c.y < r.y - 0.5 ? C.light : C.fur) },
-    },
-    frontLeg: {   // arm: elbow bends BACKWARD, hand lies flat with fingers forward
-      sections: [[0, 0, 0.20, 0.24], [-0.75, -0.18, 0.16, 0.18], [-1.45, 0.02, 0.13, 0.14],
-                 [-1.62, 0.10, 0.15, 0.10], [-1.70, 0.30, 0.17, 0.05], [-1.71, 0.50, 0.15, 0.04]],
-      opts: { startCap: 'flat', endCap: [-1.72, 0.62], colorFor: i => (i >= 3 ? C.face : C.fur) },
-      pos: [0.62, 0.40, 1.35],        // shoulders at the SIDES of the chest
-    },
-    backLeg: {    // leg: knee forward, then the whole sole flat on the ground, long toes
-      sections: [[0, 0, 0.30, 0.42], [-0.60, 0.30, 0.20, 0.24], [-1.25, 0.05, 0.14, 0.16], [-1.40, 0, 0.14, 0.12],
-                 [-1.52, 0.30, 0.16, 0.06], [-1.53, 0.62, 0.16, 0.05], [-1.54, 0.85, 0.12, 0.04]],
-      opts: { startCap: 'flat', endCap: [-1.55, 0.95], colorFor: i => (i >= 3 ? C.face : C.fur) },
-      pos: [0.50, 0.40, -1.30], scale: 1.1,
-    },
-    tail: {   // long tail rising up and curling at the end
-      sections: [[0, 0, 0.12, 0.12], [0.4, -0.4, 0.11, 0.11], [1.1, -0.7, 0.10, 0.10], [1.9, -0.8, 0.09, 0.09],
-                 [2.6, -0.65, 0.08, 0.08], [3.05, -0.3, 0.07, 0.07], [3.15, 0.10, 0.06, 0.06], [2.95, 0.35, 0.05, 0.05]],
-      opts: { startCap: 'flat', endCap: [2.75, 0.3], colorFor: () => C.fur }, pos: [0, 0.8, -1.75],
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.4, tailSpeed: 1.5, headAmount: 0.35 },
-  };
-}
-
 /* ---------------- PIG ---------------- */
 {
   const C = { pink: [0.96, 0.72, 0.72], darkPink: [0.86, 0.56, 0.59], snout: [0.93, 0.60, 0.64],
@@ -785,44 +416,6 @@ const SPECS = {};
       opts: { startCap: 'flat', endCap: [0.22, -0.1], colorFor: () => C.pink }, pos: [0, 0.9, -2.05],
     },
     anim: { tailAxis: 'z', tailAmount: 0.6, tailSpeed: 8, headAmount: 0.15 },
-  };
-}
-
-/* ---------------- SQUIRREL ---------------- */
-{
-  const C = { red: [0.72, 0.38, 0.18], dark: [0.50, 0.26, 0.12], white: [0.95, 0.92, 0.86], eye: [0.04, 0.03, 0.03],
-              nose: [0.30, 0.20, 0.18] };
-  SPECS.squirrel = {
-    name: 'squirrel', label: 'Squirrel',
-    head: {
-      w: 0.9, h: 1.0, snout: 0.7, snoutW: 0.8, snoutDrop: -0.1,
-      ear: { scale: 0.8, tip: [0.8, 2.35, -0.1] },   // tall tufted ears
-      colors: { top: C.red, brow: C.white, chin: C.white, throat: C.white, cheekLow: C.white, muzzle: C.red,
-                nose: C.nose, eye: C.eye, earIn: C.white, earBack: C.dark },
-      pos: [0, 0.94, 1.98], scale: 0.55,
-    },
-    body: {
-      sections: [[0.50, -1.3, 0.50, 0.50], [0.60, -0.95, 0.85, 0.85], [0.60, -0.2, 0.72, 0.75], [0.60, 0.55, 0.65, 0.70],
-                 [0.75, 1.1, 0.52, 0.55], [0.95, 1.4, 0.42, 0.45]],
-      opts: { startCap: [0.5, -1.5], endCap: 'flat', colorFor: (i, c, r) => (c.y < r.y - 0.35 && c.z > -0.7 ? C.white : C.red) },
-    },
-    frontLeg: {
-      sections: [[0, 0, 0.18, 0.22], [-0.4, 0.05, 0.13, 0.15], [-0.75, 0.10, 0.10, 0.11], [-0.9, 0.18, 0.12, 0.08], [-0.93, 0.32, 0.11, 0.05]],
-      opts: { startCap: 'flat', endCap: [-0.94, 0.40], colorFor: () => C.red }, pos: [0.4, 0.3, 0.9],
-    },
-    backLeg: {   // big haunches and long feet
-      sections: [[0, 0, 0.42, 0.60], [-0.35, 0.25, 0.33, 0.45], [-0.6, 0.35, 0.18, 0.20], [-0.8, 0.05, 0.12, 0.14],
-                 [-0.95, 0.10, 0.14, 0.08], [-1.0, 0.50, 0.14, 0.05], [-1.01, 0.70, 0.12, 0.04]],
-      opts: { startCap: 'flat', endCap: [-1.02, 0.8], colorFor: () => C.red }, pos: [0.52, 0.35, -0.8],
-    },
-    tail: {   // huge bushy tail curling up over the back
-      sections: [[0, 0, 0.20, 0.20], [0.4, -0.3, 0.42, 0.40], [1.1, -0.5, 0.60, 0.55], [1.9, -0.45, 0.68, 0.62],
-                 [2.6, -0.2, 0.66, 0.60], [3.0, 0.25, 0.52, 0.48], [3.1, 0.65, 0.34, 0.32]],
-      opts: { startCap: 'flat', endCap: [2.95, 0.95], sides: 8,
-              colorFor: (i, c) => (rand(c.x * 13 + c.y * 7 + c.z * 3) < 0.3 ? C.dark : C.red) },
-      pos: [0, 0.6, -1.35],
-    },
-    anim: { tailAxis: 'y', tailAmount: 0.25, tailSpeed: 5, headAmount: 0.35 },
   };
 }
 
@@ -967,7 +560,7 @@ window.addEventListener('resize', () => {
   renderer.setSize(stage.clientWidth, stage.clientHeight);
 });
 
-showAnimal('crocodile');
+showAnimal('pig');
 
 /* =================================================================
    RENDER LOOP — tail sway and head look-around for whichever animal is shown

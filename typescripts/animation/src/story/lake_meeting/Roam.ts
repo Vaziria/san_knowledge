@@ -31,6 +31,10 @@ import type { Member } from './Member';
 // lake's middle, then goes (Meeting.ts). One that talks stops while its
 // bubble shows (hold, release); !stop stops it for a while; !walk and !run
 // send it to a new spot near it.
+//
+// What one standing at a spot does now and then (JUMP) is the meeting's to
+// say (Pastime): at the lake a jump, or a penguin's flap; at the forest lake
+// its own poses too (forest_lake_meeting/guests.ts).
 
 const REST = [3, 15] as const; // s it stands at a spot
 const FIRST = [1, 6] as const; // s before one that has just appeared, or was there already, sets off
@@ -77,14 +81,25 @@ function stopped(member: Member): void {
   stops.set(member, [first, ...[...since, member.at].slice(-PAST)]);
 }
 
+// What an animal standing at a spot does now and then.
+export type Pastime = (member: Member, random: () => number) => void;
+
+// The lake meeting's: a jump, or a penguin's flap.
+function jumpOrFlap(member: Member, random: () => number): void {
+  if (isPenguin(member.figure) && random() < 0.4) member.figure.Flap();
+  else member.figure.Jump();
+}
+
 export class Roam {
   private readonly land: Land;
   private readonly random: () => number;
+  private readonly pastime: Pastime;
   private readonly roaming = new Map<Member, Roaming>();
 
-  constructor(land: Land, random: () => number = Math.random) {
+  constructor(land: Land, random: () => number = Math.random, pastime: Pastime = jumpOrFlap) {
     this.land = land;
     this.random = random;
+    this.pastime = pastime;
   }
 
   // An animal standing where it is as the meeting begins (the host, at the
@@ -187,8 +202,7 @@ export class Roam {
           roaming.time -= delta;
           if (roaming.jumpAt >= 0 && roaming.time <= roaming.jumpAt) {
             roaming.jumpAt = -1;
-            if (isPenguin(member.figure) && this.random() < 0.4) member.figure.Flap();
-            else member.figure.Jump();
+            this.pastime(member, this.random);
           }
           if (roaming.time <= 0) this.setOff(member, roaming, this.random() < RUN ? 'run' : 'walk', this.random() < FAR);
           break;

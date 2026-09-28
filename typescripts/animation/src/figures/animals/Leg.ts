@@ -81,7 +81,9 @@ const across = new THREE.Vector3();
 const basis = new THREE.Matrix4();
 const segments = new THREE.Quaternion();
 const level = new THREE.Quaternion();
+const tipped = new THREE.Quaternion();
 const X = new THREE.Vector3(1, 0, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class Leg extends THREE.Group {
   readonly upper = new THREE.Group();
@@ -90,8 +92,12 @@ export class Leg extends THREE.Group {
   private readonly bones: { upper: number; lower: number; bend: 1 | -1 };
   private readonly drops: number[] = [];
   private readonly skin?: Skin; // a modelled leg's surface
+  private roll = 0; // radians the foot stays rolled (see the constructor); 0 while the leg is built in its model's pose
 
-  constructor(m: AnimalMaterials, shape: LegShape | LegModel, shade: Shade, paint?: readonly THREE.Color[]) {
+  // `roll`: radians a splayed leg's foot stays tipped about the body's length
+  // (the crocodile's, turned out as its model turns the leg: the right leg's
+  // positive), however far the leg swings out to reach its foot.
+  constructor(m: AnimalMaterials, shape: LegShape | LegModel, shade: Shade, paint?: readonly THREE.Color[], roll = 0) {
     super();
     this.name = 'leg';
     let feet: THREE.Vector3[]; // the foot's corners, in its own axes
@@ -112,11 +118,14 @@ export class Leg extends THREE.Group {
     this.upper.add(this.lower);
     this.add(this.upper);
 
-    // How far below the ankle the foot reaches, tipped by each step.
+    // How far below the ankle the foot reaches, tipped by each step (and
+    // rolled, a splayed leg's).
+    const [cos, sin] = [Math.cos(roll), Math.sin(roll)];
     for (let k = 0; k <= DROP.steps; k++) {
       const t = k * DROP.step;
-      this.drops.push(Math.max(...feet.map((p) => p.z * Math.sin(t) - p.y * Math.cos(t))));
+      this.drops.push(Math.max(...feet.map((p) => (roll ? -p.x * sin + (p.z * Math.sin(t) - p.y * Math.cos(t)) * cos : p.z * Math.sin(t) - p.y * Math.cos(t)))));
     }
+    this.roll = roll;
   }
 
   // A leg from its numbers: rounded segments and a foot on the bones. Returns
@@ -235,6 +244,28 @@ export class Leg extends THREE.Group {
     this.upper.rotation.x = -(along + bend * hip);
     this.lower.rotation.x = bend * (Math.PI - knee);
     this.foot.rotation.x = -(this.upper.rotation.x + this.lower.rotation.x) + tip;
+    // A splayed leg's foot keeps its roll however far the leg swings out: it
+    // is turned back by the swing beyond the roll, before it is tipped.
+    if (this.roll) {
+      segments.setFromAxisAngle(X, -(this.upper.rotation.x + this.lower.rotation.x));
+      level.setFromAxisAngle(Z, this.roll - this.rotation.z);
+      this.foot.quaternion.copy(segments).multiply(level).multiply(tipped.setFromAxisAngle(X, tip));
+    }
+  }
+
+  // Keeps a splayed leg's foot rolled `roll` radians about the body's length
+  // in what the leg is on (the animal takes its body's own roll off, so the
+  // foot keeps its roll on the ground).
+  keepRoll(roll: number): void {
+    this.roll = roll;
+  }
+
+  // The most the foot can tip, up to `tip`, reaching no further than `room`
+  // below its ankle (drop()).
+  tipWithin(room: number, tip: number): number {
+    let t = tip;
+    while (t > 0 && this.drop(t) > room) t = Math.max(0, t - DROP.step / 4);
+    return t;
   }
 
   private reachToward(target: THREE.Vector3, tip: number, pole: THREE.Vector3): void {

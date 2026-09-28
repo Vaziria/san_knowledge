@@ -8,7 +8,7 @@ import type { Environment, Shot } from '../../previews';
 import type { Theme } from '../../theme';
 import { HOST, KINDS, type Command, type Kind, type Member as Info, type MeetingEvent, type MeetingState, type Numbered } from './events';
 import { Follow, type FollowShot } from './Follow';
-import { disposeFigure, isPenguin } from './kinds';
+import { disposeFigure, isPenguin, makeFigure } from './kinds';
 import { Land, type Circle } from './Land';
 import { Member, shortest } from './Member';
 import { FishLeaps } from './FishLeaps';
@@ -182,7 +182,7 @@ export class Meeting extends THREE.Group {
 
     // The host starts on the landing, where the opening shot shows it, and
     // roams from there like the others.
-    this.host = new Member(HOST, '', 'bear', false, theme);
+    this.host = new Member(HOST, '', 'bear', false, makeFigure('bear', theme));
     this.host.figure.position.copy(HOST_START);
     this.add(this.host.figure);
     this.roam = new Roam(this.land);
@@ -346,7 +346,7 @@ export class Meeting extends THREE.Group {
   // jump (`jump`), or standing there already as the meeting begins.
   private join(info: Info, jump: boolean): void {
     if (this.members.has(info.id)) return;
-    const member = new Member(info.id, info.name, info.kind, info.bot, this.theme);
+    const member = new Member(info.id, info.name, info.kind, info.bot, makeFigure(info.kind, this.theme));
     this.members.set(info.id, member);
     this.add(member.figure);
     this.roam.place(member, jump);
@@ -429,7 +429,7 @@ export class Meeting extends THREE.Group {
     const figure = member.figure;
     if (turn.type === 'say') return figure.Speech(turn.text, turn.name);
     if (turn.type === 'switch') {
-      const old = member.change(turn.kind, this.theme);
+      const old = member.change(turn.kind, makeFigure(turn.kind, this.theme));
       old.removeFromParent();
       disposeFigure(old);
       this.add(member.figure);

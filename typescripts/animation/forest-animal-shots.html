@@ -1,0 +1,104 @@
+<!doctype html>
+<!-- Temporary: renders one of the forest lake's animals from its reference
+     sheet's views (3/4, front, side, back, top), for comparing with the
+     sheet. ?figure=ForestWolf&do=Walk&at=1.2&color=white. Delete when done. -->
+<html>
+  <body style="margin: 0; overflow: hidden; background: #1e2630">
+    <script type="module">
+      import * as THREE from 'three';
+      import { SUN } from '/src/sun.ts';
+      const params = new URLSearchParams(location.search);
+      const name = params.get('figure') ?? 'ForestWolf';
+      const module = await import(`/src/figures/ForestLake/animals/${name}.ts`);
+      const Kind = module[name];
+      const figure = new Kind(params.get('color') ? { color: params.get('color') } : {});
+      const behaviour = params.get('do');
+      if (behaviour) figure[behaviour]();
+      const at = +(params.get('at') ?? 0);
+      for (let t = 0; t < at; t += 1 / 120) figure.update(1 / 120);
+      figure.update(0);
+      if (params.get('recenter') !== '0') {
+        figure.position.x = 0;
+        figure.position.z = 0;
+      }
+      figure.updateMatrixWorld(true);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.NoToneMapping;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
+      renderer.setScissorTest(true);
+      document.body.appendChild(renderer.domElement);
+      const scene = new THREE.Scene();
+      scene.add(figure);
+      // ?focus=head frames one of its parts rather than all of it.
+      const focus = params.get('focus');
+      // (A field may hold several parts: a firefly's legs.)
+      const box = new THREE.Box3();
+      for (const part of [focus ? figure[focus] : figure].flat()) box.union(new THREE.Box3().setFromObject(part, true));
+      const size = box.getSize(new THREE.Vector3());
+      const centre = box.getCenter(new THREE.Vector3());
+      const radius = size.length() / 2;
+      // Neutral light, as the sheets are lit, unless ?light=forest.
+      const forest = params.get('light') === 'forest';
+      scene.add(new THREE.HemisphereLight(forest ? 0xe6f3ff : 0xdfe6f5, forest ? 0x9fbe6c : 0x8a8480, +(params.get('ambient') ?? (forest ? 1.75 : 1.5))));
+      const sun = new THREE.DirectionalLight(0xfff1d8, +(params.get('sun') ?? 2.45));
+      sun.position.copy(SUN).normalize().multiplyScalar(radius * 6).add(centre);
+      sun.target.position.copy(centre);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(2048, 2048);
+      const cam = sun.shadow.camera;
+      cam.left = cam.bottom = -radius * 1.6;
+      cam.right = cam.top = radius * 1.6;
+      cam.near = 0.01;
+      cam.far = radius * 14;
+      sun.shadow.bias = -0.0005;
+      sun.shadow.normalBias = (4 * radius * 1.6) / 2048;
+      scene.add(sun, sun.target);
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(radius * 8, radius * 8), new THREE.ShadowMaterial({ opacity: 0.35 }));
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+      scene.background = new THREE.Color(0x1e2630);
+
+      // The sheet's views: the hero three-quarter view, then front, side
+      // (its head to the left), back and top (its head down the picture).
+      const views = [
+        { from: [0.62, 0.3, 0.72], up: [0, 1, 0], fill: 0.92 },
+        { from: [0, 0.12, 1], up: [0, 1, 0] },
+        { from: [1, 0.1, 0], up: [0, 1, 0] },
+        { from: [0, 0.12, -1], up: [0, 1, 0] },
+        { from: [0, 1, 0.0001], up: [0, 0, -1] },
+        { from: [-0.7, 0.35, 0.62], up: [0, 1, 0] },
+      ];
+      // ?view=<n> draws only that view, filling the window.
+      const only = params.get('view');
+      const shown = only === null ? views : [views[+only]];
+      const cols = only === null ? 3 : 1;
+      const rows = only === null ? 2 : 1;
+      const w = Math.floor(innerWidth / cols);
+      const h = Math.floor(innerHeight / rows);
+      shown.forEach((view, i) => {
+        const camera = new THREE.PerspectiveCamera(30, w / h, radius * 0.05, radius * 30);
+        const dir = new THREE.Vector3(...view.from).normalize();
+        const distance = (radius / Math.sin(THREE.MathUtils.degToRad(15))) * (view.fill ?? 0.8);
+        camera.position.copy(centre).addScaledVector(dir, distance);
+        camera.up.set(...view.up);
+        camera.lookAt(centre);
+        const x = (i % cols) * w;
+        const y = (rows - 1 - Math.floor(i / cols)) * h;
+        renderer.setViewport(x, y, w, h);
+        renderer.setScissor(x, y, w, h);
+        renderer.render(scene, camera);
+      });
+      let triangles = 0;
+      figure.traverse((o) => { if (o.isMesh) triangles += o.geometry.getAttribute('position').count / 3; });
+      window.stats = { triangles, size: size.toArray().map((v) => +v.toFixed(3)), min: box.min.y.toFixed(4) };
+      document.title = JSON.stringify(window.stats);
+      window.ready = true;
+    </script>
+  </body>
+</html>

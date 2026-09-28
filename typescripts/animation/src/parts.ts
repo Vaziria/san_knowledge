@@ -1,17 +1,64 @@
 import * as THREE from 'three';
+import { Antelope } from './figures/animals/Antelope';
 import { Bear } from './figures/animals/Bear';
 import { Bird } from './figures/animals/Bird';
 import { Cat } from './figures/animals/Cat';
+import { Coyote } from './figures/animals/Coyote';
+import { Crocodile } from './figures/animals/Crocodile';
 import { Deer } from './figures/animals/Deer';
 import { Fox } from './figures/animals/Fox';
 import { Frog } from './figures/animals/Frog';
 import { Lion } from './figures/animals/Lion';
+import { Monkey } from './figures/animals/Monkey';
+import { Ox } from './figures/animals/Ox';
 import { Penguin } from './figures/animals/Penguin';
+import { Pig } from './figures/animals/Pig';
+import { Raccoon } from './figures/animals/Raccoon';
 import { Snake } from './figures/animals/Snake';
+import { Squirrel } from './figures/animals/Squirrel';
+import { Tiger } from './figures/animals/Tiger';
 import { Wolf } from './figures/animals/Wolf';
 import { Boat } from './figures/Boat/Boat';
 import { Fish } from './figures/Fish/Fish';
 import { FishingRod } from './figures/FishingRod/FishingRod';
+import { Butterfly } from './figures/ForestLake/animals/Butterfly';
+import { Duck } from './figures/ForestLake/animals/Duck';
+import { Explorer } from './figures/ForestLake/animals/Explorer';
+import { ForestDeer } from './figures/ForestLake/animals/ForestDeer';
+import { ForestFirefly } from './figures/ForestLake/animals/ForestFirefly';
+import { ForestFish } from './figures/ForestLake/animals/ForestFish';
+import { ForestFox } from './figures/ForestLake/animals/ForestFox';
+import { ForestFrog } from './figures/ForestLake/animals/ForestFrog';
+import { ForestSquirrel } from './figures/ForestLake/animals/ForestSquirrel';
+import { ForestWolf } from './figures/ForestLake/animals/ForestWolf';
+import { Otter } from './figures/ForestLake/animals/Otter';
+import { Rabbit } from './figures/ForestLake/animals/Rabbit';
+import { WildBoar } from './figures/ForestLake/animals/WildBoar';
+import { Barrel } from './figures/ForestLake/Barrel';
+import { BroadleafTree } from './figures/ForestLake/BroadleafTree';
+import { Bridge } from './figures/ForestLake/Bridge';
+import { Bush } from './figures/ForestLake/Bush';
+import { Campfire } from './figures/ForestLake/Campfire';
+import { CaveEntrance } from './figures/ForestLake/CaveEntrance';
+import { CherryTree } from './figures/ForestLake/CherryTree';
+import { Fence } from './figures/ForestLake/Fence';
+import { FlowerCluster } from './figures/ForestLake/FlowerCluster';
+import { ForestGate } from './figures/ForestLake/ForestGate';
+import { ForestPine } from './figures/ForestLake/ForestPine';
+import { LampPost } from './figures/ForestLake/LampPost';
+import { LargeRock } from './figures/ForestLake/LargeRock';
+import { LilyPad } from './figures/ForestLake/LilyPad';
+import { MossyLog } from './figures/ForestLake/MossyLog';
+import { Mushrooms } from './figures/ForestLake/Mushrooms';
+import { Pier } from './figures/ForestLake/Pier';
+import { Reeds } from './figures/ForestLake/Reeds';
+import { Rowboat } from './figures/ForestLake/Rowboat';
+import { Ruins } from './figures/ForestLake/Ruins';
+import { SignPost } from './figures/ForestLake/SignPost';
+import { SmallRock } from './figures/ForestLake/SmallRock';
+import { Stump } from './figures/ForestLake/Stump';
+import { Tent } from './figures/ForestLake/Tent';
+import { WatchTower } from './figures/ForestLake/WatchTower';
 import { BermudaGrass } from './figures/Grass/BermudaGrass';
 import { ChivesGrass } from './figures/Grass/ChivesGrass';
 import { CockFootGrass } from './figures/Grass/CockFootGrass';
@@ -25,6 +72,7 @@ import { Log } from './figures/objects/Log';
 import { MudPit } from './figures/objects/MudPit';
 import { CedarTree } from './figures/Tree/CedarTree';
 import { ChestnutTree } from './figures/Tree/ChestnutTree';
+import { CrystalTree } from './figures/Tree/CrystalTree';
 import { ElmTree } from './figures/Tree/ElmTree';
 import { MapleTree } from './figures/Tree/MapleTree';
 import { OakTree } from './figures/Tree/OakTree';
@@ -104,6 +152,7 @@ const QUADRUPED = {
   rightHindLeg: true,
   speechBubble: false,
 } as const;
+const FOREST_QUADRUPED = { head: true, body: true, tail: true, leftFrontLeg: true, rightFrontLeg: true, leftHindLeg: true, rightHindLeg: true } as const;
 const TREE = { crown: true, trunk: true } as const;
 const GRASS = { leaves: true, stems: true } as const;
 const FISH = { body: true, tail: true, leftFin: true, rightFin: true } as const;
@@ -129,6 +178,15 @@ export const figureParts: Record<string, Part[]> = {
     speechBubble: false,
   }),
   lion: partsOf(Lion, QUADRUPED),
+  crocodile: partsOf(Crocodile, QUADRUPED),
+  ox: partsOf(Ox, QUADRUPED),
+  antelope: partsOf(Antelope, QUADRUPED),
+  tiger: partsOf(Tiger, QUADRUPED),
+  coyote: partsOf(Coyote, QUADRUPED),
+  raccoon: partsOf(Raccoon, QUADRUPED),
+  monkey: partsOf(Monkey, QUADRUPED),
+  pig: partsOf(Pig, QUADRUPED),
+  squirrel: partsOf(Squirrel, QUADRUPED),
   'oak-tree': partsOf(OakTree, TREE),
   'cedar-tree': partsOf(CedarTree, TREE),
   'maple-tree': partsOf(MapleTree, TREE),
@@ -137,6 +195,7 @@ export const figureParts: Record<string, Part[]> = {
   'spruce-tree': partsOf(SpruceTree, TREE),
   'elm-tree': partsOf(ElmTree, TREE),
   'willow-tree': partsOf(WillowTree, TREE),
+  'crystal-tree': partsOf(CrystalTree, { trunk: true, crystals: true, pendants: true, ground: true, sparkles: true }),
   'cock-foot-grass': partsOf(CockFootGrass, GRASS),
   'bermuda-grass': partsOf(BermudaGrass, GRASS),
   'timothy-grass': partsOf(TimothyGrass, GRASS),
@@ -153,6 +212,63 @@ export const figureParts: Record<string, Part[]> = {
     wings: ['front-left-wing', 'front-right-wing', 'hind-left-wing', 'hind-right-wing'],
     legs: ['front-left-leg', 'front-right-leg', 'middle-left-leg', 'middle-right-leg', 'hind-left-leg', 'hind-right-leg'],
   }),
+  fence: partsOf(Fence, { posts: true, rails: true, tufts: true }),
+  'forest-pine': partsOf(ForestPine, { trunk: true, crown: true }),
+  'cherry-tree': partsOf(CherryTree, { trunk: true, crown: true }),
+  'small-rock': partsOf(SmallRock, { rocks: true, dressing: true }),
+  'large-rock': partsOf(LargeRock, { rocks: true, dressing: true }),
+  bush: partsOf(Bush, { leaves: true, flowers: true }),
+  'flower-cluster': partsOf(FlowerCluster, { stems: true, heads: true }),
+  'lily-pad': partsOf(LilyPad, { pads: true, lily: true }),
+  'mossy-log': partsOf(MossyLog, { wood: true, dressing: true }),
+  stump: partsOf(Stump, { wood: true, dressing: true }),
+  'lamp-post': partsOf(LampPost, { post: true, lantern: true, glass: true, glow: false, tufts: true }),
+  'sign-post': partsOf(SignPost, { post: true, boards: true, dressing: true }),
+  tent: partsOf(Tent, { canvas: true, poles: true, ropes: true }),
+  rowboat: partsOf(Rowboat, { hull: true, inside: true, oars: true }),
+  barrel: partsOf(Barrel, { staves: true, hoops: true }),
+  bridge: partsOf(Bridge, { deck: true, posts: true, ropes: true }),
+  pier: partsOf(Pier, { deck: true, piles: true, ropes: true }),
+  campfire: partsOf(Campfire, { stones: true, logs: true, embers: true, flame: true, sparks: false }),
+  'watch-tower': partsOf(WatchTower, { frame: true, deck: true, roof: true, flag: true }),
+  ruins: partsOf(Ruins, { arch: true, rubble: true, dressing: true }),
+  'cave-entrance': partsOf(CaveEntrance, { rocks: true, hollow: true, floor: true, flames: false }),
+  'broadleaf-tree': partsOf(BroadleafTree, { trunk: true, crown: true }),
+  reeds: partsOf(Reeds, { blades: true, heads: true }),
+  mushrooms: partsOf(Mushrooms, { mushrooms: true, dressing: true }),
+  'forest-gate': partsOf(ForestGate, { frame: true, lanterns: true, glass: true, tufts: true }),
+  // The forest lake's animals (ForestLake/animals/). The four-legged ones
+  // first: the head carries its jaw, eyes and nose, the body its mane or
+  // bristles. Then the others, and the explorer, each with parts of its own.
+  'forest-wolf': partsOf(ForestWolf, FOREST_QUADRUPED),
+  'forest-fox': partsOf(ForestFox, FOREST_QUADRUPED),
+  'forest-deer': partsOf(ForestDeer, FOREST_QUADRUPED),
+  'wild-boar': partsOf(WildBoar, FOREST_QUADRUPED),
+  rabbit: partsOf(Rabbit, FOREST_QUADRUPED),
+  'forest-squirrel': partsOf(ForestSquirrel, { ...FOREST_QUADRUPED, acorn: true }),
+  otter: partsOf(Otter, { ...FOREST_QUADRUPED, whiskers: true }),
+  'forest-firefly': partsOf(ForestFirefly, {
+    head: true,
+    antennae: ['left-antenna', 'right-antenna'],
+    body: true,
+    abdomen: true,
+    lantern: true,
+    wings: ['front-left-wing', 'front-right-wing', 'hind-left-wing', 'hind-right-wing'],
+    legs: ['front-left-leg', 'front-right-leg', 'middle-left-leg', 'middle-right-leg', 'hind-left-leg', 'hind-right-leg'],
+  }),
+  'forest-fish': partsOf(ForestFish, { head: true, jaw: true, body: true, tail: true, dorsalFin: true, adiposeFin: true, analFin: true, leftPectoralFin: true, rightPectoralFin: true, leftPelvicFin: true, rightPelvicFin: true }),
+  duck: partsOf(Duck, { head: true, neck: true, body: true, leftWing: true, rightWing: true, tail: true, leftLeg: true, rightLeg: true }),
+  'forest-frog': partsOf(ForestFrog, { body: true, leftEye: true, rightEye: true, leftFrontLeg: true, rightFrontLeg: true, leftHindLeg: true, rightHindLeg: true }),
+  butterfly: partsOf(Butterfly, {
+    head: true,
+    body: true,
+    abdomen: true,
+    leftWing: true,
+    rightWing: true,
+    antennae: ['left-antenna', 'right-antenna'],
+    legs: ['left-front-leg', 'left-middle-leg', 'left-hind-leg', 'right-front-leg', 'right-middle-leg', 'right-hind-leg'],
+  }),
+  explorer: partsOf(Explorer, { head: true, body: true, leftArm: true, rightArm: true, leftLeg: true, rightLeg: true, backpack: true, lantern: true, holder: false }),
 };
 
 export function hasPart(figure: string, part: string): boolean {

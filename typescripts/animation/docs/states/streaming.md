@@ -1,6 +1,6 @@
 # Streaming state
 
-Updated 2026-09-25 by task 17 (the first state record), from the code as it is today.
+Updated 2026-09-28 by the forest lake meeting (asked for directly, no task file; [forest_lake_meeting.md](forest_lake_meeting.md)): the chat reader keeps its meeting too, from the same chat. First written 2026-09-25 by task 17 (the first state record), from the code as it was then.
 
 ## What works
 
@@ -24,19 +24,20 @@ Updated 2026-09-25 by task 17 (the first state record), from the code as it is t
   - **Files and devices:** [audio-bridge.ts](../../audio-bridge.ts) lists and serves the files in `typescripts/animation/audio` (git-ignored) or `AUDIO_DIR`, with ranges. Add files uploads into that folder: at most 300 MB, plain names only, written to `.part` first. It lists input devices as ffmpeg opens them.
   - **In the stream,** the dev server makes the sound, so it is the same with either Render. `AudioFeed` writes 44.1 kHz stereo PCM into the encoder's pipe 3 by its own clock, with silence where the source has nothing. The sound changes while live (`POST /__stream/audio`) without the stream stopping. A source it can't play leaves silence, and the tab says why.
   - **Here:** Play here plays the file in an `<audio>` element; a device's sound stays on the dev server's machine. After a reload the page waits for a click before it plays. A page opened during a stream takes on the stream's sound.
-- **The chat reader.** [chat-bridge.ts](../../chat-bridge.ts) reads a YouTube live chat for the lake meeting. The full rule is [rules.md, Stories](../../../../docs/3d_modelling/rules.md#stories) rule 12.
+- **The chat reader.** [chat-bridge.ts](../../chat-bridge.ts) reads a YouTube live chat for the lake meeting and the forest lake meeting. The full rule is [rules.md, Stories](../../../../docs/3d_modelling/rules.md#stories) rule 12.
   - **san_youtube:** the bridge runs `san_youtube -json -new -lang id -poll 1s <channel>`, from `golang/packages/san_youtube/bin` or `SAN_YOUTUBE`. [san_youtube](../../../../golang/packages/san_youtube/README.md) is our Go tool that reads a live chat the way youtube.com's chat window does, with no API key.
-  - **Messages:** text, Super Chats, Super Stickers, memberships, gift purchases and deletions go to `meeting.ts`. What the meeting does with them is in [lake_meeting.md](lake_meeting.md).
+  - **Messages:** text, Super Chats, Super Stickers, memberships, gift purchases and deletions go to both meetings (`meeting.ts`, a `Meeting` for each, with its story's rules). What each does with them is in [lake_meeting.md](lake_meeting.md) and [forest_lake_meeting.md](forest_lake_meeting.md).
   - **Retries:** 30 s after "not live" or a network error. 2 minutes after a rate limit, chat off, members only or video not found. It gives up only when the channel or video doesn't exist.
-  - **The Story tab's** [ChatControls.tsx](../../src/panel/ChatControls.tsx), shown while the lake meeting plays:
+  - **The Story tab's** [ChatControls.tsx](../../src/panel/ChatControls.tsx), shown while either meeting plays, naming its host and its commands:
     - the channel, kept in `localStorage`;
     - Read chat / Stop reading, with its status;
-    - made-up messages through `POST /__chat/say`: a viewer, the owner, a Super Chat of Rp 200.000 or a new member.
-  - **To every page:** the status goes out as the Vite event `chat:status`, and the meeting's events as `meeting:event` ([chat.ts](../../src/chat.ts)).
-  - **Restarts:** a dev server restart hands the running `san_youtube` and the saved meeting to the new plugin (`HANDOVER` 1). A shape the new code doesn't know is refused, and reading stops.
+    - made-up messages through `POST /__chat/say` (to both meetings): a viewer, the owner, a Super Chat of Rp 200.000 or a new member.
+  - **To every page:** the status goes out as the Vite event `chat:status`, the lake meeting's events as `meeting:event` and the forest lake meeting's as `forest-meeting:event` ([chat.ts](../../src/chat.ts)); a page asks `GET /__chat/meeting` or `GET /__chat/forest-meeting` first.
+  - **Restarts:** a dev server restart hands the running `san_youtube` and both saved meetings to the new plugin (`HANDOVER` 2). A version 1 handover, the lake meeting's alone, is taken too, the forest lake meeting starting afresh. A shape the new code doesn't know is refused, and reading stops.
 
 ## How it was last checked
 
+- 2026-09-28, the chat reader with both meetings: typecheck clean. The user's dev server (8087) restarted onto the new bridge, took the old code's version 1 handover and kept the lake meeting's bots; `GET /__chat/forest-meeting` answered with seven forest bots. No chat was being read then. On a test server (8151), made-up messages reached both meetings' pages. A handover of version 2 (the next restart after this) has not been run yet.
 - 2026-09-25, task 17 (this record): `npm run typecheck` is clean at 23:10, with other sessions' unfinished work in the tree (earlier that evening it failed for a few minutes on the dock's half-built lines, task 09). No stream was run for this record.
 - 2026-09-25, [task 05](../../../../tasks/done/05-stream-through-code-changes.md), on a copy of the project with a local RTMP listener standing in for YouTube:
   - The lake meeting with stream only, with a real chat read: one connection lasted through four saves.
@@ -60,7 +61,6 @@ Updated 2026-09-25 by task 17 (the first state record), from the code as it is t
 - The Stream tab's note for web + stream still says "with silent sound" ([StreamTab.tsx](../../src/panel/StreamTab.tsx), `NOTES.both`). That dates from before the Audio tab: the stream plays the Audio tab's sound with either Render.
 - With stream only, the bridge lets any new `/__stream/recording` take the stream over, with no session check; only web + stream checks one. Today only the hidden browser posts one.
 - Only Windows closes the hidden browser when the dev server's process is killed. Elsewhere a hard kill can leave it running.
-- Nothing since commit 278ad67 is committed: `audio-bridge.ts`, `chat-bridge.ts`, `meeting.ts`, `src/audio.ts`, `src/chat.ts`, `AudioTab.tsx` and `ChatControls.tsx` are untracked, and task 05's changes and san_youtube's `-poll` are uncommitted.
 - Task 05 noted that the first bridge save couldn't hand over. That was a one-off: the dev server has run the new code since.
 
 ## Open questions
@@ -73,6 +73,7 @@ Updated 2026-09-25 by task 17 (the first state record), from the code as it is t
 
 ## History
 
+- 2026-09-28, asked for directly (no task file, not committed): the forest lake meeting's chat. The bridge keeps a `Meeting` for each story from the one chat, sends `forest-meeting:event`, answers `GET /__chat/forest-meeting`, and hands both over a restart (`HANDOVER` 2, taking 1); the chat controls show for either meeting.
 - 2026-09-25 [task 05, stream through code changes](../../../../tasks/done/05-stream-through-code-changes.md): one encoder per stream, a decoder per recording, the last picture repeated; the session in `sessionStorage`, and an end after 60 s without the page; the stream, the chat reader and the meeting handed over a dev server restart; the key and the quality remembered.
 - 2026-09-25, before the task queue (not committed): the chat reader for the lake meeting (`chat-bridge.ts`, `chat.ts`, `ChatControls.tsx`), polling every second (san_youtube's `-poll`).
 - 2026-09-24/25, before the task queue (not committed):

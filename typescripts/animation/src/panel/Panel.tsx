@@ -13,13 +13,14 @@ import {
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useBehaviours, type Behaviour } from '../behaviours';
-import { environments, figureEnvironment, TIMES_OF_DAY } from '../previews';
+import { environments, figureEnvironment, SEASONS, TIMES_OF_DAY } from '../previews';
 import {
   environmentOf,
   KUWAHARA_MAX_RADIUS,
   setEnvironment,
   setFigure,
   setKuwahara,
+  setSeason,
   setStory,
   setTerrain,
   setTime,
@@ -252,17 +253,17 @@ function BehavioursTab() {
 
 // "none" shows the figure picked in Figures; a story brings its own figures
 // and environment, so those two tabs rest while it plays. The lake meeting
-// adds its chat below (ChatControls.tsx).
+// and the forest lake meeting add their chat below (ChatControls.tsx).
 function StoryTab() {
   const story = useSettings((s) => s.story);
   const options = [
     { value: '', label: 'none', hint: 'the picked figure or terrain' },
-    ...Object.keys(stories).map((name) => ({ value: name, label: name })),
+    ...Object.keys(stories).map((name) => ({ value: name, label: name, hint: name === 'forest_lake_meeting' ? 'in the Season picked in Environments' : undefined })),
   ];
   return (
     <div className="flex flex-col gap-4">
       <RadioList label="Story" value={story ?? ''} options={options} onChange={(name) => setStory(name || null)} />
-      {story === 'lake_meeting' && <ChatControls />}
+      {(story === 'lake_meeting' || story === 'forest_lake_meeting') && <ChatControls story={story} />}
     </div>
   );
 }
@@ -274,15 +275,21 @@ const TIME_OPTIONS = TIMES_OF_DAY.map((time) => ({
   hint: time === 'cycle' ? 'day, dusk, night, dawn' : undefined,
 }));
 
+// The Season's choices, the forest lake's four.
+const SEASON_OPTIONS = SEASONS.map((season) => ({ value: season, label: season }));
+
 // Shows the figure's own environment until one is picked; a pick stays when
 // the figure changes. A story or a terrain brings its own, so the list rests
-// while one is shown. Below, the time of day, which only the lake follows.
+// while one is shown. Below, the season, which only the forest lake has (and
+// the forest lake meeting, played there), and the time of day, which only
+// the lake follows.
 function EnvironmentsTab() {
   const environment = useSettings(environmentOf);
   const own = useSettings((s) => figureEnvironment(s.figure));
   const story = useSettings((s) => s.story);
   const terrain = useSettings((s) => (s.story ? null : s.terrain));
   const time = useSettings((s) => s.time);
+  const season = useSettings((s) => s.season);
   const options = Object.keys(environments).map((name) => ({
     value: name,
     label: name,
@@ -299,6 +306,17 @@ function EnvironmentsTab() {
         disabled={story !== null || terrain !== null}
         onChange={setEnvironment}
       />
+      <p className="mt-1 text-sm font-medium">Season</p>
+      <RadioList
+        label="Season"
+        value={season}
+        options={SEASON_OPTIONS}
+        onChange={(value) => {
+          const picked = SEASONS.find((s) => s === value);
+          if (picked) setSeason(picked);
+        }}
+      />
+      <Note>Only the forest lake has seasons, and the forest lake meeting, which plays there.</Note>
       <p className="mt-1 text-sm font-medium">Time of day</p>
       <RadioList
         label="Time of day"

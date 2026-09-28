@@ -28,7 +28,6 @@ The MIDI piano on the grass, played by OSC (Open Sound Control), for example fro
 
 - **A finger and OSC don't know of each other.** Letting go of a key by hand lifts it even while the OSC chord or note holds it, and a new chord lifts old chord keys a finger still holds (`press` in `piano_play.ts`, `PlayChord` in `MidiPiano.ts`). Seen in the code, not tried.
 - **[sonicpi.rb](../../examples/sonicpi.rb) names an ngrok URL,** which changes whenever ngrok restarts.
-- **Not committed:** its one-line environment change, and the `stories.ts` change that goes with it, are in the working tree only.
 
 ## Open questions
 

@@ -1,4 +1,4 @@
-import { COMMANDS, HOST, KINDS, type Command, type Kind, type Member, type MeetingEvent, type MeetingState } from './src/story/lake_meeting/events.ts';
+import { HOST, RULES, type Command, type Kind, type MeetingEvent, type MeetingRules, type MeetingState, type Member } from './src/story/lake_meeting/events.ts';
 
 // Who is at the lake meeting (src/story/lake_meeting/lake_meeting.md), kept by
 // the dev server so every page shows the same animals (chat-bridge.ts). It
@@ -16,6 +16,10 @@ import { COMMANDS, HOST, KINDS, type Command, type Kind, type Member, type Meeti
 //   the fish leap, higher for a bigger Super Chat.
 // - A deleted message is taken back; a viewer a moderator removes leaves at
 //   once.
+//
+// The forest lake meeting (src/story/forest_lake_meeting) is kept the same
+// way, from the same chat, by another Meeting with its rules: its kinds,
+// commands and host (MeetingRules; the lake's by default).
 //
 // It is plain logic: the time and the random numbers are passed in, so a
 // test can run it without a server.
@@ -38,39 +42,44 @@ export interface Chat {
   target?: string; // a deletion's message
 }
 
-export interface Seat extends Member {
+export interface Seat<K extends string = Kind> extends Member<K> {
   last: number; // ms: when the viewer last wrote
 }
 
 // All of a meeting, for a new Meeting to go on from: the dev server
 // restarting after a change to this file carries the meeting over into the
 // new code (chat-bridge.ts).
-export interface SavedMeeting {
+export interface SavedMeeting<K extends string = Kind> {
   seq: number;
-  seats: Seat[];
+  seats: Seat<K>[];
   bots: number;
 }
 
-export class Meeting {
+export class Meeting<K extends string = Kind, C extends string = Command> {
   private seq = 0;
-  private seats: Seat[] = []; // in the order they joined, bots and viewers
+  private seats: Seat<K>[] = []; // in the order they joined, bots and viewers
   private bots = 0; // made so far, for their ids
-  private readonly emit: (seq: number, event: MeetingEvent) => void;
+  private readonly emit: (seq: number, event: MeetingEvent<K, C>) => void;
   private readonly now: () => number;
   private readonly random: () => number;
+  private readonly rules: MeetingRules<K, C>;
 
   constructor(
-    emit: (seq: number, event: MeetingEvent) => void,
+    emit: (seq: number, event: MeetingEvent<K, C>) => void,
     now: () => number = Date.now,
     random: () => number = Math.random,
-    saved?: SavedMeeting,
+    saved?: SavedMeeting<K>,
+    rules: MeetingRules<K, C> = RULES as unknown as MeetingRules<K, C>,
   ) {
     this.emit = emit;
     this.now = now;
     this.random = random;
+    this.rules = rules;
     if (saved) {
       this.seq = saved.seq;
-      this.seats = saved.seats.map((seat) => ({ ...seat }));
+      // Only the kinds these rules know: a meeting saved by code with other
+      // kinds keeps the viewers, as a kind of this one's.
+      this.seats = saved.seats.map((seat) => ({ ...seat, kind: rules.kinds.includes(seat.kind) ? seat.kind : this.randomKind() }));
       this.bots = saved.bots;
       this.fill(true); // this code may want more bots
     } else {
@@ -78,11 +87,11 @@ export class Meeting {
     }
   }
 
-  state(): MeetingState {
+  state(): MeetingState<K> {
     return { seq: this.seq, members: this.seats.map(({ id, name, kind, bot }) => ({ id, name, kind, bot })) };
   }
 
-  save(): SavedMeeting {
+  save(): SavedMeeting<K> {
     return { seq: this.seq, seats: this.seats.map((seat) => ({ ...seat })), bots: this.bots };
   }
 
@@ -132,8 +141,8 @@ export class Meeting {
     const words = message.text.trim();
     const [first = '', ...rest] = words.split(/\s+/);
     const word = first.startsWith('!') ? first.slice(1).toLowerCase() : '';
-    const kind = (KINDS as readonly string[]).includes(word) ? (word as Kind) : null;
-    const command = (COMMANDS as readonly string[]).includes(word) ? (word as Command) : null;
+    const kind = (this.rules.kinds as readonly string[]).includes(word) ? (word as K) : null;
+    const command = (this.rules.commands as readonly string[]).includes(word) ? (word as C) : null;
     const id = this.speaker(message, kind);
     if (kind) {
       if (id !== HOST) this.switch(id, kind);
@@ -142,8 +151,8 @@ export class Meeting {
     }
     if (command) {
       const seat = this.seats.find((s) => s.id === id);
-      const kindNow = id === HOST ? 'bear' : seat?.kind;
-      if (command !== 'flap' || kindNow === 'penguin') this.send({ type: 'command', id, command });
+      const kindNow = id === HOST ? this.rules.host : seat?.kind;
+      if (this.rules.can(command, kindNow ?? '')) this.send({ type: 'command', id, command });
       if (rest.length) this.say(id, message.author.name, rest.join(' '), message.id);
       return;
     }
@@ -153,7 +162,7 @@ export class Meeting {
   // Who says a message: the host for the channel owner, otherwise the
   // viewer's animal, which joins first if it isn't there (as `kind`, or a
   // random one). Its viewer is no longer quiet.
-  private speaker(message: Chat, kind: Kind | null): string {
+  private speaker(message: Chat, kind: K | null): string {
     const { author } = message;
     if (author.owner) return HOST;
     const id = author.channel || `name:${author.name}`;
@@ -169,7 +178,7 @@ export class Meeting {
 
   // A viewer's animal joins: it takes a bot's place, or the oldest viewer's
   // when the meeting is full.
-  private join(member: Member): void {
+  private join(member: Member<K>): void {
     const bot = this.seats.find((s) => s.bot);
     if (bot) this.leave(bot, 'walk');
     const viewers = this.seats.filter((s) => !s.bot);
@@ -178,7 +187,7 @@ export class Meeting {
     this.send({ type: 'join', member });
   }
 
-  private switch(id: string, kind: Kind): void {
+  private switch(id: string, kind: K): void {
     const seat = this.seats.find((s) => s.id === id);
     if (!seat || seat.kind === kind) return;
     seat.kind = kind;
@@ -190,7 +199,7 @@ export class Meeting {
     if (clean) this.send({ type: 'say', id, name, text: clean, message });
   }
 
-  private leave(seat: Seat, how: 'walk' | 'destroy' | 'remove'): void {
+  private leave(seat: Seat<K>, how: 'walk' | 'destroy' | 'remove'): void {
     this.seats = this.seats.filter((s) => s !== seat);
     this.send({ type: 'leave', id: seat.id, how });
   }
@@ -207,17 +216,18 @@ export class Meeting {
   // there from the start.
   private fill(walk: boolean): void {
     while (this.seats.length < BOTS) {
-      const member: Member = { id: `bot-${++this.bots}`, name: '', kind: this.randomKind(), bot: true };
+      const member: Member<K> = { id: `bot-${++this.bots}`, name: '', kind: this.randomKind(), bot: true };
       this.seats.push({ ...member, last: this.now() });
       if (walk) this.send({ type: 'join', member });
     }
   }
 
-  private randomKind(): Kind {
-    return KINDS[Math.min(KINDS.length - 1, Math.floor(this.random() * KINDS.length))];
+  private randomKind(): K {
+    const kinds = this.rules.kinds;
+    return kinds[Math.min(kinds.length - 1, Math.floor(this.random() * kinds.length))];
   }
 
-  private send(event: MeetingEvent): void {
+  private send(event: MeetingEvent<K, C>): void {
     this.emit(++this.seq, event);
   }
 }

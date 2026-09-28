@@ -1,11 +1,13 @@
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import type {} from 'vite/types/customEvent.d.ts';
+import type { ForestNumbered, ForestState } from './story/forest_lake_meeting/events';
 import type { ChatStatus, MeetingState, Numbered, TestChat } from './story/lake_meeting/events';
 
-// The YouTube live chat for the lake meeting, as the page gets it from the dev
-// server (chat-bridge.ts): the meeting's events as the Vite event
-// 'meeting:event' (the story listens with onMeeting()), where the meeting
+// The YouTube live chat for the lake meeting and the forest lake meeting, as
+// the page gets it from the dev server (chat-bridge.ts), which keeps both
+// from the one chat: each meeting's events as a Vite event ('meeting:event',
+// 'forest-meeting:event'; a story listens with onMeeting()), where a meeting
 // stands when a page opens (fetchMeeting()), and how reading the chat goes,
 // for the Story tab (chatStatus), which picks the channel and can send
 // made-up messages. Only the dev server (npm run dev) has the bridge.
@@ -13,29 +15,42 @@ import type { ChatStatus, MeetingState, Numbered, TestChat } from './story/lake_
 declare module 'vite/types/customEvent.d.ts' {
   interface CustomEventMap {
     'meeting:event': Numbered;
+    'forest-meeting:event': ForestNumbered;
     'chat:status': ChatStatus;
   }
 }
 
-const listeners = new Set<(numbered: Numbered) => void>();
+// Each meeting's events and state, by its story.
+interface Meetings {
+  lake_meeting: { numbered: Numbered; state: MeetingState };
+  forest_lake_meeting: { numbered: ForestNumbered; state: ForestState };
+}
+type Story = keyof Meetings;
+const PATHS: Record<Story, string> = { lake_meeting: '/__chat/meeting', forest_lake_meeting: '/__chat/forest-meeting' };
+
+const listeners: { [S in Story]: Set<(numbered: Meetings[S]['numbered']) => void> } = { lake_meeting: new Set(), forest_lake_meeting: new Set() };
 
 import.meta.hot?.on('meeting:event', (numbered) => {
-  for (const listener of listeners) listener(numbered);
+  for (const listener of listeners.lake_meeting) listener(numbered);
+});
+import.meta.hot?.on('forest-meeting:event', (numbered) => {
+  for (const listener of listeners.forest_lake_meeting) listener(numbered);
 });
 
-export function onMeeting(listener: (numbered: Numbered) => void): () => void {
-  listeners.add(listener);
+export function onMeeting<S extends Story = 'lake_meeting'>(listener: (numbered: Meetings[S]['numbered']) => void, story?: S): () => void {
+  const set = listeners[story ?? 'lake_meeting'] as Set<(numbered: Meetings[S]['numbered']) => void>;
+  set.add(listener);
   return () => {
-    listeners.delete(listener);
+    set.delete(listener);
   };
 }
 
-// The meeting now, or null without a dev server to ask (a built page).
-export async function fetchMeeting(): Promise<MeetingState | null> {
+// A meeting now, or null without a dev server to ask (a built page).
+export async function fetchMeeting<S extends Story = 'lake_meeting'>(story?: S): Promise<Meetings[S]['state'] | null> {
   try {
-    const answer = await fetch('/__chat/meeting', { cache: 'no-store' });
+    const answer = await fetch(PATHS[story ?? 'lake_meeting'], { cache: 'no-store' });
     if (!answer.ok || !answer.headers.get('content-type')?.includes('json')) return null;
-    return (await answer.json()) as MeetingState;
+    return (await answer.json()) as Meetings[S]['state'];
   } catch {
     return null;
   }

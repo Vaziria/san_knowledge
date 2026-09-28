@@ -5,17 +5,22 @@ import { createInterface, type Interface } from 'node:readline';
 import type { Readable } from 'node:stream';
 import type { Connect, Logger, Plugin } from 'vite';
 import { Meeting, type Chat, type SavedMeeting } from './meeting.ts';
-import type { ChatStatus, Numbered, TestChat } from './src/story/lake_meeting/events.ts';
+import { RULES as FOREST_RULES, type Command as ForestCommand, type Kind as ForestKind } from './src/story/forest_lake_meeting/events.ts';
+import type { ChatStatus, MeetingEvent, TestChat } from './src/story/lake_meeting/events.ts';
 
-// The YouTube live chat for the lake meeting story (src/story/lake_meeting).
-// Browsers can't read YouTube's chat themselves, so the dev server does, with
-// san_youtube (golang/packages/san_youtube, its -json output), and keeps the
-// meeting (meeting.ts): who is there, and what each message makes them do.
-// Every page that draws the meeting gets the same events, as the Vite event
-// 'meeting:event', and a page that opens (or reloads) first asks where the
-// meeting stands. Only `npm run dev` has it, like the OSC and stream bridges.
+// The YouTube live chat for the lake meeting story (src/story/lake_meeting),
+// and for the forest lake meeting (src/story/forest_lake_meeting), which
+// meets from the same chat. Browsers can't read YouTube's chat themselves,
+// so the dev server does, with san_youtube (golang/packages/san_youtube, its
+// -json output), and keeps each meeting (meeting.ts): who is there, and what
+// each message makes them do. Every page that draws a meeting gets the same
+// events, as a Vite event ('meeting:event' for the lake's,
+// 'forest-meeting:event' for the forest lake's), and a page that opens (or
+// reloads) first asks where its meeting stands. Only `npm run dev` has it,
+// like the OSC and stream bridges.
 //
-// - GET /__chat/meeting: the meeting now (MeetingState).
+// - GET /__chat/meeting: the lake meeting now (MeetingState).
+// - GET /__chat/forest-meeting: the forest lake meeting now.
 // - GET /__chat/status: reading the chat (ChatStatus), also sent on every
 //   change as the Vite event 'chat:status'.
 // - POST /__chat/channel { channel }: reads that channel's live chat (an
@@ -23,7 +28,7 @@ import type { ChatStatus, Numbered, TestChat } from './src/story/lake_meeting/ev
 //   live yet is tried again every 30 s, so the Story tab can connect before
 //   going live.
 // - POST /__chat/say { name, text, as }: a made-up message (TestChat), to try
-//   the meeting without YouTube.
+//   the meetings without YouTube.
 //
 // san_youtube is golang/packages/san_youtube/bin/san_youtube(.exe), or
 // SAN_YOUTUBE. It reads chat the way the chat window on youtube.com does, so
@@ -31,22 +36,25 @@ import type { ChatStatus, Numbered, TestChat } from './src/story/lake_meeting/ev
 //
 // A dev server restart (vite.config.ts or a file it imports changed, this one
 // and meeting.ts among them) carries on: Vite makes a new plugin from the new
-// code before the old one closes, and the old one hands it the meeting (into
-// a Meeting of the new code) and the running san_youtube, so no comment is
+// code before the old one closes, and the old one hands it the meetings (into
+// Meetings of the new code) and the running san_youtube, so no comment is
 // missed and the viewers' animals stay.
 
 const RETRY_MS = 30_000; // after the stream wasn't live, ended or the network failed
 const SLOW_RETRY_MS = 120_000; // after YouTube refused (rate limited, chat off, members only)
-const TICK_MS = 5_000; // how often the meeting checks for quiet viewers
+const TICK_MS = 5_000; // how often the meetings check for quiet viewers
 const POLL = '1s'; // how often san_youtube asks YouTube for new chat
 const MAX_POST = 16 * 1024;
 
 // What the plugin before a restart hands the new one. HANDOVER changes when
-// its shape does; a plugin that doesn't know the shape refuses it.
-const HANDOVER = 1;
+// its shape does; a plugin that doesn't know the shape refuses it. Version 2
+// added the forest lake meeting; a version 1 handover (the lake meeting's
+// alone) is taken too, the forest lake meeting starting afresh.
+const HANDOVER = 2;
 interface Handover {
   version: number;
-  meeting: SavedMeeting;
+  meeting: SavedMeeting; // the lake meeting's
+  forest?: SavedMeeting<ForestKind>; // the forest lake meeting's, from version 2
   reader: Reading;
   tests: number;
 }
@@ -62,17 +70,29 @@ export function chatBridge(): Plugin {
     apply: 'serve',
     configureServer(server) {
       const { logger } = server.config;
-      const emit = (seq: number, event: Numbered['event']) => server.hot.send('meeting:event', { seq, event } satisfies Numbered);
-      let meeting = new Meeting(emit);
-      const reader = new ChatReader(sanYoutube(server.config.root), logger, (chat) => meeting.chat(chat), (status) =>
-        server.hot.send('chat:status', status),
+      const emitLake = (seq: number, event: MeetingEvent) => server.hot.send('meeting:event', { seq, event });
+      const emitForest = (seq: number, event: MeetingEvent<ForestKind, ForestCommand>) => server.hot.send('forest-meeting:event', { seq, event });
+      let meeting = new Meeting(emitLake);
+      let forest = new Meeting(emitForest, Date.now, Math.random, undefined, FOREST_RULES);
+      const reader = new ChatReader(
+        sanYoutube(server.config.root),
+        logger,
+        (chat) => {
+          meeting.chat(chat);
+          forest.chat(chat);
+        },
+        (status) => server.hot.send('chat:status', status),
       );
-      const tick = setInterval(() => meeting.tick(), TICK_MS);
+      const tick = setInterval(() => {
+        meeting.tick();
+        forest.tick();
+      }, TICK_MS);
       let tests = 0;
 
       const adopt = (handover: Handover): boolean => {
-        if (handover.version !== HANDOVER) return false;
-        meeting = new Meeting(emit, Date.now, Math.random, handover.meeting);
+        if (handover.version !== HANDOVER && handover.version !== 1) return false;
+        meeting = new Meeting(emitLake, Date.now, Math.random, handover.meeting);
+        if (handover.forest) forest = new Meeting(emitForest, Date.now, Math.random, handover.forest, FOREST_RULES);
         reader.adopt(handover.reader);
         tests = handover.tests;
         if (handover.reader.child) logger.info('chat: still reading, through the restart', { timestamp: true });
@@ -83,7 +103,7 @@ export function chatBridge(): Plugin {
         clearInterval(tick);
         const next = latest[LATEST];
         if (reason === 'restart' && next && next !== adopt) {
-          const handover: Handover = { version: HANDOVER, meeting: meeting.save(), reader: reader.release(), tests };
+          const handover: Handover = { version: HANDOVER, meeting: meeting.save(), forest: forest.save(), reader: reader.release(), tests };
           if (!next(handover)) handover.reader.child?.kill();
         } else {
           reader.read(null);
@@ -103,6 +123,7 @@ export function chatBridge(): Plugin {
           }
         };
         if (req.method === 'GET' && req.url === '/meeting') return answer(200, meeting.state());
+        if (req.method === 'GET' && req.url === '/forest-meeting') return answer(200, forest.state());
         if (req.method === 'GET' && req.url === '/status') return answer(200, reader.status);
         if (req.method !== 'POST') return answer(404);
         void readJson(req).then((body) => {
@@ -117,6 +138,7 @@ export function chatBridge(): Plugin {
             const test = testChat(body, ++tests);
             if (typeof test === 'string') return answer(400, test);
             meeting.chat(test);
+            forest.chat(test);
             return answer(204);
           }
           answer(404);
@@ -124,7 +146,7 @@ export function chatBridge(): Plugin {
       });
 
     },
-    // A restart hands the meeting and the reader to the new plugin; a close
+    // A restart hands the meetings and the reader to the new plugin; a close
     // stops reading.
     closeServer({ reason }) {
       close?.(reason);

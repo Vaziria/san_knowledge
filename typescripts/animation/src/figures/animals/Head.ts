@@ -7,8 +7,10 @@ import { blob, capsule, mesh, plain, polygons, solid, type AnimalMaterials, type
 // three kinds (pointed, round, or broad and set out to the sides), with
 // antlers for a deer. Or a head modelled by hand, corner by corner and face
 // by face, low poly like folded paper (a HeadModel: the wolf's, bear's,
-// cat's, deer's, fox's and lion's, from the user's models), with what the
-// model adds to it (a lion's mane, a cat's whiskers, a deer's antlers). The
+// cat's, deer's, fox's and lion's, from the user's models, and those of the
+// animal park, the wolf's stretched: animalPark.ts), with what the model adds
+// to it (a lion's mane, a cat's whiskers, a deer's antlers, an ox's horns);
+// the monkey's is only what its model adds, lofts and discs. The
 // origin is where the neck joins it, at the back of the skull; the animal
 // turns the head about it. `mouth` is under the snout, where a held figure
 // goes.
@@ -127,9 +129,11 @@ export class Head extends THREE.Group {
       return color;
     };
 
+    // A head built wholly by what the model adds (the monkey's) has no faces.
     const coat = faces.filter(([color]) => color !== 'eye');
-    rest.add(mesh(polygons(coat.map(corners), (_n, i) => colorOf(coat[i][0])), m.coat));
-    rest.add(mesh(polygons(faces.filter(([color]) => color === 'eye').map(corners)), m.eye));
+    const eyes = faces.filter(([color]) => color === 'eye');
+    if (coat.length) rest.add(mesh(polygons(coat.map(corners), (_n, i) => colorOf(coat[i][0])), m.coat));
+    if (eyes.length) rest.add(mesh(polygons(eyes.map(corners)), m.eye));
     this.mouth.position.copy(at(model.mouth));
     for (const extra of model.extras ?? []) rest.add(extra({ m, colors, unit: model.unit, point: at }));
   }

@@ -49,7 +49,18 @@ export interface SightOptions {
   ground(x: number, z: number): number; // without a lake, the floor, in the meeting's coordinates
 }
 
-export class Sight {
+// What the meeting's cameras ask of what they see (Follow.ts, HostView.ts):
+// this lake's (Sight), or the forest lake's (forest_lake_meeting/ForestSight.ts).
+export interface Seeing {
+  // The height a camera must keep over, at a point.
+  floor(x: number, z: number): number;
+  // Whether a point is in something solid.
+  blocked(point: THREE.Vector3): boolean;
+  // Whether nothing stands between two points, but in the first `skip` m.
+  sees(from: THREE.Vector3, to: THREE.Vector3, skip?: number): boolean;
+}
+
+export class Sight implements Seeing {
   private readonly offset: THREE.Vector3;
   private readonly lake: Lake | null;
   private readonly ground: (x: number, z: number) => number;
@@ -226,7 +237,7 @@ function key(i: number, j: number): number {
 
 // Every triangle of the meshes under a root, in the coordinates `toFrame`
 // takes the world's to (an instanced mesh's once for each instance).
-function eachTriangle(root: THREE.Object3D, toFrame: THREE.Matrix4, visit: (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) => void): void {
+export function eachTriangle(root: THREE.Object3D, toFrame: THREE.Matrix4, visit: (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) => void): void {
   const a = new THREE.Vector3();
   const b = new THREE.Vector3();
   const c = new THREE.Vector3();

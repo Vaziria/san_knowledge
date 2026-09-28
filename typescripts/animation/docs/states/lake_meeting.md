@@ -1,6 +1,6 @@
 # Lake meeting state
 
-Updated 2026-09-26 by every animal rebuilt from the model in its spec (asked for directly, no task file): the lion a new kind, the penguin an animal now, the host bear on all fours, the fish a salmon. Earlier that night by the swamps at the lakeside (the Scene line); before that by task 14 (the host roams), task 11 (the floating logs) and task 09 (the dock); first written by task 17, from the code as it was then.
+Updated 2026-09-28 by the forest lake meeting (asked for directly, no task file; [forest_lake_meeting.md](forest_lake_meeting.md)), which plays on this story's modules: they were opened to it with no change to what the lake meeting does, and the dev server keeps both meetings from the one chat. Before that, 2026-09-26, by the sun's shadow (asked for directly, no task file): the frog and the snake keep their shadows on the grass now (the shadow line). Before that, the same day, by every animal rebuilt from the model in its spec (asked for directly, no task file): the lion a new kind, the penguin an animal now, the host bear on all fours, the fish a salmon. Earlier that night by the swamps at the lakeside (the Scene line); before that by task 14 (the host roams), task 11 (the floating logs) and task 09 (the dock); first written by task 17, from the code as it was then.
 
 ## What works
 
@@ -40,11 +40,21 @@ The viewers of the YouTube live stream meet at the lake as animals. Spec: [lake_
   - A supporter's leap is filmed from the shore's side of the fish, following the leap.
 - **When the chat is quiet:** after 3.5 s the camera goes back to the host, wherever it is, and follows it as it roams, about as wide as the opening shot, from in front of it or the first clear side, never in or through anything ([HostView.ts](../../src/story/lake_meeting/HostView.ts); Stories rule 21). After 30 s the follow takes over, its first animal never the host. Then it follows a random animal (the host and the bots too, never the same one twice running) for 30 s each, in about four cut shots of 6–9 s from different angles, never through the ground, the water, a tree, a rock, the dock, a floating log or an animal ([Follow.ts](../../src/story/lake_meeting/Follow.ts), [Sight.ts](../../src/story/lake_meeting/Sight.ts); Stories rule 19).
 - **The fish leaps of its own accord** every 20–60 s, 0.15–0.28 m, lower than any supporter's, with no turn and no camera. None while a supporter's leap waits or is under way, and none within 20 s after one ([FishLeaps.ts](../../src/story/lake_meeting/FishLeaps.ts); Stories rule 18).
-- **The sun's shadow follows the view** (`followShadow`), so an animal far out keeps its shadow.
-- **The Story tab's chat controls** ([ChatControls.tsx](../../src/panel/ChatControls.tsx), [control_panel.md](control_panel.md)): the channel to read, and made-up messages as a viewer, the owner, a Super Chat (Rp 200.000, a 0.8 m leap) or a new member, through `POST /__chat/say` ([chat-bridge.ts](../../chat-bridge.ts)).
+- **The sun's shadow follows the view** (`followShadow`), so an animal far out keeps its shadow. Low ones keep theirs too since 2026-09-26: on this shadow, ±5.75 m, the frog cast none on the grass and the snake's head shadow came loose, until the stage's normal offset became two shadow texels ([control_panel.md](control_panel.md)). They are softer than a figure's own small shadow, a shadow texel being 5.6 mm here.
+- **The Story tab's chat controls** ([ChatControls.tsx](../../src/panel/ChatControls.tsx), [control_panel.md](control_panel.md)): the channel to read, and made-up messages as a viewer, the owner, a Super Chat (Rp 200.000, a 0.8 m leap) or a new member, through `POST /__chat/say` ([chat-bridge.ts](../../chat-bridge.ts)). Its list of kinds now names `!frog` and `!lion` too.
+- **Shared with the forest lake meeting** ([forest_lake_meeting.md](forest_lake_meeting.md)), since 2026-09-28. Opening them changed nothing the lake meeting does:
+  - `Figure` ([kinds.ts](../../src/story/lake_meeting/kinds.ts)) is an interface every meeting's figures meet, and `Member` is handed its figure (`makeFigure()`).
+  - `Roam` takes what a standing animal does now and then (`Pastime`; here, as before, a jump or a penguin's flap).
+  - `Land` takes where the water is (`wet`) and a `home` all its land must be walked to from; the lake passes neither. Its obstacles are sorted into 4 m squares: an obstacle's edge more than 8 m off, left out, never changed what an animal may do.
+  - The cameras take any `Seeing` ([Sight.ts](../../src/story/lake_meeting/Sight.ts)); `FishLeaps` takes any fish that leaps.
+  - The events' types ([events.ts](../../src/story/lake_meeting/events.ts)) take a meeting's kinds and commands, the lake's by default, and `RULES` (only a penguin flaps) tells the dev server's `Meeting` what a message may ask for. The dev server runs one `Meeting` per story, both fed every chat message ([streaming.md](streaming.md)).
 
 ## How it was last checked
 
+- 2026-09-28, after the forest lake meeting opened its modules: typecheck clean.
+  - **Node:** at the dev server's `Meeting`, a penguin still flaps, and a forest trick (`!howl`) is only a comment here.
+  - **Headless Edge on the GPU** (test server on port 8151, 1280×720, the filter on): the lake meeting loads (3.5 s of long tasks, then 60 frames a second). Timed screenshots showed a viewer's comment in its bubble, `!penguin` then `!flap`, the owner's bear speaking and the quiet camera following a wolf in the rain.
+  - **The user's dev server** restarted onto the new chat bridge and kept the lake meeting (a version 1 handover, taken).
 - 2026-09-26, [task 11](../../../../tasks/done/11-lake-meeting-logs.md), the floating logs: typecheck clean at 00:26.
   - **The lake:** built with the dock alone and with the logs too, the stones, boulders, mud pits, trees, grass and deck were exactly the same.
   - **A 30 min run with 8 viewers and the bots**, the weather's own wind (over 0.5 in 24% of the frames):
@@ -74,7 +84,6 @@ The viewers of the YouTube live stream meet at the lake as animals. Spec: [lake_
 
 ## Known issues and left for the user
 
-- **Not in git.** `src/story/lake_meeting/`, `meeting.ts`, `chat-bridge.ts`, `src/chat.ts` and `ChatControls.tsx` are untracked: no commit holds the meeting.
 - **Each page roams on its own.** Only who is there and what they say is shared. Each page picks its own spots, ways and followed animals with its own random numbers, so the panel's page and the stream's hidden page show the same animals in different places. Task 07 noted it for the first places; the code does it for all roaming. Only the stream matters to viewers.
 - **A turn that follows the host walking or running** keeps its side and can pass a crown or a trunk: 0–24 frames a run with the camera in one and 0–24 with the host hidden, of 2,200–3,900 frames of the host's turns (task 14). Any animal's does the same.
 - **The fish's own leaps are hardly seen.** From the opening shot its loop is some 16 m off, behind where the host starts, and lost in fog; the host's view goes wherever the host is. The quiet camera never follows the fish.
@@ -96,6 +105,8 @@ The viewers of the YouTube live stream meet at the lake as animals. Spec: [lake_
 
 ## History
 
+- 2026-09-28, asked for directly (no task file, not committed): the forest lake meeting built on this story's modules. They were opened to it: `Figure` an interface, `Member` handed its figure, `Roam`'s pastime, `Land`'s `wet`, `home` and obstacle buckets, `Seeing`, and `FishLeaps` taking any fish. The events' types became generic, with `MeetingRules`, and the dev server's `Meeting` takes rules. The chat controls name `!frog` and `!lion`.
+- 2026-09-26, asked for directly (no task file, not committed): the stage's shadow offset cut to two texels ([control_panel.md](control_panel.md)), so the frog and the snake keep their shadows here. Checked with both frozen on the grass under a shadow of the meeting's bounds, not in the meeting itself: its opening shot has the animals behind the panel.
 - 2026-09-26, no task file, not committed: the animals rebuilt from their models ([animals.md](animals.md)): the lion is a kind (`!lion`), the penguin an animal like the others (`Figure` is `Animal`), the host bear on all fours, the fish a salmon. Checked with a test viewer's `!lion` on the GPU at 1280×720: the lion roamed and spoke with its named bubble (the close-up put a three-line bubble's top line at the frame's edge); the penguin, frog and snake agents checked theirs.
 - 2026-09-26, asked for directly ("add swamps in lakeside", no task file): the meeting's lake has two swamps ([environments.md](environments.md)).
 - 2026-09-26 [task 14, the host roams](../../../../tasks/done/14-lake-meeting-host-roams.md): the host roams like the others from the landing; the host's view follows it (HostView.ts); its fixed place, its room and its right of way are gone; the turns' close-ups keep out of crowns; waiting animals no longer creep into one another.

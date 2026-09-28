@@ -1,14 +1,14 @@
 import * as THREE from 'three';
-import type { Theme } from '../../theme';
-import type { Kind } from './events';
-import { disposeFigure, makeFigure, type Figure } from './kinds';
+import { disposeFigure, type Figure } from './kinds';
 
 // One animal at the lake meeting (Meeting.ts): the host's Bear, a viewer's
-// animal or a bot. It walks or runs along a path of points, as it roams the
+// animal or a bot; and at the forest lake meeting its forest animals and
+// explorer (forest_lake_meeting/). It walks or runs along a path of points, as it roams the
 // lake's land (Roam.ts). It steers itself toward each point, turning at most
 // so fast, and moves itself forward (the figures walk by themselves), so its
 // feet keep to its steps. It stays wherever it stops, with the heading it
-// arrived with. It stands on the uneven ground, leaning with its slope.
+// arrived with. It stands on the uneven ground, leaning with its slope. The
+// meeting builds its figure (the lake's makeFigure()) and hands it over.
 
 const WALK_TURN = 2.2; // radians a second, turning toward the next point while walking
 const RUN_TURN = 3.2; // and running
@@ -27,7 +27,7 @@ export interface Step {
 export class Member {
   readonly id: string;
   name: string;
-  kind: Kind | 'bear';
+  kind: string;
   readonly bot: boolean;
   figure: Figure;
   length = 0; // m, nose to tail
@@ -37,17 +37,16 @@ export class Member {
   private path: Step[] = [];
   private onArrive: (() => void) | null = null;
 
-  constructor(id: string, name: string, kind: Kind | 'bear', bot: boolean, theme: Theme) {
+  constructor(id: string, name: string, kind: string, bot: boolean, figure: Figure) {
     this.id = id;
     this.name = name;
     this.kind = kind;
     this.bot = bot;
-    this.figure = this.build(kind, theme);
+    this.figure = this.measured(figure);
   }
 
-  // Builds its figure, measuring it as it stands.
-  private build(kind: Kind | 'bear', theme: Theme): Figure {
-    const figure = makeFigure(kind, theme);
+  // Takes its figure, measuring it as it stands.
+  private measured(figure: Figure): Figure {
     figure.updateMatrixWorld(true);
     const size = new THREE.Box3().setFromObject(figure).getSize(new THREE.Vector3());
     this.length = size.z;
@@ -59,10 +58,10 @@ export class Member {
 
   // Becomes another kind in its place: the new figure stands where the old
   // one did, the way it faced. Returns the old one, to be taken away.
-  change(kind: Kind, theme: Theme): Figure {
+  change(kind: string, figure: Figure): Figure {
     const old = this.figure;
     this.kind = kind;
-    this.figure = this.build(kind, theme);
+    this.figure = this.measured(figure);
     this.figure.position.copy(old.position);
     this.figure.rotation.copy(old.rotation);
     return old;

@@ -224,7 +224,7 @@ export class Stage {
     this.elapsed = 0;
     behaviours.setState({ behaviours: preview.behaviours ?? [] }); // for the panel's buttons
 
-    const s = theme.scene;
+    const s = environment.light ?? theme.scene; // an environment may bring its own (the forest lake)
     this.scene.background = new THREE.Color(s.background);
     this.hemisphere.color.set(s.sky);
     this.hemisphere.groundColor.set(s.ground);
@@ -524,7 +524,8 @@ export class Stage {
   // sits far enough out to be above the figure's top. At least ±0.52 m, so a
   // walking penguin stays inside it. The offsets that keep surfaces from
   // shadowing themselves in stripes (acne) grow with it, because each shadow
-  // texel then covers more of the figure.
+  // texel then covers more of the figure: the normal offset is NORMAL_BIAS
+  // texels.
   private fitShadow(bounds: THREE.Box3): void {
     const footprint = Math.max(...[bounds.min.x, bounds.max.x, bounds.min.z, bounds.max.z].map(Math.abs));
     const reach = 1.15 * Math.max(0.45, footprint, 0.65 * bounds.max.y);
@@ -536,7 +537,7 @@ export class Stage {
     shadow.far = light.position.length() + 2 * reach;
     shadow.updateProjectionMatrix();
     light.shadow.bias = -0.0005;
-    light.shadow.normalBias = 0.01 * reach;
+    light.shadow.normalBias = (NORMAL_BIAS * 2 * reach) / light.shadow.mapSize.x;
     this.shadowFrom = light.position.clone(); // from the shadow's middle, which moveShadow() moves
     light.target.position.set(0, 0, 0);
     light.target.updateMatrixWorld();
@@ -653,6 +654,13 @@ function upOrDown(pitch: number): number {
   return THREE.MathUtils.clamp(pitch, -MOST_PITCH, MOST_PITCH);
 }
 
+// Shadow texels a surface looks for its shadow off itself, along its normal:
+// as far as the shadow's filter reads round a point, so a thin or slanting
+// surface (a hull, a grass blade) doesn't shadow itself. It was 0.01 x the
+// shadow's reach, about ten texels: on the lake meeting's ±5.75 m shadow every
+// point looked 5.75 cm above itself, and a frog on the grass cast no shadow.
+const NORMAL_BIAS = 2;
+
 const NEAR = 0.1; // m, the camera's near plane from a meter or more away
 const NEAREST = 0.002; // m, the nearest it comes in close
 const GLIDE = 7; // how fast the camera glides to a picked direction, per second
@@ -698,8 +706,13 @@ function dispose(...roots: THREE.Object3D[]): void {
         resources.add(object.material);
         if (object.material.map) resources.add(object.material.map);
       }
+      if (object instanceof THREE.Points) {
+        resources.add(object.geometry); // sparks, splash drops (the forest lake's)
+        for (const material of [object.material].flat()) resources.add(material);
+      }
       if (!(object instanceof THREE.Mesh)) return;
       if (object instanceof THREE.InstancedMesh) resources.add(object); // its instances' matrices and colours
+      if (object instanceof THREE.SkinnedMesh) resources.add(object.skeleton); // its bones' texture (the forest lake's animals)
       resources.add(object.geometry);
       for (const material of [object.material].flat()) resources.add(material);
     });

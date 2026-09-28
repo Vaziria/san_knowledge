@@ -13,13 +13,27 @@ import { Wolf } from '../../figures/animals/Wolf';
 import type { Theme } from '../../theme';
 import type { Kind } from './events';
 
+// What a meeting asks of its figures (the lake's animals here, and the forest
+// lake meeting's, forest_lake_meeting/guests.ts): it moves itself forward
+// the way it faces at `speed` while it walks or runs, jumps, stops, and says
+// things in a speech bubble headed by a viewer's name.
+export interface Figure extends THREE.Object3D {
+  readonly speed: number;
+  Jump(): void;
+  Walk(): void;
+  Run(): void;
+  Stop(): void;
+  Speech(text: string, speaker?: string): void;
+  readonly speaking: boolean;
+  readonly speechBubble: THREE.Object3D;
+  update(delta: number): void;
+}
+
 // The figures at the lake meeting: the host's Bear and the kinds a viewer's
 // animal can be. They share the behaviours the meeting uses: Jump(), Walk(),
 // Run(), Stop() and Speech(text, speaker); the penguin, an animal too, can
 // also Flap().
-export type Figure = Animal;
-
-const MAKERS: Record<Kind | 'bear', (theme: Theme) => Figure> = {
+const MAKERS: Record<Kind | 'bear', (theme: Theme) => Animal> = {
   bear: (theme) => new Bear({ theme }),
   cat: (theme) => new Cat({ theme }),
   wolf: (theme) => new Wolf({ theme }),

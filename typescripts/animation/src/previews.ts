@@ -1,24 +1,65 @@
 import * as THREE from 'three';
 import { demoStopper, type Behaviour } from './behaviours';
 import { Floor } from './environtments/Floor/Floor';
+import { ForestLake } from './environtments/ForestLake/ForestLake';
 import { Grass } from './environtments/Grass/Grass';
 import { deckPoint, FAR_SHORE } from './environtments/Lake/DockSite';
 import { Lake, type LakeOptions } from './environtments/Lake/Lake';
 import type { Animal } from './figures/animals/Animal';
+import { Antelope } from './figures/animals/Antelope';
 import { Bear } from './figures/animals/Bear';
 import { Bird } from './figures/animals/Bird';
 import { Cat } from './figures/animals/Cat';
+import { Coyote } from './figures/animals/Coyote';
+import { Crocodile } from './figures/animals/Crocodile';
 import { Deer } from './figures/animals/Deer';
 import { Fox } from './figures/animals/Fox';
 import { Frog } from './figures/animals/Frog';
 import { Lion } from './figures/animals/Lion';
+import { Monkey } from './figures/animals/Monkey';
+import { Ox } from './figures/animals/Ox';
 import type { AnimalOptions } from './figures/animals/parts';
 import { Penguin } from './figures/animals/Penguin';
+import { Pig } from './figures/animals/Pig';
+import { Raccoon } from './figures/animals/Raccoon';
 import { Snake } from './figures/animals/Snake';
+import { Squirrel } from './figures/animals/Squirrel';
+import { Tiger } from './figures/animals/Tiger';
 import { Wolf } from './figures/animals/Wolf';
 import { Boat } from './figures/Boat/Boat';
 import { DIRECTIONS, Fish, type Direction, type FishKind } from './figures/Fish/Fish';
 import { FishingRod } from './figures/FishingRod/FishingRod';
+import { forestAnimalPreviews } from './figures/ForestLake/animals/demos';
+import { Barrel } from './figures/ForestLake/Barrel';
+import { BroadleafTree } from './figures/ForestLake/BroadleafTree';
+import { Bridge } from './figures/ForestLake/Bridge';
+import { Bush } from './figures/ForestLake/Bush';
+import { Campfire } from './figures/ForestLake/Campfire';
+import { CaveEntrance } from './figures/ForestLake/CaveEntrance';
+import { CherryTree } from './figures/ForestLake/CherryTree';
+import { Crate } from './figures/ForestLake/Crate';
+import { DeadTree } from './figures/ForestLake/DeadTree';
+import { FallenLeaves } from './figures/ForestLake/FallenLeaves';
+import { Fence } from './figures/ForestLake/Fence';
+import { FlowerCluster } from './figures/ForestLake/FlowerCluster';
+import { ForestGate } from './figures/ForestLake/ForestGate';
+import { ForestPine } from './figures/ForestLake/ForestPine';
+import { GrassPatch } from './figures/ForestLake/GrassPatch';
+import { LampPost } from './figures/ForestLake/LampPost';
+import { LargeRock } from './figures/ForestLake/LargeRock';
+import { LilyPad } from './figures/ForestLake/LilyPad';
+import { MossyLog } from './figures/ForestLake/MossyLog';
+import { Mushrooms } from './figures/ForestLake/Mushrooms';
+import type { Season } from './figures/ForestLake/parts';
+import { Pier } from './figures/ForestLake/Pier';
+import { Reeds } from './figures/ForestLake/Reeds';
+import { Rowboat } from './figures/ForestLake/Rowboat';
+import { Ruins } from './figures/ForestLake/Ruins';
+import { SignPost } from './figures/ForestLake/SignPost';
+import { SmallRock } from './figures/ForestLake/SmallRock';
+import { Stump } from './figures/ForestLake/Stump';
+import { Tent } from './figures/ForestLake/Tent';
+import { WatchTower } from './figures/ForestLake/WatchTower';
 import { BermudaGrass } from './figures/Grass/BermudaGrass';
 import { ChivesGrass } from './figures/Grass/ChivesGrass';
 import { CockFootGrass } from './figures/Grass/CockFootGrass';
@@ -37,6 +78,7 @@ import { Log } from './figures/objects/Log';
 import { MudPit } from './figures/objects/MudPit';
 import { CedarTree } from './figures/Tree/CedarTree';
 import { ChestnutTree } from './figures/Tree/ChestnutTree';
+import { CrystalTree } from './figures/Tree/CrystalTree';
 import { ElmTree } from './figures/Tree/ElmTree';
 import { MapleTree } from './figures/Tree/MapleTree';
 import { OakTree } from './figures/Tree/OakTree';
@@ -247,6 +289,16 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
   snake: animal(Snake, 'snake', 0.8),
   frog: animal(Frog, 'frog', 0.2),
   lion: animal(Lion, 'lion', 1.6),
+  // The nine from the user's animal park (animalPark.ts).
+  crocodile: animal(Crocodile, 'crocodile', 2.2),
+  ox: animal(Ox, 'ox', 1.8),
+  antelope: animal(Antelope, 'antelope', 1.2),
+  tiger: animal(Tiger, 'tiger', 1.6),
+  coyote: animal(Coyote, 'coyote', 0.9),
+  raccoon: animal(Raccoon, 'raccoon', 0.6),
+  monkey: animal(Monkey, 'monkey', 0.5),
+  pig: animal(Pig, 'pig', 1.1),
+  squirrel: animal(Squirrel, 'squirrel', 0.25),
   'midi-piano': (theme) => {
     const midiPiano = new MidiPiano({ theme });
 
@@ -300,6 +352,10 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
   'spruce-tree': tree(SpruceTree),
   'elm-tree': tree(ElmTree),
   'willow-tree': tree(WillowTree),
+  // The crystal tree, the user's own model, plays its page's animation;
+  // its spec gives no behaviour, so its one button is its page's Glow
+  // slider (crystalTree() below).
+  'crystal-tree': crystalTree,
   // The grasses' specs have no behaviour yet, so each stands still (plant()
   // below).
   'cock-foot-grass': plant(CockFootGrass),
@@ -370,7 +426,103 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
       },
     };
   },
+  // The forest lake's fence (ForestLake/Fence.md): three posts and two
+  // sections, standing still, seen from in front and to its left, a little
+  // above, as its asset sheet shows it. Its colours are the forest lake's
+  // own, not the theme's, in the season of the forest lake it is shown in.
+  fence: (_theme, environment) => ({ figure: new Fence({ season: environment.season }), camera: [-1.6, 1.3, 2.7], target: [0.15, 0.42, 0], update() {} }),
+  // The rest of the forest lake's assets (figures/ForestLake/), in the
+  // asset sheet's order, then the reference's landmarks, then what the
+  // other references add (the broadleaf tree, reeds, mushrooms, fallen
+  // leaves, the bare winter tree, the forest entrance's gate).
+  'forest-pine': forestAsset((season) => new ForestPine({ season })),
+  'cherry-tree': forestAsset((season) => new CherryTree({ season })),
+  'small-rock': forestAsset((season) => new SmallRock({ season })),
+  'large-rock': forestAsset((season) => new LargeRock({ season })),
+  bush: forestAsset((season) => new Bush({ season })),
+  'grass-patch': forestAsset((season) => new GrassPatch({ season })),
+  'flower-cluster': forestAsset((season) => new FlowerCluster({ season })),
+  'lily-pad': floating((season) => new LilyPad({ season }), 0),
+  'mossy-log': forestAsset((season) => new MossyLog({ season })),
+  stump: forestAsset((season) => new Stump({ season })),
+  'lamp-post': forestAsset((season) => new LampPost({ season })),
+  'sign-post': forestAsset((season) => new SignPost({ season, lantern: true })),
+  tent: forestAsset((season) => new Tent({ season })),
+  rowboat: floating((season) => new Rowboat({ season }), Rowboat.DRAFT),
+  crate: forestAsset((season) => new Crate({ season })),
+  barrel: forestAsset((season) => new Barrel({ season })),
+  bridge: forestAsset((season) => new Bridge({ season })),
+  pier: forestAsset((season) => new Pier({ season })),
+  campfire: forestAsset((season) => new Campfire({ season, pot: true })),
+  'watch-tower': forestAsset((season) => new WatchTower({ season })),
+  ruins: forestAsset((season) => new Ruins({ season })),
+  'cave-entrance': forestAsset((season) => new CaveEntrance({ season }), [0.45, 0.3, 0.85]),
+  'broadleaf-tree': forestAsset((season) => new BroadleafTree({ season })),
+  reeds: forestAsset((season) => new Reeds({ season })),
+  mushrooms: forestAsset((season) => new Mushrooms({ season })),
+  'fallen-leaves': forestAsset(() => new FallenLeaves()),
+  'dead-tree': forestAsset((season) => new DeadTree({ season: season === 'spring' ? 'winter' : season })),
+  'forest-gate': forestAsset((season) => new ForestGate({ season })),
+  // The forest lake's animals, from the user's reference sheets, each
+  // playing its sheet's poses (figures/ForestLake/animals/demos.ts).
+  ...forestAnimalPreviews,
 };
+
+// One of the forest lake's assets (figures/ForestLake/), standing still
+// unless it moves on its own (a flame, a flag, a lantern), seen whole from
+// in front and to its left, a little above, as the asset sheet shows them.
+// Their colours are the forest lake's own, not the theme's, in the season
+// of the forest lake they are shown in (spring anywhere else).
+function forestAsset(build: (season: Season) => THREE.Object3D & { update?(delta: number): void }, from: [number, number, number] = [-0.55, 0.42, 0.72]) {
+  return (_theme: Theme, environment: Environment): Preview => {
+    const figure = build(environment.season ?? 'spring');
+    const box = new THREE.Box3().setFromObject(figure);
+    const center = box.getCenter(new THREE.Vector3());
+    const radius = box.getSize(new THREE.Vector3()).length() / 2;
+    // Far enough for its bounding sphere to fill most of the 50° view.
+    const camera = center.clone().addScaledVector(new THREE.Vector3(...from).normalize(), (radius / Math.sin(THREE.MathUtils.degToRad(25))) * 0.92);
+    return {
+      figure,
+      camera: [camera.x, camera.y, camera.z],
+      target: [center.x, center.y, center.z],
+      update(_elapsed, delta) {
+        figure.update?.(delta);
+      },
+    };
+  };
+}
+
+// An asset that floats (the rowboat, the lily pads): in an environment with
+// water it sits in it, `draft` m deep, rising and falling with the waves
+// under it and tipping with them, easing toward them as a hull lags the
+// water it sits in; without water it rests on the ground.
+function floating(build: (season: Season) => THREE.Object3D & { keepDry?(): void }, draft: number) {
+  return (theme: Theme, environment: Environment): Preview => {
+    const preview = forestAsset(build)(theme, environment);
+    const figure = preview.figure as THREE.Object3D & { keepDry?(): void };
+    const water = environment.water;
+    if (!water) return preview;
+    figure.keepDry?.();
+    figure.position.y = -draft;
+    const box = new THREE.Box3().setFromObject(figure);
+    const reach = Math.max(0.2, (box.max.x - box.min.x) * 0.3);
+    const beam = Math.max(0.2, (box.max.z - box.min.z) * 0.3);
+    return {
+      ...preview,
+      place: 'water',
+      update(_elapsed, delta) {
+        const ahead = water.heightAt(reach, 0);
+        const astern = water.heightAt(-reach, 0);
+        const port = water.heightAt(0, -beam);
+        const starboard = water.heightAt(0, beam);
+        const t = 1 - Math.exp(-3 * delta);
+        figure.position.y += ((ahead + astern + port + starboard) / 4 - draft - figure.position.y) * t;
+        figure.rotation.z += (Math.atan2(ahead - astern, 2 * reach) - figure.rotation.z) * t;
+        figure.rotation.x += (Math.atan2(port - starboard, 2 * beam) - figure.rotation.x) * t;
+      },
+    };
+  };
+}
 
 // A tree standing still, seen whole: trees are real size, 10 to 20 m, so the
 // camera stands back from the middle of the tree far enough to take in its
@@ -378,12 +530,30 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
 function tree(Kind: new (options: TreeOptions) => THREE.Object3D) {
   return (theme: Theme): Preview => {
     const figure = new Kind({ theme });
-    const size = new THREE.Box3().setFromObject(figure).getSize(new THREE.Vector3());
-    const width = Math.max(size.x, size.z);
-    const distance = Math.max(1.3 * size.y, 0.9 * width) + 0.3 * width;
-    const middle = 0.45 * size.y;
-    const view = new THREE.Vector3(0.55, 0.12, 0.83).normalize().multiplyScalar(distance);
-    return { figure, camera: [view.x, middle + view.y, view.z], target: [0, middle, 0], update() {} };
+    return { figure, ...treeView(figure), update() {} };
+  };
+}
+
+// Where the camera stands to see a tree whole (tree() above).
+function treeView(figure: THREE.Object3D): Pick<Preview, 'camera' | 'target'> {
+  const size = new THREE.Box3().setFromObject(figure).getSize(new THREE.Vector3());
+  const width = Math.max(size.x, size.z);
+  const distance = Math.max(1.3 * size.y, 0.9 * width) + 0.3 * width;
+  const middle = 0.45 * size.y;
+  const view = new THREE.Vector3(0.55, 0.12, 0.83).normalize().multiplyScalar(distance);
+  return { camera: [view.x, middle + view.y, view.z], target: [0, middle, 0] };
+}
+
+// The crystal tree, seen whole as the trees are, its hanging crystals
+// swinging and its sparkles drifting, with the page's Glow slider as its
+// one behaviour.
+function crystalTree(theme: Theme): Preview {
+  const figure = new CrystalTree({ theme });
+  return {
+    figure,
+    ...treeView(figure),
+    update: (_elapsed, delta) => figure.update(delta),
+    behaviours: [{ name: 'SetGlow', params: [{ name: 'amount', value: '0.3', options: CrystalTree.GLOWS }], run: (amount) => figure.SetGlow(Number(amount)) }],
   };
 }
 
@@ -501,8 +671,9 @@ function animal(Kind: new (options: AnimalOptions) => Animal, name: string, radi
     const lap = 2 * Math.PI;
     figure.position.set(-radius, 0, 0); // on the circle, facing +z along it
     let finish = 0; // heading (rotation.y) at the end of the laps
+    const article = /^[aeiou]/.test(name) ? 'an' : 'a'; // an ox, an antelope
     const steps: [start: () => void, done: (seconds: number) => boolean][] = [
-      [() => figure.Speech(`Hi! I'm a ${name}. Watch me jump, carry a fish, then walk and run around.`), () => true],
+      [() => figure.Speech(`Hi! I'm ${article} ${name}. Watch me jump, carry a fish, then walk and run around.`), () => true],
       [() => figure.Jump(), (s) => s > 2],
       [() => figure.Hold(fish), (s) => s > 3],
       [() => figure.Hold(null), (s) => s > 0.5],
@@ -609,7 +780,16 @@ export interface Environment {
   // the ground reaches, in the scenery's coordinates. Without it, flat ground
   // at the scenery's level, everywhere.
   ground?: { heightAt(x: number, z: number): number; reach: number };
+  // Its own sky colour and lights, used in place of the theme's, for an
+  // environment built as a reference shows it rather than in the theme's
+  // look (the forest lake). Without it, the theme's.
+  light?: EnvironmentLight;
+  // Its season, for one that has seasons (the forest lake): its own assets
+  // shown in it take the same season. Without it, spring.
+  season?: Season;
 }
+
+export type EnvironmentLight = Pick<Theme['scene'], 'background' | 'sky' | 'ground' | 'light' | 'ambientIntensity' | 'lightIntensity'>;
 
 // The Time of day setting (?time=): day and night taking turns on their own,
 // or held at one of them. Only an environment with day and night (the lake)
@@ -623,6 +803,9 @@ export const environments: Record<string, (theme: Theme) => Environment> = {
     return { scenery: floor, land: new THREE.Vector3(), update() {}, ground: { heightAt: () => 0, reach: reachOf(floor) } };
   },
   lake: (theme) => lakeEnvironment(theme),
+  // The forest lake, in the season the Season setting picks (environmentIn()
+  // below); this is its spring.
+  forest_lake: () => forestLakeEnvironment('spring'),
   grass: (theme) => {
     const grass = new Grass({ theme });
     return {
@@ -634,6 +817,33 @@ export const environments: Record<string, (theme: Theme) => Environment> = {
     };
   },
 };
+
+// The Season setting (?season=): the season an environment with seasons
+// (the forest lake) is shown in, spring by default. The others have none.
+export { SEASONS, type Season } from './figures/ForestLake/parts';
+
+// The environments with seasons (the forest lake), one in each season: the
+// same function for the same season every time, so the stage sees it
+// unchanged until the Season setting changes, and rebuilds it then.
+const seasonal: Record<string, Record<Season, (theme: Theme) => Environment>> = {
+  forest_lake: {
+    spring: environments.forest_lake,
+    summer: () => forestLakeEnvironment('summer'),
+    autumn: () => forestLakeEnvironment('autumn'),
+    winter: () => forestLakeEnvironment('winter'),
+  },
+};
+
+// The environment `name` in `season`: that season's for one with seasons,
+// the environment itself for the others.
+export function environmentIn(name: string, season: Season): (theme: Theme) => Environment {
+  return seasonal[name]?.[season] ?? environments[name];
+}
+
+// Whether the Season setting changes an environment.
+export function hasSeasons(name: string): boolean {
+  return Object.hasOwn(seasonal, name);
+}
 
 // The lake, as an environment. A story whose figures need more level room
 // than one figure's builds it with a wider clearing (LakeOptions.clear).
@@ -652,6 +862,31 @@ export function lakeEnvironment(theme: Theme, options: Omit<LakeOptions, 'theme'
     dayNight: lake.dayNight,
     // Over the water, on its still surface (y = 0), and on a dock's deck.
     ground: { heightAt: (x, z) => Math.max(lake.groundAt(x, z), 0, lake.deckAt(x, z)), reach: reachOf(lake.ground) },
+  };
+}
+
+// The forest lake (environtments/ForestLake/ForestLake.md), as the user's
+// reference images show it, in one of its four seasons (the Season
+// setting), in the season's own light rather than the theme's. Figures stand at its landing on the
+// south shore; one in the water goes to the open water north of it (in
+// winter a hole in the ice). The walking camera walks its land, its water
+// (and ice) and its piers' and bridges' decks.
+export function forestLakeEnvironment(season: Season = 'spring'): Environment {
+  const lake = new ForestLake({ season });
+  const at = ForestLake.OPEN_WATER;
+  return {
+    scenery: lake,
+    land: ForestLake.LANDING.clone(),
+    water: {
+      at: at.clone(),
+      heightAt: (x, z) => lake.surfaceAt(x + at.x, z + at.z),
+      splash: (x, z, velocity) => lake.water.splash(x + at.x, z + at.z, velocity),
+    },
+    update: (delta) => lake.update(delta),
+    fog: lake.fog,
+    light: lake.light,
+    season,
+    ground: { heightAt: (x, z) => lake.groundAt(x, z), reach: 75 },
   };
 }
 
@@ -676,6 +911,7 @@ const figureEnvironments: Record<string, string> = {
   cloud: 'grass',
   fog: 'grass',
   dock: 'lake', // it stands in the water
+  rowboat: 'forest_lake', // it floats, and is the forest lake's own
 };
 
 export function figureEnvironment(figure: string): string {

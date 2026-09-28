@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { inside, measure } from './Follow';
 import { shortest, type Member } from './Member';
-import type { Sight } from './Sight';
+import type { Seeing } from './Sight';
 
 // The host's view (lake_meeting.md item 10): where the camera goes a few
 // seconds after a turn, until the follow takes over (Follow.ts). The host
@@ -58,7 +58,7 @@ interface Plan {
 }
 
 export class HostView {
-  private readonly sight: Sight;
+  private readonly sight: Seeing;
   private plan: Plan | null = null;
   private side = 0; // radians round from +z the camera looks from now
   private since = 0; // s since the last cut
@@ -68,7 +68,7 @@ export class HostView {
   private readonly eye = new THREE.Vector3(); // on the camera's way to its place
   private readonly shot: HostShot = { camera: new THREE.Vector3(), target: new THREE.Vector3() };
 
-  constructor(sight: Sight) {
+  constructor(sight: Seeing) {
     this.sight = sight;
   }
 

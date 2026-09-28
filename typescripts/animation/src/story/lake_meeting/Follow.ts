@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Figure } from './kinds';
 import { shortest, type Member } from './Member';
-import type { Sight } from './Sight';
+import type { Seeing } from './Sight';
 
 // The camera when the chat is quiet (lake_meeting.md item 10), as the user
 // asked ("when no comment new in 30 second, camera randomly follow animal and
@@ -105,7 +105,7 @@ export interface FollowShot {
 }
 
 export class Follow {
-  private readonly sight: Sight;
+  private readonly sight: Seeing;
   private readonly random: () => number;
   private readonly lens = new THREE.PerspectiveCamera(FOV, ASPECT, 0.01, 200);
   private member: Member | null = null;
@@ -121,7 +121,7 @@ export class Follow {
   private wait = 0; // s before trying again, when no animal could be seen
   private readonly shot: FollowShot = { camera: new THREE.Vector3(), target: new THREE.Vector3(), cut: false };
 
-  constructor(sight: Sight, random: () => number = Math.random) {
+  constructor(sight: Seeing, random: () => number = Math.random) {
     this.sight = sight;
     this.random = random;
   }

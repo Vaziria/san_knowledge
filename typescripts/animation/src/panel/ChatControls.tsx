@@ -3,21 +3,35 @@ import { readChat, refreshChatStatus, sendTestChat, useChatStatus } from '../cha
 import type { ChatStatus, TestChat } from '../story/lake_meeting/events';
 import { Action, Select, TextField } from './controls';
 
-// The lake meeting's chat, on the Story tab while it plays: which YouTube
-// channel's live chat the dev server reads (chat-bridge.ts), how that goes,
-// and made-up messages to try the meeting without YouTube. The channel is
-// kept in this browser, so it is there after a reload; reading it is an
-// action, like going live, so nothing of it is in the URL.
+// The chat of the lake meeting and of the forest lake meeting, on the Story
+// tab while one plays: which YouTube channel's live chat the dev server
+// reads (chat-bridge.ts; both meetings meet from it), how that goes, and
+// made-up messages to try the meeting without YouTube. The channel is kept
+// in this browser, so it is there after a reload; reading it is an action,
+// like going live, so nothing of it is in the URL.
 
 const CHANNEL_KEY = 'animation-chat-channel';
-const AS: { value: TestChat['as']; label: string }[] = [
-  { value: 'viewer', label: 'a viewer' },
-  { value: 'owner', label: 'the owner (the Bear)' },
-  { value: 'super_chat', label: 'a Super Chat' },
-  { value: 'member', label: 'a new member' },
-];
 
-export function ChatControls() {
+// Each meeting's host, and what its viewers can type.
+const MEETINGS = {
+  lake_meeting: {
+    host: 'the Bear',
+    commands: 'Commands: !jump, !walk, !run, !stop, !flap (a penguin). !cat, !wolf, !deer, !bird, !fox, !snake, !penguin, !frog or !lion switch the animal.',
+  },
+  forest_lake_meeting: {
+    host: 'the explorer',
+    commands:
+      'Commands: !jump, !walk, !run, !stop; !howl (a wolf), !flap (a duck), !sit and !look (a fox), !look (a deer), !eat (a boar or a rabbit), !stand (an otter), !wave (the owner). !wolf, !deer, !fox, !boar, !rabbit, !squirrel, !duck, !otter or !frog switch the animal.',
+  },
+} as const;
+
+export function ChatControls({ story }: { story: keyof typeof MEETINGS }) {
+  const AS: { value: TestChat['as']; label: string }[] = [
+    { value: 'viewer', label: 'a viewer' },
+    { value: 'owner', label: `the owner (${MEETINGS[story].host})` },
+    { value: 'super_chat', label: 'a Super Chat' },
+    { value: 'member', label: 'a new member' },
+  ];
   const status = useChatStatus((s) => s);
   const [channel, setChannel] = useState(() => stored(CHANNEL_KEY) ?? '');
   const [name, setName] = useState('Tester');
@@ -55,9 +69,7 @@ export function ChatControls() {
       <Select label="As" value={as} options={AS} onChange={(value) => setAs(value as TestChat['as'])} />
       <Action label="Send" wide onClick={() => void send()} />
       {problem && <p className="col-span-full text-xs font-medium text-destructive">{problem}</p>}
-      <p className="col-span-full text-xs text-muted-foreground">
-        Commands: !jump, !walk, !run, !stop, !flap (a penguin). !cat, !wolf, !deer, !bird, !fox, !snake or !penguin switch the animal.
-      </p>
+      <p className="col-span-full text-xs text-muted-foreground">{MEETINGS[story].commands}</p>
     </div>
   );
 }

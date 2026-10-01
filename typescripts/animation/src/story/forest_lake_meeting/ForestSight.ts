@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import type { ForestLake } from '../../environtments/ForestLake/ForestLake';
+import { finish, type Stepwise } from '../../stepwise';
 import type { Seeing } from '../lake_meeting/Sight';
 
 // What a camera at the forest lake meeting must keep out of, and what it
 // can't see through (the lake meeting's Follow.ts and HostView.ts, and the
 // turns' close-ups), measured once from the forest lake's own meshes over a
 // square HALF m each way round the meeting's middle, as the lake meeting's
-// Sight.ts does its lake:
+// Sight.ts does its lake; for the next season, a piece at a time while the
+// meeting plays (build()):
 //
 // - The floor: the ground mesh's own height, sampled on a FLOOR m grid from
 //   its triangles, or the water's now (the lake's waves, its ice in winter,
@@ -17,20 +19,28 @@ import type { Seeing } from '../lake_meeting/Sight';
 //   to UP m over it, kept as bits. A camera in a marked cube, or a line of
 //   sight through one, is blocked: a trunk, a crown, a bush, a rock, a log,
 //   the tent, a fence, a pier, the cave's rock, a cliff. A rock under PEBBLE
-//   across (a path's pebbles) is neither.
+//   across (a path's pebbles) is neither. Outside the square nothing is
+//   known, so a camera may not be there, nor see through it: filming the
+//   dragon in the meadow at the square's south edge, the quiet camera stood
+//   in a trunk past it.
 //
 // Positions are in the meeting's coordinates; `offset` is where its origin
 // is in the lake's.
 
 const CELL = 0.25; // m, the cubes of what is solid
 const DOWN = 1; // m under the ground at a column's middle its lowest cube is
-const UP = 17; // m over it its highest: the tallest pine on the heights, and the cliffs over their feet
+const UP = 28; // m over it its highest: the island's great crystal tree (22 m, task 21), its crown out over the lake's bed too, the tallest pines, and the cliffs over their feet
 const FLOOR = 0.25; // m between the floor's samples
 const WATER = 0.5; // m between the samples of the rivers' and the stream's water
 const WAVES = 0.08; // m a camera keeps over the water's height now
 const STEP = 0.1; // m between the points a line of sight is checked at, at most
 const OVER = 0.005; // m a line of sight must pass over the ground or the water
 export const PEBBLE = 0.3; // m across: a rock smaller than this is neither solid nor in the way
+// Measured a piece at a time (build()): it stops after this many triangles,
+// a skipped copy counting as COPY of them, or this many rows of a grid.
+const TRIANGLES = 4000;
+const COPY = 4;
+const ROWS = 16;
 
 export interface ForestSightOptions {
   lake: ForestLake;
@@ -59,10 +69,31 @@ export class ForestSight implements Seeing {
   private readonly waterPoints: number;
   private readonly waters: Float32Array; // the rivers' and the stream's level at each sample, NaN where there is none
 
-  constructor({ lake, offset, middle, half }: ForestSightOptions) {
+  // Measured at once; or, `later`, only once measure() has run to its end.
+  constructor({ lake, offset, middle, half }: ForestSightOptions, later = false) {
     this.lake = lake;
     this.offset = offset.clone();
     const square = (this.square = { x0: middle.x - half, z0: middle.y - half, size: 2 * half });
+    const n = (this.points = Math.round(square.size / FLOOR) + 1);
+    this.heights = new Float32Array(n * n).fill(NaN);
+    const w = (this.waterPoints = Math.round(square.size / WATER) + 1);
+    this.waters = new Float32Array(w * w);
+    const columns = (this.columns = Math.ceil(square.size / CELL));
+    this.base = new Float32Array(columns * columns);
+    this.solid = new Uint32Array(Math.ceil((columns * columns * this.layers) / 32));
+    if (!later) finish(this.measure());
+  }
+
+  // Measured a piece at a time, each yield a place to stop and draw a frame:
+  // the forest lake meeting measures the next season's sight while it plays.
+  static *build(options: ForestSightOptions): Stepwise<ForestSight> {
+    const sight = new ForestSight(options, true);
+    yield* sight.measure();
+    return sight;
+  }
+
+  private *measure(): Stepwise<void> {
+    const { lake, square } = this;
     const terrain = lake.terrain;
 
     // In the lake's own coordinates, wherever the stage has moved it.
@@ -70,27 +101,24 @@ export class ForestSight implements Seeing {
     const toLake = lake.matrixWorld.clone().invert();
 
     // The floor.
-    const n = (this.points = Math.round(square.size / FLOOR) + 1);
-    this.heights = new Float32Array(n * n).fill(NaN);
-    trianglesIn(lake.ground, toLake, square, 0, (a, b, c) => this.floorUnder(a, b, c));
-    const w = (this.waterPoints = Math.round(square.size / WATER) + 1);
-    this.waters = new Float32Array(w * w);
+    yield* triangles(lake.ground, toLake, square, 0, (a, b, c) => this.floorUnder(a, b, c));
+    const w = this.waterPoints;
     for (let j = 0; j < w; j++) {
       for (let i = 0; i < w; i++) {
         const x = square.x0 + i * WATER;
         const z = square.z0 + j * WATER;
         this.waters[j * w + i] = terrain.lake.inside(x, z) ? NaN : terrain.waterAt(x, z);
       }
+      if (j % ROWS === 0) yield;
     }
 
     // What is solid.
-    const columns = (this.columns = Math.ceil(square.size / CELL));
-    this.base = new Float32Array(columns * columns);
+    const columns = this.columns;
     for (let j = 0; j < columns; j++) {
       for (let i = 0; i < columns; i++) this.base[j * columns + i] = terrain.heightAt(square.x0 + (i + 0.5) * CELL, square.z0 + (j + 0.5) * CELL) - DOWN;
+      if (j % ROWS === 0) yield;
     }
-    this.solid = new Uint32Array(Math.ceil((columns * columns * this.layers) / 32));
-    for (const root of [...lake.landmarks.solid, ...lake.scatter.solid, lake.cliffs]) trianglesIn(root, toLake, square, PEBBLE, (a, b, c) => this.markSolid(a, b, c));
+    for (const root of [...lake.landmarks.solid, ...lake.scatter.solid, lake.cliffs]) yield* triangles(root, toLake, square, PEBBLE, (a, b, c) => this.markSolid(a, b, c));
   }
 
   // The height a camera must keep over, at a point: the ground, or the water
@@ -99,13 +127,14 @@ export class ForestSight implements Seeing {
     return this.top(x, z, WAVES);
   }
 
-  // Whether a point is in something solid.
+  // Whether a point is in something solid, or outside the square, where
+  // nothing is known.
   blocked(point: THREE.Vector3): boolean {
     const x = point.x + this.offset.x;
     const z = point.z + this.offset.z;
     const i = Math.floor((x - this.square.x0) / CELL);
     const j = Math.floor((z - this.square.z0) / CELL);
-    if (i < 0 || j < 0 || i >= this.columns || j >= this.columns) return false;
+    if (i < 0 || j < 0 || i >= this.columns || j >= this.columns) return true;
     const column = j * this.columns + i;
     const k = Math.floor((point.y + this.offset.y - this.base[column]) / CELL);
     if (k < 0 || k >= this.layers) return false;
@@ -237,6 +266,12 @@ export class ForestSight implements Seeing {
 // mesh's once for each copy, but for copies wholly outside the square or
 // smaller than `least` m across (a pebble).
 export function trianglesIn(root: THREE.Object3D, toFrame: THREE.Matrix4, square: Square, least: number, visit: (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) => void): void {
+  finish(triangles(root, toFrame, square, least, visit));
+}
+
+// The same, a piece at a time: it yields every TRIANGLES triangles looked
+// at, a copy it skips counting as COPY of them.
+export function* triangles(root: THREE.Object3D, toFrame: THREE.Matrix4, square: Square, least: number, visit: (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) => void): Stepwise<void> {
   const a = new THREE.Vector3();
   const b = new THREE.Vector3();
   const c = new THREE.Vector3();
@@ -245,23 +280,32 @@ export function trianglesIn(root: THREE.Object3D, toFrame: THREE.Matrix4, square
   const sphere = new THREE.Sphere();
   const box = new THREE.Box3();
   const [x0, z0, x1, z1] = [square.x0, square.z0, square.x0 + square.size, square.z0 + square.size];
+  const meshes: THREE.Mesh[] = [];
   root.updateMatrixWorld(true);
   root.traverse((object) => {
-    if (!(object instanceof THREE.Mesh)) return;
+    if (object instanceof THREE.Mesh) meshes.push(object);
+  });
+  let looked = 0;
+  for (const object of meshes) {
     const geometry: THREE.BufferGeometry = object.geometry;
     const position = geometry.getAttribute('position');
-    if (!position) return;
+    if (!position) continue;
     if (!geometry.boundingSphere) geometry.computeBoundingSphere();
     if (!geometry.boundingBox) geometry.computeBoundingBox();
     const index = geometry.getIndex();
     const count = index ? index.count : position.count;
     const instanced = object instanceof THREE.InstancedMesh;
     for (let n = 0; n < (instanced ? object.count : 1); n++) {
+      if (looked >= TRIANGLES) {
+        looked = 0;
+        yield;
+      }
       matrix.multiplyMatrices(toFrame, object.matrixWorld);
       if (instanced) {
         object.getMatrixAt(n, instance);
         matrix.multiply(instance);
         sphere.copy(geometry.boundingSphere!).applyMatrix4(matrix);
+        looked += COPY;
         if (2 * sphere.radius < least) continue;
         const r = sphere.radius;
         if (sphere.center.x + r < x0 || sphere.center.x - r > x1 || sphere.center.z + r < z0 || sphere.center.z - r > z1) continue;
@@ -270,6 +314,10 @@ export function trianglesIn(root: THREE.Object3D, toFrame: THREE.Matrix4, square
         if (box.max.x < x0 || box.min.x > x1 || box.max.z < z0 || box.min.z > z1) continue;
       }
       for (let t = 0; t + 2 < count; t += 3) {
+        if (++looked >= TRIANGLES) {
+          looked = 0;
+          yield;
+        }
         a.fromBufferAttribute(position, index ? index.getX(t) : t).applyMatrix4(matrix);
         b.fromBufferAttribute(position, index ? index.getX(t + 1) : t + 1).applyMatrix4(matrix);
         c.fromBufferAttribute(position, index ? index.getX(t + 2) : t + 2).applyMatrix4(matrix);
@@ -277,5 +325,5 @@ export function trianglesIn(root: THREE.Object3D, toFrame: THREE.Matrix4, square
         visit(a, b, c);
       }
     }
-  });
+  }
 }

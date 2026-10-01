@@ -1,4 +1,5 @@
-import { forestLakeEnvironment, SEASONS, type Environment, type Season } from '../../previews';
+import { forestLakeBuild, forestLakeEnvironment, SEASONS, type Environment, type Season } from '../../previews';
+import type { Stepwise } from '../../stepwise';
 import type { Story } from '../../stories';
 import type { Theme } from '../../theme';
 import { ForestMeeting } from './ForestMeeting';
@@ -28,10 +29,17 @@ import { ForestMeeting } from './ForestMeeting';
 //   quiet it goes back to the host, and after 30 s it follows one animal
 //   after another (ForestMeeting.ts).
 //
-// It plays at the forest lake in the season the Season setting picks (the
-// Environments tab, ?season=), spring by default: a new season builds it
-// again, with the animals in that season's coats where they have one.
+// It starts at the forest lake in the season the Season setting picks (the
+// Environments tab, ?season=), spring by default, and the season changes
+// every minute of the meeting's own time (scenarios/season_change.md):
+// spring, summer, autumn, winter, then spring again. The meeting carries on
+// through the change: the stage builds the next season's forest lake ahead,
+// a piece at a time while it plays, and swaps it in under the animals
+// (Preview.changes, Stage.ts), which stay where they are, in the new
+// season's coats where their sheets have one. A season picked while it
+// plays comes the same way, at once, and the next minute counts from there.
 const seasons = Object.fromEntries(SEASONS.map((season) => [season, (_theme: Theme) => forestLakeEnvironment(season)])) as Record<Season, (theme: Theme) => Environment>;
+const ahead = Object.fromEntries(SEASONS.map((season) => [season, (_theme: Theme) => forestLakeBuild(season)])) as Record<Season, (theme: Theme) => Stepwise<Environment>>;
 
 export const forestLakeMeeting: Story = {
   environment: seasons.spring,
@@ -47,6 +55,16 @@ export const forestLakeMeeting: Story = {
       update: (_elapsed, delta) => meeting.update(delta),
       dispose: () => meeting.dispose(),
       shot: () => meeting.shot(),
+      changes: {
+        next: () => ahead[meeting.nextSeason],
+        prepare: (environment) => meeting.prepare(environment),
+        due: () => meeting.seasonDue,
+        pick: (create) => {
+          const season = SEASONS.find((s) => seasons[s] === create);
+          if (season) meeting.pick(season);
+          return season !== undefined;
+        },
+      },
     };
   },
 };

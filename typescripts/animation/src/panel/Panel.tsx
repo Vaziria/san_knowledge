@@ -258,7 +258,7 @@ function StoryTab() {
   const story = useSettings((s) => s.story);
   const options = [
     { value: '', label: 'none', hint: 'the picked figure or terrain' },
-    ...Object.keys(stories).map((name) => ({ value: name, label: name, hint: name === 'forest_lake_meeting' ? 'in the Season picked in Environments' : undefined })),
+    ...Object.keys(stories).map((name) => ({ value: name, label: name, hint: name === 'forest_lake_meeting' ? 'starts in the Season picked in Environments; a new season every minute' : undefined })),
   ];
   return (
     <div className="flex flex-col gap-4">

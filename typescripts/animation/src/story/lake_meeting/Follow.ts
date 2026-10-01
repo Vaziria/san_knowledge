@@ -45,6 +45,7 @@ const LEAD = 0.8; // s ahead of an animal on the move the camera aims, as Meetin
 const LEAD_MOST = 0.3; // of the camera's distance, at most, so a runner stays in the picture
 const TRACK = 1.5; // how fast the camera comes round as the animal turns, per second
 const GAP = 0.02; // m the camera keeps over the ground
+const NEARBY = 0.5; // m round the camera within which it keeps over the highest ground (floorNear)
 const ROOM = 0.1; // m the camera keeps from another animal
 const AHEAD = 1; // s ahead an angle must also be clear, for one on the move
 const FARTHEST = 15; // m the camera stands from an animal at most
@@ -208,7 +209,7 @@ export class Follow {
       this.eye.lerp(view.camera, t);
       shot.camera.lerp(this.eye, t);
       shot.target.lerp(view.target, t);
-      shot.camera.y = Math.max(shot.camera.y, this.sight.floor(shot.camera.x, shot.camera.z) + GAP);
+      shot.camera.y = Math.max(shot.camera.y, this.floorNear(shot.camera.x, shot.camera.z) + GAP);
     }
     this.blocked = !this.clear(member, plan, shot, animals, 0);
     shot.cut = cut;
@@ -327,8 +328,20 @@ export class Follow {
     camera.y = angle.rise ? aim.y + Math.tan(plan.rise) * distance : feet.y + box.min.y + (angle.eye ?? 0.5) * height;
     if (angle.least) camera.y = Math.max(camera.y, aim.y + Math.tan(angle.least) * distance);
     const target = aim.addScaledVector(forward, Math.min(figure.speed * LEAD, LEAD_MOST * distance));
-    camera.y = Math.max(camera.y, this.sight.floor(camera.x, camera.z) + GAP);
+    camera.y = Math.max(camera.y, this.floorNear(camera.x, camera.z) + GAP);
     return { camera, target };
+  }
+
+  // The highest floor within NEARBY m of a point: a low camera on rising
+  // ground, kept over only the floor under it, saw under the slope at the
+  // edge of the picture (filming the dragon in the forest lake's meadow).
+  private floorNear(x: number, z: number): number {
+    let most = this.sight.floor(x, z);
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * 2 * Math.PI;
+      most = Math.max(most, this.sight.floor(x + NEARBY * Math.cos(a), z + NEARBY * Math.sin(a)));
+    }
+    return most;
   }
 
   // The share of the picture the animal fills from a view, across or up,

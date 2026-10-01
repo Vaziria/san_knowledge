@@ -13,6 +13,7 @@ import { ForestFish } from './ForestFish';
 import { ForestFox } from './ForestFox';
 import { ForestFrog } from './ForestFrog';
 import { ForestSquirrel } from './ForestSquirrel';
+import { ForestSpiritDragon } from './ForestSpiritDragon/ForestSpiritDragon';
 import { ForestWolf } from './ForestWolf';
 import type { FourLegged } from './FourLegged';
 import { Otter } from './Otter';
@@ -959,6 +960,104 @@ function otter(): (theme: Theme, environment: Environment) => Preview {
   };
 }
 
+// The forest spirit dragon (ForestSpiritDragon/ForestSpiritDragon.md): its
+// behaviours in a loop, on a circle DRAGON.radius m round. It stands, roars,
+// walks calmly an eighth of the way round, takes off and flies on round at
+// DRAGON.height m, roars in the air, and lands where it began, facing as it
+// began, so every loop starts where the last did (counted from the nearest
+// whole lap, so a landing a few centimeters long never adds up). It moves
+// itself; the preview steers it, turning it by speed / radius, which keeps
+// it on the circle at any speed, landing too (a little more outside it and
+// less inside, so its laps never creep). Once a button stops the demo,
+// it keeps round the circle, walking or flying. The camera follows it
+// (Preview.shot), seen as the overview's big picture sees it: from in front
+// and to its left (out from the circle), a little above, DRAGON.distance m
+// from its middle, coming round as it turns; dragging the view takes the
+// camera, as in a story. The sun's shadow covers the circle (`bounds`).
+const DRAGON = { radius: 12, height: 6, distance: 14, aside: 2.2, from: new THREE.Vector3(-0.75, 0.3, 0.56).normalize(), middle: new THREE.Vector3(0, 2.4, -0.9) };
+
+function forestSpiritDragon(): (theme: Theme, environment: Environment) => Preview {
+  return () => {
+    const figure = new ForestSpiritDragon();
+    const { radius, height } = DRAGON;
+    const lap = 2 * Math.PI;
+    figure.position.set(-radius, 0, 0); // on the circle, facing +z along it
+    figure.flyHeight = height;
+    let start = 0; // its heading as the loop began
+    const steps: Step<ForestSpiritDragon>[] = [
+      {
+        start: (d) => {
+          start = Math.round(d.rotation.y / lap) * lap;
+          d.Idle();
+        },
+        done: (_d, s) => s > 3,
+      },
+      { start: (d) => d.Roar(), done: (d, s) => s > 0.5 && !d.roaring },
+      { start: (d) => d.Walk(), done: (d) => d.rotation.y > start + lap / 8 },
+      { start: (d) => d.Fly(), done: (d) => d.rotation.y > start + lap },
+      { start: (d) => d.Roar(), done: (d, s) => s > 0.5 && !d.roaring },
+      // Down where it began, two laps on: it lands once the rest of the way
+      // is as far as landing takes.
+      { start: () => {}, done: (d) => d.rotation.y >= start + 2 * lap - d.landingDistance / radius },
+      { start: (d) => d.Land(), done: (d, s) => s > 0.5 && d.doing === 'idle' },
+    ];
+    let step = -1;
+    let stepStart = 0;
+    let demo = true;
+    const stop = () => {
+      demo = false;
+    };
+    // The circle, its wings and tail out over it, and the flight above it.
+    const reach = radius + 4.5;
+    const bounds = new THREE.Box3(new THREE.Vector3(-reach, 0, -reach), new THREE.Vector3(reach, height + 5.5, reach));
+    // The camera on it, kept exactly on it (the stage puts it there: a cut
+    // every frame), the side it looks from coming round smoothly as it
+    // turns; aimed a little right of its middle, so it stands clear of the
+    // panel. (Eased after it, the camera fell 3 m behind it flying, and it
+    // flew in under the panel.)
+    const up = new THREE.Vector3(0, 1, 0);
+    const shot = { camera: new THREE.Vector3(), target: new THREE.Vector3(), cut: true, claim: false };
+    let side = figure.rotation.y;
+    const frame = (delta: number) => {
+      const t = delta > 0 ? 1 - Math.exp(-3 * delta) : 1;
+      side += Math.atan2(Math.sin(figure.rotation.y - side), Math.cos(figure.rotation.y - side)) * t;
+      const middle = DRAGON.middle.clone().applyAxisAngle(up, figure.rotation.y).add(figure.position);
+      const from = DRAGON.from.clone().applyAxisAngle(up, side);
+      const right = up.clone().cross(from).normalize();
+      shot.target.copy(middle).addScaledVector(right, DRAGON.aside);
+      shot.camera.copy(shot.target).addScaledVector(from, DRAGON.distance);
+      shot.camera.y = Math.max(shot.camera.y, 0.5);
+    };
+    frame(0);
+    return {
+      figure,
+      bounds,
+      camera: shot.camera.toArray(),
+      target: shot.target.toArray(),
+      shot: () => shot,
+      update(elapsed, delta) {
+        if (demo && (step < 0 || steps[step].done(figure, elapsed - stepStart))) {
+          step = (step + 1) % steps.length;
+          stepStart = elapsed;
+          steps[step].start(figure);
+        }
+        // Kept on its circle: turned toward the way round it there, and in
+        // toward it from outside or out from inside, on the move (turned
+        // only by speed / radius, a step a frame, it crept 7.6 cm inward a
+        // loop).
+        const around = Math.atan2(figure.position.x, figure.position.z);
+        const off = Math.hypot(figure.position.x, figure.position.z) / radius - 1;
+        const want = around + Math.PI / 2 + THREE.MathUtils.clamp(1.5 * off, -0.8, 0.8);
+        const wrong = Math.atan2(Math.sin(want - figure.rotation.y), Math.cos(want - figure.rotation.y));
+        figure.rotation.y += ((figure.speed / radius) * delta) + 2 * wrong * Math.min(1, figure.speed) * delta;
+        figure.update(delta);
+        frame(delta);
+      },
+      behaviours: buttons(figure, ['Idle', 'Walk', 'Stop', 'Fly', 'Land', 'Roar'], stop),
+    };
+  };
+}
+
 export const forestAnimalPreviews: Record<string, (theme: Theme, environment: Environment) => Preview> = {
   'forest-wolf': fourLegged(() => new ForestWolf(), 1.6, [{ start: (w) => w.Howl(), done: idleAgain }], ['Howl']),
   'forest-deer': fourLegged(() => new ForestDeer(), 1.8, [{ start: (d) => d.LookBack(), done: idleAgain }], ['LookBack']),
@@ -999,4 +1098,5 @@ export const forestAnimalPreviews: Record<string, (theme: Theme, environment: En
   butterfly: butterfly(),
   'forest-firefly': forestFirefly(),
   explorer: explorer(),
+  'forest-spirit-dragon': forestSpiritDragon(),
 };

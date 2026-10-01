@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { keepSharp } from '../../effects/kuwahara';
 import { defaultTheme, surface, type Theme } from '../../theme';
+import { snowOn, type Season } from '../ForestLake/parts';
 import { buildCrystalTree, type CrystalColors } from './crystalTreeModel';
-import { mesh } from './parts';
+import { mesh, seededRandom } from './parts';
 
 // The crystal tree (CrystalTree.md): the user's own low poly model, built as
 // its page builds it (crystalTreeModel.ts, the same tree corner for corner).
@@ -23,10 +24,18 @@ import { mesh } from './parts';
 // The spec gives the shape only, no behaviour, so the tree plays its page's
 // own animation in update() (the hanging crystals swing, the sparkles drift
 // round and twinkle), and its page's Glow slider is SetGlow(amount).
+//
+// Grown to another height (the forest lake's island, task 21, 22 m), the
+// whole tree grows with it, the same tree; its sparkles grow as big and its
+// two lights reach as far. Standing on other ground (`on`), its ground
+// crystals stand on that ground and its roots run on out over it, down over
+// an edge.
 
 // The page's seed, and its glow (its slider's 30 of 100).
 const SEED = 7;
 const GLOW = 0.3;
+// The page's tree's height, m: from the ground to its top crystals.
+const HEIGHT = 5.74;
 
 // The page lights its crystals' glow with two point lights; three.js now
 // measures a light's intensity in candela, falling off with the square of the
@@ -48,6 +57,24 @@ export interface CrystalTreeOptions {
   ground?: boolean;
   // The two coloured lights its crystals shed on it (true by default).
   lights?: boolean;
+  // How tall it stands, m: the page's tree grown to it, the same tree (its
+  // own 5.74 m by default).
+  height?: number;
+  // Its colours in place of the theme's, any of them, as display (sRGB)
+  // values: the forest lake gives it the page's own crystals and its own
+  // bark. The two lights take the crystals' blue and violet when given.
+  colors?: Partial<CrystalColors>;
+  // What its trunk, roots and branches are drawn with in place of the
+  // theme's finish, taking their faces' colours (the forest lake's own).
+  bark?: THREE.Material;
+  // Its season: in winter snow lies on the upturned faces of its trunk,
+  // roots and branches; the crystals are the same all year.
+  season?: Season;
+  // Other ground to stand on, without its disk (`ground: false`): the
+  // ground's height at a point, m from the tree's foot (NaN where nothing
+  // may stand), how far out its roots run over it at most, and the height
+  // below which they stop. Its crystals of the ground stand on it.
+  on?: { at(x: number, z: number): number; reach: number; low: number };
 }
 
 // The page's colours mapped onto the theme, as display (sRGB) values, the
@@ -149,6 +176,11 @@ export class CrystalTree extends THREE.Group {
   readonly sparkles: THREE.Points;
   // Triangles, counted as the page counts them.
   readonly triangles: number;
+  // How much bigger than the page's tree it stands.
+  readonly grown: number;
+  // Each root's way out from the trunk (radians from +x toward +z) and how
+  // far it runs, m.
+  readonly roots: { angle: number; reach: number }[];
 
   private readonly swings: { pivot: THREE.Group; phase: number; speed: number }[] = [];
   private readonly glowLights: { light: THREE.PointLight; base: number; gain: number }[] = [];
@@ -164,10 +196,15 @@ export class CrystalTree extends THREE.Group {
     const m = createMaterials(theme);
     this.crystalMaterial = m.crystal;
     this.sparkleMaterial = m.sparkle;
-    const model = buildCrystalTree(options.seed ?? SEED, crystalColors(theme));
+    const scale = (this.grown = (options.height ?? HEIGHT) / HEIGHT);
+    const colors = { ...crystalColors(theme), ...options.colors };
+    const on = options.on;
+    const model = buildCrystalTree(options.seed ?? SEED, colors, on && { at: (x, z) => on.at(x * scale, z * scale) / scale, reach: on.reach / scale, low: on.low / scale });
     this.triangles = model.triangles;
+    this.roots = model.roots.map((root) => ({ angle: root.angle, reach: root.reach * scale }));
+    m.sparkle.size *= scale;
 
-    this.trunk = mesh(model.wood, m.earth);
+    this.trunk = mesh(model.wood, options.bark ?? m.earth);
     this.trunk.name = 'trunk';
     this.crystals = mesh(model.crystals, m.crystal);
     this.crystals.name = 'crystals';
@@ -187,7 +224,8 @@ export class CrystalTree extends THREE.Group {
 
     this.ground = new THREE.Group();
     this.ground.name = 'ground';
-    if (options.ground !== false) this.ground.add(mesh(model.ground, m.earth), mesh(model.groundCrystals, m.crystal));
+    if (options.ground !== false) this.ground.add(mesh(model.ground, options.bark ?? m.earth), mesh(model.groundCrystals, m.crystal));
+    else if (on) this.ground.add(mesh(model.groundCrystals, m.crystal));
 
     const sparkles = new THREE.BufferGeometry();
     sparkles.setAttribute('position', new THREE.BufferAttribute(model.sparkles, 3));
@@ -195,18 +233,24 @@ export class CrystalTree extends THREE.Group {
     this.sparkles.name = 'sparkles';
 
     this.add(this.trunk, this.crystals, this.pendants, this.ground, this.sparkles);
+    for (const part of [this.trunk, this.crystals, this.pendants, this.ground, this.sparkles]) part.scale.setScalar(scale);
+    if (options.season === 'winter') snowOn(this.trunk, seededRandom((options.seed ?? SEED) * 97 + 5));
 
     // The page's two lights: violet in the crown, blue beside it.
     if (options.lights !== false) {
+      // Grown bigger, they reach as much further and shine as much
+      // brighter (falling off in a straight line).
+      const violet = options.colors?.crystalViolet ? new THREE.Color().setRGB(colors.crystalViolet.r, colors.crystalViolet.g, colors.crystalViolet.b, THREE.SRGBColorSpace) : theme.scene.flower;
+      const blue = options.colors?.crystalBlue ? new THREE.Color().setRGB(colors.crystalBlue.r, colors.crystalBlue.g, colors.crystalBlue.b, THREE.SRGBColorSpace) : theme.scene.zenith;
       const lights = [
-        { color: theme.scene.flower, at: new THREE.Vector3(0, 4.2, 0), base: 0.4, gain: 1.3 },
-        { color: theme.scene.zenith, at: new THREE.Vector3(1.6, 3.2, 1.8), base: 0.3, gain: 1.0 },
+        { color: violet, at: new THREE.Vector3(0, 4.2, 0), base: 0.4, gain: 1.3 },
+        { color: blue, at: new THREE.Vector3(1.6, 3.2, 1.8), base: 0.3, gain: 1.0 },
       ];
       for (const l of lights) {
-        const light = new THREE.PointLight(l.color, 0, 8, 1);
-        light.position.copy(l.at);
+        const light = new THREE.PointLight(l.color, 0, 8 * scale, 1);
+        light.position.copy(l.at).multiplyScalar(scale);
         this.add(light);
-        this.glowLights.push({ light, base: l.base, gain: l.gain });
+        this.glowLights.push({ light, base: l.base * scale, gain: l.gain * scale });
       }
     }
 

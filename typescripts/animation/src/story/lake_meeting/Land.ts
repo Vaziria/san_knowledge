@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { onDeck, type Deck } from '../../environtments/Lake/DockSite';
+import { finish, type Stepwise } from '../../stepwise';
 
 // The lake's land as the meeting's animals see it (Meeting.ts): where one may
 // stand, spots picked at random, and the way from one place to another. It is
@@ -60,6 +61,7 @@ export const GAP = 0.25; // m kept between an animal and anything
 const BUCKET = 4; // m, the squares the obstacles are sorted into
 const NEAR = 8; // m: an obstacle's edge farther than this from a place leaves its clearance past anything an animal needs
 const SMALLEST = 0.04; // m round the smallest animal (a frog), for the land that can be walked to from `home`
+const ROWS = 8; // rows of the grid measured between stops, measured a piece at a time (build())
 
 export class Land {
   private readonly size: number; // cells across
@@ -71,16 +73,38 @@ export class Land {
   private readonly deckCells: Float32Array; // a cell whose middle is on a deck: its exact clearance there; NaN elsewhere
   private readonly reached: Uint8Array | null; // with `home`: 1 for a cell that can be walked to from it
 
-  constructor({ ground, middle, reach, obstacles, decks = [], wet = (_x, _z, height) => height < WET, home }: LandOptions) {
+  // Measured at once; or, `later`, only once measure() has run to its end
+  // (build()).
+  constructor(options: LandOptions, later = false) {
+    const { middle, reach, decks = [], home } = options;
     this.middle = middle.clone();
     this.reach = reach - END;
     this.decks = decks;
     const size = (this.size = Math.ceil((2 * reach) / CELL));
     this.corner = new THREE.Vector2(middle.x - (size * CELL) / 2, middle.y - (size * CELL) / 2);
+    this.clearance = new Float32Array(size * size);
+    this.deckCells = new Float32Array(size * size).fill(NaN);
+    this.reached = home ? new Uint8Array(size * size) : null;
+    if (!later) finish(this.measure(options));
+  }
+
+  // Measured a piece at a time, each yield a place to stop and draw a frame:
+  // the forest lake meeting measures the next season's land while it plays.
+  static *build(options: LandOptions): Stepwise<Land> {
+    const land = new Land(options, true);
+    yield* land.measure(options);
+    return land;
+  }
+
+  private *measure({ ground, obstacles, wet = (_x, _z, height) => height < WET, home }: LandOptions): Stepwise<void> {
+    const { size, middle, decks } = this;
 
     // The ground at each cell's middle, then what can't be stood on.
     const heights = new Float32Array(size * size);
-    for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) heights[j * size + i] = ground(this.x(i), this.z(j));
+    for (let j = 0; j < size; j++) {
+      for (let i = 0; i < size; i++) heights[j * size + i] = ground(this.x(i), this.z(j));
+      if (j % ROWS === 0) yield;
+    }
     const far = new Float32Array(size * size).fill(Infinity); // in cells, to the nearest cell that can't be stood on
     for (let j = 0; j < size; j++) {
       for (let i = 0; i < size; i++) {
@@ -90,6 +114,7 @@ export class Land {
         const steep = !edge && Math.hypot(heights[k + 1] - heights[k - 1], heights[k + size] - heights[k - size]) / (2 * CELL) > STEEP;
         if (out || edge || steep || wet(this.x(i), this.z(j), heights[k])) far[k] = 0;
       }
+      if (j % ROWS === 0) yield;
     }
     // How far each cell is from those (a two-pass chamfer distance: straight
     // steps 1, diagonal steps √2).
@@ -110,9 +135,10 @@ export class Land {
     // the nearest trunk, boulder or big stone; then less half the cell's
     // diagonal, so that it holds for every point of the cell, not only its
     // middle.
-    const clearance = (this.clearance = new Float32Array(size * size));
+    const clearance = this.clearance;
     const buckets = sortObstacles(obstacles, this.corner, size * CELL);
     const across = Math.ceil((size * CELL) / BUCKET);
+    yield;
     for (let j = 0; j < size; j++) {
       for (let i = 0; i < size; i++) {
         const k = j * size + i;
@@ -121,8 +147,8 @@ export class Land {
         for (const o of near) most = Math.min(most, Math.hypot(this.x(i) - o.x, this.z(j) - o.z) - o.radius);
         clearance[k] = Math.max(0, most - (CELL * Math.SQRT2) / 2);
       }
+      if (j % ROWS === 0) yield;
     }
-    this.deckCells = new Float32Array(size * size).fill(NaN);
     if (decks.length) {
       for (let j = 0; j < size; j++) {
         for (let i = 0; i < size; i++) {
@@ -131,14 +157,15 @@ export class Land {
         }
       }
     }
-    this.reached = home ? this.walkedTo(home) : null;
+    yield;
+    if (home) this.walkedTo(home);
   }
 
   // The cells the smallest animal can walk to from `home`, over land and
   // decks; every other cell is kept off.
-  private walkedTo(home: THREE.Vector2): Uint8Array {
+  private walkedTo(home: THREE.Vector2): void {
     const size = this.size;
-    const reached = new Uint8Array(size * size);
+    const reached = this.reached!;
     const room = (k: number) => (Number.isNaN(this.deckCells[k]) ? this.clearance[k] : this.deckCells[k]);
     const passable = (k: number) => room(k) >= SMALLEST + GAP;
     const start = this.nearestPassable(this.cell(home), passable);
@@ -170,7 +197,6 @@ export class Land {
       this.clearance[k] = 0;
       if (!Number.isNaN(this.deckCells[k])) this.deckCells[k] = 0;
     }
-    return reached;
   }
 
   // How far a point on a deck is from its sides and far end, or -1 off every

@@ -12,6 +12,13 @@ import type { MeetingEvent, MeetingRules, MeetingState, Member, Numbered } from 
 export const KINDS = ['wolf', 'deer', 'fox', 'boar', 'rabbit', 'squirrel', 'duck', 'otter', 'frog'] as const;
 export type Kind = (typeof KINDS)[number];
 
+// The forest spirit dragon, the first viewer's to comment while it is no
+// one's (forest_lake_meeting.md item 14): their first message brings them the
+// dragon, which says what they write, rather than an animal on the land. It
+// is no kind a viewer can switch to or from, and takes no commands.
+export const DRAGON = 'dragon';
+export type MemberKind = Kind | typeof DRAGON;
+
 // What a viewer can have their animal do: !jump, !walk, !run and !stop, as
 // at the lake, and each kind's own tricks (TRICKS).
 export const COMMANDS = ['jump', 'walk', 'run', 'stop', 'howl', 'flap', 'sit', 'look', 'eat', 'stand', 'wave'] as const;
@@ -33,14 +40,15 @@ export const TRICKS: Readonly<Record<string, readonly Command[]>> = {
   explorer: ['wave'],
 };
 
-export const RULES: MeetingRules<Kind, Command> = {
+export const RULES: MeetingRules<MemberKind, Command> = {
   kinds: KINDS,
   commands: COMMANDS,
   host: 'explorer',
-  can: (command, kind) => EVERYONE.includes(command) || (TRICKS[kind]?.includes(command) ?? false),
+  special: DRAGON,
+  can: (command, kind) => kind !== DRAGON && (EVERYONE.includes(command) || (TRICKS[kind]?.includes(command) ?? false)),
 };
 
-export type ForestMember = Member<Kind>;
-export type ForestEvent = MeetingEvent<Kind, Command>;
-export type ForestNumbered = Numbered<Kind, Command>;
-export type ForestState = MeetingState<Kind>;
+export type ForestMember = Member<MemberKind>;
+export type ForestEvent = MeetingEvent<MemberKind, Command>;
+export type ForestNumbered = Numbered<MemberKind, Command>;
+export type ForestState = MeetingState<MemberKind>;

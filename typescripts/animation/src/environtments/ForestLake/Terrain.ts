@@ -1,7 +1,12 @@
 import * as THREE from 'three';
 import { fbm2, noise2, palette, type Season } from '../../figures/ForestLake/parts';
+import { finish, type Stepwise } from '../../stepwise';
 import { SUN } from '../../sun';
-import { CASCADE, CAVE_SCALE, CLEARING, INLAND, INLAND_MOST, ISLAND, ISLAND_TOP, LAKE, LANDING, Line, MAIN_LIP, MAIN_RIVER, Outline, PATHS, RIM, SMALL_LIP, SMALL_RIVER, SPOTS, STREAM } from './layout';
+import { CASCADE, CAVE_SCALE, CLEARING, FURROW, INLAND, INLAND_MOST, ISLAND, ISLAND_TOP, LAKE, LANDING, Line, MAIN_LIP, MAIN_RIVER, Outline, PATHS, RIM, SMALL_LIP, SMALL_RIVER, SPOTS, STREAM, WRECK_SCAR, WRECK_SITE, wreckFrame } from './layout';
+
+// Rows of the grid sampled, coloured or lit between the stops of a build a
+// piece at a time (ForestLake.build).
+const ROWS = 8;
 
 export function smoothstep(a: number, b: number, x: number): number {
   const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
@@ -20,6 +25,13 @@ export interface Shade {
 }
 
 const SUN_DIRECTION = SUN.clone().normalize();
+// The light baked into the ground (tasks/lighting.md: "shadows are too
+// weak", "add stronger contact shadows"): what is left of it in a shadow
+// (0.6 before), and how much darker the ground is right at the foot of a
+// trunk, a rock or a bush, fading out by its `foot` (0.28 before, and
+// fading faster).
+const SHADED = 0.48;
+const CONTACT = 0.48;
 
 // The ground's colours in each season, as the reference paints it: fresh
 // green grass in spring, deeper green in summer, gold and orange in autumn
@@ -79,8 +91,15 @@ export class Terrain {
   readonly heights: Float32Array;
   // The cave's floor: its pad's height.
   readonly caveFloor: number;
+  // The spaceship wreck's site: the height it is levelled to.
+  readonly wreckLevel: number;
 
-  constructor(readonly season: Season = 'spring') {
+  // Its heights sampled at once; or, `later`, only once sample() has run to
+  // its end (the forest lake built a piece at a time, ForestLake.build).
+  constructor(
+    readonly season: Season = 'spring',
+    later = false,
+  ) {
     this.pads = [
       { x: LANDING[0], z: LANDING[1], radius: CLEARING },
       { x: SPOTS.camp.x, z: SPOTS.camp.z, radius: SPOTS.camp.radius },
@@ -88,11 +107,18 @@ export class Terrain {
       { x: SPOTS.cave.x - 2.2, z: SPOTS.cave.z, radius: 3.2 },
     ].map((pad) => ({ ...pad, height: this.shape(pad.x, pad.z, false) }));
     this.caveFloor = this.pads[3].height;
-    this.xs = axis(-62, 62, 0.6, 340);
+    this.wreckLevel = this.shape(SPOTS.wreck.x, SPOTS.wreck.z, false);
+    this.xs = axis(-68, 68, 0.6, 340); // as wide as the wider lake and what stands round it (task 21)
     this.zs = axis(-82, 66, 0.6, 340);
     this.heights = new Float32Array(this.xs.length * this.zs.length);
+    if (!later) finish(this.sample());
+  }
+
+  // The land's height at each grid point, ROWS rows of the grid at a time.
+  *sample(): Stepwise<void> {
     for (let j = 0; j < this.zs.length; j++) {
       for (let i = 0; i < this.xs.length; i++) this.heights[j * this.xs.length + i] = this.shape(this.xs[i], this.zs[j], true);
+      if (j % ROWS === ROWS - 1) yield;
     }
   }
 
@@ -112,7 +138,7 @@ export class Terrain {
   shape(x: number, z: number, pads: boolean): number {
     // The lowland: gentle rolls a little over the water, rising into hills
     // away from the lake.
-    const r = Math.hypot((x - 1) * 0.95, z + 6);
+    const r = Math.hypot((x - 1) * 0.85, z + 6);
     let h = 0.55 + (fbm2(x * 0.045, z * 0.045, 7) - 0.5) * 0.7;
     h += smoothstep(42, 125, r) * 17 * (0.65 + 0.7 * fbm2(x * 0.018, z * 0.018, 3));
     // The ruins' terrace, in the west.
@@ -171,8 +197,37 @@ export class Terrain {
       const across = z - SPOTS.cave.z;
       const inward = x - SPOTS.cave.x;
       if (Math.abs(across) < 2.2 * CAVE_SCALE && inward > 0.15 - 0.7 * (CAVE_SCALE - 1) && inward < 0.7 + 4.2 * CAVE_SCALE) h = Math.min(h, this.caveFloor - 0.3);
+      // The wreck's site, levelled round it, and the furrow it ploughed
+      // behind its tail, a low ridge of earth thrown up along each side.
+      const [u, v] = wreckFrame(x, z);
+      const e = Math.hypot(u / WRECK_SITE.along, v / WRECK_SITE.across);
+      if (e < 1.35) h += (this.wreckLevel - h) * smoothstep(1.35, 1, e);
+      h += this.furrowAt(u, v);
     }
     return h;
+  }
+
+  // How much the wreck's furrow lowers (or its ridges raise) the ground at a
+  // point of the wreck's frame.
+  private furrowAt(u: number, v: number): number {
+    if (u < FURROW.from - 3 || u > FURROW.to || Math.abs(v) > FURROW.width + 1.4) return 0;
+    const along = smoothstep(FURROW.from - 3, FURROW.from + 1, u) * (1 - smoothstep(FURROW.to - 7, FURROW.to, u));
+    const w = FURROW.width * (1 - 0.35 * Math.max(0, (u - FURROW.from) / (FURROW.to - FURROW.from)));
+    const a = Math.abs(v);
+    const dig = FURROW.depth * (1 - smoothstep(w * 0.35, w, a));
+    const ridge = 0.16 * smoothstep(w * 0.75, w, a) * (1 - smoothstep(w + 0.2, w + 1.2, a));
+    return along * (ridge - dig);
+  }
+
+  // How much of a point is the earth the wreck churned up: under and round
+  // it, and down its furrow; 0 off it, soft at the edges.
+  scarAt(x: number, z: number): number {
+    const [u, v] = wreckFrame(x, z);
+    const ragged = (noise2(x * 0.45, z * 0.45, 41) - 0.5) * 0.3;
+    const site = smoothstep(1.05, 0.8, Math.hypot(u / WRECK_SCAR.along, v / WRECK_SCAR.across) + ragged);
+    const w = FURROW.width * (1 - 0.35 * Math.max(0, (u - FURROW.from) / (FURROW.to - FURROW.from)));
+    const furrow = u > FURROW.from - 2 && u < FURROW.to ? smoothstep(w + 0.9, w * 0.6, Math.abs(v) + ragged) * (1 - smoothstep(FURROW.to - 5, FURROW.to, u)) : 0;
+    return Math.max(site, furrow);
   }
 
   // The ground's height from the grid, between its points: fast.
@@ -186,6 +241,27 @@ export class Terrain {
     const c = h[(j + 1) * n + i];
     const d = h[(j + 1) * n + i + 1];
     return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+
+  // The ground's colour at a point as meshed (its paint and the light baked
+  // into it), between its grid points; the grass's before it is meshed.
+  colorAt(x: number, z: number, target: THREE.Color): THREE.Color {
+    const colors = this.colors;
+    if (!colors) return target.set(GROUND[this.season].grass);
+    const [i, u] = locate(this.xs, x);
+    const [j, v] = locate(this.zs, z);
+    const n = this.xs.length;
+    const corners = [j * n + i, j * n + i + 1, (j + 1) * n + i, (j + 1) * n + i + 1];
+    const weights = [(1 - u) * (1 - v), u * (1 - v), (1 - u) * v, u * v];
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    corners.forEach((k, q) => {
+      r += colors[k * 3] * weights[q];
+      g += colors[k * 3 + 1] * weights[q];
+      b += colors[k * 3 + 2] * weights[q];
+    });
+    return target.setRGB(r, g, b);
   }
 
   // The water's surface over a point, or NaN where there is none: the
@@ -219,13 +295,21 @@ export class Terrain {
 
   // The ground mesh: coloured, with the shadows of `shades` and of the
   // land itself baked in.
-  mesh(shades: readonly Shade[]): THREE.Mesh {
+  mesh(shades: readonly Shade[], paths?: (x: number, z: number) => number): THREE.Mesh {
+    return finish(this.meshing(shades, paths));
+  }
+
+  // The same, ROWS rows of the grid at a time.
+  // `paths`: how much of the paths' sandy dirt shows at a point, in place
+  // of pathAt's even band (the paths as they change along their way,
+  // Paths.ts).
+  *meshing(shades: readonly Shade[], paths?: (x: number, z: number) => number): Stepwise<THREE.Mesh> {
     const { xs, zs, heights } = this;
     const n = xs.length;
     const m = zs.length;
-    const light = (this.baked = this.bakeLight(shades));
+    const light = (this.baked = yield* this.bakeLight(shades));
     const positions = new Float32Array(n * m * 3);
-    const colors = new Float32Array(n * m * 3);
+    const colors = (this.colors = new Float32Array(n * m * 3));
     const c = new THREE.Color();
     const G = GROUND[this.season];
     const P = palette(this.season);
@@ -251,9 +335,12 @@ export class Terrain {
         const z = zs[j];
         const h = heights[k];
         positions.set([x, h, z], k * 3);
-        // Grass in patches of lighter and darker green, finely mottled.
+        // Grass in patches of lighter and darker green, broad and smaller
+        // ones over each other, finely mottled: deeper darks and a second
+        // scale since tasks/lighting.md ("ground is very uniformly bright").
         const patch = fbm2(x * 0.05, z * 0.05, 21);
-        c.copy(grass).lerp(grassLight, smoothstep(0.48, 0.72, patch)).lerp(grassDark, smoothstep(0.46, 0.25, patch) * 0.7);
+        c.copy(grass).lerp(grassLight, smoothstep(0.5, 0.74, patch)).lerp(grassDark, smoothstep(0.5, 0.26, patch) * 0.95);
+        c.multiplyScalar(0.86 + 0.2 * fbm2(x * 0.16, z * 0.16, 27));
         c.multiplyScalar(0.93 + 0.14 * noise2(x * 0.4, z * 0.4, 5));
         // Rock where the land is steep.
         const steep = this.steepness(i, j);
@@ -261,7 +348,7 @@ export class Terrain {
         c.lerp(tmp.copy(rock).multiplyScalar(0.85 + 0.25 * noise2(x * 0.5, z * 0.5, 3)), bare);
         let open = 1 - bare;
         // Paths, and the camp's trodden ground.
-        const onPath = this.pathAt(x, z);
+        const onPath = paths ? paths(x, z) : this.pathAt(x, z);
         if (onPath > 0) {
           const grit = noise2(x * 0.7, z * 0.7, 29);
           tmp.copy(path).lerp(pathLight, smoothstep(0.55, 0.8, grit)).lerp(pathDark, smoothstep(0.35, 0.1, grit) * 0.7);
@@ -270,6 +357,14 @@ export class Terrain {
         }
         const campAt = Math.hypot(x - SPOTS.camp.x, z - SPOTS.camp.z);
         if (campAt < SPOTS.camp.radius + 1) c.lerp(camp, smoothstep(SPOTS.camp.radius + 1, SPOTS.camp.radius - 1.5, campAt) * (0.55 + 0.35 * noise2(x * 0.6, z * 0.6, 31)));
+        // The earth the wreck churned up, darker in its furrow.
+        const scar = Math.abs(x - SPOTS.wreck.x) < 45 && Math.abs(z - SPOTS.wreck.z) < 20 ? this.scarAt(x, z) : 0;
+        if (scar > 0) {
+          const grit = noise2(x * 0.8, z * 0.8, 43);
+          tmp.copy(pathDark).lerp(path, smoothstep(0.45, 0.8, grit) * 0.6).multiplyScalar(0.86 + 0.12 * noise2(x * 2.1, z * 2.1, 47));
+          c.lerp(tmp, scar * 0.9);
+          open *= 1 - scar * 0.8;
+        }
         // Where there is water over it: sand in the shallows turning green
         // with depth; a darker, muddy band at the waterline; stones in the
         // rivers' and the stream's beds.
@@ -286,6 +381,7 @@ export class Terrain {
         colors.set([c.r, c.g, c.b], k * 3);
         cover[k] = open;
       }
+      if (j % ROWS === ROWS - 1) yield;
     }
     // Two triangles to each cell, split one way or the other at random, so
     // no grain of diagonals runs across the land.
@@ -385,10 +481,10 @@ export class Terrain {
     return Math.hypot(dx, dz);
   }
 
-  // How much light reaches each grid point, 0.55 to 1: the sun's, unless
+  // How much light reaches each grid point, about 0.2 to 1: the sun's, unless
   // the land itself or one of `shades` is between it and the sun, and less
   // in hollows and at the feet of cliffs and things standing on it.
-  private bakeLight(shades: readonly Shade[]): Float32Array {
+  private *bakeLight(shades: readonly Shade[]): Stepwise<Float32Array> {
     const { xs, zs, heights } = this;
     const n = xs.length;
     const m = zs.length;
@@ -420,6 +516,7 @@ export class Terrain {
         }
         ambient[k] = 1 - Math.min(0.35, hidden * 0.045);
       }
+      if (j % ROWS === ROWS - 1) yield;
     }
     // The shadows of the things standing on it.
     for (const shade of shades) {
@@ -449,19 +546,20 @@ export class Terrain {
           }
           if (shade.foot) {
             const d = Math.hypot(xs[i] - shade.x, zs[j] - shade.z);
-            if (d < shade.foot) ambient[k] *= 1 - 0.28 * (1 - d / shade.foot) ** 2;
+            if (d < shade.foot) ambient[k] *= 1 - CONTACT * (1 - d / shade.foot) ** 1.6;
           }
         }
       }
     }
     const light = new Float32Array(n * m);
-    for (let k = 0; k < light.length; k++) light[k] = (0.6 + 0.4 * sun[k]) * ambient[k];
+    for (let k = 0; k < light.length; k++) light[k] = (SHADED + (1 - SHADED) * sun[k]) * ambient[k];
     return light;
   }
 
   private baked: Float32Array | null = null;
+  private colors: Float32Array | null = null; // the ground's, as meshed (colorAt)
 
-  // How much light reaches the ground at a point (0.6 to 1), as baked into
+  // How much light reaches the ground at a point (about 0.2 to 1), as baked into
   // its colours: for tinting what stands there. Known once the mesh is
   // built; 1 before.
   lightAt(x: number, z: number): number {

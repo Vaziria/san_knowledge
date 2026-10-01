@@ -1,6 +1,6 @@
 # Trees state
 
-Updated 2026-09-28 by the crystal tree, the user's own model in its spec (asked for directly: "continue implementing figure", with CrystalTree.md open; no task file). First written 2026-09-25 by task 17, from the code as it was then.
+Updated 2026-10-01 by [task 21](../../../../tasks/done/21-forest-lake-wider-lake-crystal-island.md): the crystal tree grows to any height and stands on other ground, for the forest lake's island, where it is 22 m tall. Before that, 2026-09-28, by the crystal tree, the user's own model in its spec (asked for directly: "continue implementing figure", with CrystalTree.md open; no task file). First written 2026-09-25 by task 17, from the code as it was then.
 
 ## What works
 
@@ -23,6 +23,12 @@ Updated 2026-09-28 by the crystal tree, the user's own model in its spec (asked 
   - A fantasy tree 5.7 m tall on its own grassy disk 6.2 m across: an S-curved trunk with five roots, five branches forking twice, star-like clusters of crystal shards at their ends and on top of the crown, crystals hanging on strings from the outer clusters, rocks, crystals and tufts of grass on the disk, and sparkles round it all. 6,895 triangles in 17 meshes at the page's seed (7), built in about 7 ms.
   - The page's colours mapped onto felt: bark `wood` toward `autumn`, crystals `zenith` and `flower` darkened to the page's lightness, the disk `grass` toward `sand`, rocks `stone`. The crystals are glossy and glow in each face's colour, and two lights, `flower` in the crown and `zenith` beside it, light the tree as the page's do.
   - It plays the page's animation (the hanging crystals swing, the sparkles drift round and twinkle). The spec names no behaviour; the page's Glow slider is `SetGlow(amount)`, a button in the preview. Options: `seed`, `glow`, `ground: false` (no disk), `lights: false`.
+  - **For the forest lake's island** (since [task 21](../../../../tasks/done/21-forest-lake-wider-lake-crystal-island.md)), options that leave the preview as it was:
+    - `height`: the page's tree, 5.74 m, grown to it, the same tree; its sparkles grow as big, and its two lights reach as far and shine as much brighter.
+    - `colors`: any of its colours in place of the theme's, as display values; the island's are the page's own crystals (`MODEL_COLORS`) and the forest lake's bark. The lights take the given crystals' blue and violet.
+    - `bark`: a material for the trunk, roots and branches in place of felt's finish (the island's is the forest lake's own two-sided one).
+    - `season`: in winter, snow on the upturned faces of the trunk, roots and branches; the crystals are the same all year.
+    - `on`: other ground, with `ground: false`. Its ground crystals stand on it (those where it gives no ground are left out), and its five roots run on out over it from the trunk, as thick as the page's where they leave it and tapering, half sunk, down over an edge, until the ground falls below `low`. The roots are drawn after all the page's draws of the random generator, so the tree above them is still the page's. `roots` gives each root's way out and how far it runs.
   - Parts: `trunk`, `crystals`, `pendants`, `ground`, `sparkles`. Its preview frames it as the trees' does (`treeView()`).
 - **Reused elsewhere:** the grasses build on `clumpGeometry`, `limbGeometry` and `seededRandom` from parts.ts (see [grasses.md](grasses.md)). Lake and sky code borrows `seededRandom` and `between`.
 
@@ -32,6 +38,7 @@ Updated 2026-09-28 by the crystal tree, the user's own model in its spec (asked 
   - The page's own code run in Node beside `crystalTreeModel.ts` for seeds 7, 1, 42 and 123456: every corner, colour, hanging crystal and sparkle the same (6,895, 7,073, 6,847 and 6,771 triangles).
   - The figure in Node: built in 6.7–7.8 ms; no NaN over a minute of its animation; its options and `SetGlow` (clamped to 0–1).
   - Seen beside the page's own front view in headless Edge, with and without the painterly filter; `npm run typecheck` clean.
+- 2026-10-01, [task 21](../../../../tasks/done/21-forest-lake-wider-lake-crystal-island.md): the preview in Node the same as before the options, corner for corner (6,895 triangles, the same bounds and the same sums of every position); on the island, 22.0 m tall, its crown 20.6 × 16.9 m, its roots running 4.8–8.6 m out (the one toward the jetty's steps stops short of them). Seen in the forest lake in headless Edge, from the landing, each shore, above and by its roots, in all four seasons.
 - 2026-09-25 (task 17, while writing this file): a numeric run in Node ([rules.md, Checking the result](../../../../docs/3d_modelling/rules.md#checking-the-result) rule 8).
   - Every kind builds as two meshes with no NaN, and the same seed twice gives the same crown.
   - All 20 other seeds tried per kind build, and each kind keeps its height (the oak's range is 12.2–13.1 m). `autumn: true` builds for every kind, with the same wood.
@@ -53,10 +60,11 @@ Updated 2026-09-28 by the crystal tree, the user's own model in its spec (asked 
 - What should the trees do? Their specs name no behaviour, so they stand still. The preview doesn't sway them, though the lake does.
 - `BirchTree.md` and `PoplarTree.md` exist, empty, with no figure. Should a birch and a poplar be built?
 - `autumn` is in no spec. It came from the user's request for autumn trees at the lake (the comment in `Lake/Trees.ts`). Should the specs name it, and should the preview offer it?
-- Should the crystal tree keep felt's colours, or the page's own (`MODEL_COLORS` in crystalTreeModel.ts, one line)? And should its spec name `SetGlow`?
+- Should the crystal tree's preview keep felt's colours, or the page's own (`MODEL_COLORS` in crystalTreeModel.ts, one line)? The forest lake's island already shows the page's own (task 21). And should its spec name `SetGlow`?
 
 ## History
 
 - 2026-09-28, no task file, not committed: the crystal tree, from the user's model in CrystalTree.md, with its preview and parts; the trees' camera framing shared as `treeView()`.
+- 2026-10-01, [task 21](../../../../tasks/done/21-forest-lake-wider-lake-crystal-island.md) (not committed): the crystal tree's options `height`, `colors`, `bark`, `season` and `on`, and `roots`, for the forest lake's island; the model takes other ground (`CrystalGround`). CrystalTree.md is as the user wrote it.
 - 2026-09-24, after 278ad67, not committed yet, with no task file: added `autumn` in `TreeOptions` (the autumn colour and mottled tints), for the lake's autumn maple and oak.
 - 2026-09-24, 278ad67: added the eight kinds on the shared trunk, crown and skeleton, their previews, and rules.md Trees. `BirchTree.md` and `PoplarTree.md` were added as empty specs.

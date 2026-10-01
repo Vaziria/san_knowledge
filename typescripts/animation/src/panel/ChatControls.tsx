@@ -21,7 +21,7 @@ const MEETINGS = {
   forest_lake_meeting: {
     host: 'the explorer',
     commands:
-      'Commands: !jump, !walk, !run, !stop; !howl (a wolf), !flap (a duck), !sit and !look (a fox), !look (a deer), !eat (a boar or a rabbit), !stand (an otter), !wave (the owner). !wolf, !deer, !fox, !boar, !rabbit, !squirrel, !duck, !otter or !frog switch the animal.',
+      'Commands: !jump, !walk, !run, !stop; !howl (a wolf), !flap (a duck), !sit and !look (a fox), !look (a deer), !eat (a boar or a rabbit), !stand (an otter), !wave (the owner). !wolf, !deer, !fox, !boar, !rabbit, !squirrel, !duck, !otter or !frog switch the animal. The first viewer to comment while the dragon is no one\'s gets it: it says what they write, and takes no commands.',
   },
 } as const;
 

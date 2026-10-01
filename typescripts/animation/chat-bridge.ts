@@ -5,7 +5,7 @@ import { createInterface, type Interface } from 'node:readline';
 import type { Readable } from 'node:stream';
 import type { Connect, Logger, Plugin } from 'vite';
 import { Meeting, type Chat, type SavedMeeting } from './meeting.ts';
-import { RULES as FOREST_RULES, type Command as ForestCommand, type Kind as ForestKind } from './src/story/forest_lake_meeting/events.ts';
+import { RULES as FOREST_RULES, type Command as ForestCommand, type MemberKind as ForestKind } from './src/story/forest_lake_meeting/events.ts';
 import type { ChatStatus, MeetingEvent, TestChat } from './src/story/lake_meeting/events.ts';
 
 // The YouTube live chat for the lake meeting story (src/story/lake_meeting),

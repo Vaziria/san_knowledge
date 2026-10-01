@@ -10,6 +10,7 @@ import { cameraView, type CameraDirection, type CameraView } from './camera';
 import { clampKuwaharaRadius, createKuwaharaShader } from './effects/kuwahara';
 import { drawOverlay } from './overlay';
 import type { Environment, Preview, TimeOfDay } from './previews';
+import type { Stepwise } from './stepwise';
 import { SUN } from './sun';
 import { applyRendererTheme, sceneAt, type SceneAt, type Theme } from './theme';
 import type { Move } from './walk';
@@ -19,7 +20,9 @@ import type { Move } from './walk';
 // one environment (the floor, a lake). It changes only through show(),
 // setCameraDirection(), setWalk(), setMoves(), setKuwahara(), setTimeOfDay()
 // and setDrawing(), which do nothing when their value is unchanged, so they can
-// be called on every settings change. React never touches it. The camera
+// be called on every settings change, and by a story whose environment
+// changes while it plays (Preview.changes: the next one built ahead between
+// frames and swapped in under the figure). React never touches it. The camera
 // turns round the figure (the orbit controls, and gliding to a picked
 // direction), or walks round the scene at eye height (camera "walk"). A story
 // can move it itself (Preview.shot): while the view is the figure's own, the
@@ -63,6 +66,8 @@ export class Stage {
   private shadowFrom = new THREE.Vector3(); // the sun from the shadow's middle (fitShadow)
   private time: TimeOfDay = 'cycle'; // the Time of day setting, for an environment with night
   private daylight: SceneAt | null = null; // the sky and lights now, at night mixed toward the theme's night
+  private ahead: Ahead | null = null; // the environment the story changes to next, built ahead (Preview.changes)
+  private aheadRest = 0; // ms (performance.now()) before which no more of it is built, after a long piece
 
   // Called when the view is dragged away from the picked camera direction,
   // so the settings can say it is free (main.tsx).
@@ -151,6 +156,7 @@ export class Stage {
     // page is busy loading; a negative delta would run a demo backwards.
     const delta = Math.max(0, this.timer.getDelta());
     this.elapsed += delta;
+    this.swapIfDue();
     this.environment?.update(delta); // first, so a floating figure rides this frame's waves
     this.applyDaylight();
     this.preview?.update(this.elapsed, delta);
@@ -171,6 +177,7 @@ export class Stage {
       drawOverlay(renderer, scene, camera);
     }
     this.onFrame?.();
+    this.buildAhead();
   }
 
   // Draws the scene, or stops drawing it and hides the canvas: with the
@@ -187,15 +194,22 @@ export class Stage {
 
   // Shows a preview in an environment and a theme. Figures and environments
   // build their materials from the theme, and a preview is built for its
-  // environment, so any change rebuilds both and restarts the demo. The camera
-  // goes to the preview's view only for a new figure, from the picked camera
-  // direction; a new environment or theme keeps the view.
+  // environment, so any change rebuilds both and restarts the demo; but a
+  // story whose environment changes while it plays (Preview.changes) may
+  // take a new one without starting over, swapped in under it once built
+  // (the forest lake meeting and the Season setting). The camera goes to the
+  // preview's view only for a new figure, from the picked camera direction;
+  // a new environment or theme keeps the view.
   show(
     create: (theme: Theme, environment: Environment) => Preview,
     createEnvironment: (theme: Theme) => Environment,
     theme: Theme,
   ): void {
     if (create === this.create && createEnvironment === this.createEnvironment && theme === this.theme) return;
+    if (create === this.create && theme === this.theme && this.preview?.changes?.pick(createEnvironment)) {
+      this.createEnvironment = createEnvironment;
+      return;
+    }
     const newFigure = create !== this.create;
     this.create = create;
     this.createEnvironment = createEnvironment;
@@ -203,6 +217,7 @@ export class Stage {
 
     for (const release of this.pressed.values()) release();
     this.pressed.clear();
+    this.dropAhead();
     if (this.preview && this.environment) {
       this.preview.dispose?.();
       this.scene.remove(this.preview.figure, this.environment.scenery);
@@ -210,28 +225,15 @@ export class Stage {
     }
     const environment = createEnvironment(theme);
     const preview = create(theme, environment);
-    // The figure stays at the origin: the scenery moves so that the figure's
-    // spot, on land or in the water, is there.
-    const spot = preview.place === 'water' && environment.water ? environment.water.at : environment.land;
-    environment.scenery.position.copy(spot).negate();
+    placeScenery(environment, preview);
     this.scene.add(environment.scenery, preview.figure);
-    this.scene.fog = environment.fog ?? null; // the lake's comes and goes; the other environments have none
-    environment.dayNight?.set(this.time); // before its first frame, so it is built into it
     this.environment = environment;
     this.preview = preview;
     this.claimed = false; // the old story's
     this.fitShadow(preview.bounds ?? new THREE.Box3().setFromObject(preview.figure));
     this.elapsed = 0;
     behaviours.setState({ behaviours: preview.behaviours ?? [] }); // for the panel's buttons
-
-    const s = environment.light ?? theme.scene; // an environment may bring its own (the forest lake)
-    this.scene.background = new THREE.Color(s.background);
-    this.hemisphere.color.set(s.sky);
-    this.hemisphere.groundColor.set(s.ground);
-    this.hemisphere.intensity = s.ambientIntensity;
-    this.light.color.set(s.light);
-    this.light.intensity = s.lightIntensity;
-    this.applyDaylight();
+    this.useEnvironment(environment);
 
     // A walking camera walks on where it is.
     if (newFigure && !this.walker) {
@@ -239,6 +241,106 @@ export class Stage {
       this.place(cameraView(this.direction, preview));
       if (this.direction === 'walk') this.startWalking();
     }
+  }
+
+  // The environment's fog, day and night, sky colour and lights (its own,
+  // or the theme's).
+  private useEnvironment(environment: Environment): void {
+    this.scene.fog = environment.fog ?? null; // the lake's comes and goes; the other environments have none
+    environment.dayNight?.set(this.time); // before its first frame, so it is built into it
+    const s = environment.light ?? this.theme!.scene; // an environment may bring its own (the forest lake)
+    this.scene.background = new THREE.Color(s.background);
+    this.hemisphere.color.set(s.sky);
+    this.hemisphere.groundColor.set(s.ground);
+    this.hemisphere.intensity = s.ambientIntensity;
+    this.light.color.set(s.light);
+    this.light.intensity = s.lightIntensity;
+    this.applyDaylight();
+  }
+
+  // For a story whose environment changes while it plays (Preview.changes:
+  // the forest lake meeting's season, every minute), after each frame: the
+  // next one is built a piece at a time, AHEAD ms of it a frame, then the
+  // story measures what it needs from it (its land and sight), and its
+  // shaders are compiled, before it is due. A piece longer than that (the
+  // forest lake's terrain and landmarks take a few hundred ms each) is
+  // followed by REST ms without any, so the long frames stand apart. Once
+  // it is due and not ready (a season picked while it plays), URGENT ms a
+  // frame and no rest.
+  private buildAhead(): void {
+    const changes = this.preview?.changes;
+    const theme = this.theme;
+    if (!changes || !theme) return;
+    const build = changes.next();
+    if (this.ahead && this.ahead.build !== build) this.dropAhead();
+    if (!build) return;
+    const start = performance.now();
+    const urgent = changes.due();
+    if (!urgent && start < this.aheadRest) return;
+    const ahead = (this.ahead ??= { build, steps: build(theme), environment: null, preparing: null, take: null, compiling: false, compiled: false });
+    const end = start + (urgent ? URGENT : AHEAD);
+    while (!ahead.take && performance.now() < end) {
+      if (!ahead.environment) {
+        const step = ahead.steps.next();
+        if (!step.done) continue;
+        ahead.environment = step.value;
+        placeScenery(step.value, this.preview!);
+        ahead.preparing = changes.prepare(step.value);
+      } else {
+        const step = ahead.preparing!.next();
+        if (step.done) ahead.take = step.value;
+      }
+    }
+    if (!urgent && performance.now() > end + AHEAD) this.aheadRest = performance.now() + REST;
+    if (ahead.take && !ahead.compiling) this.compileAhead(ahead);
+  }
+
+  // Compiles the shaders the next environment's scenery needs, as it will be
+  // drawn (with the filter, into the composer's target), without stopping
+  // the page (KHR_parallel_shader_compile), so its first frame doesn't wait
+  // for them. The scenery shown is hidden meanwhile, since its lights (the
+  // forest lake's fires) would count twice.
+  private compileAhead(ahead: Ahead): void {
+    ahead.compiling = true;
+    const renderer = this.renderer;
+    const shown = this.environment?.scenery;
+    const visible = shown?.visible ?? true;
+    if (shown) shown.visible = false;
+    const target = renderer.getRenderTarget();
+    renderer.setRenderTarget(this.kuwaharaRadius > 0 ? this.composer.readBuffer : null);
+    const compiled = renderer.compileAsync(ahead.environment!.scenery, this.camera, this.scene);
+    renderer.setRenderTarget(target);
+    if (shown) shown.visible = visible;
+    void compiled.then(() => (ahead.compiled = true));
+  }
+
+  // Before a frame: the environment built ahead comes in under the figure,
+  // placed as show() places it, with its fog and light, once it is ready and
+  // the story says it is due; the story takes it (its land, sight, water),
+  // and what the old one used and the new one doesn't is freed.
+  private swapIfDue(): void {
+    const { ahead, preview, environment: old } = this;
+    if (!ahead?.compiled || !preview?.changes?.due() || !old) return;
+    this.ahead = null;
+    const environment = ahead.environment!;
+    this.scene.remove(old.scenery);
+    this.scene.add(environment.scenery);
+    this.environment = environment;
+    this.useEnvironment(environment);
+    ahead.take!();
+    disposeUnused(old.scenery, [environment.scenery, preview.figure, ...(preview.props ?? [])]);
+    this.aheadRest = performance.now() + AFTER_SWAP; // the next isn't begun in the same frame
+  }
+
+  // Stops building the environment ahead (the story wants another now, or a
+  // new one is shown), freeing what it built.
+  private dropAhead(): void {
+    const ahead = this.ahead;
+    this.ahead = null;
+    this.aheadRest = 0;
+    if (!ahead?.environment) return;
+    const shown = [this.environment?.scenery, this.preview?.figure, ...(this.preview?.props ?? [])].filter((o) => o !== undefined);
+    disposeUnused(ahead.environment.scenery, shown);
   }
 
   // The Time of day setting: day and night taking turns, or held at one, in
@@ -666,6 +768,10 @@ const NEAREST = 0.002; // m, the nearest it comes in close
 const GLIDE = 7; // how fast the camera glides to a picked direction, per second
 const SHOT_EASE = 2.5; // how fast it follows a story's shot, per second: most of the way in a second
 const CLAIM_CUT = 6; // m: a camera a story claims back from further off than this cuts to its shot
+const AHEAD = 8; // ms a frame of building the next environment ahead (buildAhead())
+const URGENT = 40; // and once it is due
+const REST = 700; // ms without building after a piece that took longer than AHEAD twice
+const AFTER_SWAP = 2500; // and after a swap
 const ARRIVED = 1e-3; // radians (and shares of the distance) from the goal where the glide ends
 const LOST = THREE.MathUtils.degToRad(0.5); // radians turned or tipped away that leave a direction
 
@@ -699,23 +805,67 @@ class OverlayPass extends Pass {
 // meadow). Textures stay, since some are shared (the wood grain), except a
 // sprite's own drawing (a speech bubble).
 function dispose(...roots: THREE.Object3D[]): void {
-  const resources = new Set<{ dispose(): void }>();
-  for (const root of roots) {
-    root.traverse((object) => {
-      if (object instanceof THREE.Sprite) {
-        resources.add(object.material);
-        if (object.material.map) resources.add(object.material.map);
-      }
-      if (object instanceof THREE.Points) {
-        resources.add(object.geometry); // sparks, splash drops (the forest lake's)
-        for (const material of [object.material].flat()) resources.add(material);
-      }
-      if (!(object instanceof THREE.Mesh)) return;
-      if (object instanceof THREE.InstancedMesh) resources.add(object); // its instances' matrices and colours
-      if (object instanceof THREE.SkinnedMesh) resources.add(object.skeleton); // its bones' texture (the forest lake's animals)
-      resources.add(object.geometry);
-      for (const material of [object.material].flat()) resources.add(material);
-    });
-  }
-  for (const resource of resources) resource.dispose();
+  const found = new Set<Disposable>();
+  for (const root of roots) resourcesOf(root, found, false);
+  for (const resource of found) resource.dispose();
+}
+
+// Frees what an environment swapped out (or built ahead and dropped) used
+// that what is still shown doesn't, its textures too: what a module keeps
+// for every build of it (the forest lake's snowflake and halo) stays while
+// the new one uses it, and is sent to the GPU again when it is next used.
+export function disposeUnused(gone: THREE.Object3D, shown: THREE.Object3D[]): void {
+  const kept = new Set<Disposable>();
+  for (const root of shown) resourcesOf(root, kept, true);
+  const found = new Set<Disposable>();
+  resourcesOf(gone, found, true);
+  for (const resource of found) if (!kept.has(resource)) resource.dispose();
+}
+
+type Disposable = { dispose(): void };
+
+// What the GPU holds for what is under a root (dispose()), with its
+// materials' textures when `textures`.
+function resourcesOf(root: THREE.Object3D, into: Set<Disposable>, textures: boolean): void {
+  const addMaterial = (material: THREE.Material) => {
+    into.add(material);
+    if (!textures) return;
+    for (const value of Object.values(material)) if (value instanceof THREE.Texture) into.add(value);
+    if (material instanceof THREE.ShaderMaterial) for (const uniform of Object.values(material.uniforms)) if (uniform.value instanceof THREE.Texture) into.add(uniform.value);
+  };
+  root.traverse((object) => {
+    if (object instanceof THREE.Sprite) {
+      addMaterial(object.material);
+      if (object.material.map) into.add(object.material.map);
+    }
+    if (object instanceof THREE.Points) {
+      into.add(object.geometry); // sparks, splash drops (the forest lake's)
+      for (const material of [object.material].flat()) addMaterial(material);
+    }
+    if (!(object instanceof THREE.Mesh)) return;
+    if (object instanceof THREE.InstancedMesh) into.add(object); // its instances' matrices and colours
+    if (object instanceof THREE.SkinnedMesh) into.add(object.skeleton); // its bones' texture (the forest lake's animals)
+    into.add(object.geometry);
+    for (const material of [object.material].flat()) addMaterial(material);
+  });
+}
+
+// The figure stays at the origin: the scenery moves so that the figure's
+// spot, on land or in the water, is there.
+function placeScenery(environment: Environment, preview: Preview): void {
+  const spot = preview.place === 'water' && environment.water ? environment.water.at : environment.land;
+  environment.scenery.position.copy(spot).negate();
+}
+
+// An environment built ahead (Stage.buildAhead): which it is (the story's
+// builder, the same function until it is swapped in), its steps, then what
+// the story measures from it, then its shaders.
+interface Ahead {
+  build: (theme: Theme) => Stepwise<Environment>;
+  steps: Stepwise<Environment>;
+  environment: Environment | null;
+  preparing: Stepwise<() => void> | null;
+  take: (() => void) | null;
+  compiling: boolean;
+  compiled: boolean;
 }

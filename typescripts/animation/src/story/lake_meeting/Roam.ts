@@ -56,6 +56,7 @@ const ROOM = 0.35; // m more a spot keeps from everything than the animal needs:
 const PAST = 40; // of its last stops a new spot keeps PAST_ROOM m from, and from its first place: it never goes back
 const PAST_ROOM = 1; // m
 const SHIFT = 2.5; // m at most that one switched to a bigger kind appears from where it stood, to fit
+const OUT = 4; // m at most one the land changed under (reland) walks to the nearest spot where it fits (with ROOM); further, to a spot within NEAR
 
 type State = 'rest' | 'go' | 'wait' | 'held' | 'leave';
 
@@ -69,6 +70,8 @@ interface Roaming {
   calm: number; // s left before it looks for standing ones in its way
   blocker: Member | null; // the one it waits for
   gone: (() => void) | null; // for one leaving: once it is there
+  out: boolean; // stepping out of what the land changed under it (reland)
+  holdOnceOut: number | null; // s to hold it once out: a hold that came while it stepped out
 }
 
 // Where each has stopped: its first place, always, and the last PAST places
@@ -91,7 +94,7 @@ function jumpOrFlap(member: Member, random: () => number): void {
 }
 
 export class Roam {
-  private readonly land: Land;
+  private land: Land;
   private readonly random: () => number;
   private readonly pastime: Pastime;
   private readonly roaming = new Map<Member, Roaming>();
@@ -133,6 +136,11 @@ export class Roam {
   hold(member: Member, seconds = Infinity): void {
     const roaming = this.roaming.get(member);
     if (!roaming || roaming.state === 'leave') return;
+    // Stepping out of something, it is held once out.
+    if (roaming.out) {
+      roaming.holdOnceOut = seconds;
+      return;
+    }
     member.stop();
     stopped(member);
     Object.assign(roaming, { ...idle(), state: 'held', time: seconds });
@@ -141,6 +149,7 @@ export class Roam {
   // It roams on after a hold.
   release(member: Member): void {
     const roaming = this.roaming.get(member);
+    if (roaming?.out) roaming.holdOnceOut = null;
     if (roaming?.state === 'held') Object.assign(roaming, { ...idle(), time: between(this.random, AFTER_HOLD) });
   }
 
@@ -187,6 +196,71 @@ export class Roam {
     this.follow(member, roaming, way);
   }
 
+  // The land changes under them (the forest lake meeting's season, every
+  // minute: winter's bare trees stand among the pines, and what grows moves
+  // a little). Each stays where it is, doing what it did, except:
+  // - one standing where it no longer fits (in a new trunk, over water)
+  //   walks out to the nearest spot where it does, OUT m at most;
+  // - one on its way whose way is no longer clear finds a new one to where
+  //   it was going, or a new spot near it if that no longer fits it;
+  // - one waiting finds its new way when it goes on, as ever, to a new spot
+  //   if its own no longer fits it.
+  // Returns those that had to step out.
+  reland(land: Land): Member[] {
+    this.land = land;
+    const out: Member[] = [];
+    for (const [member, roaming] of this.roaming) {
+      const at = member.at;
+      if (roaming.state !== 'leave' && land.clearanceAt(at.x, at.y) < member.radius + GAP) {
+        out.push(member);
+        this.stepOut(member, roaming);
+        continue;
+      }
+      const going = roaming.state === 'go' || roaming.state === 'leave' || roaming.state === 'wait';
+      if (!going || !roaming.to) continue;
+      if (roaming.state !== 'leave' && !land.free(roaming.to.x, roaming.to.y, member.radius)) {
+        roaming.to = land.nearestFree(roaming.to, member.radius + ROOM, this.kept(member), NEAR) ?? land.spot(this.random, member.radius + ROOM, this.kept(member));
+        if (!roaming.to) {
+          member.stop();
+          Object.assign(roaming, { ...idle(), time: between(this.random, AFTER_HOLD) });
+          continue;
+        }
+      } else if (roaming.state !== 'wait' && this.clearAhead(member, roaming)) {
+        continue;
+      }
+      if (roaming.state !== 'wait') this.reroute(member, roaming, null);
+    }
+    return out;
+  }
+
+  // Whether the rest of its way keeps the room it needs on the land.
+  private clearAhead(member: Member, roaming: Roaming): boolean {
+    const need = member.radius + GAP + MARGIN[roaming.gait];
+    let from = member.at;
+    for (const step of member.ahead) {
+      const to = new THREE.Vector2(step.to.x, step.to.z);
+      if (this.land.clearanceAt(to.x, to.y) < member.radius + GAP || !this.land.clearLine(from, to, need, member.radius)) return false;
+      from = to;
+    }
+    return true;
+  }
+
+  // Walks out of what it stands in, to the nearest spot where it fits, as
+  // much room round it as a spot it roams to keeps (ROOM): it stops a
+  // little short of a spot, and a cell of the land (0.5 m) next to one
+  // with room can have none. Nothing stops it on the way but another
+  // animal: a hold (its turn to talk, !stop) holds it once it is out.
+  private stepOut(member: Member, roaming: Roaming): void {
+    const kept = this.kept(member);
+    const to = this.land.nearestFree(member.at, member.radius + ROOM, kept, OUT) ?? this.land.spot(this.random, member.radius + ROOM, kept, member.at, NEAR);
+    if (!to) return;
+    const way = this.land.path(member.at, to, member.radius, MARGIN.walk, this.standing(member)) ?? [to];
+    // Held (talking, or told to stop), it is held again once out.
+    const hold = roaming.state === 'held' ? roaming.time : null;
+    Object.assign(roaming, { ...idle(), state: 'go', to, gait: 'walk', out: true, holdOnceOut: hold });
+    this.follow(member, roaming, way);
+  }
+
   // Whether it is on its way somewhere.
   moving(member: Member): boolean {
     const state = this.roaming.get(member)?.state;
@@ -217,7 +291,10 @@ export class Roam {
         case 'go':
         case 'leave':
           roaming.calm -= delta;
-          this.keepApart(member, roaming, all);
+          // Stepping out, it doesn't stop for others: its short way goes
+          // round those standing, and the others see it on its way. Waiting
+          // for one standing close, it stayed in a tree for a minute.
+          if (!roaming.out) this.keepApart(member, roaming, all);
           break;
       }
     }
@@ -257,6 +334,7 @@ export class Roam {
           return;
         }
         stopped(member);
+        if (roaming.out && roaming.holdOnceOut !== null) return Object.assign(roaming, { ...idle(), state: 'held', time: roaming.holdOnceOut });
         const time = between(this.random, REST);
         Object.assign(roaming, { ...idle(), time, jumpAt: this.random() < JUMP ? time * this.random() : -1 });
       },
@@ -463,7 +541,7 @@ function stopping(member: Member): number {
 }
 
 function idle(): Roaming {
-  return { state: 'rest', time: 0, jumpAt: -1, to: null, way: [], gait: 'walk', calm: 0, blocker: null, gone: null };
+  return { state: 'rest', time: 0, jumpAt: -1, to: null, way: [], gait: 'walk', calm: 0, blocker: null, gone: null, out: false, holdOnceOut: null };
 }
 
 // Which way it faces, and how fast it goes that way, as a velocity on the

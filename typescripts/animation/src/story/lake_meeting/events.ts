@@ -24,11 +24,17 @@ export const HOST = 'host'; // the Bear, the channel owner's
 
 // What a meeting's animals can be and do, for the dev server to read chat
 // by (meeting.ts): the kinds a viewer's animal can be (!cat), the commands
-// (!jump), the host's kind, and which kinds can do which command.
+// (!jump), the host's kind, which kinds can do which command, and the kind
+// kept for the first viewer to comment, if the meeting has one.
 export interface MeetingRules<K extends string = Kind, C extends string = Command> {
   kinds: readonly K[];
   commands: readonly C[];
   host: string; // the host's kind
+  // A kind no viewer picks or switches to (the forest lake meeting's dragon):
+  // the first viewer to comment while no one has it gets it, and keeps it
+  // until they leave. It takes no bot's place and isn't counted among the
+  // viewers' animals.
+  special?: K;
   can(command: C, kind: string): boolean;
 }
 

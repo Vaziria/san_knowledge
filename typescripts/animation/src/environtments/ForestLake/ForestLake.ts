@@ -1,17 +1,29 @@
 import * as THREE from 'three';
 import { between, color, FALLEN_LEAVES, PALETTE, seededRandom, twoSided, type Season } from '../../figures/ForestLake/parts';
 import { Rowboat } from '../../figures/ForestLake/Rowboat';
+import { StonePath } from '../../figures/ForestLake/StonePath/StonePath';
+import { finish, type Stepwise } from '../../stepwise';
 import { Backdrop, horizonOf } from './Backdrop';
 import { Cliffs } from './Cliffs';
 import { Landmarks } from './Landmarks';
-import { CAVE_SCALE, CLEARING, LANDING, MAIN_LIP, SMALL_LIP, SPOTS } from './layout';
+import { pathClearing, planPaths, type PathPlan } from './Paths';
+import { Wayside } from './Wayside';
+import { CAVE_SCALE, CLEARING, LANDING, MAIN_LIP, SMALL_LIP, SPOTS, wreckClear } from './layout';
 import { Scatter } from './Scatter';
 import { Terrain, type River } from './Terrain';
 import { Water, waveHeight, type Fall } from './Water';
 
+// The haze over the land, toward the sky's colour at the horizon: linear,
+// from `near` m (none) to `far` m (all of it). The backdrop's hills and
+// mountains have theirs painted in. Before tasks/lighting.md it began at
+// 70 m, so nothing in the valley was hazed.
+const FOG = { near: 10, far: 360 };
+
 export interface ForestLakeOptions {
   season?: Season; // spring by default
 }
+
+type Writable<T> = { -readonly [K in keyof T]: T[K] };
 
 // The sky's colour and the lights a season brings, in place of the theme's.
 export interface ForestLakeLight {
@@ -27,8 +39,9 @@ export interface ForestLakeLight {
 // reference images ("Spring - Forest Lake" and the forest lake in all four
 // seasons) show it, with its own look: its land and lake (Terrain.ts,
 // Water.ts), cliffs (Cliffs.ts), sky and mountains (Backdrop.ts), what
-// grows and lies on it (Scatter.ts) and its landmarks (Landmarks.ts), laid
-// out by the map in layout.ts, in one of four seasons: spring's cherry
+// grows and lies on it (Scatter.ts), its landmarks (Landmarks.ts) and its
+// stone paths (Paths.ts, the StonePath asset), laid out by the map in
+// layout.ts, in one of four seasons: spring's cherry
 // blossom with petals falling round the trees by the landing, summer's deep
 // green, autumn's orange and red with leaves falling, winter's snow, the
 // lake frozen but for a hole of open water, and snow falling. It brings its
@@ -41,53 +54,87 @@ export class ForestLake extends THREE.Group {
   // winter a hole kept open in the ice).
   static readonly OPEN_WATER = new THREE.Vector3(-2.5, 0, 3.5);
 
-  // The sky's colour and the lights in a season: a bright, warm sun, and a
-  // sky light pale blue from above and from below the ground's colour,
-  // softened so what is pink or orange keeps its colour in the shade (a
-  // little green off the grass, gold off autumn's leaves, white off the
-  // snow).
+  // The sky's colour and the lights in a season: one bright, warm sun that
+  // leads, and a sky light pale blue from above and from below the
+  // ground's colour, softened so what is pink or orange keeps its colour in
+  // the shade (a little green off the grass, gold off autumn's leaves,
+  // white off the snow). The sky light is about half what it was and the sun
+  // a little stronger (the user's "ambient light is too strong", "no strong
+  // light hierarchy", tasks/lighting.md): the sun about three times the sky
+  // light, so what the sun reaches stands out from what it doesn't.
   static light(season: Season = 'spring'): ForestLakeLight {
     const background = horizonOf(season).getHex();
     switch (season) {
       case 'summer':
-        return { background, sky: 0xe2f1ff, ground: 0xb2c794, light: 0xfff3da, ambientIntensity: 1.6, lightIntensity: 2.75 };
+        return { background, sky: 0xe2f1ff, ground: 0xb2c794, light: 0xfff3da, ambientIntensity: 0.95, lightIntensity: 3.05 };
       case 'autumn':
-        return { background, sky: 0xeef0ec, ground: 0xd6bf98, light: 0xffe5bf, ambientIntensity: 1.6, lightIntensity: 2.6 };
+        return { background, sky: 0xeef0ec, ground: 0xd6bf98, light: 0xffe5bf, ambientIntensity: 0.95, lightIntensity: 2.9 };
       case 'winter':
-        return { background, sky: 0xe9f1fc, ground: 0xe1e9f2, light: 0xf5f8ff, ambientIntensity: 1.75, lightIntensity: 2.2 };
+        return { background, sky: 0xe9f1fc, ground: 0xe1e9f2, light: 0xf5f8ff, ambientIntensity: 1.1, lightIntensity: 2.5 };
       default:
-        return { background, sky: 0xe6f3ff, ground: 0xbccb9c, light: 0xfff1d8, ambientIntensity: 1.6, lightIntensity: 2.65 };
+        return { background, sky: 0xe6f3ff, ground: 0xbccb9c, light: 0xfff1d8, ambientIntensity: 0.95, lightIntensity: 2.95 };
     }
   }
   // Spring's, for what shows the forest lake without a season.
   static readonly LIGHT = ForestLake.light('spring');
 
-  readonly season: Season;
-  readonly light: ForestLakeLight;
-  readonly terrain: Terrain;
-  readonly water: Water;
-  readonly landmarks: Landmarks;
-  readonly scatter: Scatter;
-  readonly cliffs: Cliffs;
-  readonly backdrop: Backdrop;
-  readonly falling: Falling | Snowfall | null;
-  readonly ground: THREE.Mesh;
+  // Built by building(), which the constructor runs, or build() a piece at a
+  // time.
+  readonly season!: Season;
+  readonly light!: ForestLakeLight;
+  readonly terrain!: Terrain;
+  readonly water!: Water;
+  readonly landmarks!: Landmarks;
+  readonly scatter!: Scatter;
+  readonly cliffs!: Cliffs;
+  readonly backdrop!: Backdrop;
+  readonly falling!: Falling | Snowfall | null;
+  readonly ground!: THREE.Mesh;
+  // The paths, stone paths (Paths.ts): their stairs' treads are ground.
+  readonly paths!: StonePath;
+  // What else lies along them (Wayside.ts): stepping stones, gravel, log
+  // steps, roots, puddles; the plan they were laid by.
+  readonly wayside!: Wayside;
+  readonly plan!: PathPlan;
   // The haze the land fades into with distance.
-  readonly fog: THREE.Fog;
+  readonly fog!: THREE.Fog;
 
-  constructor(options: ForestLakeOptions = {}) {
+  // Built at once; `later`, empty until building() has run to its end.
+  constructor(options: ForestLakeOptions = {}, later = false) {
     super();
-    const season = (this.season = options.season ?? 'spring');
-    this.light = ForestLake.light(season);
-    this.fog = new THREE.Fog(horizonOf(season), 70, 460);
-    const terrain = (this.terrain = new Terrain(season));
+    if (!later) finish(this.building(options.season ?? 'spring'));
+  }
+
+  // Built a piece at a time, each yield a place to stop and draw a frame:
+  // the forest lake meeting builds the next season while it plays
+  // (Preview.changes). The land's heights and its mesh stop every few rows
+  // of its grid; the other pieces are its modules, each as long as it takes
+  // to build (Landmarks and Scatter the longest).
+  static *build(options: ForestLakeOptions = {}): Stepwise<ForestLake> {
+    const lake = new ForestLake(options, true);
+    yield* lake.building(options.season ?? 'spring');
+    return lake;
+  }
+
+  private *building(season: Season): Stepwise<void> {
+    const self = this as Writable<ForestLake>;
+    self.season = season;
+    self.light = ForestLake.light(season);
+    // A thin haze from near at hand (the user's "subtle atmospheric
+    // perspective"): the cliffs 40–50 m off a tenth of the way to the sky's
+    // colour, the far forest a fifth, so they stand back.
+    self.fog = new THREE.Fog(horizonOf(season), FOG.near, FOG.far);
+    const terrain = (self.terrain = new Terrain(season, true));
+    yield* terrain.sample();
     ForestLake.LANDING.y = terrain.heightAt(LANDING[0], LANDING[1]);
-    const landmarks = (this.landmarks = new Landmarks(terrain, season));
+    yield;
+    const landmarks = (self.landmarks = new Landmarks(terrain, season));
+    yield;
 
     // The waterfalls, from each river's lip out the way it runs.
     const falls: Fall[] = terrain.rivers.map((river) => fallOf(river, terrain));
     const pools = falls.map((f) => ({ x: f.x + f.out.x * 1.8, z: f.z + f.out.y * 1.8, width: f.width }));
-    const cliffs = (this.cliffs = new Cliffs(
+    const cliffs = (self.cliffs = new Cliffs(
       terrain,
       [
         { x: MAIN_LIP.x, z: MAIN_LIP.z, radius: MAIN_LIP.width / 2 + 0.9 },
@@ -97,6 +144,7 @@ export class ForestLake extends THREE.Group {
       pools,
       season,
     ));
+    yield;
 
     const keep = [
       ...landmarks.keep,
@@ -106,25 +154,42 @@ export class ForestLake extends THREE.Group {
       // The open water a floating figure goes to.
       { x: ForestLake.OPEN_WATER.x, z: ForestLake.OPEN_WATER.z, radius: 3.5 },
     ];
-    const scatter = (this.scatter = new Scatter(terrain, keep, season, cliffs.ledges));
-    this.water = new Water(
+    // The stone paths: where each stretch of them lies (Paths.ts). The
+    // scatter's flat stones in the paths go, since the paths take their
+    // place, and the grass, flowers and leaves under the stones; what
+    // stands in the paths (a rock, a tree) stays.
+    const clearing = pathClearing(terrain);
+    const scatter = (self.scatter = new Scatter(terrain, keep, season, cliffs.ledges, (x, z, bare) => wreckClear(x, z, bare) || (bare && clearing.covers(x, z)) || clearing.clears(x, z, bare)));
+    yield;
+    self.water = new Water(
       terrain,
       [...cliffs.froth, ...scatter.froth, ...landmarks.froth, ...pools.map((p) => ({ x: p.x, z: p.z, radius: p.width + 1.6, strength: 1 }))],
       falls,
       season,
       { x: ForestLake.OPEN_WATER.x, z: ForestLake.OPEN_WATER.z, radius: 3.2 },
     );
-    this.ground = terrain.mesh([...scatter.shades, ...landmarks.shades, ...cliffs.shades]);
+    yield;
+    // The paths as they change along their way (Paths.ts): the forest's
+    // stretches by the scatter's trunks, clear of the landmarks' posts.
+    const plan = (self.plan = planPaths(terrain, clearing, scatter.obstacles, landmarks.keep));
+    self.ground = yield* terrain.meshing([...scatter.shades, ...landmarks.shades, ...cliffs.shades], plan.paint);
+    yield;
     scatter.build();
-    this.backdrop = new Backdrop(season);
+    yield;
+    // Laid now the ground's light is baked, to tint them by it.
+    const light = (x: number, z: number) => terrain.lightAt(x, z);
+    self.paths = new StonePath({ stretches: plan.stone, season, light });
+    self.wayside = new Wayside(plan, season, light, { heightAt: (x, z) => terrain.heightAt(x, z), colorAt: (x, z, target) => terrain.colorAt(x, z, target), material: self.ground.material as THREE.Material });
+    yield;
+    self.backdrop = new Backdrop(season);
     const trees = [...landmarks.cherries, ...scatter.shedding];
-    this.falling = season === 'spring' ? new Falling(trees, terrain, 'petals') : season === 'autumn' ? new Falling(trees, terrain, 'leaves') : season === 'winter' ? new Snowfall(terrain) : null;
-    this.add(this.backdrop, this.ground, cliffs, scatter, landmarks, this.water);
+    self.falling = season === 'spring' ? new Falling(trees, terrain, 'petals') : season === 'autumn' ? new Falling(trees, terrain, 'leaves') : season === 'winter' ? new Snowfall(terrain) : null;
+    this.add(this.backdrop, this.ground, cliffs, scatter, landmarks, this.water, this.paths, this.wayside);
     if (this.falling) this.add(this.falling);
   }
 
   // The ground to stand on: the land, the water over it (or its ice), a
-  // deck, or the cave's floor.
+  // deck, a stair's tread, or the cave's floor.
   groundAt(x: number, z: number): number {
     const y = this.landAt(x, z);
     const water = this.terrain.waterAt(x, z);
@@ -132,15 +197,28 @@ export class ForestLake extends THREE.Group {
   }
 
   // The same, but for the water: under it the bed (the forest lake
-  // meeting's animals keep off the water, forest_lake_meeting/).
-  landAt(x: number, z: number): number {
+  // meeting's animals keep off the water, forest_lake_meeting/). Without
+  // `treads`, the stairs' treads left out (the meeting's land is measured
+  // on the ground under them).
+  landAt(x: number, z: number, treads = true): number {
     let y = this.terrain.heightAt(x, z);
     if (Math.abs(z - SPOTS.cave.z) < 1.4 * CAVE_SCALE && x > SPOTS.cave.x - 0.2 - 0.9 * (CAVE_SCALE - 1) && x < SPOTS.cave.x + 0.7 + 3.3 * CAVE_SCALE) y = Math.max(y, this.terrain.caveFloor);
     for (const deck of this.landmarks.decks) {
       const top = deck(x, z);
       if (!Number.isNaN(top)) y = Math.max(y, top);
     }
+    if (treads) {
+      for (const tread of [this.paths.stepAt(x, z), this.wayside.stepAt(x, z)]) if (!Number.isNaN(tread)) y = Math.max(y, tread);
+    }
     return y;
+  }
+
+  // A ramp up the steps under a point (the stone paths' stairs and the log
+  // steps), easing into `ground` round them: where the forest lake
+  // meeting's animals stand on them (StonePath.rampAt); NaN off them.
+  rampAt(x: number, z: number, ground: (x: number, z: number) => number): number {
+    const stairs = this.paths.rampAt(x, z, ground);
+    return Number.isNaN(stairs) ? this.wayside.rampAt(x, z, ground) : stairs;
   }
 
   // The lake's surface over a point now, with its waves (still where it

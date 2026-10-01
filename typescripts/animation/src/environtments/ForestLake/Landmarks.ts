@@ -9,22 +9,28 @@ import { Crate } from '../../figures/ForestLake/Crate';
 import { Fence } from '../../figures/ForestLake/Fence';
 import { FlowerCluster } from '../../figures/ForestLake/FlowerCluster';
 import { ForestGate } from '../../figures/ForestLake/ForestGate';
-import { ForestPine } from '../../figures/ForestLake/ForestPine';
 import { LampPost } from '../../figures/ForestLake/LampPost';
 import { MossyLog } from '../../figures/ForestLake/MossyLog';
-import { addBlock, Flame, matte, merge, mesh, palette, seededRandom, Shape, snowOn, stonePaint, type Season } from '../../figures/ForestLake/parts';
+import { addBlock, Flame, matte, merge, mesh, palette, seededRandom, Shape, snowOn, stonePaint, twoSided, type Season } from '../../figures/ForestLake/parts';
 import { Pier } from '../../figures/ForestLake/Pier';
 import { Rowboat } from '../../figures/ForestLake/Rowboat';
 import { Ruins } from '../../figures/ForestLake/Ruins';
 import { SignPost } from '../../figures/ForestLake/SignPost';
+import { SpaceshipWreck } from '../../figures/ForestLake/SpaceshipWreck/SpaceshipWreck';
 import { Tent } from '../../figures/ForestLake/Tent';
 import { WatchTower } from '../../figures/ForestLake/WatchTower';
-import { CAVE_SCALE, LANDING, RUINS_SCALE, SPOTS } from './layout';
+import { CrystalTree } from '../../figures/Tree/CrystalTree';
+import { MODEL_COLORS } from '../../figures/Tree/crystalTreeModel';
+import { CAVE_SCALE, LANDING, PATHS, RUINS_SCALE, SPOTS } from './layout';
 import type { Keep } from './Scatter';
 import type { Shade, Terrain } from './Terrain';
 import type { Froth } from './Water';
 
 const UP = new THREE.Vector3(0, 1, 0);
+// The island's middle, where the great crystal tree stands, and how tall it
+// is: the tallest thing in the valley, over the forest's oldest trees (16 m)
+// and the cliffs by the waterfalls (10 m).
+export const CRYSTAL_TREE = { x: 8.6, z: -5.6, height: 22 };
 
 // The forest lake's landmarks (ForestLake.md), where the reference's
 // overview has them: the pier on the southwest shore with its lamp and the
@@ -36,10 +42,10 @@ const UP = new THREE.Vector3(0, 1, 0);
 // campfire with a pot over it, log seats, crates and barrels behind a
 // fence; the forest entrance's gate on the way in from the south; lamp
 // posts, sign posts and fences along the paths; and on the island's plinth
-// a big cherry tree, a pine, a bush and flowers, fenced round, lit by two
-// double lamps, with steps up from its jetty. Each is its season's. What
-// never moves is merged into a few meshes; the flames, lights, glows, the
-// flag and the boat stay live.
+// the great crystal tree, with a bush and flowers round it, fenced round,
+// lit by two double lamps, with steps up from its jetty. Each is its
+// season's. What never moves is merged into a few meshes; the flames,
+// lights, glows, the flag, the boat and the crystal tree stay live.
 export class Landmarks extends THREE.Group {
   readonly keep: Keep[] = [];
   readonly shades: Shade[] = [];
@@ -56,6 +62,8 @@ export class Landmarks extends THREE.Group {
   // Where the cherry trees they plant stand (for their falling petals or
   // leaves).
   readonly cherries: { x: number; y: number; z: number; height: number }[] = [];
+  // The island's great crystal tree (task 21).
+  readonly crystalTree: CrystalTree;
   // What a camera can't be in or see through, and what walking goes round:
   // all of it that never moves, merged, and the boat (the forest lake
   // meeting's, forest_lake_meeting/).
@@ -135,7 +143,8 @@ export class Landmarks extends THREE.Group {
     // The watch tower, its ladder toward the path up to it.
     const tower = new WatchTower({ seed: 2, season });
     const towerY = ground(SPOTS.tower.x, SPOTS.tower.z);
-    place(tower, SPOTS.tower.x, towerY, SPOTS.tower.z, Math.atan2(26.2 - SPOTS.tower.x, -18.5 - SPOTS.tower.z));
+    const [toX, toZ] = PATHS[4].points[1];
+    place(tower, SPOTS.tower.x, towerY, SPOTS.tower.z, Math.atan2(toX - SPOTS.tower.x, toZ - SPOTS.tower.z));
     this.moving.push(tower);
     this.keep.push({ x: SPOTS.tower.x, z: SPOTS.tower.z, radius: 3.6 });
     this.shades.push({ x: SPOTS.tower.x, y: towerY + 6.8, z: SPOTS.tower.z, radius: 2.2, foot: 2.6 }, { x: SPOTS.tower.x, y: towerY + 4.6, z: SPOTS.tower.z, radius: 1.8 });
@@ -248,7 +257,7 @@ export class Landmarks extends THREE.Group {
     };
     fenceRun(0, 1, 10, -1, 21); // the lake side of the forest path, east of the camp
     fenceRun(0, 1, 7, 1, 22);
-    fenceRun(0, 28, 33, 1, 23);
+    fenceRun(0, terrain.paths[0].line.length - 6, terrain.paths[0].line.length - 1, 1, 23); // by the bridge
     fenceRun(2, 2, 12, 1, 24); // the path to the ruins
     fenceRun(1, 1, 6, -1, 25); // up from the bridge
     fenceRun(5, 12, 20, 1, 26); // the way in, past the gate
@@ -256,7 +265,7 @@ export class Landmarks extends THREE.Group {
     const signs: [number, number, number, ('left' | 'right')[], boolean][] = [
       [camp.x + 5.8, camp.z - 3.4, 0.4, ['right', 'left'], true],
       [SPOTS.bridge.from[0] - 1.4, SPOTS.bridge.from[1] + 1.8, -0.3, ['right', 'right'], true],
-      [-23.2, 6.2, 1.2, ['left', 'right'], false],
+      [-29.2, 6.2, 1.2, ['left', 'right'], false],
       [4.1, 19.1, -0.6, ['left', 'right'], false],
     ];
     for (const [x, z, turn, boards, lantern] of signs) {
@@ -265,39 +274,91 @@ export class Landmarks extends THREE.Group {
       this.keep.push({ x, z, radius: 0.7 });
     }
 
-    // The island, on its plinth of rock: its big cherry tree in the middle,
-    // a pine behind it, a bush and flowers, a fence round its top on either
-    // side, a double lamp each side of the tree, a sign, and steps up from
-    // its jetty.
-    const hero = { x: 6.6, z: -3.4, height: 7.2 };
-    place(new CherryTree({ seed: 9, height: hero.height, season }), hero.x, ground(hero.x, hero.z), hero.z, 0.6);
-    this.cherries.push({ x: hero.x, y: ground(hero.x, hero.z), z: hero.z, height: hero.height });
-    this.shades.push({ x: hero.x, y: ground(hero.x, hero.z) + hero.height * 0.68, z: hero.z, radius: hero.height * 0.4, foot: 2 });
-    place(new ForestPine({ seed: 8, height: 5.6, season }), 4.1, ground(4.1, -5.9), -5.9, 0.3);
-    this.shades.push({ x: 4.1, y: ground(4.1, -5.9) + 2.4, z: -5.9, radius: 1.4, foot: 1 });
-    place(new Bush({ seed: 7, season }), 9.4, ground(9.4, -2.1), -2.1, 1.1);
-    for (const [x, z, seed, lanterns] of [
-      [3.7, -1.9, 31, 2],
-      [9.7, -5.3, 32, 2],
+    // The island, on its plinth of rock: the great crystal tree in its
+    // middle, the tree that guards the forest, its roots gripping the top and
+    // running down over the rock toward the water; round it, between its
+    // roots, a bush and flowers, a double lamp each side, a sign by the steps,
+    // a fence round its top on two sides, and steps up from its jetty. Its
+    // crystals are its page's own blue and violet, its bark the forest
+    // lake's.
+    const center = new THREE.Vector2(CRYSTAL_TREE.x, CRYSTAL_TREE.z);
+    const jetty = SPOTS.jetty;
+    const treeY = ground(center.x, center.y);
+    // The steps' way up from the jetty, which the roots stop short of.
+    const byTheSteps = (x: number, z: number) => Math.abs(x - jetty.x) < 1.7 && z > jetty.z - 3;
+    const display = (hex: number) => new THREE.Color(hex).convertLinearToSRGB();
+    const crystal = (this.crystalTree = new CrystalTree({
+      height: CRYSTAL_TREE.height,
+      ground: false,
+      season,
+      bark: twoSided(),
+      colors: {
+        crystalBlue: MODEL_COLORS.crystalBlue,
+        crystalViolet: MODEL_COLORS.crystalViolet,
+        tipBlue: MODEL_COLORS.tipBlue,
+        tipViolet: MODEL_COLORS.tipViolet,
+        lilac: MODEL_COLORS.lilac,
+        barkLow: display(P.barkDark),
+        barkHigh: display(P.bark).multiplyScalar(1.1),
+      },
+      on: {
+        at: (x, z) => {
+          const gx = center.x + x;
+          const gz = center.y + z;
+          const h = ground(gx, gz);
+          return byTheSteps(gx, gz) || h < 0.12 ? NaN : h - treeY;
+        },
+        reach: 10,
+        low: 0.15 - treeY,
+      },
+    }));
+    crystal.position.set(center.x, treeY, center.y);
+    this.add(crystal);
+    this.moving.push(crystal);
+    this.solid.push(crystal);
+    const crown = CRYSTAL_TREE.height;
+    this.shades.push({ x: center.x, y: treeY + crown * 0.68, z: center.y, radius: crown * 0.36, foot: 5 }, { x: center.x, y: treeY + crown * 0.3, z: center.y, radius: 2.4 });
+    // Round the tree between its roots: each gap's middle, from the one
+    // facing the steps round.
+    const toSteps = Math.atan2(jetty.z - center.y, jetty.x - center.x);
+    const angles = crystal.roots.map((root) => root.angle).sort((a, b) => a - b);
+    const gaps = angles.map((a, i) => (a + (i + 1 < angles.length ? angles[i + 1] : angles[0] + 2 * Math.PI)) / 2);
+    const turn = (a: number) => Math.abs(Math.atan2(Math.sin(a - toSteps), Math.cos(a - toSteps)));
+    gaps.sort((a, b) => turn(a) - turn(b));
+    const [, sideA, sideB, backA, backB] = gaps;
+    const around = (angle: number, r: number): [number, number] => [center.x + Math.cos(angle) * r, center.y + Math.sin(angle) * r];
+    const onRoot = (x: number, z: number, room: number) =>
+      crystal.roots.some((root) => {
+        const along = (x - center.x) * Math.cos(root.angle) + (z - center.y) * Math.sin(root.angle);
+        const off = Math.abs(-(x - center.x) * Math.sin(root.angle) + (z - center.y) * Math.cos(root.angle));
+        return along > 0 && along < root.reach + 0.5 && off < room;
+      });
+    const bushAt = around(backA, 6.2);
+    place(new Bush({ seed: 7, season }), bushAt[0], ground(...bushAt), bushAt[1], 1.1);
+    for (const [angle, seed] of [
+      [sideA, 31],
+      [sideB, 32],
     ] as const) {
       // Its crossbar runs round the tree, a lantern either side.
-      const lamp = place(new LampPost({ seed, lanterns, height: 2.3, season }), x, ground(x, z), z, Math.atan2(z - hero.z, -(x - hero.x)) + Math.PI / 2);
+      const [x, z] = around(angle, 5.6);
+      const lamp = place(new LampPost({ seed, lanterns: 2, height: 2.3, season }), x, ground(x, z), z, Math.atan2(z - center.y, -(x - center.x)) + Math.PI / 2);
       this.moving.push(lamp);
       this.keep.push({ x, z, radius: 1.1 });
     }
-    for (const [x, z, seed, kind] of [
-      [5.1, -0.3, 51, 'pink'],
-      [8.2, -0.8, 52, 'mixed'],
-      [8.9, -4.6, 53, 'pink'],
-      [4.6, -4.4, 54, 'mixed'],
+    for (const [angle, r, seed, kind] of [
+      [sideA + 0.35, 7.1, 51, 'pink'],
+      [backB, 6.6, 52, 'mixed'],
+      [backA - 0.3, 7.2, 53, 'pink'],
+      [sideB - 0.35, 7.1, 54, 'mixed'],
     ] as const) {
+      const [x, z] = around(angle, r);
       place(new FlowerCluster({ seed, kind, season }), x, ground(x, z), z, seed);
     }
-    const islandSign = place(new SignPost({ seed: 33, boards: ['left', 'right'], dressing: false, season }), 7.9, ground(7.9, 0.1), 0.1, -0.4);
+    const signAt: [number, number] = [jetty.x + 1.25, jetty.z - 3.1];
+    const islandSign = place(new SignPost({ seed: 33, boards: ['left', 'right'], dressing: false, season }), signAt[0], ground(...signAt), signAt[1], -0.4);
     this.moving.push(islandSign);
     // The fence round the island's top, in two runs, open to the jetty in
-    // the south and on the far side.
-    const center = new THREE.Vector2(6.7, -3.1);
+    // the south and on the far side, a gap where a root passes under it.
     const rim = terrain.island.points;
     const run = (from: number, to: number, seed: number) => {
       const posts: [number, number][] = [];
@@ -312,7 +373,16 @@ export class Landmarks extends THREE.Group {
         if (i % 2 === 0) posts.push([center.x + (x - center.x) * inset, center.y + (z - center.y) * inset]);
       }
       posts.sort((p, q) => ((Math.atan2(p[1] - center.y, p[0] - center.x) - from + 4 * Math.PI) % (2 * Math.PI)) - ((Math.atan2(q[1] - center.y, q[0] - center.x) - from + 4 * Math.PI) % (2 * Math.PI)));
-      if (posts.length > 1) place(new Fence({ posts, groundAt: ground, side: 1, seed, season }), 0, 0, 0);
+      let part: [number, number][] = [];
+      const fence = () => {
+        if (part.length > 1) place(new Fence({ posts: part, groundAt: ground, side: 1, seed: seed + part.length, season }), 0, 0, 0);
+        part = [];
+      };
+      for (const post of posts) {
+        if (onRoot(post[0], post[1], 0.75)) fence();
+        else part.push(post);
+      }
+      fence();
     };
     run(-2.6, -1.1, 61); // round the north-west
     run(-0.5, 0.95, 62); // round the east
@@ -320,7 +390,6 @@ export class Landmarks extends THREE.Group {
     {
       const steps = new Shape();
       const paint = stonePaint(random, 0.8, 0.2, P);
-      const jetty = SPOTS.jetty;
       const top = ground(jetty.x, jetty.z - 1.5);
       for (let k = 0; k < 3; k++) {
         const y = 0.45 + ((top - 0.45) * (k + 1)) / 3;
@@ -339,13 +408,12 @@ export class Landmarks extends THREE.Group {
       });
     }
     for (const [x, z, r] of [
-      [hero.x, hero.z, 1],
-      [4.1, -5.9, 0.8],
-      [9.4, -2.1, 0.9],
-      [7.9, 0.1, 0.6],
+      [center.x, center.y, 3],
+      [bushAt[0], bushAt[1], 0.9],
+      [signAt[0], signAt[1], 0.6],
     ]) this.keep.push({ x, z, radius: r });
     // The island's top is kept clear of the scatter's trees and bushes.
-    this.keep.push({ x: center.x, z: center.y, radius: 3.4 });
+    this.keep.push({ x: center.x, z: center.y, radius: 7.2 });
     // A cherry tree each side of the landing's view, framing the lake.
     for (const [x, z, seed, height] of [
       [LANDING[0] - 6.8, LANDING[1] - 1.2, 41, 5.6],
@@ -355,6 +423,33 @@ export class Landmarks extends THREE.Group {
       this.cherries.push({ x, y: ground(x, z), z, height });
       this.shades.push({ x, y: ground(x, z) + height * 0.68, z, radius: height * 0.4, foot: 1.6 });
       this.keep.push({ x, z, radius: 2.2 });
+    }
+
+    // The spaceship wreck in its clearing southwest of the camp, on its
+    // levelled site, its nose east and its torn-open side toward the camp;
+    // its hold's floor and ramp to walk on. Placed last, with no draw from
+    // the landmarks' random numbers, so the rest keep their places.
+    {
+      const w = SPOTS.wreck;
+      const y = terrain.wreckLevel;
+      const wreck = place(new SpaceshipWreck({ season, seed: 3 }), w.x, y, w.z, w.turn);
+      this.moving.push(wreck);
+      const at = (u: number, up: number, v: number) => new THREE.Vector3(u, up, v).applyAxisAngle(UP, w.turn).add(new THREE.Vector3(w.x, y, w.z));
+      for (const u of [-9.5, -4.5, 0.5, 5.5, 9.5]) {
+        const p = at(u, 1.6, 0);
+        this.shades.push({ x: p.x, y: p.y, z: p.z, radius: 2.1, foot: 3 });
+      }
+      const fin = at(8, 5.6, 0);
+      this.shades.push({ x: fin.x, y: fin.y, z: fin.z, radius: 1.3 });
+      const wing = at(6.5, 1.1, -5);
+      this.shades.push({ x: wing.x, y: wing.y, z: wing.z, radius: 1.8 });
+      wreck.updateMatrix();
+      const inverse = wreck.matrix.clone().invert();
+      const local = new THREE.Vector3();
+      this.decks.push((x, z) => {
+        local.set(x, 0, z).applyMatrix4(inverse);
+        return wreck.floorAt(local.x, local.z) + y;
+      });
     }
 
     // What moves or shines is taken out to stay live; the rest is merged.

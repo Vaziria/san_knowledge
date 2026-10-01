@@ -234,10 +234,12 @@ function waterMaterial(season: Season): THREE.ShaderMaterial {
   return material;
 }
 
-// A falling sheet of water: pale blue streaked with white, streaks running
-// down it, white where it tips over its lip and where it lands, a little
-// see-through. Unlit. In winter (`frozen`) it has nearly stopped: slow,
-// its streaks long icicles, paler and bluer.
+// A falling sheet of water: blue-white, its blue and cyan streaks running
+// down it, white only on its brightest streaks, along its edges, where it
+// tips over its lip and where it lands, a little see-through. Unlit. In
+// winter (`frozen`) it has nearly stopped: slow, its streaks long icicles,
+// paler and bluer. (Before tasks/lighting.md most of it was white, and it
+// drew the eye from everything round it.)
 function fallMaterial(frozen: boolean): THREE.ShaderMaterial {
   const material = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { time: { value: 0 }, frozen: { value: frozen ? 1 : 0 } }]),
@@ -264,13 +266,22 @@ function fallMaterial(frozen: boolean): THREE.ShaderMaterial {
         float flow = time * mix(1.0, 0.04, frozen);
         float streak = noise(vec2(vUv.x * 26.0, vUv.y * mix(2.2, 0.8, frozen) - flow * 2.4));
         float fine = noise(vec2(vUv.x * 60.0, vUv.y * mix(5.0, 1.5, frozen) - flow * 3.4));
-        vec3 blue = mix(vec3(0.45, 0.75, 0.92), vec3(0.62, 0.84, 0.95), frozen);
+        // Deep blue and cyan in its body, lighter blue-white along its
+        // streaks, white on the brightest of them.
+        vec3 deep = mix(vec3(0.24, 0.55, 0.78), vec3(0.5, 0.74, 0.9), frozen);
+        vec3 cyan = mix(vec3(0.44, 0.76, 0.9), vec3(0.62, 0.84, 0.95), frozen);
+        vec3 pale = vec3(0.74, 0.89, 0.97);
         vec3 white = vec3(0.96, 0.99, 1.0);
-        float lit = smoothstep(0.45, 0.8, streak * 0.7 + fine * 0.45);
-        float ends = max(1.0 - smoothstep(0.0, 0.07, vUv.y), smoothstep(0.78, 1.0, vUv.y));
-        vec3 outColor = mix(blue, white, max(lit, ends));
+        float body = streak * 0.7 + fine * 0.45;
+        vec3 outColor = mix(deep, cyan, smoothstep(0.3, 0.7, body));
+        outColor = mix(outColor, pale, smoothstep(0.7, 0.92, body));
+        float lit = smoothstep(0.9, 1.08, body);
+        // White where it tips over and lands, and along its edges.
+        float ends = max(1.0 - smoothstep(0.0, 0.06, vUv.y), smoothstep(0.84, 1.0, vUv.y));
+        float edge = 1.0 - smoothstep(0.04, 0.14, min(vUv.x, 1.0 - vUv.x));
+        outColor = mix(outColor, white, max(max(lit, ends), edge * 0.8));
         float sides = smoothstep(0.0, 0.06, vUv.x) * smoothstep(1.0, 0.94, vUv.x);
-        gl_FragColor = vec4(outColor, (0.82 + 0.15 * lit) * sides);
+        gl_FragColor = vec4(outColor, (0.84 + 0.12 * lit) * sides);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
         #include <fog_fragment>

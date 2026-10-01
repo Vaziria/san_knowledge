@@ -9,13 +9,32 @@
       import { SUN } from '/src/sun.ts';
       const params = new URLSearchParams(location.search);
       const name = params.get('figure') ?? 'ForestWolf';
-      const module = await import(`/src/figures/ForestLake/animals/${name}.ts`);
+      // ?path= for a figure in a folder of its own (ForestSpiritDragon/ForestSpiritDragon).
+      const module = await import(`/src/figures/ForestLake/animals/${params.get('path') ?? name}.ts`);
       const Kind = module[name];
       const figure = new Kind(params.get('color') ? { color: params.get('color') } : {});
-      const behaviour = params.get('do');
-      if (behaviour) figure[behaviour]();
+      // ?do=Walk, or several in turn, each at its time: ?do=Fly,Roar@4,Land@8.
+      const plan = (params.get('do') ?? '').split(',').filter(Boolean).map((item) => {
+        const [name, time] = item.split('@');
+        return { name, time: +(time ?? 0), done: false };
+      });
+      // ?turn= radians a second it is steered, flying or walking.
+      const turn = +(params.get('turn') ?? 0);
       const at = +(params.get('at') ?? 0);
-      for (let t = 0; t < at; t += 1 / 120) figure.update(1 / 120);
+      const act = (t) => {
+        for (const step of plan) {
+          if (!step.done && step.time <= t + 1e-9) {
+            step.done = true;
+            figure[step.name]();
+          }
+        }
+      };
+      act(0);
+      for (let f = 0; f < Math.round(at * 120); f++) {
+        act(f / 120);
+        figure.rotation.y += turn / 120;
+        figure.update(1 / 120);
+      }
       figure.update(0);
       if (params.get('recenter') !== '0') {
         figure.position.x = 0;
@@ -25,7 +44,10 @@
 
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(1);
-      renderer.setSize(innerWidth, innerHeight);
+      // ?canvas=WxH draws exactly that many pixels (headless windows can be
+      // shorter than asked for).
+      const [CW, CH] = params.get('canvas') ? params.get('canvas').split('x').map(Number) : [innerWidth, innerHeight];
+      renderer.setSize(CW, CH);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.NoToneMapping;
       renderer.shadowMap.enabled = true;
@@ -74,13 +96,33 @@
         { from: [0, 1, 0.0001], up: [0, 0, -1] },
         { from: [-0.7, 0.35, 0.62], up: [0, 1, 0] },
       ];
+      // ?views=x,y,z;x,y,z;... draws these directions instead (a sheet's own
+      // views), ?cols= of them to a row, ?fill= nearer (under 0.95) or
+      // further.
+      if (params.get('views')) {
+        views.length = 0;
+        for (const v of params.get('views').split(';')) views.push({ from: v.split(',').map(Number), up: [0, 1, 0], fill: +(params.get('fill') ?? 0.95) });
+      }
+      // ?side=zLeft,zRight,yBottom,yTop draws its right side flat
+      // (orthographic), that much of the world filling the window: to lay
+      // over a sheet's side view at the sheet's own scale.
+      const side = params.get('side');
+      if (side) {
+        const [zl, zr, yb, yt] = side.split(',').map(Number);
+        const camera = new THREE.OrthographicCamera(-(zl - zr) / 2, (zl - zr) / 2, (yt - yb) / 2, -(yt - yb) / 2, 0.1, 100);
+        camera.position.set(40, (yb + yt) / 2, (zl + zr) / 2);
+        camera.lookAt(0, (yb + yt) / 2, (zl + zr) / 2);
+        renderer.setViewport(0, 0, CW, CH);
+        renderer.setScissor(0, 0, CW, CH);
+        renderer.render(scene, camera);
+      }
       // ?view=<n> draws only that view, filling the window.
       const only = params.get('view');
-      const shown = only === null ? views : [views[+only]];
-      const cols = only === null ? 3 : 1;
-      const rows = only === null ? 2 : 1;
-      const w = Math.floor(innerWidth / cols);
-      const h = Math.floor(innerHeight / rows);
+      const shown = side ? [] : only === null ? views : [views[+only]];
+      const cols = only === null ? +(params.get('cols') ?? 3) : 1;
+      const rows = only === null ? Math.ceil(views.length / cols) : 1;
+      const w = Math.floor(CW / cols);
+      const h = Math.floor(CH / rows);
       shown.forEach((view, i) => {
         const camera = new THREE.PerspectiveCamera(30, w / h, radius * 0.05, radius * 30);
         const dir = new THREE.Vector3(...view.from).normalize();

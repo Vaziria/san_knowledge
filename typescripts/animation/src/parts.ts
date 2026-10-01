@@ -29,6 +29,7 @@ import { ForestFirefly } from './figures/ForestLake/animals/ForestFirefly';
 import { ForestFish } from './figures/ForestLake/animals/ForestFish';
 import { ForestFox } from './figures/ForestLake/animals/ForestFox';
 import { ForestFrog } from './figures/ForestLake/animals/ForestFrog';
+import { ForestSpiritDragon } from './figures/ForestLake/animals/ForestSpiritDragon/ForestSpiritDragon';
 import { ForestSquirrel } from './figures/ForestLake/animals/ForestSquirrel';
 import { ForestWolf } from './figures/ForestLake/animals/ForestWolf';
 import { Otter } from './figures/ForestLake/animals/Otter';
@@ -54,6 +55,8 @@ import { Pier } from './figures/ForestLake/Pier';
 import { Reeds } from './figures/ForestLake/Reeds';
 import { Rowboat } from './figures/ForestLake/Rowboat';
 import { Ruins } from './figures/ForestLake/Ruins';
+import { SpaceshipWreck } from './figures/ForestLake/SpaceshipWreck/SpaceshipWreck';
+import { StonePathVariations } from './figures/ForestLake/StonePath/StonePath';
 import { SignPost } from './figures/ForestLake/SignPost';
 import { SmallRock } from './figures/ForestLake/SmallRock';
 import { Stump } from './figures/ForestLake/Stump';
@@ -237,6 +240,9 @@ export const figureParts: Record<string, Part[]> = {
   reeds: partsOf(Reeds, { blades: true, heads: true }),
   mushrooms: partsOf(Mushrooms, { mushrooms: true, dressing: true }),
   'forest-gate': partsOf(ForestGate, { frame: true, lanterns: true, glass: true, tufts: true }),
+  'spaceship-wreck': partsOf(SpaceshipWreck, { cockpit: true, hullFront: true, hullMiddle: true, hullRear: true, engine: true, tail: true, leftWing: true, rightWing: true, debris: true }),
+  // Its preview's five strips' parts, taken together.
+  'stone-path': partsOf(StonePathVariations, { stones: true, joints: true, verge: true, paths: false }),
   // The forest lake's animals (ForestLake/animals/). The four-legged ones
   // first: the head carries its jaw, eyes and nose, the body its mane or
   // bristles. Then the others, and the explorer, each with parts of its own.
@@ -269,6 +275,20 @@ export const figureParts: Record<string, Part[]> = {
     legs: ['left-front-leg', 'left-middle-leg', 'left-hind-leg', 'right-front-leg', 'right-middle-leg', 'right-hind-leg'],
   }),
   explorer: partsOf(Explorer, { head: true, body: true, leftArm: true, rightArm: true, leftLeg: true, rightLeg: true, backpack: true, lantern: true, holder: false }),
+  // The overview's modular parts: the head carries its jaw, eyes, horns
+  // and crystals.
+  'forest-spirit-dragon': partsOf(ForestSpiritDragon, {
+    head: true,
+    neck: true,
+    body: true,
+    leftWing: true,
+    rightWing: true,
+    leftFrontLeg: true,
+    rightFrontLeg: true,
+    leftHindLeg: true,
+    rightHindLeg: true,
+    tail: true,
+  }),
 };
 
 export function hasPart(figure: string, part: string): boolean {

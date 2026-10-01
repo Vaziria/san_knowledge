@@ -38,8 +38,11 @@ import type { Command, Kind } from './events';
 //   lasts SECONDS. Standing at a spot, it now and then does one of them
 //   rather than hop (Pastime).
 // - Its colour is one of its sheet's variations, the same for a viewer on
-//   every page (picked from their id), in its season's coat where it has one
-//   (a snow wolf in winter).
+//   every page and in every season (picked from their id), or in its
+//   season's coat where it has one (a snow wolf in winter): coatOf. As the
+//   season changes, the meeting paints it in the new one's (SetColor).
+// - The frog hops level, its sheet setting its feet down on level ground,
+//   and is leaned with the slope after.
 
 // What the forest animals the meeting uses have in common.
 interface Forest extends ForestAnimal {
@@ -54,6 +57,10 @@ interface Forest extends ForestAnimal {
 // What a guest does that it doesn't do on its own.
 export interface Guest extends Figure {
   readonly kind: Kind | 'explorer';
+  // Which of its sheet's colours it wears (coatOf), and SetColor() to paint
+  // it in another where it stands: the season's coat (ForestMeeting.ts).
+  readonly color: string;
+  SetColor(variation: string): void;
   // How long one of its tricks takes, s, or 0 when it has none.
   trickLength(command: Command): number;
   // Does one of its tricks: how long it takes, s, or 0 when it has none.
@@ -106,6 +113,19 @@ class Frog extends ForestFrog {
   }
   Run(): void {
     this.Walk();
+  }
+  // Its sheet sets its feet down on level ground at its own height, so it
+  // hops level, and the meeting leans it with the ground's slope after
+  // (Member.ts). Leaned while it hopped, a foot on the high side never came
+  // down, and the frog stood mid-hop for good on a slope of 0.1 across its
+  // way.
+  update(delta: number): void {
+    const { x, z } = this.rotation;
+    this.rotation.x = 0;
+    this.rotation.z = 0;
+    super.update(delta);
+    this.rotation.x = x;
+    this.rotation.z = z;
   }
 }
 class Drake extends Duck {
@@ -160,15 +180,24 @@ const SCALE = [0.5, 4] as const; // the bubble's size at least and at most, time
 // Kinds whose sheets have coats for a season, worn only in it.
 const SEASONAL: Readonly<Record<string, Season>> = { snow: 'winter', winter: 'winter', autumn: 'autumn' };
 
+// The colour a member's animal wears in a season: one of its sheet's
+// colours for the season-less ones, picked from its id, the same in every
+// season; in its season's coat instead half the time (by the id too),
+// where its sheet has one. So the seasons change only coats: a wolf or a
+// boar in snow in winter, a deer in its winter or autumn coat.
+export function coatOf(kind: Kind | 'explorer', id: string, season: Season): string {
+  const colors = MANNERS[kind].make.COLORS;
+  const plain = colors.filter((c) => !SEASONAL[c]);
+  const inSeason = colors.filter((c) => SEASONAL[c] === season);
+  const pick = hash(id);
+  return inSeason.length && pick % 2 === 0 ? inSeason[(pick >>> 1) % inSeason.length] : plain[(pick >>> 1) % plain.length];
+}
+
 // A figure of the forest lake meeting: its kind (the explorer for the
 // host), the member's id for its colour, and the season.
 export function makeGuest(kind: Kind | 'explorer', id: string, season: Season, theme: Theme): Guest {
   const m = MANNERS[kind];
-  const worn = m.make.COLORS.filter((c) => !SEASONAL[c] || SEASONAL[c] === season);
-  const inSeason = worn.filter((c) => SEASONAL[c] === season);
-  const pick = hash(id);
-  // In its season's coat half the time, where it has one.
-  const color = inSeason.length && pick % 2 === 0 ? inSeason[(pick >>> 1) % inSeason.length] : worn[(pick >>> 1) % worn.length];
+  const color = coatOf(kind, id, season);
   const Base = m.make as new (...args: any[]) => Forest;
 
   class Meets extends Base implements Guest {

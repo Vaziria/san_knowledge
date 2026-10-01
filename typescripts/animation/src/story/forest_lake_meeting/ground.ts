@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import type { ForestLake } from '../../environtments/ForestLake/ForestLake';
 import type { Deck } from '../../environtments/Lake/DockSite';
 import { Land, type Circle } from '../lake_meeting/Land';
-import { trianglesIn, type Square } from './ForestSight';
+import { finish, type Stepwise } from '../../stepwise';
+import { triangles, type Square } from './ForestSight';
 
 // The forest lake's land as the meeting's animals roam it, on the lake
 // meeting's Land.ts, in the meeting's coordinates (its origin the landing,
@@ -10,7 +11,10 @@ import { trianglesIn, type Square } from './ForestSight';
 //
 // - The ground: the land, the piers' and bridges' decks, the island's steps
 //   and the cave's floor (ForestLake.landAt), a pier's landward end eased up
-//   from the bank onto its deck over RAMP m, so there is no step.
+//   from the bank onto its deck over RAMP m, so there is no step. The paths'
+//   steps (stone stairs, log steps) are left out of it (their treads' edges
+//   would count as too steep), and an animal stands on them up a ramp
+//   (standAt).
 // - Water: the lake, the rivers and the stream (Terrain.waterAt), and their
 //   banks up to WET m over them.
 // - Out to `reach` m round the lake's middle, and only what can be walked to
@@ -40,6 +44,12 @@ export interface ForestGround {
 }
 
 export function forestGround(lake: ForestLake, offset: THREE.Vector3, middle: THREE.Vector2, reach: number): ForestGround {
+  return finish(forestGroundBuild(lake, offset, middle, reach));
+}
+
+// The same, a piece at a time, each yield a place to stop and draw a frame:
+// the meeting measures the next season's land while it plays.
+export function* forestGroundBuild(lake: ForestLake, offset: THREE.Vector3, middle: THREE.Vector2, reach: number): Stepwise<ForestGround> {
   const terrain = lake.terrain;
   const piers = lake.landmarks.piers
     .filter((pier) => pier.name !== 'jetty')
@@ -57,7 +67,7 @@ export function forestGround(lake: ForestLake, offset: THREE.Vector3, middle: TH
         return Math.max(terrain.heightAt(x, z), THREE.MathUtils.lerp(pier.foot, pier.height, Math.max(0, along) / RAMP));
       }
     }
-    return lake.landAt(x, z);
+    return lake.landAt(x, z, false);
   };
 
   // What stands on the land.
@@ -90,7 +100,7 @@ export function forestGround(lake: ForestLake, offset: THREE.Vector3, middle: TH
       }
     }
   };
-  for (const root of [...lake.landmarks.solid, ...lake.scatter.low, lake.cliffs]) trianglesIn(root, toLake, square, 0, mark);
+  for (const root of [...lake.landmarks.solid, ...lake.scatter.low, lake.cliffs]) yield* triangles(root, toLake, square, 0, mark);
   const radius = (FOOTPRINT * Math.SQRT2) / 2;
   for (let j = 0; j < across; j++) {
     for (let i = 0; i < across; i++) {
@@ -107,7 +117,7 @@ export function forestGround(lake: ForestLake, offset: THREE.Vector3, middle: TH
     height: pier.height - offset.y,
     foot: pier.foot - offset.y,
   }));
-  const land = new Land({
+  const land = yield* Land.build({
     ground: (x, z) => stand(x + offset.x, z + offset.z),
     wet: (x, z, height) => {
       const water = terrain.waterAt(x + offset.x, z + offset.z);
@@ -119,5 +129,12 @@ export function forestGround(lake: ForestLake, offset: THREE.Vector3, middle: TH
     decks,
     home: new THREE.Vector2(0, 0),
   });
-  return { land, obstacles, standAt: (x, z) => stand(x + offset.x, z + offset.z) - offset.y };
+  // Where to stand: over a stone path's stairs (its treads left out of the
+  // land, whose edges would count as ground too steep to stand on) up a
+  // ramp through the middles of their risers (StonePath.rampAt).
+  const standAt = (x: number, z: number) => {
+    const ramp = lake.rampAt(x, z, stand);
+    return Number.isNaN(ramp) ? stand(x, z) : ramp;
+  };
+  return { land, obstacles, standAt: (x, z) => standAt(x + offset.x, z + offset.z) - offset.y };
 }

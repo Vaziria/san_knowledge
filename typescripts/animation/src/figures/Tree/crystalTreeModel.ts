@@ -18,6 +18,11 @@ import * as THREE from 'three';
 // branches, then the ground) and one of all its crystals (the tree's, then
 // the ground's), this makes two of each, the same triangles, so the tree and
 // its ground are parts of their own.
+//
+// Standing on other ground (`CrystalGround`, the forest lake's island,
+// task 21): its ground crystals stand on that ground, and its roots run on
+// out over it. Those roots are drawn after all of the page's draws, so the
+// tree above them is still the page's.
 
 type V3 = THREE.Vector3;
 const V = THREE.Vector3;
@@ -64,6 +69,18 @@ export interface Pendant {
   speed: number; // its swing's, rad a second
 }
 
+// Other ground for the tree to stand on, in the model's own units (the
+// page's meters), round the foot of its trunk.
+export interface CrystalGround {
+  // The ground's height at a point; NaN where nothing may stand (a ground
+  // crystal there is left out).
+  at(x: number, z: number): number;
+  // How far out its roots run, following the ground (down over an edge), at
+  // most; each stops where the ground falls below `low`.
+  reach: number;
+  low: number;
+}
+
 export interface CrystalTreeGeometry {
   wood: THREE.BufferGeometry; // the trunk, roots and branches
   crystals: THREE.BufferGeometry; // the clusters on the branches and on top of the crown
@@ -72,6 +89,9 @@ export interface CrystalTreeGeometry {
   pendants: Pendant[];
   sparkles: Float32Array; // x, y and z of each of the 260 sparkles
   triangles: number; // as the page counts them: every mesh but the sparkles
+  // Each root's way out from the trunk (radians from +x toward +z) and how
+  // far it runs.
+  roots: { angle: number; reach: number }[];
 }
 
 // The page's seeded random generator (mulberry32): the same seed always gives
@@ -123,8 +143,9 @@ class Builder {
   }
 }
 
-// Builds the tree from `seed`, in `colors` (display values).
-export function buildCrystalTree(seed: number, colors: CrystalColors): CrystalTreeGeometry {
+// Builds the tree from `seed`, in `colors` (display values), on its own
+// ground disk or on `on`.
+export function buildCrystalTree(seed: number, colors: CrystalColors, on?: CrystalGround): CrystalTreeGeometry {
   const R = mulberry32(seed);
   const rand = (a: number, b: number) => a + (b - a) * R();
 
@@ -327,8 +348,10 @@ export function buildCrystalTree(seed: number, colors: CrystalColors): CrystalTr
   const trunkTop = trunkPts[N - 1];
 
   // The roots.
+  const roots: { angle: number; reach: number }[] = [];
   for (let i = 0; i < 5; i++) {
     const a = (i / 5) * Math.PI * 2 + rand(-0.3, 0.3);
+    roots.push({ angle: a, reach: 0.85 });
     const o = trunkPts[1].clone();
     const pts = [o, new V(o.x + Math.cos(a) * 0.45, 0.12, o.z + Math.sin(a) * 0.45), new V(o.x + Math.cos(a) * 0.85, 0.02, o.z + Math.sin(a) * 0.85)];
     addTube(wood, pts, [0.2, 0.1, 0.04], 5, () => colors.barkLow);
@@ -381,16 +404,19 @@ export function buildCrystalTree(seed: number, colors: CrystalColors): CrystalTr
     const r = rand(0.8, 1.9);
     addRock(ground, new V(Math.cos(a) * r, 0.02, Math.sin(a) * r), rand(0.16, 0.32));
   }
+  const offGround = new Builder(); // where `on` has no ground: drawn as the page draws them, then left out
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 + rand(-0.3, 0.3);
     const r = rand(0.9, 2.5);
     const c = new V(Math.cos(a) * r, 0.02, Math.sin(a) * r);
+    const y = on ? on.at(c.x, c.z) : 0.02;
+    if (on && !Number.isNaN(y)) c.y = y;
     const pal = crystalPalette();
     const n = Math.floor(rand(3, 6));
     for (let k = 0; k < n; k++) {
       const d = new V(rand(-0.6, 0.6), 1, rand(-0.6, 0.6)).normalize();
       const L = rand(0.22, 0.5);
-      addShard(groundCrystals, c, d, L, L * 0.22, pal.base, pal.tip, pal.deep);
+      addShard(Number.isNaN(y) ? offGround : groundCrystals, c, d, L, L * 0.22, pal.base, pal.tip, pal.deep);
     }
   }
   for (let i = 0; i < 14; i++) {
@@ -423,6 +449,32 @@ export function buildCrystalTree(seed: number, colors: CrystalColors): CrystalTr
     sparkles[i * 3 + 2] = Math.sin(a) * r;
   }
 
+  // On other ground, each root runs on from the trunk out over it, as
+  // thick as the page's where it leaves the trunk and tapering, half sunk in
+  // the ground, down over an edge, until the ground falls below `on.low`.
+  if (on) {
+    const STEP = 0.2;
+    for (const root of roots) {
+      const o = trunkPts[1].clone();
+      const pts = [o];
+      const radii = [0.2];
+      const out = new V(Math.cos(root.angle), 0, Math.sin(root.angle));
+      const side = new V(-out.z, 0, out.x);
+      const wander = rand(0, Math.PI * 2);
+      for (let d = 0.45; d <= on.reach; d += STEP) {
+        const r = 0.2 - 0.165 * Math.min(1, d / on.reach) ** 0.7;
+        const p = new V(o.x, 0, o.z).add(out.clone().multiplyScalar(d)).add(side.clone().multiplyScalar(0.12 * Math.sin(wander + d * 2.3) * Math.min(1, d)));
+        const g = on.at(p.x, p.z);
+        if (Number.isNaN(g) || g < on.low) break;
+        p.y = g + r * 0.3;
+        pts.push(p);
+        radii.push(r);
+        root.reach = d;
+      }
+      if (pts.length > 2) addTube(wood, pts, radii, 5, (t) => colors.barkLow.clone().lerp(colors.barkHigh, 0.25 * (1 - t)));
+    }
+  }
+
   return {
     wood: wood.build(),
     crystals: crystals.build(),
@@ -431,5 +483,6 @@ export function buildCrystalTree(seed: number, colors: CrystalColors): CrystalTr
     pendants,
     sparkles,
     triangles: wood.triangles + ground.triangles + crystals.triangles + groundCrystals.triangles + pendantTriangles,
+    roots,
   };
 }

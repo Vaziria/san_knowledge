@@ -11,7 +11,7 @@ import { LargeRock } from '../../figures/ForestLake/LargeRock';
 import { LilyPad } from '../../figures/ForestLake/LilyPad';
 import { MossyLog } from '../../figures/ForestLake/MossyLog';
 import { Mushrooms } from '../../figures/ForestLake/Mushrooms';
-import { addBlade, addFlower, addRock, addTube, addTuft, between, color, instances, matte, mesh, palette, seededRandom, Shape, snowOn, vary, type Palette, type Season } from '../../figures/ForestLake/parts';
+import { addBlade, addFlower, addRock, addTube, addTuft, between, color, fbm2, instances, matte, mesh, palette, seededRandom, Shape, snowOn, vary, type Palette, type Season } from '../../figures/ForestLake/parts';
 import { Reeds } from '../../figures/ForestLake/Reeds';
 import { SmallRock } from '../../figures/ForestLake/SmallRock';
 import { Stump } from '../../figures/ForestLake/Stump';
@@ -35,6 +35,29 @@ interface Placed {
   scale: number;
   turn: number;
   tilt?: number; // radians it leans, for a rock
+  wide?: number; // how much wider than `scale` makes it it is (a young tree slender, an old one broad)
+}
+
+// A tree's three ages (task 21): its height, m, each age drawn from its own
+// range, and how much wider than that height alone makes it it grows.
+// Young trees are about one in six, old ones about one in ten.
+type Age = 'young' | 'grown' | 'old';
+const AGES: Record<'pine' | 'broadleaf' | 'cherry', Record<Age, [number, number]>> = {
+  pine: { young: [2, 4], grown: [6, 12], old: [13, 16] },
+  broadleaf: { young: [3, 4.5], grown: [5, 9], old: [9.5, 11] },
+  cherry: { young: [3, 4], grown: [4.5, 6.5], old: [7, 8] },
+};
+const WIDE: Record<Age, [number, number]> = { young: [0.72, 0.85], grown: [0.95, 1.05], old: [1.2, 1.35] };
+// Each kind's template as built, m to its top (a cherry of the default 5.5 m
+// is 4.86 m to its crown's top), so a tree drawn at a height stands that tall.
+const TOPS = { pine: 8.08, broadleaf: 5.95, cherry: 4.85, bare: [4.61, 3.97] };
+
+// A number in 0..1 from a point and a seed, the same every time: what a
+// tree's age is drawn from, so drawing it takes nothing from the scatter's
+// run of random numbers and every tree keeps its place.
+function hashAt(x: number, z: number, seed: number): number {
+  const v = Math.sin(x * 127.1 + z * 311.7 + seed * 74.7) * 43758.5453;
+  return v - Math.floor(v);
 }
 
 // Where something may grow on a cliff: a column's top standing out of the
@@ -83,6 +106,11 @@ export class Scatter extends THREE.Group {
     keep: readonly Keep[],
     readonly season: Season = 'spring',
     ledges: readonly Ledge[] = [],
+    // Where the forest is cleared after it is placed (the wreck's site,
+    // layout.wreckClear): trees, rocks and the rest, and with `bare` grass
+    // and flowers too. Taken out after everything is placed from the one
+    // run of random numbers, so everything else keeps its place.
+    cleared: (x: number, z: number, bare: boolean) => boolean = () => false,
   ) {
     super();
     const random = seededRandom(601);
@@ -132,6 +160,25 @@ export class Scatter extends THREE.Group {
     const broadleaves: Placed[][] = [[], [], [], [], [], []];
     const cherries: Placed[][] = [[], [], []];
     const bare: Placed[][] = [[], []];
+    // A tree's age, from where it stands: young ones where light reaches
+    // (the forest's edges and clearings, along the paths, by the shore),
+    // old ones deep in the forest and on the heights, standing up out of the
+    // forest's top, grown ones between. Its height and width within its
+    // age's ranges from `within` (0..1, the scatter's draw of its size).
+    const aged = (x: number, z: number, shore: number, far: boolean, kind: keyof typeof AGES, within: number): { height: number; wide: number } => {
+      const gap = pathGap(x, z);
+      const open = Math.max(smoothstep(9, 3, shore), smoothstep(5, 1.6, gap), smoothstep(15, 6, near(x, z)));
+      const edge = terrain.rim.nearest(x, z);
+      const heights = edge.segment >= 0 && edge.distance * edge.side > 3 ? 1 : 0;
+      const deep = Math.max(smoothstep(10, 24, shore) * smoothstep(5, 12, gap), heights);
+      const roll = hashAt(x, z, 11);
+      const young = far ? 0.16 : 0.13 + 0.4 * open;
+      const old = far ? 0.09 : (0.03 + 0.15 * deep) * (1 - open);
+      const age: Age = roll < young ? 'young' : roll > 1 - old ? 'old' : 'grown';
+      const [low, high] = AGES[kind][age];
+      const [thin, broad] = WIDE[age];
+      return { height: low + (high - low) * within, wide: thin + (broad - thin) * hashAt(x, z, 12) };
+    };
     const tree = (x: number, z: number, far: boolean) => {
       if (!dry(x, z, 0.3) || kept(x, z, false) || inView(x, z) || cliffBand(x, z) || pathGap(x, z) < 1.6) return;
       const shore = terrain.lake.distance(x, z);
@@ -142,32 +189,36 @@ export class Scatter extends THREE.Group {
       const turn = random() * Math.PI * 2;
       const roll = random();
       if (!far && roll < (shore < 14 ? 0.13 : 0.04)) {
-        const scale = between(random, 0.8, 1.2);
-        cherries[Math.floor(random() * 3)].push({ x, y, z, scale, turn });
-        this.shades.push({ x, y: y + 5.5 * scale * 0.68, z, radius: 5.5 * scale * 0.4, foot: 1.6 * scale });
-        this.obstacles.push({ x, z, radius: 0.35 * scale });
-        if (near(x, z) < 26) this.shedding.push({ x, y, z, height: 5.5 * scale });
+        const { height, wide } = aged(x, z, shore, far, 'cherry', (between(random, 0.8, 1.2) - 0.8) / 0.4);
+        const scale = height / TOPS.cherry;
+        cherries[Math.floor(random() * 3)].push({ x, y, z, scale, turn, wide });
+        this.shades.push({ x, y: y + height * 0.68, z, radius: height * 0.4 * wide, foot: 1.6 * scale * wide });
+        this.obstacles.push({ x, z, radius: 0.35 * scale * wide });
+        if (near(x, z) < 26) this.shedding.push({ x, y, z, height });
         return;
       }
       const leafy = far ? 0.12 : autumn ? 0.52 : 0.34;
       if (roll < leafy + 0.13) {
-        const scale = between(random, 0.8, 1.25) * (far ? 1.15 : 1);
+        const { height, wide } = aged(x, z, shore, far, 'broadleaf', (between(random, 0.8, 1.25) - 0.8) / 0.45);
         if (winter && random() < 0.35) {
-          bare[Math.floor(random() * 2)].push({ x, y, z, scale, turn });
-          this.obstacles.push({ x, z, radius: 0.3 * scale });
+          const k = Math.floor(random() * 2);
+          const scale = height / TOPS.bare[k];
+          bare[k].push({ x, y, z, scale, turn, wide });
+          this.obstacles.push({ x, z, radius: 0.3 * scale * wide });
           return;
         }
-        broadleaves[Math.floor(random() * 3) + (near(x, z) < 30 ? 0 : 3)].push({ x, y, z, scale, turn });
-        this.shades.push({ x, y: y + 6 * scale * 0.66, z, radius: 6 * scale * 0.36, foot: 1.6 * scale });
-        this.obstacles.push({ x, z, radius: 0.35 * scale });
-        if (autumn && near(x, z) < 26) this.shedding.push({ x, y, z, height: 6 * scale });
+        const scale = height / TOPS.broadleaf;
+        broadleaves[Math.floor(random() * 3) + (near(x, z) < 30 ? 0 : 3)].push({ x, y, z, scale, turn, wide });
+        this.shades.push({ x, y: y + height * 0.66, z, radius: height * 0.36 * wide, foot: 1.6 * scale * wide });
+        this.obstacles.push({ x, z, radius: 0.35 * scale * wide });
+        if (autumn && near(x, z) < 26) this.shedding.push({ x, y, z, height });
         return;
       }
-      const scale = between(random, 0.7, 1.45) * (far ? 1.1 : 1);
-      (far ? farPines : pines[Math.floor(random() * 3)]).push({ x, y, z, scale, turn });
-      const h = 8 * scale;
-      this.shades.push({ x, y: y + h * 0.42, z, radius: h * 0.25, foot: 1.3 * scale }, { x, y: y + h * 0.7, z, radius: h * 0.15 });
-      this.obstacles.push({ x, z, radius: 0.4 * scale });
+      const { height: h, wide } = aged(x, z, shore, far, 'pine', (between(random, 0.7, 1.45) - 0.7) / 0.75);
+      const scale = h / TOPS.pine;
+      (far ? farPines : pines[Math.floor(random() * 3)]).push({ x, y, z, scale, turn, wide });
+      this.shades.push({ x, y: y + h * 0.42, z, radius: h * 0.25 * wide, foot: 1.3 * scale * wide }, { x, y: y + h * 0.7, z, radius: h * 0.15 * wide });
+      this.obstacles.push({ x, z, radius: 0.4 * scale * wide });
     };
     grid(3.7, [-82, -100], [82, 82], (x, z) => {
       if (Math.hypot(x - 1, z + 6) < 84) tree(x, z, false);
@@ -189,6 +240,37 @@ export class Scatter extends THREE.Group {
       bushes[Math.floor(random() * 3) + (near(x, z) < 30 ? 0 : 3)].push({ x, y: ground(x, z), z, scale, turn: random() * Math.PI * 2 });
       this.shades.push({ x, y: ground(x, z) + 0.45 * scale, z, radius: 0.55 * scale, foot: 0.9 * scale });
     });
+
+    // Grass grows in clumps (the user: "make the grass clump together
+    // more"): over a field of clumps a few meters apart, most of the grass
+    // between them goes, and round each tuft that stays in a clump more grow
+    // close by, a little smaller. Drawn from a generator of its own, after
+    // the grass is placed, so everything placed after keeps its place.
+    const clumpRandom = seededRandom(605);
+    const inClump = (x: number, z: number) => smoothstep(0.42, 0.6, fbm2(x * 0.3, z * 0.3, 121, 3));
+    const clump = (lists: Placed[][], reach: number, most: number, fits: (x: number, z: number) => boolean) => {
+      for (const list of lists) {
+        const grown: Placed[] = [];
+        for (const p of list) {
+          const f = inClump(p.x, p.z);
+          if (clumpRandom() > 0.06 + 0.94 * f) continue;
+          // A clump stands a little taller in its middle.
+          grown.push({ ...p, scale: p.scale * (1 + 0.2 * f) });
+          const more = Math.round(most * f * between(clumpRandom, 0.6, 1.2));
+          for (let k = 0; k < more; k++) {
+            const a = clumpRandom() * Math.PI * 2;
+            const d = reach * Math.sqrt(between(clumpRandom, 0.1, 1));
+            const x = p.x + Math.cos(a) * d;
+            const z = p.z + Math.sin(a) * d;
+            const scale = p.scale * between(clumpRandom, 0.72, 1.05);
+            const turn = clumpRandom() * Math.PI * 2;
+            if (fits(x, z)) grown.push({ x, y: ground(x, z), z, scale, turn });
+          }
+        }
+        list.length = 0;
+        for (const p of grown) list.push(p);
+      }
+    };
 
     // Tall grass and flowers in the meadows, thickest round the landing;
     // fewer flowers in autumn, and in winter dry grass and sprigs of
@@ -213,6 +295,7 @@ export class Scatter extends THREE.Group {
         flowers[Math.floor(random() * 4)].push({ x, y, z, scale: between(random, 0.75, 1.2), turn: random() * Math.PI * 2 });
       }
     });
+    clump(grass, 0.34, 3, (x, z) => dry(x, z, 0.08) && !kept(x, z, true) && !cliffBand(x, z) && pathGap(x, z) >= 0.05 && near(x, z) >= 1.9);
 
     // Ground cover: low tufts of grass and single flowers, thick in the
     // meadows, along the paths and round the landing (in winter a few
@@ -233,6 +316,7 @@ export class Scatter extends THREE.Group {
       if (roll < low) tufts[Math.floor(random() * 2)].push({ x, y, z, scale: between(random, 0.7, 1.3), turn: random() * Math.PI * 2 });
       else if (!winter && roll < low + (0.1 + close * 0.12 + edge * 0.18) * meadow * flowery) singles[Math.floor(random() * 4)].push({ x, y, z, scale: between(random, 0.8, 1.25), turn: random() * Math.PI * 2 });
     });
+    clump(tufts, 0.22, 6, (x, z) => dry(x, z, 0.06) && !kept(x, z, true) && !cliffBand(x, z) && pathGap(x, z) >= -0.2 && near(x, z) >= 1.4);
 
     // Rocks: a ring of boulders round the lake's shore, half in the water,
     // lower in the landing's view; a ring round the island's plinth; along
@@ -246,7 +330,10 @@ export class Scatter extends THREE.Group {
       const y = ground(x, z) - size * sink;
       (big ? large : small)[Math.floor(random() * (big ? 2 : 3))].push({ x, y, z, scale: size / (big ? 2.4 : 0.75), turn: random() * Math.PI * 2, tilt: between(random, -0.15, 0.15) });
       this.obstacles.push({ x, z, radius: size * 0.45 });
-      if (size > 0.7) this.shades.push({ x, y: y + size * 0.4, z, radius: size * 0.45, foot: size * 0.8 });
+      // Its shadow, and a dark ground round its foot (tasks/lighting.md:
+      // "rock: dark base"); down to stones 0.3 m across (before, only those
+      // over 0.7 m).
+      if (size > 0.3) this.shades.push({ x, y: y + size * 0.4, z, radius: size * 0.45, foot: size * 0.8 });
       const water = terrain.waterAt(x, z);
       if (!Number.isNaN(water) && ground(x, z) < water + 0.1) this.froth.push({ x, z, radius: size * 0.5 + 0.5, strength: 0.55 });
     };
@@ -307,7 +394,7 @@ export class Scatter extends THREE.Group {
     // In the shallows: reeds in clumps along the shore and the stream, and
     // lily pads further out (yellowing in autumn, none in winter's ice).
     const reeds: Placed[][] = [[], []];
-    grid(1.6, [-24, -32], [26, 22], (x, z) => {
+    grid(1.6, [-30, -32], [32, 22], (x, z) => {
       if (kept(x, z, false) || inView(x, z)) return;
       const water = terrain.waterAt(x, z);
       if (Number.isNaN(water)) return;
@@ -318,7 +405,7 @@ export class Scatter extends THREE.Group {
     });
     const lilies: Placed[][] = [[], [], []];
     if (!winter) {
-      grid(1.7, [-22, -30], [22, 16], (x, z) => {
+      grid(1.7, [-28, -30], [28, 16], (x, z) => {
         if (!terrain.lake.inside(x, z) || kept(x, z, false)) return;
         const depth = -ground(x, z);
         if (depth < 0.2 || depth > 1.8) return;
@@ -365,6 +452,22 @@ export class Scatter extends THREE.Group {
       if (roll < (ledge.top ? 0.3 : 0.18)) bushes[Math.floor(random() * 3) + (near(ledge.x, ledge.z) < 30 ? 0 : 3)].push({ x: ledge.x, y: ledge.y - 0.05, z: ledge.z, scale: between(random, 0.55, 1.0), turn: random() * Math.PI * 2 });
       else if (roll < (ledge.top ? 0.55 : 0.5)) grass[Math.floor(random() * 3)].push({ x: ledge.x, y: ledge.y, z: ledge.z, scale: between(random, 0.5, 0.9) * grassy, turn: random() * Math.PI * 2 });
     }
+
+    // What stands on cleared ground is taken out, with its shade and its
+    // obstacle.
+    const clear = (lists: Placed[][], bare: boolean) => {
+      for (const list of lists) {
+        for (let k = list.length - 1; k >= 0; k--) if (cleared(list[k].x, list[k].z, bare)) list.splice(k, 1);
+      }
+    };
+    clear([...pines, farPines, ...broadleaves, ...cherries, ...bare, ...bushes, ...small, ...large, ...logs, ...stumps, ...mushrooms, ...reeds, ...lilies], false);
+    clear([...grass, ...flowers, ...tufts, ...singles, ...fallen, flat], true);
+    const unshaded = <T extends { x: number; z: number }>(list: T[]) => {
+      for (let k = list.length - 1; k >= 0; k--) if (cleared(list[k].x, list[k].z, false)) list.splice(k, 1);
+    };
+    unshaded(this.shades);
+    unshaded(this.obstacles);
+    unshaded(this.shedding);
 
     // The variants of each kind, and their copies.
     const pineTones: PineTone[] = autumn ? ['green', 'dark', 'gold'] : ['green', 'dark', 'light'];
@@ -424,7 +527,8 @@ export class Scatter extends THREE.Group {
         if (!placed?.length) return;
         const matrices = placed.map((p) => {
           q.setFromEuler(new THREE.Euler(p.tilt ?? 0, p.turn, (p.tilt ?? 0) * 0.7, 'YXZ'));
-          return m.clone().compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(p.scale, p.scale, p.scale));
+          const wide = p.scale * (p.wide ?? 1);
+          return m.clone().compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(wide, p.scale, wide));
         });
         const tints = placed.map((p) => {
           const light = kind.shaded ? this.terrain.lightAt(p.x, p.z) : 1;

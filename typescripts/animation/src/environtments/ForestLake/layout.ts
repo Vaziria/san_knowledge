@@ -2,7 +2,7 @@
 // landmarks are, as the reference's overview lays them out, looking north
 // (-z) from the south shore: the lake in the middle, fed by a tall
 // waterfall from the cliffs to the north and a smaller one to the
-// northwest, a rocky island with a cherry tree in it, the cave in the
+// northwest, a rocky island with the great crystal tree on it, the cave in the
 // cliffs to the east with the watch tower on the heights above, the ruins
 // to the west, the camp to the southwest, and the lake running out to the
 // southeast down a cascade under a bridge. Meters; x east, z south; the
@@ -211,45 +211,51 @@ export class Outline {
 // ---------------------------------------------------------------------------
 // The map.
 
-// The lake's shore, round from the northwest bay under the small waterfall,
-// east along the foot of the cliffs (reaching them under the main
-// waterfall), down the east shore to the outlet in the southeast, and back
-// west along the south shore.
+// The lake's shore, round from the northwest bay under the small
+// waterfall, east along the foot of the cliffs (reaching them under the
+// main waterfall), down the east shore to the outlet in the southeast, and
+// back west along the south shore: about 52 m across east to west and 43 m
+// north to south. Task 21 widened it, its west shore 6 m further west and
+// its east shore 6 m further east, with what stands along them; the south
+// shore by the landing and the north under the waterfalls stayed.
 export const LAKE: Point[] = [
-  [-20, -14],
-  [-19.4, -20.5],
-  [-17.2, -23.7],
-  [-12, -24.4],
+  [-26, -14],
+  [-23.38, -20.5],
+  [-18.18, -23.7],
+  [-12.5, -24.4],
   [-4.5, -25.6],
   [0.2, -28.6],
   [3, -29.9],
   [6, -28.6],
-  [10, -24.5],
-  [15, -18],
-  [18, -10],
-  [19.5, -2],
-  [18.6, 5.5],
-  [16.5, 10.5],
-  [13.5, 13.2],
+  [10.94, -24.5],
+  [21, -18],
+  [24, -10],
+  [25.5, -2],
+  [24.6, 5.5],
+  [22.5, 10.5],
+  [19.5, 13.2],
   [8, 12.2],
   [2, 11.4],
-  [-4.5, 11],
-  [-11, 8.5],
-  [-16, 3.8],
-  [-19.2, -3],
-  [-20.3, -10],
+  [-4.62, 11],
+  [-17, 8.5],
+  [-22, 3.8],
+  [-25.2, -3],
+  [-26.3, -10],
 ];
 
-// The island, off the middle of the lake toward its east shore.
+// The island, off the middle of the lake toward its east shore: a plinth
+// of rock about 17 m across (grown 1.7 times by task 21, north and east
+// from its south-west, so the open water north of the landing stays open),
+// the great crystal tree on its top.
 export const ISLAND: Point[] = [
-  [6.8, -8],
-  [10.2, -6.8],
-  [11.4, -3.2],
-  [10.2, 0.6],
-  [6.6, 1.9],
-  [3.2, 0.7],
-  [1.8, -2.8],
-  [3.4, -6.6],
+  [8.76, -13.95],
+  [14.54, -11.91],
+  [16.58, -5.79],
+  [14.54, 0.67],
+  [8.42, 2.88],
+  [2.64, 0.84],
+  [0.26, -5.11],
+  [2.98, -11.57],
 ];
 export const ISLAND_TOP = 1.2; // m, the island's grass over the water, on its plinth of rock
 
@@ -260,22 +266,22 @@ export const ISLAND_TOP = 1.2; // m, the island's grass over the water, on its p
 // (it runs clockwise round the lake); each point's third number is the
 // heights' level there, falling to the land's at both ends.
 export const RIM: readonly (readonly [number, number, number])[] = [
-  [-42, -15, 0.6],
-  [-33, -17.5, 3.4],
-  [-26, -20.2, 5.6],
-  [-18.8, -24.6, 6.2],
+  [-48, -15, 0.6],
+  [-38.95, -17.5, 3.4],
+  [-30.26, -20.2, 5.6],
+  [-19.19, -24.6, 6.2],
   [-12, -27.2, 7.4],
   [-4, -29.8, 9.6],
   [3, -31, 10],
-  [9.5, -29.8, 10.2],
-  [14.5, -26.2, 10.6],
-  [19, -20.5, 11],
-  [22, -13.5, 10],
-  [23.9, -6.5, 8],
-  [24.7, 0.5, 7],
-  [24.3, 6.5, 6],
-  [23.6, 10.8, 2.6],
-  [23.2, 15.5, 0.6],
+  [9.76, -29.8, 10.2],
+  [20.5, -26.2, 10.6],
+  [25, -20.5, 11],
+  [28, -13.5, 10],
+  [29.9, -6.5, 8],
+  [30.7, 0.5, 7],
+  [30.3, 6.5, 6],
+  [29.6, 10.8, 2.6],
+  [29.2, 15.5, 0.6],
 ];
 // How far the heights rise further inland: m per m in from the rim, at most
 // INLAND_MOST.
@@ -308,18 +314,18 @@ export const SMALL_LIP = { x: -18.0, z: -25.4, level: 5.8, width: 2.6, rise: 0.0
 // the bridge and away southeast, with its water's level along it: the
 // lake's (0) until the cascade, 1.9 m lower after it, then falling gently.
 export const STREAM: Point[] = [
-  [14.2, 11.6],
-  [16.5, 14.6],
-  [18.4, 17.6],
-  [20, 20.6],
-  [22.2, 25],
-  [25, 31],
-  [28.5, 38],
-  [33, 46],
-  [38.5, 55],
-  [45, 66],
-  [53, 80],
-  [62, 96],
+  [20.2, 11.6],
+  [22.5, 14.6],
+  [24.4, 17.6],
+  [26, 20.6],
+  [28.2, 25],
+  [31, 31],
+  [34.5, 38],
+  [39, 46],
+  [44.5, 55],
+  [51, 66],
+  [59, 80],
+  [68, 96],
 ];
 export const CASCADE = { from: 4.9, to: 6.9, drop: 1.9, fall: 0.012 }; // m along the stream; `fall` m per m after it
 
@@ -333,49 +339,49 @@ export const PATHS: { points: Point[]; width: number }[] = [
   {
     width: 2.3,
     points: [
-      [-19.8, 17.2],
-      [-15.5, 17.4],
-      [-8, 17.6],
+      [-25.8, 17.2],
+      [-21.5, 17.4],
+      [-12.44, 17.6],
       [-1.5, 18.3],
       [5, 17.4],
-      [10.5, 16.2],
-      [13.8, 15.35],
+      [12.4, 16.2],
+      [19.8, 15.35],
     ],
   },
   {
     width: 2.1,
     points: [
-      [20.5, 12.45],
-      [23, 8.6],
-      [22.2, 4.2],
-      [21, 0.2],
-      [20.9, -3.3],
+      [26.5, 12.45],
+      [29, 8.6],
+      [28.2, 4.2],
+      [27, 0.2],
+      [26.9, -3.3],
     ],
   },
   {
     width: 1.9,
     points: [
-      [-24.4, 11.4],
-      [-24.2, 5],
-      [-25.6, -0.5],
-      [-27.2, -3.8],
+      [-30.4, 11.4],
+      [-30.2, 5],
+      [-31.6, -0.5],
+      [-33.2, -3.8],
     ],
   },
   {
     width: 1.6,
     points: [
-      [-24.3, 7.2],
-      [-19.5, 7.9],
-      [-15, 9.1],
+      [-30.3, 7.2],
+      [-25.5, 7.9],
+      [-21, 9.1],
     ],
   },
   {
     width: 1.8,
     points: [
-      [22.6, -23.2],
-      [26.2, -18.5],
-      [28.4, -11],
-      [28.4, -5],
+      [28.6, -23.2],
+      [32.2, -18.5],
+      [34.4, -11],
+      [34.4, -5],
     ],
   },
   {
@@ -399,22 +405,57 @@ export const CLEARING = 3.4; // m round it kept level and clear
 // Where the landmarks stand. A heading is the way something runs out (a
 // pier over the water), in radians from +x toward +z.
 export const SPOTS = {
-  pier: { x: -12.8, z: 8.5, heading: -0.93, length: 7 },
-  eastPier: { x: 19.8, z: 2.2, heading: Math.PI, length: 5.5 },
-  jetty: { x: 6.4, z: 2.3, heading: Math.PI / 2, length: 3 }, // from the island's steps, just off its plinth
-  boat: { x: -11.8, z: 4.0, heading: -0.93 },
-  bridge: { from: [13.8, 15.35] as Point, to: [20.5, 12.45] as Point },
+  pier: { x: -18.8, z: 8.5, heading: -0.93, length: 7 },
+  eastPier: { x: 25.8, z: 2.2, heading: Math.PI, length: 5.5 },
+  jetty: { x: 8.08, z: 3.21, heading: Math.PI / 2, length: 3 }, // from the island's steps, just off its plinth
+  boat: { x: -17.8, z: 4, heading: -0.93 },
+  bridge: { from: [19.8, 15.35] as Point, to: [26.5, 12.45] as Point },
   footbridge: { x: 3, z: -34.2 }, // over the main river above its lip
-  tower: { x: 21.2, z: -25.4 },
-  cave: { x: 22.7, z: -3.3 }, // its mouth, facing west
-  ruins: { x: -31, z: -4.5 },
-  camp: { x: -24.4, z: 16.4, radius: 5.4 },
-  tent: { x: -27.6, z: 17.6 },
-  campfire: { x: -23.6, z: 15.2 },
+  tower: { x: 27.2, z: -25.4 },
+  cave: { x: 28.7, z: -3.3 }, // its mouth, facing west
+  ruins: { x: -37, z: -4.5 },
+  camp: { x: -30.4, z: 16.4, radius: 5.4 },
+  tent: { x: -33.6, z: 17.6 },
+  campfire: { x: -29.6, z: 15.2 },
   gate: { path: 5, along: 8.2 }, // the forest entrance's gate, on the way in from the south
+  // The spaceship wreck, in the clearing southwest of the camp: its nose
+  // east, its torn-open side north toward the camp (turned half round).
+  wreck: { x: -35, z: 32.5, turn: Math.PI },
 } as const;
 
 // How much bigger than their assets' own size the cave's mouth and the
 // ruins stand here, as big as the reference's overview draws them.
 export const CAVE_SCALE = 1.3;
 export const RUINS_SCALE = 1.25;
+
+// The spaceship wreck's site: the ground levelled round it (half its
+// length and half its width, in its own frame), the dirt it churned up
+// under and round it, and the furrow it ploughed coming in from the west,
+// behind its tail.
+export const WRECK_SITE = { along: 14, across: 9.5 };
+export const WRECK_SCAR = { along: 11.5, across: 6.2 };
+export const FURROW = { from: 11, to: 27, width: 1.8, depth: 0.35 };
+
+// Where a point is in the wreck's own frame: [x along it (its nose -x, its
+// tail +x), z across it (its torn-open side +z)].
+export function wreckFrame(x: number, z: number): [number, number] {
+  const { x: cx, z: cz, turn } = SPOTS.wreck;
+  const dx = x - cx;
+  const dz = z - cz;
+  const c = Math.cos(turn);
+  const s = Math.sin(turn);
+  return [dx * c - dz * s, dx * s + dz * c];
+}
+
+// Whether the forest is cleared off a point for the wreck: trees, bushes,
+// rocks and logs off its site and its furrow; grass and flowers too
+// (`bare`) off the dirt it churned up and the furrow's bottom.
+export function wreckClear(x: number, z: number, bare: boolean): boolean {
+  const [u, v] = wreckFrame(x, z);
+  if (bare) {
+    if (Math.hypot(u / WRECK_SCAR.along, v / WRECK_SCAR.across) < 0.92) return true;
+    return u > FURROW.from - 1 && u < FURROW.to && Math.abs(v) < FURROW.width * 0.8;
+  }
+  if (Math.hypot(u / (WRECK_SITE.along + 2.5), v / (WRECK_SITE.across + 2.5)) < 1) return true;
+  return u > FURROW.from && u < FURROW.to + 3 && Math.abs(v) < FURROW.width + 2.2;
+}

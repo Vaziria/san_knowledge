@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { fetchMeeting, onMeeting } from '../../chat';
 import { ForestLake } from '../../environtments/ForestLake/ForestLake';
 import { ForestFish } from '../../figures/ForestLake/animals/ForestFish';
-import type { Season } from '../../figures/ForestLake/parts';
+import { ForestSpiritDragon } from '../../figures/ForestLake/animals/ForestSpiritDragon/ForestSpiritDragon';
+import { SEASONS, type Season } from '../../figures/ForestLake/parts';
 import type { Environment, Shot } from '../../previews';
+import type { Stepwise } from '../../stepwise';
 import type { Theme } from '../../theme';
 import { HOST } from '../lake_meeting/events';
 import { FishLeaps } from '../lake_meeting/FishLeaps';
@@ -13,10 +15,13 @@ import { disposeFigure } from '../lake_meeting/kinds';
 import type { Circle, Land } from '../lake_meeting/Land';
 import { Member, shortest } from '../lake_meeting/Member';
 import { Roam } from '../lake_meeting/Roam';
-import { KINDS, type Command, type ForestEvent, type ForestMember, type ForestNumbered, type ForestState, type Kind } from './events';
+import type { Seeing } from '../lake_meeting/Sight';
+import { CRYSTAL_TREE } from '../../environtments/ForestLake/Landmarks';
+import { Dragon } from './Dragon';
+import { DRAGON, KINDS, type Command, type ForestEvent, type ForestMember, type ForestNumbered, type ForestState, type Kind } from './events';
 import { ForestSight } from './ForestSight';
-import { forestGround } from './ground';
-import { isGuest, makeGuest } from './guests';
+import { forestGround, forestGroundBuild, type ForestGround } from './ground';
+import { coatOf, isGuest, makeGuest } from './guests';
 
 // The forest lake meeting (forest_lake_meeting.md) as a scene: the lake
 // meeting (lake_meeting/Meeting.ts) at the forest lake, with its own
@@ -43,12 +48,36 @@ import { isGuest, makeGuest } from './guests';
 //   ice; its own small leaps go the way it swims. A leap's height is the
 //   lake meeting's, 0.3–1.5 m, brought within what the forest fish leaps,
 //   0.3–1 m (LEAP).
+// - The forest spirit dragon flies round the island's crystal tree and
+//   roars now and then, and every few minutes comes down in the meadow
+//   behind the landing and walks there calmly a while (Dragon.ts). When
+//   nothing else is being shown, its roar is a turn of its own: the camera
+//   cuts to it, flying, and follows it while it roars, then goes back to
+//   what it showed, the quiet still counted (it takes the camera from no one
+//   who has moved it). The cameras see it as one of the animals.
+// - The dragon is the first viewer's to comment while it is no one's (the
+//   dev server's DRAGON member, meeting.ts): it says what they write, in a
+//   speech bubble over its head, their comments taking turns as everyone's
+//   do. The camera cuts to it wherever it is and follows it exactly while it
+//   talks (Dragon.talkShot), as it keeps round the tree or stands still in
+//   the meadow. Once they leave it is no one's again.
+// - The season changes every SEASON_TIME s of its own time (spring, summer,
+//   autumn, winter, then spring again; scenarios/season_change.md), from
+//   the one the Season setting picks. The stage builds the next season's
+//   forest lake ahead while it plays (forest_lake_meeting.ts,
+//   Preview.changes) and the meeting measures its land and sight from it a
+//   piece at a time (prepare()); then, once no leap of the fish is under
+//   way, the stage swaps it in and the meeting takes it (take()): every
+//   animal stays where it is, doing what it did, one the new season puts
+//   inside something or over water stepping out (Roam.reland), and those
+//   whose sheets have the season's coat are painted in it where they stand
+//   (coatOf). The turns, the bubbles, the camera and the fish go on.
 //
 // Units are meters; the origin is the landing (ForestLake.LANDING), where
 // the stage puts a story's figure, and +z points away from the water.
 
 const MIDDLE = new THREE.Vector2(0.5, -6); // the lake's middle, in its own coordinates
-const REACH = 46; // m from it the land the animals roam reaches, the last 7 m kept off (Land.ts)
+const REACH = 52; // m from it the land the animals roam reaches, the last 7 m kept off (Land.ts): the wider lake's shores (task 21)
 const LOOK_OUT = 12; // m past that the cameras' sight is measured
 const HOST_START = new THREE.Vector3(0, 0, -0.5); // on the landing, facing +z: its first place, which it roams from
 const WIDE = { camera: new THREE.Vector3(0, 2.3, 7.4), target: new THREE.Vector3(0, 0.55, 1.3) }; // the opening shot: the landing, the host in the middle
@@ -73,12 +102,14 @@ const FISH = { radius: 1.4, ahead: 0.9, turn: 1.2 }; // m round the open water's
 const AIMED = 0.2; // radians off facing the middle within which a supporter's leap starts
 const LEAP = { least: 0.3, most: 1 }; // m the forest fish leaps for a supporter: the lake meeting's 0.3–1.5 m, brought within these
 const PLAIN = new Set<Command>(['jump', 'walk', 'run', 'stop']); // every animal's commands; the rest are tricks
+const SEASON_TIME = 60; // s of the meeting's time each season lasts before the next comes
 
 type Turn =
   | { type: 'say'; id: string; name: string; text: string; message: string }
   | { type: 'command'; id: string; command: Command }
   | { type: 'switch'; id: string; kind: Kind }
-  | { type: 'support'; id: string; name: string; what: string; height: number };
+  | { type: 'support'; id: string; name: string; what: string; height: number }
+  | { type: 'dragon'; id: string }; // its roar, filmed
 
 interface Active {
   turn: Turn;
@@ -98,15 +129,20 @@ interface View {
 
 export class ForestMeeting extends THREE.Group {
   static readonly WIDE = WIDE;
-  // The size of the sun's shadow round what the camera looks at.
-  readonly bounds = new THREE.Box3(new THREE.Vector3(-5, 0, -5), new THREE.Vector3(5, 2.5, 5));
+  // The size of the sun's shadow round what the camera looks at: as tall as
+  // the dragon, so all of it casts its shadow on the meadow.
+  readonly bounds = new THREE.Box3(new THREE.Vector3(-5, 0, -5), new THREE.Vector3(5, 6, 5));
   private readonly theme: Theme;
-  private readonly season: Season;
-  private readonly ground: (x: number, z: number) => number;
-  private readonly land: Land;
+  // The season's, each changed together as the season changes (take()).
+  private lake: ForestLake;
+  private season: Season;
+  private ground: (x: number, z: number) => number;
+  private land: Land;
+  private blocks: Circle[]; // trunks, rocks and footprints, which block the camera's view
+  private sight: ForestSight; // what a camera may not be in or see through
+  private coming: Season; // the season it changes to next
+  private untilChange = SEASON_TIME; // s of the meeting's time before it
   private readonly roam: Roam;
-  private readonly blocks: Circle[]; // trunks, rocks and footprints, which block the camera's view
-  private readonly sight: ForestSight; // what a camera may not be in or see through
   private readonly host: Member;
   private readonly members = new Map<string, Member>();
   private readonly leaving = new Set<Member>(); // walking away, gone once at the land's end
@@ -115,6 +151,9 @@ export class ForestMeeting extends THREE.Group {
   private readonly fish: ForestFish;
   private readonly middle: THREE.Vector2; // of the fish's circle, in the lake's coordinates
   private readonly fishLeaps: FishLeaps; // its own leaps, now and then
+  private readonly dragon: Dragon;
+  private dragonViewer: string | null = null; // whose the dragon is, if anyone's
+  private readonly seeing: Seeing; // the season's sight, for the cameras
   private readonly queue: Turn[] = [];
   private active: Active | null = null;
   private pendingLeap = 0; // m, a supporter's leap asked for and not yet begun
@@ -135,19 +174,25 @@ export class ForestMeeting extends THREE.Group {
     super();
     this.name = 'forest lake meeting';
     this.theme = theme;
-    const lake = environment.scenery;
-    if (!(lake instanceof ForestLake)) throw new Error('the forest lake meeting plays at the forest lake');
+    const lake = (this.lake = forestLakeOf(environment));
     this.season = lake.season;
+    this.coming = after(this.season);
     const land = environment.land;
 
-    // The land the animals roam, and what the cameras see.
+    // The land the animals roam, and what the cameras see: the season's,
+    // which the cameras ask through `seeing`.
     const ground = forestGround(lake, land, MIDDLE, REACH);
     this.ground = ground.standAt;
     this.land = ground.land;
     this.blocks = ground.obstacles.filter((o) => 2 * o.radius >= IN_VIEW);
-    const sight = (this.sight = new ForestSight({ lake, offset: land, middle: MIDDLE, half: REACH + LOOK_OUT }));
-    this.follow = new Follow(sight);
-    this.hostView = new HostView(sight);
+    this.sight = new ForestSight({ lake, offset: land, middle: MIDDLE, half: REACH + LOOK_OUT });
+    const seeing: Seeing = (this.seeing = {
+      floor: (x, z) => this.sight.floor(x, z),
+      blocked: (point) => this.sight.blocked(point),
+      sees: (from, to, skip) => this.sight.sees(from, to, skip),
+    });
+    this.follow = new Follow(seeing);
+    this.hostView = new HostView(seeing);
 
     // The host starts on the landing, where the opening shot shows it, and
     // roams from there like the others; standing at a spot, an animal now
@@ -169,12 +214,18 @@ export class ForestMeeting extends THREE.Group {
     this.add(this.water);
     this.middle = new THREE.Vector2(ForestLake.OPEN_WATER.x, ForestLake.OPEN_WATER.z);
     const fish = (this.fish = new ForestFish());
-    fish.addEventListener('splash', ({ x, z, velocity }) => lake.water.splash(x, z, velocity));
+    fish.addEventListener('splash', ({ x, z, velocity }) => this.lake.water.splash(x, z, velocity));
     fish.position.set(this.middle.x + FISH.radius, fish.swimY, this.middle.y);
     fish.rotation.y = Math.PI; // on its way round
     fish.Swim();
     this.water.add(fish);
     this.fishLeaps = new FishLeaps({ get jumping() { return fish.jumping; }, JumpOutFromWater: (height) => fish.Jump(height) });
+
+    // The dragon, on its way round the crystal tree.
+    const tree = new THREE.Vector3(CRYSTAL_TREE.x - land.x, 0, CRYSTAL_TREE.z - land.z);
+    tree.y = this.ground(tree.x, tree.z);
+    this.dragon = new Dragon(tree, -land.y, theme);
+    this.add(this.dragon.figure);
 
     this.view = { camera: WIDE.camera.clone(), target: WIDE.target.clone() };
     this.unsubscribe = onMeeting((numbered) => (this.buffered ? this.buffered.push(numbered) : this.apply(numbered)), 'forest_lake_meeting');
@@ -189,15 +240,83 @@ export class ForestMeeting extends THREE.Group {
     return { camera: this.view.camera, target: this.view.target, cut, claim };
   }
 
+  // The season it changes to next, and whether it is time: SEASON_TIME s of
+  // the meeting's own time after the last change, once no leap of the fish
+  // is under way (in winter the only open water is the hole in the ice).
+  // The stage builds that season's forest lake ahead and swaps it in then
+  // (forest_lake_meeting.ts, Preview.changes).
+  get nextSeason(): Season {
+    return this.coming;
+  }
+
+  get seasonDue(): boolean {
+    return this.untilChange <= 0 && !this.fish.jumping;
+  }
+
+  // The Season setting picked a season while it plays: it comes at once,
+  // through the same swap, and the next minute counts from there. The
+  // season it is in only starts the minute again.
+  pick(season: Season): void {
+    this.coming = season === this.season ? after(season) : season;
+    this.untilChange = season === this.season ? SEASON_TIME : 0;
+  }
+
+  // What the meeting needs of the next season's forest lake, measured a
+  // piece at a time before it is shown: its land and the cameras' sight.
+  // Returns what takes it once it is swapped in.
+  *prepare(environment: Environment): Stepwise<() => void> {
+    const lake = forestLakeOf(environment);
+    const ground = yield* forestGroundBuild(lake, environment.land, MIDDLE, REACH);
+    const sight = yield* ForestSight.build({ lake, offset: environment.land, middle: MIDDLE, half: REACH + LOOK_OUT });
+    return () => this.take(lake, environment.land, ground, sight);
+  }
+
+  // The new season, where every animal is: its land under them (one it puts
+  // inside something or over water steps out, Roam.reland), the cameras'
+  // sight, the fish's water and the coats (coatOf: an animal whose colour
+  // changes is painted anew where it stands, doing what it did). The next
+  // minute starts.
+  private take(lake: ForestLake, land: THREE.Vector3, ground: ForestGround, sight: ForestSight): void {
+    this.lake = lake;
+    this.season = lake.season;
+    this.ground = ground.standAt;
+    this.land = ground.land;
+    this.blocks = ground.obstacles.filter((o) => 2 * o.radius >= IN_VIEW);
+    this.sight = sight;
+    this.water.position.set(-land.x, -land.y, -land.z);
+    this.roam.reland(this.land);
+    for (const member of [this.host, ...this.members.values(), ...this.leaving]) this.recoat(member);
+    this.coming = after(this.season);
+    this.untilChange = SEASON_TIME;
+  }
+
+  // Into the season's coat, where it stands.
+  private recoat(member: Member): void {
+    const figure = member.figure;
+    if (!isGuest(figure)) return;
+    const coat = coatOf(figure.kind, member.id, this.season);
+    if (coat !== figure.color) figure.SetColor(coat);
+  }
+
   update(delta: number): void {
+    this.untilChange -= delta;
     const all = [this.host, ...this.members.values(), ...this.leaving];
     this.roam.update(delta, all);
     for (const member of all) member.update(delta, this.ground);
     this.swim(delta);
     this.fishLeaps.update(delta, this.pendingLeap > 0 || this.active?.turn.type === 'support', this.fish.doing === 'swim');
     this.fish.update(delta);
-
+    this.dragon.update(delta, this.ground, (x, z) => this.sight.floor(x, z));
+    // The next turn first, so that one of the dragon's viewer's holds its
+    // roar (it would roar over its words).
     if (!this.active) this.next();
+    // The dragon's roar: filmed when nothing else is shown, once a camera
+    // has room round it all through it (its turn starting next frame);
+    // unseen when the chat keeps the camera busy.
+    if (this.dragon.wantsRoar) {
+      if (this.active || this.queue.length > 0) this.dragon.roar();
+      else if (this.dragon.frame(this.seeing)) this.queue.push({ type: 'dragon', id: 'dragon' });
+    }
     const active = this.active;
     if (active) {
       active.time += delta;
@@ -215,8 +334,9 @@ export class ForestMeeting extends THREE.Group {
     // Quiet for WIDE_AFTER s: the host's view, wherever the host is; for
     // FOLLOW_AFTER s: the camera follows the animals in turn, the host not
     // first, which the host's view has just shown. Both move smoothly by
-    // themselves, and the stage puts the camera exactly there.
-    const animals = [this.host, ...this.members.values()];
+    // themselves, and the stage puts the camera exactly there. The dragon is
+    // one of the animals to them.
+    const animals = [this.host, ...this.members.values(), this.dragon.member];
     if (!this.active && this.quiet > FOLLOW_AFTER) {
       this.hostView.stop();
       this.hostShot = null;
@@ -293,10 +413,15 @@ export class ForestMeeting extends THREE.Group {
       case 'leave':
         return this.leave(event.id, event.how);
       case 'say':
-      case 'command':
-      case 'switch':
       case 'support':
         this.queue.push(event);
+        return;
+      // (The dragon takes no commands, and no one switches to it or from it.)
+      case 'command':
+        if (event.id !== this.dragonViewer) this.queue.push(event);
+        return;
+      case 'switch':
+        if (event.kind !== DRAGON && event.id !== this.dragonViewer) this.queue.push({ type: 'switch', id: event.id, kind: event.kind });
         return;
       case 'delete': {
         const at = this.queue.findIndex((t) => t.type === 'say' && t.message === event.message);
@@ -312,12 +437,20 @@ export class ForestMeeting extends THREE.Group {
   }
 
   private member(id: string): Member | undefined {
-    return id === HOST ? this.host : this.members.get(id);
+    if (id === HOST) return this.host;
+    if (id === this.dragonViewer) return this.dragon.member;
+    return this.members.get(id);
   }
 
   // An animal comes: at a spot anywhere on the land, landing there with a
-  // jump (`jump`), or standing there already as the meeting begins.
+  // jump (`jump`), or standing there already as the meeting begins. The
+  // dragon's viewer brings none: the dragon is theirs.
   private join(info: ForestMember, jump: boolean): void {
+    if (info.kind === DRAGON) {
+      this.dragonViewer = info.id;
+      this.dragon.member.name = info.name;
+      return;
+    }
     if (this.members.has(info.id)) return;
     const member = new Member(info.id, info.name, info.kind, info.bot, makeGuest(info.kind, info.id, this.season, this.theme));
     this.members.set(info.id, member);
@@ -326,6 +459,16 @@ export class ForestMeeting extends THREE.Group {
   }
 
   private leave(id: string, how: 'walk' | 'destroy' | 'remove'): void {
+    if (id === this.dragonViewer) {
+      // The dragon is no one's again: what it says for them, and their
+      // turns, go with them.
+      for (let i = this.queue.length - 1; i >= 0; i--) if (this.queue[i].id === id) this.queue.splice(i, 1);
+      if (this.active?.turn.id === id) this.finish(this.active);
+      this.dragon.figure.Speech('');
+      this.dragonViewer = null;
+      this.dragon.member.name = '';
+      return;
+    }
     const member = this.members.get(id);
     if (!member) return;
     if (how === 'remove') {
@@ -363,8 +506,26 @@ export class ForestMeeting extends THREE.Group {
   private next(): void {
     while (this.queue.length > 0) {
       const turn = this.queue.shift()!;
+      if (turn.type === 'dragon') {
+        // Cut to it, flying (it is fast and far): unless it has gone down
+        // to the meadow meanwhile.
+        if (!this.dragon.flying) continue;
+        this.active = { turn, time: 0, acted: null, cut: true, side: 0, alongside: null, leap: null, trick: 0 };
+        this.cutNext = true;
+        return;
+      }
       const member = turn.type === 'support' ? null : this.member(turn.id);
       if (turn.type !== 'support' && !member) continue;
+      if (member === this.dragon.member) {
+        // Its viewer's words: it keeps round the tree, or stands still, while
+        // it says them, and the camera cuts to it (it is fast, and far) and
+        // follows it.
+        this.dragon.hold(this.seeing);
+        this.active = { turn, time: 0, acted: null, cut: true, side: 0, alongside: null, leap: null, trick: 0 };
+        this.cutNext = true;
+        this.claimNext = true;
+        return;
+      }
       let cut = this.queue.length >= MANY;
       let side = 0;
       let alongside: number | null = null;
@@ -394,6 +555,11 @@ export class ForestMeeting extends THREE.Group {
   // leaps.
   private act(active: Active): void {
     const turn = active.turn;
+    if (turn.type === 'dragon') {
+      this.dragon.roar();
+      active.trick = ForestSpiritDragon.ROAR_TIME;
+      return;
+    }
     if (turn.type === 'support') {
       this.pendingLeap = turn.height;
       active.leap = this.leapSide(turn.height);
@@ -435,6 +601,7 @@ export class ForestMeeting extends THREE.Group {
   // Whether a turn is over, `since` seconds after the animal acted.
   private over(active: Active, since: number): boolean {
     const turn = active.turn;
+    if (turn.type === 'dragon') return since > active.trick + 0.4;
     if (turn.type === 'support') return (this.pendingLeap === 0 && !this.fish.jumping && since > 1) || since > HOLD.leap;
     const member = this.member(turn.id);
     if (!member) return true;
@@ -455,9 +622,11 @@ export class ForestMeeting extends THREE.Group {
   private finish(active: Active): void {
     if (this.active !== active) return;
     this.active = null;
-    this.quiet = 0;
+    // The dragon's roar isn't the chat's: the quiet goes on being counted.
+    if (active.turn.type !== 'dragon') this.quiet = 0;
     const id = active.turn.id;
     const member = this.member(id);
+    if (member === this.dragon.member) return this.dragon.release();
     if (member && active.turn.type === 'say') this.roam.release(member);
     if (member && this.doomed.has(id) && !this.hasTurns(id)) this.dismiss(member);
   }
@@ -469,7 +638,17 @@ export class ForestMeeting extends THREE.Group {
   private frame(): void {
     const active = this.active;
     if (active?.turn.type === 'support') return this.set(this.fishShot(active.leap));
+    if (active?.turn.type === 'dragon') {
+      // Following it exactly, every frame.
+      this.cutNext = true;
+      return this.set(this.dragon.shot());
+    }
     const member = active && this.member(active.turn.id);
+    if (member === this.dragon.member) {
+      // Following it exactly, every frame.
+      this.cutNext = true;
+      return this.set(this.dragon.talkShot(this.seeing));
+    }
     if (member) return this.set(this.closeUp(member, active.side));
     if (this.following) return this.set(this.following);
     if (this.hostShot) this.set(this.hostShot);
@@ -517,7 +696,7 @@ export class ForestMeeting extends THREE.Group {
   // other animal in between.
   private clearView({ camera, target }: View, member: Member): boolean {
     if (this.sight.blocked(camera) || !this.sight.sees(target, camera, Math.min(member.radius, 0.15))) return false;
-    const others = [this.host, ...this.members.values()].filter((m) => m !== member);
+    const others = [this.host, ...this.members.values(), this.dragon.member].filter((m) => m !== member);
     const point = new THREE.Vector3();
     // From the camera to just short of the animal itself.
     for (let s = 0; s <= 10; s++) {
@@ -567,4 +746,15 @@ interface Leap {
   ahead: THREE.Vector3; // the way it leaps
   side: THREE.Vector3; // the way from the fish to the camera
   height: number; // m
+}
+
+// The season after one: spring, summer, autumn, winter, then spring again.
+function after(season: Season): Season {
+  return SEASONS[(SEASONS.indexOf(season) + 1) % SEASONS.length];
+}
+
+function forestLakeOf(environment: Environment): ForestLake {
+  const lake = environment.scenery;
+  if (!(lake instanceof ForestLake)) throw new Error('the forest lake meeting plays at the forest lake');
+  return lake;
 }

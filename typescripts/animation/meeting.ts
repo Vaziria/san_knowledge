@@ -19,7 +19,10 @@ import { HOST, RULES, type Command, type Kind, type MeetingEvent, type MeetingRu
 //
 // The forest lake meeting (src/story/forest_lake_meeting) is kept the same
 // way, from the same chat, by another Meeting with its rules: its kinds,
-// commands and host (MeetingRules; the lake's by default).
+// commands and host (MeetingRules; the lake's by default), and its special
+// kind, the dragon: the first viewer to comment while no one has it gets it
+// in place of an animal, and keeps it until they leave. It takes no bot's
+// place, isn't counted among the LIMIT, and isn't switched.
 //
 // It is plain logic: the time and the random numbers are passed in, so a
 // test can run it without a server.
@@ -79,7 +82,7 @@ export class Meeting<K extends string = Kind, C extends string = Command> {
       this.seq = saved.seq;
       // Only the kinds these rules know: a meeting saved by code with other
       // kinds keeps the viewers, as a kind of this one's.
-      this.seats = saved.seats.map((seat) => ({ ...seat, kind: rules.kinds.includes(seat.kind) ? seat.kind : this.randomKind() }));
+      this.seats = saved.seats.map((seat) => ({ ...seat, kind: rules.kinds.includes(seat.kind) || this.isSpecial(seat) ? seat.kind : this.randomKind() }));
       this.bots = saved.bots;
       this.fill(true); // this code may want more bots
     } else {
@@ -172,24 +175,33 @@ export class Meeting<K extends string = Kind, C extends string = Command> {
       seat.name = author.name || seat.name;
       return id;
     }
+    // The special kind, while no one has it, whatever kind they asked for.
+    const special = this.rules.special;
+    if (special !== undefined && !this.seats.some((s) => this.isSpecial(s))) kind = special;
     this.join({ id, name: author.name, kind: kind ?? this.randomKind(), bot: false });
     return id;
   }
 
   // A viewer's animal joins: it takes a bot's place, or the oldest viewer's
-  // when the meeting is full.
+  // when the meeting is full. The special kind takes neither.
   private join(member: Member<K>): void {
-    const bot = this.seats.find((s) => s.bot);
-    if (bot) this.leave(bot, 'walk');
-    const viewers = this.seats.filter((s) => !s.bot);
-    if (viewers.length >= LIMIT) this.leave(viewers[0], 'destroy');
+    if (!this.isSpecial(member)) {
+      const bot = this.seats.find((s) => s.bot);
+      if (bot) this.leave(bot, 'walk');
+      const viewers = this.seats.filter((s) => !s.bot && !this.isSpecial(s));
+      if (viewers.length >= LIMIT) this.leave(viewers[0], 'destroy');
+    }
     this.seats.push({ ...member, last: this.now() });
     this.send({ type: 'join', member });
   }
 
+  private isSpecial(member: Member<K>): boolean {
+    return this.rules.special !== undefined && member.kind === this.rules.special;
+  }
+
   private switch(id: string, kind: K): void {
     const seat = this.seats.find((s) => s.id === id);
-    if (!seat || seat.kind === kind) return;
+    if (!seat || seat.kind === kind || this.isSpecial(seat)) return;
     seat.kind = kind;
     this.send({ type: 'switch', id, kind });
   }
@@ -212,10 +224,10 @@ export class Meeting<K extends string = Kind, C extends string = Command> {
     this.fill(true);
   }
 
-  // Bots of random kinds, up to BOTS animals; they walk in, except the ones
-  // there from the start.
+  // Bots of random kinds, up to BOTS animals (the special kind isn't one);
+  // they walk in, except the ones there from the start.
   private fill(walk: boolean): void {
-    while (this.seats.length < BOTS) {
+    while (this.seats.filter((s) => !this.isSpecial(s)).length < BOTS) {
       const member: Member<K> = { id: `bot-${++this.bots}`, name: '', kind: this.randomKind(), bot: true };
       this.seats.push({ ...member, last: this.now() });
       if (walk) this.send({ type: 'join', member });

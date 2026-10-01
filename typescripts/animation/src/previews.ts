@@ -56,6 +56,8 @@ import { Reeds } from './figures/ForestLake/Reeds';
 import { Rowboat } from './figures/ForestLake/Rowboat';
 import { Ruins } from './figures/ForestLake/Ruins';
 import { SignPost } from './figures/ForestLake/SignPost';
+import { SpaceshipWreck } from './figures/ForestLake/SpaceshipWreck/SpaceshipWreck';
+import { StonePathVariations } from './figures/ForestLake/StonePath/StonePath';
 import { SmallRock } from './figures/ForestLake/SmallRock';
 import { Stump } from './figures/ForestLake/Stump';
 import { Tent } from './figures/ForestLake/Tent';
@@ -86,6 +88,7 @@ import type { TreeOptions } from './figures/Tree/parts';
 import { PineTree } from './figures/Tree/PineTree';
 import { SpruceTree } from './figures/Tree/SpruceTree';
 import { WillowTree } from './figures/Tree/WillowTree';
+import type { Stepwise } from './stepwise';
 import type { Theme } from './theme';
 
 // One figure is previewed at a time, in one environment: the figure, where
@@ -130,6 +133,27 @@ export interface Preview {
   // figure's own. Dragging the view, picking a direction or walking hands the
   // camera to the viewer, until the story claims it back (Shot.claim).
   shot?(): Shot;
+  // For a story whose environment changes while it plays (the forest lake
+  // meeting's season, every minute): the stage builds the next one ahead, a
+  // piece at a time between frames, and swaps it in under the figure when
+  // the story says, without building the figure again (Stage.ts).
+  changes?: EnvironmentChanges;
+}
+
+export interface EnvironmentChanges {
+  // The environment to build next, a piece at a time, or null for none: the
+  // same function until it is swapped in, so the stage goes on building it.
+  next(): ((theme: Theme) => Stepwise<Environment>) | null;
+  // What the story measures from it before it is shown (the meeting's land
+  // and sight), a piece at a time, returning what swaps it in on its side.
+  // The stage has already placed its scenery where it will stand.
+  prepare(environment: Environment): Stepwise<() => void>;
+  // Whether to swap it in now, once it is built, measured and compiled.
+  due(): boolean;
+  // The settings picked another environment for it while it plays (the
+  // Season setting): whether the story takes it this way, making it the next
+  // and due at once, rather than being built again with it.
+  pick(create: (theme: Theme) => Environment): boolean;
 }
 
 export interface Shot {
@@ -463,6 +487,14 @@ export const previews: Record<string, (theme: Theme, environment: Environment) =
   'fallen-leaves': forestAsset(() => new FallenLeaves()),
   'dead-tree': forestAsset((season) => new DeadTree({ season: season === 'spring' ? 'winter' : season })),
   'forest-gate': forestAsset((season) => new ForestGate({ season })),
+  // The spaceship wreck, from the user's reference sheets
+  // (ForestLake/SpaceshipWreck/SpaceshipWreck.md), in its clearing by the
+  // camp in the forest lake.
+  'spaceship-wreck': forestAsset((season) => new SpaceshipWreck({ season })),
+  // The stone path, from the user's reference sheet
+  // (ForestLake/StonePath/StonePath.md): its five variations side by side,
+  // as the sheet's Variation row lays them out, seen from above in front.
+  'stone-path': forestAsset((season) => new StonePathVariations({ season }), [0, 0.95, 0.62]),
   // The forest lake's animals, from the user's reference sheets, each
   // playing its sheet's poses (figures/ForestLake/animals/demos.ts).
   ...forestAnimalPreviews,
@@ -872,7 +904,17 @@ export function lakeEnvironment(theme: Theme, options: Omit<LakeOptions, 'theme'
 // winter a hole in the ice). The walking camera walks its land, its water
 // (and ice) and its piers' and bridges' decks.
 export function forestLakeEnvironment(season: Season = 'spring'): Environment {
-  const lake = new ForestLake({ season });
+  return forestLakeAround(new ForestLake({ season }));
+}
+
+// The same, built a piece at a time (ForestLake.build): the forest lake
+// meeting builds the next season this way while it plays.
+export function* forestLakeBuild(season: Season): Stepwise<Environment> {
+  return forestLakeAround(yield* ForestLake.build({ season }));
+}
+
+function forestLakeAround(lake: ForestLake): Environment {
+  const season = lake.season;
   const at = ForestLake.OPEN_WATER;
   return {
     scenery: lake,
@@ -886,7 +928,7 @@ export function forestLakeEnvironment(season: Season = 'spring'): Environment {
     fog: lake.fog,
     light: lake.light,
     season,
-    ground: { heightAt: (x, z) => lake.groundAt(x, z), reach: 75 },
+    ground: { heightAt: (x, z) => lake.groundAt(x, z), reach: 81 },
   };
 }
 
@@ -912,6 +954,7 @@ const figureEnvironments: Record<string, string> = {
   fog: 'grass',
   dock: 'lake', // it stands in the water
   rowboat: 'forest_lake', // it floats, and is the forest lake's own
+  'forest-spirit-dragon': 'grass', // it flies a circle 24 m across, past the floor's edges
 };
 
 export function figureEnvironment(figure: string): string {

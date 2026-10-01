@@ -23,3 +23,4 @@ graphify-out/
 .idea/
 Thumbs.db
 .DS_Store
+*.exe.stackdump

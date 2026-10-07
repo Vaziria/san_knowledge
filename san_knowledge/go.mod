@@ -6,7 +6,7 @@ require (
 	codeberg.org/readeck/go-readability/v2 v2.1.2
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/mstrYoda/goraphdb v0.0.0-20260220134623-01eff165f35c
-	github.com/urfave/cli/v3 v3.12.0
+	github.com/urfave/cli/v3 v3.14.0
 	go.etcd.io/bbolt v1.4.0
 	golang.org/x/net v0.55.0
 )

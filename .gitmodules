@@ -1,3 +1,6 @@
 [submodule "golang/packages/san_tunnels"]
 	path = golang/packages/san_tunnels
 	url = https://github.com/wargasipil/san_tunnels.git
+[submodule "golang/packages/san_vpn"]
+	path = golang/packages/san_vpn
+	url = https://github.com/wargasipil/san_vpn.git

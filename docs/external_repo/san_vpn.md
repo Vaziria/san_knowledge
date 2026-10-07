@@ -47,6 +47,7 @@ install later.
 golang/packages/san_vpn/
   cmd/san_vpn/main.go         urfave/cli v3 tree: relay init/run/invite/list/remove, join, up, status
   cmd/san_vpn/setup.go        setup init / setup check
+  cmd/san_vpn/update.go       update: the latest or a named release, in place of this binary
   cmd/san_vpn/main_test.go    the admin flow through the real command tree
   internal/wire/              the protocol both sides speak
                keys.go        X25519 keys (one type for both halves), base64/hex forms
@@ -64,6 +65,7 @@ golang/packages/san_vpn/
   internal/devtunnel/         the devtunnel CLI: find, install, JSON calls, supervised `host`
   internal/setup/  setup.go   Init: sign in, relay, tunnel, anonymous access, port, URL
                    check.go   Check: relay + tunnel + member, each failure with its fix
+  internal/update/            release links, SHA256SUMS, replacing a running binary
   internal/osnet/             the only admin-only code: TUN, address, firewall
                    osnet_windows.go  Wintun (embedded dll), winipcfg, netsh rule
                    osnet_linux.go    TUN, netlink address
@@ -87,6 +89,49 @@ with a `-` (`v0.2.0-rc1`) becomes a prerelease, which "latest" skips.
 - **v0.1.0** (2026-10-07): the first release. CI built it in 1m32s. The
   downloaded files matched `SHA256SUMS`, and the downloaded exe printed
   `san_vpn version v0.1.0`.
+- **v0.2.0** (2026-10-07): `san_vpn update` (next section) and urfave/cli
+  v3.14.0. CI built it in 1m5s. Windows and Linux builds stamped `v0.0.9`
+  updated themselves to it, and the results matched its `SHA256SUMS`.
+
+## Updates.
+
+`san_vpn update` replaces the binary with the latest release, or with
+`update <tag>` (asked for 2026-10-07). `--check` only reports.
+
+- **Web links, not the API.** GitHub's API allows 60 unauthenticated calls an
+  hour per IP, and behind an Indonesian ISP's carrier-grade NAT one IP is
+  shared by many customers. `releases/latest` answers with a redirect to
+  `releases/tag/<tag>` (drafts and prereleases skipped), and asset names carry
+  no version, so `releases/download/<tag>/<asset>` needs nothing else.
+- **Checked twice before it replaces anything.**
+  - The download must match the release's `SHA256SUMS`.
+  - The new binary's `--version` must print `san_vpn version <tag>`, which
+    also proves it runs on this machine.
+
+  Both files come from the same release, so this catches a broken or
+  truncated download, not a compromised repository.
+- **Replacing a running binary.**
+  - Linux: one rename over the old file, keeping its mode. Running processes
+    keep the old file open.
+  - Windows refuses to overwrite or delete a running exe but lets it be
+    renamed. The old one moves to `san_vpn.exe.old`, and every later start
+    deletes it once nothing runs from it. If an un-restarted `up` still holds
+    an older `.old`, the next one gets a name of its own.
+- **Which versions.** Tags compare as `vMAJOR.MINOR.PATCH[-pre]`. A local
+  build is stamped with its build time and is not compared: replacing it takes
+  `--force`. A named tag is installed even when it is older.
+- **Not writable** (`/usr/local/bin`, `Program Files`): the error says to use
+  `sudo` or an administrator terminal, and nothing is left behind.
+- **Verified** (2026-10-07):
+  - tests against a fake GitHub that redirects like the real one
+  - a Windows build stamped `v0.0.9` updated itself from the real v0.1.0
+    release while running; the result matched `SHA256SUMS`, and the next
+    start removed `san_vpn.exe.old`
+  - Docker (alpine): as `nobody`, refused with the hint; as root,
+    `/usr/local/bin/san_vpn` became v0.1.0 with mode 755
+
+  v0.2.0 is the first release with `update`. A machine on v0.1.0 needs one
+  manual download of it, and updates itself from then on.
 
 ## Design decisions.
 

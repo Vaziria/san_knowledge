@@ -34,6 +34,9 @@ The operator guide is the package
 13. `san_vpn setup init` sets up the relay and its dev tunnel in one command,
     and `san_vpn setup check` checks a machine end to end (asked for
     2026-10-07)
+14. a member can keep memberships of several networks as profiles, such as
+    the dev tunnel relay's and the Cloud Run relay's, and switch between them
+    (asked for 2026-10-08; section "Profiles.")
 
 These were decided with the user on 2026-10-07. The steps were: embedded
 WireGuard, full mesh, overlay only, Windows and Linux, then WebSocket instead
@@ -47,6 +50,7 @@ install later.
 golang/packages/san_vpn/
   cmd/san_vpn/main.go         urfave/cli v3 tree: relay init/run/invite/list/remove, join, up, status
   cmd/san_vpn/setup.go        setup init / setup cloudrun / setup check
+  cmd/san_vpn/profile.go      profile list/use/rename, and which profile a member command works on
   cmd/san_vpn/update.go       update: the latest or a named release, in place of this binary
   cmd/san_vpn/main_test.go    the admin flow through the real command tree
   internal/wire/              the protocol both sides speak
@@ -56,6 +60,7 @@ golang/packages/san_vpn/
   internal/invite/            the sanvpn1_ invite blob
   internal/state/             JSON files: default dirs, lock, atomic save, Windows ACL
                    store.go   the relay's file as a Store: local File, or a GCS object
+                   profile.go a member's profiles: folders, listing, the current one, rename
   internal/gcs/               Cloud Storage JSON API, three calls, generation preconditions
                gcstest/       in-memory Cloud Storage for tests
   internal/relay/  state.go   members, invites, address allocation
@@ -104,6 +109,12 @@ with a `-` (`v0.2.0-rc1`) becomes a prerelease, which "latest" skips.
   `:latest`, sha256:5645ff16…. The downloaded files matched `SHA256SUMS`, and
   the exe printed `san_vpn version v0.3.0`. The image's package started
   **private**: an anonymous pull got 403.
+- **v0.4.0** (2026-10-08): profiles (section "Profiles."). CI built it in
+  2m26s and pushed `ghcr.io/wargasipil/san_vpn:v0.4.0` and `:latest`,
+  sha256:ab4a9634…. The downloaded files matched `SHA256SUMS`, the exe
+  printed `san_vpn version v0.4.0`, and a v0.3.0 exe updated itself to it
+  with `san_vpn update`. The package is **still private**: an anonymous pull
+  of either tag got 403.
 
 ## Updates.
 
@@ -379,6 +390,8 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
     Administrators, full control, inherited.
   - An unelevated `join --state <dir>`, for trying things out, keeps the
     directory owner-only instead, so the user can read back what they wrote.
+  - Other profiles keep the same two files in `profiles/<name>/`, and
+    `profile.json` names the current one (section "Profiles.").
 - **Writes.** They go to a temp file that is renamed over the original, with
   retries, because Windows refuses the rename while a reader has the file open.
 - **Status.** `up` rewrites `status.json` every 2s and deletes it on exit.
@@ -570,6 +583,61 @@ the user asked for none, so everything below was checked locally.
   - `relay remove` from the host cut the member off within 8 s
 - **Not verified:** a real deploy, real Cloud Storage and IAM, the Artifact
   Registry remote of GHCR, and Cloud Run's own cut at 60 minutes.
+
+## Profiles.
+
+`san_vpn profile` switches a member between the networks it joined, such as
+the dev tunnel relay's and the Cloud Run relay's (asked for 2026-10-08).
+
+- **A profile is a whole membership.** The two relays are separate networks:
+  `setup init` and `setup cloudrun` each create a relay key, and each relay
+  keeps its own members and gives out its own addresses. So a profile holds
+  this machine's key, address and relay for one network, joined with that
+  relay's invite. Making them one network with two fronts was not done:
+  - both relays would have to share one `relay.json`, so the dev tunnel relay
+    would depend on Cloud Storage too
+  - members on different relays still could not reach each other, because
+    members meet in one process
+- **Layout.** The default profile is the node directory itself. A `node.json`
+  from before profiles is the profile `default`, and nothing moves. Other
+  profiles are `profiles/<name>/node.json` and `status.json`, and
+  `profile.json` names the current one. Names follow member names
+  (`[a-z0-9-]`, at most 32), which also keeps them safe as folder names.
+- **Which profile.**
+  - `--profile` (`SAN_VPN_PROFILE`) on `join`, `up`, `status` and
+    `setup check`.
+  - Otherwise `join` and `up` use the current profile. `status` and
+    `setup check` show the profile `up` is running, else the current one.
+  - A machine's first membership becomes current whatever it is called, so
+    `join --profile cloudrun` and then `up` work on a fresh machine.
+  - Messages name the profile only once there is one besides `default`, so a
+    machine in one network sees the same output as before.
+- **One at a time.** `up` refuses to start while any profile's `status.json`
+  is fresh. Both networks default to `10.77.0.0/24` and to the same interface
+  name. On Windows each profile still gets its own adapter GUID, because the
+  GUID comes from the key, so Windows keeps a network profile per network.
+  `up` replaces the `san_vpn` firewall rule on every start, so the rule
+  follows the profile.
+- **`profile use`** changes only what the next `up` starts. A running `up`
+  keeps its profile, and `profile use` says so.
+- **`profile rename`** moves `node.json` (for example `default` to `tunnel`),
+  and the current choice follows it. It refuses while `up` runs on that
+  profile, because `up` keeps writing `status.json` where it started.
+- **Not a global flag.** `--profile` belongs to the member commands only. The
+  relay commands pick their relay with `--state`. A global flag that they
+  ignored could put an invite in the wrong network.
+- **Verified (2026-10-08):**
+  - unit tests: the layout and listing, names, renaming in and out of the
+    node directory
+  - CLI tests against two relays in process: the first join goes to
+    `default`; a second is refused without `--profile`; `join --profile`,
+    `list`, `use`, `status` and `rename`; a running profile is shown first,
+    cannot be renamed, and `use` says it is still running
+  - `setup check` names the profile in its title and its fixes
+  - the built Windows binary, unelevated with `--state`, against two real
+    `relay run` processes on loopback
+  - **not run:** `up` itself across a switch, which needs an administrator
+    terminal
 
 ## Open question: direct paths.
 

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 432" width="1520" height="864" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Tunnel menyambungkan dua virtual network card lewat internet">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="432" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Tunnel menyambungkan dua virtual network card lewat internet</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Aplikasi hanya melihat jaringan virtual. Program VPN membawa paketnya lewat tunnel di atas internet.</text>
+
+  <g font-weight="600" fill="#1f1f1f" text-anchor="middle">
+    <text x="124" y="92">Komputer A</text>
+    <text x="636" y="92">Komputer B</text>
+  </g>
+
+  <!-- Internet, the underlay -->
+  <rect x="264" y="300" width="232" height="60" rx="8" fill="none" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="5 4"/>
+  <text x="380" y="325" text-anchor="middle" font-weight="600" fill="#1f1f1f">internet (underlay)</text>
+  <text x="380" y="343" text-anchor="middle" font-size="11.5" fill="#5f5f5f">router, NAT, ISP</text>
+
+  <!-- Boxes, same in both columns -->
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#f1f0eb">
+    <rect x="24" y="104" width="200" height="44" rx="8"/>
+    <rect x="24" y="240" width="200" height="44" rx="8"/>
+    <rect x="24" y="308" width="200" height="44" rx="8"/>
+    <rect x="536" y="104" width="200" height="44" rx="8"/>
+    <rect x="536" y="240" width="200" height="44" rx="8"/>
+    <rect x="536" y="308" width="200" height="44" rx="8"/>
+  </g>
+  <g stroke="#2f76d6" stroke-width="2" fill="#e3edfa">
+    <rect x="24" y="172" width="200" height="44" rx="8"/>
+    <rect x="536" y="172" width="200" height="44" rx="8"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="124" y="122" font-weight="600" fill="#1f1f1f">Aplikasi</text>
+    <text x="124" y="138" font-size="11.5" fill="#5f5f5f">browser, remote desktop</text>
+    <text x="124" y="190" font-weight="600" fill="#1f1f1f">Virtual network card</text>
+    <text x="124" y="206" font-size="11.5" fill="#1f1f1f">10.10.0.2</text>
+    <text x="124" y="258" font-weight="600" fill="#1f1f1f">Program VPN</text>
+    <text x="124" y="274" font-size="11.5" fill="#5f5f5f">memegang kunci A</text>
+    <text x="124" y="326" font-weight="600" fill="#1f1f1f">Network card</text>
+    <text x="124" y="342" font-size="11.5" fill="#5f5f5f">192.168.1.20</text>
+    <text x="636" y="122" font-weight="600" fill="#1f1f1f">Aplikasi</text>
+    <text x="636" y="138" font-size="11.5" fill="#5f5f5f">browser, remote desktop</text>
+    <text x="636" y="190" font-weight="600" fill="#1f1f1f">Virtual network card</text>
+    <text x="636" y="206" font-size="11.5" fill="#1f1f1f">10.10.0.1</text>
+    <text x="636" y="258" font-weight="600" fill="#1f1f1f">Program VPN</text>
+    <text x="636" y="274" font-size="11.5" fill="#5f5f5f">memegang kunci B</text>
+    <text x="636" y="326" font-weight="600" fill="#1f1f1f">Network card</text>
+    <text x="636" y="342" font-size="11.5" fill="#5f5f5f">192.168.0.15</text>
+  </g>
+
+  <!-- Inside each computer: the packet goes down and up -->
+  <g fill="none" stroke="#a8a69c" stroke-width="1.25">
+    <path d="M124 148V172" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <path d="M124 216V240" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <path d="M124 284V308" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <path d="M636 148V172" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <path d="M636 216V240" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <path d="M636 284V308" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <!-- The real path through the internet -->
+    <path d="M224 330H264"/>
+    <path d="M496 330H536"/>
+  </g>
+
+  <!-- The virtual link the applications see -->
+  <path d="M224 194H536" fill="none" stroke="#2f76d6" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="380" y="186" text-anchor="middle" font-size="11.5" fill="#1f1f1f">jaringan virtual 10.10.0.0/24 (overlay)</text>
+  <text x="380" y="210" text-anchor="middle" font-size="11.5" fill="#5f5f5f">yang dilihat aplikasi</text>
+
+  <!-- The tunnel between the two VPN programs -->
+  <rect x="224" y="250" width="312" height="24" rx="12" fill="#e3edfa" stroke="#2f76d6" stroke-width="1.5"/>
+  <text x="380" y="266" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1f1f1f">tunnel terenkripsi</text>
+
+  <!-- The tunnel rides on the internet -->
+  <g stroke="#a8a69c" stroke-width="1" stroke-dasharray="2 3">
+    <line x1="300" y1="274" x2="300" y2="300"/>
+    <line x1="460" y1="274" x2="460" y2="300"/>
+  </g>
+  <text x="380" y="291" text-anchor="middle" font-size="10.5" fill="#5f5f5f">dibawa oleh</text>
+
+  <text x="24" y="388" font-size="11.5" fill="#5f5f5f">Garis putus-putus biru adalah hubungan yang dilihat aplikasi. Pipa biru adalah tunnel antara dua program VPN.</text>
+  <text x="24" y="406" font-size="11.5" fill="#5f5f5f">Garis abu-abu adalah jalan asli paket, lewat network card, router, dan internet.</text>
+</svg>

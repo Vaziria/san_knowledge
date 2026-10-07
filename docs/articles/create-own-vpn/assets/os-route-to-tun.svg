@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 492" width="1520" height="984" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Route di OS mengarahkan paket VPN ke TUN device">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="492" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Route di OS mengarahkan paket VPN ke TUN device</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Paket ke 10.10.0.0/24 masuk ke vpnku0. Paket lain tetap keluar lewat network card biasa.</text>
+
+  <!-- The computer -->
+  <rect x="24" y="76" width="496" height="352" rx="8" fill="#f7f6f2" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="98" font-weight="600" fill="#1f1f1f">Komputer A, Linux atau Windows</text>
+
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="48" y="110" width="448" height="40" rx="8"/>
+    <rect x="48" y="176" width="448" height="60" rx="8"/>
+    <rect x="48" y="348" width="208" height="48" rx="8"/>
+    <rect x="288" y="348" width="208" height="48" rx="8"/>
+    <rect x="560" y="348" width="176" height="48" rx="8"/>
+  </g>
+  <rect x="48" y="268" width="208" height="48" rx="8" fill="#e3edfa" stroke="#2f76d6" stroke-width="2"/>
+
+  <g text-anchor="middle">
+    <text x="272" y="135" fill="#1f1f1f"><tspan font-weight="600">Aplikasi</tspan>  ·  ping 10.10.0.1</text>
+    <text x="272" y="198" font-weight="600" fill="#1f1f1f">Route di OS</text>
+    <text x="272" y="214" font-size="11.5" fill="#1f1f1f">10.10.0.0/24 → vpnku0</text>
+    <text x="272" y="229" font-size="11.5" fill="#5f5f5f">selain itu → network card</text>
+    <text x="152" y="288" font-weight="600" fill="#1f1f1f">vpnku0 (TUN device)</text>
+    <text x="152" y="305" font-size="11.5" fill="#1f1f1f">10.10.0.2/24, MTU 1420</text>
+    <text x="152" y="368" font-weight="600" fill="#1f1f1f">Program anggota</text>
+    <text x="152" y="385" font-size="11.5" fill="#5f5f5f">wireguard-go + Bind WebSocket</text>
+    <text x="392" y="368" font-weight="600" fill="#1f1f1f">Network card</text>
+    <text x="392" y="385" font-size="11.5" fill="#5f5f5f">192.168.1.20</text>
+    <text x="648" y="368" font-weight="600" fill="#1f1f1f">Relay</text>
+    <text x="648" y="385" font-size="11.5" fill="#5f5f5f">wss://relay.example.com</text>
+  </g>
+
+  <!-- Every packet passes the route -->
+  <path d="M272 150V176" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+
+  <!-- VPN packets: route, TUN, program, network card, relay -->
+  <g fill="none" stroke="#2f76d6" stroke-width="1.5">
+    <path d="M152 236V268" marker-end="url(#arrow-blue)"/>
+    <path d="M152 316V348" marker-end="url(#arrow-blue)"/>
+    <path d="M256 372H288" marker-end="url(#arrow-blue)"/>
+    <path d="M496 372H560" marker-end="url(#arrow-blue)"/>
+  </g>
+  <text x="162" y="257" font-size="10.5" fill="#2f76d6">paket ke 10.10.0.x</text>
+  <text x="272" y="414" font-size="10.5" text-anchor="middle" fill="#2f76d6">dibungkus, dikirim sebagai pesan WebSocket</text>
+
+  <!-- Other packets go straight to the network card -->
+  <path d="M392 236V348" fill="none" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <text x="402" y="296" font-size="10.5" fill="#5f5f5f">paket lain, tanpa VPN</text>
+
+  <text x="648" y="338" font-size="10.5" text-anchor="middle" fill="#5f5f5f">lewat internet</text>
+
+  <text x="24" y="456" font-size="11.5" fill="#5f5f5f">Paket balasan berjalan sebaliknya. Di Windows, firewall memeriksa paket yang masuk lewat vpnku0,</text>
+  <text x="24" y="474" font-size="11.5" fill="#5f5f5f">jadi butuh aturan yang mengizinkan paket dari 10.10.0.0/24.</text>
+</svg>

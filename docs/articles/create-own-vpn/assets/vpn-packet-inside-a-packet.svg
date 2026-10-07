@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 344" width="1520" height="688" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Paket VPN adalah paket di dalam paket lain">
+  <rect x="0" y="0" width="760" height="344" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Paket VPN adalah paket di dalam paket lain</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Paket dari aplikasi dienkripsi, lalu dibawa sebagai payload paket UDP biasa di antara dua IP publik.</text>
+
+  <!-- Paket dalam menjadi payload yang terenkripsi. -->
+  <polygon points="24,148 712,148 712,236 472,236" fill="#2f76d6" fill-opacity="0.07"/>
+  <g fill="none" stroke="#2f76d6" stroke-width="1.25" stroke-dasharray="5 4">
+    <line x1="24" y1="148" x2="472" y2="236"/>
+    <line x1="712" y1="148" x2="712" y2="236"/>
+  </g>
+  <text x="500" y="196" text-anchor="middle" font-size="11.5" fill="#1f1f1f">dienkripsi, lalu dibungkus</text>
+
+  <text x="24" y="94" font-weight="600" fill="#1f1f1f">Di dalam tunnel: yang dikirim aplikasi</text>
+  <g stroke="#a8a69c" stroke-width="1.25">
+    <rect x="24" y="104" width="220" height="44" fill="#f1f0eb"/>
+    <rect x="244" y="104" width="468" height="44" fill="#ffffff"/>
+  </g>
+  <text x="134" y="130" text-anchor="middle" font-size="11.5" fill="#1f1f1f">header IP: 10.10.0.2 → 10.10.0.1</text>
+  <text x="478" y="130" text-anchor="middle" fill="#1f1f1f">payload: data aplikasi</text>
+
+  <text x="24" y="226" font-weight="600" fill="#1f1f1f">Di internet: yang dilihat jaringan</text>
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#f1f0eb">
+    <rect x="24" y="236" width="264" height="44"/>
+    <rect x="288" y="236" width="64" height="44"/>
+    <rect x="352" y="236" width="120" height="44"/>
+  </g>
+  <rect x="472" y="236" width="240" height="44" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="2"/>
+  <text x="156" y="262" text-anchor="middle" font-size="11.5" fill="#1f1f1f">header IP: 203.0.113.10 → 198.51.100.20</text>
+  <text x="320" y="262" text-anchor="middle" fill="#1f1f1f">UDP</text>
+  <text x="412" y="262" text-anchor="middle" fill="#1f1f1f">header WireGuard</text>
+  <text x="592" y="262" text-anchor="middle" font-weight="600" fill="#1f1f1f">payload: paket dalam</text>
+
+  <text x="24" y="308" font-size="11.5" fill="#5f5f5f">Router di sepanjang jalan hanya melihat dua IP publik dan data acak. Penerima membuka</text>
+  <text x="24" y="326" font-size="11.5" fill="#5f5f5f">bungkusnya dan mendekripsinya, lalu OS-nya menerima paket asli.</text>
+</svg>

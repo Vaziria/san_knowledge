@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 24 760 392" width="1520" height="784" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" role="img" aria-label="The relay forwards packets it cannot read">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+    <marker id="wg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+  </defs>
+  <rect x="0" y="24" width="760" height="392" fill="#ffffff"/>
+  <text x="24" y="58" font-size="15" font-weight="600" fill="#1f1f1f">The relay forwards packets it cannot read</text>
+  <text x="24" y="80" font-size="11.5" fill="#5f5f5f">Arrows are outbound WebSocket connections over HTTPS; the dashed line is one WireGuard session, end to end.</text>
+
+
+  <rect x="24" y="120" width="200" height="56" rx="8" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="124" y="144" text-anchor="middle" font-weight="600" fill="#1f1f1f">Home PC</text>
+  <text x="124" y="160" text-anchor="middle" font-size="11.5" fill="#5f5f5f">Windows · 10.77.0.2</text>
+
+  <rect x="24" y="200" width="200" height="56" rx="8" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="124" y="224" text-anchor="middle" font-weight="600" fill="#1f1f1f">VPS in another region</text>
+  <text x="124" y="240" text-anchor="middle" font-size="11.5" fill="#5f5f5f">Linux · 10.77.0.3</text>
+
+  <rect x="284" y="152" width="176" height="72" rx="8" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="372" y="176" text-anchor="middle" font-weight="600" fill="#1f1f1f">Microsoft dev tunnel</text>
+  <text x="372" y="192" text-anchor="middle" font-size="11.5" fill="#5f5f5f">public HTTPS URL</text>
+  <text x="372" y="208" text-anchor="middle" font-size="11.5" fill="#5f5f5f">TLS ends here</text>
+
+  <rect x="520" y="112" width="216" height="232" rx="8" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="536" y="136" font-weight="600" fill="#1f1f1f">Office PC · Windows</text>
+  <rect x="536" y="152" width="184" height="72" rx="8" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="628" y="176" text-anchor="middle" font-weight="600" fill="#1f1f1f">Relay</text>
+  <text x="628" y="192" text-anchor="middle" font-size="11.5" fill="#5f5f5f">127.0.0.1:8443</text>
+  <text x="628" y="208" text-anchor="middle" font-size="11.5" fill="#5f5f5f">forwards packets by key</text>
+  <text x="636" y="252" font-size="11.5" fill="#5f5f5f">loopback</text>
+  <rect x="536" y="272" width="184" height="56" rx="8" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="628" y="296" text-anchor="middle" font-weight="600" fill="#1f1f1f">san_vpn up</text>
+  <text x="628" y="312" text-anchor="middle" font-size="11.5" fill="#5f5f5f">10.77.0.1</text>
+
+  <g fill="none" stroke="#a8a69c" stroke-width="1.25">
+    <path d="M224 148H254V172H284" marker-end="url(#arrow)"/>
+    <path d="M224 228H254V204H284" marker-end="url(#arrow)"/>
+    <path d="M460 188H536" marker-end="url(#arrow)"/>
+    <path d="M628 272V224" marker-end="url(#arrow)"/>
+  </g>
+
+  <path d="M124 256V372H628V328" fill="none" stroke="#2f76d6" stroke-width="2" stroke-dasharray="6 4" marker-start="url(#wg-arrow)" marker-end="url(#wg-arrow)"/>
+  <text x="376" y="396" text-anchor="middle" font-size="11.5" fill="#1f1f1f">One WireGuard session, VPS to office: the relay carries it but cannot decrypt it</text>
+</svg>

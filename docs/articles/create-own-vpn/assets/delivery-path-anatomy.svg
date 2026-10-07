@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="1520" height="680" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Relay mengantar paket WireGuard berdasarkan public key">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="340" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Relay mengantar paket WireGuard berdasarkan public key</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Bind WebSocket menggantikan UDP. Kedua anggota hanya membuat koneksi keluar ke relay.</text>
+
+  <g font-weight="600" fill="#1f1f1f" text-anchor="middle">
+    <text x="124" y="92">Anggota A</text>
+    <text x="636" y="92">Anggota B</text>
+  </g>
+
+  <!-- Boxes -->
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#f1f0eb">
+    <rect x="24" y="104" width="200" height="48" rx="8"/>
+    <rect x="536" y="104" width="200" height="48" rx="8"/>
+    <rect x="280" y="164" width="200" height="72" rx="8"/>
+  </g>
+  <g stroke="#2f76d6" stroke-width="2" fill="#e3edfa">
+    <rect x="24" y="176" width="200" height="48" rx="8"/>
+    <rect x="536" y="176" width="200" height="48" rx="8"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="124" y="124" font-weight="600" fill="#1f1f1f">wireguard-go</text>
+    <text x="124" y="141" font-size="11.5" fill="#5f5f5f">enkripsi dan handshake</text>
+    <text x="124" y="196" font-weight="600" fill="#1f1f1f">Bind WebSocket</text>
+    <text x="124" y="213" font-size="11.5" fill="#5f5f5f">menggantikan UDP</text>
+    <text x="636" y="124" font-weight="600" fill="#1f1f1f">wireguard-go</text>
+    <text x="636" y="141" font-size="11.5" fill="#5f5f5f">enkripsi dan handshake</text>
+    <text x="636" y="196" font-weight="600" fill="#1f1f1f">Bind WebSocket</text>
+    <text x="636" y="213" font-size="11.5" fill="#5f5f5f">menggantikan UDP</text>
+    <text x="380" y="190" font-weight="600" fill="#1f1f1f">Relay</text>
+    <text x="380" y="207" font-size="11.5" fill="#5f5f5f">daftar anggota</text>
+    <text x="380" y="223" font-size="11.5" fill="#5f5f5f">public key → koneksi</text>
+  </g>
+
+  <!-- wireguard-go hands packets to its Bind -->
+  <g fill="none" stroke="#a8a69c" stroke-width="1.25">
+    <path d="M124 152V176" marker-start="url(#arrow-grey)" marker-end="url(#arrow-grey)"/>
+    <path d="M636 152V176" marker-start="url(#arrow-grey)" marker-end="url(#arrow-grey)"/>
+  </g>
+
+  <!-- WebSocket connections, opened outward by each member -->
+  <g fill="none" stroke="#2f76d6" stroke-width="1.5">
+    <path d="M224 200H280" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <path d="M480 200H536" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  </g>
+  <g font-size="11.5" fill="#1f1f1f" text-anchor="middle">
+    <text x="252" y="254">WebSocket</text>
+    <text x="252" y="270" fill="#5f5f5f">dibuka oleh A</text>
+    <text x="508" y="254">WebSocket</text>
+    <text x="508" y="270" fill="#5f5f5f">dibuka oleh B</text>
+  </g>
+
+  <text x="24" y="304" font-size="11.5" fill="#5f5f5f">Relay hanya membaca public key di depan setiap pesan. Paket WireGuard di belakangnya tetap terenkripsi,</text>
+  <text x="24" y="322" font-size="11.5" fill="#5f5f5f">jadi relay tidak bisa membaca isinya.</text>
+</svg>

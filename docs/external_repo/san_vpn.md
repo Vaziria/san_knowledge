@@ -98,6 +98,12 @@ with a `-` (`v0.2.0-rc1`) becomes a prerelease, which "latest" skips.
 - **v0.2.0** (2026-10-07): `san_vpn update` (next section) and urfave/cli
   v3.14.0. CI built it in 1m5s. Windows and Linux builds stamped `v0.0.9`
   updated themselves to it, and the results matched its `SHA256SUMS`.
+- **v0.3.0** (2026-10-08): the Cloud Run relay (section "Cloud Run.") and
+  `setup init` without winget. CI built it in 1m59s, the first build to also
+  push the container image, `ghcr.io/wargasipil/san_vpn:v0.3.0` and
+  `:latest`, sha256:5645ff16…. The downloaded files matched `SHA256SUMS`, and
+  the exe printed `san_vpn version v0.3.0`. The image's package started
+  **private**: an anonymous pull got 403.
 
 ## Updates.
 
@@ -490,10 +496,12 @@ the user asked for none, so everything below was checked locally.
     `setup cloudrun` makes an Artifact Registry *remote* repository `ghcr`
     with upstream `https://ghcr.io` and runs
     `<region>-docker.pkg.dev/<project>/ghcr/wargasipil/san_vpn:<version>`.
-  - That needs the GHCR package to be public. GitHub's docs are unclear on
-    whether a package pushed with `GITHUB_TOKEN` from a public repository
-    starts public; check with an anonymous pull after the first release that
-    has an image.
+  - That needs the GHCR package to be public. It is not by default: v0.3.0's
+    package, new in the `wargasipil` organization, started private, although
+    the repository is public. An organization owner has to switch it once,
+    in the package's settings: Danger zone, Change visibility, Public. The
+    organization must also allow public packages. Later releases push to the
+    same package and keep its visibility.
 - **`setup cloudrun`** drives `gcloud`, the way `setup init` drives
   `devtunnel`. Each step looks before it acts:
   1. the Run and Artifact Registry APIs

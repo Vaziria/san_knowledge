@@ -146,6 +146,10 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - Figures quoted from BPS/APJII via news coverage should be flagged as such.
 - The marketplace-crawl MCP server (Tokopedia etc.) is available for product/price research.
 
+## Online artifacts
+
+- **Create no online artifacts unless the user explicitly asks for one** (the user, 2026-10-07: "dont create online artifact without im explicitly ask"). This covers claude.ai Artifacts and Claude Docs, even when tool or skill guidance says to publish finished work. Drafts and write-ups go in a local markdown file (in `docs/` when they should be tracked) or in the chat reply.
+
 ## Tasks
 
 `tasks/` is a queue of work shared by every session, one spec per markdown file. The user either gives a task directly or writes it there, and whichever session is free takes the next one, so no session sits waiting for another.

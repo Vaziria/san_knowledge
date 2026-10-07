@@ -46,7 +46,7 @@ install later.
 ```
 golang/packages/san_vpn/
   cmd/san_vpn/main.go         urfave/cli v3 tree: relay init/run/invite/list/remove, join, up, status
-  cmd/san_vpn/setup.go        setup init / setup check
+  cmd/san_vpn/setup.go        setup init / setup cloudrun / setup check
   cmd/san_vpn/update.go       update: the latest or a named release, in place of this binary
   cmd/san_vpn/main_test.go    the admin flow through the real command tree
   internal/wire/              the protocol both sides speak
@@ -55,6 +55,9 @@ golang/packages/san_vpn/
                ws.go          keepalive, control message read/write
   internal/invite/            the sanvpn1_ invite blob
   internal/state/             JSON files: default dirs, lock, atomic save, Windows ACL
+                   store.go   the relay's file as a Store: local File, or a GCS object
+  internal/gcs/               Cloud Storage JSON API, three calls, generation preconditions
+               gcstest/       in-memory Cloud Storage for tests
   internal/relay/  state.go   members, invites, address allocation
                    server.go  join endpoint, WebSocket sessions, forwarding, reload
   internal/node/   config.go  node.json, Join
@@ -64,6 +67,8 @@ golang/packages/san_vpn/
                    e2e_test.go relay + members + WireGuard on gVisor netstack
   internal/devtunnel/         the devtunnel CLI: find, install, JSON calls, supervised `host`
   internal/setup/  setup.go   Init: sign in, relay, tunnel, anonymous access, port, URL
+                   cloudrun.go InitCloudRun: APIs, bucket, service account, key, image repo, deploy
+                   gcloud.go  the gcloud CLI, as devtunnel.CLI is the devtunnel one
                    check.go   Check: relay + tunnel + member, each failure with its fix
   internal/update/            release links, SHA256SUMS, replacing a running binary
   internal/osnet/             the only admin-only code: TUN, address, firewall
@@ -71,7 +76,8 @@ golang/packages/san_vpn/
                    osnet_linux.go    TUN, netlink address
                    wintun/           fetched by the build scripts, git-ignored
   build.ps1 / build.sh        fetch Wintun (checksum pinned), vet, test, build both binaries
-  .github/workflows/release.yml  on a v* tag: build.sh, then a GitHub release
+  .github/workflows/release.yml  on a v* tag: build.sh, the ghcr.io image, then a GitHub release
+  Dockerfile                  the relay as an image: built from source, on distroless static
 ```
 
 ## Releases.
@@ -274,6 +280,26 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
   Indonesia), together with the port, in `relay.json` under `tunnel`.
 - **The URL** is the port's `portUri` from `show`. If that is missing, it is
   built from the documented shape `https://<name>-<port>.<region>.devtunnels.ms`.
+- **Installing the CLI without winget.** Windows Server, LTSC and older
+  Windows 10 have no winget, and an old winget can fail on its sources. So on
+  Windows `Install` tries winget when it is on PATH. If winget is missing or
+  fails, it downloads Microsoft's direct link
+  `https://aka.ms/TunnelsCliDownload/win-x64` to
+  `%LocalAppData%\san_vpn\devtunnel.exe`.
+  - The link served a 24 MB `devtunnel.exe` on 2026-10-07. It was
+    Authenticode-signed by Microsoft Corporation and was the same 1.0.2094 that
+    winget installs.
+  - There is no `win-arm64` link: it redirects to a Bing page with a 200. A
+    retired link would do the same, so the download is kept only if it starts
+    with `MZ`, and it replaces the file only once it is complete.
+  - The publisher's signature is not checked in code. `x/sys/windows` has no
+    `CryptMsgGetParam`, so reading the signer would mean loading crypt32 by
+    hand. Trust rests on HTTPS to Microsoft's hosts, as with the Linux
+    `curl | bash`.
+  - Checked on this machine with winget hidden, and with a fake winget that
+    exits 1. Both fell back, downloaded, and ran `--version`.
+  - Go's floor is Windows 10 / Server 2016, so san_vpn cannot run on Windows
+    7 or 8.1 anyway.
 - **Finding the CLI right after installing it.** Installers update PATH for
   new terminals only. winget (1.29) makes no shim in `WinGet\Links`: it adds
   its package folder to the user PATH in the registry. So `Find` looks in this
@@ -281,7 +307,8 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
   1. our PATH
   2. the user and machine PATH read fresh from the registry
   3. winget's `Links` and `Packages\Microsoft.devtunnel_*` folders
-  4. `~/bin` and `/usr/local/bin` on Linux
+  4. the downloaded `%LocalAppData%\san_vpn\devtunnel.exe`
+  5. `~/bin` and `/usr/local/bin` on Linux
 - **Hosting.**
   - `relay run` starts `devtunnel host <id> --nologo` once it is listening
     on `127.0.0.1:<port>`. It logs the host's output and restarts it with
@@ -401,6 +428,141 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
   that built this had none. Everything above the OS layer is the same code the
   Linux run exercised.
 
+## Cloud Run.
+
+`setup cloudrun` runs the relay on Google Cloud Run, as the other way to reach
+it besides a dev tunnel (asked for on 2026-10-07). Nothing has been deployed:
+the user asked for none, so everything below was checked locally.
+
+**What Cloud Run changes, and how the relay meets it:**
+
+- **The disk does not outlive a restart.** The relay's file moves to a Cloud
+  Storage object.
+  - `--state gs://<bucket>[/<folder>]` works for every relay command, not only
+    on the service.
+  - `state.Store` has two kinds, `File` and `GCS`, and keeps the promise the
+    lock made: no writer loses another's change. GCS does it with
+    `ifGenerationMatch`: a loser starts over from fresh content, after a
+    random pause that grows (up to 20 tries).
+  - The local file's version became a hash of its content. Its modification
+    time missed two quick saves of the same size, which share one clock tick
+    on Windows.
+  - The relay polls every 5 s on GCS (a Class B request each time; about
+    US$0.20 a month) and every 1 s on disk.
+  - Admin commands run from any machine signed in to gcloud. Tokens come from
+    the metadata server when `K_SERVICE` or `GCE_METADATA_HOST` is set,
+    otherwise from `gcloud auth print-access-token`. `STORAGE_EMULATOR_HOST`
+    points everything at an emulator, without credentials.
+  - The client is hand-written over the JSON API. Three calls (get with
+    `alt=media`, get the generation, media upload) do not justify Google's
+    SDK and the megabytes it adds.
+- **Instances.** Members only reach each other inside one process, so the
+  service has `--max-instances 1` and concurrency 1000. Cloud Run may briefly
+  run two during a deploy; members reconnect.
+- **Requests end at the timeout, at most 1 h.** Each member's connection is
+  one request.
+  - The relay gets a session limit (`--session-limit`,
+    `SAN_VPN_SESSION_LIMIT`). The welcome message carries `renew_after_ms`:
+    the limit minus a tenth, at most 5 min before. Each member renews at a
+    random point in the last twentieth before that.
+  - A renewal opens the new connection while the old one still carries
+    traffic. It switches when the relay sends the first member list on the new
+    one, which proves the relay has attached it.
+  - The new connection's auth carries `resume`: the old connection's id. The
+    relay gives the new connection that same id, so peers see a member that
+    carried on, not one that restarted, and keep their WireGuard sessions.
+    Without it, every renewal reset every peer's handshake.
+  - If renewal fails, the member retries every 30 s until the old connection
+    dies, then reconnects as usual. The relay ends a connection that reaches
+    the limit with "session limit reached", so an old member is cut, not
+    stranded.
+  - Both new fields are optional JSON, so old members and old relays still
+    work together, without renewal.
+- **`$PORT`.** `relay run` listens on `:$PORT` when it is set, there is no
+  dev tunnel, and no `--listen` is given.
+- **The image.**
+  - The `Dockerfile` builds from source onto
+    `gcr.io/distroless/static-debian12:nonroot`: 17.7 MB, CA certificates
+    only, no shell. Its entrypoint is `san_vpn relay run`.
+  - The release workflow pushes it as `ghcr.io/wargasipil/san_vpn:<tag>`,
+    and `:latest` for tags without `-`.
+  - Cloud Run pulls only from Artifact Registry and Docker Hub, so
+    `setup cloudrun` makes an Artifact Registry *remote* repository `ghcr`
+    with upstream `https://ghcr.io` and runs
+    `<region>-docker.pkg.dev/<project>/ghcr/wargasipil/san_vpn:<version>`.
+  - That needs the GHCR package to be public. GitHub's docs are unclear on
+    whether a package pushed with `GITHUB_TOKEN` from a public repository
+    starts public; check with an anonymous pull after the first release that
+    has an image.
+- **`setup cloudrun`** drives `gcloud`, the way `setup init` drives
+  `devtunnel`. Each step looks before it acts:
+  1. the Run and Artifact Registry APIs
+  2. a private bucket (`--uniform-bucket-level-access`,
+     `--public-access-prevention`) in the service's region
+  3. the service account `san-vpn-relay`, with `roles/storage.objectUser` on
+     that bucket only. A new account is retried while IAM catches up.
+  4. the relay key, written with the user's own sign-in
+  5. the remote repository
+  6. `gcloud run deploy` with `--max-instances 1 --concurrency 1000
+     --timeout 3600 --no-cpu-throttling --cpu 1 --memory 512Mi
+     --execution-environment gen2 --allow-unauthenticated`. Environment
+     variables go in an `--env-vars-file`, so commas survive Windows' command
+     line.
+  7. the service URL as the relay's URL, with `cloud_run` recorded in
+     `relay.json`
+  8. GET `/` and the WebSocket challenge
+
+  A rerun redeploys only when the image, environment, max-scale, timeout or
+  service account differ from `gcloud run services describe --format json`,
+  and puts back public access if it was removed. `--dry-run` runs only the
+  read-only calls and prints the rest.
+- **Billing.**
+  - Below 1 vCPU, Cloud Run forces concurrency 1, which rules out a relay.
+  - Members keep the instance busy, so instance-based billing
+    (`--no-cpu-throttling`) is the cheaper kind: $0.000018 per vCPU-second,
+    with 240,000 vCPU-seconds and 450,000 GiB-seconds free a month at Tier 1
+    (us-central1) prices. That is about US$45 a month, more in Jakarta, plus
+    internet egress for every byte relayed.
+  - Prices are from cloud.google.com/run/pricing, read 2026-10-07.
+
+**Verified (2026-10-07):**
+
+- Unit tests:
+  - the GCS client against `gcstest`: object names with `/`, create-only,
+    stale generations, retry after a 401
+  - both stores: lifecycle, 60 concurrent increments with none lost
+  - `setup cloudrun` against a fake gcloud that models the project, plus a
+    real relay at the reported URL:
+    - from scratch
+    - a rerun changes nothing
+    - removed public access is put back alone
+    - IAM's delay after creating the account
+    - the dry run touches neither the project nor the bucket
+    - a local build needs `--image`
+- Relay: the welcome's renew time, the cut at the limit, `resume` honoured
+  only for the current id.
+- End to end, in process (`internal/node/cloudrun_test.go`):
+  - a 1.5 s limit, two members, one TCP stream sending a line every 50 ms
+    for 6 s
+  - at least 4 renewals; no line lost; neither member seen to disconnect;
+    WireGuard's last handshake unchanged
+  - two mutations each make the test fail:
+    - without renewal, the stream stalls
+    - without `resume`, WireGuard handshakes again
+  - a relay on GCS with an admin on a separate client: invite, join, mesh,
+    removal
+- `go test -race -count=2 ./...` is clean (Linux, Docker).
+- Docker (`fsouza/fake-gcs-server` as the bucket, so a third-party server and
+  not only our own fake):
+  - the relay image with `PORT=8080` and a 20 s limit
+  - two Alpine members with real TUN
+  - admin commands from the Windows host
+  - 250 pings over 50 s across 4 renewals with 0 % loss
+  - `setup check` from a member was all ok
+  - `relay remove` from the host cut the member off within 8 s
+- **Not verified:** a real deploy, real Cloud Storage and IAM, the Artifact
+  Registry remote of GHCR, and Cloud Run's own cut at 60 minutes.
+
 ## Open question: direct paths.
 
 Every packet passes the relay, by choice (General 5). The cost:
@@ -438,3 +600,7 @@ That would need either a tiny resolver on the overlay or hosts-file entries.
   a new peer. Members would see it in `status`. Signing member lists with an
   offline admin key would remove this trust; it is not done.
 - **The front (the dev tunnel) is not trusted** with anything but availability.
+- **On Cloud Run, the bucket is the relay.** It holds the relay's private key
+  and the member list, so whoever can write it can do what a compromised relay
+  can. It is private and admits only the service account and the project's
+  owners. Google, as the host, is trusted the way the relay machine is.

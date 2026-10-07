@@ -69,7 +69,24 @@ golang/packages/san_vpn/
                    osnet_linux.go    TUN, netlink address
                    wintun/           fetched by the build scripts, git-ignored
   build.ps1 / build.sh        fetch Wintun (checksum pinned), vet, test, build both binaries
+  .github/workflows/release.yml  on a v* tag: build.sh, then a GitHub release
 ```
+
+## Releases.
+
+Pushing a version tag (`git tag -a v0.2.0 -m "san_vpn v0.2.0"`, then
+`git push origin v0.2.0`) runs `.github/workflows/release.yml` on GitHub
+Actions. It runs `build.sh` with `SAN_VPN_VERSION` set to the tag, so
+`--version` prints the tag; local builds keep the time stamp. The release gets
+`san_vpn-windows-amd64.exe`, `san_vpn-linux-amd64`, `wintun-LICENSE.txt` and
+`SHA256SUMS`, with the README's install notes and GitHub's generated
+changelog. Asset names carry no version, so
+`releases/latest/download/san_vpn-linux-amd64` always fetches the newest. A tag
+with a `-` (`v0.2.0-rc1`) becomes a prerelease, which "latest" skips.
+
+- **v0.1.0** (2026-10-07): the first release. CI built it in 1m32s. The
+  downloaded files matched `SHA256SUMS`, and the downloaded exe printed
+  `san_vpn version v0.1.0`.
 
 ## Design decisions.
 

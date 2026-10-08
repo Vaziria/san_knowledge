@@ -33,7 +33,7 @@ Articles teach concepts. They may explain an architecture we built, but they nev
 - **No internals.** No hostnames, tunnel ids, URLs, keys, paths, account names, or defaults that identify our setup, such as our overlay range.
 - **Code:** examples are written fresh for the article, as small as the point needs. Never paste or adapt code from our repos.
   - Build the code in a scratch module first, and run it, including its tests and `-race`, before it goes into the article.
-  - After writing, extract the article's code blocks and diff them against the tested files, so what readers copy is what ran.
+  - After writing, extract the article's code blocks and check them against the tested files, so what readers copy is what ran. A block that shows a whole file must equal it. An excerpt must appear in the file exactly as written, and the article says what the rest of the file is ("sama persis dengan Bagian 2").
 - **How to describe our design:** in general terms, as "a VPN that carries WireGuard over WebSockets", or as something the reader and the writer build together ("yang akan kita bangun").
 - **Check before handing over:** search the article for package names, `github.com`, internal paths and our default values.
 
@@ -66,6 +66,16 @@ Current series:
     - The ping and `ip` output quoted in the article comes from that run, and says so.
     - Windows is **not yet run**: `os_windows.go` (Wintun, netsh, firewall rule) passes `go vet` and builds, but needs an elevated terminal. Run it once before publishing.
     - The teaser promises Bagian 4: proof of private-key ownership at the relay, and a member list the relay hands out.
+  - Bagian 4, "Membuktikan kepemilikan kunci dan membagikan daftar anggota": written, in Indonesian.
+    - It covers why the relay needs proof, not a claim, and why the proof runs both ways: a fake relay could slip an attacker into the peer list.
+    - It compares three options (a shared password, a token per member, proof from the WireGuard key) and explains the anatomy: shared secret by X25519, nonce, HMAC, label.
+    - It covers the five-step mutual proof, member list and addresses from the relay as a JSON text message (text for control, binary for data), the code (`proof`, `relay`, `cmd/relay` with `relay.json`, the changed Bind, `cmd/anggota`), the tests, and the limits.
+    - The code lives in the scratch module `vpnku4`, a copy of `vpnku`, so the Part 2 and 3 code stays as published.
+    - Tested: four tests (registered members, stranger, intruder with A's key, fake relay), `-count=10`, and `-race` in Docker.
+    - On real TUN in Docker: relay, Caddy, two members and a stranger. A and B got their addresses and one peer each from the relay and pinged both ways. The stranger was refused with "bukan anggota".
+    - The article's code blocks were checked against the tested files: full files are equal, excerpts are substrings.
+    - Windows is still not run (same `os_windows.go` as Bagian 3).
+    - The teaser promises Bagian 5: reconnect, live member-list updates, and a queue per member at the relay.
 
 ## Structure
 

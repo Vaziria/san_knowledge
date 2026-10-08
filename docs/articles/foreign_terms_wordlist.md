@@ -77,6 +77,14 @@ Write these as they are, with no Indonesian equivalent next to them.
 | adapter | | the Windows name for a network card, as in "adapter Wintun" |
 | netlink | | |
 | profil Public | | the Windows firewall profile for untrusted networks |
+| shared secret | rahasia bersama | the number both sides compute with Diffie-Hellman |
+| digital signature | tanda tangan digital | |
+| Diffie-Hellman | | |
+| nonce | | a random number used once |
+| HMAC | | |
+| hash | | "fungsi hash", as in SHA-256 |
+| token | | |
+| password | kata sandi | |
 | hardware | perangkat keras | |
 | software | perangkat lunak | |
 | data center | pusat data | |

@@ -80,7 +80,7 @@ golang/packages/san_vpn/
                    osnet_windows.go  Wintun (embedded dll), winipcfg, netsh rule
                    osnet_linux.go    TUN, netlink address
                    wintun/           fetched by the build scripts, git-ignored
-  build.ps1 / build.sh        fetch Wintun (checksum pinned), vet, test, build both binaries
+  build.ps1 / build.sh        fetch Wintun (checksum pinned), vet, test, build Windows, Linux and Linux ARM
   .github/workflows/release.yml  on a v* tag: build.sh, the ghcr.io image, then a GitHub release
   Dockerfile                  the relay as an image: built from source, on distroless static
 ```
@@ -91,11 +91,20 @@ Pushing a version tag (`git tag -a v0.2.0 -m "san_vpn v0.2.0"`, then
 `git push origin v0.2.0`) runs `.github/workflows/release.yml` on GitHub
 Actions. It runs `build.sh` with `SAN_VPN_VERSION` set to the tag, so
 `--version` prints the tag; local builds keep the time stamp. The release gets
-`san_vpn-windows-amd64.exe`, `san_vpn-linux-amd64`, `wintun-LICENSE.txt` and
-`SHA256SUMS`, with the README's install notes and GitHub's generated
-changelog. Asset names carry no version, so
+`san_vpn-windows-amd64.exe`, `san_vpn-linux-amd64`, `san_vpn-linux-arm64`,
+`san_vpn-linux-arm`, `wintun-LICENSE.txt` and `SHA256SUMS`, with the README's
+install notes and GitHub's generated changelog. Asset names carry no version, so
 `releases/latest/download/san_vpn-linux-amd64` always fetches the newest. A tag
 with a `-` (`v0.2.0-rc1`) becomes a prerelease, which "latest" skips.
+
+The ARM files are for the Raspberry Pi (asked for 2026-10-08), so a Pi can
+`san_vpn update` too. `san_vpn-linux-arm64` is for a 64-bit Raspberry Pi OS
+(Pi 3, 4, 5, Zero 2 W; `uname -m` says `aarch64`). `san_vpn-linux-arm` is for
+a 32-bit one (`armv6l`, `armv7l`). It is built with `GOARM=6`, so it runs on
+every Pi, the Pi 1 and Zero included; ARMv7 would leave those out. Both are
+static (`CGO_ENABLED=0`), so the arm64 file also runs on a 32-bit userland
+with a 64-bit kernel. Releases before v0.4.1 have no ARM files, and older
+binaries do not know these names, so a Pi's first binary is a download.
 
 - **v0.1.0** (2026-10-07): the first release. CI built it in 1m32s. The
   downloaded files matched `SHA256SUMS`, and the downloaded exe printed
@@ -115,6 +124,15 @@ with a `-` (`v0.2.0-rc1`) becomes a prerelease, which "latest" skips.
   printed `san_vpn version v0.4.0`, and a v0.3.0 exe updated itself to it
   with `san_vpn update`. The package is **still private**: an anonymous pull
   of either tag got 403.
+- **v0.4.1** (2026-10-08): the Raspberry Pi files `san_vpn-linux-arm64` and
+  `san_vpn-linux-arm`, and the relay waiting for a new dev tunnels sign-in
+  (section "Setup.", under "Hosting."). CI built it in 2m33s and
+  pushed `ghcr.io/wargasipil/san_vpn:v0.4.1` and `:latest`,
+  sha256:d6af92c0…. The downloaded files matched `SHA256SUMS`. In Docker,
+  each file ran `update --force` and replaced itself with its own release
+  file: `linux-arm` on emulated ARMv6, `linux-arm64` on emulated arm64. v0.4.0
+  binaries for Linux and Windows updated themselves to it. The package is
+  **still private**: an anonymous token request got 401.
 
 ## Updates.
 
@@ -274,7 +292,8 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
   side:
   - every call takes `--json --nologo`
   - `show` answers `{"tunnel": {tunnelId, hostConnections, ports: [{portNumber, portUri}]}}`
-  - `user show` answers `{status: "Logged in" | "Not logged in", provider, username}`
+  - `user show` answers `{status: "Logged in" | "Not logged in" | "Login token expired", provider, username}`,
+    with exit 0 in all three cases
   - exit code 1 means "already exists", 2 means "not found", and an
     unauthenticated call is exit 3 with "Login required."
 
@@ -330,6 +349,17 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
   - `relay run` starts `devtunnel host <id> --nologo` once it is listening
     on `127.0.0.1:<port>`. It logs the host's output and restarts it with
     backoff (5s doubling to 1 min) when it exits.
+  - An expired sign-in is not a drop. The CLI's sign-in lasts "several days"
+    (Microsoft's CLI reference), and nothing renews it. On 2026-10-08 the
+    host printed "Login token expired." and exited with 3, and the relay
+    restarted it every minute with only a warning. Since v0.4.1, after every
+    exit the relay asks `user show`. If the sign-in is not valid it logs one
+    error naming the fix (`devtunnel user login -g`, or `setup init`), checks
+    every 15s, and hosts at once after a new sign-in, with no relay restart. A
+    failing `user show` falls back to the plain restart.
+  - Members ride it out on their own: `up` redials with backoff (1s doubling
+    to 30s, jittered to its second half) and never gives up, so they are back
+    within about 30s of the tunnel.
   - The child cannot outlive the relay, even if the relay is killed: on Windows
     it sits in a job object set to kill on close, and on Linux it gets a
     parent-death signal. Otherwise a killed relay would leave a tunnel served
@@ -427,6 +457,9 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
   - after `docker restart` of the relay, members came back on their own.
   - `relay remove` cut a member off; it was refused on redial and unreachable.
   - SIGTERM removed the interface.
+- **ARM, emulated** (2026-10-08, Docker with QEMU, busybox): every package's
+  tests, cross-compiled as ARMv6 and as arm64 binaries, passed. Not yet run on
+  a real Pi, so `up` with a real TUN there is untested.
 - **Setup** (`internal/setup`, `internal/devtunnel`), against a fake dev
   tunnels service that speaks the CLI's JSON and exit codes:
   - init from scratch: signs in first, makes a random id, the port and the URL
@@ -437,7 +470,9 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
   - check: healthy, not hosted, member not running, member removed,
     nothing set up
   - the host supervisor, using the test binary as a fake `devtunnel`:
-    output is logged, a restart happens, and cancel stops it
+    output is logged, a restart happens, and cancel stops it. With the
+    sign-in expired it logs once, does not restart, and hosts again once
+    `user show` says "Logged in" (`TestHostWaitsForSignIn`)
   - real CLI 1.0.2094 on this machine: `setup check` found it through the
     registry PATH, read "Not logged in", and reported the fixes
   - not yet run: a full `setup init` with a real GitHub sign-in. It needs the

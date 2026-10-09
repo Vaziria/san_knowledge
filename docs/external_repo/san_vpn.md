@@ -49,7 +49,8 @@ install later.
 ```
 golang/packages/san_vpn/
   cmd/san_vpn/main.go         urfave/cli v3 tree: relay init/run/invite/list/remove, join, up, status
-  cmd/san_vpn/setup.go        setup init / setup cloudrun / setup check
+  cmd/san_vpn/setup.go        setup init / setup check
+  cmd/san_vpn/cloudrun.go     cloudrun setup / deploy, and which source deploy builds
   cmd/san_vpn/profile.go      profile list/use/rename, and which profile a member command works on
   cmd/san_vpn/update.go       update: the latest or a named release, in place of this binary
   cmd/san_vpn/main_test.go    the admin flow through the real command tree
@@ -72,16 +73,19 @@ golang/packages/san_vpn/
                    e2e_test.go relay + members + WireGuard on gVisor netstack
   internal/devtunnel/         the devtunnel CLI: find, install, JSON calls, supervised `host`
   internal/setup/  setup.go   Init: sign in, relay, tunnel, anonymous access, port, URL
-                   cloudrun.go InitCloudRun: APIs, bucket, service account, key, image repo, deploy
+                   cloudrun.go CloudRunSetup: APIs, bucket, service account, key, image repo, build account;
+                               CloudRunDeploy: Cloud Build from source, deploy, URL, check
                    gcloud.go  the gcloud CLI, as devtunnel.CLI is the devtunnel one
+                   gcloud_windows.go  gcloud.cmd through cmd /s, quoting each argument
                    check.go   Check: relay + tunnel + member, each failure with its fix
   internal/update/            release links, SHA256SUMS, replacing a running binary
+                   source.go  a tag's source tree, from GitHub's archive of it
   internal/osnet/             the only admin-only code: TUN, address, firewall
                    osnet_windows.go  Wintun (embedded dll), winipcfg, netsh rule
                    osnet_linux.go    TUN, netlink address
                    wintun/           fetched by the build scripts, git-ignored
   build.ps1 / build.sh        fetch Wintun (checksum pinned), vet, test, build Windows, Linux and Linux ARM
-  .github/workflows/release.yml  on a v* tag: build.sh, the ghcr.io image, then a GitHub release
+  .github/workflows/release.yml  on a v* tag: build.sh, the ghcr.io image (for Docker), then a GitHub release
   Dockerfile                  the relay as an image: built from source, on distroless static
 ```
 
@@ -139,6 +143,13 @@ binaries do not know these names, so a Pi's first binary is a download.
   sha256:85f2b446…. The downloaded files matched `SHA256SUMS`, and the exe
   printed `san_vpn version v0.4.2`. The package is **still private**: an
   anonymous token request got 401.
+- **v0.4.3** (2026-10-09): `cloudrun setup` and `cloudrun deploy`, which
+  builds the relay from source with Cloud Build instead of pulling the GHCR
+  image (section "Cloud Run."). CI built it in 2m42s and pushed
+  `ghcr.io/wargasipil/san_vpn:v0.4.3` and `:latest`, sha256:10972041….
+  The downloaded files matched `SHA256SUMS`; the exe printed `san_vpn
+  version v0.4.3`, listed both commands, and `setup cloudrun` named them.
+  GitHub served the tag's source archive (115,689 bytes).
 
 ## Updates.
 
@@ -490,9 +501,13 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
 
 ## Cloud Run.
 
-`setup cloudrun` runs the relay on Google Cloud Run, as the other way to reach
-it besides a dev tunnel (asked for on 2026-10-07). Nothing has been deployed:
-the user asked for none, so everything below was checked locally.
+`cloudrun setup` and `cloudrun deploy` run the relay on Google Cloud Run, as
+the other way to reach it besides a dev tunnel (asked for on 2026-10-07). Until
+v0.4.2 this was one command, `setup cloudrun`, which ran the release's image
+from GHCR; since v0.4.3 the image is built from source in the user's project
+(asked for on 2026-10-09, see "The image."). `setup cloudrun` is now a hidden
+command that names the two new ones. Everything below was checked locally;
+the user runs the real setup and deploy.
 
 **What Cloud Run changes, and how the relay meets it:**
 
@@ -545,43 +560,76 @@ the user asked for none, so everything below was checked locally.
     `gcr.io/distroless/static-debian12:nonroot`: 17.7 MB, CA certificates
     only, no shell. Its entrypoint is `san_vpn relay run`.
   - The release workflow pushes it as `ghcr.io/wargasipil/san_vpn:<tag>`,
-    and `:latest` for tags without `-`.
-  - Cloud Run pulls only from Artifact Registry and Docker Hub, so
-    `setup cloudrun` makes an Artifact Registry *remote* repository `ghcr`
-    with upstream `https://ghcr.io` and runs
-    `<region>-docker.pkg.dev/<project>/ghcr/wargasipil/san_vpn:<version>`.
-  - That needs the GHCR package to be public. It is not by default: v0.3.0's
-    package, new in the `wargasipil` organization, started private, although
-    the repository is public. An organization owner has to switch it once,
-    in the package's settings: Danger zone, Change visibility, Public. The
-    organization must also allow public packages. Later releases push to the
-    same package and keep its visibility.
-- **`setup cloudrun`** drives `gcloud`, the way `setup init` drives
+    and `:latest` for tags without `-`, for running the relay in Docker.
+  - **Until v0.4.2**, Cloud Run ran that image: Cloud Run pulls only from
+    Artifact Registry and Docker Hub, so `setup cloudrun` made an Artifact
+    Registry *remote* repository `ghcr` with upstream `https://ghcr.io`. That
+    needs the GHCR package to be public, and it never was (anonymous token
+    requests got 401 through v0.4.2). On 2026-10-09 the user's deploy failed
+    with `UNAUTHENTICATED: Unauthorized error returned by the external
+    repository`, and the user asked to deploy from source instead. A `ghcr`
+    remote repository made by an older run is left unused.
+  - **Since v0.4.3**, `cloudrun deploy` builds the same Dockerfile with Cloud
+    Build in the user's project, into a standard Artifact Registry repository
+    `san-vpn`, as
+    `<region>-docker.pkg.dev/<project>/san-vpn/san_vpn:<tag>`. Cloud Run's
+    service agent reads its own project's repository with no setup, and
+    nothing outside the project has to be public.
+  - The source: a release binary fetches its own tag's source from GitHub's
+    archive (`<repo>/archive/refs/tags/<tag>.tar.gz`, a web link, not the
+    API). GitHub makes that archive on request, so no `SHA256SUMS` lists it;
+    it rests on HTTPS to GitHub, as `go install` would. Entries that climb
+    out of the folder are refused. `--source <dir>`, or `go run` started in
+    a checkout, builds that tree instead, tagged `dev-<UTC time>`.
+  - A release's image already in the repository is not built again, so
+    rerunning `deploy` changes nothing. A `dev-` tree is built every time,
+    since it may hold anything. `--image` runs any image as it is.
+  - Not chosen: Cloud Run's "deploy without build" (`gcloud beta run deploy
+    --source --no-build --base-image osonly24`), which would upload the
+    release's Linux binary with no Cloud Build. It was a Preview feature on
+    2026-10-09.
+- **`cloudrun setup`** drives `gcloud`, the way `setup init` drives
   `devtunnel`. Each step looks before it acts:
-  1. the Run and Artifact Registry APIs
+  1. the Run, Artifact Registry and Cloud Build APIs
   2. a private bucket (`--uniform-bucket-level-access`,
      `--public-access-prevention`) in the service's region
   3. the service account `san-vpn-relay`, with `roles/storage.objectUser` on
      that bucket only. A new account is retried while IAM catches up.
-  4. the relay key, written with the user's own sign-in
-  5. the remote repository
-  6. `gcloud run deploy` with `--max-instances 1 --concurrency 1000
+  4. the relay key, written with the user's own sign-in, and `cloud_run`
+     (project, region, service) recorded in `relay.json`
+  5. the image repository `san-vpn`
+  6. Cloud Build's account (`gcloud builds get-default-service-account`) may
+     build. Projects whose first build ran after mid-2024 build as the Compute
+     Engine default account, which may hold no role; older ones use the
+     legacy Cloud Build account. Unless the account is already a builder,
+     editor or owner, it gets `roles/cloudbuild.builds.builder` on the
+     project, with `--condition None` (a project policy with conditions
+     refuses an unconditional binding otherwise when nobody can be asked).
+- **`cloudrun deploy`** takes project, region and service from what setup
+  recorded (flags override), and refuses before setup has run:
+  1. the image: `gcloud builds submit <source> --config <recipe>
+     --substitutions _IMAGE=...,_VERSION=<tag> --suppress-logs`. The recipe
+     is the Dockerfile's `docker build` with `--build-arg VERSION`, so the
+     relay reports its tag, and logs go to Cloud Logging only, which every
+     build account may write. `--suppress-logs` waits for the build without
+     streaming a log gcloud may not be allowed to read; a failure says how to
+     find it.
+  2. `gcloud run deploy` with `--max-instances 1 --concurrency 1000
      --timeout 3600 --no-cpu-throttling --cpu 1 --memory 512Mi
      --execution-environment gen2 --allow-unauthenticated`. Environment
      variables go in an `--env-vars-file`, so commas survive Windows' command
      line.
-  7. the service URL as the relay's URL, with `cloud_run` recorded in
+  3. the service URL as the relay's URL, with `cloud_run` recorded in
      `relay.json`
-  8. GET `/` and the WebSocket challenge
+  4. GET `/` and the WebSocket challenge
 
   A rerun redeploys only when the image, environment, max-scale, timeout or
   service account differ from `gcloud run services describe --format json`,
-  and puts back public access if it was removed. `--dry-run` runs only the
-  read-only calls and prints the rest.
-
-  A local build or `go run` has no release version (`dev`), so no image to
-  run: it needs `--image`, or the version stamped with
-  `-ldflags "-X main.version=<tag>"`.
+  or when the service is not Ready: a deploy whose image could not be pulled
+  can leave a service that matches but never came up. It puts back public
+  access if it was removed. After `san_vpn update`, `deploy` moves the relay
+  to the new release. `--dry-run` runs only the read-only calls, fetches no
+  source and prints the rest.
 - **gcloud on Windows** is `gcloud.cmd`, a batch file, which Windows starts
   through `cmd.exe /c`. cmd drops the first and last quote of a line that
   holds more than two.
@@ -644,13 +692,35 @@ the user asked for none, so everything below was checked locally.
 - **Not verified:** a real deploy, real Cloud Storage and IAM, the Artifact
   Registry remote of GHCR, and Cloud Run's own cut at 60 minutes.
 
+**Verified (2026-10-09), `cloudrun setup` and `deploy`:**
+
+- Against a fake gcloud that also models Cloud Build (the default build
+  account, the project policy, image lookups, `builds submit` checking for a
+  source folder, the recipe and `--suppress-logs`), plus the real relay:
+  - setup from scratch, without building or deploying; its rerun changes
+    nothing
+  - deploy builds the release once and deploys it; a rerun builds nothing,
+    fetches no source and changes nothing
+  - `dev-` trees build on every deploy; `--image` builds nothing
+  - deploy follows the region and service setup recorded
+  - a builder that is already an editor is left alone
+  - a service that is not Ready is deployed again
+  - both dry runs change nothing and fetch no source
+  - two mutations each make a test fail: ignoring readiness, and dropping
+    `--condition None`
+- The real v0.4.2 archive, fetched from GitHub by `update.Client.Source`,
+  built with the recipe's step (`docker build --build-arg VERSION=v0.4.2`)
+  into a 17.8 MB image that printed `san_vpn version v0.4.2`.
+- **Not verified:** Cloud Build itself and the deploy, in a real project.
+  The user runs them.
+
 ## Profiles.
 
 `san_vpn profile` switches a member between the networks it joined, such as
 the dev tunnel relay's and the Cloud Run relay's (asked for 2026-10-08).
 
 - **A profile is a whole membership.** The two relays are separate networks:
-  `setup init` and `setup cloudrun` each create a relay key, and each relay
+  `setup init` and `cloudrun setup` each create a relay key, and each relay
   keeps its own members and gives out its own addresses. So a profile holds
   this machine's key, address and relay for one network, joined with that
   relay's invite. Making them one network with two fronts was not done:

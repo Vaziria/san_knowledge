@@ -133,6 +133,12 @@ binaries do not know these names, so a Pi's first binary is a download.
   file: `linux-arm` on emulated ARMv6, `linux-arm64` on emulated arm64. v0.4.0
   binaries for Linux and Windows updated themselves to it. The package is
   **still private**: an anonymous token request got 401.
+- **v0.4.2** (2026-10-09): `setup cloudrun` on Windows when gcloud sits under
+  a path with a space (section "Cloud Run.", "gcloud on Windows"). CI built it
+  in 2m11s and pushed `ghcr.io/wargasipil/san_vpn:v0.4.2` and `:latest`,
+  sha256:85f2b446…. The downloaded files matched `SHA256SUMS`, and the exe
+  printed `san_vpn version v0.4.2`. The package is **still private**: an
+  anonymous token request got 401.
 
 ## Updates.
 
@@ -572,6 +578,25 @@ the user asked for none, so everything below was checked locally.
   service account differ from `gcloud run services describe --format json`,
   and puts back public access if it was removed. `--dry-run` runs only the
   read-only calls and prints the rest.
+
+  A local build or `go run` has no release version (`dev`), so no image to
+  run: it needs `--image`, or the version stamped with
+  `-ldflags "-X main.version=<tag>"`.
+- **gcloud on Windows** is `gcloud.cmd`, a batch file, which Windows starts
+  through `cmd.exe /c`. cmd drops the first and last quote of a line that
+  holds more than two.
+  - On 2026-10-09, with gcloud under `C:\Users\ASUS TUF\` and a quoted
+    argument (`--display-name "san_vpn relay"`), the path lost its quotes.
+    The run stopped at the service account with `'C:\Users\ASUS' is not
+    recognized`. The earlier calls had no argument with a space.
+  - Since v0.4.2 a batch file runs as `cmd.exe /d /s /c "..."`, each argument
+    quoted where cmd or the program would split it. `/s` strips only the outer
+    pair.
+  - Arguments with `%`, `!` or `"` are refused: cmd expands `%VAR%` even in
+    quotes, and gcloud.cmd turns on delayed expansion, which eats `!`.
+  - Tested with a fake `gcloud.cmd` in an `ASUS TUF` folder that hands `%*`
+    on like the real one, and with the real one answering a `--format`
+    containing a space.
 - **Billing.**
   - Below 1 vCPU, Cloud Run forces concurrency 1, which rules out a relay.
   - Members keep the instance busy, so instance-based billing

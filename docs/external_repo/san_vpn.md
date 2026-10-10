@@ -39,6 +39,9 @@ The operator guide is the package
     (asked for 2026-10-08; section "Profiles.")
 15. members find each other by name, `office.vpn`, answered by each member
     inside its own tunnel (asked for 2026-10-10; section "Names.")
+16. a machine that looks after several relays names each one with a relay
+    profile, and the relay commands pick one the way member profiles do
+    (asked for 2026-10-10; section "Relay profiles.")
 
 These were decided with the user on 2026-10-07. The steps were: embedded
 WireGuard, full mesh, overlay only, Windows and Linux, then WebSocket instead
@@ -54,6 +57,7 @@ golang/packages/san_vpn/
   cmd/san_vpn/setup.go        setup init / setup check
   cmd/san_vpn/cloudrun.go     cloudrun setup / deploy, and which source deploy builds
   cmd/san_vpn/profile.go      profile list/use/rename, and which profile a member command works on
+  cmd/san_vpn/relays.go       relay profile list/use/add/rename/forget, --relay, and which relay a relay command works on
   cmd/san_vpn/update.go       update: the latest or a named release, in place of this binary
   cmd/san_vpn/main_test.go    the admin flow through the real command tree
   internal/wire/              the protocol both sides speak
@@ -69,6 +73,7 @@ golang/packages/san_vpn/
   internal/state/             JSON files: default dirs, lock, atomic save, Windows ACL
                    store.go   the relay's file as a Store: local File, or a GCS object
                    profile.go a member's profiles: folders, listing, the current one, rename
+                   relays.go  relay profiles: names for relay locations in relays.json
   internal/gcs/               Cloud Storage JSON API, three calls, generation preconditions
                gcstest/       in-memory Cloud Storage for tests
   internal/relay/  state.go   members, invites, address allocation
@@ -164,6 +169,14 @@ binaries do not know these names, so a Pi's first binary is a download.
     printed `san_vpn version v0.5.0`.
   - A v0.4.3 exe updated itself to it with `san_vpn update`, and then had
     `up --no-dns`.
+  - The package is **still private**: an anonymous token request got 401.
+- **v0.6.0** (2026-10-11): relay profiles (section "Relay profiles.").
+  - CI built it in 2m42s and pushed `ghcr.io/wargasipil/san_vpn:v0.6.0` and
+    `:latest`, sha256:dc458eaa….
+  - The downloaded files matched `SHA256SUMS`. The Windows file and the Linux
+    one (in Docker) printed `san_vpn version v0.6.0` and listed the
+    `relay profile` commands.
+  - A v0.5.0 exe updated itself to it with `san_vpn update`.
   - The package is **still private**: an anonymous token request got 401.
 
 ## Updates.
@@ -770,8 +783,9 @@ the dev tunnel relay's and the Cloud Run relay's (asked for 2026-10-08).
   and the current choice follows it. It refuses while `up` runs on that
   profile, because `up` keeps writing `status.json` where it started.
 - **Not a global flag.** `--profile` belongs to the member commands only. The
-  relay commands pick their relay with `--state`. A global flag that they
-  ignored could put an invite in the wrong network.
+  relay commands pick their relay with `--relay` (section "Relay profiles."),
+  or `--state`. A global flag that they ignored could put an invite in the
+  wrong network.
 - **Verified (2026-10-08):**
   - unit tests: the layout and listing, names, renaming in and out of the
     node directory
@@ -784,6 +798,68 @@ the dev tunnel relay's and the Cloud Run relay's (asked for 2026-10-08).
     `relay run` processes on loopback
   - **not run:** `up` itself across a switch, which needs an administrator
     terminal
+
+## Relay profiles.
+
+`san_vpn relay profile` names the relays one machine looks after, such as the
+dev tunnel relay it serves and the Cloud Run one (asked for 2026-10-10, after
+`relay invite` kept printing invites for the dev tunnel URL: plain relay
+commands read the local `relay.json`, and the Cloud Run relay was reachable
+only with `--state gs://...`).
+
+- **A relay profile is a name for a location.** The location is a folder
+  holding `relay.json`, or a `gs://` location. `relays.json` in the relay
+  folder maps names to locations and records the current one. Locations inside
+  the folder are kept relative (`.`, `relays/lab`), so the folder can move. A
+  relay profile holds no file of its own, unlike a member profile, because:
+  - the Cloud Run relay's file is in a bucket, and the profile only points at
+    it
+  - a rename must not move `relay.json` from under a running `relay run`,
+    which has no status file to tell it is running
+- **Layout.** The default relay is the relay folder itself, so a `relay.json`
+  from before relay profiles is `default` and nothing moves. `relay init
+  --relay <name>` and `setup init --relay <name>` make a new relay in
+  `relays/<name>/`. `rename default tunnel` records `tunnel` → `.`, and then
+  `default` is no longer listed. Names follow member profiles.
+- **Which relay.**
+  - `--relay` (`SAN_VPN_RELAY`) on `relay init/run/invite/list/remove`, `setup
+    init`, `setup check` and `cloudrun setup/deploy`. It is not `--profile`,
+    because `setup check` takes both, and a member profile and a relay profile
+    often share a name.
+  - Otherwise the relay commands use the current relay profile. A machine's
+    first relay becomes current whatever it is called.
+  - `--state gs://...` still names one relay directly, and `--relay` beside it
+    is refused. `--state <dir>` is the relay folder, which tests use.
+  - The cloudrun commands use `--relay`, else the current relay when it is in
+    Cloud Storage, else `cloudrun`. They record the relay under that name once
+    setup or deploy succeeds. That is how a relay from before relay profiles
+    gets its name: rerun `cloudrun setup`, or `relay profile add cloudrun
+    gs://<project>-san-vpn`.
+  - Messages name the relay only once there is one besides `default`. An
+    invite always prints the URL it pins.
+- **`relay run` refuses a relay in a bucket picked by profile.** Cloud Run
+  serves that relay; a second copy would split its members between two relays.
+  Cloud Run's own start passes `SAN_VPN_STATE`, which is still allowed.
+- **`relay profile add`** reads the relay first, so a typo fails at once. One
+  name per relay: a second name for the same location is refused, and naming
+  the folder's own relay points at `rename default <name>`.
+- **`forget`** drops the name only; the relay stays, and the message prints
+  the `add` command that brings it back.
+- **Verified (2026-10-10):**
+  - unit tests: the default relay before and after it exists, add (relative
+    locations, a taken name or relay refused), current, rename in and out of
+    `default`, forget
+  - CLI tests: two local relays, invites pinning each one's URL, `use`,
+    `rename`, errors naming the fix, forget and add again; the first relay
+    becomes current; a relay in an emulated Cloud Storage bucket used through
+    `relay profile add`, with `relay run` and `setup init` refused on it; how
+    the cloudrun commands pick and record their relay
+  - `setup check` names the relay in its title and its fixes
+  - the built Windows binary against two real `relay run` processes on
+    loopback: one invite from each, two member profiles joined, `relay remove`
+    after `relay profile use lab` removed the member from lab only
+  - **not run:** `cloudrun setup` and `deploy` in a real project. The user
+    runs them.
 
 ## Names.
 

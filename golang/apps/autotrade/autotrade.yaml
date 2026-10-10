@@ -1,0 +1,26 @@
+# All of autotrade's settings (docs/readme.md). The limits are the user's:
+# the trading loop must not edit this file. The API key is not here: it is
+# read from BINANCE_TESTNET_API_KEY / BINANCE_TESTNET_API_SECRET, or from .env.
+
+# The pairs the loop trades ("Pair That Traded" in docs/knowledge.md). Each is
+# traded on its own: its own position, and the limits below per position.
+pairs: [BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT]
+
+interval: 5m                        # the trading interval: a tick after each close
+context_intervals: [15m, 1h, 4h]
+candles: 300                         # per timeframe, for the indicators
+
+# Orders go only to the Binance test network (or demo-fapi.binance.com).
+trade_url: https://testnet.binancefuture.com
+# Candles come from the real market: public, read-only, never sent a key.
+market_url: https://fapi.binance.com
+
+leverage: 5
+max_position_usdt: 1000              # notional of a new position
+max_risk_usdt: 100                   # loss at the stop of a new position; 0 = no cap
+
+journal: data/journal.jsonl          # relative to this file
+
+# Coded entry rules the snapshot checks, in priority order; [] = no signals.
+setups: []
+fee_rate: 0.0005                     # one fill: 0.0005 = 0.05%

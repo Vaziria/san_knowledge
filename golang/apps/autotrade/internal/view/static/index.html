@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trade Knowledge</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Trade Knowledge</h1>
+        <p class="counts" id="counts">Loading…</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btn-sync" type="button" title="Rebuild the graph from the journal, the approaches and the snapshots" hidden>Sync</button>
+      <button class="btn ghost" id="btn-collapse" type="button" title="Hide everything but Strategy Approach, Portfolio and Configuration, to expand from">Collapse all</button>
+      <button class="btn ghost" id="btn-expand" type="button" title="Show every hidden node" hidden>Expand all</button>
+      <button class="btn ghost" id="btn-layout" type="button" title="Arrange the graph again">Re-layout</button>
+      <button class="btn ghost" id="btn-fit" type="button">Fit</button>
+      <button class="btn icon" id="btn-theme" type="button" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <div class="legend" id="legend" aria-label="Node types (click to show or hide)"></div>
+  </div>
+
+  <main class="layout">
+    <section class="stage" aria-label="Knowledge graph">
+      <div id="graph"></div>
+      <div class="empty" id="empty" hidden>
+        <p>The knowledge graph is empty.</p>
+        <p>Trade with <code>autotrade open</code>, or run <code>autotrade knowledge sync</code>.</p>
+      </div>
+      <div class="toast" id="toast" role="status" hidden></div>
+    </section>
+    <aside class="panel" id="panel" aria-label="Node details">
+      <div class="panel-empty" id="panel-empty">
+        <h2>Pick a node</h2>
+        <p>Click a position to see its analysis, approaches, data snapshot and close summary. Click an approach to see its record and the lessons of its trades.</p>
+        <p>Double-click a node to expand its hidden neighbours (a node with some says <strong>+N hidden</strong>), or, when nothing around it is hidden, to collapse what hangs on it: a pair its positions, a position its analysis, snapshot and close summary, an approach its analyses.</p>
+      </div>
+      <div id="detail" hidden></div>
+    </aside>
+  </main>
+
+  <script src="vendor/cytoscape.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

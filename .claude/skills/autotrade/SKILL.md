@@ -1,6 +1,6 @@
 ---
 name: autotrade
-description: Run one autotrade tick on the Binance test network in three phases. Analyze each pair in autotrade.yaml, carry out exactly one action per pair (open, protect, close or hold), then update the autotrade knowledge (sync, and the lessons of closed positions) with the autotrade MCP tools. Use when the user types /autotrade, or from /loop.
+description: Run one autotrade tick on the Binance test network (and the MetaTrader 5 demo account for the mt5 pairs) in three phases. Analyze each pair in autotrade.yaml, carry out exactly one action per pair (open, protect, close or hold), then update the autotrade knowledge (sync, and the lessons of closed positions) with the autotrade MCP tools. Use when the user types /autotrade, or from /loop.
 disable-model-invocation: true
 argument-hint: "[note for this tick]"
 allowed-tools: mcp__autotrade__autotrade_snapshot, mcp__autotrade__autotrade_open, mcp__autotrade__autotrade_protect, mcp__autotrade__autotrade_close, mcp__autotrade__autotrade_hold, mcp__autotrade__autotrade_note, mcp__autotrade__autotrade_journal, mcp__autotrade__autotrade_review, mcp__autotrade__autotrade_approaches, mcp__autotrade__autotrade_approach, mcp__autotrade__autotrade_approach_define, mcp__autotrade__autotrade_positions, mcp__autotrade__autotrade_position, mcp__autotrade__autotrade_pair, mcp__autotrade__autotrade_portfolio, mcp__autotrade__autotrade_query, mcp__autotrade__autotrade_knowledge_sync

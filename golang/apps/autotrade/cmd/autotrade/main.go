@@ -14,9 +14,11 @@
 //	autotrade mcp run
 //	autotrade knowledge view
 //
-// Orders only go to the Binance test network. Settings and limits are in
-// autotrade.yaml; the API key is read from BINANCE_TESTNET_API_KEY and
-// BINANCE_TESTNET_API_SECRET, or from a .env file next to autotrade.yaml.
+// Orders only go to the Binance test network, and for the mt5 pairs to a
+// MetaTrader 5 demo account through the AutotradeBridge EA (internal/mt5).
+// Settings and limits are in autotrade.yaml; the API key is read from
+// BINANCE_TESTNET_API_KEY and BINANCE_TESTNET_API_SECRET, or from a .env
+// file next to autotrade.yaml.
 package main
 
 import (
@@ -37,19 +39,21 @@ import (
 	"github.com/wargasipil/autotrade/internal/binance"
 	"github.com/wargasipil/autotrade/internal/bot"
 	"github.com/wargasipil/autotrade/internal/mcp"
+	"github.com/wargasipil/autotrade/internal/mt5"
 	"github.com/wargasipil/autotrade/internal/strategy"
 )
 
 // version is set at build time with -ldflags "-X main.version=...".
 var version = "dev"
 
-const usage = `autotrade: the trading loop's hands (Binance USD-M futures, test network)
+const usage = `autotrade: the trading loop's hands (Binance USD-M futures, test network;
+MetaTrader 5 demo for the mt5 pairs)
 
 usage: autotrade [-config FILE] [-symbol PAIR] [-json] COMMAND [flags]
 
-Each pair in autotrade.yaml's pairs is traded on its own. snapshot covers every
-pair, or the -symbol one; open, protect, close and hold act on -symbol, which
-is required when there are several pairs.
+Each pair in autotrade.yaml's pairs and mt5.pairs is traded on its own. snapshot
+covers every pair, or the -symbol one; open, protect, close and hold act on
+-symbol, which is required when there are several pairs.
 
 commands:
   snapshot [-recent 12]                 per pair: market, indicators, levels, positioning,
@@ -61,7 +65,10 @@ commands:
   close -reason TEXT                    close the position at market
   hold -reason TEXT                     record a decision to do nothing
   journal [-n 20]                       last decisions
-  check                                 key, clock, position mode, balance, each pair
+  check                                 key, clock, position mode, balance, each pair,
+                                        and the MetaTrader account with its pairs
+  mt5 install                           copy the AutotradeBridge EA into each MT5
+                                        terminal's MQL5/Experts and compile it
   review                                score the journal's trades with the exchange's PnL
   discover [-days 365] [-setups a,b] [-fee 0.0005]
                                         test the candidate setups on every pair, with pass criteria
@@ -114,11 +121,18 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return err
 	}
 	key, secret := credentials(filepath.Dir(path))
+	market := binance.New(cfg.MarketURL, "", "")
 	b := &bot.Bot{
 		Cfg:     cfg,
-		Market:  binance.New(cfg.MarketURL, "", ""),
+		Market:  market,
 		Ex:      binance.New(cfg.TradeURL, key, secret),
 		Journal: bot.Journal{Path: cfg.Journal},
+	}
+	var mc *mt5.Client
+	if len(cfg.MT5.Pairs) > 0 {
+		// Binance's corrected clock serves MetaTrader too.
+		mc = mt5.New(cfg.MT5.Bridge, market)
+		b.MT5 = &bot.Venue{Name: "MetaTrader 5 demo", Market: mc, Ex: mc}
 	}
 
 	fs := flag.NewFlagSet(cmd, flag.ContinueOnError)
@@ -127,6 +141,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	usdt := fs.Float64("usdt", 0, "position size in USDT (notional)")
 	sl := fs.Float64("sl", 0, "stop-loss trigger price (mark price)")
 	tp := fs.Float64("tp", 0, "take-profit trigger price (mark price)")
+	limit := fs.Float64("limit", 0, "open: limit price for a post-only maker entry (default: at market)")
+	expires := fs.Duration("expires", bot.DefaultExpiry, "open: how long an unfilled limit entry waits")
 	approachFlag := fs.String("approach", "", "open: approaches the analysis used, comma-separated: catalog names or coded setups ("+strings.Join(strategy.AllSetups, ", ")+")")
 	setup := fs.String("setup", "", "open: same as -approach (older name)")
 	name := fs.String("name", "", "approach: its short lowercase name")
@@ -206,7 +222,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		if *symbol != "" {
 			pairs = []string{*symbol}
 		}
+		// One pair's failure (MetaTrader closed) leaves the others' snapshots.
 		var snaps []*bot.Snapshot
+		var failed []string
 		for _, p := range pairs {
 			pb, err := b.ForPair(p)
 			if err != nil {
@@ -214,16 +232,23 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 			}
 			s, err := pb.Snapshot(ctx, *recent)
 			if err != nil {
-				return fmt.Errorf("%s: %w", pb.Cfg.Symbol, err)
+				failed = append(failed, fmt.Sprintf("%s: %v", pb.Cfg.Symbol, err))
+				continue
 			}
 			snaps = append(snaps, s)
 		}
 		defer sync()
+		var failure error
+		if len(failed) > 0 {
+			failure = fmt.Errorf("no snapshot of %s", strings.Join(failed, "; "))
+		}
 		switch {
-		case *asJSON && len(snaps) == 1:
-			return writeJSON(stdout, snaps[0])
+		case *asJSON && len(snaps) == 1 && len(pairs) == 1:
+			writeJSON(stdout, snaps[0])
+			return failure
 		case *asJSON:
-			return writeJSON(stdout, snaps)
+			writeJSON(stdout, snaps)
+			return failure
 		}
 		for i, s := range snaps {
 			if i > 0 {
@@ -231,13 +256,16 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 			}
 			s.Render(stdout)
 		}
-		return nil
+		return failure
 	case "open":
 		var approaches []string
 		for _, a := range strings.Split(*approachFlag+","+*setup, ",") {
 			if a = strings.TrimSpace(a); a != "" {
 				approaches = append(approaches, a)
 			}
+		}
+		if *limit > 0 {
+			return entry(act.OpenLimit(ctx, strings.ToLower(side), approaches, *usdt, *limit, *sl, *tp, *expires, *reason))
 		}
 		return entry(act.Open(ctx, strings.ToLower(side), approaches, *usdt, *sl, *tp, *reason))
 	case "close":
@@ -319,7 +347,16 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		r.Render(stdout)
 		return nil
 	case "check":
-		return check(ctx, stdout, cfg, path, b.Ex.(*binance.Client))
+		err := check(ctx, stdout, cfg, path, b.Ex.(*binance.Client))
+		if mc != nil {
+			err = errors.Join(err, checkMT5(ctx, stdout, cfg, mc))
+		}
+		return err
+	case "mt5":
+		if arg(0) != "install" {
+			return errors.New("mt5 needs a command: install")
+		}
+		return installMT5(stdout, cmp.Or(cfg.MT5.Bridge, mt5.DefaultDir()))
 	case "backtest":
 		var names []string
 		for _, n := range strings.Split(*setups, ",") {
@@ -336,6 +373,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		bb, err := b.ForPair(cmp.Or(*symbol, cfg.Pairs[0]))
 		if err != nil {
 			return err
+		}
+		if cfg.OnMT5(bb.Cfg.Symbol) {
+			return fmt.Errorf("the backtest replays Binance candles; %s trades on MetaTrader", bb.Cfg.Symbol)
 		}
 		return runBacktest(ctx, stdout, bb.Cfg, b.Market.(*binance.Client), backtestOpts{days: *days, setups: names, fee: *fee, trades: *listTrades, json: *asJSON})
 	case "discover":
@@ -356,14 +396,16 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		if len(names) == 0 || *days < 1 {
 			return errors.New("discover needs at least one setup and one day")
 		}
-		return runDiscover(ctx, stdout, cfg, b.Market.(*binance.Client), *days, names, *fee)
+		bcfg := cfg // discover replays Binance candles: the Binance pairs only
+		bcfg.Pairs = cfg.BinancePairs()
+		return runDiscover(ctx, stdout, bcfg, b.Market.(*binance.Client), *days, names, *fee)
 	}
 	global.Usage()
 	return fmt.Errorf("unknown command %q", cmd)
 }
 
 func check(ctx context.Context, w io.Writer, cfg bot.Config, path string, ex *binance.Client) error {
-	fmt.Fprintf(w, "config   %s\npairs    %s on %s\ntrading  %s\nmarket   %s\njournal  %s\n", path, strings.Join(cfg.Pairs, ", "), cfg.Interval, cfg.TradeURL, cfg.MarketURL, cfg.Journal)
+	fmt.Fprintf(w, "config   %s\npairs    %s on %s\ntrading  %s\nmarket   %s\njournal  %s\n", path, strings.Join(cfg.BinancePairs(), ", "), cfg.Interval, cfg.TradeURL, cfg.MarketURL, cfg.Journal)
 	if err := ex.SyncTime(ctx); err != nil {
 		return err
 	}
@@ -385,7 +427,7 @@ func check(ctx context.Context, w io.Writer, cfg bot.Config, path string, ex *bi
 		mode = "HEDGE (switch to one-way mode before trading)"
 	}
 	fmt.Fprintf(w, "key      ok\nmode     %s\nwallet   %.2f USDT (available %.2f)\n", mode, acc.WalletBalance, acc.AvailableBalance)
-	for _, sym := range cfg.Pairs {
+	for _, sym := range cfg.BinancePairs() {
 		info, err := ex.SymbolInfo(ctx, sym)
 		if err != nil {
 			return err

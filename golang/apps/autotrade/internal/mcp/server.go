@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/wargasipil/autotrade/internal/bot"
 	"github.com/wargasipil/autotrade/internal/knowledge"
@@ -28,8 +29,8 @@ type Server struct {
 
 var supportedVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 
-const instructions = `autotrade: Binance USD-M futures on the test network, and the knowledge graph of its trades.
-Trading: each pair in autotrade.yaml's pairs is traded on its own. autotrade_snapshot gives, per pair, the market, indicators, levels, positioning, portfolio and the pair's last decisions; then for each pair exactly one of autotrade_open, autotrade_protect, autotrade_close or autotrade_hold, naming the pair, always with a reason. The tool enforces the limits (test network only, configured pairs only, a stop-loss on every trade, max size and max loss, stops only tighten). golang/apps/autotrade/tick.md is the full procedure of a tick.
+const instructions = `autotrade: Binance USD-M futures on the test network, a MetaTrader 5 demo account (MIFX) for the pairs in autotrade.yaml's mt5.pairs, and the knowledge graph of their trades.
+Trading: each pair in autotrade.yaml's pairs and mt5.pairs is traded on its own, on its venue. A MetaTrader pair's snapshot says so: amounts in the account currency (USD) where the tools say usdt, sizes in units of the symbol (not lots), its own limits, no positioning data. autotrade_snapshot gives, per pair, the market, indicators, levels, positioning, portfolio and the pair's last decisions; then for each pair exactly one of autotrade_open, autotrade_protect, autotrade_close or autotrade_hold, naming the pair, always with a reason. autotrade_open with limit places a post-only maker entry that waits in the book with its stop and target; autotrade_close cancels it while unfilled. The tool enforces the limits (test network only, configured pairs only, a stop-loss on every trade, max size and max loss, stops only tighten). golang/apps/autotrade/tick.md is the full procedure of a tick.
 Knowledge graph: Strategy Approach -have-> Approach -with_approach-> Analytical Result -have-> Position; Data Snapshot -data_snapshot-> Position; Close Summary -have_summary-> Position; Portfolio -have_pair-> Pair -have-> each pair (btc/usdt, symbol BTCUSDT) -have-> its Open Position / Close Positions (-have-> Position) and its Profit Summary / Loss Summary (-have-> Close Summary); Configuration -have-> Pair That Traded -have-> each configured pair; Configuration -have-> Open Position Limit and Leverage, which with the Portfolio -have-> Risk Summary (what the open positions have at stake, drawdown, against the limits). Labels are the node types (Position, Approach, AnalyticalResult, DataSnapshot, CloseSummary, Pair, RiskSummary, ...); positions carry symbol and pair.
 Before an open, check what is known: autotrade_approach for each approach you are using (its record and the notes of its past positions). An open names the approaches its analysis used; an approach not in the catalog must first be defined with autotrade_approach_define. A tick ends by updating the knowledge: autotrade_knowledge_sync lists the closed positions without a lesson; write each with autotrade_note. A record of a few trades is mostly luck: weigh it by the trade count.`
 
@@ -175,20 +176,22 @@ func toolDefs(pairs []string) []any {
 				"pair":   enum("Only this pair (default: every pair in autotrade.yaml)", pairs...),
 			}), true, false),
 		tool("autotrade_open", "Open a position",
-			"Open a long or short at market on a pair with a stop-loss and a take-profit, sized in USDT. Refused when the pair has a position open, over the limits, or with a level on the wrong side of the price. Keeps the snapshot the analysis was made on.",
+			"Open a long or short on a pair with a stop-loss and a take-profit, sized in USDT: at market, or with `limit` as a post-only limit entry that rests in the book and pays the maker fee (refused if it would fill at once; a long's limit goes at or under the best bid). A limit entry's stop and target wait with it as reduce-only orders; it is cancelled after expires_min if unfilled, or when the price reaches the target first, and recorded as opened when it fills. Refused when the pair has a position or a limit entry waiting, over the limits, or with a level on the wrong side of the price. Keeps the snapshot the analysis was made on.",
 			action(map[string]any{
-				"side":       enum("long or short", "long", "short"),
-				"approaches": strs("Approaches the analysis used (catalog names or coded setups); the first one labels the trade"),
-				"usdt":       num("Position size in USDT (notional)"),
-				"sl":         num("Stop-loss trigger price"),
-				"tp":         num("Take-profit trigger price"),
-				"reason":     reasonProp,
+				"side":        enum("long or short", "long", "short"),
+				"approaches":  strs("Approaches the analysis used (catalog names or coded setups); the first one labels the trade"),
+				"usdt":        num("Position size in USDT (notional); on a MetaTrader pair, in the account currency (USD)"),
+				"sl":          num("Stop-loss trigger price"),
+				"tp":          num("Take-profit trigger price"),
+				"limit":       num("Limit price for a post-only maker entry; omit to enter at market"),
+				"expires_min": intg("Minutes an unfilled limit entry waits before it is cancelled (default 15)"),
+				"reason":      reasonProp,
 			}, "side", "approaches", "usdt", "sl", "reason"), false, true),
 		tool("autotrade_protect", "Move stop / target",
 			"Replace the pair's open position's stop-loss (only closer, never further away) and/or take-profit.",
 			action(map[string]any{"sl": num("New stop-loss"), "tp": num("New take-profit"), "reason": reasonProp}, "reason"), false, true),
 		tool("autotrade_close", "Close the position",
-			"Close the pair's whole position at market and cancel its stop-loss and take-profit.",
+			"Close the pair's whole position at market and cancel its stop-loss and take-profit. With no position but a limit entry waiting, cancel the entry.",
 			action(map[string]any{"reason": reasonProp}, "reason"), false, true),
 		tool("autotrade_hold", "Hold",
 			"Record a decision to do nothing on the pair this tick, with what you are watching.",
@@ -250,6 +253,8 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) (st
 		USDT            float64  `json:"usdt"`
 		SL              float64  `json:"sl"`
 		TP              float64  `json:"tp"`
+		Limit           float64  `json:"limit"`
+		ExpiresMin      int      `json:"expires_min"`
 		Reason          string   `json:"reason"`
 		N               int      `json:"n"`
 		Position        int      `json:"position"`
@@ -327,6 +332,9 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) (st
 		}
 		return buf.String(), nil
 	case "autotrade_open":
+		if a.Limit > 0 {
+			return entry(b.OpenLimit(ctx, a.Side, a.Approaches, a.USDT, a.Limit, a.SL, a.TP, time.Duration(a.ExpiresMin)*time.Minute, a.Reason))
+		}
 		return entry(b.Open(ctx, a.Side, a.Approaches, a.USDT, a.SL, a.TP, a.Reason))
 	case "autotrade_protect":
 		return entry(b.Protect(ctx, a.SL, a.TP, a.Reason))

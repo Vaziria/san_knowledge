@@ -111,7 +111,8 @@ func LossSummaryKey(symbol string) string    { return "loss_summary/" + symbol }
 
 // PairTitle writes a symbol as a pair: BTCUSDT is btc/usdt.
 func PairTitle(symbol string) string {
-	for _, q := range []string{"USDT", "USDC", "FDUSD", "BUSD", "BTC", "ETH", "BNB"} {
+	// USD last, after the quotes ending in it: MetaTrader's XAUUSD is xau/usd.
+	for _, q := range []string{"USDT", "USDC", "FDUSD", "BUSD", "BTC", "ETH", "BNB", "USD"} {
 		if base, ok := strings.CutSuffix(symbol, q); ok && base != "" {
 			return strings.ToLower(base) + "/" + strings.ToLower(q)
 		}

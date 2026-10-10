@@ -28,18 +28,7 @@ var setupLabel = regexp.MustCompile(`^[a-z][a-z0-9_]{0,31}$`)
 // snapshot the analysis was made on is kept with the open, for the
 // knowledge graph.
 func (b *Bot) Open(ctx context.Context, side string, approaches []string, usdt, sl, tp float64, reason string) (Entry, error) {
-	if reason == "" {
-		return Entry{}, errors.New("a reason is required")
-	}
-	if len(approaches) == 0 {
-		return Entry{}, errors.New("name the approaches the analysis used (at least one)")
-	}
-	for _, a := range approaches {
-		if !setupLabel.MatchString(a) {
-			return Entry{}, fmt.Errorf("approach %q must be a short lowercase label such as big_trend", a)
-		}
-	}
-	if err := b.checkApproaches(approaches); err != nil {
+	if err := b.checkOpen(reason, approaches); err != nil {
 		return Entry{}, err
 	}
 	e := Entry{Time: b.now(ctx), Symbol: b.Cfg.Symbol, Action: "open_" + side, Setup: approaches[0], Approaches: approaches,
@@ -55,13 +44,56 @@ func (b *Bot) Open(ctx context.Context, side string, approaches []string, usdt, 
 	return b.record(e, err)
 }
 
+// checkOpen checks what every open needs: a reason and known approaches.
+func (b *Bot) checkOpen(reason string, approaches []string) error {
+	if reason == "" {
+		return errors.New("a reason is required")
+	}
+	if len(approaches) == 0 {
+		return errors.New("name the approaches the analysis used (at least one)")
+	}
+	for _, a := range approaches {
+		if !setupLabel.MatchString(a) {
+			return fmt.Errorf("approach %q must be a short lowercase label such as big_trend", a)
+		}
+	}
+	return b.checkApproaches(approaches)
+}
+
 // Close closes the whole position at the market price and cancels its
-// stop-loss and take-profit.
+// stop-loss and take-profit. With no position but a limit entry waiting, it
+// cancels the entry instead.
 func (b *Bot) Close(ctx context.Context, reason string) (Entry, error) {
 	if reason == "" {
 		return Entry{}, errors.New("a reason is required")
 	}
 	e := Entry{Time: b.now(ctx), Symbol: b.Cfg.Symbol, Action: "close", Reason: reason}
+	if b.Ex.HasKey() {
+		if _, err := b.reconcile(ctx); err != nil {
+			return b.record(e, err)
+		}
+		p, err := b.pending()
+		if err != nil {
+			return b.record(e, err)
+		}
+		if p != nil {
+			if _, err := b.cancelEntry(ctx, p, reason); err != nil {
+				return b.record(e, err)
+			}
+			pos, err := b.Ex.Positions(ctx, b.Cfg.Symbol)
+			if err != nil {
+				return b.record(e, err)
+			}
+			if len(pos) == 0 {
+				all, err := b.Journal.Last(1)
+				if err != nil || len(all) == 0 {
+					return Entry{}, err
+				}
+				return all[0], nil // the cancel
+			}
+			// It filled while being cancelled: close that position too.
+		}
+	}
 	return b.record(e, b.close(ctx, &e))
 }
 
@@ -81,6 +113,11 @@ func (b *Bot) Hold(ctx context.Context, reason string) (Entry, error) {
 		return Entry{}, errors.New("a reason is required")
 	}
 	e := Entry{Time: b.now(ctx), Symbol: b.Cfg.Symbol, Action: "hold", Reason: reason}
+	if msgs, err := b.reconcile(ctx); err != nil {
+		e.Warning = "checking the limit entry failed: " + err.Error()
+	} else if len(msgs) > 0 {
+		e.Warning = strings.Join(msgs, " ")
+	}
 	if pi, err := b.Ex.PremiumIndex(ctx, b.Cfg.Symbol); err == nil {
 		e.Price = pi.MarkPrice
 	}
@@ -100,6 +137,9 @@ func (b *Bot) now(ctx context.Context) time.Time {
 func (b *Bot) record(e Entry, err error) (Entry, error) {
 	if err != nil {
 		e.Error = err.Error()
+	}
+	if unit, _, _ := b.terms(context.Background()); e.Currency == "" && unit != "USDT" {
+		e.Currency = unit
 	}
 	if jerr := b.Journal.Append(e); jerr != nil {
 		if err == nil {
@@ -132,45 +172,48 @@ func checkLevels(info binance.SymbolInfo, long bool, mark, sl, tp float64) error
 }
 
 // checkRisk checks the loss if the stop is hit, from the mark price.
-func (b *Bot) checkRisk(info binance.SymbolInfo, mark, sl, qty float64) error {
+func (b *Bot) checkRisk(ctx context.Context, info binance.SymbolInfo, mark, sl, qty float64) error {
 	if b.Cfg.MaxRiskUSDT <= 0 {
 		return nil
 	}
 	dist := math.Abs(mark - sl)
 	if risk := dist * qty; risk > b.Cfg.MaxRiskUSDT {
-		return fmt.Errorf("a stop-loss at %s loses %.2f USDT, over max_risk_usdt %.2f: use at most %.0f USDT or a closer stop",
-			info.FormatPrice(sl), risk, b.Cfg.MaxRiskUSDT, math.Floor(b.Cfg.MaxRiskUSDT/dist*mark))
+		unit, _, maxRisk := b.terms(ctx)
+		return fmt.Errorf("a stop-loss at %s loses %.2f %s, over %s %.2f: use at most %.0f %s or a closer stop",
+			info.FormatPrice(sl), risk, unit, maxRisk, b.Cfg.MaxRiskUSDT, math.Floor(b.Cfg.MaxRiskUSDT/dist*mark), unit)
+	}
+	return nil
+}
+
+// checkSize checks the size of a new position against its limit.
+func (b *Bot) checkSize(ctx context.Context, usdt float64) error {
+	unit, maxPos, _ := b.terms(ctx)
+	switch {
+	case usdt <= 0:
+		return fmt.Errorf("the size in %s must be positive", unit)
+	case usdt > b.Cfg.MaxPositionUSDT:
+		return fmt.Errorf("%.2f %s is over %s %.2f", usdt, unit, maxPos, b.Cfg.MaxPositionUSDT)
 	}
 	return nil
 }
 
 func (b *Bot) open(ctx context.Context, e *Entry, side string) error {
 	sym := b.Cfg.Symbol
-	switch {
-	case side != "long" && side != "short":
+	if side != "long" && side != "short" {
 		return fmt.Errorf("side must be long or short, not %q", side)
-	case e.USDT <= 0:
-		return errors.New("the size in USDT must be positive")
-	case e.USDT > b.Cfg.MaxPositionUSDT:
-		return fmt.Errorf("%.2f USDT is over max_position_usdt %.2f", e.USDT, b.Cfg.MaxPositionUSDT)
+	}
+	if err := b.checkSize(ctx, e.USDT); err != nil {
+		return err
+	}
+	switch {
 	case e.StopLoss <= 0:
 		return errors.New("a stop-loss is required")
 	case !b.Ex.HasKey():
 		return errNoKey
 	}
 	long := side == "long"
-
-	if dual, err := b.Ex.DualSide(ctx); err != nil {
+	if err := b.ready(ctx); err != nil {
 		return err
-	} else if dual {
-		return errors.New("the account is in hedge mode; switch it to one-way mode")
-	}
-	pos, err := b.Ex.Positions(ctx, sym)
-	if err != nil {
-		return err
-	}
-	if len(pos) > 0 {
-		return fmt.Errorf("a %s position of %g is already open; close it first", pos[0].Side(), math.Abs(pos[0].Amount))
 	}
 	info, err := b.Ex.SymbolInfo(ctx, sym)
 	if err != nil {
@@ -189,31 +232,18 @@ func (b *Bot) open(ctx context.Context, e *Entry, side string) error {
 		return err
 	}
 	qty := info.FloorQty(e.USDT / mark)
+	unit, _, _ := b.terms(ctx)
 	if qty < info.MinQty || qty <= 0 {
-		return fmt.Errorf("%.2f USDT buys %s, under the minimum quantity %s", e.USDT, info.FormatQty(qty), info.FormatQty(info.MinQty))
+		return fmt.Errorf("%.2f %s buys %s, under the minimum quantity %s", e.USDT, unit, info.FormatQty(qty), info.FormatQty(info.MinQty))
 	}
 	if qty*mark < info.MinNotional {
-		return fmt.Errorf("%.2f USDT is under the minimum order value of %.2f USDT", qty*mark, info.MinNotional)
+		return fmt.Errorf("%.2f %s is under the minimum order value of %.2f %s", qty*mark, unit, info.MinNotional, unit)
 	}
-	if err := b.checkRisk(info, mark, e.StopLoss, qty); err != nil {
+	if err := b.checkRisk(ctx, info, mark, e.StopLoss, qty); err != nil {
 		return err
 	}
-
-	// Close-position orders left from an earlier position would close this
-	// one too.
-	if left, err := b.Ex.OpenAlgoOrders(ctx, sym); err != nil {
+	if err := b.prepare(ctx); err != nil {
 		return err
-	} else if len(left) > 0 {
-		if err := b.Ex.CancelAlgoOrders(ctx, sym); err != nil {
-			return err
-		}
-	}
-	if sc, err := b.Ex.SymbolConfig(ctx, sym); err != nil {
-		return err
-	} else if sc.Leverage != b.Cfg.Leverage {
-		if err := b.Ex.SetLeverage(ctx, sym, b.Cfg.Leverage); err != nil {
-			return err
-		}
 	}
 
 	openSide, closeSide := sides(long)
@@ -304,11 +334,17 @@ func (b *Bot) protect(ctx context.Context, e *Entry) error {
 	case !b.Ex.HasKey():
 		return errNoKey
 	}
+	if _, err := b.reconcile(ctx); err != nil {
+		return err
+	}
 	pos, err := b.Ex.Positions(ctx, sym)
 	if err != nil {
 		return err
 	}
 	if len(pos) == 0 {
+		if p, err := b.pending(); err == nil && p != nil {
+			return errors.New("the limit entry has not filled yet; to change its levels, `close` cancels it and a new open places it again")
+		}
 		return errors.New("there is no open position to protect")
 	}
 	p := pos[0]
@@ -343,14 +379,24 @@ func (b *Bot) protect(ctx context.Context, e *Entry) error {
 			if long && e.StopLoss < cur || !long && e.StopLoss > cur {
 				return fmt.Errorf("the stop-loss can only be tightened: it is at %s, %s is further away", info.FormatPrice(cur), info.FormatPrice(e.StopLoss))
 			}
-		} else if err := b.checkRisk(info, mark, e.StopLoss, math.Abs(p.Amount)); err != nil {
+		} else if err := b.checkRisk(ctx, info, mark, e.StopLoss, math.Abs(p.Amount)); err != nil {
 			return err
 		}
 	}
 
 	_, closeSide := sides(long)
+	_, inOneStep := b.Ex.(PositionStops)
 	replace := func(typ string, price float64) error {
 		old := ofType(orders, typ)
+		if inOneStep {
+			// MetaTrader moves the position's own stop: no gap without one.
+			n, err := b.Ex.StopOrder(ctx, sym, closeSide, typ, info.FormatPrice(price))
+			if err != nil {
+				return fmt.Errorf("the new %s was rejected, the old one stays: %w", typ, err)
+			}
+			e.OrderIDs = append(e.OrderIDs, n.AlgoID)
+			return nil
+		}
 		// Only one close-position order per type is allowed (-4130), so the
 		// old one goes first.
 		for _, o := range old {

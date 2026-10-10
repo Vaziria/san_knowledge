@@ -290,10 +290,32 @@ func TestFinalsAndViews(t *testing.T) {
 }
 
 func TestPairTitle(t *testing.T) {
-	for sym, want := range map[string]string{"BTCUSDT": "btc/usdt", "ETHUSDC": "eth/usdc", "SOLBTC": "sol/btc", "XYZ": "xyz"} {
+	for sym, want := range map[string]string{"BTCUSDT": "btc/usdt", "ETHUSDC": "eth/usdc", "SOLBTC": "sol/btc", "XYZ": "xyz", "XAUUSD": "xau/usd", "ETHBUSD": "eth/busd"} {
 		if got := PairTitle(sym); got != want {
 			t.Errorf("PairTitle(%s) = %s, want %s", sym, got, want)
 		}
+	}
+}
+
+func TestRiskHoldsEachPairToItsVenue(t *testing.T) {
+	in := Input{Config: Config{Leverage: 5, MaxPositionUSDT: 1000, MaxRiskUSDT: 10,
+		MT5: VenueLimits{Pairs: []string{"XAUUSD"}, Leverage: 100, MaxPosition: 5000, MaxRisk: 50}},
+		Positions: []Position{
+			{N: 1, Symbol: "XAUUSD", Side: "long", Status: "open", Entry: 2650, Stop: 2640, Qty: 1},       // 2,650 at stake 10: within mt5's
+			{N: 2, Symbol: "BTCUSDT", Side: "long", Status: "open", Entry: 80000, Stop: 79000, Qty: 0.02}, // 1,600 at stake 20: over both
+		}}
+	props := riskProps(in, Account{Wallet: 10000})
+	w := props["warnings"].([]string)
+	if len(w) != 2 || !strings.Contains(w[0], "#2") || !strings.Contains(w[0], "max_position_usdt") || !strings.Contains(w[1], "max_risk_usdt") {
+		t.Errorf("warnings %q", w)
+	}
+	if m := props["open_margin"]; m != 346.5 { // 2,650/100 + 1,600/5
+		t.Errorf("open margin %v", m)
+	}
+	in.Positions[0].Qty = 6 // 15,900 at stake 60
+	w = riskProps(in, Account{Wallet: 10000})["warnings"].([]string)
+	if len(w) != 4 || !strings.Contains(w[0], "#1") || !strings.Contains(w[0], "mt5.max_position 5000.00") || !strings.Contains(w[1], "mt5.max_risk 50.00") {
+		t.Errorf("warnings %q", w)
 	}
 }
 

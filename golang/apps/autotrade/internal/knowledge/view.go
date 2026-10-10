@@ -298,9 +298,21 @@ func RiskMarkdown(s *Store) (string, error) {
 	fmt.Fprintf(&b, "- Open position limit: %d open per pair, at most %.2f USDT a position, a stop-loss on each, loss at the stop %s\n",
 		int(r.Num("max_open_per_pair")), r.Num("max_position_usdt"), maxRisk)
 	fmt.Fprintf(&b, "- Leverage: %dx, so a full-size position needs %.2f USDT of margin\n", lev, r.Num("max_position_usdt")/float64(lev))
-	if wallet {
+	mt5 := r.Strs("mt5_pairs")
+	if len(mt5) > 0 {
+		mt5Risk := "no cap"
+		if v := r.Num("mt5_max_risk"); v > 0 {
+			mt5Risk = fmt.Sprintf("%.2f USD", v)
+		}
+		fmt.Fprintf(&b, "- MetaTrader 5 demo (%s), in the account currency: at most %.2f USD a position, loss at the stop %s, leverage %dx\n",
+			strings.Join(mt5, ", "), r.Num("mt5_max_position"), mt5Risk, int(r.Num("mt5_leverage")))
+	}
+	switch {
+	case wallet && len(mt5) > 0:
+		fmt.Fprintf(&b, "- Wallet: %.2f, Binance's USDT and MetaTrader's USD together\n", r.Num("wallet"))
+	case wallet:
 		fmt.Fprintf(&b, "- Wallet: %.2f USDT\n", r.Num("wallet"))
-	} else {
+	default:
 		b.WriteString("- Wallet: unknown (no API key, or the account could not be read)\n")
 	}
 	if n := int(r.Num("open")); n == 0 {

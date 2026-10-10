@@ -119,6 +119,49 @@ func TestStopOrderUsesAlgoAPI(t *testing.T) {
 	}
 }
 
+func TestLimitOrderIsPostOnly(t *testing.T) {
+	c := server(t, func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		for k, v := range map[string]string{"type": "LIMIT", "timeInForce": "GTX", "side": "BUY", "quantity": "0.006"} {
+			if q.Get(k) != v {
+				t.Errorf("%s = %q, want %q", k, q.Get(k), v)
+			}
+		}
+		if q.Get("price") == "80100.0" {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, `{"code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected."}`)
+			return
+		}
+		fmt.Fprint(w, `{"orderId":42,"status":"NEW","side":"BUY","type":"LIMIT","price":"79900.0","origQty":"0.006","avgPrice":"0.00","executedQty":"0","updateTime":1791621317552}`)
+	})
+	o, err := c.LimitOrder(context.Background(), "BTCUSDT", "BUY", "0.006", "79900.0")
+	if err != nil || o.OrderID != 42 || o.Price != 79900 || o.OrigQty != 0.006 || !o.Working() {
+		t.Fatalf("order = %+v, err = %v", o, err)
+	}
+	if _, err := c.LimitOrder(context.Background(), "BTCUSDT", "BUY", "0.006", "80100.0"); !errors.Is(err, ErrWouldTake) {
+		t.Errorf("err = %v, want ErrWouldTake", err)
+	}
+}
+
+func TestReduceStopOrderHasQuantity(t *testing.T) {
+	c := server(t, func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		for k, v := range map[string]string{"type": "STOP_MARKET", "quantity": "0.006", "reduceOnly": "true", "workingType": "MARK_PRICE"} {
+			if q.Get(k) != v {
+				t.Errorf("%s = %q, want %q", k, q.Get(k), v)
+			}
+		}
+		if q.Has("closePosition") {
+			t.Error("closePosition sent with a quantity")
+		}
+		fmt.Fprint(w, `{"algoId":7,"orderType":"STOP_MARKET","side":"SELL","triggerPrice":"79500.0","quantity":"0.006","closePosition":false,"algoStatus":"NEW"}`)
+	})
+	o, err := c.ReduceStopOrder(context.Background(), "BTCUSDT", "SELL", StopMarket, "79500.0", "0.006")
+	if err != nil || o.AlgoID != 7 || o.Quantity != 0.006 || o.ClosePosition {
+		t.Fatalf("order = %+v, err = %v", o, err)
+	}
+}
+
 func TestKlinesAndSymbolInfo(t *testing.T) {
 	c := server(t, func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

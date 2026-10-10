@@ -28,17 +28,24 @@ type fakeEx struct {
 	dual     bool
 	noKey    bool
 	income   []binance.Income
+	limits   map[int64]*binance.Order // limit orders by id
+	now      time.Time                // zero: 2026-10-09 10:00 UTC
 }
 
 func newFake() *fakeEx {
-	return &fakeEx{mark: 80000, leverage: 20, nextID: 100, stopErr: map[string]error{}}
+	return &fakeEx{mark: 80000, leverage: 20, nextID: 100, stopErr: map[string]error{}, limits: map[int64]*binance.Order{}}
 }
 
 func (f *fakeEx) call(format string, a ...any) { f.calls = append(f.calls, fmt.Sprintf(format, a...)) }
 
-func (f *fakeEx) HasKey() bool                           { return !f.noKey }
-func (f *fakeEx) SyncTime(context.Context) error         { return nil }
-func (f *fakeEx) Now() time.Time                         { return time.Date(2026, 10, 9, 10, 0, 0, 0, time.UTC) }
+func (f *fakeEx) HasKey() bool                   { return !f.noKey }
+func (f *fakeEx) SyncTime(context.Context) error { return nil }
+func (f *fakeEx) Now() time.Time {
+	if !f.now.IsZero() {
+		return f.now
+	}
+	return time.Date(2026, 10, 9, 10, 0, 0, 0, time.UTC)
+}
 func (f *fakeEx) DualSide(context.Context) (bool, error) { return f.dual, nil }
 func (f *fakeEx) SymbolInfo(context.Context, string) (binance.SymbolInfo, error) {
 	return binance.SymbolInfo{Symbol: "BTCUSDT", TickSize: 0.1, PriceDec: 1, StepSize: 0.001, QtyDec: 3, MinQty: 0.001, MaxQty: 120, MinNotional: 100}, nil
@@ -98,6 +105,83 @@ func (f *fakeEx) StopOrder(_ context.Context, _, side, typ, trigger string) (bin
 	fmt.Sscan(trigger, &p)
 	f.nextID++
 	o := binance.AlgoOrder{AlgoID: f.nextID, Type: typ, Side: side, TriggerPrice: p, ClosePosition: true, Status: "NEW"}
+	f.orders = append(f.orders, o)
+	return o, nil
+}
+
+// LimitOrder rests the order; a buy at or over the mark (a sell at or under)
+// would take, so it is refused like a post-only order.
+func (f *fakeEx) LimitOrder(_ context.Context, _, side, qty, price string) (binance.Order, error) {
+	f.call("limit %s %s @ %s", side, qty, price)
+	var q, p float64
+	fmt.Sscan(qty, &q)
+	fmt.Sscan(price, &p)
+	if side == "BUY" && p >= f.mark || side == "SELL" && p <= f.mark {
+		return binance.Order{}, binance.ErrWouldTake
+	}
+	f.nextID++
+	o := &binance.Order{OrderID: f.nextID, Status: "NEW", Side: side, Type: "LIMIT", Price: p, OrigQty: q}
+	f.limits[o.OrderID] = o
+	return *o, nil
+}
+
+// fill fills the limit order id by qty at its price, as the exchange would.
+func (f *fakeEx) fill(id int64, qty float64, at time.Time) {
+	o := f.limits[id]
+	if f.pos == 0 {
+		f.entry = o.Price
+	}
+	if o.Side == "SELL" {
+		f.pos -= qty
+	} else {
+		f.pos += qty
+	}
+	f.pos = math.Round(f.pos*1000) / 1000
+	o.ExecutedQty += qty
+	o.AvgPrice, o.Updated = o.Price, at
+	o.Status = "PARTIALLY_FILLED"
+	if o.ExecutedQty >= o.OrigQty {
+		o.Status = "FILLED"
+	}
+}
+
+func (f *fakeEx) GetOrder(_ context.Context, _ string, id int64) (binance.Order, error) {
+	o, ok := f.limits[id]
+	if !ok {
+		return binance.Order{}, fmt.Errorf("no order %d", id)
+	}
+	return *o, nil
+}
+
+func (f *fakeEx) CancelOrder(_ context.Context, _ string, id int64) (binance.Order, error) {
+	f.call("cancel order %d", id)
+	o, ok := f.limits[id]
+	if !ok || !o.Working() {
+		return binance.Order{}, fmt.Errorf("order %d is not open", id)
+	}
+	o.Status = "CANCELED"
+	return *o, nil
+}
+
+func (f *fakeEx) BookTicker(context.Context, string) (binance.Book, error) {
+	return binance.Book{Bid: f.mark - 0.1, Ask: f.mark + 0.1}, nil
+}
+
+func (f *fakeEx) CommissionRate(context.Context, string) (binance.Commission, error) {
+	return binance.Commission{Maker: 0.0002, Taker: 0.0004}, nil
+}
+
+func (f *fakeEx) ReduceStopOrder(_ context.Context, _, side, typ, trigger, qty string) (binance.AlgoOrder, error) {
+	f.call("reduce-only %s %s %s x %s", typ, side, trigger, qty)
+	if err := f.stopErr[typ]; err != nil {
+		delete(f.stopErr, typ)
+		return binance.AlgoOrder{}, err
+	}
+	var p, q float64
+	fmt.Sscan(trigger, &p)
+	fmt.Sscan(qty, &q)
+	f.nextID++
+	o := binance.AlgoOrder{AlgoID: f.nextID, Type: typ, Side: side, TriggerPrice: p, Quantity: q, Status: "NEW"}
 	f.orders = append(f.orders, o)
 	return o, nil
 }
@@ -305,13 +389,203 @@ func TestHoldAndRender(t *testing.T) {
 		"Position: none",
 		"hold @ 80,000.0. Reason: no edge",
 		"open_long 0.006 @ 80,000.0 (480.00 USDT) SL 79,500.0. Reason: breakout",
-		"left over from a closed position",
+		"Cancelled 1 stop/take-profit orders left from a closed position.",
 		"stop-loss or take-profit was hit",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("render is missing %q:\n%s", want, out)
 		}
 	}
+	if len(ex.orders) != 0 {
+		t.Errorf("the left-over order is still there: %+v", ex.orders)
+	}
+}
+
+func TestOpenLimitWaitsWithItsStops(t *testing.T) {
+	ex := newFake()
+	b := newBot(t, ex)
+	e, err := b.OpenLimit(context.Background(), "long", []string{"trend_pullback"}, 500, 79900, 79500, 80700, 0, "pullback to support")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e.Action != "order_long" || e.Limit != 79900 || e.Qty != 0.006 || !e.Expires.Equal(e.Time.Add(DefaultExpiry)) {
+		t.Errorf("entry = %+v", e)
+	}
+	want := "limit BUY 0.006 @ 79900.0; reduce-only STOP_MARKET SELL 79500.0 x 0.006; reduce-only TAKE_PROFIT_MARKET SELL 80700.0 x 0.006"
+	if !strings.HasSuffix(calls(ex), want) {
+		t.Errorf("calls = %s\nwant suffix %s", calls(ex), want)
+	}
+	if ex.pos != 0 {
+		t.Error("a limit entry must not open a position before it fills")
+	}
+	// A second open, at market or limit, waits for this one.
+	if _, err := b.Open(context.Background(), "long", []string{"trend_pullback"}, 500, 79500, 0, "again"); err == nil || !strings.Contains(err.Error(), "waiting to fill") {
+		t.Errorf("market open while waiting: err = %v", err)
+	}
+	// Protect refuses: there is no position yet.
+	if _, err := b.Protect(context.Background(), 79600, 0, "tighten"); err == nil || !strings.Contains(err.Error(), "not filled") {
+		t.Errorf("protect while waiting: err = %v", err)
+	}
+}
+
+func TestOpenLimitRefusals(t *testing.T) {
+	cases := []struct {
+		name               string
+		limit, sl, tp, usd float64
+		want               string
+	}{
+		{"would take", 80100, 79500, 81000, 500, "taker"},
+		{"stop over the limit", 79900, 79950, 81000, 500, "wrong side of the limit price"},
+		{"target under the limit", 79900, 79500, 79800, 500, "wrong side of the limit price"},
+		{"risk from the limit", 79900, 77900, 0, 1000, "max_risk_usdt"}, // 0.012 x 2000 = 24 > 20
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ex := newFake()
+			_, err := newBot(t, ex).OpenLimit(context.Background(), "long", []string{"trend_pullback"}, c.usd, c.limit, c.sl, c.tp, 0, "test")
+			if err == nil || !strings.Contains(err.Error(), c.want) {
+				t.Fatalf("err = %v, want %q", err, c.want)
+			}
+			if len(ex.orders) != 0 {
+				t.Errorf("stop orders left: %+v", ex.orders)
+			}
+		})
+	}
+	// A rejected stop cancels the entry.
+	ex := newFake()
+	ex.stopErr[binance.StopMarket] = errors.New("-2021 would trigger")
+	_, err := newBot(t, ex).OpenLimit(context.Background(), "long", []string{"trend_pullback"}, 500, 79900, 79500, 0, 0, "test")
+	if err == nil || !strings.Contains(err.Error(), "limit entry was cancelled") {
+		t.Fatalf("err = %v", err)
+	}
+	for _, o := range ex.limits {
+		if o.Working() {
+			t.Errorf("the entry is still working: %+v", o)
+		}
+	}
+}
+
+func TestLimitEntryFillBecomesTheOpen(t *testing.T) {
+	ex := newFake()
+	b := newBot(t, ex)
+	e, err := b.OpenLimit(context.Background(), "long", []string{"trend_pullback"}, 500, 79900, 79500, 80700, 0, "pullback to support")
+	if err != nil {
+		t.Fatal(err)
+	}
+	filledAt := e.Time.Add(4 * time.Minute)
+	ex.fill(e.OrderIDs[0], 0.006, filledAt)
+
+	h, err := b.Hold(context.Background(), "in the trade")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if h.Qty != 0.006 || !strings.Contains(h.Warning, "filled 0.006 @ 79900") {
+		t.Errorf("hold = %+v", h)
+	}
+	all, _ := b.Journal.Last(10)
+	var open *Entry
+	for i := range all {
+		if all[i].Action == "open_long" {
+			open = &all[i]
+		}
+	}
+	if open == nil || !open.Time.Equal(filledAt) || open.Price != 79900 || open.Limit != 79900 || open.StopLoss != 79500 || open.Setup != "trend_pullback" {
+		t.Fatalf("open entry = %+v", open)
+	}
+	if p, _ := b.pending(); p != nil {
+		t.Error("the filled entry is still pending")
+	}
+	// The reduce-only stop and target stay as the position's protection.
+	if len(ex.orders) != 2 {
+		t.Errorf("orders = %+v", ex.orders)
+	}
+	// Protect replaces them with close-position orders.
+	ex.mark = 80200
+	if _, err := b.Protect(context.Background(), 79800, 0, "tighten"); err != nil {
+		t.Fatal(err)
+	}
+	if !hasStop(ex.orders) || ofType(ex.orders, binance.StopMarket)[0].TriggerPrice != 79800 {
+		t.Errorf("orders after protect = %+v", ex.orders)
+	}
+}
+
+func TestLimitEntryPartialFillCancelsTheRest(t *testing.T) {
+	ex := newFake()
+	b := newBot(t, ex)
+	e, err := b.OpenLimit(context.Background(), "long", []string{"trend_pullback"}, 1000, 79900, 79500, 0, 0, "pullback")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ex.fill(e.OrderIDs[0], 0.004, e.Time.Add(time.Minute))
+	if _, err := b.Snapshot(context.Background(), 3); err != nil {
+		t.Fatal(err)
+	}
+	if o := ex.limits[e.OrderIDs[0]]; o.Status != "CANCELED" || o.ExecutedQty != 0.004 {
+		t.Errorf("order = %+v", o)
+	}
+	all, _ := b.Journal.Last(1)
+	if all[0].Action != "open_long" || all[0].Qty != 0.004 || !strings.Contains(all[0].Warning, "partly filled") {
+		t.Errorf("last entry = %+v", all[0])
+	}
+}
+
+func TestLimitEntryIsCancelled(t *testing.T) {
+	t.Run("expired", func(t *testing.T) {
+		ex := newFake()
+		b := newBot(t, ex)
+		e, err := b.OpenLimit(context.Background(), "long", []string{"trend_pullback"}, 500, 79900, 79500, 80700, 10*time.Minute, "pullback")
+		if err != nil {
+			t.Fatal(err)
+		}
+		ex.now = e.Time.Add(11 * time.Minute)
+		s, err := b.Snapshot(context.Background(), 3)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(s.Notes) == 0 || !strings.Contains(s.Notes[0], "not filled within 10m") {
+			t.Errorf("notes = %v", s.Notes)
+		}
+		if len(ex.orders) != 0 || ex.limits[e.OrderIDs[0]].Status != "CANCELED" {
+			t.Errorf("orders = %+v, entry %+v", ex.orders, ex.limits[e.OrderIDs[0]])
+		}
+		all, _ := b.Journal.Last(1)
+		if all[0].Action != "cancel" {
+			t.Errorf("last entry = %+v", all[0])
+		}
+	})
+	t.Run("ran to the target", func(t *testing.T) {
+		ex := newFake()
+		b := newBot(t, ex)
+		if _, err := b.OpenLimit(context.Background(), "long", []string{"trend_pullback"}, 500, 79900, 79500, 80700, 0, "pullback"); err != nil {
+			t.Fatal(err)
+		}
+		ex.mark = 80750
+		h, _ := b.Hold(context.Background(), "watching")
+		if !strings.Contains(h.Warning, "reached the target") {
+			t.Errorf("hold = %+v", h)
+		}
+	})
+	t.Run("by close", func(t *testing.T) {
+		ex := newFake()
+		b := newBot(t, ex)
+		if _, err := b.OpenLimit(context.Background(), "short", []string{"trend_pullback"}, 500, 80100, 80500, 79300, 0, "rejection"); err != nil {
+			t.Fatal(err)
+		}
+		c, err := b.Close(context.Background(), "the setup is gone")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if c.Action != "cancel" || c.Reason != "the setup is gone" || len(ex.orders) != 0 {
+			t.Errorf("close = %+v, orders %+v", c, ex.orders)
+		}
+		if p, _ := b.pending(); p != nil {
+			t.Error("still pending after close")
+		}
+		// The pair is free again.
+		if _, err := b.OpenLimit(context.Background(), "short", []string{"trend_pullback"}, 500, 80100, 80500, 0, 0, "again"); err != nil {
+			t.Errorf("new entry after the cancel: %v", err)
+		}
+	})
 }
 
 func TestSnapshotPlansTheOpenTrade(t *testing.T) {
@@ -549,7 +823,7 @@ func TestTradesPairPerSymbol(t *testing.T) {
 	}
 	ex.pos = 0.01 // the fake has one position for any symbol: both look open
 	all, _ := b.Journal.Last(10)
-	trades, err := b.trades(context.Background(), all, nil)
+	trades, _, err := b.trades(context.Background(), all, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

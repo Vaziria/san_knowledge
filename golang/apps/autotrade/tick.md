@@ -4,6 +4,14 @@ One pass of the loop in [docs/basic_flow.md](docs/basic_flow.md). Run it from th
 
 The pairs are the `pairs` in `autotrade.yaml`, now four: BTCUSDT, ETHUSDT, BNBUSDT and BCHUSDT. Each pair is traded on its own: its own snapshot, its own position, its own decision each tick. The limits apply per position, so up to one position per pair can be open at once, each risking up to `max_risk_usdt`. The Risk Summary (`autotrade_portfolio`) shows what all of them have at stake together.
 
+Pairs under `mt5.pairs` trade on a MetaTrader 5 demo account (MIFX) instead; there are none now. Their snapshot's portfolio heading says "MetaTrader 5 demo". For those pairs:
+- Sizes are units of the symbol, not lots, and `usdt` is the account currency (USD). The limits are `mt5.max_position` and `mt5.max_risk`; the snapshot's Limits line shows them and the smallest position.
+- There is no positioning section, so the Positioning step rests on price and volume alone. The volume is tick volume.
+- The cost is the spread (the snapshot's quote line shows it) plus any broker commission, not a maker or taker fee. Count the spread in the net R check in its place.
+- A limit entry is a plain limit order: a long's goes under the ask, a short's over the bid.
+- Outside the symbol's trading hours (weekends, holidays) the notes say it is not trading: hold.
+- When the terminal is closed, the tool reports "MetaTrader did not answer" for those pairs. Hold them and carry on with the others.
+
 - By hand: type `/autotrade` (or send `follow golang/apps/autotrade/tick.md`) shortly after a candle closes. The snapshot's "Next close" line says when that is (in UTC; this machine's clock runs about 4 minutes fast). Text after the command, such as `/autotrade only manage the open position`, is a note for that tick.
 - Scheduled: `/loop 5m /autotrade`
 
@@ -43,14 +51,18 @@ A tick has three phases, in this order ([docs/readme.md](docs/readme.md)): **Doi
    - **open**, only with all four:
      1. a thesis
      2. a trigger
-     3. an invalidation level, with the stop just beyond it, and **at least one ATR of the first context timeframe from the entry, and never closer than 0.3% of price** (now 15m; read each pair's own ATR). A stop sized on the trading interval gets taken out by ordinary noise, and the fees, about 0.1% per round trip, eat a larger share of a small stop: at a 0.3% stop they already cost a third of the risk. In a quiet market the 15m ATR is only about 0.1% on BTC, so the 0.3% floor decides; that is near one 1h ATR. Time the entry on the trading interval, but place the stop by the structure of the timeframes above it.
-     4. a target at a level, at least 1.5x the risk after about 0.1% round-trip fees
+     3. an invalidation level, with the stop just beyond it, and **at least one ATR of the first context timeframe from the entry, and never closer than 0.3% of price** (now 15m; read each pair's own ATR). A stop sized on the trading interval gets taken out by ordinary noise, and the fees eat a larger share of a small stop. In a quiet market the 15m ATR is only about 0.1% on BTC, so the 0.3% floor decides; that is near one 1h ATR. Time the entry on the trading interval, but place the stop by the structure of the timeframes above it.
+     4. a target at a level, in front of the next major level (one that already stopped price, or a higher-timeframe EMA), at least 1.5x the risk after the round-trip fees
 
-     Size it so the loss at the stop fits `max_risk_usdt`; the tool refuses anything larger. Name the **approaches** the analysis used: `autotrade_open` with `approaches` (CLI: `-approach a,b`). The first one labels the trade.
+     **Fees.** The snapshot's portfolio shows them per fill (this testnet account: maker 0.02%, taker 0.04%). A market entry pays taker twice, about 0.08% per round trip; a limit entry pays maker in and taker out (the stop and target are market orders), about 0.06%. Count them in the check: net R = (distance to target − round-trip fees) / (distance to stop + round-trip fees), all from the entry price you will actually get.
+
+     **Limit entries.** When the trigger is price coming to a level (a pullback, a retest, a rejection zone), enter with `limit`: a post-only order that rests in the book and pays the maker fee. A long's limit goes at or under the best bid, a short's at or over the best ask (the snapshot shows the book); one that would fill at once is refused. Its stop and target wait with it, so it is protected from its first fill. It is cancelled when unfilled after `expires_min` (default 15, three candles) or when the price reaches the target first. It shows under the portfolio as a limit entry waiting; when it fills it becomes the position (its open is dated at the fill). Each tick, keep it while the setup holds, or cancel it with `close` when the reason is gone. A partly filled entry keeps what filled and cancels the rest. Enter at market only when waiting would miss the trade, such as a breakout close that holds.
+
+     Size it so the loss at the stop fits `max_risk_usdt`; the tool refuses anything larger (for a limit entry, measured from the limit price). Name the **approaches** the analysis used: `autotrade_open` with `approaches` (CLI: `-approach a,b`). The first one labels the trade.
      - Use the catalog (`autotrade_approaches`): `big_trend`, `moving_average`, `resistance_rejection`, `positioning`, and the coded setups when you take their signal.
      - Only for a genuinely new way of reading the market, define a new approach first with `autotrade_approach_define`: a short name, a title, and what it reads and when it says to act. Reuse names so each approach's record builds up.
    - **protect**: move the stop toward profit when the structure allows it, for example after a new swing forms or the trade reaches +1R. Moving a target is fine too.
-   - **close**: the thesis is broken before the stop is hit, or price reached the target area and the move is fading.
+   - **close**: the thesis is broken before the stop is hit, or price reached the target area and the move is fading. With no position, `close` cancels a waiting limit entry.
    - **hold**: the usual answer. Say what you are watching, so the next tick can continue the plan.
 
 ### Updating Autotrade Knowledge

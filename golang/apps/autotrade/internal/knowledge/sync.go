@@ -3,6 +3,7 @@ package knowledge
 import (
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -74,6 +75,26 @@ type Config struct {
 	MaxPositionUSDT  float64 // notional of a new position
 	MaxRiskUSDT      float64 // loss at the stop of a new position; 0 = no cap
 	MaxOpenPerPair   int     // positions a pair may have open at once
+	// MT5 is the MetaTrader 5 venue: its pairs are held to its own leverage
+	// and limits, in the account currency.
+	MT5 VenueLimits
+}
+
+// VenueLimits are the pairs of a venue with their own leverage and limits.
+type VenueLimits struct {
+	Pairs       []string
+	Leverage    int
+	MaxPosition float64
+	MaxRisk     float64 // 0 = no cap
+}
+
+// limits returns the leverage and limits a pair's positions are held to,
+// and the names of its limit keys in autotrade.yaml.
+func (c Config) limits(symbol string) (lev int, maxPos, maxRisk float64, posKey, riskKey string) {
+	if slices.Contains(c.MT5.Pairs, symbol) {
+		return c.MT5.Leverage, c.MT5.MaxPosition, c.MT5.MaxRisk, "mt5.max_position", "mt5.max_risk"
+	}
+	return c.Leverage, c.MaxPositionUSDT, c.MaxRiskUSDT, "max_position_usdt", "max_risk_usdt"
 }
 
 // Account is the exchange wallet, in USDT.
@@ -265,10 +286,25 @@ func build(s *Store, in Input) Result {
 	for i, sym := range cfg.Pairs {
 		titles[i] = PairTitle(sym)
 	}
-	config := put(KeyConfiguration, TypeConfiguration, "Configuration", map[string]any{
+	configProps := map[string]any{
 		"pairs": cfg.Pairs, "interval": cfg.Interval, "context_intervals": cfg.ContextIntervals,
 		"trade_url": cfg.TradeURL, "setups": cfg.Setups, "fee_rate": cfg.FeeRate,
-	})
+	}
+	limitProps := map[string]any{
+		"max_position_usdt": cfg.MaxPositionUSDT, "max_risk_usdt": cfg.MaxRiskUSDT, "max_open_per_pair": cfg.MaxOpenPerPair,
+		"stop_required": true,
+	}
+	leverageProps := map[string]any{
+		"leverage": cfg.Leverage, "max_margin": round(cfg.MaxPositionUSDT/float64(max(cfg.Leverage, 1)), 2),
+	}
+	if m := cfg.MT5; len(m.Pairs) > 0 {
+		// The MetaTrader pairs' own limits, in its account currency.
+		configProps["mt5_pairs"] = m.Pairs
+		limitProps["mt5_max_position"], limitProps["mt5_max_risk"] = m.MaxPosition, m.MaxRisk
+		leverageProps["mt5_leverage"] = m.Leverage
+		leverageProps["mt5_max_margin"] = round(m.MaxPosition/float64(max(m.Leverage, 1)), 2)
+	}
+	config := put(KeyConfiguration, TypeConfiguration, "Configuration", configProps)
 	traded := put(KeyPairsTraded, TypePairsTraded, "Pair That Traded", map[string]any{
 		"symbols": cfg.Pairs, "pairs": titles, "count": len(cfg.Pairs),
 	})
@@ -276,13 +312,8 @@ func build(s *Store, in Input) Result {
 	for _, sym := range cfg.Pairs {
 		link(traded, pairID[sym], RelHave)
 	}
-	limit := put(KeyOpenLimit, TypeOpenLimit, "Open Position Limit", map[string]any{
-		"max_position_usdt": cfg.MaxPositionUSDT, "max_risk_usdt": cfg.MaxRiskUSDT, "max_open_per_pair": cfg.MaxOpenPerPair,
-		"stop_required": true,
-	})
-	leverage := put(KeyLeverage, TypeLeverage, "Leverage", map[string]any{
-		"leverage": cfg.Leverage, "max_margin": round(cfg.MaxPositionUSDT/float64(max(cfg.Leverage, 1)), 2),
-	})
+	limit := put(KeyOpenLimit, TypeOpenLimit, "Open Position Limit", limitProps)
+	leverage := put(KeyLeverage, TypeLeverage, "Leverage", leverageProps)
 	risk := put(KeyRiskSummary, TypeRiskSummary, "Risk Summary", riskProps(in, wallet))
 	link(config, limit, RelHave)
 	link(config, leverage, RelHave)

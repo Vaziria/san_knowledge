@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"cmp"
 	"fmt"
 	"io"
 	"math"
@@ -43,9 +44,22 @@ func (s *Snapshot) Render(w io.Writer) {
 		fmt.Fprintf(w, ", now %s (forming candle)", px(s.Forming.Close))
 	}
 	fmt.Fprintln(w)
-	if s.Mark != nil {
+	mt5 := s.Venue != ""
+	switch {
+	case s.Mark == nil:
+	case mt5:
+		fmt.Fprintf(w, "- %s price %s (middle of bid and ask; stops and limits are checked against it)\n", s.Venue, px(s.Mark.MarkPrice))
+	default:
 		fmt.Fprintf(w, "- Trading venue mark price %s, funding %+.4f%% (next %s UTC)\n",
 			px(s.Mark.MarkPrice), s.Mark.FundingRate*100, s.Mark.NextFunding.Format("15:04"))
+	}
+	switch {
+	case s.Book == nil:
+	case mt5:
+		fmt.Fprintf(w, "- %s quote: bid %s, ask %s, spread %s (a limit long goes under the ask, a short over the bid; a long fills at the ask and its stop triggers on the bid)\n",
+			s.Venue, px(s.Book.Bid), px(s.Book.Ask), px(s.Book.Ask-s.Book.Bid))
+	default:
+		fmt.Fprintf(w, "- Trading venue book: bid %s, ask %s (a post-only limit long rests at or under the bid, a short at or over the ask)\n", px(s.Book.Bid), px(s.Book.Ask))
 	}
 	var ch []string
 	for _, c := range f.Changes {
@@ -114,19 +128,30 @@ func (s *Snapshot) Render(w io.Writer) {
 
 	if len(s.Recent) > 0 {
 		fmt.Fprintf(w, "\n## Last %d candles (%s, UTC)\n\n", len(s.Recent), f.Interval)
-		fmt.Fprintln(w, "| open | o | h | l | c | volume USDT |")
+		volume := "volume USDT"
+		if mt5 {
+			volume = "tick volume" // MetaTrader has no traded volume for CFDs
+		}
+		fmt.Fprintf(w, "| open | o | h | l | c | %s |\n", volume)
 		fmt.Fprintln(w, "|---|---|---|---|---|---|")
 		for _, c := range s.Recent {
 			fmt.Fprintf(w, "| %s | %s | %s | %s | %s | %s |\n", c.OpenTime.Format("15:04"), px(c.Open), px(c.High), px(c.Low), px(c.Close), compact(c.QuoteVolume))
 		}
 	}
 
-	fmt.Fprintf(w, "\n## Portfolio (test network)\n\n")
+	venue, unit := "test network", "USDT"
+	if mt5 {
+		venue = s.Venue
+	}
+	if s.Currency != "" {
+		unit = s.Currency
+	}
+	fmt.Fprintf(w, "\n## Portfolio (%s)\n\n", venue)
 	if p := s.Portfolio; p == nil {
 		fmt.Fprintf(w, "Unavailable: %s\n", s.PortfolioErr)
 	} else {
 		a := p.Account
-		fmt.Fprintf(w, "- Wallet %s USDT, available %s, unrealized PnL %s\n", group(a.WalletBalance, 2), group(a.AvailableBalance, 2), signed(a.UnrealizedPnL))
+		fmt.Fprintf(w, "- Wallet %s %s, available %s, unrealized PnL %s\n", group(a.WalletBalance, 2), unit, group(a.AvailableBalance, 2), signed(a.UnrealizedPnL))
 		if pos := p.Position; pos == nil {
 			fmt.Fprintln(w, "- Position: none")
 		} else {
@@ -134,15 +159,38 @@ func (s *Snapshot) Render(w io.Writer) {
 			if pos.Amount < 0 {
 				move = -move
 			}
-			fmt.Fprintf(w, "- Position: %s %g @ %s (notional %s USDT), mark %s, unrealized %s USDT (%+.2f%%), liquidation %s, leverage %dx\n",
-				pos.Side(), math.Abs(pos.Amount), px(pos.EntryPrice), group(math.Abs(pos.Notional), 2), px(pos.MarkPrice),
-				signed(pos.UnrealizedPnL), move, px(pos.LiquidationPrice), p.Leverage)
+			liq := ", liquidation " + px(pos.LiquidationPrice)
+			if pos.LiquidationPrice == 0 {
+				liq = "" // MetaTrader has none: the broker stops out on margin level
+			}
+			fmt.Fprintf(w, "- Position: %s %g @ %s (notional %s %s), mark %s, unrealized %s %s (%+.2f%%)%s, leverage %dx\n",
+				pos.Side(), math.Abs(pos.Amount), px(pos.EntryPrice), group(math.Abs(pos.Notional), 2), unit, px(pos.MarkPrice),
+				signed(pos.UnrealizedPnL), unit, move, liq, p.Leverage)
+		}
+		if e := p.Pending; e != nil {
+			state := ""
+			if o := p.PendingOrder; o != nil {
+				state = fmt.Sprintf(", order %s, filled %g", strings.ToLower(o.Status), o.ExecutedQty)
+			}
+			kind := "post-only"
+			if mt5 {
+				kind = "limit order"
+			}
+			fmt.Fprintf(w, "- Limit entry waiting: %s %g @ %s (%s, %s %s), placed %s UTC, cancelled at %s UTC if unfilled%s\n",
+				strings.ToUpper(strings.TrimPrefix(e.Action, "order_")), e.Qty, px(e.Limit), kind, group(e.USDT, 2), unit, e.Time.Format("15:04"), e.Expires.Format("15:04"), state)
 		}
 		if len(p.Orders) == 0 {
 			fmt.Fprintln(w, "- Stop-loss / take-profit orders: none")
 		}
 		for _, o := range p.Orders {
-			fmt.Fprintf(w, "- %s %s at %s (algo %d)\n", orderName(o.Type), o.Side, px(o.TriggerPrice), o.AlgoID)
+			size := ""
+			if !o.ClosePosition && o.Quantity > 0 {
+				size = fmt.Sprintf(", reduce-only %g", o.Quantity)
+			}
+			fmt.Fprintf(w, "- %s %s at %s (algo %d%s)\n", orderName(o.Type), o.Side, px(o.TriggerPrice), o.AlgoID, size)
+		}
+		if f := p.Fees; f != nil {
+			fmt.Fprintf(w, "- Fees per fill: maker %.3f%% (a post-only limit entry), taker %.3f%% (market orders, stops, take-profits)\n", f.Maker*100, f.Taker*100)
 		}
 		if len(p.Income24h) > 0 {
 			keys := make([]string, 0, len(p.Income24h))
@@ -152,14 +200,25 @@ func (s *Snapshot) Render(w io.Writer) {
 			sort.Strings(keys)
 			var parts []string
 			for _, k := range keys {
-				parts = append(parts, fmt.Sprintf("%s %s", strings.ToLower(k), signed(p.Income24h[k])))
+				name := strings.ToLower(k)
+				if mt5 && k == "FUNDING_FEE" {
+					name = "swap" // MetaTrader's overnight financing
+				}
+				parts = append(parts, fmt.Sprintf("%s %s", name, signed(p.Income24h[k])))
 			}
 			fmt.Fprintf(w, "- Last 24h (%d closing trades): %s\n", p.TradeCount, strings.Join(parts, ", "))
 		}
 	}
 	l := s.Limits
-	fmt.Fprintf(w, "- Limits: max position %s USDT, max loss at stop %s USDT, leverage %dx. A stop-loss is required.\n",
-		group(l.MaxPositionUSDT, 0), group(l.MaxRiskUSDT, 0), l.Leverage)
+	fmt.Fprintf(w, "- Limits: max position %s %s, max loss at stop %s %s, leverage %dx. A stop-loss is required.\n",
+		group(l.MaxPositionUSDT, 0), unit, group(l.MaxRiskUSDT, 0), unit, l.Leverage)
+	if mt5 {
+		fmt.Fprintf(w, "- Sizes are in units of %s, not lots (1 lot = the contract size); `usdt` amounts are in %s.", s.Symbol, unit)
+		if s.Info != nil {
+			fmt.Fprintf(w, " The smallest size is %g (about %s %s now), in steps of %g.", s.Info.MinQty, group(s.Info.MinQty*s.Price, 0), unit, s.Info.StepSize)
+		}
+		fmt.Fprintln(w)
+	}
 
 	if pl := s.Plan; pl != nil {
 		fmt.Fprintf(w, "\n## Position plan (coded management rules)\n\n")
@@ -229,8 +288,15 @@ func (e Entry) Line(dec int) string {
 	if e.Price != 0 {
 		fmt.Fprintf(&b, " @ %s", px(e.Price))
 	}
-	if e.Action == "open_long" || e.Action == "open_short" {
-		fmt.Fprintf(&b, " (%s USDT)", group(e.USDT, 2))
+	if e.Limit != 0 {
+		fmt.Fprintf(&b, " limit %s", px(e.Limit))
+	}
+	unit := cmp.Or(e.Currency, "USDT")
+	if strings.HasPrefix(e.Action, "open_") || strings.HasPrefix(e.Action, "order_") {
+		fmt.Fprintf(&b, " (%s %s)", group(e.USDT, 2), unit)
+	}
+	if strings.HasPrefix(e.Action, "order_") && !e.Expires.IsZero() {
+		fmt.Fprintf(&b, " until %s", e.Expires.Format("15:04"))
 	}
 	if e.StopLoss != 0 {
 		fmt.Fprintf(&b, " SL %s", px(e.StopLoss))
@@ -239,7 +305,7 @@ func (e Entry) Line(dec int) string {
 		fmt.Fprintf(&b, " TP %s", px(e.TakeProfit))
 	}
 	if e.Action == "close" && e.Error == "" {
-		fmt.Fprintf(&b, " PnL %s USDT before fees", signed(e.PnL))
+		fmt.Fprintf(&b, " PnL %s %s before fees", signed(e.PnL), unit)
 	}
 	fmt.Fprintf(&b, ". Reason: %s", e.Reason)
 	if e.Warning != "" {

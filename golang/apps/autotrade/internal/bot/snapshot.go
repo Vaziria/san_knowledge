@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"math"
@@ -35,7 +36,13 @@ type Exchange interface {
 	SetLeverage(ctx context.Context, symbol string, leverage int) error
 	Income(ctx context.Context, symbol string, start, end time.Time) ([]binance.Income, error)
 	MarketOrder(ctx context.Context, symbol, side, qty string, reduceOnly bool) (binance.Order, error)
+	LimitOrder(ctx context.Context, symbol, side, qty, price string) (binance.Order, error)
+	GetOrder(ctx context.Context, symbol string, orderID int64) (binance.Order, error)
+	CancelOrder(ctx context.Context, symbol string, orderID int64) (binance.Order, error)
+	BookTicker(ctx context.Context, symbol string) (binance.Book, error)
+	CommissionRate(ctx context.Context, symbol string) (binance.Commission, error)
 	StopOrder(ctx context.Context, symbol, side, orderType, trigger string) (binance.AlgoOrder, error)
+	ReduceStopOrder(ctx context.Context, symbol, side, orderType, trigger, qty string) (binance.AlgoOrder, error)
 	OpenAlgoOrders(ctx context.Context, symbol string) ([]binance.AlgoOrder, error)
 	CancelAlgoOrder(ctx context.Context, symbol string, algoID int64) error
 	CancelAlgoOrders(ctx context.Context, symbol string) error
@@ -50,11 +57,35 @@ type Positioner interface {
 	FundingHistory(ctx context.Context, symbol string, limit int) ([]binance.Funding, error)
 }
 
+// PositionStops is a venue whose stop-loss and take-profit are part of the
+// position (MetaTrader): placing one replaces the old in a single step, so
+// protect does not cancel it first.
+type PositionStops interface{ StopsOnPosition() }
+
+// AccountCurrency is a venue whose amounts are not in USDT.
+type AccountCurrency interface {
+	AccountCurrency(ctx context.Context) string
+}
+
+// Venue is a trading venue besides Binance.
+type Venue struct {
+	Name   string // for the snapshot: "MetaTrader 5 demo"
+	Market Market
+	Ex     Exchange
+}
+
 type Bot struct {
-	Cfg     Config
+	Cfg Config
+	// Market and Ex are the venue of Cfg.Symbol: Binance, or MT5 for the
+	// mt5 pairs.
 	Market  Market
 	Ex      Exchange
 	Journal Journal
+	// MT5 is the venue of the mt5 pairs; nil when MetaTrader is not used.
+	MT5 *Venue
+	// home is the bot the pair's bot was made from: Binance's clients and
+	// the limits of autotrade.yaml. Nil on that bot itself.
+	home *Bot
 }
 
 // ForPair returns the bot that acts on pair (BTCUSDT or btc/usdt), which
@@ -62,24 +93,64 @@ type Bot struct {
 // is refused when there are several, so no action lands on a pair by
 // default.
 func (b *Bot) ForPair(pair string) (*Bot, error) {
-	sym := PairSymbol(pair)
-	if sym == "" {
+	var sym string
+	if PairSymbol(pair) == "" {
 		if len(b.Cfg.Pairs) != 1 {
 			return nil, fmt.Errorf("name the pair: one of %s", strings.Join(b.Cfg.Pairs, ", "))
 		}
 		sym = b.Cfg.Pairs[0]
+	} else if s, ok := b.Cfg.Resolve(pair); ok {
+		sym = s
+	} else {
+		return nil, fmt.Errorf("%s is not one of the pairs in autotrade.yaml (%s)", PairSymbol(pair), strings.Join(b.Cfg.Pairs, ", "))
 	}
-	if !b.Cfg.Trades(sym) {
-		return nil, fmt.Errorf("%s is not one of the pairs in autotrade.yaml (%s)", sym, strings.Join(b.Cfg.Pairs, ", "))
+	if b.Cfg.OnMT5(sym) && b.MT5 == nil {
+		return nil, fmt.Errorf("%s trades on MetaTrader 5, which is not set up", sym)
 	}
-	c := *b
+	return b.on(sym), nil
+}
+
+// on returns the bot of sym on its venue: MetaTrader 5 with mt5's leverage
+// and limits for an mt5 pair, else Binance with autotrade.yaml's.
+func (b *Bot) on(sym string) *Bot {
+	home := b
+	if b.home != nil {
+		home = b.home
+	}
+	c := *home
+	c.home = home
 	c.Cfg.Symbol = sym
-	return &c, nil
+	if home.MT5 != nil && home.Cfg.OnMT5(sym) {
+		m := home.Cfg.MT5
+		c.Market, c.Ex = home.MT5.Market, home.MT5.Ex
+		c.Cfg.Leverage, c.Cfg.MaxPositionUSDT, c.Cfg.MaxRiskUSDT = m.Leverage, m.MaxPosition, m.MaxRisk
+	}
+	return &c
+}
+
+// onMT5 reports whether the bot's pair trades on MetaTrader 5.
+func (b *Bot) onMT5() bool { return b.MT5 != nil && b.Cfg.OnMT5(b.Cfg.Symbol) }
+
+// terms are the words of the pair's venue in messages: the currency of its
+// amounts, and the names of its limits in autotrade.yaml.
+func (b *Bot) terms(ctx context.Context) (unit, maxPos, maxRisk string) {
+	if !b.onMT5() {
+		return "USDT", "max_position_usdt", "max_risk_usdt"
+	}
+	unit = "USD"
+	if ac, ok := b.Ex.(AccountCurrency); ok {
+		unit = cmp.Or(ac.AccountCurrency(ctx), unit)
+	}
+	return unit, "mt5.max_position", "mt5.max_risk"
 }
 
 // Snapshot is everything one tick decides on.
 type Snapshot struct {
-	Symbol    string    `json:"symbol"`
+	Symbol string `json:"symbol"`
+	// Venue is where the pair trades when not on Binance's test network
+	// ("MetaTrader 5 demo"), and Currency its account currency (USD).
+	Venue     string    `json:"venue,omitempty"`
+	Currency  string    `json:"currency,omitempty"`
 	Now       time.Time `json:"now"`
 	NextClose time.Time `json:"next_close"` // when the forming candle closes
 
@@ -96,6 +167,7 @@ type Snapshot struct {
 
 	Info *binance.SymbolInfo   `json:"symbol_info,omitempty"`
 	Mark *binance.PremiumIndex `json:"mark,omitempty"` // on the trading venue
+	Book *binance.Book         `json:"book,omitempty"` // best bid and ask on the trading venue, where a limit entry rests
 
 	Portfolio    *Portfolio `json:"portfolio,omitempty"`
 	PortfolioErr string     `json:"portfolio_error,omitempty"`
@@ -121,6 +193,10 @@ type Portfolio struct {
 	Orders     []binance.AlgoOrder `json:"orders"`     // stop-loss / take-profit
 	Income24h  map[string]float64  `json:"income_24h"` // by type: REALIZED_PNL, COMMISSION, FUNDING_FEE
 	TradeCount int                 `json:"trades_24h"` // REALIZED_PNL entries
+	Fees       *binance.Commission `json:"fees,omitempty"`
+	// Pending is the limit entry waiting to fill, and its order now.
+	Pending      *Entry         `json:"pending,omitempty"`
+	PendingOrder *binance.Order `json:"pending_order,omitempty"`
 }
 
 // Positioning is how futures traders are positioned (all ratios hourly).
@@ -165,6 +241,9 @@ func (b *Bot) Snapshot(ctx context.Context, recent int) (*Snapshot, error) {
 		Now:    now,
 		Limits: Limits{Leverage: cfg.Leverage, MaxPositionUSDT: cfg.MaxPositionUSDT, MaxRiskUSDT: cfg.MaxRiskUSDT},
 	}
+	if b.onMT5() {
+		s.Venue = b.MT5.Name
+	}
 
 	var base []binance.Candle // closed candles of the trading interval
 	ivs := append([]string{cfg.Interval}, cfg.ContextIntervals...)
@@ -204,6 +283,9 @@ func (b *Bot) Snapshot(ctx context.Context, recent int) (*Snapshot, error) {
 		s.Price = s.Forming.Close
 	}
 	s.LevelsAbove, s.LevelsBelow = levels(ivs, closedBy, s.Price)
+	if ac, ok := b.Ex.(AccountCurrency); ok {
+		s.Currency = ac.AccountCurrency(ctx)
+	}
 
 	if pm, ok := b.Market.(Positioner); ok {
 		if p, err := positioning(ctx, pm, cfg.Symbol); err != nil {
@@ -222,6 +304,15 @@ func (b *Bot) Snapshot(ctx context.Context, recent int) (*Snapshot, error) {
 		s.Problems = append(s.Problems, fmt.Sprintf("mark price: %v", err))
 	} else {
 		s.Mark = &pi
+	}
+	if bk, err := b.Ex.BookTicker(ctx, cfg.Symbol); err != nil {
+		s.Problems = append(s.Problems, fmt.Sprintf("order book: %v", err))
+	} else {
+		s.Book = &bk
+	}
+	done, err := b.reconcile(ctx)
+	if err != nil {
+		s.Problems = append(s.Problems, fmt.Sprintf("checking the limit entry: %v", err))
 	}
 
 	if !b.Ex.HasKey() {
@@ -250,7 +341,7 @@ func (b *Bot) Snapshot(ctx context.Context, recent int) (*Snapshot, error) {
 	if s.Portfolio != nil && s.Portfolio.Position != nil && len(s.Frames) >= 2 {
 		s.Plan = b.plan(s, base)
 	}
-	s.Notes = notes(s)
+	s.Notes = append(done, notes(s)...)
 	if err := b.saveLast(s); err != nil {
 		s.Problems = append(s.Problems, fmt.Sprintf("saving the snapshot: %v", err))
 	}
@@ -279,8 +370,8 @@ func (b *Bot) suggest(s *Snapshot, sigs []strategy.Signal) []string {
 			usdt = math.Min(usdt, b.Cfg.MaxRiskUSDT/dist*price)
 		}
 		usdt = math.Floor(usdt)
-		out = append(out, fmt.Sprintf("open %s -setup %s -usdt %.0f -sl %s -tp %s -reason \"...\"  (risk %.2f USDT, %s)",
-			sig.Side, sig.Setup, usdt, s.price(sig.Stop), s.price(sig.Target), usdt/price*dist, sig.Why))
+		out = append(out, fmt.Sprintf("open %s -setup %s -usdt %.0f -sl %s -tp %s -reason \"...\"  (risk %.2f %s, %s)",
+			sig.Side, sig.Setup, usdt, s.price(sig.Stop), s.price(sig.Target), usdt/price*dist, cmp.Or(s.Currency, "USDT"), sig.Why))
 	}
 	return out
 }
@@ -353,13 +444,40 @@ func (b *Bot) portfolio(ctx context.Context, now time.Time) (*Portfolio, error) 
 			p.TradeCount++
 		}
 	}
+	if c, err := b.Ex.CommissionRate(ctx, sym); err == nil {
+		p.Fees = &c
+	}
+	if p.Pending, err = b.pending(); err != nil {
+		return nil, err
+	}
+	if p.Pending != nil {
+		if o, err := b.Ex.GetOrder(ctx, sym, p.Pending.OrderIDs[0]); err == nil {
+			p.PendingOrder = &o
+		}
+	}
 	return p, nil
 }
 
 func notes(s *Snapshot) []string {
 	var out []string
+	if s.Info != nil && s.Info.Status != "" && s.Info.Status != "TRADING" {
+		out = append(out, fmt.Sprintf("%s is not trading now (%s): orders will be refused until it is.", s.Symbol, strings.ToLower(strings.ReplaceAll(s.Info.Status, "_", " "))))
+	}
 	p := s.Portfolio
 	if p == nil {
+		return out
+	}
+	if s.Venue != "" && p.Leverage > 0 && p.Leverage != s.Limits.Leverage {
+		out = append(out, fmt.Sprintf("The account's leverage is 1:%d and mt5.leverage says %d: opens are refused until they match. The broker sets it, not `open`.", p.Leverage, s.Limits.Leverage))
+	}
+	if p.Position == nil && p.Pending != nil {
+		e := p.Pending
+		with := "wait with it as reduce-only orders"
+		if s.Venue != "" {
+			with = "are on the order and pass to the position when it fills"
+		}
+		out = append(out, fmt.Sprintf("A limit %s entry is waiting: %g @ %s since %s UTC, cancelled at %s UTC if unfilled; its stop-loss %s and take-profit %s %s. Keep it while the setup holds; `close` cancels it.",
+			strings.TrimPrefix(e.Action, "order_"), e.Qty, s.price(e.Limit), e.Time.Format("15:04"), e.Expires.Format("15:04"), s.price(e.StopLoss), s.price(e.TakeProfit), with))
 		return out
 	}
 	if p.Position == nil {
@@ -374,7 +492,7 @@ func notes(s *Snapshot) []string {
 	if !hasStop(p.Orders) {
 		out = append(out, "The open position has NO stop-loss. Set one with `protect --sl`.")
 	}
-	if p.Leverage > 0 && p.Leverage != s.Limits.Leverage {
+	if s.Venue == "" && p.Leverage > 0 && p.Leverage != s.Limits.Leverage {
 		out = append(out, fmt.Sprintf("Leverage on the exchange is %dx, the config says %dx; `open` sets it.", p.Leverage, s.Limits.Leverage))
 	}
 	return out

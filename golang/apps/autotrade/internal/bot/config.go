@@ -28,7 +28,8 @@ import (
 type Config struct {
 	// Pairs are the pairs the loop trades, by symbol (BTCUSDT; btc/usdt is
 	// read as BTCUSDT): the "Pair That Traded" of docs/knowledge.md. Each is
-	// traded on its own, with its own position and the limits below.
+	// traded on its own, with its own position and the limits below. The
+	// file's pairs trade on Binance; LoadConfig adds MT5.Pairs after them.
 	Pairs []string `json:"pairs" yaml:"pairs"`
 	// Symbol is the pair a command acts on, one of Pairs: the first, or the
 	// one Bot.ForPair picked. It is not read from the file.
@@ -59,6 +60,29 @@ type Config struct {
 	// FeeRate is the cost of one fill, for the backtest and the break-even
 	// stop: 0.0005 = 0.05%, the mainnet taker fee (the testnet charges 0.04%).
 	FeeRate float64 `json:"fee_rate" yaml:"fee_rate"`
+
+	// MT5 is the second venue: a MetaTrader 5 demo account.
+	MT5 MT5Config `json:"mt5" yaml:"mt5"`
+}
+
+// MT5Config is the second venue: a MetaTrader 5 demo account (MIFX),
+// reached through the AutotradeBridge Expert Advisor (internal/mt5). Its
+// pairs trade there with its own leverage and limits, in the account
+// currency; every other pair trades on Binance.
+type MT5Config struct {
+	// Pairs are MetaTrader symbols as the broker spells them (XAUUSD).
+	// Empty: MetaTrader is not used.
+	Pairs []string `json:"pairs" yaml:"pairs"`
+	// Bridge is the folder the EA answers in. Empty: MetaTrader's common
+	// Files\autotrade folder.
+	Bridge string `json:"bridge,omitempty" yaml:"bridge"`
+	// Leverage is the account's, which the broker sets: opens are refused
+	// while they differ.
+	Leverage int `json:"leverage" yaml:"leverage"`
+	// MaxPosition caps the notional value of a new position and MaxRisk the
+	// loss at its stop (0 = no cap), in the account currency.
+	MaxPosition float64 `json:"max_position" yaml:"max_position"`
+	MaxRisk     float64 `json:"max_risk" yaml:"max_risk"`
 }
 
 func DefaultConfig() Config {
@@ -104,11 +128,18 @@ func LoadConfig(path string) (Config, error) {
 	for i, p := range cfg.Pairs {
 		cfg.Pairs[i] = PairSymbol(p)
 	}
+	for i, p := range cfg.MT5.Pairs {
+		cfg.MT5.Pairs[i] = strings.TrimSpace(p) // as the broker spells it
+	}
+	cfg.Pairs = append(cfg.Pairs, cfg.MT5.Pairs...)
 	if len(cfg.Pairs) > 0 {
 		cfg.Symbol = cfg.Pairs[0]
 	}
 	if !filepath.IsAbs(cfg.Journal) {
 		cfg.Journal = filepath.Join(filepath.Dir(path), cfg.Journal)
+	}
+	if cfg.MT5.Bridge != "" && !filepath.IsAbs(cfg.MT5.Bridge) {
+		cfg.MT5.Bridge = filepath.Join(filepath.Dir(path), cfg.MT5.Bridge)
 	}
 	return cfg, cfg.Validate()
 }
@@ -116,13 +147,36 @@ func LoadConfig(path string) (Config, error) {
 // Trades reports whether symbol is one of the pairs.
 func (c Config) Trades(symbol string) bool { return slices.Contains(c.Pairs, symbol) }
 
+// OnMT5 reports whether symbol trades on MetaTrader 5.
+func (c Config) OnMT5(symbol string) bool { return slices.Contains(c.MT5.Pairs, symbol) }
+
+// BinancePairs are the pairs that trade on Binance.
+func (c Config) BinancePairs() []string {
+	return slices.DeleteFunc(slices.Clone(c.Pairs), c.OnMT5)
+}
+
+// Resolve finds the pair a name means (btc/usdt, xauusd), as configured.
+func (c Config) Resolve(name string) (string, bool) {
+	want := PairSymbol(name)
+	for _, p := range c.Pairs {
+		if PairSymbol(p) == want {
+			return p, true
+		}
+	}
+	return "", false
+}
+
 // PairSymbol turns a pair as written (btc/usdt, btcusdt) into the
 // exchange's symbol, BTCUSDT.
 func PairSymbol(pair string) string {
 	return strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(pair), "/", ""))
 }
 
-var symbolPattern = regexp.MustCompile(`^[A-Z0-9]{5,20}$`)
+var (
+	symbolPattern = regexp.MustCompile(`^[A-Z0-9]{5,20}$`)
+	// mt5Pattern allows a broker's suffixes, such as XAUUSD.m or XAUUSDc.
+	mt5Pattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._#+-]{1,29}$`)
+)
 
 func (c Config) Validate() error {
 	u, err := url.Parse(c.TradeURL)
@@ -131,10 +185,24 @@ func (c Config) Validate() error {
 	}
 	seen := map[string]bool{}
 	for _, p := range c.Pairs {
-		if !symbolPattern.MatchString(p) || seen[p] {
+		if c.OnMT5(p) {
+			if !mt5Pattern.MatchString(p) || seen[PairSymbol(p)] {
+				return fmt.Errorf("mt5.pairs: %q is not a MetaTrader symbol such as XAUUSD, or is listed twice", p)
+			}
+		} else if !symbolPattern.MatchString(p) || seen[p] {
 			return fmt.Errorf("pairs: %q is not a symbol such as BTCUSDT, or is listed twice", p)
 		}
-		seen[p] = true
+		seen[PairSymbol(p)] = true
+	}
+	if m := c.MT5; len(m.Pairs) > 0 {
+		switch {
+		case m.Leverage < 1 || m.Leverage > 3000:
+			return fmt.Errorf("mt5.leverage %d is out of range: set it to the account's leverage (100 for 1:100)", m.Leverage)
+		case m.MaxPosition <= 0:
+			return fmt.Errorf("mt5.max_position must be positive: the largest notional of a new MetaTrader position, in the account currency")
+		case m.MaxRisk < 0:
+			return fmt.Errorf("mt5.max_risk must not be negative (0 = no cap)")
+		}
 	}
 	switch {
 	case len(c.Pairs) == 0:

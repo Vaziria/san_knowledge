@@ -47,6 +47,9 @@ type Review struct {
 	Holds    int           `json:"holds"`
 	Vetoes   int           `json:"vetoes"` // holds whose reason starts with "veto"
 	Refusals int           `json:"refusals"`
+	// Unscored are the pairs whose venue could not be asked: their trades
+	// have no figures yet.
+	Unscored []string `json:"unscored,omitempty"`
 }
 
 // Review scores every trade in the journal. A trade ends at the loop's
@@ -72,7 +75,7 @@ func (b *Bot) Review(ctx context.Context) (*Review, error) {
 			}
 		}
 	}
-	r.Trades, err = b.trades(ctx, all, nil)
+	r.Trades, r.Unscored, err = b.trades(ctx, all, nil)
 	return r, err
 }
 
@@ -90,11 +93,13 @@ type Ranger interface {
 const slack = 2 * time.Second
 
 // trades pairs each open in the journal with how it ended, per symbol: a
-// close or an open on another pair does not end it. known holds the closes
-// the knowledge graph already has final figures for, by open time (RFC
-// 3339); the exchange is not asked about those again. Without an API key the
-// figures stay zero and not final.
-func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledge.Close) ([]ReviewTrade, error) {
+// close or an open on another pair does not end it. Each pair's venue is
+// asked about its trades. known holds the closes the knowledge graph already
+// has final figures for, by open time (RFC 3339); the venue is not asked
+// about those again. Without an API key, or when the venue can't be reached
+// (MetaTrader closed), the figures stay zero and not final; unscored lists
+// those pairs with why.
+func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledge.Close) (out []ReviewTrade, unscored []string, err error) {
 	isOpen := func(e Entry) bool { return e.Error == "" && strings.HasPrefix(e.Action, "open_") }
 	symOf := func(e Entry) string {
 		if e.Symbol == "" {
@@ -107,14 +112,26 @@ func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledg
 		_ = b.Ex.SyncTime(ctx)
 		now = b.Ex.Now().UTC()
 	}
-	posBy := map[string][]binance.Position{}
-	positions := func(sym string) ([]binance.Position, error) {
-		if p, ok := posBy[sym]; ok || !b.Ex.HasKey() {
-			return p, nil
+	down := map[string]error{} // pairs whose venue failed
+	fail := func(sym string, err error) {
+		if down[sym] == nil {
+			down[sym] = err
+			unscored = append(unscored, fmt.Sprintf("%s: %v", sym, err))
 		}
-		p, err := b.Ex.Positions(ctx, sym)
+	}
+	// live reports whether sym's venue can be asked.
+	live := func(sym string) bool { return b.on(sym).Ex.HasKey() && down[sym] == nil }
+	posBy := map[string][]binance.Position{}
+	positions := func(sym string) []binance.Position {
+		if p, ok := posBy[sym]; ok || !live(sym) {
+			return p
+		}
+		p, err := b.on(sym).Ex.Positions(ctx, sym)
+		if err != nil {
+			fail(sym, err)
+		}
 		posBy[sym] = p
-		return p, err
+		return p
 	}
 	notes := map[int]string{}
 	for _, e := range all {
@@ -123,16 +140,12 @@ func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledg
 		}
 	}
 
-	var out []ReviewTrade
 	for i, e := range all {
 		if !isOpen(e) {
 			continue
 		}
 		sym := symOf(e)
-		pos, err := positions(sym)
-		if err != nil {
-			return nil, err
-		}
+		pos := positions(sym)
 		t := ReviewTrade{Symbol: sym, Setup: e.Setup, Approaches: e.Approaches, Coded: strategy.Known(e.Setup), Side: strings.TrimPrefix(e.Action, "open_"),
 			Opened: e.Time, Entry: e.Price, Stop: e.StopLoss, Target: e.TakeProfit, Qty: e.Qty, Reason: e.Reason, Snapshot: e.Snapshot,
 			Note: notes[len(out)+1]}
@@ -151,7 +164,7 @@ func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledg
 				closeAt, t.CloseNote = n.Time, n.Reason
 			}
 			if isOpen(n) {
-				nextOpen = n.Time
+				nextOpen = feesFrom(n)
 				break
 			}
 		}
@@ -163,7 +176,7 @@ func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledg
 			}
 		case !nextOpen.IsZero():
 			t.ClosedBy, t.Ended = "exchange", nextOpen.Add(-slack)
-		case len(pos) > 0 || !b.Ex.HasKey():
+		case len(pos) > 0 || !live(sym):
 			t.ClosedBy, t.Ended = "open", now
 		default:
 			t.ClosedBy, t.Ended = "exchange", now
@@ -178,14 +191,19 @@ func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledg
 			out = append(out, t)
 			continue
 		}
-		if b.Ex.HasKey() {
+		if live(sym) {
 			end := t.Ended
 			if t.ClosedBy == "open" {
 				end = time.Time{} // up to now, whatever the clocks say
 			}
-			inc, err := b.Ex.Income(ctx, sym, t.Opened.Add(-slack), end)
+			inc, err := b.on(sym).Ex.Income(ctx, sym, feesFrom(e).Add(-slack), end)
 			if err != nil {
-				return nil, err
+				fail(sym, err)
+				if t.Risk > 0 {
+					t.R = t.Net / t.Risk
+				}
+				out = append(out, t)
+				continue
 			}
 			last := time.Time{}
 			for _, in := range inc {
@@ -212,13 +230,23 @@ func (b *Bot) trades(ctx context.Context, all []Entry, known map[string]knowledg
 		}
 		out = append(out, t)
 	}
-	return out, nil
+	return out, unscored, nil
+}
+
+// feesFrom is when an open's income can start: its time, or for a limit
+// entry the time its order was placed, since its first fills can come
+// before its last.
+func feesFrom(e Entry) time.Time {
+	if !e.Ordered.IsZero() && e.Ordered.Before(e.Time) {
+		return e.Ordered
+	}
+	return e.Time
 }
 
 // excursions measures how far a closed trade went for and against it, in R,
 // from candles of the trading interval. Zeros when the candles can't be had.
 func (b *Bot) excursions(ctx context.Context, t ReviewTrade) (mfe, mae float64) {
-	rg, ok := b.Market.(Ranger)
+	rg, ok := b.on(t.Symbol).Market.(Ranger)
 	r := math.Abs(t.Entry - t.Stop)
 	if !ok || r == 0 || !t.Ended.After(t.Opened) {
 		return 0, 0
@@ -277,6 +305,9 @@ func (r *Review) Render(w io.Writer) {
 		backtest.Row(w, s, backtest.Summarize(bySetup[s]))
 	}
 	fmt.Fprintf(w, "\nDecisions besides trades: %d holds (%d of them vetoes), %d refused or failed commands.\n", r.Holds, r.Vetoes, r.Refusals)
+	for _, u := range r.Unscored {
+		fmt.Fprintf(w, "\nNot scored, its venue could not be asked: %s\n", u)
+	}
 
 	if len(r.Trades) > 0 {
 		fmt.Fprintf(w, "\n## Trades\n\n")

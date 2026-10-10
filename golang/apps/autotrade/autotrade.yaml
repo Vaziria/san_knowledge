@@ -21,6 +21,17 @@ max_risk_usdt: 100                   # loss at the stop of a new position; 0 = n
 
 journal: data/journal.jsonl          # relative to this file
 
+# The second venue: a MetaTrader 5 demo account (MIFX), through the
+# AutotradeBridge EA running in the terminal (USAGE.md, "MetaTrader 5").
+# Its pairs trade there, with the limits below in the account currency;
+# the pairs above stay on Binance. Orders go to a demo account only.
+mt5:
+  pairs: []                          # MetaTrader symbols as the broker spells them, e.g. [XAUUSD]; [] = off
+  leverage: 100                      # the account's leverage (1:100), set by the broker: `check` shows it
+  max_position: 5000                 # notional of a new position (one lot of XAUUSD is 100 oz)
+  max_risk: 50                       # loss at the stop of a new position; 0 = no cap
+  # bridge: ""                       # folder the EA answers in; default MetaTrader's Common\Files\autotrade
+
 # Coded entry rules the snapshot checks, in priority order; [] = no signals.
 setups: []
 fee_rate: 0.0005                     # one fill: 0.0005 = 0.05%

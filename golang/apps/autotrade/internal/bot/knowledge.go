@@ -250,11 +250,14 @@ func (b *Bot) Note(ctx context.Context, position int, text string) (Entry, error
 // KnowledgeInput gathers what the graph is built from: the approach catalog,
 // and every position of the journal with its analysis, snapshot and outcome.
 func (b *Bot) KnowledgeInput(ctx context.Context, known map[string]knowledge.Close) (knowledge.Input, error) {
+	if b.home != nil {
+		b = b.home // the whole portfolio, from autotrade.yaml's view
+	}
 	all, err := b.Journal.Last(math.MaxInt)
 	if err != nil {
 		return knowledge.Input{}, err
 	}
-	trades, err := b.trades(ctx, all, known)
+	trades, _, err := b.trades(ctx, all, known)
 	if err != nil {
 		return knowledge.Input{}, err
 	}
@@ -277,11 +280,25 @@ func (b *Bot) KnowledgeInput(ctx context.Context, known map[string]knowledge.Clo
 		Pairs: c.Pairs, Interval: c.Interval, ContextIntervals: c.ContextIntervals, TradeURL: c.TradeURL, Setups: c.Setups,
 		FeeRate: c.FeeRate, Leverage: c.Leverage, MaxPositionUSDT: c.MaxPositionUSDT, MaxRiskUSDT: c.MaxRiskUSDT,
 		MaxOpenPerPair: maxOpenPerPair,
+		MT5:            knowledge.VenueLimits{Pairs: c.MT5.Pairs, Leverage: c.MT5.Leverage, MaxPosition: c.MT5.MaxPosition, MaxRisk: c.MT5.MaxRisk},
 	}}
-	if b.Ex.HasKey() {
-		if a, err := b.Ex.Account(ctx); err == nil {
-			in.Account = &knowledge.Account{Wallet: a.WalletBalance, Available: a.AvailableBalance}
+	// The wallet is both venues' together: USDT on Binance, the MetaTrader
+	// account's currency (USD) there.
+	addWallet := func(ex Exchange) {
+		if !ex.HasKey() {
+			return
 		}
+		if a, err := ex.Account(ctx); err == nil {
+			if in.Account == nil {
+				in.Account = &knowledge.Account{}
+			}
+			in.Account.Wallet += a.WalletBalance
+			in.Account.Available += a.AvailableBalance
+		}
+	}
+	addWallet(b.Ex)
+	if b.MT5 != nil && len(c.MT5.Pairs) > 0 {
+		addWallet(b.MT5.Ex)
 	}
 	for i, t := range trades {
 		p := knowledge.Position{N: i + 1, Symbol: t.Symbol, Side: t.Side, Status: "closed", Opened: t.Opened, Entry: t.Entry, Stop: t.Stop,

@@ -8,12 +8,12 @@ The Go side of the flow in [docs/basic_flow.md](docs/basic_flow.md). Claude, run
 | Feature Extraction (candle) | `snapshot`: EMA 20/50/200, RSI14, MACD, ATR14, Bollinger, volume, changes, range, on 5m plus 15m, 1h and 4h; key levels (swing highs/lows, prior day); positioning (open interest, taker flow, long/short ratios, funding) |
 | Portofolio Data (balance, hold position) | `snapshot`: wallet, position, its stop-loss/take-profit, last 24h PnL |
 | analyze | Claude decides each tick from the snapshot (see [tick.md](tick.md)); the coded rules (`internal/strategy`) add signals and a plan for the open trade as a second opinion |
-| Decide Position: new buy / new sell | `open long` / `open short` |
+| Decide Position: new buy / new sell | `open long` / `open short`, at market or with `-limit` as a post-only maker entry |
 | Decide Position: close position | `close` (and `protect` to move the stops) |
 | Decide Position: nothing | `hold` |
 | wait | until the next 5m close: run by hand, or `/loop 5m` |
 
-Trading is on Binance USD-M Futures, **test network only**: `trade_url` must be the testnet or demo host, or the tool refuses to start.
+Trading is on Binance USD-M Futures, **test network only**: `trade_url` must be the testnet or demo host, or the tool refuses to start. The pairs under `mt5.pairs` trade on a MetaTrader 5 **demo** account instead (MIFX; see [MetaTrader 5](#metatrader-5-mifx-the-second-venue)).
 
 ## Setup
 
@@ -26,16 +26,64 @@ All settings live in `autotrade.yaml` ([docs/readme.md](docs/readme.md)). The bi
 
 `pairs` lists the pairs the loop trades, now `[BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT]` (`btc/usdt` is read as BTCUSDT). Each pair is traded on its own: `snapshot` covers every pair (or the `-symbol` one), and `open`, `protect`, `close` and `hold` act on the `-symbol` pair, which they require when there are several. A pair that is not listed is refused. The MCP tools take the pair as `pair`.
 
+## MetaTrader 5 (MIFX), the second venue
+
+The pairs listed under `mt5.pairs` in `autotrade.yaml` trade on a MetaTrader 5 **demo** account instead of Binance. The rest works the same for them: `snapshot`, `open`/`protect`/`close`/`hold`, limit entries, the journal, `review` and the knowledge graph. With `mt5.pairs: []` (now), MetaTrader is not used.
+
+**How it connects.** MetaTrader can't be called from outside, so a small Expert Advisor, [internal/mt5/AutotradeBridge.mq5](internal/mt5/AutotradeBridge.mq5), runs inside the terminal and does the work:
+1. autotrade writes each request as a file in MetaTrader's common Files folder (`%APPDATA%\MetaQuotes\Terminal\Common\Files\autotrade`).
+2. The EA picks it up within about 20 ms and answers in a file next to it.
+3. autotrade reads the answer and deletes it.
+
+The CLI and the MCP server can ask at the same time. The terminal must stay open and logged in. When it isn't, the MetaTrader pairs report "MetaTrader did not answer" (once; it is not asked again for 30s), and the Binance pairs carry on.
+
+**Setup:**
+1. Install MetaTrader 5 from MIFX, open a demo account, and log in to it.
+2. Run `autotrade mt5 install`. It copies the EA into each MT5 terminal's `MQL5\Experts` folder and compiles it with that terminal's MetaEditor. If that fails, open it in MetaEditor and press F7.
+3. In the terminal:
+   - Navigator → Expert Advisors → AutotradeBridge: drag it onto any chart.
+   - In its Common tab, tick "Allow Algo Trading".
+   - Turn on Algo Trading in the toolbar.
+   - The Experts tab now says `autotrade bridge 1: answering requests ...`.
+4. In `autotrade.yaml`:
+   - List the symbols under `mt5.pairs` as the broker spells them in Market Watch, for example `[XAUUSD]`.
+   - Set `mt5.leverage` to the account's leverage.
+   - Set `mt5.max_position` and `mt5.max_risk`.
+5. Run `autotrade check`. It shows the account and its leverage, and for each pair its status and smallest position. It fails when:
+   - the account is not a demo account
+   - Algo Trading is off
+   - the leverage differs from `mt5.leverage`
+   - a pair's smallest position is over `mt5.max_position`
+
+**What differs from Binance:**
+- **Demo only.** Both the EA and autotrade refuse a real or contest account.
+- **Sizes are units of the symbol, not lots.** One lot is the contract size: 100 oz for XAUUSD, 100,000 EUR for EURUSD.
+- **Amounts are in the account currency (USD).** That covers the `usdt` of an open, `mt5.max_position` and `mt5.max_risk`. So only symbols whose profit is paid in that currency can be traded (XAUUSD, EURUSD, US indices, ...). USDJPY, whose profit is in JPY, is refused.
+- **Prices.** The "mark price" is the middle of the bid and the ask. A long fills at the ask, and its stop triggers on the bid.
+- **Stops.** MetaTrader refuses a stop or target inside the broker's stop level ("invalid stops"). The open then closes the position again, as on Binance.
+- **Stops belong to the position.** `protect` moves them in one step, with no moment without a stop.
+- **Limit entries** are buy/sell limit orders that carry their stop and target. These pass to the position when it fills. A limit at or past the price is refused (a long's must be under the ask). There is no maker fee: the cost is the spread plus any commission.
+- **Leverage** is the account's, set by the broker. `open` is refused while `mt5.leverage` differs.
+- **Hedging accounts.** autotrade closes by ticket, so it keeps one position per pair. It leaves orders placed by hand alone, but a position opened by hand on a pair counts as that pair's position.
+- **The snapshot** has no positioning section: MetaTrader has no open interest, funding or long/short data. Its candle volume is tick volume, and swap shows as "swap". `review` counts swap the way it counts funding.
+- **Time zones.** Candle and deal times are converted from the broker's server time to UTC. Candles from before a daylight-saving switch may be an hour off.
+- **Market hours.** The market closes on weekends and holidays. The snapshot then notes that the pair is not trading, and orders are refused until it reopens.
+- **No backtests.** `backtest` and `discover` replay Binance candles, so they skip MetaTrader pairs.
+- **Knowledge graph.** MetaTrader pairs are pairs like the others (`xau/usd`). The Risk Summary holds them to the `mt5` limits, and the wallet is both accounts together.
+
+The EA is untested against a live terminal so far. Its Go side is tested against a simulated EA (`internal/mt5/client_test.go`).
+
 ## Commands
 
 ```
 autotrade [-symbol PAIR] snapshot [-recent 12]
-autotrade -symbol PAIR open long|short -approach big_trend,positioning -usdt 500 -sl 81900 [-tp 83800] -reason "..."
+autotrade -symbol PAIR open long|short -approach big_trend,positioning -usdt 500 -sl 81900 [-tp 83800] [-limit 82400 [-expires 15m]] -reason "..."
 autotrade -symbol PAIR protect [-sl 82450] [-tp 83900] -reason "..."
 autotrade -symbol PAIR close -reason "..."
 autotrade -symbol PAIR hold -reason "..."
 autotrade journal [-n 20]
 autotrade check
+autotrade mt5 install
 autotrade review
 autotrade [-symbol PAIR] backtest [-days 365] [-setups trend_pullback,trend_breakout] [-fee 0.0005] [-trades]
 autotrade discover [-days 730] [-setups liquidity_sweep,...] [-fee 0.0005]
@@ -51,6 +99,16 @@ autotrade mcp run
 Flags can come before or after the words of a command (`knowledge position 3 -snapshot`).
 
 Global flags go before the command: `-config FILE`, `-symbol ETHUSDT` (one of the pairs), `-json` (`snapshot -json` gives an array when it covers several pairs).
+
+### Limit entries (maker fee)
+
+`open -limit PRICE` (MCP: `limit`, `expires_min`) places a post-only LIMIT order (`timeInForce GTX`) instead of a market order. It rests in the book and pays the maker fee when it fills; the exchange refuses it (-5022) if it would trade at once. On this testnet account the fees are 0.02% maker and 0.04% taker per fill (`GET /fapi/v1/commissionRate`, shown in the snapshot), so a maker entry with a market exit costs about 0.06% per round trip instead of 0.08%.
+
+- **Protection from the first fill.** The stop-loss and take-profit are placed with the order as reduce-only conditional orders for its quantity. Close-position orders can't wait for a fill: the exchange refuses them without a position (-4509). A reduce-only order never opens a position.
+- **Checks.** As for a market open, with the size, the minimum order and the loss at the stop measured from the limit price, and the stop on the right side of both the limit and the mark price.
+- **Reconciling.** Nothing runs between ticks, so every `snapshot`, `open`, `close`, `protect` and `hold` on the pair first brings the journal up to date. An order that filled becomes the position's `open_long`/`open_short` entry, dated at the fill (`ordered` keeps when it was placed, so `review` counts its fees). A partly filled one keeps what filled and cancels the rest. An unfilled one is cancelled once past its expiry (`-expires`, default 15m), when the mark price reaches its target first, or when its stop order is gone. The journal records these as `cancel`.
+- **While it waits.** The snapshot shows it under the portfolio, with the order's state, and in the notes. `close` cancels it with its stop and target. `open` refuses while it waits, and `protect` refuses until it fills.
+- **Clean-up.** With no position and no entry waiting, the reconciling also cancels stop and target orders left from a position the exchange closed.
 
 ## Who decides
 
@@ -242,6 +300,6 @@ Or schedule it with `/loop 5m /autotrade`.
 
 `/autotrade` is the project skill in `.claude/skills/autotrade/SKILL.md`. It reads `tick.md` and follows its three phases: analyze, act (one action per pair), update the knowledge. Text after it is a note for that tick. While it runs, the autotrade MCP tools are allowed without a prompt, the trading ones included, so a `/loop` doesn't stop to ask. The tool still enforces the limits. Only you can start it; Claude doesn't run it on its own. Sending `follow golang/apps/autotrade/tick.md` does the same, with the usual permission prompts.
 
-The live config trades 5m candles with 15m, 1h and 4h as context, and has no coded setups: on 5m they lost 0.33R (trend_pullback) and 0.49R (trend_breakout) per trade after fees over 90 days, and on 15m 0.13R and 0.17R over 730 days, while breaking even before fees. On 5m the stop floor in tick.md matters most: the 15m ATR can be as small as the 0.1% round-trip fee.
+The live config trades 5m candles with 15m, 1h and 4h as context, and has no coded setups: on 5m they lost 0.33R (trend_pullback) and 0.49R (trend_breakout) per trade after fees over 90 days, and on 15m 0.13R and 0.17R over 730 days, while breaking even before fees. On 5m the stop floor in tick.md matters most: the 15m ATR can be as small as the round-trip fee (0.06% with a limit entry, 0.08% at market on this account).
 
 The loop's Bash calls need permission. Allow `golang/apps/autotrade/bin/autotrade.exe` once with "don't ask again", or add it to `.claude/settings.local.json`.

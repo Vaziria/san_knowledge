@@ -37,6 +37,8 @@ The operator guide is the package
 14. a member can keep memberships of several networks as profiles, such as
     the dev tunnel relay's and the Cloud Run relay's, and switch between them
     (asked for 2026-10-08; section "Profiles.")
+15. members find each other by name, `office.vpn`, answered by each member
+    inside its own tunnel (asked for 2026-10-10; section "Names.")
 
 These were decided with the user on 2026-10-07. The steps were: embedded
 WireGuard, full mesh, overlay only, Windows and Linux, then WebSocket instead
@@ -56,8 +58,13 @@ golang/packages/san_vpn/
   cmd/san_vpn/main_test.go    the admin flow through the real command tree
   internal/wire/              the protocol both sides speak
                keys.go        X25519 keys (one type for both halves), base64/hex forms
-               wire.go        frames, control messages, join MAC, handshake proofs
+               wire.go        frames, control messages, join MAC, handshake proofs,
+                              the DNS address and the domain
                ws.go          keepalive, control message read/write
+  internal/names/             members' names (office.vpn)
+               names.go       the table from a member list, DNS answers
+               intercept.go   catches DNS queries to the DNS address in the tunnel
+               hosts.go       the /etc/hosts block
   internal/invite/            the sanvpn1_ invite blob
   internal/state/             JSON files: default dirs, lock, atomic save, Windows ACL
                    store.go   the relay's file as a Store: local File, or a GCS object
@@ -80,9 +87,9 @@ golang/packages/san_vpn/
                    check.go   Check: relay + tunnel + member, each failure with its fix
   internal/update/            release links, SHA256SUMS, replacing a running binary
                    source.go  a tag's source tree, from GitHub's archive of it
-  internal/osnet/             the only admin-only code: TUN, address, firewall
-                   osnet_windows.go  Wintun (embedded dll), winipcfg, netsh rule
-                   osnet_linux.go    TUN, netlink address
+  internal/osnet/             the only admin-only code: TUN, address, firewall, names
+                   osnet_windows.go  Wintun (embedded dll), winipcfg, netsh rule, NRPT rule
+                   osnet_linux.go    TUN, netlink address, resolvectl or /etc/hosts
                    wintun/           fetched by the build scripts, git-ignored
   build.ps1 / build.sh        fetch Wintun (checksum pinned), vet, test, build Windows, Linux and Linux ARM
   .github/workflows/release.yml  on a v* tag: build.sh, the ghcr.io image (for Docker), then a GitHub release
@@ -150,6 +157,14 @@ binaries do not know these names, so a Pi's first binary is a download.
   The downloaded files matched `SHA256SUMS`; the exe printed `san_vpn
   version v0.4.3`, listed both commands, and `setup cloudrun` named them.
   GitHub served the tag's source archive (115,689 bytes).
+- **v0.5.0** (2026-10-10): names, `office.vpn` (section "Names.").
+  - CI built it in 2m40s and pushed `ghcr.io/wargasipil/san_vpn:v0.5.0` and
+    `:latest`, sha256:b048b53b….
+  - The downloaded files matched `SHA256SUMS`. The Windows and Linux files
+    printed `san_vpn version v0.5.0`.
+  - A v0.4.3 exe updated itself to it with `san_vpn update`, and then had
+    `up --no-dns`.
+  - The package is **still private**: an anonymous token request got 401.
 
 ## Updates.
 
@@ -405,7 +420,8 @@ create, allow anonymous, add the port, copy the URL into `relay init`).
     carrier-grade NAT on the WAN side. That is what Tailscale uses, and it can
     collide here.
 - **Addresses.** They are given out lowest-free-first from `.1`, and a removed
-  member's address is reused. Peers trust keys, not addresses.
+  member's address is reused. Peers trust keys, not addresses. The last host
+  address (`.254`) is kept for names (section "Names.").
 - **The interface address carries the network's prefix length**
   (`10.77.0.2/24`), so the route to the whole overlay comes with it.
   - On Linux, the kernel adds that route itself (netlink `AddrReplace`).
@@ -769,6 +785,132 @@ the dev tunnel relay's and the Cloud Run relay's (asked for 2026-10-08).
   - **not run:** `up` itself across a switch, which needs an administrator
     terminal
 
+## Names.
+
+Members find each other by name: `office.vpn` for the member `office` (asked
+for 2026-10-10: "can we add dns server in san_vpn"). Decided with the user the
+same day:
+- member names only: no records of the admin's own, no forwarding of other
+  names
+- the domain `vpn` by default, settable per network
+- `/etc/hosts` on Linux machines without systemd-resolved
+
+The user first chose `.local`, then `.vpn` once the clash with multicast DNS
+came up (below).
+
+- **Each member answers; there is no name server.**
+  - The relay is not on the overlay (decision 3). To serve DNS there it would
+    have to become a WireGuard peer, and then it could read traffic.
+  - Every member already gets the member list, so `up` answers from it, and
+    keeps answering while the relay reconnects.
+  - Member names were already hostname-shaped (`[a-z0-9-]`, at most 32), so
+    nobody had to be renamed.
+- **The address** is `wire.DNSAddr`, the network's last host address:
+  `10.77.0.254` in `10.77.0.0/24`.
+  - The relay's `allocate` never gives it out.
+  - The route to the overlay already carries it into the tunnel on both
+    systems, so no route or address is added.
+  - A network smaller than /29 gets none. A /30 has two hosts and would lose
+    one.
+  - A relay from before names may already have given it to a member. That
+    takes 253 members in a /24, or a small network. Then the table has no
+    server, that member's traffic to it passes through, and `up` logs that
+    names are off.
+- **Caught in the tunnel.** `names.Intercept` wraps the `tun.Device`
+  WireGuard reads from.
+  - An IPv4 UDP packet to the address on port 53 is answered on the spot. The
+    reply, with both checksums, is written back into the tunnel.
+  - The query's slot in WireGuard's batch gets size 0, which WireGuard skips.
+    Swapping buffers would not do: each slot belongs to one of WireGuard's
+    pooled elements.
+  - Nothing listens on port 53, so there is no clash with Pi-hole, dnsmasq or
+    a Windows DNS server. The same code runs on gVisor's netstack in the
+    tests.
+  - Before the first member list, queries get SERVFAIL, not NXDOMAIN, so no
+    resolver caches "no such name".
+  - Fragments are dropped. TCP to port 53 is not caught: an answer is one
+    record, so it is never truncated and no resolver retries over TCP.
+- **Answers** (`names.Answer`, with `golang.org/x/net/dns/dnsmessage`):
+  - a member's name: its A record, TTL 30s, because a removed member's
+    address goes to the next one to join
+  - AAAA, HTTPS and other types for a member, and the domain itself: an empty
+    NOERROR, so browsers do not wait for a timeout
+  - an unknown name in the domain: NXDOMAIN, without an SOA, so it is not
+    cached and a member who joins later resolves at once
+  - a name outside the domain: REFUSED
+  - an EDNS query gets EDNS back. systemd-resolved otherwise drops to a
+    degraded mode and says so in its log.
+- **The domain belongs to the relay.**
+  - It is `domain` in `relay.json`, set with `relay init --domain`, and sent
+    in every netmap (`Netmap.Domain`).
+  - Old relays send none, which nodes read as `vpn`; old nodes ignore it.
+  - A change reaches members on the relay's next reload, without a restart.
+- **The operating system** (`osnet.Names`). `up` sets it after each member
+  list, and only when what it would set has changed:
+  - Windows: an NRPT rule sends `.vpn` to the address. It is added with
+    PowerShell's DnsClient cmdlets (`Add-DnsClientNrptRule`, comment
+    `san_vpn`), followed by `Clear-DnsClientCache`. It is removed on exit, and
+    a crashed run's rule is replaced on the next start. A DNS server on the
+    adapter would not do: Windows may ask any adapter's servers and take the
+    first answer.
+  - Linux with systemd-resolved (resolvectl installed, and resolv.conf
+    pointing at 127.0.0.53): `resolvectl dns`, `domain ~vpn` and
+    `default-route false` on the link. The setting goes away with the
+    interface.
+  - Other Linux: a fenced block in `/etc/hosts`, removed on exit.
+    - It is written in place, because Docker bind-mounts the file. Writing in
+      place also keeps its owner and SELinux label.
+    - Only a whole block is replaced. A begin line without its end line is
+      dropped alone, never the entries after it.
+- **Why not `.local`.** RFC 6762 gives `.local` to multicast DNS.
+  - Raspberry Pi OS and Ubuntu desktop have
+    `hosts: files mdns4_minimal [NOTFOUND=return] dns`, so a `.local` name
+    never reaches a DNS server.
+  - On Windows, the rule would send `printer.local` and other LAN names to
+    san_vpn.
+  - `relay init --domain local` is still accepted, with a note.
+- **Commands.**
+  - `up --no-dns` turns names off.
+  - `status` shows the names.
+  - `setup check` resolves this machine's own name through the system
+    resolver, which checks the whole path. Go's resolver gives a hosts entry
+    as `::ffff:10.77.0.2`, so the check unmaps addresses first.
+- **Verified (2026-10-10):**
+  - Unit tests:
+    - the answers for each case, EDNS, and junk
+    - the interceptor on a fake TUN: only the query leaves the batch, the
+      reply's checksums are valid, a held address and IPv6 pass through, and
+      fragments are dropped
+    - the hosts block: added, replaced, removed, CRLF, and a broken block
+    - `DNSAddr` and `ValidDomain`
+    - allocation skips the address in a /29
+    - `relay init --domain`, `relay list`, `status`, and the `setup check`
+      item, a mapped address included
+  - End to end on netstack (`TestNames`): lookups from inside each member, a
+    member joining and then removed, and a domain change. Every end-to-end
+    test now runs with names on. Clean under `-race`, and stable over
+    `-count=10`.
+  - Each of three mutations failed a test: no UDP checksum, leaving the query
+    in the batch, and catching a held address. Without the interceptor,
+    `TestNames` times out.
+  - Every package's tests also passed as Linux binaries in Docker (alpine),
+    the hosts file test included.
+  - Real Linux kernel in Docker (alpine, `NET_ADMIN`, `/dev/net/tun`), with a
+    relay and two members:
+    - `/etc/hosts` got the block
+    - `ping office.vpn` worked
+    - `nslookup office.vpn 10.77.0.254` was answered through the real TUN
+    - `nobody.vpn` got NXDOMAIN
+    - `status` showed the names
+    - `setup check` passed. It first failed on the mapped address, which was
+      then fixed.
+    - Ctrl+C removed the block
+  - Windows: the cmdlets and their parameters exist, and the read side of the
+    cleanup runs unelevated.
+  - **Not run:**
+    - adding the NRPT rule, which needs an administrator terminal
+    - systemd-resolved, which needs systemd in a container
+
 ## Open question: direct paths.
 
 Every packet passes the relay, by choice (General 5). The cost:
@@ -790,12 +932,6 @@ punching, so the relay would stay as the fallback.
 `node.Run`. The member directory is already a system directory for that
 reason.
 
-## Open question: names.
-
-Member names are already hostname-shaped (`[a-z0-9-]`, at most 32 characters)
-so they can become DNS names, such as `office.vpn`, without renaming anyone.
-That would need either a tiny resolver on the overlay or hosts-file entries.
-
 ## Trust model.
 
 - **The relay cannot read traffic** (decision 3), cannot impersonate a member
@@ -805,6 +941,10 @@ That would need either a tiny resolver on the overlay or hosts-file entries.
   could add a key of its own to everyone's netmap and then talk to members as
   a new peer. Members would see it in `status`. Signing member lists with an
   offline admin key would remove this trust; it is not done.
+- **Names come from the relay too.** A relay trusted to say who the members
+  are can equally give `office.vpn` to a key of its own. Answers come from
+  the member's own process, so nothing between the member and the relay can
+  change them.
 - **The front (the dev tunnel) is not trusted** with anything but availability.
 - **On Cloud Run, the bucket is the relay.** It holds the relay's private key
   and the member list, so whoever can write it can do what a compromised relay

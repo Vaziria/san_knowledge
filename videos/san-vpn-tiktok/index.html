@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #111111;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-dluy" id="root" data-composition-id="main" data-start="0" data-duration="28" data-width="1080" data-height="1920">
+      <div data-hf-id="hf-ugm4" id="el-01-the-ask" class="scene" data-composition-id="01-the-ask" data-composition-src="compositions/frames/01-the-ask.html" data-start="0" data-duration="8.4" data-track-index="0"></div>
+
+      <div data-hf-id="hf-uwyj" id="el-02-the-commands" class="scene" data-composition-id="02-the-commands" data-composition-src="compositions/frames/02-the-commands.html" data-start="8" data-duration="7.5" data-track-index="1"></div>
+
+      <div data-hf-id="hf-iavt" id="el-03-it-works" class="scene" data-composition-id="03-it-works" data-composition-src="compositions/frames/03-it-works.html" data-start="15" data-duration="6.4" data-track-index="0"></div>
+
+      <div data-hf-id="hf-kl2l" id="el-04-mau-dong" class="scene" data-composition-id="04-mau-dong" data-composition-src="compositions/frames/04-mau-dong.html" data-start="21" data-duration="7" data-track-index="1"></div>
+
+      <!-- SFX -->
+      <audio data-hf-id="hf-68d2" id="el-sfx-0" src="assets/sfx/ting.wav" data-start="0.2" data-duration="0.45" data-track-index="20" data-volume="0.4"></audio>
+      <audio data-hf-id="hf-t3dk" id="el-sfx-1" src="assets/sfx/ting.wav" data-start="2.2" data-duration="0.45" data-track-index="21" data-volume="0.4"></audio>
+      <audio data-hf-id="hf-db74" id="el-sfx-2" src="assets/sfx/pop.wav" data-start="4.9" data-duration="0.18" data-track-index="22" data-volume="0.35"></audio>
+      <audio data-hf-id="hf-6b3m" id="el-sfx-3" src="assets/sfx/pop.wav" data-start="6.3" data-duration="0.18" data-track-index="23" data-volume="0.35"></audio>
+      <audio data-hf-id="hf-pc8v" id="el-sfx-4" src="assets/sfx/keys.wav" data-start="8.6" data-duration="0.9" data-track-index="24" data-volume="0.5"></audio>
+      <audio data-hf-id="hf-xwmd" id="el-sfx-5" src="assets/sfx/keys.wav" data-start="9.5" data-duration="0.9" data-track-index="25" data-volume="0.5"></audio>
+      <audio data-hf-id="hf-8ja6" id="el-sfx-6" src="assets/sfx/keys.wav" data-start="10.6" data-duration="0.9" data-track-index="26" data-volume="0.5"></audio>
+      <audio data-hf-id="hf-msfl" id="el-sfx-7" src="assets/sfx/keys.wav" data-start="12.3" data-duration="0.9" data-track-index="27" data-volume="0.5"></audio>
+      <audio data-hf-id="hf-i2zg" id="el-sfx-8" src="assets/sfx/keys.wav" data-start="13.3" data-duration="0.9" data-track-index="28" data-volume="0.5"></audio>
+      <audio data-hf-id="hf-fzm3" id="el-sfx-9" src="assets/sfx/keys.wav" data-start="15.2" data-duration="0.9" data-track-index="29" data-volume="0.5"></audio>
+      <audio data-hf-id="hf-8kfd" id="el-sfx-10" src="assets/sfx/keys.wav" data-start="17.4" data-duration="0.9" data-track-index="30" data-volume="0.5"></audio>
+      <audio data-hf-id="hf-pfps" id="el-sfx-11" src="assets/sfx/done.wav" data-start="18.3" data-duration="0.6" data-track-index="31" data-volume="0.32"></audio>
+      <audio data-hf-id="hf-kmt1" id="el-sfx-12" src="assets/sfx/pop.wav" data-start="21.3" data-duration="0.18" data-track-index="32" data-volume="0.35"></audio>
+      <audio data-hf-id="hf-qdfj" id="el-sfx-13" src="assets/sfx/ting.wav" data-start="22.9" data-duration="0.45" data-track-index="33" data-volume="0.4"></audio>
+      <audio data-hf-id="hf-kyez" id="el-sfx-14" src="assets/sfx/pop.wav" data-start="24.8" data-duration="0.18" data-track-index="34" data-volume="0.35"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+      // ── frame transitions (injected by transitions.mjs) ──
+      (function () { var tl = window.__timelines["main"];
+        tl.to("#el-01-the-ask", { scale: 2.5, opacity: 0, filter: "blur(8px)", duration: 0.4, ease: "power3.in" }, 8);
+        tl.fromTo("#el-02-the-commands", { scale: 0.5, opacity: 0, filter: "blur(8px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 8);
+        tl.to("#el-02-the-commands", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 15);
+        tl.fromTo("#el-03-it-works", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 15);
+        tl.to("#el-03-it-works", { scale: 2.5, opacity: 0, filter: "blur(8px)", duration: 0.4, ease: "power3.in" }, 21);
+        tl.fromTo("#el-04-mau-dong", { scale: 0.5, opacity: 0, filter: "blur(8px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 21);
+        tl.to({}, { duration: 28 }, 0); // full-span anchor — main.duration() == composition total (Studio master duration)
+      })();
+    </script>
+  </body>
+</html>

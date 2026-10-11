@@ -1,0 +1,126 @@
+{
+  "bgm": null,
+  "voices": [],
+  "sfx": [
+    {
+      "frame": 1,
+      "file": "assets/sfx/ting.wav",
+      "offset_s": 0.2,
+      "duration_s": 0.45,
+      "volume": 0.4,
+      "source": "host"
+    },
+    {
+      "frame": 1,
+      "file": "assets/sfx/ting.wav",
+      "offset_s": 2.2,
+      "duration_s": 0.45,
+      "volume": 0.4,
+      "source": "host"
+    },
+    {
+      "frame": 1,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 4.9,
+      "duration_s": 0.18,
+      "volume": 0.35,
+      "source": "host"
+    },
+    {
+      "frame": 1,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 6.3,
+      "duration_s": 0.18,
+      "volume": 0.35,
+      "source": "host"
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/keys.wav",
+      "offset_s": 0.6,
+      "duration_s": 0.9,
+      "volume": 0.5,
+      "source": "host"
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/keys.wav",
+      "offset_s": 1.5,
+      "duration_s": 0.9,
+      "volume": 0.5,
+      "source": "host"
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/keys.wav",
+      "offset_s": 2.6,
+      "duration_s": 0.9,
+      "volume": 0.5,
+      "source": "host"
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/keys.wav",
+      "offset_s": 4.3,
+      "duration_s": 0.9,
+      "volume": 0.5,
+      "source": "host"
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/keys.wav",
+      "offset_s": 5.3,
+      "duration_s": 0.9,
+      "volume": 0.5,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/keys.wav",
+      "offset_s": 0.2,
+      "duration_s": 0.9,
+      "volume": 0.5,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/keys.wav",
+      "offset_s": 2.4,
+      "duration_s": 0.9,
+      "volume": 0.5,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/done.wav",
+      "offset_s": 3.3,
+      "duration_s": 0.6,
+      "volume": 0.32,
+      "source": "host"
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 0.3,
+      "duration_s": 0.18,
+      "volume": 0.35,
+      "source": "host"
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/ting.wav",
+      "offset_s": 1.9,
+      "duration_s": 0.45,
+      "volume": 0.4,
+      "source": "host"
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 3.8,
+      "duration_s": 0.18,
+      "volume": 0.35,
+      "source": "host"
+    }
+  ]
+}

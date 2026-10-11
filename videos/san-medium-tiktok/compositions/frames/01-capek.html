@@ -1,0 +1,282 @@
+<template>
+  <style>
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: block; src: url("assets/fonts/barlow-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: #f0ece5;
+      font-family: "Barlow";
+      -webkit-font-smoothing: antialiased;
+    }
+    #root *,
+    #root *::before,
+    #root *::after {
+      box-sizing: border-box;
+    }
+
+    /* full-bleed ink-black ground (its own clip layer, never on #root) */
+    .\30 1-capek-ground {
+      position: absolute;
+      inset: 0;
+      background: #111111;
+    }
+    .\30 1-capek-chat {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ── header ─────────────────────────────────────────── */
+    .\30 1-capek-avatar {
+      position: absolute;
+      left: 65px;
+      top: 150px;
+      width: 96px;
+      height: 96px;
+      background: #1a1a18;
+      border: 1px solid #282826;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Barlow";
+      font-weight: 800;
+      font-size: 52px;
+      line-height: 1;
+      color: #e85d26;
+    }
+    .\30 1-capek-avatar-letter {
+      display: block;
+      padding-bottom: 8px;
+    }
+    .\30 1-capek-name {
+      position: absolute;
+      left: 185px;
+      top: 150px;
+      font-family: "Barlow";
+      font-weight: 700;
+      font-size: 50px;
+      line-height: 1;
+      color: #f0ece5;
+      white-space: nowrap;
+    }
+    .\30 1-capek-status {
+      position: absolute;
+      left: 185px;
+      top: 214px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+    .\30 1-capek-online-dot {
+      display: block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e85d26;
+      flex: 0 0 auto;
+    }
+    .\30 1-capek-online {
+      display: block;
+      font-family: "IBM Plex Mono";
+      font-weight: 500;
+      font-size: 22px;
+      line-height: 26px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #888880;
+    }
+    .\30 1-capek-rule {
+      position: absolute;
+      left: 65px;
+      top: 280px;
+      width: 950px;
+      height: 1px;
+      background: #282826;
+    }
+
+    /* ── thread: every row holds its slot from t=0, so nothing reflows ── */
+    .\30 1-capek-thread {
+      position: absolute;
+      left: 65px;
+      top: 330px;
+      width: 842px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .\30 1-capek-row {
+      position: relative;
+      display: flex;
+      width: 100%;
+    }
+    .\30 1-capek-row-friend {
+      justify-content: flex-start;
+    }
+    .\30 1-capek-row-me {
+      justify-content: flex-end;
+    }
+    .\30 1-capek-bubble {
+      max-width: 778px;
+      padding: 26px 32px;
+      border-radius: 0;
+      font-size: 46px;
+      line-height: 1.28;
+      overflow-wrap: break-word;
+    }
+    .\30 1-capek-friend {
+      background: #1a1a18;
+      border: 1px solid #282826;
+      color: #f0ece5;
+      font-family: "Barlow";
+      font-weight: 600;
+      transform-origin: 0% 100%;
+    }
+    .\30 1-capek-me {
+      background: #e85d26;
+      color: #111111;
+      font-family: "Barlow";
+      font-weight: 700;
+      transform-origin: 100% 100%;
+    }
+    .\30 1-capek-cmd {
+      font-family: "IBM Plex Mono";
+      font-weight: 700;
+      font-size: 0.92em; /* optical match to Barlow's x-height */
+      color: #111111;
+    }
+    .\30 1-capek-nowrap {
+      white-space: nowrap;
+    }
+
+    /* typing indicator: sits in my third bubble's slot, right edge x=907 */
+    .\30 1-capek-typing {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 150px;
+      height: 84px;
+      border: 1px solid #e85d26;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      transform-origin: 100% 100%;
+    }
+    .\30 1-capek-dot {
+      display: block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #e85d26;
+      flex: 0 0 auto;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+  <div data-hf-id="hf-n3v2" id="root" data-composition-id="01-capek" data-width="1080" data-height="1920" data-duration="8.9">
+    <div data-hf-id="hf-8c89" id="01-capek-ground" class="clip 01-capek-ground" data-start="0" data-duration="8.9" data-track-index="0"></div>
+
+    <div data-hf-id="hf-fzh8" id="01-capek-chat" class="clip 01-capek-chat" data-start="0" data-duration="8.9" data-track-index="1">
+      <!-- header: in place from 0.0s -->
+      <div data-hf-id="hf-do8s" class="01-capek-avatar"><span data-hf-id="hf-7kzm" class="01-capek-avatar-letter">r</span></div>
+      <div data-hf-id="hf-vspe" class="01-capek-name">rina</div>
+      <div data-hf-id="hf-2ns5" class="01-capek-status">
+        <span data-hf-id="hf-1xk3" class="01-capek-online-dot"></span>
+        <span data-hf-id="hf-nkcm" class="01-capek-online">ONLINE</span>
+      </div>
+      <div data-hf-id="hf-j02h" class="01-capek-rule"></div>
+
+      <!-- thread -->
+      <div data-hf-id="hf-0fsz" class="01-capek-thread">
+        <div data-hf-id="hf-kx0v" class="01-capek-row 01-capek-row-friend">
+          <div data-hf-id="hf-s3wm" id="01-capek-b1" class="01-capek-bubble 01-capek-friend">posting ke Medium capek bgt 😩</div>
+        </div>
+        <div data-hf-id="hf-0uvj" class="01-capek-row 01-capek-row-friend">
+          <div data-hf-id="hf-n1lf" id="01-capek-b2" class="01-capek-bubble 01-capek-friend">copas teks, upload gambar <span data-hf-id="hf-vh4a" class="01-capek-nowrap">satu-satu</span>, isi caption… API <span data-hf-id="hf-3ezv" class="01-capek-nowrap">token-nya</span> juga udah gak dikasih</div>
+        </div>
+        <div data-hf-id="hf-5enx" class="01-capek-row 01-capek-row-me">
+          <div data-hf-id="hf-5qis" id="01-capek-b3" class="01-capek-bubble 01-capek-me">aku tinggal 1 perintah 😎</div>
+          <div data-hf-id="hf-gmvm" id="01-capek-typing" class="01-capek-typing">
+            <span data-hf-id="hf-u6wg" id="01-capek-dot1" class="01-capek-dot"></span>
+            <span data-hf-id="hf-2usb" id="01-capek-dot2" class="01-capek-dot"></span>
+            <span data-hf-id="hf-ywoa" id="01-capek-dot3" class="01-capek-dot"></span>
+          </div>
+        </div>
+        <div data-hf-id="hf-3cep" class="01-capek-row 01-capek-row-me">
+          <div data-hf-id="hf-nxie" id="01-capek-b4" class="01-capek-bubble 01-capek-me"><span data-hf-id="hf-wn8g" class="01-capek-cmd">san_medium</span>: file markdown → draft Medium, lengkap sama gambar &amp; caption</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const byId = (id) => document.getElementById(id);
+
+      const b1 = byId("01-capek-b1");
+      const b2 = byId("01-capek-b2");
+      const b3 = byId("01-capek-b3");
+      const b4 = byId("01-capek-b4");
+      const typing = byId("01-capek-typing");
+      const dots = [byId("01-capek-dot1"), byId("01-capek-dot2"), byId("01-capek-dot3")];
+
+      // Shared bubble entry: y +48, scale .94, opacity 0 -> rest, 0.35s power3.out,
+      // starting exactly on the cue (sfx are mounted at these times).
+      const enter = (el, at) =>
+        tl.fromTo(
+          el,
+          { y: 48, scale: 0.94, opacity: 0 },
+          { y: 0, scale: 1, opacity: 1, duration: 0.35, ease: "power3.out" },
+          at,
+        );
+
+      // Scene 1 (0.0–0.2): header in place, thread empty.
+      // Scene 2 (0.2): rina, first line.
+      enter(b1, 0.2);
+      // Scene 3 (1.9): rina, second line.
+      enter(b2, 1.9);
+
+      // Scene 4 (4.1–4.9): my typing indicator, dots pulsing phase-offset.
+      enter(typing, 4.1);
+      // Finite, timeline-driven pulse built from plain tweens (no repeat/yoyo, no callbacks):
+      // each dot rises and falls on a 0.6s sine cycle, trailing the previous dot by 0.12s.
+      const PULSE_START = 4.1;
+      const PULSE_END = 4.9; // the pulse dies the instant the reply lands
+      const HALF = 0.3;
+      const LAG = 0.12;
+      const REST = { y: 0, opacity: 0.35 };
+      const PEAK = { y: -8, opacity: 1 };
+      dots.forEach((dot, i) => {
+        const t0 = PULSE_START + i * LAG;
+        tl.fromTo(dot, { ...REST }, { ...PEAK, duration: HALF, ease: "sine.inOut" }, t0);
+        for (let k = 1; t0 + k * HALF < PULSE_END; k++) {
+          const target = k % 2 === 1 ? REST : PEAK;
+          tl.to(dot, { ...target, duration: HALF, ease: "sine.inOut" }, t0 + k * HALF);
+        }
+      });
+
+      // Scene 5 (4.9): the indicator is replaced in place by my bubble.
+      tl.set(typing, { opacity: 0 }, 4.9);
+      enter(b3, 4.9);
+
+      // Scene 6 (6.2): my second bubble.
+      enter(b4, 6.2);
+
+      // Scene 7 (6.2–8.5): the thread holds still to the end.
+      tl.set({}, {}, 8.5);
+
+      window.__timelines["01-capek"] = tl;
+    })();
+  </script>
+</template>

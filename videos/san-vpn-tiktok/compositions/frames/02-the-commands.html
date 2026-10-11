@@ -1,0 +1,233 @@
+<template id="02-the-commands-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: block; src: url("assets/fonts/barlow-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    /* Barlow ships as local files in assets/fonts; IBM Plex Mono is bundled by the renderer. */
+#root {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* full-bleed ground: its own clip layer, never painted on #root */
+    .\30 2-the-commands-ground {
+      position: absolute;
+      inset: 0;
+      background: #111111;
+    }
+
+    .\30 2-the-commands-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* terminal window: x 65 -> 1015, y 170 -> 1530 */
+    .\30 2-the-commands-window {
+      position: absolute;
+      left: 65px;
+      top: 170px;
+      width: 950px;
+      height: 1360px;
+      box-sizing: border-box;
+      background: #1a1a18;
+      border: 1px solid #282826;
+      border-radius: 0;
+    }
+
+    .\30 2-the-commands-header {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 64px;
+      border-bottom: 1px solid #282826;
+    }
+
+    .\30 2-the-commands-header-label {
+      position: absolute;
+      left: 32px;
+      top: 0;
+      height: 64px;
+      line-height: 64px;
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 500;
+      font-size: 22px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #888880;
+      white-space: nowrap;
+    }
+
+    /* step labels: Barlow 700 40px, fire-orange, as written */
+    .\30 2-the-commands-step {
+      position: absolute;
+      left: 110px;
+      height: 48px;
+      line-height: 48px;
+      font-family: "Barlow", sans-serif;
+      font-weight: 700;
+      font-size: 40px;
+      letter-spacing: -0.01em;
+      color: #e85d26;
+      white-space: pre;
+    }
+
+    /* terminal lines: IBM Plex Mono 36px, line-height 1.5 */
+    .\30 2-the-commands-line {
+      position: absolute;
+      left: 110px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 400;
+      font-size: 36px;
+      line-height: 54px;
+      font-variant-ligatures: none;
+      white-space: pre;
+      color: #f0ece5;
+    }
+
+    .\30 2-the-commands-prompt {
+      color: #e85d26;
+    }
+
+    .\30 2-the-commands-output {
+      color: #888880;
+    }
+
+    /* block caret: one character cell, cream */
+    .\30 2-the-commands-caret {
+      display: block;
+      flex: none;
+      align-self: flex-start;
+      width: 0.6em;
+      height: 38px;
+      margin-top: 10px;
+      background: #f0ece5;
+    }
+  </style>
+
+  <div data-hf-id="hf-ia1q" id="root" data-composition-id="02-the-commands" data-start="0" data-duration="7.5" data-width="1080" data-height="1920">
+    <div data-hf-id="hf-ok7g" id="02-the-commands-ground" class="clip 02-the-commands-ground" data-start="0" data-duration="7.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-8cmk" id="02-the-commands-term" class="clip 02-the-commands-layer" data-start="0" data-duration="7.5" data-track-index="1">
+      <div data-hf-id="hf-g76i" id="02-the-commands-window" class="02-the-commands-window">
+        <div data-hf-id="hf-4apz" class="02-the-commands-header">
+          <div data-hf-id="hf-mgqa" class="02-the-commands-header-label">TERMINAL</div>
+        </div>
+      </div>
+
+      <!-- step 1 -->
+      <div data-hf-id="hf-emh3" id="02-the-commands-step1" class="02-the-commands-step" style="top: 280px">1 · di PC kantor</div>
+      <div data-hf-id="hf-cjio" id="02-the-commands-l1" class="02-the-commands-line" style="top: 338px"><span data-hf-id="hf-hewb" class="02-the-commands-prompt">&gt; </span><span data-hf-id="hf-xiww" id="02-the-commands-l1-txt"></span><span data-hf-id="hf-f2rv" id="02-the-commands-l1-caret" class="02-the-commands-caret"></span></div>
+      <div data-hf-id="hf-5b1x" id="02-the-commands-l2" class="02-the-commands-line" style="top: 392px"><span data-hf-id="hf-s2a3" class="02-the-commands-prompt">&gt; </span><span data-hf-id="hf-j3p7" id="02-the-commands-l2-txt"></span><span data-hf-id="hf-uk2o" id="02-the-commands-l2-caret" class="02-the-commands-caret"></span></div>
+
+      <!-- step 2 -->
+      <div data-hf-id="hf-8ivj" id="02-the-commands-step2" class="02-the-commands-step" style="top: 482px">2 · undang PC rumah</div>
+      <div data-hf-id="hf-cf51" id="02-the-commands-l3" class="02-the-commands-line" style="top: 540px"><span data-hf-id="hf-rnz2" class="02-the-commands-prompt">&gt; </span><span data-hf-id="hf-kx3i" id="02-the-commands-l3-txt"></span><span data-hf-id="hf-nnwt" id="02-the-commands-l3-caret" class="02-the-commands-caret"></span></div>
+      <div data-hf-id="hf-9qg8" id="02-the-commands-out" class="02-the-commands-line 02-the-commands-output" style="top: 594px">sanvpn1_...</div>
+
+      <!-- step 3 -->
+      <div data-hf-id="hf-mc41" id="02-the-commands-step3" class="02-the-commands-step" style="top: 684px">3 · di PC rumah</div>
+      <div data-hf-id="hf-l93z" id="02-the-commands-l5" class="02-the-commands-line" style="top: 742px"><span data-hf-id="hf-r9o1" class="02-the-commands-prompt">&gt; </span><span data-hf-id="hf-euc4" id="02-the-commands-l5-txt"></span><span data-hf-id="hf-kvfj" id="02-the-commands-l5-caret" class="02-the-commands-caret"></span></div>
+      <div data-hf-id="hf-oqt5" id="02-the-commands-l6" class="02-the-commands-line" style="top: 796px"><span data-hf-id="hf-qvd0" class="02-the-commands-prompt">&gt; </span><span data-hf-id="hf-6qun" id="02-the-commands-l6-txt"></span><span data-hf-id="hf-34ic" id="02-the-commands-l6-caret" class="02-the-commands-caret"></span></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/TextPlugin.min.js"></script>
+  <script>
+    (function () {
+      gsap.registerPlugin(TextPlugin);
+
+      var ID = "02-the-commands";
+      var DUR = 7;
+      var HALF_BLINK = 0.4; // caret: 0.4s on / 0.4s off while idle, solid while typing
+
+      var tl = gsap.timeline({ paused: true });
+
+      function el(id) {
+        return document.getElementById(ID + "-" + id);
+      }
+
+      // Each command: its prompt appears at `show`, the characters type at an even
+      // cadence across [start, end], and Enter at `leave` moves the caret to the next
+      // prompt. 3.48 -> 3.9 the invite command runs (its output prints at 3.6), no caret.
+      var LINES = [
+        { key: "l1", text: "san_vpn setup init", show: 0.0, start: 0.6, end: 1.3, leave: 1.38 },
+        { key: "l2", text: "san_vpn relay run", show: 1.38, start: 1.5, end: 2.1, leave: 2.2 },
+        { key: "l3", text: "san_vpn relay invite home", show: 2.2, start: 2.6, end: 3.4, leave: 3.48 },
+        { key: "l5", text: "san_vpn join sanvpn1_...", show: 3.9, start: 4.3, end: 5.1, leave: 5.18 },
+        { key: "l6", text: "san_vpn up", show: 5.18, start: 5.3, end: 5.8, leave: DUR },
+      ];
+
+      // Caret on/off events for one line, as [time, on] pairs (pure function of the schedule).
+      function caretEvents(L) {
+        var ev = [];
+        function blink(from, to) {
+          for (var k = 0; from + k * HALF_BLINK < to - 1e-6; k++) {
+            ev.push([from + k * HALF_BLINK, k % 2 === 0]);
+          }
+        }
+        blink(L.show, L.start); // idle at an empty prompt
+        ev.push([L.start, true]); // solid while typing
+        blink(L.end, L.leave); // idle after the last key
+        if (L.leave < DUR) ev.push([L.leave, false]); // Enter: caret leaves this line
+        return ev;
+      }
+
+      LINES.forEach(function (L) {
+        var row = el(L.key);
+        var caret = el(L.key + "-caret");
+
+        // the prompt appears (one frame, effectively instant like a real terminal)
+        if (L.show > 0) {
+          tl.fromTo(row, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, L.show);
+        }
+
+        // discrete characters, even cadence across the typing window
+        tl.to(
+          el(L.key + "-txt"),
+          { text: { value: L.text }, duration: L.end - L.start, ease: "none" },
+          L.start,
+        );
+
+        // caret: visible by default, so only state changes are set on the timeline
+        var on = true;
+        caretEvents(L).forEach(function (e) {
+          if (e[1] === on) return;
+          on = e[1];
+          tl.set(caret, { opacity: on ? 1 : 0 }, e[0]);
+        });
+      });
+
+      // Step labels fade up on their cues.
+      [
+        { key: "step1", at: 0.4 },
+        { key: "step2", at: 2.4 },
+        { key: "step3", at: 4.1 },
+      ].forEach(function (S) {
+        tl.fromTo(
+          el(S.key),
+          { opacity: 0, y: 16 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+          S.at,
+        );
+      });
+
+      // The invite string prints under `san_vpn relay invite home`.
+      tl.fromTo(el("out"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power3.out" }, 3.6);
+
+      // Pin the timeline length to the frame (the hold runs to 7.0s).
+      tl.set({}, {}, DUR);
+
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

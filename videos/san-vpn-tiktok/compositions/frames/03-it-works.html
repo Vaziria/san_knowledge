@@ -1,0 +1,281 @@
+<template>
+  <style>
+    /* Frame 3 — It works. 1080×1920. Broadside dark register, mono terminal cards.
+       IBM Plex Mono is one of the renderer's pre-bundled families (embedded, offline). */
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "IBM Plex Mono", monospace;
+      color: #f0ece5;
+    }
+    [id="03-it-works-bg"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #111111;
+      z-index: 0;
+    }
+    [id="03-it-works-stage"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+    }
+    /* coordinate-target-zoom wrappers: outer scales about the canvas centre, inner counter-translates */
+    [id="03-it-works-zoom-outer"],
+    [id="03-it-works-zoom-inner"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+    [id="03-it-works-zoom-outer"] {
+      transform-origin: 50% 50%;
+    }
+
+    /* terminal card: ink-black-alt fill, 1px border-dark hairline, 0 radius, no shadow */
+    [class~="03-it-works-card"] {
+      position: absolute;
+      box-sizing: border-box;
+      background: #1a1a18;
+      border: 1px solid #282826;
+      border-radius: 0;
+    }
+    [class~="03-it-works-head"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 64px;
+      border-bottom: 1px solid #282826;
+    }
+    [class~="03-it-works-label"] {
+      position: absolute;
+      left: 31px; /* 32px from the card's outer edge (1px border) */
+      top: 0;
+      height: 64px;
+      line-height: 64px;
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #888880;
+      white-space: nowrap;
+    }
+    /* one terminal line: 36px mono, line-height 1.5, text starts 45px inside the card edge */
+    [class~="03-it-works-line"] {
+      position: absolute;
+      left: 44px;
+      height: 54px;
+      font-size: 36px;
+      line-height: 54px;
+      font-weight: 400;
+      letter-spacing: 0;
+      white-space: pre;
+      color: #f0ece5;
+    }
+    [class~="03-it-works-muted"] {
+      color: #888880;
+    }
+    [class~="03-it-works-prompt"] {
+      color: #e85d26;
+    }
+    [class~="03-it-works-state"] {
+      color: #e85d26;
+    }
+    [class~="03-it-works-caret"] {
+      display: inline-block;
+      width: 0.6em;
+      height: 1em;
+      vertical-align: -0.2em;
+      background: #f0ece5;
+    }
+    [class~="03-it-works-check"] {
+      display: inline-block;
+      width: 30px;
+      height: 26px;
+      margin-left: 0.6em;
+      vertical-align: -2px;
+      overflow: visible;
+    }
+    [class~="03-it-works-check"] path {
+      fill: none;
+      stroke: #e85d26;
+      stroke-width: 4;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+    }
+  </style>
+
+  <div data-hf-id="hf-m3fx" id="root" data-composition-id="03-it-works" data-width="1080" data-height="1920" data-duration="6.4">
+    <!-- full-bleed ink-black ground on its own clip layer (never on #root) -->
+    <div data-hf-id="hf-8a1q" id="03-it-works-bg" class="clip" data-start="0" data-duration="6.4" data-track-index="0"></div>
+
+    <div data-hf-id="hf-gu4c" id="03-it-works-stage" class="clip" data-start="0" data-duration="6.4" data-track-index="1">
+      <div data-hf-id="hf-7o3x" id="03-it-works-zoom-outer">
+        <div data-hf-id="hf-6qjo" id="03-it-works-zoom-inner">
+          <!-- status card: x 65→1015, y 170→800 -->
+          <div data-hf-id="hf-n2ku" id="03-it-works-status" class="03-it-works-card" style="left: 65px; top: 170px; width: 950px; height: 630px">
+            <div data-hf-id="hf-nc4l" class="03-it-works-head"><span data-hf-id="hf-v6gs" class="03-it-works-label">PC RUMAH</span></div>
+            <div data-hf-id="hf-m4px" id="03-it-works-s-cmd" class="03-it-works-line" style="top: 109px"><span data-hf-id="hf-avuy" class="03-it-works-prompt">&gt; </span><span data-hf-id="hf-ia4b" id="03-it-works-s-typed"></span><span data-hf-id="hf-ecnn" id="03-it-works-s-caret" class="03-it-works-caret"></span></div>
+            <div data-hf-id="hf-dw37" id="03-it-works-s-row1" class="03-it-works-line" style="top: 217px">home  10.77.0.2/24  <span data-hf-id="hf-179r" id="03-it-works-s-state1" class="03-it-works-state">connected</span></div>
+            <div data-hf-id="hf-ubm0" id="03-it-works-s-row2" class="03-it-works-line 03-it-works-muted" style="top: 325px">NAME             IP         RELAY</div>
+            <div data-hf-id="hf-0xx1" id="03-it-works-s-row3" class="03-it-works-line" style="top: 379px">office.vpn       10.77.0.1  <span data-hf-id="hf-qctd" id="03-it-works-s-state3" class="03-it-works-state">online</span></div>
+            <div data-hf-id="hf-ja8r" id="03-it-works-s-row4" class="03-it-works-line" style="top: 433px">jakarta-vps.vpn  10.77.0.3  <span data-hf-id="hf-4qcq" id="03-it-works-s-state4" class="03-it-works-state">online</span></div>
+          </div>
+
+          <!-- ping card (focal): x 65→1015, y 860→1450 -->
+          <div data-hf-id="hf-v96f" id="03-it-works-ping" class="03-it-works-card" style="left: 65px; top: 860px; width: 950px; height: 590px">
+            <div data-hf-id="hf-3pfd" class="03-it-works-head"><span data-hf-id="hf-ojjo" class="03-it-works-label">PC RUMAH</span></div>
+            <div data-hf-id="hf-qdkc" id="03-it-works-p-cmd" class="03-it-works-line" style="top: 109px"><span data-hf-id="hf-9fny" class="03-it-works-prompt">&gt; </span><span data-hf-id="hf-nca0" id="03-it-works-p-typed"></span><span data-hf-id="hf-3avc" id="03-it-works-p-caret" class="03-it-works-caret"></span></div>
+            <div data-hf-id="hf-397b" id="03-it-works-p-reply1" class="03-it-works-line" style="top: 217px">Reply from 10.77.0.1<svg data-hf-id="hf-or3h" class="03-it-works-check" viewBox="0 0 30 26" aria-hidden="true"><path data-hf-id="hf-eibf" id="03-it-works-p-check1" d="M3 14 L11 22 L27 6" /></svg></div>
+            <div data-hf-id="hf-sccy" id="03-it-works-p-reply2" class="03-it-works-line" style="top: 271px">Reply from 10.77.0.1<svg data-hf-id="hf-lrz5" class="03-it-works-check" viewBox="0 0 30 26" aria-hidden="true"><path data-hf-id="hf-5ufk" id="03-it-works-p-check2" d="M3 14 L11 22 L27 6" /></svg></div>
+            <div data-hf-id="hf-did7" id="03-it-works-p-reply3" class="03-it-works-line" style="top: 325px">Reply from 10.77.0.1<svg data-hf-id="hf-myw8" class="03-it-works-check" viewBox="0 0 30 26" aria-hidden="true"><path data-hf-id="hf-6m3d" id="03-it-works-p-check3" d="M3 14 L11 22 L27 6" /></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var FID = "03-it-works";
+      var el = function (name) {
+        return document.getElementById(FID + "-" + name);
+      };
+
+      var ORANGE = "#E85D26";
+      var HINT = "#505048";
+      var DURATION = 6;
+
+      var tl = gsap.timeline({ paused: true });
+
+      // ---- Scene cue times (exact, from the Scene lines) ----
+      var S_CMD = "san_vpn status";
+      var S_T0 = 0.2; // Scene 2: typing starts (sfx keys @0.2)
+      var S_T1 = 0.8; //          last character lands
+      var S_OUT = 1.0; // Scene 3: output begins, status caret leaves
+      var P_CMD = "ping office.vpn";
+      var P_ON = 1.9; // ping prompt + caret appear (one blink before typing)
+      var P_T0 = 2.4; // Scene 4: typing starts (sfx keys @2.4)
+      var P_T1 = 3.0; //          last character lands
+      var P_OUT = 3.3; // Scene 5: first reply (sfx done @3.3), ping caret leaves
+      var BLINK = 0.5; // caret period: on for the first half, off for the second
+
+      var sTyped = el("s-typed");
+      var sCaret = el("s-caret");
+      var pLine = el("p-cmd");
+      var pTyped = el("p-typed");
+      var pCaret = el("p-caret");
+
+      // Discrete, even keystrokes: first character at t0, last at t1.
+      function typedAt(text, t, t0, t1) {
+        var n = text.length;
+        if (t < t0) return "";
+        if (t >= t1) return text;
+        var k = 1 + Math.floor(((t - t0) / (t1 - t0)) * (n - 1) + 1e-6);
+        return text.slice(0, Math.min(n, k));
+      }
+      function blinkOn(t, from) {
+        return (t - from) % BLINK < BLINK / 2;
+      }
+      // Every discrete state (typed text, caret, prompt) is a pure function of time: seek-safe.
+      function render(t) {
+        var s = typedAt(S_CMD, t, S_T0, S_T1);
+        if (sTyped.textContent !== s) sTyped.textContent = s;
+        var sOn;
+        if (t >= S_OUT) sOn = false;
+        else if (t >= S_T0 && t < S_T1) sOn = true; // solid while typing
+        else sOn = blinkOn(t, t < S_T0 ? 0 : S_T1);
+        sCaret.style.opacity = sOn ? "1" : "0";
+
+        pLine.style.opacity = t >= P_ON ? "1" : "0";
+        var p = typedAt(P_CMD, t, P_T0, P_T1);
+        if (pTyped.textContent !== p) pTyped.textContent = p;
+        var pOn;
+        if (t < P_ON || t >= P_OUT) pOn = false;
+        else if (t >= P_T0 && t < P_T1) pOn = true; // solid while typing
+        else pOn = blinkOn(t, t < P_T0 ? P_ON : P_T1);
+        pCaret.style.opacity = pOn ? "1" : "0";
+      }
+
+      var clock = { t: 0 };
+      tl.to(
+        clock,
+        {
+          t: DURATION,
+          duration: DURATION,
+          ease: "none",
+          onUpdate: function () {
+            render(clock.t);
+          },
+        },
+        0,
+      );
+
+      // ---- Scene 3 (1.0–1.8s): receipt cascade — rows slide up + fade, staggered ----
+      var RISE = 22;
+      [
+        ["s-row1", 1.0],
+        ["s-row2", 1.15],
+        ["s-row3", 1.3],
+        ["s-row4", 1.45],
+      ].forEach(function (r) {
+        tl.fromTo(el(r[0]), { opacity: 0, y: RISE }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, r[1]);
+      });
+      // each state word flips from pending (cream-hint) to done (fire-orange) once its row lands
+      [
+        ["s-state1", 1.22],
+        ["s-state3", 1.52],
+        ["s-state4", 1.67],
+      ].forEach(function (r) {
+        tl.fromTo(el(r[0]), { color: HINT }, { color: ORANGE, duration: 0.12, ease: "power3.out" }, r[1]);
+      });
+
+      // ---- Scene 5 (3.3 / 3.7 / 4.1s): replies arrive, each closes with a drawn fire-orange check ----
+      var CHECK_LEN = 35; // path length 11.3 + 22.6 = 33.9, rounded up
+      [
+        ["p-reply1", "p-check1", 3.3],
+        ["p-reply2", "p-check2", 3.7],
+        ["p-reply3", "p-check3", 4.1],
+      ].forEach(function (r) {
+        tl.fromTo(el(r[0]), { opacity: 0, y: RISE }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, r[2]);
+        var path = el(r[1]);
+        path.style.strokeDasharray = CHECK_LEN + " " + CHECK_LEN;
+        tl.fromTo(path, { strokeDashoffset: CHECK_LEN }, { strokeDashoffset: 0, duration: 0.2, ease: "power3.out" }, r[2] + 0.08);
+      });
+
+      // ---- Scene 6 (4.3–4.9s): one small punch-in toward the ping card (coordinate-target-zoom) ----
+      // Nested wrappers: outer scales about the canvas centre (540, 960); inner translates T = -offset.
+      // A gentle pan (T = (0, -40)) so the status card stays in frame above the ping card.
+      // Peak: status card top at y≈30, ping card bottom at y≈1464; text stays left of x≈610.
+      var ZOOM_AT = 4.3;
+      var ZOOM_DUR = 0.6;
+      var ZOOM_SCALE = 1.12;
+      tl.fromTo(
+        el("zoom-outer"),
+        { scale: 1 },
+        { scale: ZOOM_SCALE, duration: ZOOM_DUR, ease: "power3.inOut", force3D: false },
+        ZOOM_AT,
+      );
+      tl.fromTo(
+        el("zoom-inner"),
+        { x: 0, y: 0 },
+        { x: 0, y: -40, duration: ZOOM_DUR, ease: "power3.inOut", force3D: false },
+        ZOOM_AT,
+      );
+      // Scene 7 (4.9–6.0s): still hold — nothing moves after the punch-in settles.
+
+      render(0);
+      window.__timelines["03-it-works"] = tl;
+    })();
+  </script>
+</template>

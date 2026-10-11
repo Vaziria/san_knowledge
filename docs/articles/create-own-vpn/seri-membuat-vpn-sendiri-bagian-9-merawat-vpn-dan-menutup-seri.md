@@ -93,7 +93,7 @@ journalctl -u vpnku -f
 
 ### Menjalankan client VPN saat Windows menyala
 
-Di Windows, salin `client-windows-amd64.exe` sebagai `C:pnkunggota.exe`, bersama `client.json`. Task Scheduler bisa menjalankannya saat komputer menyala, sebagai akun SYSTEM, dan perintahnya, di terminal administrator, adalah:
+Di Windows, salin `client-windows-amd64.exe` sebagai `C:\vpnku\client.exe`, bersama `client.json`. Task Scheduler bisa menjalankannya saat komputer menyala, sebagai akun SYSTEM, dan perintahnya, di terminal administrator, adalah:
 
 ```text
 schtasks /create /tn vpnku /tr "C:\vpnku\client.exe -config C:\vpnku\client.json" /sc onstart /ru System

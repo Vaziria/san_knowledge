@@ -1,0 +1,283 @@
+<template id="01-the-ask-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: block; src: url("assets/fonts/barlow-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    /* Frame 01 — The ask. Root styled by #root only; ground lives on a .clip layer. */
+    #root {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      container-type: size;
+    }
+    #root * {
+      box-sizing: border-box;
+    }
+
+    /* full-bleed ink-black ground (clip layer, never on #root) */
+    .\30 1-the-ask-ground {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1080px;
+      height: 1920px;
+      background: #111111;
+    }
+
+    /* ── chat header ─────────────────────────────────────────── */
+    .\30 1-the-ask-avatar {
+      position: absolute;
+      left: 65px;
+      top: 150px;
+      width: 96px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a18;
+      border: 1px solid #282826;
+      border-radius: 0;
+      font-family: "Barlow";
+      font-weight: 800;
+      font-size: 52px;
+      line-height: 1;
+      color: #e85d26;
+    }
+    .\30 1-the-ask-name {
+      position: absolute;
+      left: 185px;
+      top: 150px;
+      font-family: "Barlow";
+      font-weight: 700;
+      font-size: 50px;
+      line-height: 1;
+      color: #f0ece5;
+      white-space: nowrap;
+    }
+    .\30 1-the-ask-status {
+      position: absolute;
+      left: 185px;
+      top: 214px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .\30 1-the-ask-status-dot {
+      flex: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e85d26;
+    }
+    .\30 1-the-ask-status-label {
+      font-family: "IBM Plex Mono";
+      font-weight: 500;
+      font-size: 22px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #888880;
+      white-space: nowrap;
+    }
+    .\30 1-the-ask-rule {
+      position: absolute;
+      left: 65px;
+      top: 280px;
+      width: 950px;
+      height: 1px;
+      background: #282826;
+    }
+
+    /* ── thread column x=65 → x=907, first bubble top y=330, 26px gap ── */
+    .\30 1-the-ask-thread {
+      position: absolute;
+      left: 65px;
+      top: 330px;
+      width: 842px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 26px;
+    }
+    .\30 1-the-ask-bubble {
+      max-width: 778px;
+      padding: 26px 32px;
+      border-radius: 0;
+      font-family: "Barlow";
+      font-size: 46px;
+      line-height: 1.28;
+      white-space: normal;
+      overflow-wrap: break-word;
+    }
+    .\30 1-the-ask-friend {
+      align-self: flex-start;
+      background: #1a1a18;
+      border: 1px solid #282826;
+      color: #f0ece5;
+      font-weight: 600;
+      transform-origin: 0% 100%;
+    }
+    .\30 1-the-ask-me {
+      align-self: flex-end;
+      background: #e85d26;
+      color: #111111;
+      font-weight: 700;
+      transform-origin: 100% 100%;
+    }
+    /* tool name inside my bubble: IBM Plex Mono, same ink colour, exact case */
+    .\30 1-the-ask-mono {
+      font-family: "IBM Plex Mono";
+      font-weight: 700;
+      line-height: 1;
+      color: inherit;
+    }
+
+    /* slot shared by my typing indicator and the bubble that replaces it */
+    .\30 1-the-ask-slot {
+      align-self: flex-end;
+      position: relative;
+    }
+    .\30 1-the-ask-typing {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 150px;
+      height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: transparent;
+      border: 1px solid #e85d26;
+      border-radius: 0;
+      transform-origin: 100% 100%;
+    }
+    .\30 1-the-ask-typing-dot {
+      flex: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #e85d26;
+    }
+  </style>
+
+  <div data-hf-id="hf-w5t6" id="root" data-composition-id="01-the-ask" data-width="1080" data-height="1920" data-duration="8.4">
+    <div data-hf-id="hf-lhhk" id="01-the-ask-ground" class="clip 01-the-ask-ground" data-start="0" data-duration="8.4" data-track-index="0"></div>
+
+    <!-- Scene 1: header in place from t=0 -->
+    <div data-hf-id="hf-sml8" id="01-the-ask-header">
+      <div data-hf-id="hf-6y84" id="01-the-ask-avatar" class="01-the-ask-avatar">d</div>
+      <div data-hf-id="hf-czeu" id="01-the-ask-name" class="01-the-ask-name">dimas</div>
+      <div data-hf-id="hf-uzmi" id="01-the-ask-status" class="01-the-ask-status">
+        <span data-hf-id="hf-af1f" class="01-the-ask-status-dot"></span>
+        <span data-hf-id="hf-79ur" class="01-the-ask-status-label">ONLINE</span>
+      </div>
+      <div data-hf-id="hf-z3he" id="01-the-ask-rule" class="01-the-ask-rule"></div>
+    </div>
+
+    <!-- Thread: every slot is laid out from t=0 (hidden by fromTo), so nothing reflows -->
+    <div data-hf-id="hf-lqp2" id="01-the-ask-thread" class="01-the-ask-thread">
+      <div data-hf-id="hf-05ks" id="01-the-ask-m1" class="01-the-ask-bubble 01-the-ask-friend">bro, PC kantor bisa diremote dari rumah gak?</div>
+      <div data-hf-id="hf-gxb4" id="01-the-ask-m2" class="01-the-ask-bubble 01-the-ask-friend">kantor gak ada IP publik, ISP rumah juga CGNAT 😭</div>
+      <div data-hf-id="hf-0n0y" id="01-the-ask-slot" class="01-the-ask-slot">
+        <div data-hf-id="hf-6f5y" id="01-the-ask-m3" class="01-the-ask-bubble 01-the-ask-me">bisa. pakai <span data-hf-id="hf-k44v" class="01-the-ask-mono">san_vpn</span> 😎</div>
+        <div data-hf-id="hf-3n00" id="01-the-ask-typing" class="01-the-ask-typing">
+          <span data-hf-id="hf-zcg9" id="01-the-ask-dot-1" class="01-the-ask-typing-dot"></span>
+          <span data-hf-id="hf-3aka" id="01-the-ask-dot-2" class="01-the-ask-typing-dot"></span>
+          <span data-hf-id="hf-78ob" id="01-the-ask-dot-3" class="01-the-ask-typing-dot"></span>
+        </div>
+      </div>
+      <div data-hf-id="hf-7pen" id="01-the-ask-m4" class="01-the-ask-bubble 01-the-ask-me">gak butuh IP publik sama sekali</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var byId = function (name) {
+        return document.getElementById("01-the-ask-" + name);
+      };
+
+      var m1 = byId("m1");
+      var m2 = byId("m2");
+      var m3 = byId("m3");
+      var m4 = byId("m4");
+      var typing = byId("typing");
+      var dots = [byId("dot-1"), byId("dot-2"), byId("dot-3")];
+
+      // Cue times (s) — exact; the orchestrator mounts SFX on them.
+      var CUE_M1 = 0.2; // ting
+      var CUE_M2 = 2.2; // ting
+      var CUE_TYPING = 4.0;
+      var CUE_M3 = 4.9; // pop — indicator replaced in place
+      var CUE_M4 = 6.3; // pop — then hold still to 8.0
+
+      // Shared bubble entry: y +48, scale 0.94, opacity 0 → rest, 0.35s power3.out.
+      // transform-origin (bottom-left friend / bottom-right me) is set in CSS.
+      var ENTER_DUR = 0.35;
+
+      var tl = gsap.timeline({ paused: true });
+
+      function enter(el, at) {
+        tl.fromTo(
+          el,
+          { autoAlpha: 0, y: 48, scale: 0.94 },
+          { autoAlpha: 1, y: 0, scale: 1, duration: ENTER_DUR, ease: "power3.out" },
+          at
+        );
+      }
+
+      // Scene 2 + 3: friend bubbles
+      enter(m1, CUE_M1);
+      enter(m2, CUE_M2);
+
+      // Scene 4: my typing indicator, dots pulsing phase-offset (finite, timeline-driven)
+      enter(typing, CUE_TYPING);
+
+      // Each half-cycle (dim → lit, lit → dim) is its own explicit fromTo with a
+      // sine.inOut ease, i.e. a raised-cosine wave: finite, no looping, no callbacks,
+      // seek-safe even when the renderer suppresses events. Runs only inside the
+      // 4.0–4.9s window; the indicator is hidden the instant my bubble lands.
+      var PULSE_HALF = 0.3; // half period (s)
+      var PULSE_STEP = 0.15; // per-dot phase offset (s)
+      var DIM = { opacity: 0.3, scale: 0.8 };
+      var LIT = { opacity: 1, scale: 1 };
+      gsap.set(dots, DIM);
+      dots.forEach(function (dot, i) {
+        for (var k = 0; ; k++) {
+          var at = CUE_TYPING + i * PULSE_STEP + k * PULSE_HALF;
+          if (at >= CUE_M3 - 1e-6) break;
+          var from = k % 2 === 0 ? DIM : LIT;
+          var to = k % 2 === 0 ? LIT : DIM;
+          tl.fromTo(
+            dot,
+            { opacity: from.opacity, scale: from.scale },
+            {
+              opacity: to.opacity,
+              scale: to.scale,
+              duration: PULSE_HALF,
+              ease: "sine.inOut",
+              immediateRender: false,
+            },
+            at
+          );
+        }
+      });
+
+      // Scene 5: the indicator is replaced in place by my bubble
+      tl.set(typing, { autoAlpha: 0 }, CUE_M3);
+      enter(m3, CUE_M3);
+
+      // Scene 6: my second bubble; Scene 7 (6.3–8.0s) holds still
+      enter(m4, CUE_M4);
+
+      window.__timelines["01-the-ask"] = tl;
+    })();
+  </script>
+</template>

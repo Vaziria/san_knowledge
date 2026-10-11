@@ -1,0 +1,387 @@
+<template>
+  <style>
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: block; src: url("assets/fonts/barlow-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-style: normal; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: #f0ece5;
+      font-family: "Barlow";
+      -webkit-font-smoothing: antialiased;
+    }
+    #root *,
+    #root *::before,
+    #root *::after {
+      box-sizing: border-box;
+    }
+
+    /* full-bleed ink-black ground (its own clip layer, never on #root) */
+    .\30 4-mau-dong-ground {
+      position: absolute;
+      inset: 0;
+      background: #111111;
+    }
+    .\30 4-mau-dong-chat {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    /* camera: the one real move of the video. GSAP drives only --cam-p (0 -> 1);
+       --cam-x / --cam-y / --cam-ds are measured from the CTA bubble's layout box
+       (script below). The fallbacks here are the expected layout, used only if
+       measurement is unavailable. Origin 0 0 => point q lands at (x,y) + s*q. */
+    .\30 4-mau-dong-cam {
+      position: absolute;
+      inset: 0;
+      transform-origin: 0 0;
+      --cam-p: 0;
+      --cam-x: -115.2;
+      --cam-y: -702.2;
+      --cam-ds: 0.2648;
+      transform: translate(
+          calc(var(--cam-p) * var(--cam-x) * 1px),
+          calc(var(--cam-p) * var(--cam-y) * 1px)
+        )
+        scale(calc(1 + var(--cam-p) * var(--cam-ds)));
+      will-change: transform;
+    }
+
+    /* ── header (identical to frame 1) ───────────────────── */
+    .\30 4-mau-dong-header {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 281px;
+    }
+    .\30 4-mau-dong-avatar {
+      position: absolute;
+      left: 65px;
+      top: 150px;
+      width: 96px;
+      height: 96px;
+      background: #1a1a18;
+      border: 1px solid #282826;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Barlow";
+      font-weight: 800;
+      font-size: 52px;
+      line-height: 1;
+      color: #e85d26;
+    }
+    .\30 4-mau-dong-avatar-letter {
+      display: block;
+      padding-bottom: 8px;
+    }
+    .\30 4-mau-dong-name {
+      position: absolute;
+      left: 185px;
+      top: 150px;
+      font-family: "Barlow";
+      font-weight: 700;
+      font-size: 50px;
+      line-height: 1;
+      color: #f0ece5;
+      white-space: nowrap;
+    }
+    .\30 4-mau-dong-status {
+      position: absolute;
+      left: 185px;
+      top: 214px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+    .\30 4-mau-dong-online-dot {
+      display: block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e85d26;
+      flex: 0 0 auto;
+    }
+    .\30 4-mau-dong-online {
+      display: block;
+      font-family: "IBM Plex Mono";
+      font-weight: 500;
+      font-size: 22px;
+      line-height: 26px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #888880;
+    }
+    .\30 4-mau-dong-rule {
+      position: absolute;
+      left: 65px;
+      top: 280px;
+      width: 950px;
+      height: 1px;
+      background: #282826;
+    }
+
+    /* ── thread: every row holds its slot from t=0, so nothing reflows ── */
+    .\30 4-mau-dong-thread {
+      position: absolute;
+      left: 65px;
+      top: 330px;
+      width: 842px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .\30 4-mau-dong-row {
+      position: relative;
+      display: flex;
+      width: 100%;
+    }
+    .\30 4-mau-dong-row-friend {
+      justify-content: flex-start;
+    }
+    .\30 4-mau-dong-row-me {
+      justify-content: flex-end;
+    }
+    .\30 4-mau-dong-bubble {
+      max-width: 778px;
+      padding: 26px 32px;
+      border-radius: 0;
+      font-size: 46px;
+      line-height: 1.28;
+      overflow-wrap: break-word;
+    }
+    .\30 4-mau-dong-friend {
+      background: #1a1a18;
+      border: 1px solid #282826;
+      color: #f0ece5;
+      font-family: "Barlow";
+      font-weight: 600;
+      transform-origin: 0% 100%;
+    }
+    .\30 4-mau-dong-me {
+      background: #e85d26;
+      color: #111111;
+      font-family: "Barlow";
+      font-weight: 700;
+      transform-origin: 100% 100%;
+    }
+    /* the carried bubble from frame 1: the thread has scrolled on */
+    .\30 4-mau-dong-dim {
+      opacity: 0.4;
+    }
+    .\30 4-mau-dong-strong {
+      font-weight: 900;
+    }
+
+    /* code bubble: the one sanctioned mono content, exact case, two lines */
+    .\30 4-mau-dong-code {
+      background: #1a1a18;
+      border: 1px solid #e85d26;
+      padding: 22px 28px;
+      border-radius: 0;
+      font-family: "IBM Plex Mono";
+      font-weight: 400;
+      font-size: 30px;
+      line-height: 1.45;
+      color: #f0ece5;
+      white-space: pre;
+      transform-origin: 100% 100%;
+    }
+
+    /* typing indicator: sits in the CTA bubble's slot, right edge x=907 */
+    .\30 4-mau-dong-typing {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 150px;
+      height: 84px;
+      border: 1px solid #e85d26;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      transform-origin: 100% 100%;
+    }
+    .\30 4-mau-dong-dot {
+      display: block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #e85d26;
+      flex: 0 0 auto;
+      opacity: 0.35;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+  <div data-hf-id="hf-brjf" id="root" data-composition-id="04-mau-dong" data-width="1080" data-height="1920" data-duration="7">
+    <div data-hf-id="hf-jhrn" id="04-mau-dong-ground" class="clip 04-mau-dong-ground" data-start="0" data-duration="7" data-track-index="0"></div>
+
+    <div data-hf-id="hf-iy22" id="04-mau-dong-chat" class="clip 04-mau-dong-chat" data-start="0" data-duration="7" data-track-index="1">
+      <div data-hf-id="hf-y5cc" id="04-mau-dong-cam" class="04-mau-dong-cam">
+        <!-- header: in place from 0.0s; the push-in carries it off the top -->
+        <div data-hf-id="hf-jdq6" class="04-mau-dong-header" data-layout-allow-overflow="">
+          <div data-hf-id="hf-uco3" class="04-mau-dong-avatar"><span data-hf-id="hf-0xsf" class="04-mau-dong-avatar-letter">r</span></div>
+          <div data-hf-id="hf-ed1l" class="04-mau-dong-name">rina</div>
+          <div data-hf-id="hf-zuc6" class="04-mau-dong-status">
+            <span data-hf-id="hf-65yq" class="04-mau-dong-online-dot"></span>
+            <span data-hf-id="hf-9tjb" class="04-mau-dong-online">ONLINE</span>
+          </div>
+          <div data-hf-id="hf-nk7m" class="04-mau-dong-rule"></div>
+        </div>
+
+        <!-- thread (first bubble at y=330 is the carried, dimmed one) -->
+        <div data-hf-id="hf-w4sg" class="04-mau-dong-thread">
+          <div data-hf-id="hf-a36i" class="04-mau-dong-row 04-mau-dong-row-me" data-layout-allow-overflow="">
+            <div data-hf-id="hf-n8sm" id="04-mau-dong-b0" class="04-mau-dong-bubble 04-mau-dong-me 04-mau-dong-dim">aku tinggal 1 perintah 😎</div>
+          </div>
+          <div data-hf-id="hf-l8la" class="04-mau-dong-row 04-mau-dong-row-me" data-layout-allow-overflow="">
+            <div data-hf-id="hf-plb3" id="04-mau-dong-b1" class="04-mau-dong-bubble 04-mau-dong-me">bisa dijadwalin juga, nanti Medium yang publish sendiri 📅</div>
+          </div>
+          <div data-hf-id="hf-lmwb" class="04-mau-dong-row 04-mau-dong-row-me" data-layout-allow-overflow="">
+            <div data-hf-id="hf-sslm" id="04-mau-dong-code" class="04-mau-dong-code">san_medium schedule
+-at "2026-11-10 09:00" &lt;id&gt;</div>
+          </div>
+          <div data-hf-id="hf-t9ys" class="04-mau-dong-row 04-mau-dong-row-friend" data-layout-allow-overflow="">
+            <div data-hf-id="hf-9fvn" id="04-mau-dong-b2" class="04-mau-dong-bubble 04-mau-dong-friend">mau dong 🥺 gimana dapetnya?</div>
+          </div>
+          <div data-hf-id="hf-1e6b" class="04-mau-dong-row 04-mau-dong-row-me">
+            <div data-hf-id="hf-h2ra" id="04-mau-dong-cta" class="04-mau-dong-bubble 04-mau-dong-me">sawer di <span data-hf-id="hf-z2gg" class="04-mau-dong-strong">Saweria</span> (link di bio), terus <span data-hf-id="hf-vfgo" class="04-mau-dong-strong">DM aku</span> 🙏</div>
+            <div data-hf-id="hf-19im" id="04-mau-dong-typing" class="04-mau-dong-typing">
+              <span data-hf-id="hf-uwnq" id="04-mau-dong-dot1" class="04-mau-dong-dot"></span>
+              <span data-hf-id="hf-qyjp" id="04-mau-dong-dot2" class="04-mau-dong-dot"></span>
+              <span data-hf-id="hf-q6vw" id="04-mau-dong-dot3" class="04-mau-dong-dot"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const byId = (id) => document.getElementById(id);
+
+      const cam = byId("04-mau-dong-cam");
+      const b1 = byId("04-mau-dong-b1");
+      const code = byId("04-mau-dong-code");
+      const b2 = byId("04-mau-dong-b2");
+      const typing = byId("04-mau-dong-typing");
+      const cta = byId("04-mau-dong-cta");
+      const dots = [byId("04-mau-dong-dot1"), byId("04-mau-dong-dot2"), byId("04-mau-dong-dot3")];
+
+      // ── camera target, measured from the CTA bubble's real layout box ──────
+      // offsetLeft/Top/Width/Height are layout values: no transform (the bubble's
+      // own entry, or the camera itself) changes them, so this is the same at every
+      // seek time once fonts are in. Target: CTA centred at x=540, y=620, its
+      // scaled box inside x 40–1040 and y 380–860 (above the TikTok right rail).
+      const AIM_X = 540;
+      const AIM_Y = 620;
+      const MAX_SCALE = 1.3;
+      const MAX_BOX_W = 984; // leaves 48px clear of 40/1040 at the widest bubble
+      const MAX_BOX_H = 440;
+      const aim = () => {
+        let x = 0;
+        let y = 0;
+        let el = cta;
+        while (el && el !== cam) {
+          x += el.offsetLeft;
+          y += el.offsetTop;
+          el = el.offsetParent;
+        }
+        const w = cta.offsetWidth;
+        const h = cta.offsetHeight;
+        if (el !== cam || !w || !h) return; // not laid out (hidden): keep last values
+        const s = Math.min(MAX_SCALE, MAX_BOX_W / w, MAX_BOX_H / h);
+        cam.style.setProperty("--cam-x", (AIM_X - s * (x + w / 2)).toFixed(2));
+        cam.style.setProperty("--cam-y", (AIM_Y - s * (y + h / 2)).toFixed(2));
+        cam.style.setProperty("--cam-ds", (s - 1).toFixed(4));
+      };
+      aim();
+      if (document.fonts) {
+        document.fonts.ready.then(aim);
+        document.fonts.addEventListener("loadingdone", aim);
+      }
+
+      // Shared bubble entry: y +48, scale .94, opacity 0 -> rest, 0.35s power3.out,
+      // starting exactly on the cue (sfx are mounted at these times).
+      const enter = (el, at) =>
+        tl.fromTo(
+          el,
+          { y: 48, scale: 0.94, opacity: 0 },
+          { y: 0, scale: 1, opacity: 1, duration: 0.35, ease: "power3.out" },
+          at,
+        );
+
+      // Scene 1 (0.0–0.3): same chat as frame 1; the carried bubble sits dimmed.
+      // Scene 2 (0.3): my bubble.
+      enter(b1, 0.3);
+      // Scene 3 (1.1): my code bubble.
+      enter(code, 1.1);
+      // Scene 4 (2.4): rina.
+      enter(b2, 2.4);
+
+      // Scene 5 (3.3–4.1): my typing indicator; dots pulse phase-offset (same look
+      // as frame 1: 0.6s period, 0.12s lag, lift 8px, opacity .35 -> 1). Built as
+      // explicit half-cycle tweens (sine.inOut = the cosine curve), no repeat.
+      enter(typing, 3.3);
+      const PULSE_START = 3.3;
+      const SWAP_AT = 4.1;
+      const HALF = 0.3;
+      const LAG = 0.12;
+      const REST = { y: 0, opacity: 0.35 };
+      const PEAK = { y: -8, opacity: 1 };
+      dots.forEach((dot, i) => {
+        for (let k = 0; ; k++) {
+          const at = PULSE_START + i * LAG + k * HALF;
+          if (at >= SWAP_AT) break;
+          const up = k % 2 === 0;
+          tl.fromTo(
+            dot,
+            { ...(up ? REST : PEAK) },
+            { ...(up ? PEAK : REST), duration: HALF, ease: "sine.inOut", immediateRender: false },
+            at,
+          );
+        }
+      });
+
+      // Scene 6 (4.1): the indicator is replaced in place by the CTA bubble;
+      // the pulse dies with it.
+      tl.set(typing, { opacity: 0 }, SWAP_AT);
+      enter(cta, SWAP_AT);
+
+      // Scene 7 (4.6–5.6): payoff push-in, the one camera move. Only --cam-p is
+      // tweened; aim() re-measures as the tween initialises.
+      tl.fromTo(
+        cam,
+        { "--cam-p": 0 },
+        {
+          "--cam-p": () => {
+            aim();
+            return 1;
+          },
+          duration: 1.0,
+          ease: "power3.inOut",
+          immediateRender: false,
+        },
+        4.6,
+      );
+
+      // Scene 8 (5.6–7.0): still hold to the end (final frame, no exit).
+
+      window.__timelines["04-mau-dong"] = tl;
+    })();
+  </script>
+</template>

@@ -42,7 +42,7 @@ Bagian-bagian itu baru menjadi jaringan setelah dihubungkan oleh tunnel. Tunnel 
 
 Kumpulan tunnel inilah yang membentuk jaringan virtual. Karena berjalan di atas jaringan lain, jaringan virtual disebut overlay. Jaringan asli di bawahnya, yaitu internet, disebut underlay. Aplikasi hanya melihat overlay, sedangkan program VPN yang mengurus perjalanan di underlay.
 
-![Dua kolom, komputer A dan komputer B. Di setiap komputer ada empat bagian bertumpuk, yaitu aplikasi, virtual network card (10.10.0.2 dan 10.10.0.1), program VPN yang memegang kunci, dan network card asli (192.168.1.20 dan 192.168.0.15). Garis putus-putus biru menghubungkan kedua virtual network card sebagai jaringan virtual 10.10.0.0/24 yang dilihat aplikasi. Pipa biru menghubungkan kedua program VPN sebagai tunnel terenkripsi, yang dibawa oleh internet. Garis abu-abu menunjukkan jalan asli paket dari network card ke internet.](assets/vpn-anatomy.png)
+![Dua kolom, komputer A dan B. Masing-masing berisi empat lapis, yaitu aplikasi, virtual network card (10.10.0.2 dan 10.10.0.1), program VPN yang memegang kunci, dan network card asli (192.168.1.20 dan 192.168.0.15). Garis putus-putus biru menghubungkan kedua virtual network card sebagai jaringan virtual 10.10.0.0/24 yang dilihat aplikasi. Pipa biru menghubungkan kedua program VPN sebagai tunnel terenkripsi di atas internet. Garis abu-abu adalah jalan asli paket dari network card ke internet.](assets/vpn-anatomy.png)
 
 *Aplikasi melihat kabel langsung. Paketnya sebenarnya lewat tunnel di atas internet.*
 

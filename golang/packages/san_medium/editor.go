@@ -144,8 +144,20 @@ func (e *editor) write(a *Article) (*Draft, error) {
 	if err := e.click(selTitle); err != nil {
 		return nil, err
 	}
-	if err := e.typeText(a.Title); err != nil {
+	// The title goes in as one burst of key events. Typed at a person's
+	// pace, a long title was still going when Medium created the story, and
+	// its start was lost (2026-10-11).
+	if err := e.run(chromedp.KeyEvent(a.Title)); err != nil {
 		return nil, err
+	}
+	// The body is pasted only under the right title, so a title that did
+	// not take stops the draft before anything else goes in.
+	if err := e.until("the title", 10*time.Second, func() (bool, error) {
+		var t string
+		err := e.call(&t, "titleText")
+		return same(t, a.Title), err
+	}); err != nil {
+		return e.partial(), fmt.Errorf("%w%s", err, e.screenshot("title"))
 	}
 
 	if body != "" {
@@ -351,7 +363,10 @@ func (e *editor) openMenu(name string) error {
 		if err := e.click(`.postArticle-content [name="` + name + `"]`); err != nil {
 			return err
 		}
-		if err := e.wait("the + button", 10*time.Second, "plusAt", name); err != nil {
+		// A window covered by another one stays held back until it is
+		// shown, which only a person can do.
+		e.progress("waiting for the + button; keep the Chrome window in view, not covered")
+		if err := e.wait("the + button", time.Minute, "plusAt", name); err != nil {
 			return err
 		}
 	}
@@ -634,11 +649,20 @@ func (e *editor) newStory() error {
 	if err := e.front(); err != nil {
 		return err
 	}
-	if err := e.mark("markWrite"); err != nil {
-		return err
-	}
-	if err := e.click(marked); err != nil {
-		return err
+	// Now and then a click on Write opens nothing (twice on 2026-10-11), so
+	// it is clicked again, as a person would. Medium makes a story only once
+	// something is typed, so a second click cannot make a second story.
+	for try := 1; ; try++ {
+		if err := e.mark("markWrite"); err != nil {
+			return err
+		}
+		if err := e.click(marked); err != nil {
+			return err
+		}
+		if try == 3 || e.opening(20*time.Second) {
+			break
+		}
+		e.progress("Write opened nothing; clicking it again")
 	}
 	// The click starts a page load. Until the new page has a script context,
 	// asking it anything can fail, so a failure only means "not yet".
@@ -670,6 +694,18 @@ func (e *editor) newStory() error {
 		err = fmt.Errorf("%w; the tab is at %s%s", err, where, e.screenshot("no-editor"))
 	}
 	return err
+}
+
+// opening reports whether the tab goes to the editor, /new-story or a story's
+// page, within d.
+func (e *editor) opening(d time.Duration) bool {
+	return e.until("the editor to open", d, func() (bool, error) {
+		var href string
+		if err := e.run(chromedp.Evaluate(`location.href`, &href)); err != nil {
+			return false, nil // a page still loading has no script context yet
+		}
+		return strings.Contains(href, "/new-story") || postURL.MatchString(href), nil
+	}) == nil
 }
 
 // screenshot saves what the tab shows into the temp folder, for an error

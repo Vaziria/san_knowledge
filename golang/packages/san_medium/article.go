@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf16"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -159,8 +160,17 @@ func resolveImage(img *ast.Image, src []byte, dir string) (*Image, error) {
 	if _, err := os.Stat(p); err != nil {
 		return nil, fmt.Errorf("san_medium: image %q: %w", dest, err)
 	}
-	return &Image{Path: p, Alt: plain(img, src)}, nil
+	alt := plain(img, src)
+	if n := len(utf16.Encode([]rune(alt))); n > MaxAlt {
+		return nil, fmt.Errorf("san_medium: image %q: alt text is %d characters; Medium keeps %d", dest, n, MaxAlt)
+	}
+	return &Image{Path: p, Alt: alt}, nil
 }
+
+// MaxAlt is the most characters Medium's alt text box keeps: it is marked
+// data-max-length="500" and cuts a longer paste there (2026-10-11). It counts
+// as JavaScript does, in UTF-16 units.
+const MaxAlt = 500
 
 // onlyImage returns the image of a paragraph that holds nothing else.
 func onlyImage(n ast.Node) *ast.Image {

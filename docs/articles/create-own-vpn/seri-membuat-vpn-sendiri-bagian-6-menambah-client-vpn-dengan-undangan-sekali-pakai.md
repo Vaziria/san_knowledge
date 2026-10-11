@@ -48,7 +48,7 @@ Relay sendiri tidak menyimpan token. Relay hanya menyimpan nama calon client, ha
 
 Hash ini juga punya kelemahan, walaupun kecil. Undangan yang hilang tidak bisa ditampilkan lagi, jadi admin harus membatalkannya dan membuat undangan baru.
 
-![Tiga garis waktu, yaitu admin, komputer baru, dan relay. Admin menjalankan relay undang kantor, dan hash token disimpan di relay.json. Admin mengirim undangan berisi alamat relay, public key relay, dan token ke komputer baru. Komputer baru membuat sepasang kunci, dan private key tetap di sana. Komputer baru mengirim token dan public key ke relay lewat HTTPS. Relay memeriksa token dan masa berlakunya, memberi alamat, lalu menghapus undangan. Relay menjawab dengan nama kantor dan alamat 10.10.0.2. Setelah itu, komputer baru terhubung dengan bukti kunci.](assets/invite-join-sequence.png)
+![Tiga garis waktu, yaitu admin, komputer baru, dan relay. Admin menjalankan relay undang kantor, yang menyimpan hash token di relay.json, lalu mengirim undangan berisi alamat relay, public key relay, dan token. Komputer baru membuat sepasang kunci, lalu mengirim token dan public key, bukan private key, ke relay lewat HTTPS. Relay memeriksa token dan masa berlakunya, menghapus undangan, dan menjawab dengan nama kantor dan alamat 10.10.0.2. Akhirnya, komputer baru terhubung dengan bukti kunci.](assets/invite-join-sequence.png)
 
 *Yang berpindah hanya undangan dan public key.*
 

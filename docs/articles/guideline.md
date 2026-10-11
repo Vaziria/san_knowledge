@@ -155,7 +155,7 @@ Medium takes images, not Markdown diagrams. Draw each one as SVG, render it to P
 
   Use one accent per diagram, on the thing the title is about.
 - **Drawing order:** filled containers first, connectors after, so arrows stay visible.
-- **In the article:** alt text describes what the picture shows, and an italic caption follows on the next line:
+- **In the article:** alt text describes what the picture shows, in at most 500 characters (Medium keeps no more, and `san_medium` refuses a longer one). An italic caption follows on the next line:
 
   ```markdown
   ![Dua baris: ...apa yang digambar...](assets/vpn-packet-inside-a-packet.png)

@@ -95,6 +95,16 @@ func TestParseErrors(t *testing.T) {
 	if _, err := Parse([]byte("# T\n\n![x](https://example.com/x.png)\n"), dir); err == nil {
 		t.Error("remote image accepted")
 	}
+	if err := os.WriteFile(filepath.Join(dir, "x.png"), nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	long := strings.Repeat("a", MaxAlt)
+	if _, err := Parse([]byte("# T\n\n!["+long+"](x.png)\n"), dir); err != nil {
+		t.Errorf("alt text of %d characters: %v", MaxAlt, err)
+	}
+	if _, err := Parse([]byte("# T\n\n!["+long+"b](x.png)\n"), dir); err == nil || !strings.Contains(err.Error(), "alt text") {
+		t.Errorf("alt text over %d characters: %v", MaxAlt, err)
+	}
 }
 
 // The real articles are the cases that matter: every one must parse, with

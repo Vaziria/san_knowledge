@@ -16,7 +16,7 @@ Ada tiga cara untuk mendapatkan alamat itu. Ketiganya adalah:
 - **Layanan tunnel.** Relay berjalan di komputer mana pun, misalnya PC kantor yang selalu menyala. Sebuah program di sebelahnya membuka koneksi keluar ke penyedia layanan, dan penyedia memberi alamat HTTPS publik yang diteruskan lewat koneksi itu.
 - **Layanan container.** Container adalah paket berisi program beserta semua yang dibutuhkannya. Penyedia cloud menjalankan container berisi relay, dan memberi alamat HTTPS publik untuknya.
 
-![Tiga baris. Di baris VPS sendiri, client terhubung lewat wss ke Caddy di VPS, yang meneruskan ke relay di VPS yang sama, dengan biaya sekitar 4 sampai 5 dolar sebulan. Di baris layanan tunnel, client terhubung ke layanan tunnel milik penyedia, dan relay di PC kantor membuka koneksi keluar ke layanan itu, gratis dengan batas pemakaian. Di baris layanan container, client terhubung ke layanan container, yang meneruskan ke relay dengan umur koneksi paling lama 60 menit, dengan biaya sekitar 44 dolar sebulan.](assets/relay-hosting-options.png)
+![Tiga baris. Di baris VPS sendiri, client terhubung lewat wss ke Caddy, yang meneruskan ke relay di VPS yang sama, seharga sekitar 4 sampai 5 dolar sebulan. Di baris layanan tunnel, client terhubung ke layanan tunnel milik penyedia, dan relay di PC kantor membuka koneksi keluar ke layanan itu, gratis dengan batas pemakaian. Di baris layanan container, client terhubung ke layanan container, yang meneruskan ke relay dengan umur koneksi paling lama 60 menit, seharga sekitar 44 dolar sebulan.](assets/relay-hosting-options.png)
 
 *Client tidak peduli relay berjalan di mana. Yang berubah hanya alamat di undangan.*
 

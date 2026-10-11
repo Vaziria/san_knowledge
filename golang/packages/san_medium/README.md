@@ -258,13 +258,18 @@ line of text (it is left out), and links to local files.
      ended for 2 seconds.
 
    It reads the page for 5–10 seconds, then clicks Write and waits for the
-   editor. A sign-in page gives `ErrNotLoggedIn`, as does a page with a shown
+   editor. A click on Write now and then opens nothing, so when the tab has
+   not moved on 20 seconds later, Write is clicked again, up to 3 times. A sign-in page gives `ErrNotLoggedIn`, as does a page with a shown
    sign-in link and no Write link. A Cloudflare block page gives `ErrBlocked`.
    For a Cloudflare check, it says so and waits up to two minutes for you to
    clear it in the window.
-2. **Title.** A click, then real key events, one key at a time, 60–180 ms
-   apart. The editor does not see text put in any other way:
-   `Input.insertText` leaves its placeholder in place, and nothing is saved.
+2. **Title.** A click, then real key events, in one burst. The editor does
+   not see text put in any other way: `Input.insertText` leaves its
+   placeholder in place, and nothing is saved. The tool then reads the title
+   back, and stops before the body if it is not the article's.
+   - Typed one key at a time instead, a long title was still going when
+     Medium created the story, and its first 44 characters were lost
+     (2026-10-11).
 3. **Text.** A click in the body, then one `paste` event with the HTML,
    dispatched to the editor. Medium's own paste handler builds its paragraphs
    from it and saves them. Each image is a placeholder paragraph in the paste,
@@ -334,9 +339,11 @@ a quote and a Go code block.
   - Reading the page's time, offsets included, has unit tests.
   - `draft -at` was not run as one command. It is `draft` followed by
     `schedule` on the same browser, and each was checked on its own.
-- **The page-based sign-in check, the typed title and the arrow-key topics**
-  were checked later that day, on the `basic` profile, with the Plain start.
+- **The page-based sign-in check and the arrow-key topics** were checked
+  later that day, on the `basic` profile, with the Plain start.
   - `draft` of a two-line test article took 31 s and passed its reload check.
+    Its short title was typed key by key then; a long one later lost its
+    start that way, so the title went back to one burst.
     `delete` removed it (28 s), and `drafts` no longer listed it.
   - `schedule` of a real draft, 30 days ahead with four topics, took 40 s.
     `scheduled` listed it as "Nov 10, 9:00 AM", and `unschedule` (26 s) made
@@ -377,8 +384,8 @@ a quote and a Go code block.
 - **Time zone.** The picker uses Chrome's time zone, and the tool assumes it is
   the computer's. If they differ, the read-back check stops the schedule
   rather than setting a wrong time.
-- **Typing speed.** The title is typed key by key, 60–180 ms apart, so a long
-  title takes a few seconds. Everything else is pasted.
+- **Typing speed.** The title is typed as one burst of key events, and
+  topics key by key. Everything else is pasted.
 - **Code block languages.** Medium guesses the language of a pasted code block
   and ignores the markdown's (`go`). The test article's Go block was guessed as
   "Less". `get` shows that label, "Auto (Less)", as a line of the text after

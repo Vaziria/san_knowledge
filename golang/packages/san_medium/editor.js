@@ -355,6 +355,11 @@ window.__sanMedium = (() => {
     },
 
     // What the saved story holds, to check it against the article.
+    titleText() {
+      const t = document.querySelector(EDITOR + ' h3.graf--title');
+      return t ? t.textContent : '';
+    },
+
     snapshot() {
       const t = document.querySelector(EDITOR + ' h3.graf--title');
       const s = document.querySelector(EDITOR + ' h4.graf--subtitle');

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 320" width="1520" height="640" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Setiap client punya antrean sendiri di relay">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="320" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Setiap client punya antrean sendiri di relay</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Pembaca tidak pernah menunggu penerima. Antrean yang penuh membuang paket, seperti router yang sedang sibuk.</text>
+
+  <!-- Containers and boxes -->
+  <rect x="196" y="76" width="380" height="200" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="212" y="98" font-weight="600" fill="#1f1f1f">Relay</text>
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="24" y="152" width="140" height="48" rx="8"/>
+    <rect x="212" y="152" width="104" height="48" rx="8"/>
+    <rect x="484" y="108" width="76" height="48" rx="8"/>
+    <rect x="484" y="208" width="76" height="48" rx="8"/>
+    <rect x="598" y="108" width="138" height="48" rx="8"/>
+    <rect x="598" y="208" width="138" height="48" rx="8"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="94" y="172" font-weight="600" fill="#1f1f1f">Client A</text>
+    <text x="94" y="189" font-size="11.5" fill="#5f5f5f">mengirim ke B dan S</text>
+    <text x="264" y="172" font-weight="600" fill="#1f1f1f">pembaca A</text>
+    <text x="264" y="189" font-size="11.5" fill="#5f5f5f">goroutine</text>
+    <text x="522" y="128" font-weight="600" fill="#1f1f1f">penulis B</text>
+    <text x="522" y="145" font-size="11.5" fill="#5f5f5f">goroutine</text>
+    <text x="522" y="228" font-weight="600" fill="#1f1f1f">penulis S</text>
+    <text x="522" y="245" font-size="11.5" fill="#5f5f5f">macet</text>
+    <text x="667" y="128" font-weight="600" fill="#1f1f1f">Client B</text>
+    <text x="667" y="145" font-size="11.5" fill="#5f5f5f">membaca dengan cepat</text>
+    <text x="667" y="228" font-weight="600" fill="#1f1f1f">Client S</text>
+    <text x="667" y="245" font-size="11.5" fill="#5f5f5f">tidak pernah membaca</text>
+  </g>
+
+  <!-- Queue B: two messages waiting -->
+  <g stroke="#2f76d6" stroke-width="1.25">
+    <rect x="356" y="120" width="112" height="24" fill="#ffffff"/>
+    <rect x="356" y="220" width="112" height="24" fill="#e3edfa"/>
+  </g>
+  <g fill="#2f76d6" fill-opacity="0.55">
+    <rect x="440" y="123" width="11" height="18"/>
+    <rect x="454" y="123" width="11" height="18"/>
+  </g>
+  <g fill="#2f76d6" fill-opacity="0.55">
+    <rect x="359" y="223" width="11" height="18"/>
+    <rect x="373" y="223" width="11" height="18"/>
+    <rect x="387" y="223" width="11" height="18"/>
+    <rect x="401" y="223" width="11" height="18"/>
+    <rect x="415" y="223" width="11" height="18"/>
+    <rect x="429" y="223" width="11" height="18"/>
+    <rect x="443" y="223" width="11" height="18"/>
+    <rect x="457" y="223" width="8" height="18"/>
+  </g>
+  <g text-anchor="middle" font-size="11.5">
+    <text x="412" y="112" fill="#1f1f1f">antrean B</text>
+    <text x="412" y="212" fill="#1f1f1f">antrean S, penuh</text>
+    <text x="412" y="262" fill="#5f5f5f">pesan baru dibuang</text>
+  </g>
+
+  <!-- Flows -->
+  <g fill="none" stroke-width="1.5">
+    <path d="M164 176H212" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M316 166L356 134" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M316 186L356 228" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M468 132H484" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M468 232H484" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M560 132H598" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M560 232H598" stroke="#a8a69c" stroke-dasharray="4 3" marker-end="url(#arrow-grey)"/>
+  </g>
+
+  <text x="24" y="300" font-size="11.5" fill="#5f5f5f">Penulis yang tidak bisa mengirim selama 10 detik memutus client-nya. Client itu tersambung lagi dengan antrean kosong.</text>
+</svg>

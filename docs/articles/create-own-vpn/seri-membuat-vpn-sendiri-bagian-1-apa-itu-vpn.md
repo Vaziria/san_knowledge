@@ -31,7 +31,7 @@ VPN memberi setiap komputer alamat kedua di sebuah jaringan virtual bersama. Jar
 
 ## Anatomi VPN dan peran tunnel di dalamnya
 
-Di bagian sebelumnya, kita melihat VPN memberi setiap komputer alamat kedua di sebuah jaringan virtual. Untuk memahami bagaimana VPN melakukannya, kita bedah dulu bagian-bagiannya. Di setiap komputer anggota VPN, ada empat bagian yang bekerja bersama. Keempatnya adalah:
+Di bagian sebelumnya, kita melihat VPN memberi setiap komputer alamat kedua di sebuah jaringan virtual. Untuk memahami bagaimana VPN melakukannya, kita bedah dulu bagian-bagiannya. Di setiap komputer di dalam VPN, ada empat bagian yang bekerja bersama. Keempatnya adalah:
 
 - **Aplikasi** adalah program yang kamu pakai sehari-hari. Seperti browser, remote desktop, atau database. Aplikasi tidak tahu ada VPN. Ia hanya mengirim paket ke sebuah alamat, misalnya `10.10.0.1`.
 - **Virtual network card** adalah pintu masuk ke jaringan virtual. Setiap komputer terhubung ke jaringan lewat network card, yaitu hardware untuk kabel LAN atau Wi-Fi. VPN menambahkan satu network card lagi yang hanya berupa software, lengkap dengan alamat VPN-nya, misalnya `10.10.0.2`. OS, yaitu software dasar seperti Windows atau Linux, melihatnya sebagai network interface biasa. Network interface adalah sebutan OS untuk sebuah network card. Di Linux, interface buatan VPN ini disebut TUN device, dan di Windows, Wintun melakukan tugas yang sama.
@@ -63,14 +63,14 @@ Gambar di bawah memakai WireGuard sebagai contoh. WireGuard adalah salah satu pr
 
 *Apa yang dikirim aplikasi, dan apa yang dilihat jaringan.*
 
-Pembungkusan ini disebut encapsulation, dan ada harganya. Setiap paket membawa satu set header tambahan, sehingga ruang untuk data berkurang. WireGuard menambah 60 byte di IPv4 dan 80 byte di IPv6, dua versi alamat IP yang dipakai di internet. Karena itu, MTU default WireGuard, yaitu ukuran paket terbesar di tunnel, adalah 1420, bukan 1500 seperti biasanya. Angka itu adalah 1500 dikurangi 80 byte untuk kasus IPv6.
+Pembungkusan ini disebut encapsulation, dan ada yang dikorbankan. Setiap paket membawa satu set header tambahan, sehingga ruang untuk data berkurang. WireGuard menambah 60 byte di IPv4 dan 80 byte di IPv6, dua versi alamat IP yang dipakai di internet. Karena itu, MTU default WireGuard, yaitu ukuran paket terbesar di tunnel, adalah 1420, bukan 1500 seperti biasanya. Angka itu adalah 1500 dikurangi 80 byte untuk kasus IPv6.
 
 ## Apa yang membuat VPN privat
 
 Di bagian sebelumnya, kita melihat tunnel membungkus paket di dalam paket lain supaya bisa menyeberangi internet. Tetapi pembungkusan saja belum membuat jaringan itu privat. Paket yang hanya dibungkus masih bisa dibaca, dipalsukan, atau diubah oleh siapa pun yang dilewatinya di internet. Karena itu, VPN memberi tunnel tiga sifat yang menjadikannya jaringan privat. Ketiga sifat itu adalah:
 
 - **Enkripsi mencegah paket dibaca.** Inilah langkah mengenkripsi yang terjadi sebelum paket dibungkus. Siapa pun di sepanjang jalur hanya melihat data acak di antara dua IP publik. Seperti ISP-mu, yaitu perusahaan yang menjual koneksi internet kepadamu, atau pemilik router di kafe.
-- **Autentikasi mencegah paket dipalsukan.** Setiap komputer memegang sepasang kunci. Satu kunci dirahasiakan, dan satu lagi dibagikan ke anggota lain untuk mengenalinya. Komputer tanpa kunci yang diterima anggota lain tidak bisa bergabung, dan tidak bisa menyusupkan paket.
+- **Autentikasi mencegah paket dipalsukan.** Setiap komputer memegang sepasang kunci. Satu kunci dirahasiakan, dan satu lagi dibagikan ke komputer lain untuk mengenalinya. Komputer tanpa kunci yang diterima komputer lain tidak bisa bergabung, dan tidak bisa menyusupkan paket.
 - **Integritas mencegah paket diubah.** Paket yang diubah di tengah jalan gagal diperiksa, lalu dibuang.
 
 ## Tiga protokol yang akan kamu temui di dalam VPN
@@ -81,7 +81,7 @@ Protokol VPN adalah aturan tentang cara dua komputer membuat tunnel dan bertukar
 - **OpenVPN** muncul pada 2001. OpenVPN dibangun di atas TLS, protokol yang juga mengamankan HTTPS, dan berjalan sebagai program biasa. OpenVPN bisa memakai UDP maupun TCP, yaitu cara mengirim yang menjamin data sampai lengkap dan berurutan. Fleksibilitasnya menjadikannya pilihan utama banyak setup self-hosted, yaitu VPN yang dijalankan sendiri di server milik penggunanya.
 - **WireGuard** adalah yang terbaru. Ukurannya kecil. Implementasi Linux aslinya sekitar 4.000 baris kode, dan sudah menjadi bagian dari kernel Linux, yaitu inti dari OS Linux, sejak 2020. WireGuard memakai satu set kriptografi modern yang tetap (Curve25519, ChaCha20-Poly1305, dan BLAKE2s), jadi tidak ada pilihan cipher, yaitu algoritma enkripsi, yang bisa salah diatur. WireGuard hanya berjalan di atas UDP.
 
-Seri ini dibangun di atas WireGuard, karena ukurannya kecil dan tidak ada pilihan cipher yang bisa salah diatur. Harganya, WireGuard hanya berjalan di atas UDP. Batasan ini kita jawab di bagian akhir artikel ini.
+Seri ini dibangun di atas WireGuard, karena ukurannya kecil dan tidak ada pilihan cipher yang bisa salah diatur. Kelemahannya, WireGuard hanya berjalan di atas UDP. Masalah ini kita jawab di bagian akhir artikel ini.
 
 ## Tiga bentuk jaringan VPN
 
@@ -99,9 +99,9 @@ Banyak koneksi rumah sekarang tidak punya IP publik sama sekali. Dengan carrier-
 
 Ada tiga cara yang umum untuk mengatasinya:
 
-- **Sewa server dengan IP publik**, lalu hubungkan semuanya ke server itu. Cara ini berhasil, tetapi setiap paket melewati server tersebut, dan kamu harus membayarnya.
+- **Sewa server dengan IP publik**, lalu hubungkan semuanya ke server itu. Cara ini berhasil, tetapi setiap paket melewati server tersebut, dan kamu harus membayar sewanya.
 - **Hole punching.** Kedua komputer mengetahui IP publik dan port satu sama lain dari server ketiga, lalu saling mengirim paket pada saat yang sama, sehingga masing-masing NAT mengira paket dari pihak lain adalah balasan. Cara ini sering berhasil, tetapi sebagian CGNAT menggagalkannya.
-- **Relay.** Kedua komputer terhubung keluar ke titik ketiga, yang meneruskan paket di antara keduanya. Cara ini berjalan di mana pun koneksi keluar diizinkan. Harganya, setiap paket melewati relay, sehingga perjalanannya lebih jauh dan kecepatannya dibatasi oleh relay itu.
+- **Relay.** Kedua komputer terhubung keluar ke titik ketiga, yang meneruskan paket di antara keduanya. Cara ini berjalan di mana pun koneksi keluar diizinkan. Kelemahannya, setiap paket melewati relay, sehingga perjalanannya lebih jauh dan kecepatannya dibatasi oleh relay itu.
 
 Seri ini memilih relay, karena hanya cara ini yang tetap berjalan di balik CGNAT dan firewall kantor, selama koneksi HTTPS keluar diizinkan.
 
@@ -115,15 +115,15 @@ VPN di seri ini ditulis dengan Go, bahasa pemrograman buatan Google. Alasannya a
 
 - **WireGuard sudah tersedia dalam Go.** wireguard-go adalah implementasi resmi WireGuard yang berjalan sebagai program biasa, di luar kernel. Kita bisa memakainya sebagai library, yaitu kode siap pakai yang dipanggil dari program kita. Dengan begitu, kita tidak perlu menulis kriptografi sendiri.
 - **Satu file untuk setiap OS.** Go bisa membuat program untuk Windows dan Linux dari satu komputer yang sama. Hasilnya satu file executable yang langsung bisa dijalankan, tanpa runtime yang harus dipasang lebih dulu. Runtime adalah program pendukung yang harus terpasang supaya sebuah bahasa bisa berjalan.
-- **Mudah mengerjakan banyak hal bersamaan.** Go punya goroutine, yaitu cara ringan untuk menjalankan banyak pekerjaan sekaligus. VPN membutuhkannya, karena VPN membaca virtual network card, mengirim ke jaringan, dan melayani banyak anggota pada saat yang sama.
+- **Mudah mengerjakan banyak hal bersamaan.** Go punya goroutine, yaitu cara ringan untuk menjalankan banyak pekerjaan sekaligus. VPN membutuhkannya, karena VPN membaca virtual network card, mengirim ke jaringan, dan melayani banyak client pada saat yang sama.
 
-Tapi kenapa tidak memakai bahasa lain? Ada tiga pilihan lain yang masuk akal, dan masing-masing punya harganya. Ketiganya adalah:
+Tapi kenapa tidak memakai bahasa lain? Ada tiga pilihan lain yang masuk akal, dan masing-masing punya kelemahan. Ketiganya adalah:
 
-- **C** dipakai oleh WireGuard di dalam kernel Linux, sehingga paling cepat. Harganya, kesalahan kecil dalam mengelola memori bisa menjadi celah keamanan, dan kode di dalam kernel lebih sulit dibuat dan diuji.
-- **Rust** juga cepat, dan melindungi program dari kesalahan memori. Cloudflare punya implementasi WireGuard dalam Rust bernama boringtun. Harganya, Rust lebih sulit dipelajari.
-- **Python atau JavaScript** paling mudah ditulis. Harganya, keduanya lebih lambat untuk memproses paket satu per satu, dan butuh runtime yang terpasang di setiap komputer.
+- **C** dipakai oleh WireGuard di dalam kernel Linux, sehingga paling cepat. Kelemahannya, kesalahan kecil dalam mengelola memori bisa menjadi celah keamanan, dan kode di dalam kernel lebih sulit dibuat dan diuji.
+- **Rust** juga cepat, dan melindungi program dari kesalahan memori. Cloudflare punya implementasi WireGuard dalam Rust bernama boringtun. Kelemahannya, Rust lebih sulit dipelajari.
+- **Python atau JavaScript** paling mudah ditulis. Kelemahannya, keduanya lebih lambat untuk memproses paket satu per satu, dan butuh runtime yang terpasang di setiap komputer.
 
-Go juga punya harganya. Program Go berjalan di luar kernel dan memakai garbage collector, yaitu pembersih memori otomatis, sehingga lebih lambat daripada WireGuard di dalam kernel. Jadi, Go cocok jika yang dihubungkan adalah beberapa komputer milik sendiri. Go kurang cocok jika VPN harus melayani ribuan pengguna dengan kecepatan setinggi mungkin.
+Go juga punya kelemahan. Program Go berjalan di luar kernel dan memakai garbage collector, yaitu pembersih memori otomatis, sehingga lebih lambat daripada WireGuard di dalam kernel. Jadi, Go cocok jika yang dihubungkan adalah beberapa komputer milik sendiri. Go kurang cocok jika VPN harus melayani ribuan pengguna dengan kecepatan setinggi mungkin.
 
 ### Komponen yang dibutuhkan untuk membuat VPN sendiri
 
@@ -131,11 +131,11 @@ Setiap bagian di anatomi VPN tadi butuh komponen yang nyata, ditambah beberapa k
 
 - **Virtual network card.** Di Linux, kita memakai TUN device bawaan kernel. Di Windows, kita memakai Wintun, yaitu driver TUN dari proyek WireGuard. Driver adalah software yang mengajari OS cara memakai sebuah perangkat. Keduanya hanya bisa dibuat dengan hak administrator, jadi program VPN harus dijalankan sebagai administrator di Windows atau sebagai root, yaitu akun administrator, di Linux.
 - **Program VPN.** wireguard-go mengurus enkripsi, handshake, dan pergantian kunci. Handshake adalah saat dua komputer saling mengenali dan menyepakati kunci di awal koneksi. Bagian yang kita tulis sendiri adalah penghubung antara wireguard-go, virtual network card, dan jalur pengiriman.
-- **Kunci.** Setiap komputer membuat sepasang kuncinya sendiri saat bergabung. Kunci yang dirahasiakan tidak pernah meninggalkan komputer itu. Hanya kunci yang dibagikan yang dikirim ke anggota lain.
+- **Kunci.** Setiap komputer membuat sepasang kuncinya sendiri saat bergabung. Kunci yang dirahasiakan tidak pernah meninggalkan komputer itu. Hanya kunci yang dibagikan yang dikirim ke client lain.
 - **Jalur pengiriman.** WireGuard biasanya mengirim paket lewat UDP. Masalahnya, di balik CGNAT tidak ada komputer yang bisa dijangkau, dan firewall kantor sering hanya mengizinkan HTTPS keluar. Jadi kita mengganti jalur UDP itu dengan WebSocket, yaitu koneksi web yang tetap terbuka, di atas HTTPS. wireguard-go memungkinkan bagian pengirim paketnya diganti tanpa mengubah WireGuard itu sendiri.
-- **Relay.** Semua anggota terhubung keluar ke relay, yang meneruskan paket di antara mereka. Relay hanya meneruskan paket yang sudah terenkripsi, sehingga ia tidak bisa membaca isinya. Relay butuh alamat HTTPS yang bisa diakses publik. Seperti sebuah VPS dengan IP publik.
-- **Daftar anggota.** Harus ada yang mencatat siapa saja anggotanya, kunci yang dibagikan oleh masing-masing, dan alamat VPN mereka. Catatan ini dipegang relay dan dikirim ke setiap anggota, supaya program VPN tahu ke mana harus mengirim setiap paket.
-- **Pengaturan OS.** Setelah virtual network card dibuat, OS harus diberi tahu alamatnya dan route ke jaringan virtual. Route adalah aturan yang memberi tahu OS lewat network card mana sebuah paket harus keluar. Di Windows, firewall juga perlu diatur supaya paket dari anggota lain boleh masuk.
+- **Relay.** Relay adalah server yang meneruskan paket di antara komputer VPN, dan setiap komputer itu menjadi client-nya. Semua client terhubung keluar ke relay. Relay hanya meneruskan paket yang sudah terenkripsi, sehingga ia tidak bisa membaca isinya. Bagi WireGuard, setiap client tetap menjadi peer bagi client lain, seperti di bentuk mesh tadi. Relay butuh alamat HTTPS yang bisa diakses publik. Seperti sebuah VPS dengan IP publik.
+- **Daftar client.** Harus ada yang mencatat siapa saja client-nya, kunci yang dibagikan oleh masing-masing, dan alamat VPN mereka. Catatan ini dipegang relay dan dikirim ke setiap client, supaya program VPN tahu ke mana harus mengirim setiap paket.
+- **Pengaturan OS.** Setelah virtual network card dibuat, OS harus diberi tahu alamatnya dan route ke jaringan virtual. Route adalah aturan yang memberi tahu OS lewat network card mana sebuah paket harus keluar. Di Windows, firewall juga perlu diatur supaya paket dari client lain boleh masuk.
 
 ### Yang perlu kamu siapkan untuk mengikuti seri ini
 

@@ -2,6 +2,10 @@
 bin/knowledge
 bin/*.exe
 bin/*.exe~
+# Knowledge UI: built into the binary from san_knowledge/ui by the build scripts
+san_knowledge/ui/node_modules/
+san_knowledge/internal/ownview/dist/*
+!san_knowledge/internal/ownview/dist/.gitkeep
 
 # Live graph database: binary bbolt file, rewritten on every change.
 # Version knowledge through JSON exports instead: bin/knowledge.exe export knowledge_data/export.json
@@ -10,6 +14,11 @@ knowledge_data/*.db.lock
 
 # graphify's code graph: rebuilt from the code with `graphify update .`
 graphify-out/
+
+# Chrome profiles of the san_* tools (golang/packages/san_profile_manager):
+# signed-in sessions, never committed
+browser_profiles/*
+!browser_profiles/.gitkeep
 
 # Personal Claude Code settings
 .claude/settings.local.json

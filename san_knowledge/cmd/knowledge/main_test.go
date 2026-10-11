@@ -226,12 +226,28 @@ func TestViewAPI(t *testing.T) {
 	if out, err := knowledge(t, dir, "stats"); err != nil {
 		t.Fatalf("CLI blocked while view runs: %v\n%s", err, out)
 	}
-	for _, p := range []string{"/", "/app.js", "/app.css", "/vendor/cytoscape.min.js"} {
-		resp, err := http.Get(ts.URL + p)
-		if err != nil || resp.StatusCode != 200 {
-			t.Fatalf("static %s: %v", p, err)
+	// The page and its script, once the UI is built (the build scripts build it
+	// before testing); before that, a plain "not built" answer.
+	resp, err := http.Get(ts.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	page, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		if !strings.Contains(string(page), "assets/index.js") {
+			t.Fatalf("page does not load assets/index.js:\n%s", page)
 		}
-		resp.Body.Close()
+		js, err := http.Get(ts.URL + "/assets/index.js")
+		if err != nil || js.StatusCode != 200 {
+			t.Fatalf("assets/index.js: %v", err)
+		}
+		js.Body.Close()
+	case 503:
+		t.Log("UI not built; skipped the page check")
+	default:
+		t.Fatalf("page: %d %s", resp.StatusCode, page)
 	}
 }
 

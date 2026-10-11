@@ -10,6 +10,10 @@ We must have knowledge graph map tool to research. Its purpose to mapping all kn
 5. we have unified knowledge tool placed in `./san_knowledge/cmd/knowledge`.
     Its use `urfave/cli` latest.
 6. dist version place in `./bin/knowledge.exe`
+7. we have something mapped knowledge of workspace. [check this](workspace_knowledge.md)
+
+## Claude Trigger
+1. `/knowledge-sync`
 
 ## `knowledge.exe` Tools
 ### General Command.

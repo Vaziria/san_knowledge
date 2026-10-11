@@ -9,6 +9,11 @@
       "type": "stdio",
       "command": "golang/apps/autotrade/bin/autotrade",
       "args": ["mcp", "run"]
+    },
+    "blender": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["blender-mcp"]
     }
   }
 }

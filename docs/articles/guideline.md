@@ -1,6 +1,6 @@
 # Article guideline
 
-How articles for Medium are written and stored in this repo. Articles are drafts; the user publishes them to Medium by hand.
+How articles for Medium are written and stored in this repo. Articles are drafts; the user publishes them to Medium by hand, from a Medium draft that `san_medium` can make (see "Publishing to Medium").
 
 ## Layout
 
@@ -50,7 +50,7 @@ Articles teach concepts. They may explain an architecture we built, but they nev
 
 - **Title:** `[Seri <Nama Seri> Bagian <N>] <Judul>`, e.g. "[Seri Membuat VPN Sendiri Bagian 1] Apa itu VPN?".
 - **Opening:** each part starts by saying what the series builds and what this part covers.
-- **Closing:** each part ends with `## Berikutnya dalam seri ini`, a short teaser for the next part. Update the teaser when the plan changes.
+- **Closing:** each part ends with `## Berikutnya dalam seri ini`, a short teaser for the next part. Update the teaser when the plan changes. The last part of a series ends with `## Akhir seri <Nama Seri>` instead.
 
 Current series:
 
@@ -66,16 +66,50 @@ Current series:
     - The ping and `ip` output quoted in the article comes from that run, and says so.
     - Windows is **not yet run**: `os_windows.go` (Wintun, netsh, firewall rule) passes `go vet` and builds, but needs an elevated terminal. Run it once before publishing.
     - The teaser promises Bagian 4: proof of private-key ownership at the relay, and a member list the relay hands out.
-  - Bagian 4, "Membuktikan kepemilikan kunci dan membagikan daftar anggota": written, in Indonesian.
+  - Bagian 4, "Membuktikan kepemilikan kunci dan membagikan daftar client": written, in Indonesian.
     - It covers why the relay needs proof, not a claim, and why the proof runs both ways: a fake relay could slip an attacker into the peer list.
     - It compares three options (a shared password, a token per member, proof from the WireGuard key) and explains the anatomy: shared secret by X25519, nonce, HMAC, label.
-    - It covers the five-step mutual proof, member list and addresses from the relay as a JSON text message (text for control, binary for data), the code (`proof`, `relay`, `cmd/relay` with `relay.json`, the changed Bind, `cmd/anggota`), the tests, and the limits.
+    - It covers the five-step mutual proof, member list and addresses from the relay as a JSON text message (text for control, binary for data), the code (`proof`, `relay`, `cmd/relay` with `relay.json`, the changed Bind, `cmd/client`), the tests, and the limits.
     - The code lives in the scratch module `vpnku4`, a copy of `vpnku`, so the Part 2 and 3 code stays as published.
     - Tested: four tests (registered members, stranger, intruder with A's key, fake relay), `-count=10`, and `-race` in Docker.
-    - On real TUN in Docker: relay, Caddy, two members and a stranger. A and B got their addresses and one peer each from the relay and pinged both ways. The stranger was refused with "bukan anggota".
+    - On real TUN in Docker: relay, Caddy, two members and a stranger. A and B got their addresses and one peer each from the relay and pinged both ways. The stranger was refused with "bukan anggota" (now "bukan client terdaftar", see the rename below).
     - The article's code blocks were checked against the tested files: full files are equal, excerpts are substrings.
     - Windows is still not run (same `os_windows.go` as Bagian 3).
     - The teaser promises Bagian 5: reconnect, live member-list updates, and a queue per member at the relay.
+  - The series is complete at nine parts (plan agreed 2026-10-11). Bagian 5 to 9 were written on 2026-10-11, each from a scratch module `vpnku5` … `vpnku9`, a copy of the one before.
+    - Scratch modules live in the session scratchpad and are gone afterwards. The article code blocks are the record: `vpnku4` was rebuilt from Bagian 2 to 4 and its blocks matched again.
+    - Every part's code blocks were filled from the tested files by script and checked: full files equal, excerpts substrings.
+    - Tests ran `-count=20` on Windows and with `-race` (in WSL Ubuntu for Bagian 5 and 6, then on Windows with the msys64 gcc).
+    - Docker Desktop failed on 2026-10-11, so the real-TUN runs for Bagian 5 to 7 used WSL Ubuntu as root with network namespaces and a bridge (`192.0.2.0/24`). The user then asked not to use WSL for article work, so Bagian 8 and 9 have `go test` only.
+  - Bagian 5, "Membuat VPN yang tahan banting": written.
+    - It covers why the connection to the relay breaks, and why TCP keepalive and WireGuard's own retries are not enough.
+    - It builds a Bind that reconnects inside its receive function: a WebSocket ping every 15 s, 10 s per attempt, gaps from 1 s doubling to 30 s.
+    - The relay re-reads `relay.json` every 2 s and sends the full member list; members add and remove peers without resetting kept sessions; the relay keeps a queue of 256 messages per member, with a 10 s write limit.
+    - Tested: 7 tests. TestClientLambat was also run against the Bagian 4 relay and fails there, as it should.
+    - Real TUN (WSL): relay restart, a silent 40 s cut (found after 17 s), a member added and one removed. The quoted log lines and ping counts come from that run.
+  - Bagian 6, "Menambah client VPN dengan undangan sekali pakai": written.
+    - It compares three ways in (admin makes the key, approve on first connect, one-time invite) and picks the invite: relay URL, relay public key and a 32-byte token, base64 with a `vpnku-` prefix. The relay keeps only the token's SHA-256, valid 24 hours.
+    - New: `relay init|run|undang|keluarkan|daftar`, `client gabung`, `POST /gabung`, member names, the next free address (skipping network, broadcast and the address before broadcast), and safe updates of `relay.json` with a `.lock` file and rename.
+    - Tested: 5 tests, including 20 concurrent writers. Real TUN (WSL): init, two joins, a reused invite refused, `keluarkan` cut the member within 2 s.
+  - Bagian 7, "Menjangkau client VPN lewat nama": written.
+    - Domain `vpn.internal` (ICANN reserved `.internal` on 2024-07-29; `.local` is mDNS, RFC 6762). Each member answers DNS itself, inside the tunnel, at the address before broadcast (`10.10.0.254`), by wrapping the TUN device. No port 53 is opened.
+    - OS split DNS: `resolvectl` on Linux (`~vpn.internal`, `default-route false`), an NRPT rule on Windows. `nslookup` ignores NRPT (Microsoft Networking Blog, 2026-01-08).
+    - Tested: 3 `names` tests and a netstack test by name. Real TUN (WSL): `dig` answers, `resolvectl status` and query, `example.com` unaffected.
+    - Windows (NRPT) is **not run**.
+  - Bagian 8, "Menjalankan relay VPN tanpa server sendiri": written.
+    - It compares VPS + Caddy, a tunnel service (Cloudflare quick tunnel, Microsoft dev tunnels) and a container service (Cloud Run), with sourced limits and prices. The Cloud Run figure, about US$44 a month, is computed from the listed us-central1 prices.
+    - Code: the relay's `-renew` asks members to open a new connection before the front cuts the old one; the old one gets 10 s of grace; `PORT` is honoured. Storage outside the container is described, not built.
+    - Tested: TestPerbaruiKoneksi with a proxy that cuts every connection after 1 s; it fails without renewal. No real tunnel or Cloud Run run.
+  - Bagian 9, "Merawat VPN dan menutup seri": written, the last part.
+    - It covers starting on boot (systemd unit, `schtasks /sc onstart /ru System`), the member waiting for the relay unless rejected, `wintun.dll` embedded with `go:embed`, builds for Raspberry Pi (`arm64`, `arm` with `GOARM=6`), and self-update from HTTPS with `SHA256SUMS` and rename.
+    - It closes with the series recap, the costs of the whole design, and when to choose plain WireGuard, Tailscale, Headscale or ZeroTier.
+    - Tested: TestMulaiSebelumRelay and 4 `update` tests. All four release files were cross-built, `-version` printed `v1.0.0`, and replacing a running `.exe` was checked on Windows.
+    - **Not run:** the systemd unit, the scheduled task and the embedded Wintun need administrator rights.
+  - Wording revised on 2026-10-11, at the user's request.
+    - A design's cost is "kelemahan" or "hal yang dikorbankan", not "harga"; the closing sections are "Kelemahan VPN versi …".
+    - "anggota" became "client" everywhere: prose, titles and file names of Bagian 4, 6 and 7, diagrams, and code (`cmd/client`, `client.json`, "vpnku client", "bukan client terdaftar", test names). The relay stays "relay", introduced as the server its clients connect to. Go identifiers were already English (`Member`) and were kept.
+    - The modules `vpnku2` … `vpnku9` were renamed the same way and passed `go vet` (Windows and Linux), builds for linux amd64, arm64 and arm, `go test -count=20` and `-race` on Windows. The `go test -v` output in the articles was rerun.
+    - The real-TUN transcripts in Bagian 4 to 6 (Docker and WSL) were edited for the rename only, not rerun: the binary name, the "client A" labels and the refusal message.
 
 ## Structure
 
@@ -140,13 +174,15 @@ Render with headless Edge, using a profile folder of its own in the scratchpad. 
 
 ## Publishing to Medium
 
-The user does this by hand:
+Medium no longer issues API tokens. `golang/packages/san_medium` makes the draft instead by driving a logged-in Chrome through Medium's own editor. Publishing stays with the user.
 
-1. Open the article in VS Code and press `Ctrl+Shift+V` for the preview.
-2. Select all of the preview, copy it, and paste it into a new Medium story. Medium does not convert pasted Markdown, but it keeps the formatting of pasted HTML.
-3. Upload each PNG from `assets/` where its image appears; pasted images do not come through.
+1. Once: `bin\san_medium.exe login` (from `golang/packages/san_medium`), sign in to Medium in the window that opens, then close it.
+2. `bin\san_medium.exe draft -dry-run <article.md>` shows how the article will be cut. Then `bin\san_medium.exe draft <article.md>` writes the new draft, uploads each image from `assets/` with its alt text and caption, and prints the draft's URL.
+3. The user opens the draft, adds tags, and publishes.
 
-Medium no longer issues API tokens, so there is no tool that posts for us.
+Write drafts one at a time. Cloudflare in front of Medium blocks the Medium sign-in session when chromedp launches Chrome itself (2026-10-11), so the tool starts Chrome as a plain process and attaches to it. If `draft` ever stops with "Cloudflare blocks this browser", run `login` on a new profile (`-profile <dir>`).
+
+By hand, as before: open the article in VS Code, press `Ctrl+Shift+V` for the preview, then select all of the preview, copy it, and paste it into a new Medium story. Medium does not convert pasted Markdown, but it keeps the formatting of pasted HTML. Then upload each PNG from `assets/` where its image appears; pasted images do not come through.
 
 ## Knowledge graph
 

@@ -2,9 +2,9 @@
 
 *Di bagian ini, kita menulis jalur pengiriman VPN dengan Go. Paket WireGuard tidak lagi lewat UDP, tetapi lewat WebSocket ke sebuah relay, sehingga tetap berjalan di balik CGNAT.*
 
-Di Bagian 1, kita sudah melihat apa itu VPN. VPN menghubungkan komputer di tempat yang berbeda lewat tunnel, yaitu jalur tertutup di atas internet. Kita memilih WireGuard sebagai protokolnya. Kita juga memilih relay, yaitu server yang meneruskan paket di antara anggota, karena komputer di balik CGNAT tidak bisa dijangkau dari internet.
+Di Bagian 1, kita sudah melihat apa itu VPN. VPN menghubungkan komputer di tempat yang berbeda lewat tunnel, yaitu jalur tertutup di atas internet. Kita memilih WireGuard sebagai protokolnya. Kita juga memilih relay, yaitu server yang meneruskan paket di antara client, karena komputer di balik CGNAT tidak bisa dijangkau dari internet.
 
-Di Bagian 2, kita mulai menulis kodenya. Fokusnya adalah jalur pengiriman, yaitu cara paket WireGuard berpindah dari satu anggota ke anggota lain. Di akhir bagian ini, dua anggota VPN akan bertukar data lewat relay. Semuanya bisa dicoba di satu komputer, tanpa hak administrator.
+Di Bagian 2, kita mulai menulis kodenya. Fokusnya adalah jalur pengiriman, yaitu cara paket WireGuard berpindah dari satu client ke client lain. Di akhir bagian ini, dua client VPN akan bertukar data lewat relay. Semuanya bisa dicoba di satu komputer, tanpa hak administrator.
 
 ## Kenapa WireGuard perlu dibawa lewat WebSocket?
 
@@ -16,45 +16,45 @@ Masalahnya, di balik CGNAT tidak ada peer yang bisa dijangkau. Firewall kantor j
 - **Koneksi TCP biasa ke relay.** TCP adalah cara mengirim yang menjamin data sampai lengkap dan berurutan. Koneksi keluar memang diizinkan, tetapi firewall kantor sering hanya membuka port tertentu. Seperti port 443 untuk HTTPS.
 - **WebSocket di atas HTTPS.** WebSocket adalah koneksi web yang tetap terbuka, sehingga kedua sisi bisa saling mengirim pesan kapan saja. Karena berjalan di atas HTTPS, bagi firewall koneksi ini terlihat seperti traffic web biasa, dan hampir selalu diizinkan keluar.
 
-Seri ini memilih WebSocket di atas HTTPS, karena hanya pilihan ini yang lolos di balik CGNAT maupun firewall kantor. Pilihan ini punya tiga harga. Ketiganya adalah:
+Seri ini memilih WebSocket di atas HTTPS, karena hanya pilihan ini yang lolos di balik CGNAT maupun firewall kantor. Ada tiga hal yang dikorbankan oleh pilihan ini. Ketiganya adalah:
 
 - **Semua paket lewat relay.** Perjalanannya lebih jauh, dan kecepatan seluruh VPN dibatasi oleh relay.
 - **TCP di dalam TCP.** WebSocket berjalan di atas TCP, dan aplikasi di dalam VPN sering memakai TCP juga. Saat jaringan sering kehilangan paket, dua lapisan TCP ini bisa saling memperlambat, karena keduanya sama-sama mengirim ulang data yang hilang.
-- **Enkripsi dua lapis.** HTTPS mengenkripsi perjalanan sampai ke relay, lalu WireGuard mengenkripsi isinya sekali lagi dari ujung ke ujung. Harganya sedikit kerja tambahan untuk CPU dan beberapa byte header tambahan.
+- **Enkripsi dua lapis.** HTTPS mengenkripsi perjalanan sampai ke relay, lalu WireGuard mengenkripsi isinya sekali lagi dari ujung ke ujung. Akibatnya, CPU bekerja sedikit lebih banyak, dan setiap paket membawa beberapa byte header tambahan.
 
-Untuk menghubungkan beberapa komputer milik sendiri, harga ini masih masuk akal. Jika kamu butuh kecepatan setinggi mungkin, jalur UDP langsung tetap lebih baik, dan relay bisa menjadi cadangan saat jalur langsung gagal.
+Untuk menghubungkan beberapa komputer milik sendiri, ketiga pengorbanan ini masih sepadan. Jika kamu butuh kecepatan setinggi mungkin, jalur UDP langsung tetap lebih baik, dan relay bisa menjadi cadangan saat jalur langsung gagal.
 
 ## Anatomi jalur pengiriman VPN
 
-Sebelum menulis kode, kita lihat dulu bagian-bagian jalur pengiriman. Di Bagian 1, setiap komputer memegang sepasang kunci. Kunci yang dibagikan ke anggota lain disebut public key, dan kunci yang dirahasiakan disebut private key. Public key ini akan menjadi alamat setiap anggota. Ada empat bagian yang bekerja di jalur pengiriman. Keempatnya adalah:
+Sebelum menulis kode, kita lihat dulu bagian-bagian jalur pengiriman. Di Bagian 1, setiap komputer memegang sepasang kunci. Kunci yang dibagikan ke client lain disebut public key, dan kunci yang dirahasiakan disebut private key. Public key ini akan menjadi alamat setiap client. Ada empat bagian yang bekerja di jalur pengiriman. Keempatnya adalah:
 
 - **wireguard-go** mengurus semua urusan WireGuard, yaitu enkripsi, handshake, dan pergantian kunci. Saat sebuah paket siap dikirim, wireguard-go menyerahkannya ke Bind.
 - **Bind** adalah bagian wireguard-go yang mengirim dan menerima paket ke jaringan. Bind bawaannya memakai UDP. Kita menggantinya dengan Bind buatan sendiri yang memakai WebSocket.
 - **Endpoint** adalah alamat tujuan sebuah paket menurut wireguard-go. Untuk UDP, endpoint berupa IP dan port. Untuk kita, endpoint adalah public key milik peer tujuan.
-- **Relay** menyimpan daftar anggota yang sedang terhubung, yaitu pasangan public key dan koneksi WebSocket-nya. Setiap pesan yang masuk diteruskan ke koneksi milik public key tujuan.
+- **Relay** menyimpan daftar client yang sedang terhubung, yaitu pasangan public key dan koneksi WebSocket-nya. Setiap pesan yang masuk diteruskan ke koneksi milik public key tujuan.
 
-![Anggota A dan anggota B masing-masing punya wireguard-go dan Bind WebSocket yang menggantikan UDP. Kedua Bind membuka koneksi WebSocket keluar ke relay di tengah. Relay menyimpan daftar anggota, yaitu public key dan koneksinya. Relay hanya membaca public key di depan setiap pesan, sedangkan paket WireGuard di belakangnya tetap terenkripsi.](assets/delivery-path-anatomy.png)
+![Client A dan client B masing-masing punya wireguard-go dan Bind WebSocket yang menggantikan UDP. Kedua Bind membuka koneksi WebSocket keluar ke relay di tengah. Relay menyimpan daftar client, yaitu public key dan koneksinya. Relay hanya membaca public key di depan setiap pesan, sedangkan paket WireGuard di belakangnya tetap terenkripsi.](assets/delivery-path-anatomy.png)
 
 *Bind WebSocket menggantikan UDP, dan relay mengantar paket berdasarkan public key.*
 
 Public key dipakai sebagai alamat karena dua alasan. Keduanya adalah:
 
-- **Public key sudah unik.** Setiap anggota punya public key yang berbeda, jadi kita tidak butuh nomor atau nama tambahan.
+- **Public key sudah unik.** Setiap client punya public key yang berbeda, jadi kita tidak butuh nomor atau nama tambahan.
 - **Alamatnya tidak berubah saat komputer pindah jaringan.** Seperti laptop yang pindah dari Wi-Fi rumah ke hotspot ponsel. Laptop itu cukup membuat koneksi WebSocket baru, dan relay tetap mengenalinya dari public key yang sama.
 
-## Format pesan antara anggota VPN dan relay
+## Format pesan antara client VPN dan relay
 
 Relay perlu tahu ke mana setiap paket harus diantar, dan penerima perlu tahu dari siapa paket itu datang. Karena itu, setiap paket WireGuard dikirim sebagai satu pesan WebSocket jenis binary, dengan public key sepanjang 32 byte di depannya. Ada tiga jenis pesan. Ketiganya adalah:
 
-1. **Pesan perkenalan.** Begitu terhubung, anggota mengirim public key-nya sendiri. Relay mencatat koneksi itu sebagai milik public key tersebut.
-2. **Pesan dari anggota ke relay.** 32 byte pertamanya adalah public key tujuan, lalu disusul paket WireGuard.
-3. **Pesan dari relay ke anggota.** Relay mengganti 32 byte pertama dengan public key pengirim, lalu meneruskannya. Paket WireGuard di belakangnya tidak diubah.
+1. **Pesan perkenalan.** Begitu terhubung, client mengirim public key-nya sendiri. Relay mencatat koneksi itu sebagai milik public key tersebut.
+2. **Pesan dari client ke relay.** 32 byte pertamanya adalah public key tujuan, lalu disusul paket WireGuard.
+3. **Pesan dari relay ke client.** Relay mengganti 32 byte pertama dengan public key pengirim, lalu meneruskannya. Paket WireGuard di belakangnya tidak diubah.
 
 ![Tiga baris. Pertama, pesan perkenalan berisi public key A sepanjang 32 byte, dan relay mencatat koneksi itu sebagai milik A. Kedua, pesan dari A ke relay berisi tujuan, yaitu public key B, lalu paket WireGuard yang terenkripsi. Ketiga, pesan dari relay ke B berisi pengirim, yaitu public key A, lalu paket WireGuard yang sama tanpa diubah.](assets/relay-message-format.png)
 
 *Relay hanya membaca dan mengganti 32 byte pertama setiap pesan.*
 
-Kenapa relay yang mengisi public key pengirim, bukan anggota itu sendiri? Kalau anggota yang mengisinya, anggota nakal bisa mengaku sebagai anggota lain di setiap pesan. Relay tahu pasti dari koneksi mana sebuah pesan datang, jadi relay yang paling layak mengisinya. Siapa yang boleh mengaku memakai sebuah public key saat perkenalan adalah soal lain, yang dibahas di bagian batasan.
+Kenapa relay yang mengisi public key pengirim, bukan client itu sendiri? Kalau client yang mengisinya, client nakal bisa mengaku sebagai client lain di setiap pesan. Relay tahu pasti dari koneksi mana sebuah pesan datang, jadi relay yang paling layak mengisinya. Siapa yang boleh mengaku memakai sebuah public key saat perkenalan adalah soal lain, yang dibahas di bagian kelemahan di akhir artikel ini.
 
 ## Menyiapkan project Go untuk VPN
 
@@ -73,15 +73,15 @@ vpnku/
   relay/relay.go          relay yang meneruskan pesan
   cmd/relay/main.go       program untuk menjalankan relay
   wsbind/wsbind.go        Bind WebSocket untuk wireguard-go
-  wsbind/wsbind_test.go   test dua anggota lewat relay
+  wsbind/wsbind_test.go   test dua client lewat relay
 ```
 
 ## Menulis relay VPN dengan Go
 
-Relay adalah server HTTP yang menerima koneksi WebSocket dari setiap anggota. Kodenya ada di `relay/relay.go`.
+Relay adalah server HTTP yang menerima koneksi WebSocket dari setiap client. Kodenya ada di `relay/relay.go`.
 
 ```go
-// Package relay meneruskan paket WireGuard di antara anggota VPN.
+// Package relay meneruskan paket WireGuard di antara client VPN.
 package relay
 
 import (
@@ -111,7 +111,7 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer c.CloseNow()
 	ctx := req.Context()
 
-	// Pesan pertama dari anggota adalah public key-nya.
+	// Pesan pertama dari client adalah public key-nya.
 	_, first, err := c.Read(ctx)
 	if err != nil || len(first) != KeyLen {
 		return
@@ -159,11 +159,11 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 Kode ini bekerja dalam enam langkah. Langkah-langkahnya adalah:
 
 1. `websocket.Accept` mengubah request HTTP menjadi koneksi WebSocket.
-2. Pesan pertama dibaca sebagai public key anggota, lalu koneksinya dicatat di `members`.
+2. Pesan pertama dibaca sebagai public key client, lalu koneksinya dicatat di `members`.
 3. Setiap pesan berikutnya dibaca 32 byte pertamanya untuk mencari koneksi tujuan.
 4. Kalau tujuannya tidak ditemukan, pesan itu dibuang. Paket yang hilang bukan masalah besar, karena WireGuard dan TCP di dalamnya akan mengirim ulang, persis seperti saat UDP kehilangan paket.
 5. Kalau tujuannya ditemukan, 32 byte pertama diganti dengan public key pengirim, lalu pesan dikirim ke tujuan.
-6. Saat koneksi putus, anggota itu dihapus dari daftar.
+6. Saat koneksi putus, client itu dihapus dari daftar.
 
 Setiap koneksi berjalan di goroutine-nya sendiri, jadi beberapa goroutine bisa membaca dan mengubah `members` pada saat yang sama. Karena itu, `members` dijaga oleh `sync.Mutex`. Mutex memastikan hanya satu goroutine yang menyentuh daftar itu pada satu waktu.
 
@@ -341,11 +341,11 @@ Kode ini bekerja dalam lima langkah. Langkah-langkahnya adalah:
 
 Library WebSocket ini mengizinkan beberapa goroutine menulis ke satu koneksi pada saat yang sama. Jadi `Send` tidak butuh mutex tambahan, walaupun wireguard-go bisa memanggilnya dari banyak goroutine.
 
-## Mencoba dua anggota VPN tanpa hak administrator
+## Mencoba dua client VPN tanpa hak administrator
 
-Di Bagian 1, virtual network card butuh hak administrator. Untuk mencoba jalur pengiriman, kita belum membutuhkannya. wireguard-go punya netstack, yaitu network stack yang berjalan di dalam program. Network stack adalah bagian OS yang mengurus IP dan TCP. Dengan netstack, setiap anggota punya alamat VPN sendiri tanpa membuat virtual network card sungguhan.
+Di Bagian 1, virtual network card butuh hak administrator. Untuk mencoba jalur pengiriman, kita belum membutuhkannya. wireguard-go punya netstack, yaitu network stack yang berjalan di dalam program. Network stack adalah bagian OS yang mengurus IP dan TCP. Dengan netstack, setiap client punya alamat VPN sendiri tanpa membuat virtual network card sungguhan.
 
-Test di bawah menjalankan relay dan dua anggota, A dan B, di satu program. B menjalankan web server kecil di `10.10.0.1`, dan A memanggilnya lewat tunnel. Kodenya ada di `wsbind/wsbind_test.go`.
+Test di bawah menjalankan relay dan dua client, A dan B, di satu program. B menjalankan web server kecil di `10.10.0.1`, dan A memanggilnya lewat tunnel. Kodenya ada di `wsbind/wsbind_test.go`.
 
 ```go
 package wsbind_test
@@ -370,7 +370,7 @@ import (
 	"vpnku/wsbind"
 )
 
-func TestDuaAnggota(t *testing.T) {
+func TestDuaClient(t *testing.T) {
 	srv := httptest.NewServer(relay.New())
 	defer srv.Close()
 	url := "ws" + strings.TrimPrefix(srv.URL, "http")
@@ -418,7 +418,7 @@ func newKey(t *testing.T) (priv, pub [32]byte) {
 	return priv, pub
 }
 
-// member menyalakan satu anggota VPN. Virtual network card-nya adalah
+// member menyalakan satu client VPN. Virtual network card-nya adalah
 // netstack, yang berjalan di dalam program, jadi tes ini tidak butuh hak
 // administrator.
 func member(t *testing.T, url string, priv, pub, peer [32]byte, self, peerIP string) *netstack.Net {
@@ -456,15 +456,15 @@ $ go test ./wsbind/
 ok  	vpnku/wsbind	0.084s
 ```
 
-## Harga dan batasan jalur pengiriman versi pertama
+## Kelemahan jalur pengiriman versi pertama
 
-Jalur pengiriman ini sudah bekerja, tetapi masih versi pertama. Ada empat batasan yang perlu kamu tahu sebelum memakainya. Keempatnya adalah:
+Jalur pengiriman ini sudah bekerja, tetapi masih versi pertama. Ada empat kelemahan yang perlu kamu tahu sebelum memakainya. Keempatnya adalah:
 
-- **Relay percaya begitu saja pada pesan perkenalan.** Siapa pun bisa mengaku memakai public key anggota lain. Isi paket tetap aman, karena tanpa private key, penyusup tidak bisa mendekripsi atau membuat paket WireGuard yang sah. Tetapi penyusup bisa menerima paket yang seharusnya untuk anggota itu, dan mengganggu koneksinya. Versi berikutnya perlu meminta bukti bahwa anggota benar-benar memegang private key-nya.
-- **Satu anggota yang lambat bisa memperlambat pengirimnya.** Relay menulis ke tujuan di goroutine milik pengirim. Kalau tujuannya lambat, pengirim ikut tertahan. Versi yang lebih baik memberi setiap anggota antrean sendiri, lalu membuang paket saat antrean penuh, seperti UDP.
+- **Relay percaya begitu saja pada pesan perkenalan.** Siapa pun bisa mengaku memakai public key client lain. Isi paket tetap aman, karena tanpa private key, penyusup tidak bisa mendekripsi atau membuat paket WireGuard yang sah. Tetapi penyusup bisa menerima paket yang seharusnya untuk client itu, dan mengganggu koneksinya. Versi berikutnya perlu meminta bukti bahwa client benar-benar memegang private key-nya.
+- **Satu client yang lambat bisa memperlambat pengirimnya.** Relay menulis ke tujuan di goroutine milik pengirim. Kalau tujuannya lambat, pengirim ikut tertahan. Versi yang lebih baik memberi setiap client antrean sendiri, lalu membuang paket saat antrean penuh, seperti UDP.
 - **Koneksi yang putus tidak tersambung lagi.** Kalau relay restart atau jaringan putus, Bind ini tidak membuka koneksi baru sendiri. wireguard-go baru memanggil `Open` lagi saat device dinyalakan ulang.
-- **Contoh ini memakai HTTP biasa.** Di internet, relay harus berada di belakang HTTPS, supaya lolos firewall kantor dan supaya isi koneksi ke relay tidak terlihat di jalan. Caranya bisa lewat reverse proxy, yaitu server yang menerima HTTPS lalu meneruskannya ke relay. Anggota lalu memakai alamat `wss://`, yaitu WebSocket di atas HTTPS.
+- **Contoh ini memakai HTTP biasa.** Di internet, relay harus berada di belakang HTTPS, supaya lolos firewall kantor dan supaya isi koneksi ke relay tidak terlihat di jalan. Caranya bisa lewat reverse proxy, yaitu server yang menerima HTTPS lalu meneruskannya ke relay. Client lalu memakai alamat `wss://`, yaitu WebSocket di atas HTTPS.
 
 ## Berikutnya dalam seri ini
 
-Di Bagian 3, kita mengganti netstack dengan virtual network card sungguhan. Kita membuat TUN device di Linux dan Wintun di Windows, memberi alamat dan route, lalu menghubungkan dua komputer nyata lewat relay ini. Setelah itu, kita kembali ke batasan di atas, dimulai dari bukti kepemilikan public key.
+Di Bagian 3, kita mengganti netstack dengan virtual network card sungguhan. Kita membuat TUN device di Linux dan Wintun di Windows, memberi alamat dan route, lalu menghubungkan dua komputer nyata lewat relay ini. Setelah itu, kita kembali ke kelemahan di atas, dimulai dari bukti kepemilikan public key.

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Tests and builds bin/knowledge (Linux) and bin/knowledge.exe (Windows).
-# The Knowledge UI (internal/ownview/static) is embedded, so no npm step is needed.
+# Builds the Knowledge UI (ui/, React + TypeScript + Chakra UI, into internal/ownview/dist, which the binary embeds),
+# then tests and builds bin/knowledge (Linux) and bin/knowledge.exe (Windows). Needs Node.js.
 #   bash san_knowledge/build.sh
 set -euo pipefail
 cd "$(dirname "$0")"
+(cd ui && { [ -d node_modules ] || npm ci --no-audit --no-fund; } && npm run build)
 go vet ./...
 go test ./...
 version=$(date +%Y.%m.%d-%H%M)

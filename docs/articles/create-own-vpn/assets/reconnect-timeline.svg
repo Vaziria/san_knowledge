@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="1520" height="600" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Bind menemukan koneksi yang mati, lalu tersambung lagi sendiri">
+  <rect x="0" y="0" width="760" height="300" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Bind menemukan koneksi yang mati, lalu tersambung lagi sendiri</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Ping setiap 15 detik menguji koneksi sampai ke relay. Jeda di antara percobaan berlipat dua, paling lama 30 detik.</text>
+
+  <!-- The connection over time -->
+  <rect x="24" y="124" width="226" height="34" rx="6" fill="#e3edfa" stroke="#2f76d6" stroke-width="1.5"/>
+  <rect x="250" y="124" width="140" height="34" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="390" y="124" width="230" height="34" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <rect x="620" y="124" width="116" height="34" rx="6" fill="#e3edfa" stroke="#2f76d6" stroke-width="1.5"/>
+  <g text-anchor="middle" fill="#1f1f1f">
+    <text x="137" y="146">koneksi hidup</text>
+    <text x="320" y="146" font-size="11.5">mati, belum ketahuan</text>
+    <text x="678" y="146">hidup lagi</text>
+  </g>
+
+  <!-- Pings above the bar -->
+  <g stroke="#a8a69c" stroke-width="1.25">
+    <line x1="90" y1="102" x2="90" y2="124"/>
+    <line x1="180" y1="102" x2="180" y2="124"/>
+    <line x1="330" y1="102" x2="330" y2="124"/>
+  </g>
+  <g text-anchor="middle" font-size="11.5">
+    <text x="90" y="96" fill="#5f5f5f">ping, pong</text>
+    <text x="180" y="96" fill="#5f5f5f">ping, pong</text>
+    <text x="330" y="96" fill="#1f1f1f">ping tanpa pong</text>
+    <text x="505" y="110" fill="#5f5f5f">jeda 1, 2, 4, 8 … 30 detik</text>
+  </g>
+
+  <!-- Attempts to reconnect -->
+  <g fill="#ffffff" stroke="#a8a69c" stroke-width="1.5">
+    <circle cx="404" cy="141" r="5"/>
+    <circle cx="426" cy="141" r="5"/>
+    <circle cx="458" cy="141" r="5"/>
+    <circle cx="508" cy="141" r="5"/>
+    <circle cx="580" cy="141" r="5"/>
+  </g>
+  <circle cx="620" cy="141" r="6" fill="#2f76d6"/>
+
+  <!-- Events under the bar -->
+  <g stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="3 3">
+    <line x1="250" y1="158" x2="250" y2="176"/>
+    <line x1="390" y1="158" x2="390" y2="176"/>
+    <line x1="620" y1="158" x2="620" y2="176"/>
+  </g>
+  <g text-anchor="middle" font-size="11.5" fill="#1f1f1f">
+    <text x="250" y="192">jaringan putus</text>
+    <text x="250" y="207" fill="#5f5f5f">tanpa tanda apa pun</text>
+    <text x="390" y="192">10 detik tanpa pong</text>
+    <text x="390" y="207" fill="#5f5f5f">koneksi ditutup</text>
+    <text x="620" y="192">tersambung dan diperiksa</text>
+    <text x="620" y="207" fill="#5f5f5f">lalu daftar client terbaru</text>
+  </g>
+
+  <text x="24" y="252" font-size="11.5" fill="#5f5f5f">Selama koneksi putus, paket dibuang seperti di UDP. Sesi WireGuard tetap tersimpan di wireguard-go,</text>
+  <text x="24" y="270" font-size="11.5" fill="#5f5f5f">dan kalau putusnya lama, wireguard-go membuat handshake baru sendiri begitu paket mengalir lagi.</text>
+</svg>

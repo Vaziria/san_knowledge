@@ -34,7 +34,7 @@ Write as if the reader knows nothing when they begin. What they know is only wha
 
 1. **Thesis:** the claim, or the usual answer. "WireGuard adalah jawaban yang biasa."
 2. **Antithesis:** the strongest objection, limit or alternative. "Tapi WireGuard butuh satu sisi yang bisa dijangkau lewat UDP, dan di balik CGNAT tidak ada yang bisa."
-3. **Synthesis:** what holds, under which conditions, and at what price. "Bungkus WireGuard di dalam koneksi keluar. Harganya: semua paket lewat relay."
+3. **Synthesis:** what holds, under which conditions, and at what price. "Bungkus WireGuard di dalam koneksi keluar. Kelemahannya, semua paket lewat relay."
 
 The synthesis is never just the thesis again. It is a narrower, conditional and more honest version of it.
 
@@ -50,7 +50,8 @@ The synthesis is never just the thesis again. It is a narrower, conditional and 
 - **Steelman the other side.** Present the alternative at its best, as its own users would describe it. Never a strawman.
 - **Voice the reader's question.** Say the objection out loud, as a heading or an opening sentence: "Kenapa tidak sewa VPS saja?", "Bukankah WireGuard sudah cukup?"
 - **One objection per point: the strongest.** Don't stack weak ones to make a point look well defended.
-- **Every synthesis names its cost.** What it gives up, in plain terms: latency, bandwidth, money, trust, complexity. A design article ends with its own section on costs.
+- **Every synthesis names its cost.** What it gives up, in plain terms: latency, bandwidth, money, trust, complexity. A design article ends with its own section on costs, headed "Kelemahan …".
+- **Argue the way Indonesian argues, not in translated English.** A design's cost is its "kelemahan", or the "hal yang dikorbankan". "Harga" ("price"), "trade-off" and "batasan" ("limitation") are calques for this. "Harga" and "biaya" are for money only, as in "harga Cloud Run".
 - **Conditions over verdicts.** "Cocok jika …, kurang cocok jika …" instead of "X lebih baik".
 - **Evidence decides.** Numbers, behaviour, and sources that were actually opened, never taste. When the evidence is missing, say the question is still open.
 - **No fake balance.** If an alternative is simply worse for the case at hand, say so and say why.
@@ -87,7 +88,9 @@ The synthesis is never just the thesis again. It is a narrower, conditional and 
 | Raise an objection | "Tapi …", "Masalahnya …", "Kenapa tidak … saja?", "Bukankah …?" |
 | Concede | "Itu benar untuk …, tetapi …", "Memang …, hanya saja …" |
 | Resolve | "Jadi, …", "Hasilnya, …" |
-| Name the cost | "Harganya: …", "Yang dikorbankan: …" |
+| Name the cost | "Kelemahannya, …", "Yang dikorbankan adalah …", "Ada tiga hal yang dikorbankan oleh pilihan ini." |
+| Weigh the cost | "… masih sepadan", "… ikut menanggung akibatnya" |
+| List what is still weak | "Tetapi masih ada empat kelemahan yang perlu kamu tahu. Keempatnya adalah:" |
 | Set conditions | "Cocok jika …, kurang cocok jika …" |
 | Leave it open | "Pertanyaan ini kita jawab di Bagian …" |
 

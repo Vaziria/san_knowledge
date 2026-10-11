@@ -16,8 +16,12 @@ import (
 	"san_knowledge/internal/kb"
 )
 
-//go:embed static
-var static embed.FS
+// The page is built from san_knowledge/ui (React + TypeScript + Chakra UI) into
+// dist by the build scripts. dist/.gitkeep keeps the embed valid before the
+// first build; the server then says the UI is not built.
+//
+//go:embed all:dist
+var dist embed.FS
 
 // Opener runs fn with an open store. The view opens the database per request
 // so it never holds the lock while idle.
@@ -52,9 +56,15 @@ func Handler(o Options) http.Handler {
 	mux.HandleFunc("POST /api/ai", h.ai)
 	mux.HandleFunc("POST /api/fetch", h.fetch)
 
-	root, _ := fs.Sub(static, "static")
+	root, _ := fs.Sub(dist, "dist")
 	files := http.FileServer(http.FS(root))
+	_, err := fs.Stat(root, "index.html")
+	built := err == nil
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		if !built {
+			http.Error(w, "The Knowledge UI is not built: run san_knowledge/build.ps1 or build.sh (needs Node.js).", http.StatusServiceUnavailable)
+			return
+		}
 		w.Header().Set("Cache-Control", "no-cache")
 		files.ServeHTTP(w, r)
 	})

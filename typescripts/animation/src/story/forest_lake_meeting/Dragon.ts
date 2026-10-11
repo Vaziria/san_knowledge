@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { DragonModel, type DragonDoing } from '../../figures/ForestLake/animals/ForestSpiritDragon/DragonModel';
 import { ForestSpiritDragon } from '../../figures/ForestLake/animals/ForestSpiritDragon/ForestSpiritDragon';
 import { SpeechBubble } from '../../speech/SpeechBubble';
 import type { Theme } from '../../theme';
@@ -38,6 +39,11 @@ import type { Seeing } from '../lake_meeting/Sight';
 //
 // The cameras see it as one of the animals at the meeting (`member`): the
 // quiet camera may follow it, and none is put inside it or looks through it.
+//
+// It is drawn with the user's own model (DragonModel), as the user asked
+// ("export to glb and add to forest lake meeting", 2026-10-03), once that has
+// loaded: the figure built in code still moves it, hidden. In Node (the
+// meeting's checks), or if the model can't load, the figure itself shows.
 //
 // Meters, in the meeting's coordinates (its origin the landing, +z away from
 // the water); `tree` is the foot of the crystal tree's trunk, `water` the
@@ -90,6 +96,9 @@ const ROAR_VIEWS = [
 // 1.05 m, READABLE in ForestMeeting.ts).
 const BUBBLE_UP = 1.7;
 const BUBBLE_SCALE = 11;
+// Drawn with the user's model, the bubble is CROWN_UP m over the top of its
+// head instead.
+const CROWN_UP = 0.3;
 // The camera on its words, in its own frame (ahead, to its side, up) from
 // AIM_DOWN m under its bubble's tip, which it looks at, so that standing,
 // all of it is in the picture under its words. The first of these that is
@@ -118,12 +127,40 @@ type Phase = 'round' | 'approach' | 'landing' | 'ground' | 'leave';
 class Resident extends ForestSpiritDragon implements Figure {
   private readonly words: SpeechBubble;
   private readonly overHead = new THREE.Vector3();
+  private model: DragonModel | null = null;
+  // Whether it is drawn with the user's model, once that has loaded (false
+  // in Node, or if it couldn't load).
+  readonly modelled: Promise<boolean>;
 
   constructor(theme: Theme) {
     super();
     this.words = new SpeechBubble(theme);
     this.words.scale.setScalar(BUBBLE_SCALE);
     this.add(this.words);
+    this.modelled = DragonModel.load().then((model) => {
+      if (!model) return false;
+      this.model = model;
+      this.rig.visible = false; // the figure built in code, which still moves it (its bubble isn't in it)
+      this.add(model);
+      model.follow(this.doingNow, 0);
+      return true;
+    });
+  }
+
+  // What it is doing, for its model.
+  private get doingNow(): DragonDoing {
+    return {
+      doing: this.doing,
+      flying: this.flying,
+      speed: this.speedNow,
+      climb: this.climbNow,
+      height: this.position.y - this.groundHeight,
+      walkSpeed: ForestSpiritDragon.WALK_SPEED,
+      roaring: this.roaring,
+      talking: this.words.speaking,
+      pitch: this.body.rotation.x,
+      bank: this.body.rotation.z,
+    };
   }
 
   get speaking(): boolean {
@@ -148,8 +185,13 @@ class Resident extends ForestSpiritDragon implements Figure {
     // (Its figure's constructor updates it before its bubble is made.)
     if (!this.words) return;
     // Over its head, straight up from it however it banks or leans.
-    this.head.getWorldPosition(this.overHead);
-    this.overHead.y += BUBBLE_UP;
+    if (this.model) {
+      this.model.follow(this.doingNow, delta);
+      this.model.crown(this.overHead).y += CROWN_UP;
+    } else {
+      this.head.getWorldPosition(this.overHead);
+      this.overHead.y += BUBBLE_UP;
+    }
     this.words.position.copy(this.worldToLocal(this.overHead));
     this.words.update(delta);
   }

@@ -35,7 +35,7 @@ Write these as they are, with no Indonesian equivalent next to them.
 | TUN device | perangkat TUN | |
 | OS | sistem operasi | |
 | server | | |
-| client | klien | "client-nya" with a suffix |
+| client | klien, anggota | a computer in the VPN, or its program, which connects to the relay. "client-nya" with a suffix; "sebuah client", not "seorang" |
 | peer | rekan, rekan (peer) | |
 | provider | penyedia | "provider VPN" |
 | remote access | akses jarak jauh | |
@@ -43,7 +43,7 @@ Write these as they are, with no Indonesian equivalent next to them.
 | mesh | | |
 | overlay | | the virtual network that runs on top of another |
 | underlay | | the real network underneath, usually the internet |
-| relay | | |
+| relay | | the server that every client connects to; introduced as "relay, yaitu server yang …" |
 | self-hosted | pemasangan mandiri | "setup self-hosted" |
 | setup | pemasangan | |
 | library | pustaka | code ready to call from your own program |
@@ -89,6 +89,34 @@ Write these as they are, with no Indonesian equivalent next to them.
 | software | perangkat lunak | |
 | data center | pusat data | |
 | VPS | | explained at first use as a server virtual rented in a data center |
+| keepalive | | TCP's own check on an idle connection |
+| ping, pong | | a WebSocket ping and its answer; "ping" is also the command |
+| channel | saluran | the Go meaning; explained at first use as "saluran milik Go" |
+| proxy | | a program that forwards connections, as in "proxy TCP" |
+| network namespace | | the Linux feature; "namespace" on its own after first use |
+| log | catatan | "log dari Bind" |
+| hotspot | | "hotspot ponsel" |
+| base64 | | explained at first use as a way to write any bytes with letters and digits |
+| flag | | a command-line flag, as in "flag `-config`" |
+| rename | mengganti nama | explained at first use as "mengganti nama file" |
+| broadcast | | "alamat broadcast" |
+| domain | | as in `vpn.internal`; explained at first use as the end part of a name |
+| server DNS | DNS server | Indonesian word order, like "server nama" |
+| resolver | | the part that answers name questions |
+| split DNS | | only one domain goes to a given DNS server |
+| routing-only domain | | systemd-resolved's `~domain` |
+| multicast DNS | | what `.local` belongs to |
+| checksum | | explained at first use as "angka pemeriksa" |
+| field | | the Go meaning, as in "field `Domain`" |
+| container | | explained at first use as a package holding a program and all it needs |
+| preview | | a service still in preview |
+| file unit | | a systemd unit file; explained at first use |
+| installer | | explained at first use as a program that puts files in place |
+| shortcut | | "shortcut di folder Startup" |
+| login | | "login Microsoft", "layar login" |
+| open source | | |
+| repository | | "repository apt" |
+| API | | explained at first use as the list of functions a library offers |
 
 ## Keep in Indonesian
 
@@ -116,3 +144,12 @@ Everyday words that Indonesian readers use, including Indonesian spellings of bo
 | kriptografi | cryptography | |
 | protokol | protocol | |
 | rentang | range | as in "rentang `10.0.0.0/8`" |
+| antrean | queue | the relay's queue for one member |
+| sinyal | signal | an OS signal, as in "sinyal `SIGHUP`" |
+| konstanta | constant | the Go meaning |
+| jeda | delay, backoff | "jeda yang makin panjang", not "backoff" |
+| variabel lingkungan | environment variable | as in "variabel lingkungan `PORT`" |
+| akses anonim | anonymous access | |
+| layanan | service | an OS service, as in "menjalankan client sebagai layanan" |
+| pengelola layanan | service manager | systemd, Task Scheduler |
+| kelemahan, hal yang dikorbankan | cost, price, trade-off, limitation | a design's cost; not "harga", "harganya" or "batasan", which are calques. "harga" and "biaya" only for money. See [dialectical_writing.md](dialectical_writing.md) |

@@ -2,8 +2,7 @@
 # What .gitignore leaves out (node_modules, dist, bin, models, vendor) is
 # left out here too.
 
-# Vendored and generated code, and test fixtures (recorded responses)
-san_knowledge/internal/ownview/static/vendor/
+# Generated code, and test fixtures (recorded responses)
 golang/packages/san_tunnels/gen/
 **/testdata/
 

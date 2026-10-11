@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="1520" height="660" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Koneksi baru dibuka sebelum koneksi lama diputus">
+  <rect x="0" y="0" width="760" height="330" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Koneksi baru dibuka sebelum koneksi lama diputus</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Tidak ada saat di mana client tanpa koneksi, jadi tidak ada paket yang dibuang dan tidak perlu tersambung lagi.</text>
+
+  <!-- Row labels -->
+  <g font-weight="600" fill="#1f1f1f">
+    <text x="24" y="126">koneksi lama</text>
+    <text x="24" y="196">koneksi baru</text>
+  </g>
+
+  <!-- Bars -->
+  <rect x="120" y="108" width="370" height="28" rx="5" fill="#e3edfa" stroke="#2f76d6" stroke-width="1.5"/>
+  <rect x="380" y="178" width="90" height="28" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="470" y="178" width="266" height="28" rx="5" fill="#e3edfa" stroke="#2f76d6" stroke-width="1.5"/>
+  <g text-anchor="middle" font-size="11.5" fill="#1f1f1f">
+    <text x="250" y="127">semua paket lewat sini</text>
+    <text x="425" y="197">diperiksa</text>
+    <text x="603" y="197">semua paket lewat sini</text>
+  </g>
+
+  <!-- Markers -->
+  <g stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="3 3">
+    <line x1="380" y1="94" x2="380" y2="178"/>
+    <line x1="470" y1="206" x2="470" y2="222"/>
+    <line x1="490" y1="94" x2="490" y2="108"/>
+    <line x1="660" y1="94" x2="660" y2="136"/>
+  </g>
+  <g fill="#ffffff" stroke="#a8a69c" stroke-width="1.25">
+    <circle cx="380" cy="84" r="10"/>
+    <circle cx="470" cy="232" r="10"/>
+    <circle cx="500" cy="84" r="10"/>
+    <circle cx="660" cy="84" r="10"/>
+  </g>
+  <g text-anchor="middle" font-size="11" font-weight="600" fill="#1f1f1f">
+    <text x="380" y="88">1</text>
+    <text x="470" y="236">2</text>
+    <text x="500" y="88">3</text>
+    <text x="660" y="88">4</text>
+  </g>
+
+  <!-- Legend -->
+  <g font-size="11.5" fill="#1f1f1f">
+    <text x="24" y="268">1. Relay meminta client membuka koneksi baru, beberapa menit sebelum batas umur koneksi.</text>
+    <text x="24" y="286">2. Koneksi baru lolos pemeriksaan dua arah, dan relay mulai mengirim lewat koneksi baru.</text>
+    <text x="24" y="304">3. Client memindahkan pengiriman ke koneksi baru, lalu menutup koneksi lama.</text>
+    <text x="24" y="322">4. Batas umur koneksi lama tiba, tetapi koneksi itu sudah tidak dipakai.</text>
+  </g>
+</svg>

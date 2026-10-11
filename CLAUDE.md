@@ -13,14 +13,15 @@ Marketing research scoped to the **Indonesian market**, plus `knowledge`, a Go t
 All Go work happens in `san_knowledge/` (module name `san_knowledge`, Go 1.25). Both build scripts produce `bin/knowledge.exe` (Windows) and `bin/knowledge` (Linux); use the one for the current OS.
 
 ```powershell
-pwsh san_knowledge/build.ps1                  # go vet + go test + build both binaries (stamps main.version)
+pwsh san_knowledge/build.ps1                  # UI build (npm) + go vet + go test + build both binaries (stamps main.version)
 bash san_knowledge/build.sh                   # same, from Linux
+cd san_knowledge/ui; npm run dev              # UI with hot reload; /api is proxied to a running view on :7474
 cd san_knowledge; go test ./...               # all tests
 go test ./internal/kb -run TestSyncLifecycle -v   # single test
 go test ./cmd/knowledge -run TestMCP -v
 ```
 
-Rebuild after any change. The MCP server and the UI run from the binary (`.mcp.json` points at `bin/knowledge`, the Linux one), and Windows can't overwrite it while a `view` or `mcp` process is still running. Windows does allow renaming a running exe, so move it to `bin/knowledge.exe~` (git-ignored) and build. Running servers keep the old code until they restart (`/mcp` reconnect in each open session). Until then, an old server's sync uses the old rules.
+Rebuild after any change. The MCP server and the UI run from the binary (`.mcp.json` points at `bin/knowledge`, the Linux one), and Windows can't overwrite it while a `view` or `mcp` process is still running. Windows does allow renaming a running exe, so move it to `bin/knowledge.exe~` (git-ignored; if that name is itself still running, use `bin/knowledge.1.exe~` etc.) and build. Running servers keep the old code until they restart (`/mcp` reconnect in each open session). Until then, an old server's sync uses the old rules.
 
 Using the tool (run from the repo root; data dir is auto-resolved; on Linux use `bin/knowledge`):
 
@@ -42,7 +43,8 @@ bin\knowledge.exe mcp                         # MCP stdio server (registered in 
 ```
 cmd/knowledge      urfave/cli v3 command tree (main.go) + sync/view/mcp entry points (tools.go)
 internal/kb        domain layer on goraphdb: schema.go, store.go, markdown.go (parser), sync.go, ai.go, explain.go, web.go
-internal/ownview   Knowledge UI: JSON API + embedded static/ (vanilla JS + vendored cytoscape)
+internal/ownview   Knowledge UI server: JSON API + the built UI in dist/ (go:embed)
+ui/                Knowledge UI source: React + TypeScript + Chakra UI v3 + cytoscape, built by Vite
 internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio), no SDK
 ```
 
@@ -116,12 +118,19 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - Docs and sections are managed only by sync: `delete` and the UI refuse them, and only a domain's title is editable.
 - Data dir: `--data` → nearest `knowledge_data/` walking up from cwd → `<exe dir>/../knowledge_data`. Docs root = parent of the data dir.
 
-**UI (`internal/ownview/static`).**
-- No npm/build step: files are embedded with `go:embed`, so rebuild the exe to see changes.
+**UI (`san_knowledge/ui`, served by `internal/ownview`).**
+- React 19 + TypeScript + Chakra UI v3, with cytoscape for the graph. Vite builds it into `internal/ownview/dist`, which is git-ignored except `.gitkeep`; that file keeps `go:embed` compiling before the first build, and the page then answers 503 "not built". The build scripts run `npm ci` (first time only) and `npm run build`. Rebuild the exe to see changes.
+- Asset names are fixed (`assets/index.js`), not hashed: the server sends no-cache, and the output dir is not emptied, so `.gitkeep` survives.
+- `App.tsx` holds the state, data loading, URL and keyboard handling, and passes the shared parts down through `useApp()` (`ui.tsx`). `GraphView.tsx` wraps cytoscape: data, filters, highlight and colours each have an effect, and viewport moves arrive as a `ViewRequest`. `model.ts` derives the graph (degree, domains, section tree, communities), filters and colours. Also `TopBar.tsx` (search, Graph/Table, theme), `Panel.tsx`, `Tools.tsx`, `TableView.tsx`, `dialogs.tsx`, `api.ts`.
+- The side panel (600px) sits left of the graph (below it on narrow screens) and has two vertical tabs in a strip on its outer edge, with the content scrolling beside them: "Node Detail" (overview, node detail or explain results) and "Tools" (sync/AI/fetch/domain actions, then filters, colouring, communities and Re-layout/Fit). Selecting a node or running explain switches to Node Detail.
+- Collapse (`hiddenByCollapse` in `model.ts`): double-click a node, or use the Collapse button in its panel. A doc or section hides the sections below it; a domain hides its docs and sections whose domains are all collapsed. A toast says what was hidden, or that the node has nothing under it. The collapsed node gets a double border and "(+N)" on its label. Tools has "Collapse all docs" / "Expand all". Selecting a hidden node expands what hides it. The table is not affected. Cytoscape's `multiClickDebounceTime` is 500 ms (its 250 ms default missed ordinary double-clicks).
+- The logo (`TopBar.tsx`) is a small graph in the node encoding; `ui/index.html` has the same drawing as the favicon.
+- One palette in `theme.ts` (light/dark pairs) feeds both Chakra's semantic tokens and cytoscape, which cannot read CSS variables. Dark mode is the `.dark` class on `<html>`.
+- Text is rendered as React children, never `dangerouslySetInnerHTML`.
 - Node keys contain `/` and `#`, so the API takes them as `?key=` query params.
-- All content is rendered via `textContent`/`h()`, never `innerHTML`. `panel()` filters null children.
 - Node types use fixed palette slots 1–3 plus a shape; a dashed border means needs summary.
-- Communities: `/api/graph` also returns `communities` (key → number, 0 = largest) from `kb.Leiden` (`kb/community.go`, deterministic, modularity, `?resolution=`). By default nodes are coloured by community (slots 1–8, rest `--other`; shape still shows type) and the cose layout keeps intra-community edges short. "Community | Type" toggles colouring (`?color=`, localStorage); "Re-layout" reruns the layout. Saved positions use the `knowledge-graph-positions-v2` localStorage key.
+- Communities: `/api/graph` also returns `communities` (key → number, 0 = largest) from `kb.Leiden` (`kb/community.go`, deterministic, modularity, `?resolution=`). By default nodes are coloured by community (slots 1–8, rest `other`; shape still shows type) and the cose layout keeps intra-community edges short. "Community | Type" toggles colouring (`?color=`, localStorage); "Re-layout" reruns the layout. Saved positions use the `knowledge-graph-positions-v2` localStorage key.
+- The first load fits the whole graph; later reloads keep the viewport. New nodes start next to a known neighbour, then a short animated layout runs; positions are saved (and, on first load, the view fitted) when it stops.
 - URL params: `?q=` runs explain, `?theme=light|dark`, `#k=<key>` selects a node.
 - A web source's panel shows its `uri` as a link (http/https only) and `last_fetched`.
 - To check visuals, run `view --no-open --addr 127.0.0.1:<port>` and screenshot with headless Edge (`--screenshot`; minimum window width ~500px). Stop that test view by its PID, never `taskkill /IM knowledge.exe`, which also kills the user's own view and Claude Code's knowledge MCP server.
@@ -143,6 +152,7 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
   - `knowledge_fetch`, `knowledge_save_web` and `fetch`, which sync as they save, unless the user asked for that page to be kept.
 
   Finish the edits first, then ask once: which files changed, how many nodes would need summaries, and whether to run the AI step or write the summaries in the chat. Don't sync after every edit. A task file's "call `knowledge_sync`" means ask then. The structural sync `view` and `mcp` run on start is not covered.
+- `/knowledge-sync` (spec "Claude Trigger"; `.claude/skills/knowledge-sync/SKILL.md`) is the user asking for a sync. It runs the structural sync, reports, and asks about the AI step.
 - Figures quoted from BPS/APJII via news coverage should be flagged as such.
 - The marketplace-crawl MCP server (Tokopedia etc.) is available for product/price research.
 
@@ -166,3 +176,5 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 ## Git
 
 `bin/*.exe` and `knowledge_data/*.db` are git-ignored: the database is a binary bbolt file rewritten on every change. Structure can be rebuilt from `docs/` with sync. Summaries and domains are only in the database, so version them via `bin\knowledge.exe export <file>.json` and restore with `import`.
+
+`browser_profiles/` holds the Chrome profiles of the san_* browser tools (`golang/packages/san_profile_manager`; `default` is shared by all of them). They hold signed-in sessions: everything in it but `.gitkeep` is git-ignored, and it must never be committed or copied into docs.

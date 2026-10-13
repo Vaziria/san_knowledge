@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 356" width="1520" height="712" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Anatomi radio live 24 jam">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="356" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Semua yang dilihat penonton dibuat di satu komputer kecil</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Garis biru adalah siaran. Garis abu-abu adalah gambar, suara, dan komentar yang masuk ke program.</text>
+  <rect x="24" y="76" width="384" height="262" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="98" font-size="12" fill="#1f1f1f" text-anchor="start" font-weight="600">Raspberry Pi</text>
+  <rect x="40" y="110" width="170" height="44" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="125.0" y="127.5" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">Folder musik</text>
+  <text x="125.0" y="144.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">.wav, diputar urut nama</text>
+  <rect x="40" y="164" width="170" height="44" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="125.0" y="181.5" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">Video latar</text>
+  <text x="125.0" y="198.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">gambar diam, diulang</text>
+  <rect x="40" y="218" width="170" height="44" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="125.0" y="235.5" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">Teks live</text>
+  <text x="125.0" y="252.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">jam, judul lagu, sapaan</text>
+  <rect x="40" y="272" width="170" height="50" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="125.0" y="292.5" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">Program pengendali</text>
+  <text x="125.0" y="309.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">ditulis dengan Go</text>
+  <rect x="252" y="150" width="140" height="112" rx="8" fill="#e3edfa" stroke="#2f76d6" stroke-width="2"/>
+  <text x="322.0" y="184.5" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">ffmpeg</text>
+  <text x="322.0" y="201.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">encoder</text>
+  <text x="322.0" y="218.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">H.264 + AAC</text>
+  <text x="322.0" y="235.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">dalam FLV</text>
+  <rect x="470" y="168" width="130" height="76" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="535.0" y="193.0" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">Server YouTube</text>
+  <text x="535.0" y="210.0" text-anchor="middle" font-size="11.5" fill="#5f5f5f">mengubah ke beberapa</text>
+  <text x="535.0" y="227.0" text-anchor="middle" font-size="11.5" fill="#5f5f5f">ukuran gambar</text>
+  <rect x="630" y="168" width="106" height="76" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="683.0" y="210.0" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">Penonton</text>
+  <rect x="560" y="284" width="176" height="48" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="648.0" y="303.5" text-anchor="middle" font-size="12" font-weight="600" fill="#1f1f1f">Live chat</text>
+  <text x="648.0" y="320.5" text-anchor="middle" font-size="11.5" fill="#5f5f5f">komentar penonton</text>
+  <path d="M210 132H232V170H252" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+  <path d="M210 186H252" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+  <path d="M210 240H252" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+  <path d="M210 297H232V244H252" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+  <path d="M392 206H470" fill="none" stroke="#2f76d6" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="431" y="198" font-size="11" fill="#1f1f1f" text-anchor="middle">RTMP</text>
+  <text x="431" y="223" font-size="11" fill="#5f5f5f" text-anchor="middle">stream key</text>
+  <path d="M600 206H630" fill="none" stroke="#2f76d6" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <path d="M683 244V284" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+  <path d="M560 308H210" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+  <text x="484" y="300" font-size="11" fill="#5f5f5f" text-anchor="middle">dibaca lagi oleh program</text>
+</svg>

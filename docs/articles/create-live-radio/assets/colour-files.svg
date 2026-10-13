@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="1520" height="720" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="File per warna">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="360" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Satu baris dua warna adalah dua file yang digambar di titik yang sama</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Spasi di satu file menutupi tempat huruf di file lain, karena setiap huruf DejaVu Sans Mono sama lebar.</text>
+  <text x="24" y="108" font-size="11.5" fill="#1f1f1f" text-anchor="start" font-family="'DejaVu Sans Mono', Consolas, monospace">radioku-arrow.txt</text>
+  <text x="24" y="124" font-size="11" fill="#5f5f5f" text-anchor="start">warna hijau</text>
+  <rect x="150" y="92" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="159.0" y="108" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">❯</text>
+  <rect x="168" y="92" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="186" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="204" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="222" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="240" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="258" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="276" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="294" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="312" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="330" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="348" y="92" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="150" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="168" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="186" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="204" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="222" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="240" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="258" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="276" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="294" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="312" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="330" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="348" y="114" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="24" y="190" font-size="11.5" fill="#2f76d6" text-anchor="start" font-weight="600" font-family="'DejaVu Sans Mono', Consolas, monospace">radioku-command.txt</text>
+  <text x="24" y="206" font-size="11" fill="#5f5f5f" text-anchor="start">warna putih</text>
+  <rect x="150" y="174" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="168" y="174" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="186" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="195.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">p</text>
+  <rect x="204" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="213.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">l</text>
+  <rect x="222" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="231.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">a</text>
+  <rect x="240" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="249.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">y</text>
+  <rect x="258" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="276" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="285.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">a</text>
+  <rect x="294" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="303.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">.</text>
+  <rect x="312" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="321.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">w</text>
+  <rect x="330" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="339.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">a</text>
+  <rect x="348" y="174" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="357.0" y="190" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">v</text>
+  <rect x="150" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="168" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="186" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="204" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="222" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="240" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="258" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="276" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="294" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="312" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="330" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="348" y="196" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="147" y="171" width="222" height="50" rx="4" fill="none" stroke="#2f76d6" stroke-width="2"/>
+  <text x="24" y="272" font-size="11.5" fill="#1f1f1f" text-anchor="start" font-family="'DejaVu Sans Mono', Consolas, monospace">radioku-output.txt</text>
+  <text x="24" y="288" font-size="11" fill="#5f5f5f" text-anchor="start">warna kuning</text>
+  <rect x="150" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="168" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="186" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="204" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="222" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="240" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="258" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="276" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="294" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="312" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="330" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="348" y="256" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="150" y="278" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="159.0" y="294" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">H</text>
+  <rect x="168" y="278" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="177.0" y="294" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">e</text>
+  <rect x="186" y="278" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="195.0" y="294" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">l</text>
+  <rect x="204" y="278" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="213.0" y="294" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">l</text>
+  <rect x="222" y="278" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="231.0" y="294" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">o</text>
+  <rect x="240" y="278" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="249.0" y="294" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">!</text>
+  <rect x="258" y="278" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="276" y="278" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="294" y="278" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="312" y="278" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="330" y="278" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="348" y="278" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="150" y="342" font-size="11" fill="#5f5f5f" text-anchor="start">Kotak berwarna krem adalah spasi.</text>
+  <text x="500" y="108" font-size="12" fill="#1f1f1f" text-anchor="start" font-weight="600">Di layar</text>
+  <rect x="500" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="509.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">❯</text>
+  <rect x="518" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="536" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="545.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">p</text>
+  <rect x="554" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="563.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">l</text>
+  <rect x="572" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="581.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">a</text>
+  <rect x="590" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="599.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">y</text>
+  <rect x="608" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="626" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="635.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">a</text>
+  <rect x="644" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="653.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">.</text>
+  <rect x="662" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="671.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">w</text>
+  <rect x="680" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="689.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">a</text>
+  <rect x="698" y="120" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="707.0" y="136" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">v</text>
+  <rect x="500" y="142" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="509.0" y="158" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">H</text>
+  <rect x="518" y="142" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="527.0" y="158" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">e</text>
+  <rect x="536" y="142" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="545.0" y="158" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">l</text>
+  <rect x="554" y="142" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="563.0" y="158" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">l</text>
+  <rect x="572" y="142" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="581.0" y="158" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">o</text>
+  <rect x="590" y="142" width="18" height="22" fill="#ffffff" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="599.0" y="158" font-size="13" text-anchor="middle" fill="#1f1f1f" font-family="'DejaVu Sans Mono', Consolas, monospace">!</text>
+  <rect x="608" y="142" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="626" y="142" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="644" y="142" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="662" y="142" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="680" y="142" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <rect x="698" y="142" width="18" height="22" fill="#f1f0eb" stroke="#a8a69c" stroke-width="0.75"/>
+  <text x="500" y="196" font-size="11" fill="#5f5f5f" text-anchor="start">baris 1 dari file arrow dan command,</text>
+  <text x="500" y="211" font-size="11" fill="#5f5f5f" text-anchor="start">baris 2 dari file output</text>
+  <path d="M380 150H486" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#arrow)"/>
+  <text x="433.0" y="140" font-size="11" fill="#5f5f5f" text-anchor="middle">titik yang sama</text>
+</svg>

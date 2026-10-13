@@ -117,6 +117,38 @@ Write these as they are, with no Indonesian equivalent next to them.
 | open source | | |
 | repository | | "repository apt" |
 | API | | explained at first use as the list of functions a library offers |
+| live stream | siaran langsung (as the term) | YouTube's feature; explained at first use. In running text the broadcast itself is "siaran" |
+| live chat | obrolan langsung | the comment column beside a live stream |
+| Super Chat | | YouTube's paid comment |
+| stream key | kunci stream | the secret code that sends a broadcast to a channel |
+| channel | kanal | a YouTube channel, always "channel YouTube" or clear from context; also the Go meaning ("channel Go") and audio channels ("channel suara"), so qualify it |
+| encoder, decoder | penyandi | "encoder hardware", "encoder software" |
+| codec | | explained at first use as a way to compress picture or sound and open it again |
+| frame | bingkai | a video frame; "frame suara" for one sample per audio channel |
+| fps | | "30 fps, yaitu 30 frame per detik" |
+| keyframe | | |
+| bitrate | laju bit | "bitrate video" |
+| CBR | | "bitrate yang tetap, yang disebut CBR" |
+| latency | latensi | the delay before viewers see a moment of the broadcast |
+| buffering | | |
+| RTMP, RTMPS, FLV, H.264, AAC, PCM | | PCM is explained at first use as "suara mentah" |
+| playlist | daftar putar | |
+| crossfade | | |
+| stdin, stdout | | explained at first use as "input standar sebuah program" and "output standar" |
+| preset | | the libx264 option |
+| filter | | the ffmpeg meaning, as in "filter drawtext" |
+| font, monospace | huruf (for font) | "font monospace" |
+| escape | | "di-escape" |
+| browser headless | | explained at first use |
+| upload | unggah | "di-upload", "meng-upload" |
+| Shorts | | YouTube's short videos |
+| scene | adegan | OBS's arrangement of pictures, text and sound |
+| throttling | | the Raspberry Pi slowing its CPU |
+| power supply | catu daya, adaptor | |
+| core | inti | a CPU core |
+| link, emoji, spammer | tautan | |
+| variation selector | | the invisible character that changes how an emoji looks |
+| cron | | "baris `@reboot`" |
 
 ## Keep in Indonesian
 
@@ -153,3 +185,16 @@ Everyday words that Indonesian readers use, including Indonesian spellings of bo
 | layanan | service | an OS service, as in "menjalankan client sebagai layanan" |
 | pengelola layanan | service manager | systemd, Task Scheduler |
 | kelemahan, hal yang dikorbankan | cost, price, trade-off, limitation | a design's cost; not "harga", "harganya" or "batasan", which are calques. "harga" and "biaya" only for money. See [dialectical_writing.md](dialectical_writing.md) |
+| siaran | broadcast, stream | the broadcast itself, in running text; "live stream" names YouTube's feature |
+| penonton | viewer | |
+| sapaan, menyapa | greeting, greet | the terminal's answer to a comment |
+| komentar | comment | a live chat message |
+| hening | silence | sound whose samples are all zero |
+| sampel | sample | "44.100 sampel per detik" |
+| kuota | quota | YouTube Data API's daily units |
+| jatah dasar, jatah tambahan | base and extra allowance | the two parts of the chat budget |
+| video latar | background video | |
+| teks live | live text | the text drawn over the background on every frame |
+| kartu SD | SD card | |
+| kursor | cursor | |
+| pengumpan | feeder | the part that writes sound to the encoder on the clock |

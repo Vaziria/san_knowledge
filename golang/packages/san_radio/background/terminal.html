@@ -1,0 +1,231 @@
+<!doctype html>
+<!--
+  san_radio's built-in background at 1280x720: a terminal window with three
+  panes over a night scene. Everything here is still; san_radio draws the
+  live text over it, in DejaVu Sans Mono 16px (19px a line), at the places
+  marked LIVE below. Those coordinates are in builtinLayout (layout.go): move
+  one, move both.
+
+  Render: pwsh background/render.ps1  (writes assets/loop.mp4)
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "DejaVu Sans Mono"; src: url("../fonts/DejaVuSansMono.ttf"); }
+  html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; background: #0d0b1e; }
+  * { box-sizing: border-box; }
+  .mono { font: 16px/19px "DejaVu Sans Mono", monospace; white-space: pre; position: absolute; }
+  .pink { color: #ff7ac6; } .blue { color: #5ccfe6; } .green { color: #9ece6a; }
+  .yellow { color: #e0af68; } .white { color: #e6e6f0; } .muted { color: #8b8fb5; }
+  #scene { position: absolute; left: 0; top: 0; }
+  .window {
+    position: absolute; left: 18px; top: 16px; width: 1244px; height: 688px;
+    border: 1.5px solid rgba(160, 120, 255, 0.55); border-radius: 14px;
+    background: rgba(16, 14, 36, 0.80); backdrop-filter: blur(3px);
+    box-shadow: 0 0 24px rgba(140, 90, 255, 0.25), 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+  .rule { position: absolute; background: rgba(160, 120, 255, 0.28); }
+  .dot { position: absolute; width: 13px; height: 13px; border-radius: 50%; top: 32px; }
+  .tab {
+    position: absolute; left: 106px; top: 24px; width: 156px; height: 30px;
+    background: rgba(70, 70, 120, 0.45); border-radius: 7px;
+  }
+  .pal { position: absolute; width: 19px; height: 19px; border-radius: 50%; top: 318px; }
+  .info-icon { position: absolute; left: 356px; width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+<!-- The night scene: sky, mountains, torii, trees and sakura. -->
+<svg id="scene" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#120f2a"/><stop offset="0.55" stop-color="#2b1b45"/><stop offset="1" stop-color="#1a1230"/>
+    </linearGradient>
+    <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff7ac6" stop-opacity="0"/><stop offset="1" stop-color="#ff7ac6" stop-opacity="0.18"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="softer"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <!-- far mountains, then the big snowy one on the right -->
+  <polygon points="0,520 160,430 300,480 420,410 560,470 700,420 860,480 1000,440 1280,500 1280,720 0,720" fill="#231a3d"/>
+  <polygon points="760,560 1040,250 1100,300 1130,285 1280,420 1280,720 760,720" fill="#2c2550"/>
+  <polygon points="1040,250 1000,300 1030,296 1052,318 1072,296 1100,300" fill="#6d64a0" opacity="0.8"/>
+  <rect y="430" width="1280" height="290" fill="url(#mist)"/>
+  <!-- torii, lower right -->
+  <g fill="#7a1f3a">
+    <rect x="1090" y="470" width="190" height="16" rx="4"/>
+    <rect x="1100" y="500" width="170" height="10"/>
+    <rect x="1120" y="486" width="14" height="234"/>
+    <rect x="1236" y="486" width="14" height="234"/>
+  </g>
+  <!-- tree line -->
+  <g fill="#160f26">
+    <polygon points="0,720 0,600 40,560 70,600 110,540 150,600 190,570 240,620 300,590 340,640 420,610 480,660 560,640 640,690 760,660 860,700 1000,670 1080,700 1280,690 1280,720"/>
+  </g>
+  <!-- sakura, blurred at the corners -->
+  <g filter="url(#softer)" opacity="0.75">
+    <circle cx="40" cy="640" r="60" fill="#d84d8f"/><circle cx="130" cy="700" r="50" fill="#ff7ac6"/>
+    <circle cx="1210" cy="660" r="70" fill="#d84d8f"/><circle cx="1110" cy="710" r="45" fill="#ff8fb8"/>
+    <circle cx="1250" cy="200" r="55" fill="#b8457e"/><circle cx="20" cy="110" r="45" fill="#b8457e"/>
+  </g>
+  <g filter="url(#soft)" fill="#ff9cc8" opacity="0.8">
+    <circle cx="90" cy="610" r="10"/><circle cx="1180" cy="620" r="12"/><circle cx="1240" cy="580" r="8"/>
+    <circle cx="60" cy="680" r="9"/><circle cx="1150" cy="690" r="10"/>
+  </g>
+</svg>
+
+<div class="window"></div>
+
+<!-- tab bar -->
+<div class="dot" style="left:40px;background:#ff5f57"></div>
+<div class="dot" style="left:62px;background:#febc2e"></div>
+<div class="dot" style="left:84px;background:#28c840"></div>
+<div class="tab"></div>
+<div class="mono white" style="left:122px;top:29px">~</div>
+<div class="mono muted" style="left:238px;top:29px;font-size:13px">×</div>
+<div class="mono muted" style="left:282px;top:28px;font-size:20px">+</div>
+<svg style="position:absolute;left:868px;top:30px" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#c6c8e6" stroke-width="1.5">
+  <rect x="2" y="3.5" width="14" height="12.5" rx="2"/><line x1="2" y1="7.5" x2="16" y2="7.5"/>
+  <line x1="6" y1="1.5" x2="6" y2="5"/><line x1="12" y1="1.5" x2="12" y2="5"/>
+</svg>
+<!-- LIVE: the clock at 896,29 -->
+<svg style="position:absolute;left:1092px;top:30px" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#c6c8e6" stroke-width="1.5">
+  <path d="M2 5 h5 l2 2 h7 v8 h-14 z"/>
+</svg>
+<div class="mono white" style="left:1118px;top:29px">~/music</div>
+<div class="rule" style="left:19px;top:60px;width:1242px;height:1px"></div>
+
+<!-- pane rules -->
+<div class="rule" style="left:651px;top:61px;width:1px;height:340px"></div>
+<div class="rule" style="left:19px;top:401px;width:1242px;height:1px"></div>
+
+<!-- top left: neofetch -->
+<div class="mono" style="left:38px;top:72px"><span class="pink">radio@getresolved</span> <span class="blue">~</span></div>
+<div class="mono" style="left:38px;top:91px"><span class="green">❯</span> <span class="green">neofetch</span></div>
+<canvas id="art" width="70" height="58" style="position:absolute;left:40px;top:120px;width:280px;height:232px;image-rendering:pixelated"></canvas>
+<div class="rule" style="left:338px;top:126px;width:1px;height:220px;opacity:0.6"></div>
+<div class="mono pink" style="left:356px;top:122px">radio@getresolved</div>
+<div class="mono muted" style="left:356px;top:141px">-----------------</div>
+<!-- rows at 19px, the live text's line height; values from x=470 -->
+<div class="mono blue" style="left:380px;top:170px">OS</div>
+<div class="mono white" style="left:470px;top:170px">Raspberry Pi OS</div>
+<div class="mono blue" style="left:380px;top:189px">Host</div>
+<div class="mono white" style="left:470px;top:189px">Raspberry Pi 3B+</div>
+<div class="mono blue" style="left:380px;top:208px">Shell</div>
+<div class="mono white" style="left:470px;top:208px">san_radio</div>
+<div class="mono blue" style="left:380px;top:227px">Tracks</div>
+<div class="mono blue" style="left:380px;top:246px">Now</div>
+<div class="mono blue" style="left:380px;top:265px">Uptime</div>
+<!-- LIVE: Tracks, Now and Uptime values at 470,227 (lines 1-3 of one text) -->
+<svg class="info-icon" style="top:171px" viewBox="0 0 16 16" fill="#5ccfe6"><rect x="1" y="1" width="6.5" height="6.5"/><rect x="8.5" y="1" width="6.5" height="6.5"/><rect x="1" y="8.5" width="6.5" height="6.5"/><rect x="8.5" y="8.5" width="6.5" height="6.5"/></svg>
+<svg class="info-icon" style="top:190px" viewBox="0 0 16 16" fill="none" stroke="#5ccfe6" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><line x1="0.5" y1="13.5" x2="15.5" y2="13.5"/></svg>
+<svg class="info-icon" style="top:209px" viewBox="0 0 16 16" fill="none" stroke="#5ccfe6" stroke-width="1.5"><rect x="1.5" y="1.5" width="13" height="13" rx="2"/><polyline points="4.5,6 7,8 4.5,10"/><line x1="8.5" y1="10.5" x2="11.5" y2="10.5"/></svg>
+<svg class="info-icon" style="top:228px" viewBox="0 0 16 16" fill="#5ccfe6"><path d="M6 2 L14 0.5 V11 A2.2 2.2 0 1 1 12.5 9 V3.5 L7.5 4.5 V12.5 A2.2 2.2 0 1 1 6 10.5 Z"/></svg>
+<svg class="info-icon" style="top:247px" viewBox="0 0 16 16" fill="#5ccfe6"><polygon points="4,2 14,8 4,14"/></svg>
+<svg class="info-icon" style="top:266px" viewBox="0 0 16 16" fill="none" stroke="#5ccfe6" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><polyline points="8,4 8,8 11,9.5"/></svg>
+<div class="pal" style="left:356px;background:#f7768e"></div>
+<div class="pal" style="left:384px;background:#ff9e64"></div>
+<div class="pal" style="left:412px;background:#e0af68"></div>
+<div class="pal" style="left:440px;background:#9ece6a"></div>
+<div class="pal" style="left:468px;background:#2ac3de"></div>
+<div class="pal" style="left:496px;background:#7aa2f7"></div>
+<div class="pal" style="left:524px;background:#bb9af7"></div>
+<div class="pal" style="left:552px;background:#c0caf5"></div>
+
+<!-- top right: the music tree -->
+<div class="mono" style="left:672px;top:72px"><span class="pink">radio@getresolved</span> <span class="blue">~/music</span></div>
+<div class="mono" style="left:672px;top:91px"><span class="green">❯</span> <span class="yellow">eza</span> <span class="white">--tree</span></div>
+<!-- LIVE: the tree at 672,118, 12 lines of 19px -->
+
+<!-- powerline bars: the prompt waiting in each pane -->
+<svg style="position:absolute;left:38px;top:360px" width="240" height="26">
+  <polygon points="1,1 74,1 86,13 74,25 1,25 10,13" fill="none" stroke="#ff7ac6" stroke-width="1.5"/>
+  <polygon points="80,0 148,0 160,13 148,26 80,26 92,13" fill="#5aa2f0"/>
+  <path d="M104 8 h5 l2 2 h7 v8 h-14 z" fill="none" stroke="#0d0b1e" stroke-width="1.5"/>
+  <polyline points="170,8 175,13 170,18" fill="none" stroke="#ff7ac6" stroke-width="2"/>
+</svg>
+<div class="mono pink" style="left:58px;top:363px">radio</div>
+<div class="mono" style="left:160px;top:363px;color:#0d0b1e">~</div>
+<div style="position:absolute;left:226px;top:362px;width:10px;height:22px;background:#8b8fb5"></div>
+<svg style="position:absolute;left:672px;top:360px" width="300" height="26">
+  <polygon points="1,1 74,1 86,13 74,25 1,25 10,13" fill="none" stroke="#ff7ac6" stroke-width="1.5"/>
+  <polygon points="80,0 208,0 220,13 208,26 80,26 92,13" fill="#5aa2f0"/>
+  <path d="M104 8 h5 l2 2 h7 v8 h-14 z" fill="none" stroke="#0d0b1e" stroke-width="1.5"/>
+  <polyline points="230,8 235,13 230,18" fill="none" stroke="#ff7ac6" stroke-width="2"/>
+</svg>
+<div class="mono pink" style="left:692px;top:363px">radio</div>
+<div class="mono" style="left:798px;top:363px;color:#0d0b1e">~/music</div>
+<div style="position:absolute;left:920px;top:362px;width:10px;height:22px;background:#8b8fb5"></div>
+
+<!-- bottom: the chat. LIVE: the history at 38,416, 12 lines of 19px;
+     the input after the bar at 226,666 -->
+<svg style="position:absolute;left:38px;top:663px" width="240" height="26">
+  <polygon points="1,1 74,1 86,13 74,25 1,25 10,13" fill="none" stroke="#ff7ac6" stroke-width="1.5"/>
+  <polygon points="80,0 148,0 160,13 148,26 80,26 92,13" fill="#5aa2f0"/>
+  <path d="M104 8 h5 l2 2 h7 v8 h-14 z" fill="none" stroke="#0d0b1e" stroke-width="1.5"/>
+  <polyline points="170,8 175,13 170,18" fill="none" stroke="#ff7ac6" stroke-width="2"/>
+</svg>
+<div class="mono pink" style="left:58px;top:666px">radio</div>
+<div class="mono" style="left:160px;top:666px;color:#0d0b1e">~</div>
+
+<script>
+// The pixel art: drawn as shapes on a 70x58 canvas, shown 4x with
+// image-rendering: pixelated.
+const c = document.getElementById("art").getContext("2d");
+c.imageSmoothingEnabled = false;
+const g = c.createLinearGradient(0, 0, 0, 44);
+g.addColorStop(0, "#1b1840"); g.addColorStop(1, "#3d2a62");
+c.fillStyle = g; c.fillRect(0, 0, 70, 44);
+// stars
+c.fillStyle = "#c6c8e6";
+for (const [x, y] of [[5,4],[14,9],[25,3],[60,6],[66,14],[52,2],[33,8]]) c.fillRect(x, y, 1, 1);
+// sun, with synthwave stripes
+const s = c.createLinearGradient(0, 6, 0, 32);
+s.addColorStop(0, "#ff4f8b"); s.addColorStop(1, "#ff9e64");
+c.fillStyle = s; c.beginPath(); c.arc(42, 19, 13, 0, Math.PI * 2); c.fill();
+c.fillStyle = "#3d2a62";
+for (const [y, h] of [[22, 1], [25, 1], [28, 2]]) c.fillRect(28, y, 28, h);
+// the mountain and its snow
+c.fillStyle = "#26305e";
+c.beginPath(); c.moveTo(18, 44); c.lineTo(44, 17); c.lineTo(70, 44); c.fill();
+c.fillStyle = "#e6e6f0";
+c.beginPath(); c.moveTo(38, 23); c.lineTo(44, 17); c.lineTo(50, 23); c.lineTo(47, 22); c.lineTo(44, 25); c.lineTo(41, 22); c.fill();
+// shore
+c.fillStyle = "#151233"; c.fillRect(0, 42, 70, 3);
+// pagoda
+c.fillStyle = "#1a1433";
+c.fillRect(31, 30, 9, 2); c.fillRect(30, 34, 11, 2); c.fillRect(29, 38, 13, 2);
+c.fillStyle = "#e0475b";
+c.fillRect(33, 32, 5, 2); c.fillRect(32, 36, 7, 2); c.fillRect(31, 40, 9, 3);
+c.fillStyle = "#ffd36e"; c.fillRect(34, 32, 1, 1); c.fillRect(36, 36, 1, 1); c.fillRect(33, 40, 1, 1); c.fillRect(37, 40, 1, 1);
+c.fillStyle = "#e0475b"; c.fillRect(35, 27, 1, 3);
+// torii
+c.fillStyle = "#e0475b";
+c.fillRect(55, 34, 11, 1); c.fillRect(56, 36, 9, 1); c.fillRect(57, 35, 1, 8); c.fillRect(63, 35, 1, 8);
+// water, with the sun's reflection
+const w = c.createLinearGradient(0, 45, 0, 58);
+w.addColorStop(0, "#211c4a"); w.addColorStop(1, "#120f2a");
+c.fillStyle = w; c.fillRect(0, 45, 70, 13);
+c.fillStyle = "#ff6f9f";
+for (const [x, y, l] of [[36, 47, 12], [38, 49, 8], [35, 51, 10], [39, 53, 5], [37, 55, 3]]) c.fillRect(x, y, l, 1);
+c.fillStyle = "#e0475b"; c.fillRect(33, 47, 3, 1); c.fillRect(34, 49, 1, 1);
+// the sakura tree on the left
+c.fillStyle = "#3b2433";
+c.fillRect(9, 26, 2, 19); c.fillRect(11, 30, 4, 1); c.fillRect(6, 33, 3, 1);
+const pinks = ["#ff7ac6", "#ff9cc8", "#d84d8f", "#ffb3d9"];
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+for (const [cx, cy, r] of [[10, 18, 9], [4, 26, 6], [17, 25, 6], [12, 10, 6], [2, 14, 5]]) {
+  for (let i = 0; i < r * r * 2.2; i++) {
+    const a = rnd() * Math.PI * 2, d = Math.sqrt(rnd()) * r;
+    c.fillStyle = pinks[Math.floor(rnd() * pinks.length)];
+    c.fillRect(Math.round(cx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d * 0.8), 1, 1);
+  }
+}
+for (const [x, y] of [[20, 36], [24, 40], [16, 44], [27, 33], [22, 50]]) { c.fillStyle = "#ff9cc8"; c.fillRect(x, y, 1, 1); }
+</script>
+</body>
+</html>

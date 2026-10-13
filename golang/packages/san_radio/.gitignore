@@ -1,0 +1,5 @@
+bin/
+# The stream key, and the music: neither belongs in git.
+assets/channels.yaml
+assets/*.wav
+assets/*.mp4

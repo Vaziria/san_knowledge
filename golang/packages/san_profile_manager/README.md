@@ -1,8 +1,9 @@
 # san_profile_manager
 
 The Chrome profiles that the san_* tools drive, kept in one place, and Chrome
-started on them the way those tools need it. `san_medium`, `san_tiktok` and
-`san_gpt` use it, and so should every tool that drives a signed-in browser.
+started on them the way those tools need it. `san_medium`, `san_linkedin`,
+`san_tiktok` and `san_gpt` use it, and so should every tool that drives a
+signed-in browser.
 
 A profile is a Chrome user-data folder, and one profile can be signed in to
 Medium, TikTok and any other site at once. So every tool uses the same

@@ -110,6 +110,7 @@ Current series:
     - "anggota" became "client" everywhere: prose, titles and file names of Bagian 4, 6 and 7, diagrams, and code (`cmd/client`, `client.json`, "vpnku client", "bukan client terdaftar", test names). The relay stays "relay", introduced as the server its clients connect to. Go identifiers were already English (`Member`) and were kept.
     - The modules `vpnku2` … `vpnku9` were renamed the same way and passed `go vet` (Windows and Linux), builds for linux amd64, arm64 and arm, `go test -count=20` and `-race` on Windows. The `go test -v` output in the articles was rerun.
     - The real-TUN transcripts in Bagian 4 to 6 (Docker and WSL) were edited for the rename only, not rerun: the binary name, the "client A" labels and the refusal message.
+  - Drafted and scheduled on LinkedIn on 2026-10-14 with `san_linkedin -profile basic`, one part a day: Oct 15–23 at 09:00 WIB, ids `7515830836538040320`, `7515832029804945409`, `7515832943517540352`, `7515834013509455872`, `7515834958448377856`, `7515835921230139392`, `7515836864059215872`, `7515837747853451264`, `7515838601587232768`. Each has its first image as cover and its subtitle as the post's text (see "Publishing to LinkedIn").
 - **Membuat Radio Live 24 Jam** (`create-live-radio/`), five parts written on 2026-10-13. It is based on our 24/7 music stream on a Raspberry Pi, which the articles never name; the program in the articles is `radioku`.
   - The code was written fresh in scratch modules `radioku2` … `radioku5` (Go 1.25, standard library only), each a copy of the one before. The article code blocks were filled from the tested files by script and checked: 13 full files, 25 excerpts.
   - Tested on Windows: `go vet`, `go test`, `-race` (msys64 gcc), builds for linux arm64 and arm (`GOARM=7`). The ffmpeg commands in Bagian 1 were run with ffmpeg 7.1, and their `ffprobe` output is quoted.
@@ -123,6 +124,7 @@ Current series:
   - Bagian 5, "Menjalankan radio di Raspberry Pi dan menutup seri": encoder chosen by trying, speed measured from `-progress`, `/dev/shm`, cross builds, cron `@reboot` with `jalan.sh` (tested with msys64 `sh` and `flock` and a fake program). The Pi 3B+ numbers (0.92x at 30 fps, 1.00x at 24 fps, 600 MHz under a weak power supply, `throttled=0x50005`) come from our running stream. **The article's program has not run on a Pi.**
   - Drafted and scheduled on Medium on 2026-10-13 with `san_medium -profile basic`, one part a day after the VPN series: Oct 21–25 at 09:00 WIB, ids `82e7a0195ef2`, `a168392511dd`, `8b573689e3d0`, `f023bc5cbb6d`, `b01d427bcadc`. Topics Programming, Golang, Ffmpeg (Medium's spelling), YouTube; "Raspberry Pi" was added first and then taken off at the user's request with `schedule -remove-topic`, keeping the times.
     - `draft -at` with five topics stopped at the fifth ("waited 10s for the topic YouTube"), although all five were saved: Medium removes the topic box once a story has five topics, and the tool found the chips through that box. `topics()` in `editor.js` now looks on the whole page when the box is gone (not yet run with five topics). A `schedule` run straight after that failure also timed out on the date picker; on its own it worked.
+  - Drafted and scheduled on LinkedIn on 2026-10-14 with `san_linkedin -profile basic`, one part a day after the VPN series: Oct 24–28 at 09:00 WIB, ids `7515839500716032000`, `7515840541020868608`, `7515842124920262656`, `7515843167586353152`, `7515844270306652161`. Cover and post text as for the VPN series.
 
 ## Structure
 
@@ -196,6 +198,21 @@ Medium no longer issues API tokens. `golang/packages/san_medium` makes the draft
 Write drafts one at a time. Cloudflare in front of Medium blocks the Medium sign-in session when chromedp launches Chrome itself (2026-10-11), so the tool starts Chrome as a plain process and attaches to it. If `draft` ever stops with "Cloudflare blocks this browser", run `login` on a new profile (`-profile <dir>`).
 
 By hand, as before: open the article in VS Code, press `Ctrl+Shift+V` for the preview, then select all of the preview, copy it, and paste it into a new Medium story. Medium does not convert pasted Markdown, but it keeps the formatting of pasted HTML. Then upload each PNG from `assets/` where its image appears; pasted images do not come through.
+
+## Publishing to LinkedIn
+
+`golang/packages/san_linkedin` does the same for LinkedIn articles, through LinkedIn's article editor; see its README. LinkedIn is signed in on `-profile basic`.
+
+1. `bin\san_linkedin.exe draft -dry-run <article.md>` shows how the article will be cut.
+2. `bin\san_linkedin.exe draft -profile basic -cover <image> -at "2026-11-20 09:00" -text "<post text>" <article.md>` writes the draft, uploads the cover and each image with its alt text and caption, and schedules it. Without `-at` it stays a draft.
+3. `scheduled` lists what is waiting; `unschedule "<title>"` moves an article back to the drafts.
+
+How the article changes on LinkedIn:
+
+- LinkedIn has no subtitle field, so the italic line under the title opens the body in italics.
+- Inline code becomes plain text when LinkedIn saves, and code blocks lose their language.
+- The cover is up to us; both series use each article's first image. The post that shares the article carries the subtitle as its text.
+- Times are on the quarter hour, in the zone LinkedIn takes from the profile's location (Western Indonesia Time).
 
 ## Knowledge graph
 

@@ -144,7 +144,12 @@ pwsh deploy.ps1       # to the SSH host "raspi"
    under a temporary name first;
 4. restarts the stream (a few seconds off the air), and adds `run.sh` to cron
    at boot. `run.sh` starts san_radio again whenever it exits, and only one
-   copy runs: one stream key carries one stream.
+   copy runs: one stream key carries one stream;
+5. turns on lingering for the Pi's user (`loginctl enable-linger`). Without
+   it, systemd-logind empties `/dev/shm`, where the live text is, when that
+   user's last login ends, so an SSH logout would stop the stream. Should it
+   happen anyway, san_radio writes the missing files again before ffmpeg
+   starts again (a few seconds off the air).
 
 Everything on the Pi is in `~/san_radio`; the log is
 `~/san_radio/san_radio.log`. To stop it: `pkill -f '^/bin/sh /home/pi/san_radio/run.sh'; pkill -x san_radio`.

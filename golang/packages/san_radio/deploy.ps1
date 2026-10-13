@@ -104,6 +104,9 @@ for i in $(seq 1 15); do pgrep -x san_radio >/dev/null || break; sleep 1; done
 mv san_radio.new san_radio && mv run.sh.new run.sh
 test -f loop.mp4.new && mv loop.mp4.new loop.mp4
 (crontab -l 2>/dev/null | grep -v "san_radio/run.sh"; echo "@reboot $HOME/san_radio/run.sh") | crontab -
+# Without lingering, systemd-logind empties /dev/shm of this user's files
+# when their last login ends (an SSH session too), which stops the stream.
+loginctl enable-linger 2>/dev/null || echo "warning: loginctl enable-linger failed: an SSH logout will interrupt the stream"
 if ! test -f loop.mp4 || ! test -f channels.yaml; then echo "not started: the Pi needs loop.mp4 and channels.yaml"; exit 0; fi
 setsid nohup "$HOME/san_radio/run.sh" >/dev/null 2>&1 </dev/null &
 sleep 5

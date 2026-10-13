@@ -1,6 +1,8 @@
 package san_radio
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -37,6 +39,24 @@ func (f *textFile) write(s string) error {
 	}
 	f.last, f.written = s, true
 	return nil
+}
+
+// restore writes the file again when something has removed it.
+func (f *textFile) restore() error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if !f.written {
+		return nil
+	}
+	return restoreFile(f.path, f.last)
+}
+
+// restoreFile writes s to path when path is missing.
+func restoreFile(path, s string) error {
+	if _, err := os.Stat(path); !errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	return writeFile(path, s)
 }
 
 // writeFile replaces path in one step, so drawtext never reads half of it.

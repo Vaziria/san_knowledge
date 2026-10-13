@@ -68,7 +68,8 @@ func Run(ctx context.Context, c Config) error {
 	if _, err := exec.LookPath(c.FFmpeg); err != nil {
 		return fmt.Errorf("ffmpeg: %w", err)
 	}
-	if c.Font == "" {
+	builtinFont := c.Font == ""
+	if builtinFont {
 		c.Font = filepath.Join(c.TextDir, "san_radio-DejaVuSansMono.ttf")
 		if err := os.WriteFile(c.Font, monoFont, 0o644); err != nil {
 			return fmt.Errorf("font: %w", err)
@@ -128,6 +129,9 @@ func Run(ctx context.Context, c Config) error {
 	// stops soon after starting.
 	backoff := 5 * time.Second
 	for {
+		if err := restoreFiles(c.Font, builtinFont, texts); err != nil {
+			c.Log.Printf("live text: %v", err)
+		}
 		started := time.Now()
 		err := encode(ctx, c, encoderArgs(c, l.size, texts), p)
 		if ctx.Err() != nil {
@@ -140,6 +144,25 @@ func Run(ctx context.Context, c Config) error {
 		sleep(ctx, backoff)
 		backoff = min(backoff*2, time.Minute)
 	}
+}
+
+// restoreFiles writes the built-in font and the live text again where they
+// have gone, before ffmpeg starts: it can't start without them. On Debian,
+// systemd-logind empties /dev/shm of a user's files when their last login
+// ends (RemoveIPC=yes), an SSH session included, unless the user lingers
+// (deploy.ps1 turns that on).
+func restoreFiles(font string, builtinFont bool, texts []text) error {
+	if builtinFont {
+		if err := restoreFile(font, string(monoFont)); err != nil {
+			return err
+		}
+	}
+	for _, x := range texts {
+		if err := x.file.restore(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // encode runs one ffmpeg until it stops.

@@ -76,6 +76,7 @@ Medium's own publish page.
 ```powershell
 bin\san_medium.exe schedule -at "2026-11-10 09:00" -topic Programming -topic Golang <id | url>
 bin\san_medium.exe scheduled                    # 0f2769b537b0  Nov 10, 9:00 AM  Uji jadwal san_medium (hapus saja)
+bin\san_medium.exe schedule -at "2026-11-10 09:00" -remove-topic "Raspberry Pi" <id | url>   # take a topic off, keep the time
 bin\san_medium.exe unschedule <id | url>        # cancels the time; the story stays a draft
 bin\san_medium.exe draft -at "2026-11-10 09:00" -topic Programming article.md   # make the draft and schedule it
 ```
@@ -84,12 +85,17 @@ bin\san_medium.exe draft -at "2026-11-10 09:00" -topic Programming article.md   
   offset. It must be at least 10 minutes ahead.
 - **`-topic`** may be repeated, up to five times. Topics the story already has
   are kept.
+- **`-remove-topic`** may be repeated. Each topic is taken off with the Remove
+  button of its chip, before any `-topic` is added; a topic the story does
+  not have is reported ("the story has no topic …") and skipped.
 - **`schedule`** works on any draft, including one already scheduled, which
   gets the new time.
 
 How `schedule` fills the publish page (`/p/<id>/submission?submitType=publishing-post`):
 
-1. Each topic is typed into the topic box key by key. Medium then lists
+1. Each `-remove-topic` chip's Remove button is clicked, and the chip is
+   waited for until it is gone.
+2. Each topic is typed into the topic box key by key. Medium then lists
    suggestions, such as "Programming (14M)".
    - The tool presses the down arrow until it reaches the suggestion that is
      exactly the topic, then Enter. Medium saves the topics at once.
@@ -97,14 +103,14 @@ How `schedule` fills the publish page (`/p/<id>/submission?submitType=publishing
      suggestion only closes the list (2026-10-11). A topic Medium does not
      suggest gets Enter alone.
    - A topic that does not show up stops the tool with a screenshot.
-2. "Schedule for later" opens the form. The date button opens a picker.
+3. "Schedule for later" opens the form. The date button opens a picker.
    - The picker's next-month arrow is clicked until the month shows.
    - Then the day, the hour (00–23) and the minute (00–59) are clicked.
    - The picker works in the browser's time zone, which is this computer's.
-3. The picker is closed, and the time the page now shows ("11/10/2026, 9:00
+4. The picker is closed, and the time the page now shows ("11/10/2026, 9:00
    AM GMT+7", offset included) is read back. If it is not the time asked
    for, the tool stops there, and nothing is scheduled.
-4. "Schedule to publish" is pressed. The proof is the story in the Scheduled
+5. "Schedule to publish" is pressed. The proof is the story in the Scheduled
    tab, which the tool reads as a table (`view=table`), since it opens as a
    calendar.
 

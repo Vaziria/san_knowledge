@@ -91,11 +91,12 @@ window.__sanMedium = (() => {
       return location.pathname.includes('/submission') && this.publishReady();
     },
     // Topics already on the story: each is a chip with a "Remove <topic>"
-    // button next to the topic box.
+    // button next to the topic box. With five topics Medium takes the box
+    // away (2026-10-13), so then the chips are looked for on the whole page.
     topics() {
       const i = document.querySelector('input[aria-controls="tagMultiSelectMenu"]');
-      if (!i) return null;
-      return [...i.parentElement.querySelectorAll('button[aria-label^="Remove "]')].map(b => b.getAttribute('aria-label').slice(7));
+      const scope = i ? i.parentElement : document;
+      return [...scope.querySelectorAll('button[aria-label^="Remove "]')].map(b => b.getAttribute('aria-label').slice(7));
     },
     topicFocused() {
       const a = document.activeElement;

@@ -52,8 +52,9 @@ type Draft struct {
 type DraftOption func(*draftOptions)
 
 type draftOptions struct {
-	progress func(string)
-	topics   []string // Schedule only
+	progress     func(string)
+	topics       []string // Schedule only
+	removeTopics []string // Schedule only
 }
 
 // WithProgress receives a line for each step, such as "image 2 of 5:

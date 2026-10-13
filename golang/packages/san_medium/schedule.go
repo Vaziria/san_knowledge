@@ -22,6 +22,13 @@ func WithTopics(topics ...string) DraftOption {
 	return func(o *draftOptions) { o.topics = append(o.topics, topics...) }
 }
 
+// WithoutTopics takes topics off the story before it is scheduled, with the
+// Remove button of each topic's chip on the publish page, before WithTopics
+// adds any. A topic the story does not have is skipped.
+func WithoutTopics(topics ...string) DraftOption {
+	return func(o *draftOptions) { o.removeTopics = append(o.removeTopics, topics...) }
+}
+
 // ErrTooSoon is returned for a publish time less than MinLead from now.
 var ErrTooSoon = errors.New("san_medium: the publish time is too soon")
 
@@ -86,6 +93,12 @@ func (c *Client) Schedule(ctx context.Context, id string, at time.Time, opt ...D
 			e.progress("opening the publish page")
 			url := c.opts.baseURL + "/p/" + id + "/submission?submitType=publishing-post"
 			if err := e.load(url, "the publish page", "publishReady"); err != nil {
+				return err
+			}
+		}
+		for _, t := range o.removeTopics {
+			e.progress("removing the topic " + t)
+			if err := e.removeTopic(t); err != nil {
 				return err
 			}
 		}
@@ -340,6 +353,43 @@ func (e *editor) addTopic(t string) error {
 		return err
 	}
 	err = e.until("the topic "+t, 10*time.Second, has)
+	if errors.Is(err, ErrEditor) {
+		err = fmt.Errorf("%w%s", err, e.screenshot("topic"))
+	}
+	return err
+}
+
+// removeTopic takes a topic off the story with the Remove button of its chip,
+// then waits until the chip is gone. A topic the story does not have is left
+// alone.
+func (e *editor) removeTopic(t string) error {
+	has := func() (string, error) {
+		var ts []string
+		if err := e.call(&ts, "topics"); err != nil {
+			return "", err
+		}
+		for _, x := range ts {
+			if strings.EqualFold(x, t) {
+				return x, nil
+			}
+		}
+		return "", nil
+	}
+	name, err := has()
+	if err != nil {
+		return err
+	}
+	if name == "" {
+		e.progress("the story has no topic " + t)
+		return nil
+	}
+	if err := e.click(`button[aria-label="Remove ` + strings.ReplaceAll(name, `"`, `\"`) + `"]`); err != nil {
+		return err
+	}
+	err = e.until("the topic "+t+" to go", 10*time.Second, func() (bool, error) {
+		x, err := has()
+		return x == "", err
+	})
 	if errors.Is(err, ErrEditor) {
 		err = fmt.Errorf("%w%s", err, e.screenshot("topic"))
 	}

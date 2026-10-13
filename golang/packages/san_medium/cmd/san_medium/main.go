@@ -53,7 +53,7 @@ const usage = `usage:
   san_medium drafts [-json]              list the drafts
   san_medium get [-json] <id | url>      show what a draft holds
   san_medium delete [-yes] <id | url>    delete a draft (asks first, unless -yes)
-  san_medium schedule -at <time> [-topic <t>]... <id | url>
+  san_medium schedule -at <time> [-topic <t>]... [-remove-topic <t>]... <id | url>
                                          have Medium publish a draft at a time ("2026-10-18 09:00", local)
   san_medium scheduled [-json]           list the scheduled stories
   san_medium unschedule <id | url>       cancel a story's publish time; it stays a draft
@@ -197,7 +197,7 @@ func runDraft(ctx context.Context, args []string, stdout, stderr io.Writer) erro
 	if err != nil {
 		return err
 	}
-	if at.IsZero() && len(s.topics) > 0 {
+	if at.IsZero() && len(s.topics)+len(s.removeTopics) > 0 {
 		return errors.New("draft: -topic is set when publishing; give -at too")
 	}
 
@@ -251,10 +251,11 @@ func runDraft(ctx context.Context, args []string, stdout, stderr io.Writer) erro
 	return nil
 }
 
-// scheduleFlags are -at and -topic, for draft and schedule.
+// scheduleFlags are -at, -topic and -remove-topic, for draft and schedule.
 type scheduleFlags struct {
-	at     string
-	topics []string
+	at           string
+	topics       []string
+	removeTopics []string
 }
 
 func (s *scheduleFlags) register(fs *flag.FlagSet) {
@@ -262,6 +263,12 @@ func (s *scheduleFlags) register(fs *flag.FlagSet) {
 	fs.Func("topic", "a topic for the story, up to five; repeat the flag for more", func(v string) error {
 		if v = strings.TrimSpace(v); v != "" {
 			s.topics = append(s.topics, v)
+		}
+		return nil
+	})
+	fs.Func("remove-topic", "a topic to take off the story before scheduling; repeat the flag for more", func(v string) error {
+		if v = strings.TrimSpace(v); v != "" {
+			s.removeTopics = append(s.removeTopics, v)
 		}
 		return nil
 	})
@@ -285,6 +292,7 @@ func (s *scheduleFlags) when() (time.Time, error) {
 
 func (s *scheduleFlags) options(stderr io.Writer) []san_medium.DraftOption {
 	return []san_medium.DraftOption{
+		san_medium.WithoutTopics(s.removeTopics...),
 		san_medium.WithTopics(s.topics...),
 		san_medium.WithProgress(func(m string) { fmt.Fprintln(stderr, "==", m) }),
 	}
@@ -296,7 +304,7 @@ func runSchedule(ctx context.Context, args []string, stdout, stderr io.Writer) e
 	b.register(fs)
 	var s scheduleFlags
 	s.register(fs)
-	if ok, err := parse(fs, args, stderr, "san_medium schedule -at <time> [-topic <topic>]... <id | url>"); !ok || err != nil {
+	if ok, err := parse(fs, args, stderr, "san_medium schedule -at <time> [-topic <topic>]... [-remove-topic <topic>]... <id | url>"); !ok || err != nil {
 		return err
 	}
 	if fs.NArg() != 1 {

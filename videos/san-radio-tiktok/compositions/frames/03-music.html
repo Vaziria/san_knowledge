@@ -1,0 +1,206 @@
+<template>
+  <div data-hf-id="hf-yxrg" id="root" data-composition-id="03-music" data-width="1080" data-height="1920" data-duration="6">
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+<style>
+  @font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  .host { color: #ff7ac6; } .path { color: #5ccfe6; } .arrow { color: #9ece6a; }
+  .cmd { color: #e6e6f0; } .out { color: #e0af68; } .muted { color: #8b8fb5; } .pink { color: #ff7ac6; }
+  .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }
+</style>
+
+<div data-hf-id="hf-mqom" class="clip chrome-ground" data-start="0" data-duration="6" data-track-index="0">
+  <img data-hf-id="hf-uyep" src="assets/night-scene.svg" alt="">
+  <div data-hf-id="hf-0qpf" class="chrome-veil"></div>
+</div>
+
+<div data-hf-id="hf-onta" class="clip" data-start="0" data-duration="6" data-track-index="1" style="position:absolute;inset:0;">
+  <div data-hf-id="hf-t5un" class="chrome-window">
+    <div data-hf-id="hf-7ouv" class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div data-hf-id="hf-t1bk" class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div data-hf-id="hf-3g39" class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div data-hf-id="hf-spac" class="chrome-tab"></div>
+    <div data-hf-id="hf-ivd4" class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div data-hf-id="hf-ff8b" class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div data-hf-id="hf-pyam" class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div data-hf-id="hf-6lc9" class="chrome-rule"></div>
+  </div>
+  <svg data-hf-id="hf-bfp1" class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon data-hf-id="hf-vvb4" points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2" />
+    <polygon data-hf-id="hf-su0h" points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6" />
+  </svg>
+  <div data-hf-id="hf-r9qg" class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div data-hf-id="hf-occr" class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div data-hf-id="hf-izdr" class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div data-hf-id="hf-7v47" style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>
+
+    <!-- 03-music content: terminal lines L0–L15 (track 2). Markup is the t=0 state; render(t) below drives it. -->
+    <div data-hf-id="hf-qtfc" id="03-music-text" class="clip" data-start="0" data-duration="6" data-track-index="2" style="position:absolute;inset:0;">
+      <!-- L0: prompt; L1: the eza command being typed -->
+      <div data-hf-id="hf-3zb8" class="t" style="top:270px"><span data-hf-id="hf-08ja" class="host">radio@getresolved</span> <span data-hf-id="hf-ariq" class="path">~/music</span></div>
+      <div data-hf-id="hf-e10k" class="t" style="top:322px"><span data-hf-id="hf-kk01" class="arrow">❯</span> <span data-hf-id="hf-qp15" id="03-music-cmd1a" class="out"></span><span data-hf-id="hf-txom" id="03-music-cmd1b" class="cmd"></span><span data-hf-id="hf-d0wo" id="03-music-caret1" class="caret"></span></div>
+
+      <!-- L2–L10: the eza --tree output, revealed line by line (waterfall-entry) -->
+      <div data-hf-id="hf-l7bz" id="03-music-l2" class="t muted" style="top:374px;visibility:hidden">.</div>
+      <div data-hf-id="hf-fvbw" id="03-music-l3" class="t muted" style="top:426px;visibility:hidden">├── ♪ Adventure in Forest Dungeo…</div>
+      <div data-hf-id="hf-iatb" id="03-music-l4" class="t muted" style="top:478px;visibility:hidden">├── ♪ Broken Legendary Shrine.wav</div>
+      <div data-hf-id="hf-afgo" id="03-music-l5" class="t muted" style="top:530px;visibility:hidden">├── ♪ Lake of silence and death.…</div>
+      <div data-hf-id="hf-ztpb" id="03-music-l6" class="t muted" style="top:582px;visibility:hidden">├── ♪ Temple of Monk Warrior.wav</div>
+      <div data-hf-id="hf-riwl" id="03-music-l7" class="t muted" style="top:634px;visibility:hidden">├── ♪ arabic.wav</div>
+      <div data-hf-id="hf-ger1" id="03-music-l8" class="t muted" style="top:686px;visibility:hidden">├── <span data-hf-id="hf-r87c" id="03-music-play" class="muted">♪ auntum.wav<span data-hf-id="hf-t9pf" id="03-music-mark"></span></span></div>
+      <div data-hf-id="hf-ycjc" id="03-music-l9" class="t muted" style="top:738px;visibility:hidden">├── ♪ mistjapanese.wav</div>
+      <div data-hf-id="hf-d7w2" id="03-music-l10" class="t muted" style="top:790px;visibility:hidden">└── ♪ ruin.wav</div>
+
+      <!-- L12: new prompt; L13: the play command being typed -->
+      <div data-hf-id="hf-r68a" id="03-music-l12" class="t" style="top:894px;visibility:hidden"><span data-hf-id="hf-487u" class="host">radio@getresolved</span> <span data-hf-id="hf-99y2" class="path">~</span></div>
+      <div data-hf-id="hf-f4v7" id="03-music-l13" class="t" style="top:946px;visibility:hidden"><span data-hf-id="hf-ovh1" class="arrow">❯</span> <span data-hf-id="hf-8w1z" id="03-music-cmd2" class="cmd"></span><span data-hf-id="hf-losj" id="03-music-caret2" class="caret"></span></div>
+
+      <!-- L15: the comment line being typed -->
+      <div data-hf-id="hf-o70s" id="03-music-l15" class="t" style="top:1050px;visibility:hidden"><span data-hf-id="hf-vobi" id="03-music-note" class="muted"></span><span data-hf-id="hf-hqoi" id="03-music-caret3" class="caret"></span></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var DURATION = 6;
+      var EPS = 1e-6;
+      var KEY = 1 / 22; // ~22 characters per second, steady
+
+      function ms(x) { return Math.round(x * 1000) / 1000; }
+      // Keystroke times: character i lands at start + i * step.
+      function schedule(text, start, step) {
+        var at = [];
+        for (var i = 0; i < text.length; i++) at.push(ms(start + i * step));
+        return at;
+      }
+      function typedCount(at, t) {
+        var n = 0;
+        while (n < at.length && t + EPS >= at[n]) n++;
+        return n;
+      }
+      function el(name) { return document.getElementById("03-music-" + name); }
+
+      // Scene 2 (0.2–0.7s): L1 types `eza --tree` ("eza" yellow, "--tree" white).
+      var CMD1 = "eza --tree";
+      var CMD1_AT = schedule(CMD1, 0.2, KEY);
+      // Scene 3 (0.9s): the command is submitted; the caret hides and the tree starts.
+      var ENTER1 = 0.9;
+      // Scene 3 (0.9–2.1s): the tree, one whole line at a time, whipping up from below
+      // (waterfall-entry: binary reveal, power4.out settle; '.' is light, the first song
+      // is the anchor, gaps shrink across the cascade; last line settles at 2.065s).
+      var TREE = [
+        { id: "l2",  at: 0.90,  y: 32, d: 0.11 },
+        { id: "l3",  at: 1.04,  y: 56, d: 0.17 },
+        { id: "l4",  at: 1.18,  y: 46, d: 0.15 },
+        { id: "l5",  at: 1.32,  y: 46, d: 0.15 },
+        { id: "l6",  at: 1.455, y: 44, d: 0.14 },
+        { id: "l7",  at: 1.585, y: 44, d: 0.14 },
+        { id: "l8",  at: 1.71,  y: 44, d: 0.14 },
+        { id: "l9",  at: 1.83,  y: 42, d: 0.13 },
+        { id: "l10", at: 1.945, y: 40, d: 0.12 }
+      ];
+      // Scene 4 (2.6s): auntum.wav becomes the playing track: pink + "  ◀" (the stream's marker).
+      var PLAY_AT = 2.6;
+      var PLAY_FADE = 0.2;
+      // Scene 5 (2.9–3.7s): L12 prompt and L13 "❯ " appear; L13 types `play auntum.wav` from 3.0s.
+      var PROMPT2_AT = 2.9;
+      var CMD2 = "play auntum.wav";
+      var CMD2_AT = schedule(CMD2, 3.0, KEY);
+      var ENTER2 = 3.7;
+      // Scene 6 (4.2–5.3s): L15 types the comment. 30 characters must fit the 1.1s window,
+      // so this line runs at 0.0375s per character (last keystroke 5.2875s).
+      var NOTE = "# lagu ciptaan sendiri, 24 jam";
+      var NOTE_START = 4.2;
+      var NOTE_AT = schedule(NOTE, NOTE_START, 0.0375);
+      // Scene 7 (5.3–6.0s): hold still, caret hidden.
+      var NOTE_DONE = 5.3;
+
+      var cmd1a = el("cmd1a"), cmd1b = el("cmd1b"), caret1 = el("caret1");
+      var treeEls = TREE.map(function (row) { return el(row.id); });
+      var playEl = el("play"), markEl = el("mark");
+      var l12 = el("l12"), l13 = el("l13"), cmd2 = el("cmd2"), caret2 = el("caret2");
+      var l15 = el("l15"), noteEl = el("note"), caret3 = el("caret3");
+
+      function show(node, on) { node.style.visibility = on ? "inherit" : "hidden"; }
+
+      // Pure function of time: identical result at any seek, in either direction.
+      function render(t) {
+        var n1 = typedCount(CMD1_AT, t);
+        cmd1a.textContent = CMD1.slice(0, Math.min(n1, 3));
+        cmd1b.textContent = n1 > 3 ? CMD1.slice(3, n1) : "";
+        show(caret1, t + EPS < ENTER1);
+
+        for (var i = 0; i < TREE.length; i++) show(treeEls[i], t + EPS >= TREE[i].at);
+
+        markEl.textContent = t + EPS >= PLAY_AT ? "  ◀" : "";
+
+        var prompt2 = t + EPS >= PROMPT2_AT;
+        show(l12, prompt2);
+        show(l13, prompt2);
+        cmd2.textContent = CMD2.slice(0, typedCount(CMD2_AT, t));
+        show(caret2, prompt2 && t + EPS < ENTER2);
+
+        var noteOn = t + EPS >= NOTE_START;
+        show(l15, noteOn);
+        noteEl.textContent = NOTE.slice(0, typedCount(NOTE_AT, t));
+        show(caret3, noteOn && t + EPS < NOTE_DONE);
+      }
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Typing / reveal driver (discrete-text-sequence, smooth-slice form; solid caret, no blink).
+      var clock = { t: 0 };
+      tl.to(clock, {
+        t: DURATION,
+        duration: DURATION,
+        ease: "none",
+        onUpdate: function () { render(clock.t); }
+      }, 0);
+
+      // Scene 3: waterfall-entry whips (visibility is switched on by render at the same instant).
+      for (var k = 0; k < TREE.length; k++) {
+        tl.fromTo(treeEls[k],
+          { y: TREE[k].y },
+          { y: 0, duration: TREE[k].d, ease: "power4.out" },
+          TREE[k].at);
+      }
+
+      // Scene 4: the playing line's colour crossfade, muted -> pink over 0.2s.
+      tl.fromTo(playEl,
+        { color: "#8b8fb5" },
+        { color: "#ff7ac6", duration: PLAY_FADE, ease: "sine.inOut" },
+        PLAY_AT);
+
+      render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["03-music"] = tl;
+    })();
+  </script>
+</template>

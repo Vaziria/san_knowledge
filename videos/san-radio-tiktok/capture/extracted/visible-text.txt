@@ -1,0 +1,26 @@
+Brief (no website; the source is the stream's own screen, golang/packages/san_radio/background/terminal.html)
+
+Message: Radio musik santai 24 jam — tulis komentar, namamu diketik di layar.
+CTA: cari @GetResolved di YouTube.
+
+What the stream really shows (1280x720, three panes in one translucent terminal window over a night scene):
+- Pane 1: "radio@getresolved ~" / "❯ neofetch" — a pixel-art card (sakura, red sun, snowy mountain, pagoda, torii) and an info block:
+  radio@getresolved / OS Raspberry Pi OS / Host Raspberry Pi 3B+ / Shell san_radio / Tracks <count> / Now <track> / Uptime <time>
+- Pane 2: "radio@getresolved ~/music" / "❯ eza --tree" — the music folder as a tree, the playing track marked with ♪ and ◀:
+  .
+  ├── ♪ Adventure in Forest Dungeon.wav
+  ├── ♪ Broken Legendary Shrine.wav
+  ├── ♪ Lake of silence and death.wav
+  ├── ♪ Temple of Monk Warrior.wav
+  ├── ♪ arabic.wav
+  ├── ♪ auntum.wav  ◀
+  ├── ♪ mistjapanese.wav
+  └── ♪ ruin.wav
+- Pane 3 (chat): each track is typed as "play <file>"; each live chat comment as greet @name "comment", answered "Hello, @name!":
+  radio@getresolved ~
+  ❯ play auntum.wav
+  radio@getresolved ~
+  ❯ greet @kamu "lagunya enak buat kerja malam"
+  Hello, @kamu!
+- Powerline prompt bars: [radio] [~] › with a block cursor.
+- Clock in the tab bar.

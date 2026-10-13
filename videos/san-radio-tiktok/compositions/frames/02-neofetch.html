@@ -1,0 +1,201 @@
+<template id="02-neofetch-template">
+  <style>
+    /* Frame 02 — neofetch. Frame-only rules; the shared chrome's own style block sits inside #root. */
+    /* Caret slot with zero net advance: it sits at the pen position after the last typed
+       character and the next (still hidden) character is laid over it, so the text keeps
+       its exact monospace layout whichever slot is lit. */
+    .\30 2-neofetch-cr { margin-right: -24px; }
+    /* The pixel-art card: 840x696 source drawn at 520x431, crisp. */
+    .\30 2-neofetch-art {
+      position: absolute; left: 104px; top: 382px; width: 520px; height: 431px;
+      display: block; image-rendering: pixelated;
+    }
+  </style>
+
+  <div data-hf-id="hf-x8li" id="root" data-composition-id="02-neofetch" data-start="0" data-duration="6" data-width="1080" data-height="1920">
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+<style>
+  @font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  .host { color: #ff7ac6; } .path { color: #5ccfe6; } .arrow { color: #9ece6a; }
+  .cmd { color: #e6e6f0; } .out { color: #e0af68; } .muted { color: #8b8fb5; } .pink { color: #ff7ac6; }
+  .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }
+</style>
+
+<div data-hf-id="hf-mqom" class="clip chrome-ground" data-start="0" data-duration="6" data-track-index="0">
+  <img data-hf-id="hf-uyep" src="assets/night-scene.svg" alt="">
+  <div data-hf-id="hf-0qpf" class="chrome-veil"></div>
+</div>
+
+<div data-hf-id="hf-onta" class="clip" data-start="0" data-duration="6" data-track-index="1" style="position:absolute;inset:0;">
+  <div data-hf-id="hf-t5un" class="chrome-window">
+    <div data-hf-id="hf-7ouv" class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div data-hf-id="hf-t1bk" class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div data-hf-id="hf-3g39" class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div data-hf-id="hf-spac" class="chrome-tab"></div>
+    <div data-hf-id="hf-ivd4" class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div data-hf-id="hf-ff8b" class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div data-hf-id="hf-pyam" class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div data-hf-id="hf-6lc9" class="chrome-rule"></div>
+  </div>
+  <svg data-hf-id="hf-bfp1" class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon data-hf-id="hf-vvb4" points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2" />
+    <polygon data-hf-id="hf-su0h" points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6" />
+  </svg>
+  <div data-hf-id="hf-r9qg" class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div data-hf-id="hf-occr" class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div data-hf-id="hf-izdr" class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div data-hf-id="hf-7v47" style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>
+
+    <!-- Frame content (track 2). Static HTML is the landed end state; the script hides and
+         reveals it on the timeline. -->
+    <div data-hf-id="hf-4jn2" id="02-neofetch-content" class="clip" data-start="0" data-duration="6" data-track-index="2" style="position:absolute;inset:0;">
+      <!-- L0: the prompt -->
+      <div data-hf-id="hf-3zb8" class="t" style="top:270px"><span data-hf-id="hf-08ja" class="host">radio@getresolved</span> <span data-hf-id="hf-99y2" class="path">~</span></div>
+      <!-- L1: the command, typed behind the caret -->
+      <div data-hf-id="hf-e10k" class="t" style="top:322px"><span data-hf-id="hf-kk01" class="arrow">❯</span> <span data-hf-id="hf-yuna" id="02-neofetch-cmd" class="arrow">neofetch</span></div>
+
+      <!-- the pixel-art card, drawn row by row -->
+      <img data-hf-id="hf-wmdw" id="02-neofetch-art" class="02-neofetch-art" src="assets/pixel-art.png" alt="" width="520" height="431">
+
+      <!-- the info block, from y 850, 52px lines; labels padded to 8 characters -->
+      <div data-hf-id="hf-d7fz" id="02-neofetch-i0" class="t" style="top:850px"><span data-hf-id="hf-487u" class="host">radio@getresolved</span></div>
+      <div data-hf-id="hf-s13m" id="02-neofetch-i1" class="t" style="top:902px"><span data-hf-id="hf-nglh" class="muted">-----------------</span></div>
+      <div data-hf-id="hf-r55k" id="02-neofetch-i2" class="t" style="top:954px"><span data-hf-id="hf-z3nu" class="path">OS      </span><span data-hf-id="hf-suwk" class="cmd">Raspberry Pi OS</span></div>
+      <div data-hf-id="hf-pnww" id="02-neofetch-i3" class="t" style="top:1006px"><span data-hf-id="hf-ktle" class="path">Host    </span><span data-hf-id="hf-jeqo" class="cmd">Raspberry Pi 3B+</span></div>
+      <div data-hf-id="hf-2xtc" id="02-neofetch-i4" class="t" style="top:1058px"><span data-hf-id="hf-1b02" class="path">Shell   </span><span data-hf-id="hf-ivvb" class="cmd">san_radio</span></div>
+      <div data-hf-id="hf-wyuy" id="02-neofetch-i5" class="t" style="top:1110px"><span data-hf-id="hf-enbw" class="path">Tracks  </span><span data-hf-id="hf-d0xp" class="cmd">8</span></div>
+      <div data-hf-id="hf-tjx8" id="02-neofetch-i6" class="t" style="top:1162px"><span data-hf-id="hf-ssuw" class="path">Now     </span><span data-hf-id="hf-k489" class="cmd">auntum.wav</span></div>
+
+      <!-- the next line after the block: a comment, typed -->
+      <div data-hf-id="hf-nrxn" class="t" style="top:1214px"><span data-hf-id="hf-tutf" id="02-neofetch-note" class="muted"># jalan 24 jam di Pi kecil ini</span></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var ID = "02-neofetch";
+      var tl = gsap.timeline({ paused: true });
+
+      function el(key) {
+        return document.getElementById(ID + "-" + key);
+      }
+
+      // ── Typing (discrete-text-sequence, smooth-slice form, as per-character state) ──
+      // The static text is split into one span per character, with a zero-advance caret
+      // slot before the first character and after every character. State k = characters
+      // 1..k visible + caret slot k lit. Every change is a tl.set at a fixed time: no
+      // callbacks, no clocks, so any seek (either direction) lands on the right state.
+      function splitTyped(key) {
+        var host = el(key);
+        var text = host.textContent;
+        var chars = [];
+        var carets = [];
+        host.textContent = "";
+        function addCaret() {
+          var c = document.createElement("span");
+          c.className = "caret " + ID + "-cr";
+          host.appendChild(c);
+          carets.push(c);
+        }
+        addCaret();
+        for (var i = 0; i < text.length; i++) {
+          var s = document.createElement("span");
+          s.textContent = text.charAt(i);
+          host.appendChild(s);
+          chars.push(s);
+          addCaret();
+        }
+        return { chars: chars, carets: carets };
+      }
+
+      // caretOn: when the caret lands on the empty line (<= 0: already there at t=0)
+      // tFirst/cps: first keystroke and a steady rate; caretOff: the line is finished
+      function typeLine(key, caretOn, tFirst, cps, caretOff) {
+        var p = splitTyped(key);
+        var X = p.chars;
+        var C = p.carets;
+        gsap.set(X, { opacity: 0 });
+        gsap.set(C, { opacity: 0 });
+        if (caretOn <= 0) gsap.set(C[0], { opacity: 1 });
+        else tl.set(C[0], { opacity: 1 }, caretOn);
+        for (var k = 1; k <= X.length; k++) {
+          var t = tFirst + (k - 1) / cps;
+          tl.set(X[k - 1], { opacity: 1 }, t);
+          tl.set(C[k - 1], { opacity: 0 }, t);
+          tl.set(C[k], { opacity: 1 }, t);
+        }
+        tl.set(C[X.length], { opacity: 0 }, caretOff);
+      }
+
+      // Scene 1 (0.0s): caret waits after "❯ " on L1.
+      // Scene 2 (0.2–0.7s): `neofetch` at 22 chars/s (last key 0.52s), Enter at 0.7s.
+      typeLine("cmd", 0, 0.2, 22, 0.7);
+
+      // Scene 3 (0.9–1.5s): the art is drawn top to bottom, one art row per step
+      // (the source is 58 rows of 12px blocks, so 58 steps land on row edges).
+      // waterfall-entry law: the arrival is binary, never a fade.
+      tl.fromTo(
+        el("art"),
+        { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)" },
+        { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", duration: 0.6, ease: "steps(58)" },
+        0.9
+      );
+
+      // Scene 4 (1.6–3.2s): the info block, line by line (waterfall-entry).
+      // Each line: binary opacity via tl.set, then a short power4.out whip up from below.
+      // Weight sets travel/duration (anchor host line travels furthest, the dash rule is
+      // light, the last line snaps); the gaps shrink so the print accelerates into the end.
+      var INFO = [
+        { key: "i0", at: 1.6, y: 30, d: 0.18 }, // radio@getresolved (anchor)
+        { key: "i1", at: 1.89, y: 16, d: 0.11 }, // ----------------- (light)
+        { key: "i2", at: 2.16, y: 24, d: 0.15 }, // OS
+        { key: "i3", at: 2.41, y: 22, d: 0.14 }, // Host
+        { key: "i4", at: 2.64, y: 22, d: 0.14 }, // Shell
+        { key: "i5", at: 2.85, y: 20, d: 0.13 }, // Tracks
+        { key: "i6", at: 3.04, y: 20, d: 0.12 }, // Now (snaps, settled by 3.16s)
+      ];
+      INFO.forEach(function (L) {
+        var line = el(L.key);
+        gsap.set(line, { opacity: 0 });
+        tl.set(line, { opacity: 1 }, L.at);
+        tl.fromTo(line, { y: L.y }, { y: 0, duration: L.d, ease: "power4.out" }, L.at);
+      });
+
+      // Scene 5 (3.8–5.1s): the comment types on the line after the block
+      // (30 characters at 25 chars/s, last key 5.0s); the caret leaves at 5.1s.
+      typeLine("note", 3.8, 3.84, 25, 5.1);
+
+      // Scene 6 (5.1–6.0s): hold still.
+
+      window.__timelines["02-neofetch"] = tl;
+    })();
+  </script>
+</template>

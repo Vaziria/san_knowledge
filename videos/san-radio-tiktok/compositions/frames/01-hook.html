@@ -1,0 +1,162 @@
+<template>
+<div data-hf-id="hf-u3xp" id="root" data-composition-id="01-hook" data-width="1080" data-height="1920" data-duration="5">
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+<style>
+  @font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  .host { color: #ff7ac6; } .path { color: #5ccfe6; } .arrow { color: #9ece6a; }
+  .cmd { color: #e6e6f0; } .out { color: #e0af68; } .muted { color: #8b8fb5; } .pink { color: #ff7ac6; }
+  .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }
+</style>
+
+<div data-hf-id="hf-5s8l" class="clip chrome-ground" data-start="0" data-duration="5" data-track-index="0">
+  <img data-hf-id="hf-uyep" src="assets/night-scene.svg" alt="">
+  <div data-hf-id="hf-0qpf" class="chrome-veil"></div>
+</div>
+
+<div data-hf-id="hf-3y9z" class="clip" data-start="0" data-duration="5" data-track-index="1" style="position:absolute;inset:0;">
+  <div data-hf-id="hf-t5un" class="chrome-window">
+    <div data-hf-id="hf-7ouv" class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div data-hf-id="hf-t1bk" class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div data-hf-id="hf-3g39" class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div data-hf-id="hf-spac" class="chrome-tab"></div>
+    <div data-hf-id="hf-ivd4" class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div data-hf-id="hf-ff8b" class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div data-hf-id="hf-pyam" class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div data-hf-id="hf-6lc9" class="chrome-rule"></div>
+  </div>
+  <svg data-hf-id="hf-bfp1" class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon data-hf-id="hf-vvb4" points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2" />
+    <polygon data-hf-id="hf-su0h" points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6" />
+  </svg>
+  <div data-hf-id="hf-r9qg" class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div data-hf-id="hf-occr" class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div data-hf-id="hf-izdr" class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div data-hf-id="hf-7v47" style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>
+
+<!-- 01-hook content (track 2). Lines are written without inner whitespace: .t is white-space: pre. -->
+<div data-hf-id="hf-57wo" class="clip" id="01-hook-terminal" data-start="0" data-duration="5" data-track-index="2" style="position:absolute;inset:0;">
+  <!-- L0 -->
+  <div data-hf-id="hf-tq1k" class="t muted" style="top:270px"># radio musik santai 24 jam</div>
+  <!-- L2: prompt -->
+  <div data-hf-id="hf-y2ah" class="t" style="top:374px"><span data-hf-id="hf-08ja" class="host">radio@getresolved</span> <span data-hf-id="hf-99y2" class="path">~</span></div>
+  <!-- L3: the command types behind the caret -->
+  <div data-hf-id="hf-e3bv" class="t" style="top:426px"><span data-hf-id="hf-kk01" class="arrow">❯ </span><span data-hf-id="hf-neia" class="cmd" id="01-hook-l3"></span><span data-hf-id="hf-vy98" class="caret" id="01-hook-caret3"></span></div>
+  <!-- L4: the output line, the focal -->
+  <div data-hf-id="hf-ldla" class="t out" id="01-hook-hello" style="top:478px;transform-origin:0% 50%;text-shadow:0 0 18px rgba(224,175,104,var(--01-hook-glow,0))">Hello, @kamu!</div>
+  <!-- L6 + L7: the comment types across two lines -->
+  <div data-hf-id="hf-l5i9" class="t muted" style="top:582px"><span data-hf-id="hf-yiwg" id="01-hook-l6"></span><span data-hf-id="hf-8xv4" class="caret" id="01-hook-caret6" style="opacity:0"></span></div>
+  <div data-hf-id="hf-sw0t" class="t muted" style="top:634px"><span data-hf-id="hf-zak9" id="01-hook-l7"></span><span data-hf-id="hf-fxm9" class="caret" id="01-hook-caret7" style="opacity:0"></span></div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+(function () {
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused: true });
+  var DURATION = 5;
+
+  // ── Typing: discrete-text-sequence + context-sensitive-cursor ──
+  // Every keystroke is one SEQUENCE state at a fixed time (steady speed, no randomness).
+  var CMD = 'greet @kamu "enak banget!"';     // L3, typed 0.3–1.5s (~22 chars/s)
+  var C6 = "# tulis komentar di live chat,";  // L6 ┐ typed 2.4–3.8s,
+  var C7 = "# namamu diketik di sini";        // L7 ┘ the caret moves to L7 after L6
+  var T3 = 0.3, STEP3 = 1.2 / CMD.length;
+  var T_SUBMIT = 1.8;                         // caret hides, L4 appears
+  var T6 = 2.4, T_DONE = 3.8;
+  var STEP67 = (T_DONE - T6) / (C6.length + 1 + C7.length); // +1: the line break is a keystroke
+
+  // State: characters shown on L3 / L6 / L7, and the line holding the caret (0 = hidden).
+  var SEQUENCE = [{ t: 0, n3: 0, n6: 0, n7: 0, caret: 3 }];
+  var i;
+  for (i = 1; i <= CMD.length; i++) {
+    SEQUENCE.push({ t: T3 + (i - 1) * STEP3, n3: i, n6: 0, n7: 0, caret: 3 });
+  }
+  SEQUENCE.push({ t: T_SUBMIT, n3: CMD.length, n6: 0, n7: 0, caret: 0 });
+  for (i = 1; i <= C6.length; i++) {
+    SEQUENCE.push({ t: T6 + (i - 1) * STEP67, n3: CMD.length, n6: i, n7: 0, caret: 6 });
+  }
+  SEQUENCE.push({ t: T6 + C6.length * STEP67, n3: CMD.length, n6: C6.length, n7: 0, caret: 7 });
+  for (i = 1; i <= C7.length; i++) {
+    SEQUENCE.push({ t: T6 + (C6.length + i) * STEP67, n3: CMD.length, n6: C6.length, n7: i, caret: 7 });
+  }
+  SEQUENCE.push({ t: T_DONE, n3: CMD.length, n6: C6.length, n7: C7.length, caret: 0 });
+
+  var l3 = document.getElementById("01-hook-l3");
+  var l6 = document.getElementById("01-hook-l6");
+  var l7 = document.getElementById("01-hook-l7");
+  var carets = [
+    [3, document.getElementById("01-hook-caret3")],
+    [6, document.getElementById("01-hook-caret6")],
+    [7, document.getElementById("01-hook-caret7")]
+  ];
+
+  // Caret is solid on each keystroke and would blink only after BLINK_HALF of idle time — a pure
+  // function of time (seek-safe). No idle stretch in this frame is that long, so it stays solid.
+  var BLINK_HALF = 0.5;
+
+  function stateAt(time) {
+    for (var k = SEQUENCE.length - 1; k > 0; k--) {
+      if (time >= SEQUENCE[k].t) return SEQUENCE[k];
+    }
+    return SEQUENCE[0];
+  }
+
+  function render(time) {
+    var s = stateAt(time);
+    l3.textContent = CMD.slice(0, s.n3);
+    l6.textContent = C6.slice(0, s.n6);
+    l7.textContent = C7.slice(0, s.n7);
+    var lit = Math.floor((time - s.t) / BLINK_HALF) % 2 === 0;
+    for (var c = 0; c < carets.length; c++) {
+      carets[c][1].style.opacity = s.caret === carets[c][0] && lit ? "1" : "0";
+    }
+  }
+
+  render(0);
+  var driver = { t: 0 };
+  tl.to(driver, {
+    t: DURATION,
+    duration: DURATION,
+    ease: "none",
+    onUpdate: function () { render(driver.t); }
+  }, 0);
+
+  // ── L4 "Hello, @kamu!": appears whole, 0.96→1 settle from the left, glow rises with it ──
+  // (ambient-glow-bloom, bloom-and-hold: glow and line land as one beat, no breathe)
+  var hello = document.getElementById("01-hook-hello");
+  tl.fromTo(hello, { opacity: 0 }, { opacity: 1, duration: 0, ease: "none" }, T_SUBMIT);
+  tl.fromTo(hello, { scale: 0.96 }, { scale: 1, duration: 0.5, ease: "power3.out" }, T_SUBMIT);
+  tl.fromTo(hello, { "--01-hook-glow": 0 }, { "--01-hook-glow": 0.55, duration: 0.5, ease: "power2.out" }, T_SUBMIT);
+
+  window.__timelines["01-hook"] = tl;
+})();
+</script>
+</template>

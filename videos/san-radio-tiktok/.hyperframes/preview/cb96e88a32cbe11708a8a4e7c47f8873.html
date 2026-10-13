@@ -1,0 +1,2803 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<meta name="hf-scene-parts" content="{&quot;shared&quot;:&quot;e9fa3d944403f0a8&quot;,&quot;scenes&quot;:{&quot;01-hook&quot;:&quot;197794d2628ba9dd&quot;,&quot;02-neofetch&quot;:&quot;a093fca2e1a7f017&quot;,&quot;03-music&quot;:&quot;5702bce20c21d90b&quot;,&quot;04-cta&quot;:&quot;de7eb49a6d0eaddc&quot;}}"><script data-hf-gsap-fallback>
+(function(){
+  var cdnBase="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/";
+  var loaded={};
+  function loadFallback(file){
+    if(loaded[file])return loaded[file];
+    return loaded[file]=new Promise(function(ok,fail){
+      var s=document.createElement("script");
+      s.src=cdnBase+file;s.hfGsapFallback=true;s.onload=ok;s.onerror=fail;
+      document.head.appendChild(s);
+    });
+  }
+  document.addEventListener("error",function(e){
+    var t=e.target;
+    if(!t||t.tagName!=="SCRIPT"||!t.src||t.hfGsapFallback)return;
+    var m=t.src.match(/gsap[^/]*\/dist\/(.+\.js)/);
+    if(m)loadFallback(m[1]).catch(function(){
+      reportError(new Error("GSAP could not load from "+t.src+" or "+cdnBase+m[1]+", so this preview's animations will not play."));
+    });
+  },true);
+})();
+</script>
+<meta name="hyperframes-studio-preview"><script>(function(){var seen=window.__hfPreviewErrors=[];
+addEventListener("error",function(e){seen.push(e.message||String(e))});})();</script>
+<base href="/api/projects/san-radio-tiktok/preview/"><style data-hyperframes-text-rendering="true">html,body,*{text-rendering:geometricPrecision}</style><script data-hf-after-fonts-fallback="">document.addEventListener("DOMContentLoaded", function () {
+  if (window.__hfAfterFontsClaimed) return;
+  var T = "text/hf-after-fonts";
+  var all = [].slice.call(document.querySelectorAll('script[type="text/hf-after-fonts"], script[type="text/hf-after-fonts+module"]'));
+  if (!all.length) return;
+  console.warn("[hyperframes] the runtime has no web-font gate; composition scripts run without waiting for fonts");
+  var late = function (el) { return el.type !== T || el.matches('[defer][src], [defer][data-hf-inlined-src]'); };
+  var queue = all.filter(function (el) { return !late(el); }).concat(all.filter(late));
+  (function next() {
+    var el = queue.shift();
+    if (!el) return;
+    var s = document.createElement("script");
+    for (var i = 0; i < el.attributes.length; i++) s.setAttribute(el.attributes[i].name, el.attributes[i].value);
+    if (el.type === T) s.removeAttribute("type"); else s.type = "module";
+    s.async = el.hasAttribute("async");
+    s.text = el.text;
+    var waits = s.type !== "module" && s.hasAttribute("src") && !s.async && !s.noModule;
+    if (waits) { s.addEventListener("load", next); s.addEventListener("error", next); }
+    el.replaceWith(s);
+    if (!waits) next();
+  })();
+});
+//# sourceURL=hyperframes://after-fonts-fallback</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <style>* {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #e6e6f0;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }</style><style data-hf-scene="01-hook">@font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  [data-composition-id="01-hook"] [data-hf-authored-id="root"] { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  [data-composition-id="01-hook"] .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  [data-composition-id="01-hook"] .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  [data-composition-id="01-hook"] .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  [data-composition-id="01-hook"] .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  [data-composition-id="01-hook"] .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  [data-composition-id="01-hook"] .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  [data-composition-id="01-hook"] .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  [data-composition-id="01-hook"] .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  [data-composition-id="01-hook"] .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  [data-composition-id="01-hook"] .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  [data-composition-id="01-hook"] .host { color: #ff7ac6; } [data-composition-id="01-hook"] .path { color: #5ccfe6; } [data-composition-id="01-hook"] .arrow { color: #9ece6a; }
+  [data-composition-id="01-hook"] .cmd { color: #e6e6f0; } [data-composition-id="01-hook"] .out { color: #e0af68; } [data-composition-id="01-hook"] .muted { color: #8b8fb5; } [data-composition-id="01-hook"] .pink { color: #ff7ac6; }
+  [data-composition-id="01-hook"] .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }</style><style data-hf-scene="02-neofetch">/* Frame 02 — neofetch. Frame-only rules; the shared chrome's own style block sits inside #root. */
+    /* Caret slot with zero net advance: it sits at the pen position after the last typed
+       character and the next (still hidden) character is laid over it, so the text keeps
+       its exact monospace layout whichever slot is lit. */
+    [data-composition-id="02-neofetch"] .\30 2-neofetch-cr { margin-right: -24px; }
+    /* The pixel-art card: 840x696 source drawn at 520x431, crisp. */
+    [data-composition-id="02-neofetch"] .\30 2-neofetch-art {
+      position: absolute; left: 104px; top: 382px; width: 520px; height: 431px;
+      display: block; image-rendering: pixelated;
+    }
+
+@font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  [data-composition-id="02-neofetch"] [data-hf-authored-id="root"] { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  [data-composition-id="02-neofetch"] .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  [data-composition-id="02-neofetch"] .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  [data-composition-id="02-neofetch"] .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  [data-composition-id="02-neofetch"] .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  [data-composition-id="02-neofetch"] .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  [data-composition-id="02-neofetch"] .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  [data-composition-id="02-neofetch"] .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  [data-composition-id="02-neofetch"] .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  [data-composition-id="02-neofetch"] .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  [data-composition-id="02-neofetch"] .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  [data-composition-id="02-neofetch"] .host { color: #ff7ac6; } [data-composition-id="02-neofetch"] .path { color: #5ccfe6; } [data-composition-id="02-neofetch"] .arrow { color: #9ece6a; }
+  [data-composition-id="02-neofetch"] .cmd { color: #e6e6f0; } [data-composition-id="02-neofetch"] .out { color: #e0af68; } [data-composition-id="02-neofetch"] .muted { color: #8b8fb5; } [data-composition-id="02-neofetch"] .pink { color: #ff7ac6; }
+  [data-composition-id="02-neofetch"] .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }</style><style data-hf-scene="03-music">@font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  [data-composition-id="03-music"] [data-hf-authored-id="root"] { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  [data-composition-id="03-music"] .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  [data-composition-id="03-music"] .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  [data-composition-id="03-music"] .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  [data-composition-id="03-music"] .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  [data-composition-id="03-music"] .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  [data-composition-id="03-music"] .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  [data-composition-id="03-music"] .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  [data-composition-id="03-music"] .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  [data-composition-id="03-music"] .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  [data-composition-id="03-music"] .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  [data-composition-id="03-music"] .host { color: #ff7ac6; } [data-composition-id="03-music"] .path { color: #5ccfe6; } [data-composition-id="03-music"] .arrow { color: #9ece6a; }
+  [data-composition-id="03-music"] .cmd { color: #e6e6f0; } [data-composition-id="03-music"] .out { color: #e0af68; } [data-composition-id="03-music"] .muted { color: #8b8fb5; } [data-composition-id="03-music"] .pink { color: #ff7ac6; }
+  [data-composition-id="03-music"] .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }</style><style data-hf-scene="04-cta">@font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  [data-composition-id="04-cta"] [data-hf-authored-id="root"] { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  [data-composition-id="04-cta"] .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  [data-composition-id="04-cta"] .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  [data-composition-id="04-cta"] .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  [data-composition-id="04-cta"] .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  [data-composition-id="04-cta"] .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  [data-composition-id="04-cta"] .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  [data-composition-id="04-cta"] .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  [data-composition-id="04-cta"] .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  [data-composition-id="04-cta"] .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  [data-composition-id="04-cta"] .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  [data-composition-id="04-cta"] .host { color: #ff7ac6; } [data-composition-id="04-cta"] .path { color: #5ccfe6; } [data-composition-id="04-cta"] .arrow { color: #9ece6a; }
+  [data-composition-id="04-cta"] .cmd { color: #e6e6f0; } [data-composition-id="04-cta"] .out { color: #e0af68; } [data-composition-id="04-cta"] .muted { color: #8b8fb5; } [data-composition-id="04-cta"] .pink { color: #ff7ac6; }
+  [data-composition-id="04-cta"] .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }</style>
+  
+<script data-hyperframes-preview-runtime="1" src="/api/runtime.js"></script>
+<meta name="hyperframes-project-signature" content="1921a0314cef5a0307f1f542">
+</head>
+  <body>
+    <div data-hf-id="hf-maqu" id="root" data-composition-id="main" data-start="0" data-duration="24" data-width="1080" data-height="1920">
+      <div data-composition-file="compositions/frames/01-hook.html" data-height="1920" data-width="1080" data-hf-scene="01-hook" data-hf-id="hf-lt2u" id="el-01-hook" class="scene" data-composition-id="01-hook" data-start="0" data-duration="5" data-track-index="1"><div style="width:1080px;height:1920px" data-hf-inner-root="true" data-hf-authored-id="root" data-hf-id="hf-u3xp" data-width="1080" data-height="1920">
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+
+
+<div data-hf-id="hf-5s8l" class="clip chrome-ground" data-start="0" data-duration="5" data-track-index="0">
+  <img data-hf-id="hf-uyep" src="assets/night-scene.svg" alt="">
+  <div data-hf-id="hf-0qpf" class="chrome-veil"></div>
+</div>
+
+<div data-hf-id="hf-3y9z" class="clip" data-start="0" data-duration="5" data-track-index="1" style="position:absolute;inset:0;">
+  <div data-hf-id="hf-t5un" class="chrome-window">
+    <div data-hf-id="hf-7ouv" class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div data-hf-id="hf-t1bk" class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div data-hf-id="hf-3g39" class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div data-hf-id="hf-spac" class="chrome-tab"></div>
+    <div data-hf-id="hf-ivd4" class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div data-hf-id="hf-ff8b" class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div data-hf-id="hf-pyam" class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div data-hf-id="hf-6lc9" class="chrome-rule"></div>
+  </div>
+  <svg data-hf-id="hf-bfp1" class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon data-hf-id="hf-vvb4" points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2" />
+    <polygon data-hf-id="hf-su0h" points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6" />
+  </svg>
+  <div data-hf-id="hf-r9qg" class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div data-hf-id="hf-occr" class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div data-hf-id="hf-izdr" class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div data-hf-id="hf-7v47" style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>
+
+<!-- 01-hook content (track 2). Lines are written without inner whitespace: .t is white-space: pre. -->
+<div data-hf-id="hf-57wo" class="clip" id="01-hook-terminal" data-start="0" data-duration="5" data-track-index="2" style="position:absolute;inset:0;">
+  <!-- L0 -->
+  <div data-hf-id="hf-tq1k" class="t muted" style="top:270px"># radio musik santai 24 jam</div>
+  <!-- L2: prompt -->
+  <div data-hf-id="hf-y2ah" class="t" style="top:374px"><span data-hf-id="hf-08ja" class="host">radio@getresolved</span> <span data-hf-id="hf-99y2" class="path">~</span></div>
+  <!-- L3: the command types behind the caret -->
+  <div data-hf-id="hf-e3bv" class="t" style="top:426px"><span data-hf-id="hf-kk01" class="arrow">❯ </span><span data-hf-id="hf-neia" class="cmd" id="01-hook-l3"></span><span data-hf-id="hf-vy98" class="caret" id="01-hook-caret3"></span></div>
+  <!-- L4: the output line, the focal -->
+  <div data-hf-id="hf-ldla" class="t out" id="01-hook-hello" style="top:478px;transform-origin:0% 50%;text-shadow:0 0 18px rgba(224,175,104,var(--01-hook-glow,0))">Hello, @kamu!</div>
+  <!-- L6 + L7: the comment types across two lines -->
+  <div data-hf-id="hf-l5i9" class="t muted" style="top:582px"><span data-hf-id="hf-yiwg" id="01-hook-l6"></span><span data-hf-id="hf-8xv4" class="caret" id="01-hook-caret6" style="opacity:0"></span></div>
+  <div data-hf-id="hf-sw0t" class="t muted" style="top:634px"><span data-hf-id="hf-zak9" id="01-hook-l7"></span><span data-hf-id="hf-fxm9" class="caret" id="01-hook-caret7" style="opacity:0"></span></div>
+</div>
+</div></div>
+
+      <div data-composition-file="compositions/frames/02-neofetch.html" data-height="1920" data-width="1080" data-hf-scene="02-neofetch" data-hf-id="hf-4nmk" id="el-02-neofetch" class="scene" data-composition-id="02-neofetch" data-start="5" data-duration="6" data-track-index="1"><div style="width:1080px;height:1920px" data-hf-inner-root="true" data-hf-authored-id="root" data-hf-id="hf-x8li" data-width="1080" data-height="1920">
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+
+
+<div data-hf-id="hf-mqom" class="clip chrome-ground" data-start="0" data-duration="6" data-track-index="0">
+  <img loading="lazy" data-hf-preview-lazy data-hf-id="hf-uyep" src="assets/night-scene.svg" alt="">
+  <div data-hf-id="hf-0qpf" class="chrome-veil"></div>
+</div>
+
+<div data-hf-id="hf-onta" class="clip" data-start="0" data-duration="6" data-track-index="1" style="position:absolute;inset:0;">
+  <div data-hf-id="hf-t5un" class="chrome-window">
+    <div data-hf-id="hf-7ouv" class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div data-hf-id="hf-t1bk" class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div data-hf-id="hf-3g39" class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div data-hf-id="hf-spac" class="chrome-tab"></div>
+    <div data-hf-id="hf-ivd4" class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div data-hf-id="hf-ff8b" class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div data-hf-id="hf-pyam" class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div data-hf-id="hf-6lc9" class="chrome-rule"></div>
+  </div>
+  <svg data-hf-id="hf-bfp1" class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon data-hf-id="hf-vvb4" points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2" />
+    <polygon data-hf-id="hf-su0h" points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6" />
+  </svg>
+  <div data-hf-id="hf-r9qg" class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div data-hf-id="hf-occr" class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div data-hf-id="hf-izdr" class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div data-hf-id="hf-7v47" style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>
+
+    <!-- Frame content (track 2). Static HTML is the landed end state; the script hides and
+         reveals it on the timeline. -->
+    <div data-hf-id="hf-4jn2" id="02-neofetch-content" class="clip" data-start="0" data-duration="6" data-track-index="2" style="position:absolute;inset:0;">
+      <!-- L0: the prompt -->
+      <div data-hf-id="hf-3zb8" class="t" style="top:270px"><span data-hf-id="hf-08ja" class="host">radio@getresolved</span> <span data-hf-id="hf-99y2" class="path">~</span></div>
+      <!-- L1: the command, typed behind the caret -->
+      <div data-hf-id="hf-e10k" class="t" style="top:322px"><span data-hf-id="hf-kk01" class="arrow">❯</span> <span data-hf-id="hf-yuna" id="02-neofetch-cmd" class="arrow">neofetch</span></div>
+
+      <!-- the pixel-art card, drawn row by row -->
+      <img loading="lazy" data-hf-preview-lazy data-hf-id="hf-wmdw" id="02-neofetch-art" class="02-neofetch-art" src="assets/pixel-art.png" alt="" width="520" height="431">
+
+      <!-- the info block, from y 850, 52px lines; labels padded to 8 characters -->
+      <div data-hf-id="hf-d7fz" id="02-neofetch-i0" class="t" style="top:850px"><span data-hf-id="hf-487u" class="host">radio@getresolved</span></div>
+      <div data-hf-id="hf-s13m" id="02-neofetch-i1" class="t" style="top:902px"><span data-hf-id="hf-nglh" class="muted">-----------------</span></div>
+      <div data-hf-id="hf-r55k" id="02-neofetch-i2" class="t" style="top:954px"><span data-hf-id="hf-z3nu" class="path">OS      </span><span data-hf-id="hf-suwk" class="cmd">Raspberry Pi OS</span></div>
+      <div data-hf-id="hf-pnww" id="02-neofetch-i3" class="t" style="top:1006px"><span data-hf-id="hf-ktle" class="path">Host    </span><span data-hf-id="hf-jeqo" class="cmd">Raspberry Pi 3B+</span></div>
+      <div data-hf-id="hf-2xtc" id="02-neofetch-i4" class="t" style="top:1058px"><span data-hf-id="hf-1b02" class="path">Shell   </span><span data-hf-id="hf-ivvb" class="cmd">san_radio</span></div>
+      <div data-hf-id="hf-wyuy" id="02-neofetch-i5" class="t" style="top:1110px"><span data-hf-id="hf-enbw" class="path">Tracks  </span><span data-hf-id="hf-d0xp" class="cmd">8</span></div>
+      <div data-hf-id="hf-tjx8" id="02-neofetch-i6" class="t" style="top:1162px"><span data-hf-id="hf-ssuw" class="path">Now     </span><span data-hf-id="hf-k489" class="cmd">auntum.wav</span></div>
+
+      <!-- the next line after the block: a comment, typed -->
+      <div data-hf-id="hf-nrxn" class="t" style="top:1214px"><span data-hf-id="hf-tutf" id="02-neofetch-note" class="muted"># jalan 24 jam di Pi kecil ini</span></div>
+    </div>
+  </div></div>
+
+      <div data-composition-file="compositions/frames/03-music.html" data-height="1920" data-width="1080" data-hf-scene="03-music" data-hf-id="hf-3uc1" id="el-03-music" class="scene" data-composition-id="03-music" data-start="11" data-duration="6" data-track-index="1"><div style="width:1080px;height:1920px" data-hf-inner-root="true" data-hf-authored-id="root" data-hf-id="hf-yxrg" data-width="1080" data-height="1920">
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+
+
+<div data-hf-id="hf-mqom" class="clip chrome-ground" data-start="0" data-duration="6" data-track-index="0">
+  <img loading="lazy" data-hf-preview-lazy data-hf-id="hf-uyep" src="assets/night-scene.svg" alt="">
+  <div data-hf-id="hf-0qpf" class="chrome-veil"></div>
+</div>
+
+<div data-hf-id="hf-onta" class="clip" data-start="0" data-duration="6" data-track-index="1" style="position:absolute;inset:0;">
+  <div data-hf-id="hf-t5un" class="chrome-window">
+    <div data-hf-id="hf-7ouv" class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div data-hf-id="hf-t1bk" class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div data-hf-id="hf-3g39" class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div data-hf-id="hf-spac" class="chrome-tab"></div>
+    <div data-hf-id="hf-ivd4" class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div data-hf-id="hf-ff8b" class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div data-hf-id="hf-pyam" class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div data-hf-id="hf-6lc9" class="chrome-rule"></div>
+  </div>
+  <svg data-hf-id="hf-bfp1" class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon data-hf-id="hf-vvb4" points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2" />
+    <polygon data-hf-id="hf-su0h" points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6" />
+  </svg>
+  <div data-hf-id="hf-r9qg" class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div data-hf-id="hf-occr" class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div data-hf-id="hf-izdr" class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div data-hf-id="hf-7v47" style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>
+
+    <!-- 03-music content: terminal lines L0–L15 (track 2). Markup is the t=0 state; render(t) below drives it. -->
+    <div data-hf-id="hf-qtfc" id="03-music-text" class="clip" data-start="0" data-duration="6" data-track-index="2" style="position:absolute;inset:0;">
+      <!-- L0: prompt; L1: the eza command being typed -->
+      <div data-hf-id="hf-3zb8" class="t" style="top:270px"><span data-hf-id="hf-08ja" class="host">radio@getresolved</span> <span data-hf-id="hf-ariq" class="path">~/music</span></div>
+      <div data-hf-id="hf-e10k" class="t" style="top:322px"><span data-hf-id="hf-kk01" class="arrow">❯</span> <span data-hf-id="hf-qp15" id="03-music-cmd1a" class="out"></span><span data-hf-id="hf-txom" id="03-music-cmd1b" class="cmd"></span><span data-hf-id="hf-d0wo" id="03-music-caret1" class="caret"></span></div>
+
+      <!-- L2–L10: the eza --tree output, revealed line by line (waterfall-entry) -->
+      <div data-hf-id="hf-l7bz" id="03-music-l2" class="t muted" style="top:374px;visibility:hidden">.</div>
+      <div data-hf-id="hf-fvbw" id="03-music-l3" class="t muted" style="top:426px;visibility:hidden">├── ♪ Adventure in Forest Dungeo…</div>
+      <div data-hf-id="hf-iatb" id="03-music-l4" class="t muted" style="top:478px;visibility:hidden">├── ♪ Broken Legendary Shrine.wav</div>
+      <div data-hf-id="hf-afgo" id="03-music-l5" class="t muted" style="top:530px;visibility:hidden">├── ♪ Lake of silence and death.…</div>
+      <div data-hf-id="hf-ztpb" id="03-music-l6" class="t muted" style="top:582px;visibility:hidden">├── ♪ Temple of Monk Warrior.wav</div>
+      <div data-hf-id="hf-riwl" id="03-music-l7" class="t muted" style="top:634px;visibility:hidden">├── ♪ arabic.wav</div>
+      <div data-hf-id="hf-ger1" id="03-music-l8" class="t muted" style="top:686px;visibility:hidden">├── <span data-hf-id="hf-r87c" id="03-music-play" class="muted">♪ auntum.wav<span data-hf-id="hf-t9pf" id="03-music-mark"></span></span></div>
+      <div data-hf-id="hf-ycjc" id="03-music-l9" class="t muted" style="top:738px;visibility:hidden">├── ♪ mistjapanese.wav</div>
+      <div data-hf-id="hf-d7w2" id="03-music-l10" class="t muted" style="top:790px;visibility:hidden">└── ♪ ruin.wav</div>
+
+      <!-- L12: new prompt; L13: the play command being typed -->
+      <div data-hf-id="hf-r68a" id="03-music-l12" class="t" style="top:894px;visibility:hidden"><span data-hf-id="hf-487u" class="host">radio@getresolved</span> <span data-hf-id="hf-99y2" class="path">~</span></div>
+      <div data-hf-id="hf-f4v7" id="03-music-l13" class="t" style="top:946px;visibility:hidden"><span data-hf-id="hf-ovh1" class="arrow">❯</span> <span data-hf-id="hf-8w1z" id="03-music-cmd2" class="cmd"></span><span data-hf-id="hf-losj" id="03-music-caret2" class="caret"></span></div>
+
+      <!-- L15: the comment line being typed -->
+      <div data-hf-id="hf-o70s" id="03-music-l15" class="t" style="top:1050px;visibility:hidden"><span data-hf-id="hf-vobi" id="03-music-note" class="muted"></span><span data-hf-id="hf-hqoi" id="03-music-caret3" class="caret"></span></div>
+    </div>
+  </div></div>
+
+      <div data-composition-file="compositions/frames/04-cta.html" data-height="1920" data-width="1080" data-hf-scene="04-cta" data-hf-id="hf-cwta" id="el-04-cta" class="scene" data-composition-id="04-cta" data-start="17" data-duration="7" data-track-index="1"><div style="width:1080px;height:1920px" data-hf-inner-root="true" data-hf-authored-id="root" data-hf-id="hf-7utz" data-width="1080" data-height="1920">
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+
+
+<div data-hf-id="hf-08hv" class="clip chrome-ground" data-start="0" data-duration="7" data-track-index="0">
+  <img loading="lazy" data-hf-preview-lazy data-hf-id="hf-uyep" src="assets/night-scene.svg" alt="">
+  <div data-hf-id="hf-0qpf" class="chrome-veil"></div>
+</div>
+
+<div data-hf-id="hf-wv79" class="clip" data-start="0" data-duration="7" data-track-index="1" style="position:absolute;inset:0;">
+  <div data-hf-id="hf-t5un" class="chrome-window">
+    <div data-hf-id="hf-7ouv" class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div data-hf-id="hf-t1bk" class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div data-hf-id="hf-3g39" class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div data-hf-id="hf-spac" class="chrome-tab"></div>
+    <div data-hf-id="hf-ivd4" class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div data-hf-id="hf-ff8b" class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div data-hf-id="hf-pyam" class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div data-hf-id="hf-6lc9" class="chrome-rule"></div>
+  </div>
+  <svg data-hf-id="hf-bfp1" class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon data-hf-id="hf-vvb4" points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2" />
+    <polygon data-hf-id="hf-su0h" points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6" />
+  </svg>
+  <div data-hf-id="hf-r9qg" class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div data-hf-id="hf-occr" class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div data-hf-id="hf-izdr" class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div data-hf-id="hf-7v47" style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>
+
+    <!-- 04-cta content: terminal lines L0–L3 (track 2). Markup is the t=0 state; the timeline toggles it. -->
+    <div data-hf-id="hf-lp0p" id="04-cta-text" class="clip" data-start="0" data-duration="7" data-track-index="2" style="position:absolute;inset:0;">
+      <div data-hf-id="hf-3zb8" class="t" style="top:270px"><span data-hf-id="hf-08ja" class="host">radio@getresolved</span> <span data-hf-id="hf-99y2" class="path">~</span></div>
+      <div data-hf-id="hf-e10k" class="t" style="top:322px"><span data-hf-id="hf-kk01" class="arrow">❯</span> <span data-hf-id="hf-mgtz" id="04-cta-cmd" class="cmd"><span data-hf-id="hf-e3c3" style="display:none">o</span><span data-hf-id="hf-fa96" style="display:none">p</span><span data-hf-id="hf-a49t" style="display:none">e</span><span data-hf-id="hf-ehn4" style="display:none">n</span><span data-hf-id="hf-bmhq" style="display:none"> </span><span data-hf-id="hf-i2ed" style="display:none">y</span><span data-hf-id="hf-b0pv" style="display:none">o</span><span data-hf-id="hf-gh69" style="display:none">u</span><span data-hf-id="hf-gvha" style="display:none">t</span><span data-hf-id="hf-mpd1" style="display:none">u</span><span data-hf-id="hf-9pys" style="display:none">b</span><span data-hf-id="hf-hdf9" style="display:none">e</span><span data-hf-id="hf-3x8w" style="display:none">.</span><span data-hf-id="hf-9bnr" style="display:none">c</span><span data-hf-id="hf-ameu" style="display:none">o</span><span data-hf-id="hf-daq1" style="display:none">m</span><span data-hf-id="hf-3ixv" style="display:none">/</span><span data-hf-id="hf-ln5m" style="display:none">@</span><span data-hf-id="hf-nmor" style="display:none">G</span><span data-hf-id="hf-ikcc" style="display:none">e</span><span data-hf-id="hf-elvm" style="display:none">t</span><span data-hf-id="hf-sso4" style="display:none">R</span><span data-hf-id="hf-i61b" style="display:none">e</span><span data-hf-id="hf-fok7" style="display:none">s</span><span data-hf-id="hf-a83t" style="display:none">o</span><span data-hf-id="hf-dp12" style="display:none">l</span><span data-hf-id="hf-ho3c" style="display:none">v</span><span data-hf-id="hf-jcye" style="display:none">e</span><span data-hf-id="hf-aiku" style="display:none">d</span></span><span data-hf-id="hf-ua5v" id="04-cta-caret" class="caret"></span></div>
+      <div data-hf-id="hf-y4mb" id="04-cta-out1" class="t" style="top:374px;visibility:hidden"><span data-hf-id="hf-wjep" class="out">live 24 jam · musik santai</span></div>
+      <div data-hf-id="hf-dvtm" id="04-cta-out2" class="t" style="top:426px;visibility:hidden"><span data-hf-id="hf-ohb5" class="out">komentar → namamu di layar</span></div>
+    </div>
+
+    <!-- 04-cta content: the CTA block (track 3), lands at 2.6s with the video's one push-in. -->
+    <div data-hf-id="hf-fcmw" id="04-cta-cta-layer" class="clip" data-start="2.6" data-duration="4.4" data-track-index="3" style="position:absolute;inset:0;">
+      <div data-hf-id="hf-3ixp" id="04-cta-cta" style="position:absolute;left:104px;top:900px;width:800px;height:166px;text-align:center;font-family:'DejaVu Sans Mono',monospace;transform-origin:50% 50%;will-change:transform,opacity;">
+        <div data-hf-id="hf-jo2m" style="font-size:88px;line-height:88px;height:88px;white-space:pre;color:#ff7ac6;text-shadow:0 0 28px rgba(255,122,198,0.45);">@GetResolved</div>
+        <div data-hf-id="hf-txlo" style="margin-top:26px;font-size:52px;line-height:52px;height:52px;white-space:pre;color:#e6e6f0;">cari di YouTube</div>
+      </div>
+    </div>
+  </div></div>
+
+      <!-- SFX -->
+      <audio data-hf-id="hf-j9i2" id="el-sfx-0" src="assets/sfx/keys.wav" data-start="0.3" data-duration="0.9" data-track-index="20" data-volume="0.45" data-end="1.2"></audio>
+      <audio data-hf-id="hf-6vcn" id="el-sfx-1" src="assets/sfx/keys.wav" data-start="2.4" data-duration="0.9" data-track-index="21" data-volume="0.45" data-end="3.3"></audio>
+      <audio data-hf-id="hf-ahe6" id="el-sfx-2" src="assets/sfx/keys.wav" data-start="5.2" data-duration="0.9" data-track-index="22" data-volume="0.45" data-end="6.1000000000000005"></audio>
+      <audio data-hf-id="hf-jq6p" id="el-sfx-3" src="assets/sfx/keys.wav" data-start="8.8" data-duration="0.9" data-track-index="23" data-volume="0.45" data-end="9.700000000000001"></audio>
+      <audio data-hf-id="hf-a3rp" id="el-sfx-4" src="assets/sfx/keys.wav" data-start="11.2" data-duration="0.9" data-track-index="24" data-volume="0.45" data-end="12.1"></audio>
+      <audio data-hf-id="hf-hkcc" id="el-sfx-5" src="assets/sfx/keys.wav" data-start="14" data-duration="0.9" data-track-index="25" data-volume="0.45" data-end="14.9"></audio>
+      <audio data-hf-id="hf-lp8p" id="el-sfx-6" src="assets/sfx/keys.wav" data-start="15.2" data-duration="0.9" data-track-index="26" data-volume="0.45" data-end="16.099999999999998"></audio>
+      <audio data-hf-id="hf-ur3h" id="el-sfx-7" src="assets/sfx/keys.wav" data-start="17.2" data-duration="0.9" data-track-index="27" data-volume="0.45" data-end="18.099999999999998"></audio>
+    </div>
+
+    
+  <script type="text/hf-after-fonts">window.__timelines = window.__timelines || {};
+window.__timelines["main"] = gsap.timeline({ paused: true });</script><script type="text/hf-after-fonts" data-hf-scene="01-hook">(function() {
+  (function() {
+    "use strict";
+    (() => {
+      function I(e) {
+        return e ? /[\w-]/.test(e) || e.charCodeAt(0) >= 128 : false;
+      }
+      function _(e) {
+        return e === " " || e === "	" || e === `
+` || e === "\r" || e === "\f";
+      }
+      var j = /^[0-9a-fA-F]{1,6}/;
+      function G(e) {
+        let n = e >= 55296 && e <= 57343;
+        return e === 0 || e > 1114111 || n ? 65533 : e;
+      }
+      function $(e, n) {
+        return e[n] === "\r" && e[n + 1] === `
+` ? n + 2 : _(e[n]) ? n + 1 : n;
+      }
+      function R(e, n) {
+        let t = e[n + 1];
+        if (t === void 0 || /[\n\r\f]/.test(t)) return null;
+        let i = j.exec(e.slice(n + 1, n + 7));
+        if (!i) return { value: t, end: n + 2 };
+        let o = G(Number.parseInt(i[0], 16));
+        return { value: String.fromCodePoint(o), end: $(e, n + 1 + i[0].length) };
+      }
+      function H(e, n) {
+        let t = (o) => I(o) && !/[0-9-]/.test(o), i = (o) => e[o] === "\\" && R(e, o) !== null;
+        return e[n] === "-" ? e[n + 1] === "-" || t(e[n + 1]) || i(n + 1) : t(e[n]) || i(n);
+      }
+      function y(e, n) {
+        let t = n;
+        for (; e.startsWith("/*", t); ) {
+          let i = e.indexOf("*/", t + 2);
+          t = i < 0 ? e.length : i + 2;
+        }
+        return t;
+      }
+      function A(e, n) {
+        let t = y(e, n);
+        for (; _(e[t]); ) t = y(e, t + 1);
+        return t;
+      }
+      function h(e, n) {
+        if (!H(e, n)) return null;
+        let t = n, i = "";
+        for (; t < e.length; ) {
+          let o = e[t];
+          if (o === "\\") {
+            let a = R(e, t);
+            if (!a) break;
+            i += a.value, t = a.end;
+            continue;
+          }
+          if (!I(o)) break;
+          i += o, t += 1;
+        }
+        return t === n ? null : { value: i, end: t };
+      }
+      var C = 45;
+      function T(e) {
+        return e >= 48 && e <= 57;
+      }
+      function z(e) {
+        return e >= 128 || e === C || e === 95 || T(e) || e >= 65 && e <= 90 || e >= 97 && e <= 122;
+      }
+      function J(e, n) {
+        let t = e.charCodeAt(n);
+        return t >= 1 && t <= 31 || t === 127 ? true : T(t) ? n === 0 || n === 1 && e.charCodeAt(0) === C : false;
+      }
+      function k(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          let i = e.charCodeAt(t), o = e[t];
+          i === 0 ? n += "\uFFFD" : J(e, t) ? n += `\\${i.toString(16)} ` : t === 0 && e.length === 1 && i === C ? n += `\\${o}` : z(i) ? n += o : n += `\\${o}`;
+        }
+        return n;
+      }
+      var W = /\/\*(?:[^*]|\*(?!\/))*\*\/|\\(?:[0-9a-fA-F]{1,6}(?:\r\n|[ \t\r\n\f])?|[\s\S])|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|\[(?:\/\*(?:[^*]|\*(?!\/))*\*\/|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|[^\]"'\\/]|\/(?!\*))*\]/g;
+      function Q(e) {
+        let n = new Array(e.length).fill(true);
+        for (let t of e.matchAll(W)) {
+          let i = t.index;
+          n.fill(false, i, i + t[0].length);
+        }
+        return n;
+      }
+      function q(e, n, t) {
+        if (n.length === 0 || !e.includes("#")) return e;
+        let i = new Set(n), o = Q(e), a = "", u = 0;
+        for (; u < e.length; ) {
+          let d = o[u] && e[u] === "#" ? h(e, u + 1) : null;
+          d && i.has(d.value) ? (a += t(d.value), u = d.end) : (a += e[u], u += 1);
+        }
+        return a;
+      }
+      function X(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          if (e[t] === "\\") {
+            let i = e[t + 1];
+            if (i !== void 0 && /[\n\r\f]/.test(i)) {
+              t = $(e, t + 1) - 1;
+              continue;
+            }
+            let o = R(e, t);
+            if (o) {
+              n += o.value, t = o.end - 1;
+              continue;
+            }
+          }
+          n += e[t];
+        }
+        return n;
+      }
+      function N(e) {
+        return Array.from(e, (n) => {
+          let t = n.charCodeAt(0);
+          return t === 0 ? "\uFFFD" : t < 32 || t === 127 ? `\\${t.toString(16)} ` : n === '"' || n === "\\" ? `\\${n}` : n;
+        }).join("");
+      }
+      function Y(e, n) {
+        return e ? { kind: "any" } : n === void 0 ? { kind: "none" } : { kind: "named", prefix: n };
+      }
+      function Z(e, n) {
+        return e[n] === "|" && e[n + 1] !== "=";
+      }
+      function B(e, n) {
+        let t = e[n] === "*", i = t ? { value: "*", end: n + 1 } : h(e, n), o = y(e, i?.end ?? n);
+        if (!Z(e, o)) return t ? null : i ? { token: i, namespace: { kind: "none" } } : null;
+        let a = h(e, y(e, o + 1));
+        return a ? { token: a, namespace: Y(t, i?.value) } : null;
+      }
+      function K(e) {
+        if (e[0] !== "[") return null;
+        let n = A(e, 1), t = B(e, n);
+        if (!t) return null;
+        let { token: i, namespace: o } = t;
+        return { name: i.value, rawName: e.slice(n, i.end), namespace: o, end: i.end };
+      }
+      function ee(e, n) {
+        let t = /^(?:"((?:\\[\s\S]|[^"\\])*)"|'((?:\\[\s\S]|[^'\\])*)')/.exec(e.slice(n));
+        return t ? { value: X(t[1] ?? t[2]), end: n + t[0].length } : h(e, n);
+      }
+      function ne(e, n) {
+        let t = A(e, n), i = h(e, t);
+        if (i) {
+          if (!/^[is]$/i.test(i.value)) return null;
+          t = A(e, i.end);
+        }
+        return e[t] !== "]" || t !== e.length - 1 ? null : { flag: i?.value };
+      }
+      function F(e) {
+        let n = K(e);
+        if (!n) return null;
+        let t = A(e, n.end), o = ["=", "~=", "|=", "^=", "$=", "*="].find((d) => e.startsWith(d, t));
+        if (!o) return null;
+        let a = ee(e, A(e, t + o.length));
+        if (!a) return null;
+        let u = ne(e, a.end);
+        return u ? { name: n.name, rawName: n.rawName, namespace: n.namespace, operator: o, value: a.value, flag: u.flag } : null;
+      }
+      function E(e, n) {
+        return e.replace(W, (t) => t.startsWith("[") ? n(t) : t);
+      }
+      var re = "data-hf-svg-reference-aliases";
+      function O(e, n, t, i) {
+        let o = { "=": (s, r) => s === r, "~=": (s, r) => s.split(/[ \t\r\n\f]+/).includes(r), "|=": (s, r) => s === r || s.startsWith(r + "-"), "^=": (s, r) => s.startsWith(r), "$=": (s, r) => s.endsWith(r), "*=": (s, r) => s.includes(r) }, a = (s, r, l) => !r && l !== "=" && l !== "|=" ? false : o[l](s, r), u = (s) => s.replace(/[A-Z]/g, (r) => r.toLowerCase()), d = (s) => {
+          let r = F(s);
+          if (!r) return s;
+          let { name: l, rawName: g, namespace: m, operator: b, value: D, flag: w } = r;
+          if (m.kind === "named" != (i !== void 0)) return s;
+          let x = w?.toLowerCase() === "i" ? u : (S) => S, L = u(l), P = t.filter((S) => {
+            let V = m.kind === "none" ? S.name : S.localName, U = m.kind === "named" ? i.get(m.prefix) : null;
+            return (m.kind === "any" || S.namespaceURI === U) && u(V) === L;
+          }), v = /* @__PURE__ */ new Set([s]);
+          for (let S of P) a(x(S.before), x(D), b) && v.add(`[${g}="${N(S.after)}"${w ? ` ${w}` : ""}]`);
+          return v.size === 1 ? s : `:is(${[...v].join(", ")})`;
+        };
+        if (i) return E(e, d);
+        let p = new Map(n.map(({ id: s, replacement: r }) => [s, r])), f = /* @__PURE__ */ new Map();
+        for (let s of t) {
+          if (s.name !== "id" || s.before === s.after || p.has(s.before)) continue;
+          let r = f.get(s.before);
+          r || (r = /* @__PURE__ */ new Set([`#${k(s.before)}`]), f.set(s.before, r)), r.add(`#${k(s.after)}`);
+        }
+        for (let [s, r] of f) p.set(s, `:is(${[...r].join(", ")})`);
+        let c = q(e, [...p.keys()], (s) => p.get(s));
+        return E(c, d);
+      }
+      function se(e, n, t = true) {
+        let i = [], a = (t ? [...e.querySelectorAll(`[${n}]`)] : []).map((d) => d.getAttribute(n)), u = e.getAttribute?.(n);
+        u && a.unshift(u);
+        for (let d of a) {
+          let p;
+          try {
+            p = JSON.parse(d);
+          } catch {
+            continue;
+          }
+          if (!Array.isArray(p)) continue;
+          let f = p;
+          for (let c of f) {
+            if (!ie(c)) continue;
+            let { name: s, localName: r, namespaceURI: l, before: g, after: m } = c;
+            i.push({ name: s, localName: r, namespaceURI: l, before: g, after: m });
+          }
+        }
+        return i;
+      }
+      function ie(e) {
+        if (!e || typeof e != "object") return false;
+        let { name: n, localName: t, namespaceURI: i, before: o, after: a } = e;
+        return typeof n == "string" && typeof t == "string" && (i === null || typeof i == "string") && typeof o == "string" && typeof a == "string";
+      }
+      function oe(e) {
+        let n = [], t = [], i = false, o, a = /* @__PURE__ */ new WeakMap(), u = (f, c) => {
+          for (let s of f) {
+            if ("selectorText" in s) {
+              let r = s, l = a.get(r), g = r.selectorText, m = l?.applied === g ? l.authored : g, b = O(m, [], t, c);
+              b !== g && (r.selectorText = b), b === m ? a.delete(r) : a.set(r, { authored: m, applied: r.selectorText });
+            }
+            "cssRules" in s && u(s.cssRules, c);
+          }
+        }, d = () => {
+          if (t.length) for (let f of e.document.styleSheets) {
+            let c;
+            try {
+              c = f.cssRules;
+            } catch {
+              continue;
+            }
+            let s = /* @__PURE__ */ new Map();
+            for (let r of c) {
+              if (!("namespaceURI" in r)) continue;
+              let { prefix: l, namespaceURI: g } = r;
+              l && s.set(l, g || null);
+            }
+            s.size && u(c, s);
+          }
+        }, p = { rewrite: (f, c = []) => {
+          if (typeof f != "string" || !f.includes("#") && !f.includes("[")) return f;
+          let s = O(f, c.length ? [...c, ...n] : n, t);
+          if (s !== f) {
+            if (!o) {
+              let r = e.document.createElement("div");
+              o = r.matches.bind(r);
+            }
+            o(f);
+          }
+          return s;
+        }, refresh() {
+          t = se(e.document, re).filter((r) => r.before !== r.after);
+          let f = new Set(t.filter((r) => r.name === "id").map((r) => r.before)), c = /* @__PURE__ */ new Set();
+          n = [];
+          for (let r of e.document.querySelectorAll("[data-hf-authored-id][id]")) {
+            let l = r.getAttribute("data-hf-authored-id");
+            if (!l || l === r.id || c.has(l) || f.has(l)) continue;
+            c.add(l);
+            let g = N(l);
+            n.push({ id: l, replacement: `:is(#${k(l)}, [data-hf-authored-id="${g}"])` });
+          }
+          if (d(), i || !n.length && !t.length) return;
+          let s = e.Element.prototype;
+          s.querySelector = new Proxy(s.querySelector, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), s.querySelectorAll = new Proxy(s.querySelectorAll, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), i = true;
+        } };
+        e.__hfSvgSelectorAliases = p, p.refresh();
+      }
+      function M() {
+        let e = window;
+        e.__hfSvgSelectorAliases || oe(e);
+      }
+      M();
+    })();
+  })();
+  var __hfCompId = "01-hook";
+  var __hfTimelineCompId = "01-hook";
+  var __hfErrorLabel = "[HyperFrames] composition script error:";
+  var __hfAuthoredRootId = "root";
+  var __hfCompositionSrc = "compositions/frames/01-hook.html";
+  var __hfAuthoredRootAttr = "data-hf-authored-id";
+  var __hfEscapeAttr = function(value) {
+    return (value + "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  };
+  var __hfRootSelector = '[data-composition-id="01-hook"]';
+  var __hfRoot = null;
+  var __hfRootSelectorPattern = `\\[\\s*data-composition-id\\s*=\\s*(?:"01-hook"|'01-hook')\\s*\\]`;
+  var __hfTimingSelectorPattern = `\\s*\\[\\s*data-(?:start|duration)\\s*=\\s*(?:"[^"]*"|'[^']*')\\s*\\]`;
+  var __hfAuthoredRootSelector = __hfAuthoredRootId ? "[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(__hfAuthoredRootId) + '"]' : "";
+  var __hfAuthoredRootEntries = __hfAuthoredRootSelector ? [{ id: __hfAuthoredRootId, replacement: __hfAuthoredRootSelector }] : [];
+  var __hfNormalizeSelector = function(selector) {
+    if (!__hfCompId || typeof selector !== "string") return selector;
+    var normalized = selector.replace(new RegExp(__hfRootSelectorPattern + "(?:" + __hfTimingSelectorPattern + ")+", "g"), __hfRootSelector).replace(new RegExp("(?:" + __hfTimingSelectorPattern + ")+" + __hfRootSelectorPattern, "g"), __hfRootSelector);
+    return window.__hfSvgSelectorAliases.rewrite(normalized, __hfAuthoredRootEntries);
+  };
+  var __hfFindRoot = function() {
+    if (!__hfRoot && __hfRootSelector) {
+      __hfRoot = window.document.querySelector(__hfRootSelector);
+    }
+    return __hfRoot;
+  };
+  var __hfContains = function(node) {
+    var root = __hfFindRoot();
+    return !root || node === root || root.contains(node);
+  };
+  var __hfQueryAll = function(selector) {
+    var root = __hfFindRoot();
+    if (!root || typeof selector !== "string") {
+      return window.document.querySelectorAll(selector);
+    }
+    return Array.prototype.filter.call(window.document.querySelectorAll(__hfNormalizeSelector(selector)), function(node) {
+      return __hfContains(node);
+    });
+  };
+  var __hfQueryOne = function(selector) {
+    var matches = __hfQueryAll(selector);
+    return matches[0] || null;
+  };
+  var __hfGetElementById = function(id) {
+    var found = window.document.getElementById(id);
+    if (found && __hfContains(found)) return found;
+    var root = __hfFindRoot();
+    if (!root) return found || null;
+    var idValue = id + "";
+    if (__hfAuthoredRootId && __hfAuthoredRootId === idValue && root.getAttribute && root.getAttribute(__hfAuthoredRootAttr) === idValue) {
+      return root;
+    }
+    if (root.id === idValue) return root;
+    if (typeof root.querySelector !== "function") return null;
+    try {
+      var authoredRootMatch = root.querySelector("[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(idValue) + '"]');
+      if (authoredRootMatch) return authoredRootMatch;
+    } catch {
+    }
+    if (typeof CSS !== "undefined" && CSS && typeof CSS.escape === "function") {
+      try {
+        return root.querySelector("#" + CSS.escape(idValue)) || null;
+      } catch {
+      }
+    }
+    try {
+      return root.querySelector('[id="' + __hfEscapeAttr(idValue) + '"]') || null;
+    } catch {
+    }
+    return null;
+  };
+  var __hfScopedDocument = typeof Proxy === "function" ? new Proxy(window.document, {
+    get: function(target, prop, receiver) {
+      if (prop === "querySelector") return __hfQueryOne;
+      if (prop === "querySelectorAll") return __hfQueryAll;
+      if (prop === "getElementById") return __hfGetElementById;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) : window.document;
+  var __hfTimelineRegistryProxy = null;
+  var __hfGetTimelineRegistry = function() {
+    window.__timelines = window.__timelines || {};
+    if (!__hfCompId || __hfCompId === __hfTimelineCompId || typeof Proxy !== "function") {
+      return window.__timelines;
+    }
+    if (!__hfTimelineRegistryProxy) {
+      __hfTimelineRegistryProxy = new Proxy(window.__timelines, {
+        get: function(target, prop, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.get(target, prop, target);
+          }
+          var authoredValue = Reflect.get(target, prop, target);
+          return authoredValue === void 0 ? Reflect.get(target, __hfTimelineCompId, target) : authoredValue;
+        },
+        set: function(target, prop, value, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.set(target, prop, value, target);
+          }
+          var authoredSet = Reflect.set(target, __hfCompId, value, target);
+          var runtimeSet = Reflect.set(target, __hfTimelineCompId, value, target);
+          return authoredSet && runtimeSet;
+        }
+      });
+    }
+    return __hfTimelineRegistryProxy;
+  };
+  var __hfScopedWindow = typeof Proxy === "function" ? new Proxy(window, {
+    get: function(target, prop, receiver) {
+      if (prop === "__timelines") return __hfGetTimelineRegistry();
+      if (prop === "__hyperframes") return __hfScopedHyperframes;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" && value.prototype === void 0 ? value.bind(target) : value;
+    },
+    set: function(target, prop, value, receiver) {
+      if (prop === "__timelines") {
+        if (value === __hfTimelineRegistryProxy) return true;
+        target.__timelines = value || {};
+        __hfTimelineRegistryProxy = null;
+        return true;
+      }
+      return Reflect.set(target, prop, value, target);
+    }
+  }) : window;
+  var __hfResolveGsapTarget = function(target) {
+    if (typeof target === "string") return __hfQueryAll(target);
+    if (!Array.isArray(target)) return target;
+    return target.reduce(function(resolved, item) {
+      if (typeof item === "string") {
+        return resolved.concat(Array.prototype.slice.call(__hfQueryAll(item)));
+      }
+      resolved.push(item);
+      return resolved;
+    }, []);
+  };
+  var __hfScopeTimeline = function(timeline) {
+    if (!timeline || timeline.__hfScopedCompositionRoot === __hfFindRoot()) return timeline;
+    ["to", "from", "fromTo", "set"].forEach(function(method) {
+      var original = timeline[method];
+      if (typeof original !== "function") return;
+      timeline[method] = function(target) {
+        var args = Array.prototype.slice.call(arguments);
+        args[0] = __hfResolveGsapTarget(target);
+        return original.apply(timeline, args);
+      };
+    });
+    try {
+      Object.defineProperty(timeline, "__hfScopedCompositionRoot", {
+        value: __hfFindRoot(),
+        configurable: true
+      });
+    } catch {
+    }
+    return timeline;
+  };
+  var __hfBaseGsap = typeof gsap === "undefined" ? window.gsap : gsap;
+  var __hfScopedGsap = !__hfBaseGsap || typeof Proxy !== "function" ? __hfBaseGsap : new Proxy(__hfBaseGsap, {
+    get: function(target, prop, receiver) {
+      if (prop === "timeline") {
+        return function() {
+          return __hfScopeTimeline(target.timeline.apply(target, arguments));
+        };
+      }
+      if (prop === "to" || prop === "from" || prop === "fromTo" || prop === "set") {
+        return function(firstArg) {
+          var args = Array.prototype.slice.call(arguments);
+          args[0] = __hfResolveGsapTarget(firstArg);
+          return target[prop].apply(target, args);
+        };
+      }
+      if (prop === "utils" && target.utils && typeof Proxy === "function") {
+        return new Proxy(target.utils, {
+          get: function(utilsTarget, utilsProp, utilsReceiver) {
+            if (utilsProp === "toArray") {
+              return function(firstArg) {
+                var args = Array.prototype.slice.call(arguments);
+                args[0] = __hfResolveGsapTarget(firstArg);
+                return utilsTarget.toArray.apply(utilsTarget, args);
+              };
+            }
+            if (utilsProp === "selector") {
+              return function(base) {
+                var baseEl = typeof base === "string" ? __hfQueryOne(base) : base;
+                var root = baseEl || __hfFindRoot();
+                return function(selector) {
+                  if (!root || typeof selector !== "string") return [];
+                  return Array.prototype.filter.call(
+                    window.document.querySelectorAll(__hfNormalizeSelector(selector)),
+                    function(node) {
+                      return node === root || typeof root.contains === "function" && root.contains(node);
+                    }
+                  );
+                };
+              };
+            }
+            var value2 = Reflect.get(utilsTarget, utilsProp, utilsTarget);
+            return typeof value2 === "function" ? value2.bind(utilsTarget) : value2;
+          }
+        });
+      }
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+  var __hfBaseHyperframes = window.__hyperframes;
+  var __hfScopedHyperframes = !__hfBaseHyperframes ? __hfBaseHyperframes : Object.assign({}, __hfBaseHyperframes, {
+    assetUrl: function(path) {
+      var page = window.document.baseURI;
+      return new URL(path, __hfCompositionSrc ? new URL(__hfCompositionSrc, page) : page).href;
+    },
+    getVariables: function() {
+      var byComp = window.__hfVariablesByComp;
+      var scoped = byComp && __hfTimelineCompId ? byComp[__hfTimelineCompId] : null;
+      return scoped ? Object.assign({}, scoped) : {};
+    }
+  });
+  var __hfRun = function() {
+    try {
+      (function(document, gsap2, window2, __hyperframes) {
+        (function() {
+          window2.__timelines = window2.__timelines || {};
+          var tl = gsap2.timeline({ paused: true });
+          var DURATION = 5;
+          var CMD = 'greet @kamu "enak banget!"';
+          var C6 = "# tulis komentar di live chat,";
+          var C7 = "# namamu diketik di sini";
+          var T3 = 0.3, STEP3 = 1.2 / CMD.length;
+          var T_SUBMIT = 1.8;
+          var T6 = 2.4, T_DONE = 3.8;
+          var STEP67 = (T_DONE - T6) / (C6.length + 1 + C7.length);
+          var SEQUENCE = [{ t: 0, n3: 0, n6: 0, n7: 0, caret: 3 }];
+          var i;
+          for (i = 1; i <= CMD.length; i++) {
+            SEQUENCE.push({ t: T3 + (i - 1) * STEP3, n3: i, n6: 0, n7: 0, caret: 3 });
+          }
+          SEQUENCE.push({ t: T_SUBMIT, n3: CMD.length, n6: 0, n7: 0, caret: 0 });
+          for (i = 1; i <= C6.length; i++) {
+            SEQUENCE.push({ t: T6 + (i - 1) * STEP67, n3: CMD.length, n6: i, n7: 0, caret: 6 });
+          }
+          SEQUENCE.push({ t: T6 + C6.length * STEP67, n3: CMD.length, n6: C6.length, n7: 0, caret: 7 });
+          for (i = 1; i <= C7.length; i++) {
+            SEQUENCE.push({ t: T6 + (C6.length + i) * STEP67, n3: CMD.length, n6: C6.length, n7: i, caret: 7 });
+          }
+          SEQUENCE.push({ t: T_DONE, n3: CMD.length, n6: C6.length, n7: C7.length, caret: 0 });
+          var l3 = document.getElementById("01-hook-l3");
+          var l6 = document.getElementById("01-hook-l6");
+          var l7 = document.getElementById("01-hook-l7");
+          var carets = [
+            [3, document.getElementById("01-hook-caret3")],
+            [6, document.getElementById("01-hook-caret6")],
+            [7, document.getElementById("01-hook-caret7")]
+          ];
+          var BLINK_HALF = 0.5;
+          function stateAt(time) {
+            for (var k = SEQUENCE.length - 1; k > 0; k--) {
+              if (time >= SEQUENCE[k].t) return SEQUENCE[k];
+            }
+            return SEQUENCE[0];
+          }
+          function render(time) {
+            var s = stateAt(time);
+            l3.textContent = CMD.slice(0, s.n3);
+            l6.textContent = C6.slice(0, s.n6);
+            l7.textContent = C7.slice(0, s.n7);
+            var lit = Math.floor((time - s.t) / BLINK_HALF) % 2 === 0;
+            for (var c = 0; c < carets.length; c++) {
+              carets[c][1].style.opacity = s.caret === carets[c][0] && lit ? "1" : "0";
+            }
+          }
+          render(0);
+          var driver = { t: 0 };
+          tl.to(driver, {
+            t: DURATION,
+            duration: DURATION,
+            ease: "none",
+            onUpdate: function() {
+              render(driver.t);
+            }
+          }, 0);
+          var hello = document.getElementById("01-hook-hello");
+          tl.fromTo(hello, { opacity: 0 }, { opacity: 1, duration: 0, ease: "none" }, T_SUBMIT);
+          tl.fromTo(hello, { scale: 0.96 }, { scale: 1, duration: 0.5, ease: "power3.out" }, T_SUBMIT);
+          tl.fromTo(hello, { "--01-hook-glow": 0 }, { "--01-hook-glow": 0.55, duration: 0.5, ease: "power2.out" }, T_SUBMIT);
+          window2.__timelines["01-hook"] = tl;
+        })();
+      }).call(window, __hfScopedDocument, __hfScopedGsap, __hfScopedWindow, __hfScopedHyperframes);
+    } catch (_err) {
+      console.error(__hfErrorLabel, __hfCompId, _err);
+    }
+  };
+  var __hfRecordAnimations = function(run) {
+    if (window.__hfSceneAnimations === void 0) {
+      window.__hfSceneAnimations = window.document.querySelector('meta[name="hf-scene-parts"]') ? {} : null;
+    }
+    var byComp = window.__hfSceneAnimations;
+    var globalTimeline = __hfBaseGsap && __hfBaseGsap.globalTimeline;
+    if (!byComp || !globalTimeline || !__hfTimelineCompId) return run();
+    var before = globalTimeline.getChildren(false);
+    var autoRemove = globalTimeline.autoRemoveChildren;
+    globalTimeline.autoRemoveChildren = false;
+    run();
+    globalTimeline.autoRemoveChildren = autoRemove;
+    var recorded = byComp[__hfTimelineCompId] = byComp[__hfTimelineCompId] || [];
+    globalTimeline.getChildren(false).forEach(function(animation) {
+      if (before.indexOf(animation) >= 0) return;
+      recorded.push(animation);
+      if (autoRemove && !animation.getChildren && animation.totalProgress() === 1) globalTimeline.remove(animation);
+    });
+  };
+  __hfFindRoot();
+  __hfRecordAnimations(__hfRun);
+})();</script><script type="text/hf-after-fonts" data-hf-scene="02-neofetch">(function() {
+  (function() {
+    "use strict";
+    (() => {
+      function I(e) {
+        return e ? /[\w-]/.test(e) || e.charCodeAt(0) >= 128 : false;
+      }
+      function _(e) {
+        return e === " " || e === "	" || e === `
+` || e === "\r" || e === "\f";
+      }
+      var j = /^[0-9a-fA-F]{1,6}/;
+      function G(e) {
+        let n = e >= 55296 && e <= 57343;
+        return e === 0 || e > 1114111 || n ? 65533 : e;
+      }
+      function $(e, n) {
+        return e[n] === "\r" && e[n + 1] === `
+` ? n + 2 : _(e[n]) ? n + 1 : n;
+      }
+      function R(e, n) {
+        let t = e[n + 1];
+        if (t === void 0 || /[\n\r\f]/.test(t)) return null;
+        let i = j.exec(e.slice(n + 1, n + 7));
+        if (!i) return { value: t, end: n + 2 };
+        let o = G(Number.parseInt(i[0], 16));
+        return { value: String.fromCodePoint(o), end: $(e, n + 1 + i[0].length) };
+      }
+      function H(e, n) {
+        let t = (o) => I(o) && !/[0-9-]/.test(o), i = (o) => e[o] === "\\" && R(e, o) !== null;
+        return e[n] === "-" ? e[n + 1] === "-" || t(e[n + 1]) || i(n + 1) : t(e[n]) || i(n);
+      }
+      function y(e, n) {
+        let t = n;
+        for (; e.startsWith("/*", t); ) {
+          let i = e.indexOf("*/", t + 2);
+          t = i < 0 ? e.length : i + 2;
+        }
+        return t;
+      }
+      function A(e, n) {
+        let t = y(e, n);
+        for (; _(e[t]); ) t = y(e, t + 1);
+        return t;
+      }
+      function h(e, n) {
+        if (!H(e, n)) return null;
+        let t = n, i = "";
+        for (; t < e.length; ) {
+          let o = e[t];
+          if (o === "\\") {
+            let a = R(e, t);
+            if (!a) break;
+            i += a.value, t = a.end;
+            continue;
+          }
+          if (!I(o)) break;
+          i += o, t += 1;
+        }
+        return t === n ? null : { value: i, end: t };
+      }
+      var C = 45;
+      function T(e) {
+        return e >= 48 && e <= 57;
+      }
+      function z(e) {
+        return e >= 128 || e === C || e === 95 || T(e) || e >= 65 && e <= 90 || e >= 97 && e <= 122;
+      }
+      function J(e, n) {
+        let t = e.charCodeAt(n);
+        return t >= 1 && t <= 31 || t === 127 ? true : T(t) ? n === 0 || n === 1 && e.charCodeAt(0) === C : false;
+      }
+      function k(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          let i = e.charCodeAt(t), o = e[t];
+          i === 0 ? n += "\uFFFD" : J(e, t) ? n += `\\${i.toString(16)} ` : t === 0 && e.length === 1 && i === C ? n += `\\${o}` : z(i) ? n += o : n += `\\${o}`;
+        }
+        return n;
+      }
+      var W = /\/\*(?:[^*]|\*(?!\/))*\*\/|\\(?:[0-9a-fA-F]{1,6}(?:\r\n|[ \t\r\n\f])?|[\s\S])|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|\[(?:\/\*(?:[^*]|\*(?!\/))*\*\/|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|[^\]"'\\/]|\/(?!\*))*\]/g;
+      function Q(e) {
+        let n = new Array(e.length).fill(true);
+        for (let t of e.matchAll(W)) {
+          let i = t.index;
+          n.fill(false, i, i + t[0].length);
+        }
+        return n;
+      }
+      function q(e, n, t) {
+        if (n.length === 0 || !e.includes("#")) return e;
+        let i = new Set(n), o = Q(e), a = "", u = 0;
+        for (; u < e.length; ) {
+          let d = o[u] && e[u] === "#" ? h(e, u + 1) : null;
+          d && i.has(d.value) ? (a += t(d.value), u = d.end) : (a += e[u], u += 1);
+        }
+        return a;
+      }
+      function X(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          if (e[t] === "\\") {
+            let i = e[t + 1];
+            if (i !== void 0 && /[\n\r\f]/.test(i)) {
+              t = $(e, t + 1) - 1;
+              continue;
+            }
+            let o = R(e, t);
+            if (o) {
+              n += o.value, t = o.end - 1;
+              continue;
+            }
+          }
+          n += e[t];
+        }
+        return n;
+      }
+      function N(e) {
+        return Array.from(e, (n) => {
+          let t = n.charCodeAt(0);
+          return t === 0 ? "\uFFFD" : t < 32 || t === 127 ? `\\${t.toString(16)} ` : n === '"' || n === "\\" ? `\\${n}` : n;
+        }).join("");
+      }
+      function Y(e, n) {
+        return e ? { kind: "any" } : n === void 0 ? { kind: "none" } : { kind: "named", prefix: n };
+      }
+      function Z(e, n) {
+        return e[n] === "|" && e[n + 1] !== "=";
+      }
+      function B(e, n) {
+        let t = e[n] === "*", i = t ? { value: "*", end: n + 1 } : h(e, n), o = y(e, i?.end ?? n);
+        if (!Z(e, o)) return t ? null : i ? { token: i, namespace: { kind: "none" } } : null;
+        let a = h(e, y(e, o + 1));
+        return a ? { token: a, namespace: Y(t, i?.value) } : null;
+      }
+      function K(e) {
+        if (e[0] !== "[") return null;
+        let n = A(e, 1), t = B(e, n);
+        if (!t) return null;
+        let { token: i, namespace: o } = t;
+        return { name: i.value, rawName: e.slice(n, i.end), namespace: o, end: i.end };
+      }
+      function ee(e, n) {
+        let t = /^(?:"((?:\\[\s\S]|[^"\\])*)"|'((?:\\[\s\S]|[^'\\])*)')/.exec(e.slice(n));
+        return t ? { value: X(t[1] ?? t[2]), end: n + t[0].length } : h(e, n);
+      }
+      function ne(e, n) {
+        let t = A(e, n), i = h(e, t);
+        if (i) {
+          if (!/^[is]$/i.test(i.value)) return null;
+          t = A(e, i.end);
+        }
+        return e[t] !== "]" || t !== e.length - 1 ? null : { flag: i?.value };
+      }
+      function F(e) {
+        let n = K(e);
+        if (!n) return null;
+        let t = A(e, n.end), o = ["=", "~=", "|=", "^=", "$=", "*="].find((d) => e.startsWith(d, t));
+        if (!o) return null;
+        let a = ee(e, A(e, t + o.length));
+        if (!a) return null;
+        let u = ne(e, a.end);
+        return u ? { name: n.name, rawName: n.rawName, namespace: n.namespace, operator: o, value: a.value, flag: u.flag } : null;
+      }
+      function E(e, n) {
+        return e.replace(W, (t) => t.startsWith("[") ? n(t) : t);
+      }
+      var re = "data-hf-svg-reference-aliases";
+      function O(e, n, t, i) {
+        let o = { "=": (s, r) => s === r, "~=": (s, r) => s.split(/[ \t\r\n\f]+/).includes(r), "|=": (s, r) => s === r || s.startsWith(r + "-"), "^=": (s, r) => s.startsWith(r), "$=": (s, r) => s.endsWith(r), "*=": (s, r) => s.includes(r) }, a = (s, r, l) => !r && l !== "=" && l !== "|=" ? false : o[l](s, r), u = (s) => s.replace(/[A-Z]/g, (r) => r.toLowerCase()), d = (s) => {
+          let r = F(s);
+          if (!r) return s;
+          let { name: l, rawName: g, namespace: m, operator: b, value: D, flag: w } = r;
+          if (m.kind === "named" != (i !== void 0)) return s;
+          let x = w?.toLowerCase() === "i" ? u : (S) => S, L = u(l), P = t.filter((S) => {
+            let V = m.kind === "none" ? S.name : S.localName, U = m.kind === "named" ? i.get(m.prefix) : null;
+            return (m.kind === "any" || S.namespaceURI === U) && u(V) === L;
+          }), v = /* @__PURE__ */ new Set([s]);
+          for (let S of P) a(x(S.before), x(D), b) && v.add(`[${g}="${N(S.after)}"${w ? ` ${w}` : ""}]`);
+          return v.size === 1 ? s : `:is(${[...v].join(", ")})`;
+        };
+        if (i) return E(e, d);
+        let p = new Map(n.map(({ id: s, replacement: r }) => [s, r])), f = /* @__PURE__ */ new Map();
+        for (let s of t) {
+          if (s.name !== "id" || s.before === s.after || p.has(s.before)) continue;
+          let r = f.get(s.before);
+          r || (r = /* @__PURE__ */ new Set([`#${k(s.before)}`]), f.set(s.before, r)), r.add(`#${k(s.after)}`);
+        }
+        for (let [s, r] of f) p.set(s, `:is(${[...r].join(", ")})`);
+        let c = q(e, [...p.keys()], (s) => p.get(s));
+        return E(c, d);
+      }
+      function se(e, n, t = true) {
+        let i = [], a = (t ? [...e.querySelectorAll(`[${n}]`)] : []).map((d) => d.getAttribute(n)), u = e.getAttribute?.(n);
+        u && a.unshift(u);
+        for (let d of a) {
+          let p;
+          try {
+            p = JSON.parse(d);
+          } catch {
+            continue;
+          }
+          if (!Array.isArray(p)) continue;
+          let f = p;
+          for (let c of f) {
+            if (!ie(c)) continue;
+            let { name: s, localName: r, namespaceURI: l, before: g, after: m } = c;
+            i.push({ name: s, localName: r, namespaceURI: l, before: g, after: m });
+          }
+        }
+        return i;
+      }
+      function ie(e) {
+        if (!e || typeof e != "object") return false;
+        let { name: n, localName: t, namespaceURI: i, before: o, after: a } = e;
+        return typeof n == "string" && typeof t == "string" && (i === null || typeof i == "string") && typeof o == "string" && typeof a == "string";
+      }
+      function oe(e) {
+        let n = [], t = [], i = false, o, a = /* @__PURE__ */ new WeakMap(), u = (f, c) => {
+          for (let s of f) {
+            if ("selectorText" in s) {
+              let r = s, l = a.get(r), g = r.selectorText, m = l?.applied === g ? l.authored : g, b = O(m, [], t, c);
+              b !== g && (r.selectorText = b), b === m ? a.delete(r) : a.set(r, { authored: m, applied: r.selectorText });
+            }
+            "cssRules" in s && u(s.cssRules, c);
+          }
+        }, d = () => {
+          if (t.length) for (let f of e.document.styleSheets) {
+            let c;
+            try {
+              c = f.cssRules;
+            } catch {
+              continue;
+            }
+            let s = /* @__PURE__ */ new Map();
+            for (let r of c) {
+              if (!("namespaceURI" in r)) continue;
+              let { prefix: l, namespaceURI: g } = r;
+              l && s.set(l, g || null);
+            }
+            s.size && u(c, s);
+          }
+        }, p = { rewrite: (f, c = []) => {
+          if (typeof f != "string" || !f.includes("#") && !f.includes("[")) return f;
+          let s = O(f, c.length ? [...c, ...n] : n, t);
+          if (s !== f) {
+            if (!o) {
+              let r = e.document.createElement("div");
+              o = r.matches.bind(r);
+            }
+            o(f);
+          }
+          return s;
+        }, refresh() {
+          t = se(e.document, re).filter((r) => r.before !== r.after);
+          let f = new Set(t.filter((r) => r.name === "id").map((r) => r.before)), c = /* @__PURE__ */ new Set();
+          n = [];
+          for (let r of e.document.querySelectorAll("[data-hf-authored-id][id]")) {
+            let l = r.getAttribute("data-hf-authored-id");
+            if (!l || l === r.id || c.has(l) || f.has(l)) continue;
+            c.add(l);
+            let g = N(l);
+            n.push({ id: l, replacement: `:is(#${k(l)}, [data-hf-authored-id="${g}"])` });
+          }
+          if (d(), i || !n.length && !t.length) return;
+          let s = e.Element.prototype;
+          s.querySelector = new Proxy(s.querySelector, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), s.querySelectorAll = new Proxy(s.querySelectorAll, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), i = true;
+        } };
+        e.__hfSvgSelectorAliases = p, p.refresh();
+      }
+      function M() {
+        let e = window;
+        e.__hfSvgSelectorAliases || oe(e);
+      }
+      M();
+    })();
+  })();
+  var __hfCompId = "02-neofetch";
+  var __hfTimelineCompId = "02-neofetch";
+  var __hfErrorLabel = "[HyperFrames] composition script error:";
+  var __hfAuthoredRootId = "root";
+  var __hfCompositionSrc = "compositions/frames/02-neofetch.html";
+  var __hfAuthoredRootAttr = "data-hf-authored-id";
+  var __hfEscapeAttr = function(value) {
+    return (value + "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  };
+  var __hfRootSelector = '[data-composition-id="02-neofetch"]';
+  var __hfRoot = null;
+  var __hfRootSelectorPattern = `\\[\\s*data-composition-id\\s*=\\s*(?:"02-neofetch"|'02-neofetch')\\s*\\]`;
+  var __hfTimingSelectorPattern = `\\s*\\[\\s*data-(?:start|duration)\\s*=\\s*(?:"[^"]*"|'[^']*')\\s*\\]`;
+  var __hfAuthoredRootSelector = __hfAuthoredRootId ? "[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(__hfAuthoredRootId) + '"]' : "";
+  var __hfAuthoredRootEntries = __hfAuthoredRootSelector ? [{ id: __hfAuthoredRootId, replacement: __hfAuthoredRootSelector }] : [];
+  var __hfNormalizeSelector = function(selector) {
+    if (!__hfCompId || typeof selector !== "string") return selector;
+    var normalized = selector.replace(new RegExp(__hfRootSelectorPattern + "(?:" + __hfTimingSelectorPattern + ")+", "g"), __hfRootSelector).replace(new RegExp("(?:" + __hfTimingSelectorPattern + ")+" + __hfRootSelectorPattern, "g"), __hfRootSelector);
+    return window.__hfSvgSelectorAliases.rewrite(normalized, __hfAuthoredRootEntries);
+  };
+  var __hfFindRoot = function() {
+    if (!__hfRoot && __hfRootSelector) {
+      __hfRoot = window.document.querySelector(__hfRootSelector);
+    }
+    return __hfRoot;
+  };
+  var __hfContains = function(node) {
+    var root = __hfFindRoot();
+    return !root || node === root || root.contains(node);
+  };
+  var __hfQueryAll = function(selector) {
+    var root = __hfFindRoot();
+    if (!root || typeof selector !== "string") {
+      return window.document.querySelectorAll(selector);
+    }
+    return Array.prototype.filter.call(window.document.querySelectorAll(__hfNormalizeSelector(selector)), function(node) {
+      return __hfContains(node);
+    });
+  };
+  var __hfQueryOne = function(selector) {
+    var matches = __hfQueryAll(selector);
+    return matches[0] || null;
+  };
+  var __hfGetElementById = function(id) {
+    var found = window.document.getElementById(id);
+    if (found && __hfContains(found)) return found;
+    var root = __hfFindRoot();
+    if (!root) return found || null;
+    var idValue = id + "";
+    if (__hfAuthoredRootId && __hfAuthoredRootId === idValue && root.getAttribute && root.getAttribute(__hfAuthoredRootAttr) === idValue) {
+      return root;
+    }
+    if (root.id === idValue) return root;
+    if (typeof root.querySelector !== "function") return null;
+    try {
+      var authoredRootMatch = root.querySelector("[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(idValue) + '"]');
+      if (authoredRootMatch) return authoredRootMatch;
+    } catch {
+    }
+    if (typeof CSS !== "undefined" && CSS && typeof CSS.escape === "function") {
+      try {
+        return root.querySelector("#" + CSS.escape(idValue)) || null;
+      } catch {
+      }
+    }
+    try {
+      return root.querySelector('[id="' + __hfEscapeAttr(idValue) + '"]') || null;
+    } catch {
+    }
+    return null;
+  };
+  var __hfScopedDocument = typeof Proxy === "function" ? new Proxy(window.document, {
+    get: function(target, prop, receiver) {
+      if (prop === "querySelector") return __hfQueryOne;
+      if (prop === "querySelectorAll") return __hfQueryAll;
+      if (prop === "getElementById") return __hfGetElementById;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) : window.document;
+  var __hfTimelineRegistryProxy = null;
+  var __hfGetTimelineRegistry = function() {
+    window.__timelines = window.__timelines || {};
+    if (!__hfCompId || __hfCompId === __hfTimelineCompId || typeof Proxy !== "function") {
+      return window.__timelines;
+    }
+    if (!__hfTimelineRegistryProxy) {
+      __hfTimelineRegistryProxy = new Proxy(window.__timelines, {
+        get: function(target, prop, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.get(target, prop, target);
+          }
+          var authoredValue = Reflect.get(target, prop, target);
+          return authoredValue === void 0 ? Reflect.get(target, __hfTimelineCompId, target) : authoredValue;
+        },
+        set: function(target, prop, value, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.set(target, prop, value, target);
+          }
+          var authoredSet = Reflect.set(target, __hfCompId, value, target);
+          var runtimeSet = Reflect.set(target, __hfTimelineCompId, value, target);
+          return authoredSet && runtimeSet;
+        }
+      });
+    }
+    return __hfTimelineRegistryProxy;
+  };
+  var __hfScopedWindow = typeof Proxy === "function" ? new Proxy(window, {
+    get: function(target, prop, receiver) {
+      if (prop === "__timelines") return __hfGetTimelineRegistry();
+      if (prop === "__hyperframes") return __hfScopedHyperframes;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" && value.prototype === void 0 ? value.bind(target) : value;
+    },
+    set: function(target, prop, value, receiver) {
+      if (prop === "__timelines") {
+        if (value === __hfTimelineRegistryProxy) return true;
+        target.__timelines = value || {};
+        __hfTimelineRegistryProxy = null;
+        return true;
+      }
+      return Reflect.set(target, prop, value, target);
+    }
+  }) : window;
+  var __hfResolveGsapTarget = function(target) {
+    if (typeof target === "string") return __hfQueryAll(target);
+    if (!Array.isArray(target)) return target;
+    return target.reduce(function(resolved, item) {
+      if (typeof item === "string") {
+        return resolved.concat(Array.prototype.slice.call(__hfQueryAll(item)));
+      }
+      resolved.push(item);
+      return resolved;
+    }, []);
+  };
+  var __hfScopeTimeline = function(timeline) {
+    if (!timeline || timeline.__hfScopedCompositionRoot === __hfFindRoot()) return timeline;
+    ["to", "from", "fromTo", "set"].forEach(function(method) {
+      var original = timeline[method];
+      if (typeof original !== "function") return;
+      timeline[method] = function(target) {
+        var args = Array.prototype.slice.call(arguments);
+        args[0] = __hfResolveGsapTarget(target);
+        return original.apply(timeline, args);
+      };
+    });
+    try {
+      Object.defineProperty(timeline, "__hfScopedCompositionRoot", {
+        value: __hfFindRoot(),
+        configurable: true
+      });
+    } catch {
+    }
+    return timeline;
+  };
+  var __hfBaseGsap = typeof gsap === "undefined" ? window.gsap : gsap;
+  var __hfScopedGsap = !__hfBaseGsap || typeof Proxy !== "function" ? __hfBaseGsap : new Proxy(__hfBaseGsap, {
+    get: function(target, prop, receiver) {
+      if (prop === "timeline") {
+        return function() {
+          return __hfScopeTimeline(target.timeline.apply(target, arguments));
+        };
+      }
+      if (prop === "to" || prop === "from" || prop === "fromTo" || prop === "set") {
+        return function(firstArg) {
+          var args = Array.prototype.slice.call(arguments);
+          args[0] = __hfResolveGsapTarget(firstArg);
+          return target[prop].apply(target, args);
+        };
+      }
+      if (prop === "utils" && target.utils && typeof Proxy === "function") {
+        return new Proxy(target.utils, {
+          get: function(utilsTarget, utilsProp, utilsReceiver) {
+            if (utilsProp === "toArray") {
+              return function(firstArg) {
+                var args = Array.prototype.slice.call(arguments);
+                args[0] = __hfResolveGsapTarget(firstArg);
+                return utilsTarget.toArray.apply(utilsTarget, args);
+              };
+            }
+            if (utilsProp === "selector") {
+              return function(base) {
+                var baseEl = typeof base === "string" ? __hfQueryOne(base) : base;
+                var root = baseEl || __hfFindRoot();
+                return function(selector) {
+                  if (!root || typeof selector !== "string") return [];
+                  return Array.prototype.filter.call(
+                    window.document.querySelectorAll(__hfNormalizeSelector(selector)),
+                    function(node) {
+                      return node === root || typeof root.contains === "function" && root.contains(node);
+                    }
+                  );
+                };
+              };
+            }
+            var value2 = Reflect.get(utilsTarget, utilsProp, utilsTarget);
+            return typeof value2 === "function" ? value2.bind(utilsTarget) : value2;
+          }
+        });
+      }
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+  var __hfBaseHyperframes = window.__hyperframes;
+  var __hfScopedHyperframes = !__hfBaseHyperframes ? __hfBaseHyperframes : Object.assign({}, __hfBaseHyperframes, {
+    assetUrl: function(path) {
+      var page = window.document.baseURI;
+      return new URL(path, __hfCompositionSrc ? new URL(__hfCompositionSrc, page) : page).href;
+    },
+    getVariables: function() {
+      var byComp = window.__hfVariablesByComp;
+      var scoped = byComp && __hfTimelineCompId ? byComp[__hfTimelineCompId] : null;
+      return scoped ? Object.assign({}, scoped) : {};
+    }
+  });
+  var __hfRun = function() {
+    try {
+      (function(document, gsap2, window2, __hyperframes) {
+        (function() {
+          var ID = "02-neofetch";
+          var tl = gsap2.timeline({ paused: true });
+          function el(key) {
+            return document.getElementById(ID + "-" + key);
+          }
+          function splitTyped(key) {
+            var host = el(key);
+            var text = host.textContent;
+            var chars = [];
+            var carets = [];
+            host.textContent = "";
+            function addCaret() {
+              var c = document.createElement("span");
+              c.className = "caret " + ID + "-cr";
+              host.appendChild(c);
+              carets.push(c);
+            }
+            addCaret();
+            for (var i = 0; i < text.length; i++) {
+              var s = document.createElement("span");
+              s.textContent = text.charAt(i);
+              host.appendChild(s);
+              chars.push(s);
+              addCaret();
+            }
+            return { chars, carets };
+          }
+          function typeLine(key, caretOn, tFirst, cps, caretOff) {
+            var p = splitTyped(key);
+            var X = p.chars;
+            var C = p.carets;
+            gsap2.set(X, { opacity: 0 });
+            gsap2.set(C, { opacity: 0 });
+            if (caretOn <= 0) gsap2.set(C[0], { opacity: 1 });
+            else tl.set(C[0], { opacity: 1 }, caretOn);
+            for (var k = 1; k <= X.length; k++) {
+              var t = tFirst + (k - 1) / cps;
+              tl.set(X[k - 1], { opacity: 1 }, t);
+              tl.set(C[k - 1], { opacity: 0 }, t);
+              tl.set(C[k], { opacity: 1 }, t);
+            }
+            tl.set(C[X.length], { opacity: 0 }, caretOff);
+          }
+          typeLine("cmd", 0, 0.2, 22, 0.7);
+          tl.fromTo(
+            el("art"),
+            { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)" },
+            { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", duration: 0.6, ease: "steps(58)" },
+            0.9
+          );
+          var INFO = [
+            { key: "i0", at: 1.6, y: 30, d: 0.18 },
+            // radio@getresolved (anchor)
+            { key: "i1", at: 1.89, y: 16, d: 0.11 },
+            // ----------------- (light)
+            { key: "i2", at: 2.16, y: 24, d: 0.15 },
+            // OS
+            { key: "i3", at: 2.41, y: 22, d: 0.14 },
+            // Host
+            { key: "i4", at: 2.64, y: 22, d: 0.14 },
+            // Shell
+            { key: "i5", at: 2.85, y: 20, d: 0.13 },
+            // Tracks
+            { key: "i6", at: 3.04, y: 20, d: 0.12 }
+            // Now (snaps, settled by 3.16s)
+          ];
+          INFO.forEach(function(L) {
+            var line = el(L.key);
+            gsap2.set(line, { opacity: 0 });
+            tl.set(line, { opacity: 1 }, L.at);
+            tl.fromTo(line, { y: L.y }, { y: 0, duration: L.d, ease: "power4.out" }, L.at);
+          });
+          typeLine("note", 3.8, 3.84, 25, 5.1);
+          window2.__timelines["02-neofetch"] = tl;
+        })();
+      }).call(window, __hfScopedDocument, __hfScopedGsap, __hfScopedWindow, __hfScopedHyperframes);
+    } catch (_err) {
+      console.error(__hfErrorLabel, __hfCompId, _err);
+    }
+  };
+  var __hfRecordAnimations = function(run) {
+    if (window.__hfSceneAnimations === void 0) {
+      window.__hfSceneAnimations = window.document.querySelector('meta[name="hf-scene-parts"]') ? {} : null;
+    }
+    var byComp = window.__hfSceneAnimations;
+    var globalTimeline = __hfBaseGsap && __hfBaseGsap.globalTimeline;
+    if (!byComp || !globalTimeline || !__hfTimelineCompId) return run();
+    var before = globalTimeline.getChildren(false);
+    var autoRemove = globalTimeline.autoRemoveChildren;
+    globalTimeline.autoRemoveChildren = false;
+    run();
+    globalTimeline.autoRemoveChildren = autoRemove;
+    var recorded = byComp[__hfTimelineCompId] = byComp[__hfTimelineCompId] || [];
+    globalTimeline.getChildren(false).forEach(function(animation) {
+      if (before.indexOf(animation) >= 0) return;
+      recorded.push(animation);
+      if (autoRemove && !animation.getChildren && animation.totalProgress() === 1) globalTimeline.remove(animation);
+    });
+  };
+  __hfFindRoot();
+  __hfRecordAnimations(__hfRun);
+})();</script><script type="text/hf-after-fonts" data-hf-scene="03-music">(function() {
+  (function() {
+    "use strict";
+    (() => {
+      function I(e) {
+        return e ? /[\w-]/.test(e) || e.charCodeAt(0) >= 128 : false;
+      }
+      function _(e) {
+        return e === " " || e === "	" || e === `
+` || e === "\r" || e === "\f";
+      }
+      var j = /^[0-9a-fA-F]{1,6}/;
+      function G(e) {
+        let n = e >= 55296 && e <= 57343;
+        return e === 0 || e > 1114111 || n ? 65533 : e;
+      }
+      function $(e, n) {
+        return e[n] === "\r" && e[n + 1] === `
+` ? n + 2 : _(e[n]) ? n + 1 : n;
+      }
+      function R(e, n) {
+        let t = e[n + 1];
+        if (t === void 0 || /[\n\r\f]/.test(t)) return null;
+        let i = j.exec(e.slice(n + 1, n + 7));
+        if (!i) return { value: t, end: n + 2 };
+        let o = G(Number.parseInt(i[0], 16));
+        return { value: String.fromCodePoint(o), end: $(e, n + 1 + i[0].length) };
+      }
+      function H(e, n) {
+        let t = (o) => I(o) && !/[0-9-]/.test(o), i = (o) => e[o] === "\\" && R(e, o) !== null;
+        return e[n] === "-" ? e[n + 1] === "-" || t(e[n + 1]) || i(n + 1) : t(e[n]) || i(n);
+      }
+      function y(e, n) {
+        let t = n;
+        for (; e.startsWith("/*", t); ) {
+          let i = e.indexOf("*/", t + 2);
+          t = i < 0 ? e.length : i + 2;
+        }
+        return t;
+      }
+      function A(e, n) {
+        let t = y(e, n);
+        for (; _(e[t]); ) t = y(e, t + 1);
+        return t;
+      }
+      function h(e, n) {
+        if (!H(e, n)) return null;
+        let t = n, i = "";
+        for (; t < e.length; ) {
+          let o = e[t];
+          if (o === "\\") {
+            let a = R(e, t);
+            if (!a) break;
+            i += a.value, t = a.end;
+            continue;
+          }
+          if (!I(o)) break;
+          i += o, t += 1;
+        }
+        return t === n ? null : { value: i, end: t };
+      }
+      var C = 45;
+      function T(e) {
+        return e >= 48 && e <= 57;
+      }
+      function z(e) {
+        return e >= 128 || e === C || e === 95 || T(e) || e >= 65 && e <= 90 || e >= 97 && e <= 122;
+      }
+      function J(e, n) {
+        let t = e.charCodeAt(n);
+        return t >= 1 && t <= 31 || t === 127 ? true : T(t) ? n === 0 || n === 1 && e.charCodeAt(0) === C : false;
+      }
+      function k(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          let i = e.charCodeAt(t), o = e[t];
+          i === 0 ? n += "\uFFFD" : J(e, t) ? n += `\\${i.toString(16)} ` : t === 0 && e.length === 1 && i === C ? n += `\\${o}` : z(i) ? n += o : n += `\\${o}`;
+        }
+        return n;
+      }
+      var W = /\/\*(?:[^*]|\*(?!\/))*\*\/|\\(?:[0-9a-fA-F]{1,6}(?:\r\n|[ \t\r\n\f])?|[\s\S])|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|\[(?:\/\*(?:[^*]|\*(?!\/))*\*\/|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|[^\]"'\\/]|\/(?!\*))*\]/g;
+      function Q(e) {
+        let n = new Array(e.length).fill(true);
+        for (let t of e.matchAll(W)) {
+          let i = t.index;
+          n.fill(false, i, i + t[0].length);
+        }
+        return n;
+      }
+      function q(e, n, t) {
+        if (n.length === 0 || !e.includes("#")) return e;
+        let i = new Set(n), o = Q(e), a = "", u = 0;
+        for (; u < e.length; ) {
+          let d = o[u] && e[u] === "#" ? h(e, u + 1) : null;
+          d && i.has(d.value) ? (a += t(d.value), u = d.end) : (a += e[u], u += 1);
+        }
+        return a;
+      }
+      function X(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          if (e[t] === "\\") {
+            let i = e[t + 1];
+            if (i !== void 0 && /[\n\r\f]/.test(i)) {
+              t = $(e, t + 1) - 1;
+              continue;
+            }
+            let o = R(e, t);
+            if (o) {
+              n += o.value, t = o.end - 1;
+              continue;
+            }
+          }
+          n += e[t];
+        }
+        return n;
+      }
+      function N(e) {
+        return Array.from(e, (n) => {
+          let t = n.charCodeAt(0);
+          return t === 0 ? "\uFFFD" : t < 32 || t === 127 ? `\\${t.toString(16)} ` : n === '"' || n === "\\" ? `\\${n}` : n;
+        }).join("");
+      }
+      function Y(e, n) {
+        return e ? { kind: "any" } : n === void 0 ? { kind: "none" } : { kind: "named", prefix: n };
+      }
+      function Z(e, n) {
+        return e[n] === "|" && e[n + 1] !== "=";
+      }
+      function B(e, n) {
+        let t = e[n] === "*", i = t ? { value: "*", end: n + 1 } : h(e, n), o = y(e, i?.end ?? n);
+        if (!Z(e, o)) return t ? null : i ? { token: i, namespace: { kind: "none" } } : null;
+        let a = h(e, y(e, o + 1));
+        return a ? { token: a, namespace: Y(t, i?.value) } : null;
+      }
+      function K(e) {
+        if (e[0] !== "[") return null;
+        let n = A(e, 1), t = B(e, n);
+        if (!t) return null;
+        let { token: i, namespace: o } = t;
+        return { name: i.value, rawName: e.slice(n, i.end), namespace: o, end: i.end };
+      }
+      function ee(e, n) {
+        let t = /^(?:"((?:\\[\s\S]|[^"\\])*)"|'((?:\\[\s\S]|[^'\\])*)')/.exec(e.slice(n));
+        return t ? { value: X(t[1] ?? t[2]), end: n + t[0].length } : h(e, n);
+      }
+      function ne(e, n) {
+        let t = A(e, n), i = h(e, t);
+        if (i) {
+          if (!/^[is]$/i.test(i.value)) return null;
+          t = A(e, i.end);
+        }
+        return e[t] !== "]" || t !== e.length - 1 ? null : { flag: i?.value };
+      }
+      function F(e) {
+        let n = K(e);
+        if (!n) return null;
+        let t = A(e, n.end), o = ["=", "~=", "|=", "^=", "$=", "*="].find((d) => e.startsWith(d, t));
+        if (!o) return null;
+        let a = ee(e, A(e, t + o.length));
+        if (!a) return null;
+        let u = ne(e, a.end);
+        return u ? { name: n.name, rawName: n.rawName, namespace: n.namespace, operator: o, value: a.value, flag: u.flag } : null;
+      }
+      function E(e, n) {
+        return e.replace(W, (t) => t.startsWith("[") ? n(t) : t);
+      }
+      var re = "data-hf-svg-reference-aliases";
+      function O(e, n, t, i) {
+        let o = { "=": (s, r) => s === r, "~=": (s, r) => s.split(/[ \t\r\n\f]+/).includes(r), "|=": (s, r) => s === r || s.startsWith(r + "-"), "^=": (s, r) => s.startsWith(r), "$=": (s, r) => s.endsWith(r), "*=": (s, r) => s.includes(r) }, a = (s, r, l) => !r && l !== "=" && l !== "|=" ? false : o[l](s, r), u = (s) => s.replace(/[A-Z]/g, (r) => r.toLowerCase()), d = (s) => {
+          let r = F(s);
+          if (!r) return s;
+          let { name: l, rawName: g, namespace: m, operator: b, value: D, flag: w } = r;
+          if (m.kind === "named" != (i !== void 0)) return s;
+          let x = w?.toLowerCase() === "i" ? u : (S) => S, L = u(l), P = t.filter((S) => {
+            let V = m.kind === "none" ? S.name : S.localName, U = m.kind === "named" ? i.get(m.prefix) : null;
+            return (m.kind === "any" || S.namespaceURI === U) && u(V) === L;
+          }), v = /* @__PURE__ */ new Set([s]);
+          for (let S of P) a(x(S.before), x(D), b) && v.add(`[${g}="${N(S.after)}"${w ? ` ${w}` : ""}]`);
+          return v.size === 1 ? s : `:is(${[...v].join(", ")})`;
+        };
+        if (i) return E(e, d);
+        let p = new Map(n.map(({ id: s, replacement: r }) => [s, r])), f = /* @__PURE__ */ new Map();
+        for (let s of t) {
+          if (s.name !== "id" || s.before === s.after || p.has(s.before)) continue;
+          let r = f.get(s.before);
+          r || (r = /* @__PURE__ */ new Set([`#${k(s.before)}`]), f.set(s.before, r)), r.add(`#${k(s.after)}`);
+        }
+        for (let [s, r] of f) p.set(s, `:is(${[...r].join(", ")})`);
+        let c = q(e, [...p.keys()], (s) => p.get(s));
+        return E(c, d);
+      }
+      function se(e, n, t = true) {
+        let i = [], a = (t ? [...e.querySelectorAll(`[${n}]`)] : []).map((d) => d.getAttribute(n)), u = e.getAttribute?.(n);
+        u && a.unshift(u);
+        for (let d of a) {
+          let p;
+          try {
+            p = JSON.parse(d);
+          } catch {
+            continue;
+          }
+          if (!Array.isArray(p)) continue;
+          let f = p;
+          for (let c of f) {
+            if (!ie(c)) continue;
+            let { name: s, localName: r, namespaceURI: l, before: g, after: m } = c;
+            i.push({ name: s, localName: r, namespaceURI: l, before: g, after: m });
+          }
+        }
+        return i;
+      }
+      function ie(e) {
+        if (!e || typeof e != "object") return false;
+        let { name: n, localName: t, namespaceURI: i, before: o, after: a } = e;
+        return typeof n == "string" && typeof t == "string" && (i === null || typeof i == "string") && typeof o == "string" && typeof a == "string";
+      }
+      function oe(e) {
+        let n = [], t = [], i = false, o, a = /* @__PURE__ */ new WeakMap(), u = (f, c) => {
+          for (let s of f) {
+            if ("selectorText" in s) {
+              let r = s, l = a.get(r), g = r.selectorText, m = l?.applied === g ? l.authored : g, b = O(m, [], t, c);
+              b !== g && (r.selectorText = b), b === m ? a.delete(r) : a.set(r, { authored: m, applied: r.selectorText });
+            }
+            "cssRules" in s && u(s.cssRules, c);
+          }
+        }, d = () => {
+          if (t.length) for (let f of e.document.styleSheets) {
+            let c;
+            try {
+              c = f.cssRules;
+            } catch {
+              continue;
+            }
+            let s = /* @__PURE__ */ new Map();
+            for (let r of c) {
+              if (!("namespaceURI" in r)) continue;
+              let { prefix: l, namespaceURI: g } = r;
+              l && s.set(l, g || null);
+            }
+            s.size && u(c, s);
+          }
+        }, p = { rewrite: (f, c = []) => {
+          if (typeof f != "string" || !f.includes("#") && !f.includes("[")) return f;
+          let s = O(f, c.length ? [...c, ...n] : n, t);
+          if (s !== f) {
+            if (!o) {
+              let r = e.document.createElement("div");
+              o = r.matches.bind(r);
+            }
+            o(f);
+          }
+          return s;
+        }, refresh() {
+          t = se(e.document, re).filter((r) => r.before !== r.after);
+          let f = new Set(t.filter((r) => r.name === "id").map((r) => r.before)), c = /* @__PURE__ */ new Set();
+          n = [];
+          for (let r of e.document.querySelectorAll("[data-hf-authored-id][id]")) {
+            let l = r.getAttribute("data-hf-authored-id");
+            if (!l || l === r.id || c.has(l) || f.has(l)) continue;
+            c.add(l);
+            let g = N(l);
+            n.push({ id: l, replacement: `:is(#${k(l)}, [data-hf-authored-id="${g}"])` });
+          }
+          if (d(), i || !n.length && !t.length) return;
+          let s = e.Element.prototype;
+          s.querySelector = new Proxy(s.querySelector, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), s.querySelectorAll = new Proxy(s.querySelectorAll, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), i = true;
+        } };
+        e.__hfSvgSelectorAliases = p, p.refresh();
+      }
+      function M() {
+        let e = window;
+        e.__hfSvgSelectorAliases || oe(e);
+      }
+      M();
+    })();
+  })();
+  var __hfCompId = "03-music";
+  var __hfTimelineCompId = "03-music";
+  var __hfErrorLabel = "[HyperFrames] composition script error:";
+  var __hfAuthoredRootId = "root";
+  var __hfCompositionSrc = "compositions/frames/03-music.html";
+  var __hfAuthoredRootAttr = "data-hf-authored-id";
+  var __hfEscapeAttr = function(value) {
+    return (value + "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  };
+  var __hfRootSelector = '[data-composition-id="03-music"]';
+  var __hfRoot = null;
+  var __hfRootSelectorPattern = `\\[\\s*data-composition-id\\s*=\\s*(?:"03-music"|'03-music')\\s*\\]`;
+  var __hfTimingSelectorPattern = `\\s*\\[\\s*data-(?:start|duration)\\s*=\\s*(?:"[^"]*"|'[^']*')\\s*\\]`;
+  var __hfAuthoredRootSelector = __hfAuthoredRootId ? "[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(__hfAuthoredRootId) + '"]' : "";
+  var __hfAuthoredRootEntries = __hfAuthoredRootSelector ? [{ id: __hfAuthoredRootId, replacement: __hfAuthoredRootSelector }] : [];
+  var __hfNormalizeSelector = function(selector) {
+    if (!__hfCompId || typeof selector !== "string") return selector;
+    var normalized = selector.replace(new RegExp(__hfRootSelectorPattern + "(?:" + __hfTimingSelectorPattern + ")+", "g"), __hfRootSelector).replace(new RegExp("(?:" + __hfTimingSelectorPattern + ")+" + __hfRootSelectorPattern, "g"), __hfRootSelector);
+    return window.__hfSvgSelectorAliases.rewrite(normalized, __hfAuthoredRootEntries);
+  };
+  var __hfFindRoot = function() {
+    if (!__hfRoot && __hfRootSelector) {
+      __hfRoot = window.document.querySelector(__hfRootSelector);
+    }
+    return __hfRoot;
+  };
+  var __hfContains = function(node) {
+    var root = __hfFindRoot();
+    return !root || node === root || root.contains(node);
+  };
+  var __hfQueryAll = function(selector) {
+    var root = __hfFindRoot();
+    if (!root || typeof selector !== "string") {
+      return window.document.querySelectorAll(selector);
+    }
+    return Array.prototype.filter.call(window.document.querySelectorAll(__hfNormalizeSelector(selector)), function(node) {
+      return __hfContains(node);
+    });
+  };
+  var __hfQueryOne = function(selector) {
+    var matches = __hfQueryAll(selector);
+    return matches[0] || null;
+  };
+  var __hfGetElementById = function(id) {
+    var found = window.document.getElementById(id);
+    if (found && __hfContains(found)) return found;
+    var root = __hfFindRoot();
+    if (!root) return found || null;
+    var idValue = id + "";
+    if (__hfAuthoredRootId && __hfAuthoredRootId === idValue && root.getAttribute && root.getAttribute(__hfAuthoredRootAttr) === idValue) {
+      return root;
+    }
+    if (root.id === idValue) return root;
+    if (typeof root.querySelector !== "function") return null;
+    try {
+      var authoredRootMatch = root.querySelector("[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(idValue) + '"]');
+      if (authoredRootMatch) return authoredRootMatch;
+    } catch {
+    }
+    if (typeof CSS !== "undefined" && CSS && typeof CSS.escape === "function") {
+      try {
+        return root.querySelector("#" + CSS.escape(idValue)) || null;
+      } catch {
+      }
+    }
+    try {
+      return root.querySelector('[id="' + __hfEscapeAttr(idValue) + '"]') || null;
+    } catch {
+    }
+    return null;
+  };
+  var __hfScopedDocument = typeof Proxy === "function" ? new Proxy(window.document, {
+    get: function(target, prop, receiver) {
+      if (prop === "querySelector") return __hfQueryOne;
+      if (prop === "querySelectorAll") return __hfQueryAll;
+      if (prop === "getElementById") return __hfGetElementById;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) : window.document;
+  var __hfTimelineRegistryProxy = null;
+  var __hfGetTimelineRegistry = function() {
+    window.__timelines = window.__timelines || {};
+    if (!__hfCompId || __hfCompId === __hfTimelineCompId || typeof Proxy !== "function") {
+      return window.__timelines;
+    }
+    if (!__hfTimelineRegistryProxy) {
+      __hfTimelineRegistryProxy = new Proxy(window.__timelines, {
+        get: function(target, prop, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.get(target, prop, target);
+          }
+          var authoredValue = Reflect.get(target, prop, target);
+          return authoredValue === void 0 ? Reflect.get(target, __hfTimelineCompId, target) : authoredValue;
+        },
+        set: function(target, prop, value, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.set(target, prop, value, target);
+          }
+          var authoredSet = Reflect.set(target, __hfCompId, value, target);
+          var runtimeSet = Reflect.set(target, __hfTimelineCompId, value, target);
+          return authoredSet && runtimeSet;
+        }
+      });
+    }
+    return __hfTimelineRegistryProxy;
+  };
+  var __hfScopedWindow = typeof Proxy === "function" ? new Proxy(window, {
+    get: function(target, prop, receiver) {
+      if (prop === "__timelines") return __hfGetTimelineRegistry();
+      if (prop === "__hyperframes") return __hfScopedHyperframes;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" && value.prototype === void 0 ? value.bind(target) : value;
+    },
+    set: function(target, prop, value, receiver) {
+      if (prop === "__timelines") {
+        if (value === __hfTimelineRegistryProxy) return true;
+        target.__timelines = value || {};
+        __hfTimelineRegistryProxy = null;
+        return true;
+      }
+      return Reflect.set(target, prop, value, target);
+    }
+  }) : window;
+  var __hfResolveGsapTarget = function(target) {
+    if (typeof target === "string") return __hfQueryAll(target);
+    if (!Array.isArray(target)) return target;
+    return target.reduce(function(resolved, item) {
+      if (typeof item === "string") {
+        return resolved.concat(Array.prototype.slice.call(__hfQueryAll(item)));
+      }
+      resolved.push(item);
+      return resolved;
+    }, []);
+  };
+  var __hfScopeTimeline = function(timeline) {
+    if (!timeline || timeline.__hfScopedCompositionRoot === __hfFindRoot()) return timeline;
+    ["to", "from", "fromTo", "set"].forEach(function(method) {
+      var original = timeline[method];
+      if (typeof original !== "function") return;
+      timeline[method] = function(target) {
+        var args = Array.prototype.slice.call(arguments);
+        args[0] = __hfResolveGsapTarget(target);
+        return original.apply(timeline, args);
+      };
+    });
+    try {
+      Object.defineProperty(timeline, "__hfScopedCompositionRoot", {
+        value: __hfFindRoot(),
+        configurable: true
+      });
+    } catch {
+    }
+    return timeline;
+  };
+  var __hfBaseGsap = typeof gsap === "undefined" ? window.gsap : gsap;
+  var __hfScopedGsap = !__hfBaseGsap || typeof Proxy !== "function" ? __hfBaseGsap : new Proxy(__hfBaseGsap, {
+    get: function(target, prop, receiver) {
+      if (prop === "timeline") {
+        return function() {
+          return __hfScopeTimeline(target.timeline.apply(target, arguments));
+        };
+      }
+      if (prop === "to" || prop === "from" || prop === "fromTo" || prop === "set") {
+        return function(firstArg) {
+          var args = Array.prototype.slice.call(arguments);
+          args[0] = __hfResolveGsapTarget(firstArg);
+          return target[prop].apply(target, args);
+        };
+      }
+      if (prop === "utils" && target.utils && typeof Proxy === "function") {
+        return new Proxy(target.utils, {
+          get: function(utilsTarget, utilsProp, utilsReceiver) {
+            if (utilsProp === "toArray") {
+              return function(firstArg) {
+                var args = Array.prototype.slice.call(arguments);
+                args[0] = __hfResolveGsapTarget(firstArg);
+                return utilsTarget.toArray.apply(utilsTarget, args);
+              };
+            }
+            if (utilsProp === "selector") {
+              return function(base) {
+                var baseEl = typeof base === "string" ? __hfQueryOne(base) : base;
+                var root = baseEl || __hfFindRoot();
+                return function(selector) {
+                  if (!root || typeof selector !== "string") return [];
+                  return Array.prototype.filter.call(
+                    window.document.querySelectorAll(__hfNormalizeSelector(selector)),
+                    function(node) {
+                      return node === root || typeof root.contains === "function" && root.contains(node);
+                    }
+                  );
+                };
+              };
+            }
+            var value2 = Reflect.get(utilsTarget, utilsProp, utilsTarget);
+            return typeof value2 === "function" ? value2.bind(utilsTarget) : value2;
+          }
+        });
+      }
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+  var __hfBaseHyperframes = window.__hyperframes;
+  var __hfScopedHyperframes = !__hfBaseHyperframes ? __hfBaseHyperframes : Object.assign({}, __hfBaseHyperframes, {
+    assetUrl: function(path) {
+      var page = window.document.baseURI;
+      return new URL(path, __hfCompositionSrc ? new URL(__hfCompositionSrc, page) : page).href;
+    },
+    getVariables: function() {
+      var byComp = window.__hfVariablesByComp;
+      var scoped = byComp && __hfTimelineCompId ? byComp[__hfTimelineCompId] : null;
+      return scoped ? Object.assign({}, scoped) : {};
+    }
+  });
+  var __hfRun = function() {
+    try {
+      (function(document, gsap2, window2, __hyperframes) {
+        (function() {
+          var DURATION = 6;
+          var EPS = 1e-6;
+          var KEY = 1 / 22;
+          function ms(x) {
+            return Math.round(x * 1e3) / 1e3;
+          }
+          function schedule(text, start, step) {
+            var at = [];
+            for (var i = 0; i < text.length; i++) at.push(ms(start + i * step));
+            return at;
+          }
+          function typedCount(at, t) {
+            var n = 0;
+            while (n < at.length && t + EPS >= at[n]) n++;
+            return n;
+          }
+          function el(name) {
+            return document.getElementById("03-music-" + name);
+          }
+          var CMD1 = "eza --tree";
+          var CMD1_AT = schedule(CMD1, 0.2, KEY);
+          var ENTER1 = 0.9;
+          var TREE = [
+            { id: "l2", at: 0.9, y: 32, d: 0.11 },
+            { id: "l3", at: 1.04, y: 56, d: 0.17 },
+            { id: "l4", at: 1.18, y: 46, d: 0.15 },
+            { id: "l5", at: 1.32, y: 46, d: 0.15 },
+            { id: "l6", at: 1.455, y: 44, d: 0.14 },
+            { id: "l7", at: 1.585, y: 44, d: 0.14 },
+            { id: "l8", at: 1.71, y: 44, d: 0.14 },
+            { id: "l9", at: 1.83, y: 42, d: 0.13 },
+            { id: "l10", at: 1.945, y: 40, d: 0.12 }
+          ];
+          var PLAY_AT = 2.6;
+          var PLAY_FADE = 0.2;
+          var PROMPT2_AT = 2.9;
+          var CMD2 = "play auntum.wav";
+          var CMD2_AT = schedule(CMD2, 3, KEY);
+          var ENTER2 = 3.7;
+          var NOTE = "# lagu ciptaan sendiri, 24 jam";
+          var NOTE_START = 4.2;
+          var NOTE_AT = schedule(NOTE, NOTE_START, 0.0375);
+          var NOTE_DONE = 5.3;
+          var cmd1a = el("cmd1a"), cmd1b = el("cmd1b"), caret1 = el("caret1");
+          var treeEls = TREE.map(function(row) {
+            return el(row.id);
+          });
+          var playEl = el("play"), markEl = el("mark");
+          var l12 = el("l12"), l13 = el("l13"), cmd2 = el("cmd2"), caret2 = el("caret2");
+          var l15 = el("l15"), noteEl = el("note"), caret3 = el("caret3");
+          function show(node, on) {
+            node.style.visibility = on ? "inherit" : "hidden";
+          }
+          function render(t) {
+            var n1 = typedCount(CMD1_AT, t);
+            cmd1a.textContent = CMD1.slice(0, Math.min(n1, 3));
+            cmd1b.textContent = n1 > 3 ? CMD1.slice(3, n1) : "";
+            show(caret1, t + EPS < ENTER1);
+            for (var i = 0; i < TREE.length; i++) show(treeEls[i], t + EPS >= TREE[i].at);
+            markEl.textContent = t + EPS >= PLAY_AT ? "  \u25C0" : "";
+            var prompt2 = t + EPS >= PROMPT2_AT;
+            show(l12, prompt2);
+            show(l13, prompt2);
+            cmd2.textContent = CMD2.slice(0, typedCount(CMD2_AT, t));
+            show(caret2, prompt2 && t + EPS < ENTER2);
+            var noteOn = t + EPS >= NOTE_START;
+            show(l15, noteOn);
+            noteEl.textContent = NOTE.slice(0, typedCount(NOTE_AT, t));
+            show(caret3, noteOn && t + EPS < NOTE_DONE);
+          }
+          var tl = gsap2.timeline({ paused: true });
+          var clock = { t: 0 };
+          tl.to(clock, {
+            t: DURATION,
+            duration: DURATION,
+            ease: "none",
+            onUpdate: function() {
+              render(clock.t);
+            }
+          }, 0);
+          for (var k = 0; k < TREE.length; k++) {
+            tl.fromTo(
+              treeEls[k],
+              { y: TREE[k].y },
+              { y: 0, duration: TREE[k].d, ease: "power4.out" },
+              TREE[k].at
+            );
+          }
+          tl.fromTo(
+            playEl,
+            { color: "#8b8fb5" },
+            { color: "#ff7ac6", duration: PLAY_FADE, ease: "sine.inOut" },
+            PLAY_AT
+          );
+          render(0);
+          window2.__timelines = window2.__timelines || {};
+          window2.__timelines["03-music"] = tl;
+        })();
+      }).call(window, __hfScopedDocument, __hfScopedGsap, __hfScopedWindow, __hfScopedHyperframes);
+    } catch (_err) {
+      console.error(__hfErrorLabel, __hfCompId, _err);
+    }
+  };
+  var __hfRecordAnimations = function(run) {
+    if (window.__hfSceneAnimations === void 0) {
+      window.__hfSceneAnimations = window.document.querySelector('meta[name="hf-scene-parts"]') ? {} : null;
+    }
+    var byComp = window.__hfSceneAnimations;
+    var globalTimeline = __hfBaseGsap && __hfBaseGsap.globalTimeline;
+    if (!byComp || !globalTimeline || !__hfTimelineCompId) return run();
+    var before = globalTimeline.getChildren(false);
+    var autoRemove = globalTimeline.autoRemoveChildren;
+    globalTimeline.autoRemoveChildren = false;
+    run();
+    globalTimeline.autoRemoveChildren = autoRemove;
+    var recorded = byComp[__hfTimelineCompId] = byComp[__hfTimelineCompId] || [];
+    globalTimeline.getChildren(false).forEach(function(animation) {
+      if (before.indexOf(animation) >= 0) return;
+      recorded.push(animation);
+      if (autoRemove && !animation.getChildren && animation.totalProgress() === 1) globalTimeline.remove(animation);
+    });
+  };
+  __hfFindRoot();
+  __hfRecordAnimations(__hfRun);
+})();</script><script type="text/hf-after-fonts" data-hf-scene="04-cta">(function() {
+  (function() {
+    "use strict";
+    (() => {
+      function I(e) {
+        return e ? /[\w-]/.test(e) || e.charCodeAt(0) >= 128 : false;
+      }
+      function _(e) {
+        return e === " " || e === "	" || e === `
+` || e === "\r" || e === "\f";
+      }
+      var j = /^[0-9a-fA-F]{1,6}/;
+      function G(e) {
+        let n = e >= 55296 && e <= 57343;
+        return e === 0 || e > 1114111 || n ? 65533 : e;
+      }
+      function $(e, n) {
+        return e[n] === "\r" && e[n + 1] === `
+` ? n + 2 : _(e[n]) ? n + 1 : n;
+      }
+      function R(e, n) {
+        let t = e[n + 1];
+        if (t === void 0 || /[\n\r\f]/.test(t)) return null;
+        let i = j.exec(e.slice(n + 1, n + 7));
+        if (!i) return { value: t, end: n + 2 };
+        let o = G(Number.parseInt(i[0], 16));
+        return { value: String.fromCodePoint(o), end: $(e, n + 1 + i[0].length) };
+      }
+      function H(e, n) {
+        let t = (o) => I(o) && !/[0-9-]/.test(o), i = (o) => e[o] === "\\" && R(e, o) !== null;
+        return e[n] === "-" ? e[n + 1] === "-" || t(e[n + 1]) || i(n + 1) : t(e[n]) || i(n);
+      }
+      function y(e, n) {
+        let t = n;
+        for (; e.startsWith("/*", t); ) {
+          let i = e.indexOf("*/", t + 2);
+          t = i < 0 ? e.length : i + 2;
+        }
+        return t;
+      }
+      function A(e, n) {
+        let t = y(e, n);
+        for (; _(e[t]); ) t = y(e, t + 1);
+        return t;
+      }
+      function h(e, n) {
+        if (!H(e, n)) return null;
+        let t = n, i = "";
+        for (; t < e.length; ) {
+          let o = e[t];
+          if (o === "\\") {
+            let a = R(e, t);
+            if (!a) break;
+            i += a.value, t = a.end;
+            continue;
+          }
+          if (!I(o)) break;
+          i += o, t += 1;
+        }
+        return t === n ? null : { value: i, end: t };
+      }
+      var C = 45;
+      function T(e) {
+        return e >= 48 && e <= 57;
+      }
+      function z(e) {
+        return e >= 128 || e === C || e === 95 || T(e) || e >= 65 && e <= 90 || e >= 97 && e <= 122;
+      }
+      function J(e, n) {
+        let t = e.charCodeAt(n);
+        return t >= 1 && t <= 31 || t === 127 ? true : T(t) ? n === 0 || n === 1 && e.charCodeAt(0) === C : false;
+      }
+      function k(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          let i = e.charCodeAt(t), o = e[t];
+          i === 0 ? n += "\uFFFD" : J(e, t) ? n += `\\${i.toString(16)} ` : t === 0 && e.length === 1 && i === C ? n += `\\${o}` : z(i) ? n += o : n += `\\${o}`;
+        }
+        return n;
+      }
+      var W = /\/\*(?:[^*]|\*(?!\/))*\*\/|\\(?:[0-9a-fA-F]{1,6}(?:\r\n|[ \t\r\n\f])?|[\s\S])|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|\[(?:\/\*(?:[^*]|\*(?!\/))*\*\/|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|[^\]"'\\/]|\/(?!\*))*\]/g;
+      function Q(e) {
+        let n = new Array(e.length).fill(true);
+        for (let t of e.matchAll(W)) {
+          let i = t.index;
+          n.fill(false, i, i + t[0].length);
+        }
+        return n;
+      }
+      function q(e, n, t) {
+        if (n.length === 0 || !e.includes("#")) return e;
+        let i = new Set(n), o = Q(e), a = "", u = 0;
+        for (; u < e.length; ) {
+          let d = o[u] && e[u] === "#" ? h(e, u + 1) : null;
+          d && i.has(d.value) ? (a += t(d.value), u = d.end) : (a += e[u], u += 1);
+        }
+        return a;
+      }
+      function X(e) {
+        let n = "";
+        for (let t = 0; t < e.length; t += 1) {
+          if (e[t] === "\\") {
+            let i = e[t + 1];
+            if (i !== void 0 && /[\n\r\f]/.test(i)) {
+              t = $(e, t + 1) - 1;
+              continue;
+            }
+            let o = R(e, t);
+            if (o) {
+              n += o.value, t = o.end - 1;
+              continue;
+            }
+          }
+          n += e[t];
+        }
+        return n;
+      }
+      function N(e) {
+        return Array.from(e, (n) => {
+          let t = n.charCodeAt(0);
+          return t === 0 ? "\uFFFD" : t < 32 || t === 127 ? `\\${t.toString(16)} ` : n === '"' || n === "\\" ? `\\${n}` : n;
+        }).join("");
+      }
+      function Y(e, n) {
+        return e ? { kind: "any" } : n === void 0 ? { kind: "none" } : { kind: "named", prefix: n };
+      }
+      function Z(e, n) {
+        return e[n] === "|" && e[n + 1] !== "=";
+      }
+      function B(e, n) {
+        let t = e[n] === "*", i = t ? { value: "*", end: n + 1 } : h(e, n), o = y(e, i?.end ?? n);
+        if (!Z(e, o)) return t ? null : i ? { token: i, namespace: { kind: "none" } } : null;
+        let a = h(e, y(e, o + 1));
+        return a ? { token: a, namespace: Y(t, i?.value) } : null;
+      }
+      function K(e) {
+        if (e[0] !== "[") return null;
+        let n = A(e, 1), t = B(e, n);
+        if (!t) return null;
+        let { token: i, namespace: o } = t;
+        return { name: i.value, rawName: e.slice(n, i.end), namespace: o, end: i.end };
+      }
+      function ee(e, n) {
+        let t = /^(?:"((?:\\[\s\S]|[^"\\])*)"|'((?:\\[\s\S]|[^'\\])*)')/.exec(e.slice(n));
+        return t ? { value: X(t[1] ?? t[2]), end: n + t[0].length } : h(e, n);
+      }
+      function ne(e, n) {
+        let t = A(e, n), i = h(e, t);
+        if (i) {
+          if (!/^[is]$/i.test(i.value)) return null;
+          t = A(e, i.end);
+        }
+        return e[t] !== "]" || t !== e.length - 1 ? null : { flag: i?.value };
+      }
+      function F(e) {
+        let n = K(e);
+        if (!n) return null;
+        let t = A(e, n.end), o = ["=", "~=", "|=", "^=", "$=", "*="].find((d) => e.startsWith(d, t));
+        if (!o) return null;
+        let a = ee(e, A(e, t + o.length));
+        if (!a) return null;
+        let u = ne(e, a.end);
+        return u ? { name: n.name, rawName: n.rawName, namespace: n.namespace, operator: o, value: a.value, flag: u.flag } : null;
+      }
+      function E(e, n) {
+        return e.replace(W, (t) => t.startsWith("[") ? n(t) : t);
+      }
+      var re = "data-hf-svg-reference-aliases";
+      function O(e, n, t, i) {
+        let o = { "=": (s, r) => s === r, "~=": (s, r) => s.split(/[ \t\r\n\f]+/).includes(r), "|=": (s, r) => s === r || s.startsWith(r + "-"), "^=": (s, r) => s.startsWith(r), "$=": (s, r) => s.endsWith(r), "*=": (s, r) => s.includes(r) }, a = (s, r, l) => !r && l !== "=" && l !== "|=" ? false : o[l](s, r), u = (s) => s.replace(/[A-Z]/g, (r) => r.toLowerCase()), d = (s) => {
+          let r = F(s);
+          if (!r) return s;
+          let { name: l, rawName: g, namespace: m, operator: b, value: D, flag: w } = r;
+          if (m.kind === "named" != (i !== void 0)) return s;
+          let x = w?.toLowerCase() === "i" ? u : (S) => S, L = u(l), P = t.filter((S) => {
+            let V = m.kind === "none" ? S.name : S.localName, U = m.kind === "named" ? i.get(m.prefix) : null;
+            return (m.kind === "any" || S.namespaceURI === U) && u(V) === L;
+          }), v = /* @__PURE__ */ new Set([s]);
+          for (let S of P) a(x(S.before), x(D), b) && v.add(`[${g}="${N(S.after)}"${w ? ` ${w}` : ""}]`);
+          return v.size === 1 ? s : `:is(${[...v].join(", ")})`;
+        };
+        if (i) return E(e, d);
+        let p = new Map(n.map(({ id: s, replacement: r }) => [s, r])), f = /* @__PURE__ */ new Map();
+        for (let s of t) {
+          if (s.name !== "id" || s.before === s.after || p.has(s.before)) continue;
+          let r = f.get(s.before);
+          r || (r = /* @__PURE__ */ new Set([`#${k(s.before)}`]), f.set(s.before, r)), r.add(`#${k(s.after)}`);
+        }
+        for (let [s, r] of f) p.set(s, `:is(${[...r].join(", ")})`);
+        let c = q(e, [...p.keys()], (s) => p.get(s));
+        return E(c, d);
+      }
+      function se(e, n, t = true) {
+        let i = [], a = (t ? [...e.querySelectorAll(`[${n}]`)] : []).map((d) => d.getAttribute(n)), u = e.getAttribute?.(n);
+        u && a.unshift(u);
+        for (let d of a) {
+          let p;
+          try {
+            p = JSON.parse(d);
+          } catch {
+            continue;
+          }
+          if (!Array.isArray(p)) continue;
+          let f = p;
+          for (let c of f) {
+            if (!ie(c)) continue;
+            let { name: s, localName: r, namespaceURI: l, before: g, after: m } = c;
+            i.push({ name: s, localName: r, namespaceURI: l, before: g, after: m });
+          }
+        }
+        return i;
+      }
+      function ie(e) {
+        if (!e || typeof e != "object") return false;
+        let { name: n, localName: t, namespaceURI: i, before: o, after: a } = e;
+        return typeof n == "string" && typeof t == "string" && (i === null || typeof i == "string") && typeof o == "string" && typeof a == "string";
+      }
+      function oe(e) {
+        let n = [], t = [], i = false, o, a = /* @__PURE__ */ new WeakMap(), u = (f, c) => {
+          for (let s of f) {
+            if ("selectorText" in s) {
+              let r = s, l = a.get(r), g = r.selectorText, m = l?.applied === g ? l.authored : g, b = O(m, [], t, c);
+              b !== g && (r.selectorText = b), b === m ? a.delete(r) : a.set(r, { authored: m, applied: r.selectorText });
+            }
+            "cssRules" in s && u(s.cssRules, c);
+          }
+        }, d = () => {
+          if (t.length) for (let f of e.document.styleSheets) {
+            let c;
+            try {
+              c = f.cssRules;
+            } catch {
+              continue;
+            }
+            let s = /* @__PURE__ */ new Map();
+            for (let r of c) {
+              if (!("namespaceURI" in r)) continue;
+              let { prefix: l, namespaceURI: g } = r;
+              l && s.set(l, g || null);
+            }
+            s.size && u(c, s);
+          }
+        }, p = { rewrite: (f, c = []) => {
+          if (typeof f != "string" || !f.includes("#") && !f.includes("[")) return f;
+          let s = O(f, c.length ? [...c, ...n] : n, t);
+          if (s !== f) {
+            if (!o) {
+              let r = e.document.createElement("div");
+              o = r.matches.bind(r);
+            }
+            o(f);
+          }
+          return s;
+        }, refresh() {
+          t = se(e.document, re).filter((r) => r.before !== r.after);
+          let f = new Set(t.filter((r) => r.name === "id").map((r) => r.before)), c = /* @__PURE__ */ new Set();
+          n = [];
+          for (let r of e.document.querySelectorAll("[data-hf-authored-id][id]")) {
+            let l = r.getAttribute("data-hf-authored-id");
+            if (!l || l === r.id || c.has(l) || f.has(l)) continue;
+            c.add(l);
+            let g = N(l);
+            n.push({ id: l, replacement: `:is(#${k(l)}, [data-hf-authored-id="${g}"])` });
+          }
+          if (d(), i || !n.length && !t.length) return;
+          let s = e.Element.prototype;
+          s.querySelector = new Proxy(s.querySelector, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), s.querySelectorAll = new Proxy(s.querySelectorAll, { apply(r, l, g) {
+            return Reflect.apply(r, l, [p.rewrite(g[0])]);
+          } }), i = true;
+        } };
+        e.__hfSvgSelectorAliases = p, p.refresh();
+      }
+      function M() {
+        let e = window;
+        e.__hfSvgSelectorAliases || oe(e);
+      }
+      M();
+    })();
+  })();
+  var __hfCompId = "04-cta";
+  var __hfTimelineCompId = "04-cta";
+  var __hfErrorLabel = "[HyperFrames] composition script error:";
+  var __hfAuthoredRootId = "root";
+  var __hfCompositionSrc = "compositions/frames/04-cta.html";
+  var __hfAuthoredRootAttr = "data-hf-authored-id";
+  var __hfEscapeAttr = function(value) {
+    return (value + "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  };
+  var __hfRootSelector = '[data-composition-id="04-cta"]';
+  var __hfRoot = null;
+  var __hfRootSelectorPattern = `\\[\\s*data-composition-id\\s*=\\s*(?:"04-cta"|'04-cta')\\s*\\]`;
+  var __hfTimingSelectorPattern = `\\s*\\[\\s*data-(?:start|duration)\\s*=\\s*(?:"[^"]*"|'[^']*')\\s*\\]`;
+  var __hfAuthoredRootSelector = __hfAuthoredRootId ? "[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(__hfAuthoredRootId) + '"]' : "";
+  var __hfAuthoredRootEntries = __hfAuthoredRootSelector ? [{ id: __hfAuthoredRootId, replacement: __hfAuthoredRootSelector }] : [];
+  var __hfNormalizeSelector = function(selector) {
+    if (!__hfCompId || typeof selector !== "string") return selector;
+    var normalized = selector.replace(new RegExp(__hfRootSelectorPattern + "(?:" + __hfTimingSelectorPattern + ")+", "g"), __hfRootSelector).replace(new RegExp("(?:" + __hfTimingSelectorPattern + ")+" + __hfRootSelectorPattern, "g"), __hfRootSelector);
+    return window.__hfSvgSelectorAliases.rewrite(normalized, __hfAuthoredRootEntries);
+  };
+  var __hfFindRoot = function() {
+    if (!__hfRoot && __hfRootSelector) {
+      __hfRoot = window.document.querySelector(__hfRootSelector);
+    }
+    return __hfRoot;
+  };
+  var __hfContains = function(node) {
+    var root = __hfFindRoot();
+    return !root || node === root || root.contains(node);
+  };
+  var __hfQueryAll = function(selector) {
+    var root = __hfFindRoot();
+    if (!root || typeof selector !== "string") {
+      return window.document.querySelectorAll(selector);
+    }
+    return Array.prototype.filter.call(window.document.querySelectorAll(__hfNormalizeSelector(selector)), function(node) {
+      return __hfContains(node);
+    });
+  };
+  var __hfQueryOne = function(selector) {
+    var matches = __hfQueryAll(selector);
+    return matches[0] || null;
+  };
+  var __hfGetElementById = function(id) {
+    var found = window.document.getElementById(id);
+    if (found && __hfContains(found)) return found;
+    var root = __hfFindRoot();
+    if (!root) return found || null;
+    var idValue = id + "";
+    if (__hfAuthoredRootId && __hfAuthoredRootId === idValue && root.getAttribute && root.getAttribute(__hfAuthoredRootAttr) === idValue) {
+      return root;
+    }
+    if (root.id === idValue) return root;
+    if (typeof root.querySelector !== "function") return null;
+    try {
+      var authoredRootMatch = root.querySelector("[" + __hfAuthoredRootAttr + '="' + __hfEscapeAttr(idValue) + '"]');
+      if (authoredRootMatch) return authoredRootMatch;
+    } catch {
+    }
+    if (typeof CSS !== "undefined" && CSS && typeof CSS.escape === "function") {
+      try {
+        return root.querySelector("#" + CSS.escape(idValue)) || null;
+      } catch {
+      }
+    }
+    try {
+      return root.querySelector('[id="' + __hfEscapeAttr(idValue) + '"]') || null;
+    } catch {
+    }
+    return null;
+  };
+  var __hfScopedDocument = typeof Proxy === "function" ? new Proxy(window.document, {
+    get: function(target, prop, receiver) {
+      if (prop === "querySelector") return __hfQueryOne;
+      if (prop === "querySelectorAll") return __hfQueryAll;
+      if (prop === "getElementById") return __hfGetElementById;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) : window.document;
+  var __hfTimelineRegistryProxy = null;
+  var __hfGetTimelineRegistry = function() {
+    window.__timelines = window.__timelines || {};
+    if (!__hfCompId || __hfCompId === __hfTimelineCompId || typeof Proxy !== "function") {
+      return window.__timelines;
+    }
+    if (!__hfTimelineRegistryProxy) {
+      __hfTimelineRegistryProxy = new Proxy(window.__timelines, {
+        get: function(target, prop, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.get(target, prop, target);
+          }
+          var authoredValue = Reflect.get(target, prop, target);
+          return authoredValue === void 0 ? Reflect.get(target, __hfTimelineCompId, target) : authoredValue;
+        },
+        set: function(target, prop, value, receiver) {
+          if (prop !== __hfCompId) {
+            return Reflect.set(target, prop, value, target);
+          }
+          var authoredSet = Reflect.set(target, __hfCompId, value, target);
+          var runtimeSet = Reflect.set(target, __hfTimelineCompId, value, target);
+          return authoredSet && runtimeSet;
+        }
+      });
+    }
+    return __hfTimelineRegistryProxy;
+  };
+  var __hfScopedWindow = typeof Proxy === "function" ? new Proxy(window, {
+    get: function(target, prop, receiver) {
+      if (prop === "__timelines") return __hfGetTimelineRegistry();
+      if (prop === "__hyperframes") return __hfScopedHyperframes;
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" && value.prototype === void 0 ? value.bind(target) : value;
+    },
+    set: function(target, prop, value, receiver) {
+      if (prop === "__timelines") {
+        if (value === __hfTimelineRegistryProxy) return true;
+        target.__timelines = value || {};
+        __hfTimelineRegistryProxy = null;
+        return true;
+      }
+      return Reflect.set(target, prop, value, target);
+    }
+  }) : window;
+  var __hfResolveGsapTarget = function(target) {
+    if (typeof target === "string") return __hfQueryAll(target);
+    if (!Array.isArray(target)) return target;
+    return target.reduce(function(resolved, item) {
+      if (typeof item === "string") {
+        return resolved.concat(Array.prototype.slice.call(__hfQueryAll(item)));
+      }
+      resolved.push(item);
+      return resolved;
+    }, []);
+  };
+  var __hfScopeTimeline = function(timeline) {
+    if (!timeline || timeline.__hfScopedCompositionRoot === __hfFindRoot()) return timeline;
+    ["to", "from", "fromTo", "set"].forEach(function(method) {
+      var original = timeline[method];
+      if (typeof original !== "function") return;
+      timeline[method] = function(target) {
+        var args = Array.prototype.slice.call(arguments);
+        args[0] = __hfResolveGsapTarget(target);
+        return original.apply(timeline, args);
+      };
+    });
+    try {
+      Object.defineProperty(timeline, "__hfScopedCompositionRoot", {
+        value: __hfFindRoot(),
+        configurable: true
+      });
+    } catch {
+    }
+    return timeline;
+  };
+  var __hfBaseGsap = typeof gsap === "undefined" ? window.gsap : gsap;
+  var __hfScopedGsap = !__hfBaseGsap || typeof Proxy !== "function" ? __hfBaseGsap : new Proxy(__hfBaseGsap, {
+    get: function(target, prop, receiver) {
+      if (prop === "timeline") {
+        return function() {
+          return __hfScopeTimeline(target.timeline.apply(target, arguments));
+        };
+      }
+      if (prop === "to" || prop === "from" || prop === "fromTo" || prop === "set") {
+        return function(firstArg) {
+          var args = Array.prototype.slice.call(arguments);
+          args[0] = __hfResolveGsapTarget(firstArg);
+          return target[prop].apply(target, args);
+        };
+      }
+      if (prop === "utils" && target.utils && typeof Proxy === "function") {
+        return new Proxy(target.utils, {
+          get: function(utilsTarget, utilsProp, utilsReceiver) {
+            if (utilsProp === "toArray") {
+              return function(firstArg) {
+                var args = Array.prototype.slice.call(arguments);
+                args[0] = __hfResolveGsapTarget(firstArg);
+                return utilsTarget.toArray.apply(utilsTarget, args);
+              };
+            }
+            if (utilsProp === "selector") {
+              return function(base) {
+                var baseEl = typeof base === "string" ? __hfQueryOne(base) : base;
+                var root = baseEl || __hfFindRoot();
+                return function(selector) {
+                  if (!root || typeof selector !== "string") return [];
+                  return Array.prototype.filter.call(
+                    window.document.querySelectorAll(__hfNormalizeSelector(selector)),
+                    function(node) {
+                      return node === root || typeof root.contains === "function" && root.contains(node);
+                    }
+                  );
+                };
+              };
+            }
+            var value2 = Reflect.get(utilsTarget, utilsProp, utilsTarget);
+            return typeof value2 === "function" ? value2.bind(utilsTarget) : value2;
+          }
+        });
+      }
+      var value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+  var __hfBaseHyperframes = window.__hyperframes;
+  var __hfScopedHyperframes = !__hfBaseHyperframes ? __hfBaseHyperframes : Object.assign({}, __hfBaseHyperframes, {
+    assetUrl: function(path) {
+      var page = window.document.baseURI;
+      return new URL(path, __hfCompositionSrc ? new URL(__hfCompositionSrc, page) : page).href;
+    },
+    getVariables: function() {
+      var byComp = window.__hfVariablesByComp;
+      var scoped = byComp && __hfTimelineCompId ? byComp[__hfTimelineCompId] : null;
+      return scoped ? Object.assign({}, scoped) : {};
+    }
+  });
+  var __hfRun = function() {
+    try {
+      (function(document, gsap2, window2, __hyperframes) {
+        (function() {
+          var NUDGE = 5e-4;
+          var TYPE_START = 0.2;
+          var TYPE_STEP = 0.05;
+          var OUT_AT = 1.9;
+          var CTA_AT = 2.6;
+          var CTA_DUR = 0.8;
+          var chars = document.getElementById("04-cta-cmd").children;
+          var caretEl = document.getElementById("04-cta-caret");
+          var out1 = document.getElementById("04-cta-out1");
+          var out2 = document.getElementById("04-cta-out2");
+          var ctaEl = document.getElementById("04-cta-cta");
+          var tl = gsap2.timeline({ paused: true });
+          for (var i = 0; i < chars.length; i++) {
+            var at = Math.round((TYPE_START + i * TYPE_STEP) * 1e3) / 1e3 - NUDGE;
+            tl.set(chars[i], { display: "inline" }, at);
+          }
+          tl.set(caretEl, { visibility: "hidden" }, OUT_AT - NUDGE);
+          tl.set([out1, out2], { visibility: "inherit" }, OUT_AT - NUDGE);
+          tl.fromTo(
+            ctaEl,
+            { scale: 0.88, opacity: 0 },
+            { scale: 1, opacity: 1, duration: CTA_DUR, ease: "power3.out" },
+            CTA_AT
+          );
+          window2.__timelines = window2.__timelines || {};
+          window2.__timelines["04-cta"] = tl;
+        })();
+      }).call(window, __hfScopedDocument, __hfScopedGsap, __hfScopedWindow, __hfScopedHyperframes);
+    } catch (_err) {
+      console.error(__hfErrorLabel, __hfCompId, _err);
+    }
+  };
+  var __hfRecordAnimations = function(run) {
+    if (window.__hfSceneAnimations === void 0) {
+      window.__hfSceneAnimations = window.document.querySelector('meta[name="hf-scene-parts"]') ? {} : null;
+    }
+    var byComp = window.__hfSceneAnimations;
+    var globalTimeline = __hfBaseGsap && __hfBaseGsap.globalTimeline;
+    if (!byComp || !globalTimeline || !__hfTimelineCompId) return run();
+    var before = globalTimeline.getChildren(false);
+    var autoRemove = globalTimeline.autoRemoveChildren;
+    globalTimeline.autoRemoveChildren = false;
+    run();
+    globalTimeline.autoRemoveChildren = autoRemove;
+    var recorded = byComp[__hfTimelineCompId] = byComp[__hfTimelineCompId] || [];
+    globalTimeline.getChildren(false).forEach(function(animation) {
+      if (before.indexOf(animation) >= 0) return;
+      recorded.push(animation);
+      if (autoRemove && !animation.getChildren && animation.totalProgress() === 1) globalTimeline.remove(animation);
+    });
+  };
+  __hfFindRoot();
+  __hfRecordAnimations(__hfRun);
+})();</script></body>
+</html>

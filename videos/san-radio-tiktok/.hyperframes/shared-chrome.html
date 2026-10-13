@@ -1,0 +1,59 @@
+<!--
+  SHARED CHROME — paste this verbatim into every frame of san-radio-tiktok, inside the frame's
+  <template> root (the element carrying data-composition-id). Replace the two {DURATION}
+  placeholders with the frame's duration in seconds (e.g. 5). Do not change anything else here:
+  the four frames are joined by hard cuts, so this chrome must be pixel-identical in all of them
+  and must never animate.
+
+  Then add the frame's own content as further elements using the .t / .L classes below:
+  a terminal line n (L0, L1, …) sits at top = 270 + n*52 px, left 104px; set it inline as
+  style="top:{270 + n*52}px". Text spans use the colour classes (.host .path .arrow .cmd .out
+  .muted .pink). Keep every line at most 33 characters. Content clips go on track 2 or higher.
+-->
+<style>
+  @font-face { font-family: "DejaVu Sans Mono"; src: url("assets/DejaVuSansMono.ttf"); }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  .chrome-ground { position: absolute; inset: 0; background: #0d0b1e; overflow: hidden; }
+  .chrome-ground img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
+  .chrome-veil { position: absolute; inset: 0; background: rgba(13,11,30,0.35); }
+  .chrome-window {
+    position: absolute; left: 56px; top: 150px; width: 968px; height: 1380px; box-sizing: border-box;
+    background: rgba(16,14,36,0.80); border: 1.5px solid rgba(160,120,255,0.55); border-radius: 22px;
+    box-shadow: 0 0 24px rgba(140,90,255,0.25), 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .chrome-dot { position: absolute; top: 32px; width: 20px; height: 20px; border-radius: 50%; }
+  .chrome-tab { position: absolute; left: 136px; top: 18px; width: 190px; height: 48px; border-radius: 10px; background: rgba(70,70,120,0.45); }
+  .chrome-rule { position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: rgba(160,120,255,0.28); }
+  .chrome-mono { position: absolute; font-family: "DejaVu Sans Mono", monospace; white-space: pre; line-height: 1; }
+  .chrome-bar { position: absolute; left: 104px; top: 1446px; width: 380px; height: 56px; }
+  .t { position: absolute; left: 104px; font-family: "DejaVu Sans Mono", monospace; font-size: 40px; line-height: 52px; height: 52px; white-space: pre; color: #e6e6f0; }
+  .host { color: #ff7ac6; } .path { color: #5ccfe6; } .arrow { color: #9ece6a; }
+  .cmd { color: #e6e6f0; } .out { color: #e0af68; } .muted { color: #8b8fb5; } .pink { color: #ff7ac6; }
+  .caret { display: inline-block; width: 24px; height: 44px; background: #e6e6f0; vertical-align: -8px; }
+</style>
+
+<div class="clip chrome-ground" data-start="0" data-duration="{DURATION}" data-track-index="0">
+  <img src="assets/night-scene.svg" alt="">
+  <div class="chrome-veil"></div>
+</div>
+
+<div class="clip" data-start="0" data-duration="{DURATION}" data-track-index="1" style="position:absolute;inset:0;">
+  <div class="chrome-window">
+    <div class="chrome-dot" style="left:36px;background:#ff5f57"></div>
+    <div class="chrome-dot" style="left:68px;background:#febc2e"></div>
+    <div class="chrome-dot" style="left:100px;background:#28c840"></div>
+    <div class="chrome-tab"></div>
+    <div class="chrome-mono" style="left:158px;top:27px;font-size:30px;color:#e6e6f0">~</div>
+    <div class="chrome-mono" style="left:282px;top:30px;font-size:24px;color:#8b8fb5">×</div>
+    <div class="chrome-mono" style="right:40px;top:27px;font-size:30px;color:#e6e6f0">21:04</div>
+    <div class="chrome-rule"></div>
+  </div>
+  <svg class="chrome-bar" viewBox="0 0 380 56" width="380" height="56">
+    <polygon points="1,1 146,1 163,28 146,55 1,55 18,28" fill="none" stroke="#ff7ac6" stroke-width="2"/>
+    <polygon points="158,0 270,0 288,28 270,56 158,56 176,28" fill="#5ccfe6"/>
+  </svg>
+  <div class="chrome-mono" style="left:136px;top:1457px;font-size:34px;color:#ff7ac6">radio</div>
+  <div class="chrome-mono" style="left:300px;top:1457px;font-size:34px;color:#0d0b1e">~</div>
+  <div class="chrome-mono" style="left:412px;top:1454px;font-size:38px;color:#ff7ac6">›</div>
+  <div style="position:absolute;left:446px;top:1454px;width:20px;height:40px;background:#8b8fb5"></div>
+</div>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #e6e6f0;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-maqu" id="root" data-composition-id="main" data-start="0" data-duration="24" data-width="1080" data-height="1920">
+      <div data-hf-id="hf-lt2u" id="el-01-hook" class="scene" data-composition-id="01-hook" data-composition-src="compositions/frames/01-hook.html" data-start="0" data-duration="5" data-track-index="1"></div>
+
+      <div data-hf-id="hf-4nmk" id="el-02-neofetch" class="scene" data-composition-id="02-neofetch" data-composition-src="compositions/frames/02-neofetch.html" data-start="5" data-duration="6" data-track-index="1"></div>
+
+      <div data-hf-id="hf-3uc1" id="el-03-music" class="scene" data-composition-id="03-music" data-composition-src="compositions/frames/03-music.html" data-start="11" data-duration="6" data-track-index="1"></div>
+
+      <div data-hf-id="hf-cwta" id="el-04-cta" class="scene" data-composition-id="04-cta" data-composition-src="compositions/frames/04-cta.html" data-start="17" data-duration="7" data-track-index="1"></div>
+
+      <!-- SFX -->
+      <audio data-hf-id="hf-j9i2" id="el-sfx-0" src="assets/sfx/keys.wav" data-start="0.3" data-duration="0.9" data-track-index="20" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-6vcn" id="el-sfx-1" src="assets/sfx/keys.wav" data-start="2.4" data-duration="0.9" data-track-index="21" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-ahe6" id="el-sfx-2" src="assets/sfx/keys.wav" data-start="5.2" data-duration="0.9" data-track-index="22" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-jq6p" id="el-sfx-3" src="assets/sfx/keys.wav" data-start="8.8" data-duration="0.9" data-track-index="23" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-a3rp" id="el-sfx-4" src="assets/sfx/keys.wav" data-start="11.2" data-duration="0.9" data-track-index="24" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-hkcc" id="el-sfx-5" src="assets/sfx/keys.wav" data-start="14" data-duration="0.9" data-track-index="25" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-lp8p" id="el-sfx-6" src="assets/sfx/keys.wav" data-start="15.2" data-duration="0.9" data-track-index="26" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-ur3h" id="el-sfx-7" src="assets/sfx/keys.wav" data-start="17.2" data-duration="0.9" data-track-index="27" data-volume="0.45"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

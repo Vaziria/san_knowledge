@@ -10,6 +10,10 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 New-Item -ItemType Directory -Force bin | Out-Null
 
+# Pure Go: without this, a global CGO_ENABLED=1 makes the Linux cross build
+# look for a C compiler for Linux.
+$env:CGO_ENABLED = '0'
+
 $env:GOOS = 'windows'; $env:GOARCH = 'amd64'
 go build -o bin/san_youtube.exe ./cmd/san_youtube
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -18,5 +22,5 @@ $env:GOOS = 'linux'; $env:GOARCH = 'amd64'
 go build -o bin/san_youtube ./cmd/san_youtube
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Remove-Item Env:GOOS, Env:GOARCH
+Remove-Item Env:GOOS, Env:GOARCH, Env:CGO_ENABLED
 Write-Host 'built bin/san_youtube.exe and bin/san_youtube'

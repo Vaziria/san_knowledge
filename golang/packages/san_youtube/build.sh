@@ -7,7 +7,7 @@ go vet ./...
 go test ./...
 
 mkdir -p bin
-GOOS=windows GOARCH=amd64 go build -o bin/san_youtube.exe ./cmd/san_youtube
-GOOS=linux GOARCH=amd64 go build -o bin/san_youtube ./cmd/san_youtube
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/san_youtube.exe ./cmd/san_youtube
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/san_youtube ./cmd/san_youtube
 
 echo "built bin/san_youtube.exe and bin/san_youtube"

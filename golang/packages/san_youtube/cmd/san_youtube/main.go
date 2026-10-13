@@ -6,6 +6,13 @@
 //
 // Messages go to stdout, one per line; status lines, starting with "==", go
 // to stderr. It stops when the stream ends, on Ctrl+C, or after -for.
+//
+// It also uploads videos, such as Shorts, through YouTube Studio in Chrome on
+// the profile the san_* tools share (upload.go):
+//
+//	san_youtube login                sign in to YouTube once
+//	san_youtube status               say whether that profile is signed in
+//	san_youtube upload post.md       upload, and save as private or schedule
 package main
 
 import (
@@ -37,6 +44,19 @@ func main() {
 }
 
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
+	// None of these can be a stream: a handle starts with @, and a video or
+	// channel ID is longer.
+	if len(args) > 0 {
+		switch args[0] {
+		case "login":
+			return runLogin(ctx, args[1:], stderr)
+		case "status":
+			return runStatus(ctx, args[1:], stdout, stderr)
+		case "upload":
+			return runUpload(ctx, args[1:], stdout, stderr)
+		}
+	}
+
 	fs := flag.NewFlagSet("san_youtube", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	var (
@@ -49,6 +69,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: san_youtube [flags] <video URL | video ID | @handle | channel URL>")
 		fs.PrintDefaults()
+		fmt.Fprintln(stderr)
+		fmt.Fprintln(stderr, uploadUsage)
 	}
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {

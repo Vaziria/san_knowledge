@@ -1,6 +1,7 @@
 # san_youtube
 
-Read the chat of a YouTube live stream from Go, in real time.
+Read the chat of a YouTube live stream from Go, in real time, and upload
+videos such as Shorts (see [Uploading videos](#uploading-videos)).
 
 `san_youtube` reads chat the same way the chat window on youtube.com does. It
 needs no API key, no OAuth and no quota. You give it a video URL, a video ID or
@@ -8,7 +9,13 @@ a channel handle. You get every message from "Live chat" (not the filtered
 "Top chat") as typed Go values: text messages, Super Chats, Super Stickers,
 memberships, gifted memberships, deletions and replacements.
 
-Module `github.com/wargasipil/san_youtube`, Go 1.26, standard library only.
+Module `github.com/wargasipil/san_youtube`, Go 1.26. The chat reader, package
+`san_youtube`, uses the standard library only. The uploader, package
+`studio`, also needs [chromedp](https://github.com/chromedp/chromedp),
+[yaml.v3](https://gopkg.in/yaml.v3) and
+[san_profile_manager](../san_profile_manager/README.md), which is wired in
+with a `replace` line in `go.mod`. A program that only reads chat, such as
+san_radio, does not carry them.
 
 ## Usage
 
@@ -203,6 +210,227 @@ again. Network errors, 5xx and 429 are retried with backoff. A 4xx on a
 continuation that worked before (for example, after the computer slept)
 reloads the chat page once, to get a fresh continuation.
 
+## Uploading videos
+
+`san_youtube upload` puts a video on YouTube, such as a Short, and saves it as
+private, or schedules it to be made public. It never publishes a video at
+once: a video either stays private, or goes public at the time you set.
+
+There is no "Short" setting. YouTube makes a video a Short when it is
+vertical or square and at most 3 minutes long, such as the 1080×1920 renders
+in `videos/*/renders/video.mp4`.
+
+YouTube's Data API can upload too, but it needs a Google Cloud project and
+OAuth. A project Google has not audited also keeps every video it uploads
+private. So `san_youtube` uses YouTube Studio, the way a person does, in a
+real Chrome that is signed in to YouTube. That Chrome runs on the profile the
+san_* tools share (see [san_medium](../san_medium/README.md) and
+[san_profile_manager](../san_profile_manager/README.md)).
+
+```powershell
+pwsh build.ps1                                        # vet, test, build bin/san_youtube.exe and bin/san_youtube
+bin\san_youtube.exe login -profile basic              # once: sign in to Google in the window that opens, then close it
+bin\san_youtube.exe status -profile basic             # signed in (D:\research\marketing\browser_profiles\basic)
+bin\san_youtube.exe upload -dry-run youtube.md        # what would be uploaded; opens nothing
+bin\san_youtube.exe upload -profile basic youtube.md  # upload, and save as private
+bin\san_youtube.exe upload -profile basic -at "2026-10-20 19:00" youtube.md   # upload, and schedule
+```
+
+The Google session is in the `basic` profile (2026-10-13). That account's
+channel is **Heri Santoso Dev** (@herisantoso1239), not @GetResolved. A video
+goes to the channel the profile is signed in to, and `upload` prints that
+channel's name before it chooses the file. To upload to another channel, sign
+in to it on its own profile, for example `login -profile getresolved`, and
+upload with `-profile getresolved`.
+
+The video's link goes to stdout and the status lines go to stderr. This is
+the test run of 2026-10-13, with the test video since deleted:
+
+```
+== uploading …\post\san-youtube-test.mp4 as "Uji san_youtube (hapus saja)"
+== opening YouTube's home page
+== looking at the home page for a moment
+== opening Create, then Upload video
+== channel: Heri Santoso Dev
+== choosing san-youtube-test.mp4
+== Studio made video IVvRoPlVkOk; it is private until saved
+== typing the title
+== typing the description (87 characters)
+== answering: not made for kids
+== adding 3 tags
+== Next
+== Next
+== Next
+== choosing Private
+== pressing Save
+== closing Studio's dialog: Video processing Your private video is still processing standard definition (SD). …
+== finding it in Studio's content list
+https://youtube.com/shorts/IVvRoPlVkOk
+== saved as private, a Short; Studio lists it as "Pending"
+== edit it in Studio: https://studio.youtube.com/video/IVvRoPlVkOk/edit
+```
+
+Studio lists a video as "Pending" while it processes it, and as "Private"
+afterwards.
+
+Studio makes the video as soon as it has the file. If a later step fails,
+the link is still printed, and Studio keeps the video as private, to finish or
+delete in Studio.
+
+### The post
+
+A post is a markdown file, usually next to the video
+(`videos/<name>/youtube.md`):
+
+```markdown
+---
+video: renders/video.mp4
+tags: [raspberry pi, radio 24 jam, golang]
+at: 2026-10-20 19:00
+---
+
+# Radio 24 jam dari Raspberry Pi #shorts
+
+Musik sendiri, 24 jam, dari Raspberry Pi 3B+.
+Dengarkan: https://www.youtube.com/@GetResolved
+
+#raspberrypi #radio
+```
+
+- **Title:** the first `# ` heading. At most 100 characters.
+- **Description:** everything after the title, as plain text with its line
+  breaks. YouTube does not render markdown, so write a link as a bare URL. At
+  most 5,000 bytes.
+- **`video`** (required): the video file, relative to the markdown file.
+- **`tags`:** a list, or one line with commas. At most 500 characters, counted
+  as Studio counts them: a tag with a space counts its two quotes, and there
+  is a comma between tags.
+- **`at`:** when YouTube makes the video public, local time, as
+  `"2006-01-02 15:04"` or RFC 3339. It must be at least 15 minutes ahead.
+  Without it, the video stays private.
+- YouTube refuses `<` and `>` in a title or description, so the tool does
+  too, before Chrome opens.
+
+`upload` also takes a video file instead of a markdown file, with `-title`.
+
+| Flag | What it does |
+|---|---|
+| `-title`, `-description` | replace the file's title or description |
+| `-tag <t>` | a tag; may be repeated, or hold commas. Replaces the file's tags. |
+| `-at <time>` | the publish time, replacing the file's. `-at ""` keeps the video private. |
+| `-dry-run` | print what would be uploaded, and open nothing |
+| `-timeout` | give up after this long (default 30m) |
+| `-profile`, `-remote`, `-chrome` | the browser, as for san_medium |
+
+Every check runs before Chrome opens: the video file is there, there is a
+title, the limits above hold, and the time is far enough ahead.
+
+### How an upload goes
+
+All of it happens in the Chrome window, which you leave alone while it works.
+
+1. **Home page, Create, Upload video.**
+   - The tool opens youtube.com. The page has to show the account button and
+     Create. A Sign in button instead means `ErrNotLoggedIn`.
+   - It waits until the page has stopped loading, then waits another 5–10
+     seconds.
+   - It clicks Create, then Upload video, which takes the tab to Studio with
+     its upload dialog open. A menu that does not open is tried again, up to
+     3 times.
+2. **The file.**
+   - The tool clicks Select files. Chrome hands the file chooser to the tool
+     (`Page.setInterceptFileChooserDialog`), which gives it the file.
+   - Studio makes the video at once, as private, and shows its link. The link
+     gives the video id.
+3. **Details.**
+   - Studio fills the title with the file name. The tool selects it and types
+     the title over it.
+   - It types the description, if there is one.
+   - It answers "No, it's not made for kids". YouTube asks this of every
+     video.
+   - For tags, it opens Show more, types them with commas between, and
+     presses Enter, which makes each one a chip. Typed commas alone do not.
+   - Text goes in with `Input.insertText`, as an input method or a paste
+     would. Each field is read back.
+4. **Next**, until the Visibility step shows. Video elements and Checks are
+   left as they are.
+5. **Visibility.**
+   - Without `at`: Private.
+   - With `at`: Schedule. The date is typed into the date picker (`Nov 13,
+     2026`) and the time into the time box (`7:05 PM`). Both are read back.
+   - Studio schedules in its default time zone, "Local Time", which is
+     Chrome's. The tool first checks that Chrome's offset at that moment is
+     this computer's.
+   - Right before pressing Save (or Schedule), the tool checks that Private,
+     or the schedule, is still the choice. If not, it stops, so a video is
+     never published at once.
+6. **Upload finished.** Every request to `upload.youtube.com` carries part of
+   the file. The tool waits until all of them have ended before it saves,
+   since closing the tab any sooner would end the upload.
+7. **Save.** Studio fades the upload dialog out; it stays in the page at
+   opacity 0, so the tool counts a faded-out element as hidden.
+   - When the video is saved before standard definition is ready, Studio
+     shows "Video processing" (`ytcp-uploads-still-processing-dialog`). The
+     tool closes it with its Close button.
+   - Any other Studio dialog that follows is closed the same way, by its
+     `#close-button`.
+8. **Check.** The tool finds the video in Studio's content list, under Shorts
+   or else under Videos, and compares its title. It reports what the list
+   shows: "Private" or "Scheduled", and whether the video is a Short.
+
+The tool clicks and types into elements found by id and name, not by label.
+So Studio's language does not matter, except for the schedule's date and time,
+which are typed in English. With Studio in another language, the read-back
+does not match, and the tool stops before anything is scheduled.
+
+### The package
+
+```go
+p, err := studio.ParseFile("videos/san-radio-tiktok/youtube.md")
+if err != nil {
+	log.Fatal(err) // studio.ErrInvalidPost, studio.ErrTooSoon
+}
+c, err := studio.New(ctx, studio.WithProfile("basic"))
+if err != nil {
+	log.Fatal(err)
+}
+defer c.Close()
+v, err := c.Upload(ctx, p, studio.WithProgress(func(s string) { log.Println(s) }))
+if v != nil {
+	fmt.Println(v.URL) // https://youtube.com/shorts/<id>; v.Studio is where to edit it
+}
+if err != nil {
+	log.Fatal(err) // e.g. studio.ErrNotLoggedIn, studio.ErrStudio
+}
+```
+
+`Login`, `LoggedIn`, `WithRemote` and `WithExecPath` work as in san_medium.
+`LoggedIn` reads the profile's cookies and loads no page: it looks for
+Google's session cookie `SID` on youtube.com. Google's sign-in sets that
+cookie before YouTube is ever visited; YouTube's own `LOGIN_INFO` only comes
+with a first visit.
+
+### Limits of uploading
+
+- **Studio's markup.** The ids, names and tags the tool uses are in
+  `studio/upload.go` and `studio/studio.js`. A Studio redesign breaks the
+  tool with `ErrStudio`, which names the step and saves a screenshot. The
+  video Studio has made by then stays private.
+- **Left as Studio sets them:**
+  - playlists and the thumbnail
+  - "altered or synthetic content". Disclose realistic AI-made content in
+    Studio yourself.
+  - paid promotion, comments and the other "Show more" settings
+  - the channel's upload defaults, if it has any. The tool replaces the
+    title, and replaces the description and adds tags only when the post has
+    them.
+- **Not done by the tool:** publishing at once, unlisted, and changing or
+  deleting a video after its upload.
+- **Links in a description** are plain text until the channel has completed
+  YouTube's one-time verification. Studio says so under the description box.
+- **One upload at a time per `Client`.** The tab stays in Studio afterwards.
+  The next upload starts at the home page again.
+
 ## Tests
 
 ```
@@ -222,6 +450,41 @@ The tests cover:
 
 The integration test runs only when `SAN_YOUTUBE_LIVE` is set, and never
 with `-short`.
+
+The uploader's unit tests (`studio/`, `cmd/san_youtube/upload_test.go`)
+cover:
+
+- reading the post file: frontmatter, tags as a list or a line, times, the
+  title and description, a byte order mark, and bad files
+- YouTube's limits, and the publish time being far enough ahead
+- the sign-in cookie
+- `upload -dry-run`, flags over the file, and every check failing before
+  Chrome opens
+
+There is no offline test of the browser part. On 2026-10-13 it was checked
+against the real Studio, on the Heri Santoso Dev channel, with a 6-second
+1080×1920 test clip and your OK. Each test video was private, and was deleted
+afterwards.
+
+- **Private, whole flow: works.**
+  - Two runs went through the whole flow and were listed under Shorts. One
+    was timed: 71 s.
+  - One of them got Studio's "Video processing" dialog, and closed it. The
+    other got no dialog.
+  - Studio's edit page then showed the title, the description with its line
+    breaks, "not made for kids", the three tags, and Private.
+- **Fixed along the way:**
+  - The tags stayed one line of text until Enter was added.
+  - The tool waited for a dialog that Studio only fades out.
+  - "Video processing" was not closed.
+- **Schedule: not run yet.** The date picker, the time box and the "Local
+  Time" zone were looked at by hand: they take typed text, and read back
+  `Nov 13, 2026` and `7:05 PM`. The tool's schedule step itself has not run,
+  since scheduling makes a video public later and needs its own OK.
+- **The Chrome.** The runs used `-remote` on a Chrome started on the `basic`
+  profile with `--remote-debugging-port`. The usual start, where the tool
+  starts Chrome itself, is san_profile_manager's, as for san_medium. It was
+  not run with this tool.
 
 ## Limits
 

@@ -4,3 +4,6 @@
 [submodule "golang/packages/san_vpn"]
 	path = golang/packages/san_vpn
 	url = https://github.com/wargasipil/san_vpn.git
+[submodule "project/game/endless_samurai"]
+	path = project/game/endless_samurai
+	url = https://github.com/wargasipil/endless_samurai

@@ -1,0 +1,9 @@
+# Built by the scripts (rebuild with scripts\run.ps1); never edited by hand
+*.blend
+*.blend1
+# Downloaded Poly Haven files (CC0): fetched again by script from the manifest
+blender/assets/polyhaven/
+renders/
+_logs/
+_work/
+__pycache__/

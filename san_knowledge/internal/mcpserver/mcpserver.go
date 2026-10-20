@@ -44,8 +44,8 @@ func New(open Opener, author, version string) *Server {
 var supportedVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 
 const instructions = `Knowledge graph of this project, shared between the user and AI.
-Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs or in a folder listed under "track" in knowledge_data/config.json, such as the figure specs in typescripts/animation; key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section), reference (doc/section -> doc/section it links to with a markdown link).
-Before answering questions about the project's research or docs, call knowledge_explain to load context and cite the loc (file:line).
+Nodes: domain (broad area such as "Internet Marketing"), doc (a markdown file in ./docs or in a folder listed under "track" in knowledge_data/config.json; key = its path) and doc_section (a heading, key = path#heading-path). Edges: domain_of (doc/section -> domain), section_of (section -> parent doc/section), reference (doc/section -> doc/section it links to with a markdown link).
+Before answering questions about the project's docs, notes or decisions, call knowledge_explain to load context and cite the loc (file:line).
 Docs and sections come from the files: after editing tracked markdown files, ask the user before calling knowledge_sync (once, when the edits are done, not after each edit), and ask before writing summaries too. Nodes flagged needs_summary have no or an outdated summary: use knowledge_pending, read the text, then knowledge_annotate (1-3 sentence summary, 3-8 lowercase keywords). Give docs a domain with knowledge_assign_domain, reusing existing domains when they fit.
 To keep a web page as knowledge, call knowledge_fetch with its url; if that fails or the page needs JavaScript or a login, read the page yourself and call knowledge_save_web with its full content as markdown. Web sources live in docs/external_sources/web and carry uri and last_fetched.`
 

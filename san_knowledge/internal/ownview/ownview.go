@@ -4,6 +4,7 @@
 package ownview
 
 import (
+	"compress/gzip"
 	"context"
 	"embed"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"io/fs"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 
 	"san_knowledge/internal/kb"
@@ -55,6 +57,8 @@ func Handler(o Options) http.Handler {
 	mux.HandleFunc("POST /api/sync", h.sync)
 	mux.HandleFunc("POST /api/ai", h.ai)
 	mux.HandleFunc("POST /api/fetch", h.fetch)
+	mux.HandleFunc("GET /api/todos", h.todos)
+	mux.HandleFunc("POST /api/todos", h.editTodo)
 
 	root, _ := fs.Sub(dist, "dist")
 	files := http.FileServer(http.FS(root))
@@ -62,14 +66,37 @@ func Handler(o Options) http.Handler {
 	built := err == nil
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		if !built {
-			http.Error(w, "The Knowledge UI is not built: run san_knowledge/build.ps1 or build.sh (needs Node.js).", http.StatusServiceUnavailable)
+			http.Error(w, "The Knowledge UI is not built: run \"npm ci\" and \"npm run build\" in san_knowledge/ui (needs Node.js), then build the binary again.", http.StatusServiceUnavailable)
 			return
 		}
 		w.Header().Set("Cache-Control", "no-cache")
 		files.ServeHTTP(w, r)
 	})
-	return mux
+	return gzipAPI(mux)
 }
+
+// gzipAPI compresses the JSON API for clients that accept it: the graph is
+// mostly repeated keys and summaries, about a sixth of its size gzipped.
+func gzipAPI(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/api/") || !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Add("Vary", "Accept-Encoding")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		next.ServeHTTP(gzipWriter{w, gz}, r)
+	})
+}
+
+type gzipWriter struct {
+	http.ResponseWriter
+	gz *gzip.Writer
+}
+
+func (g gzipWriter) Write(b []byte) (int, error) { return g.gz.Write(b) }
 
 type api struct {
 	o    Options
@@ -89,6 +116,8 @@ func writeErr(w http.ResponseWriter, err error) {
 		status = http.StatusNotFound
 	case errors.Is(err, kb.ErrLocked):
 		status = http.StatusServiceUnavailable
+	case errors.Is(err, kb.ErrTodoChanged):
+		status = http.StatusConflict // the board is out of date
 	}
 	writeJSON(w, status, map[string]string{"error": err.Error()})
 }
@@ -121,6 +150,25 @@ func (h *api) schema(w http.ResponseWriter, _ *http.Request) {
 	})
 }
 
+// graphNode and graphLink are what the graph, table and filters read; the
+// panel loads the rest of a node from /api/node.
+type graphNode struct {
+	Key          string   `json:"key"`
+	NodeType     string   `json:"node_type"`
+	Title        string   `json:"title"`
+	Summary      string   `json:"summary,omitempty"`
+	Keyword      []string `json:"keyword,omitempty"`
+	Loc          string   `json:"loc,omitempty"`
+	LineLoc      int      `json:"line_loc,omitempty"`
+	NeedsSummary bool     `json:"needs_summary,omitempty"`
+}
+
+type graphLink struct {
+	From string `json:"from"`
+	Rel  string `json:"rel"`
+	To   string `json:"to"`
+}
+
 // graph returns all nodes and links, plus a Leiden community number per node
 // key (?resolution= tunes the community size, default 1).
 func (h *api) graph(w http.ResponseWriter, r *http.Request) {
@@ -131,10 +179,16 @@ func (h *api) graph(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		keys := make([]string, len(snap.Nodes))
+		nodes := make([]graphNode, len(snap.Nodes))
 		for i, n := range snap.Nodes {
 			keys[i] = n.Key
+			nodes[i] = graphNode{n.Key, n.NodeType, n.Title, n.Summary, n.Keyword, n.Loc, n.LineLoc, n.NeedsSummary}
 		}
-		return map[string]any{"nodes": snap.Nodes, "links": snap.Links, "communities": kb.Leiden(keys, snap.Links, resolution)}, nil
+		links := make([]graphLink, len(snap.Links))
+		for i, l := range snap.Links {
+			links[i] = graphLink{l.From, l.Rel, l.To}
+		}
+		return map[string]any{"nodes": nodes, "links": links, "communities": kb.Leiden(keys, snap.Links, resolution)}, nil
 	})
 }
 
@@ -276,6 +330,38 @@ func (h *api) ai(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"sync": syncRep, "ai": rep})
+}
+
+// todos lists the board's columns, read live from the tracked docs: filtered by
+// ?kind=, ?label= (repeated) and ?q=, and paged per column by ?offset= and
+// ?limit= (?status= for one column).
+func (h *api) todos(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	offset, _ := strconv.Atoi(q.Get("offset"))
+	limit, _ := strconv.Atoi(q.Get("limit"))
+	query := kb.TodoQuery{Status: kb.TodoStatus(q.Get("status")), Kind: q.Get("kind"), Labels: q["label"], Search: q.Get("q"), Offset: offset, Limit: limit}
+	h.do(w, func(s *kb.Store) (any, error) {
+		page, err := s.TodoPage(query)
+		return map[string]any{"statuses": kb.TodoStatuses, "columns": page.Columns, "total": page.Total}, err
+	})
+}
+
+// editTodo writes one board change (move, labels, subtask, check) into the
+// card's markdown file, then syncs so the graph follows the file.
+func (h *api) editTodo(w http.ResponseWriter, r *http.Request) {
+	var e kb.TodoEdit
+	if err := decode(r, &e); err != nil {
+		writeErr(w, err)
+		return
+	}
+	h.do(w, func(s *kb.Store) (any, error) {
+		loc, err := s.EditTodo(e)
+		if err != nil {
+			return nil, err
+		}
+		rep, err := s.Sync()
+		return map[string]any{"loc": loc, "sync": rep}, err
+	})
 }
 
 // fetch saves a web page into docs/external_sources/web and syncs it. The

@@ -58,8 +58,8 @@ export function Tools({ busy, onSync, onAI, onFetch, onDomain, filters, setFilte
   onClearExplain: () => void;
   onRelayout: () => void;
   onFit: () => void;
-  onCollapseAll: () => void;
-  onExpandAll?: () => void; // absent when nothing is collapsed
+  onExpandAll: () => void;
+  onCollapseAll?: () => void; // absent when nothing is expanded
 }) {
   const { graph, pal, colorBy, ai } = useApp();
   const typeCounts = new Map<string, number>();
@@ -137,11 +137,11 @@ export function Tools({ busy, onSync, onAI, onFetch, onDomain, filters, setFilte
             {hasExplain && <Button size="xs" variant="ghost" onClick={onClearExplain}>Clear highlight</Button>}
           </HStack>
           <HStack gap="6px" wrap="wrap" mt="8px">
-            <Button size="xs" variant="outline" title="Hide every doc's sections, leaving domains and docs" onClick={onCollapseAll}>Collapse all docs</Button>
-            <Button size="xs" variant="outline" disabled={!onExpandAll} onClick={onExpandAll}>Expand all</Button>
+            <Button size="xs" variant="outline" title="Show every doc and section" onClick={onExpandAll}>Expand all</Button>
+            <Button size="xs" variant="outline" title="Back to domains and the docs without one" disabled={!onCollapseAll} onClick={onCollapseAll}>Collapse all</Button>
           </HStack>
           <Text fontSize="12px" color="fg.subtle" mt="8px">
-            Double-click a domain, doc or section to collapse or expand what is under it: a domain hides its docs, a doc or section its sections.
+            Click a domain, doc or section to show what is under it: a domain's docs, a doc's or section's sections. “+N” on a node counts them. Its Collapse button in Node Detail hides them again.
           </Text>
         </>
       )}

@@ -251,8 +251,21 @@ func TestSyncTrackedFolders(t *testing.T) {
 		t.Fatalf("untracked folder: %+v", r)
 	}
 
-	// A broken config or a folder outside the project fails instead of deleting docs.
-	for _, bad := range []string{`{"track": [`, `{"track": ["../elsewhere"]}`, `{"track": [""]}`} {
+	// "." tracks the whole project, still skipping packages and hidden folders.
+	writeFile(t, s.Root, "knowledge_data/"+ConfigFile, `{"track": ["."]}`)
+	if locs, err := s.ScanDocs(); err != nil || strings.Join(locs, ",") != "app/src/Fish/Fish.md,docs/rules.md,other/notes.md" {
+		t.Fatalf("whole project: %v %v", locs, err)
+	}
+
+	// "exclude" leaves folders and files out, even inside a tracked folder.
+	writeFile(t, s.Root, "app/srcmap/Map.md", "# Map\ntext")
+	writeFile(t, s.Root, "knowledge_data/"+ConfigFile, `{"track": ["."], "exclude": ["app/src", "./other/notes.md"]}`)
+	if locs, err := s.ScanDocs(); err != nil || strings.Join(locs, ",") != "app/srcmap/Map.md,docs/rules.md" {
+		t.Fatalf("excluded: %v %v", locs, err)
+	}
+
+	// A broken config or a path outside the project fails instead of deleting docs.
+	for _, bad := range []string{`{"track": [`, `{"track": ["../elsewhere"]}`, `{"track": [""]}`, `{"track": ["."], "exclude": ["../x"]}`} {
 		writeFile(t, s.Root, "knowledge_data/"+ConfigFile, bad)
 		if _, err := s.Sync(); err == nil {
 			t.Fatalf("config %s accepted", bad)

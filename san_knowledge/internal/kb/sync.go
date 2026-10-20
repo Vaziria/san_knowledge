@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -18,14 +19,16 @@ import (
 const DocsDir = "docs"
 
 // ConfigFile, in the data directory, lists the folders tracked besides docs/,
-// relative to the project root:
+// relative to the project root ("." tracks the whole project), and the folders
+// or files left out of them:
 //
-//	{"track": ["typescripts/animation"]}
+//	{"track": ["."], "exclude": ["project/sell_to_agensi"]}
 const ConfigFile = "config.json"
 
 // Config is the data directory's ConfigFile. A missing file is an empty config.
 type Config struct {
-	Track []string `json:"track"` // folders whose markdown files are tracked besides docs/
+	Track   []string `json:"track"`   // folders whose markdown files are tracked besides docs/
+	Exclude []string `json:"exclude"` // folders or files never tracked, even inside a tracked folder
 }
 
 // LoadConfig reads the ConfigFile in the data directory dir.
@@ -52,19 +55,52 @@ func TrackedDirs(dir string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	track, err := projectPaths("track", c.Track)
+	if err != nil {
+		return nil, err
+	}
 	dirs := []string{DocsDir}
 	seen := map[string]bool{DocsDir: true}
-	for _, d := range c.Track {
-		clean := filepath.Clean(filepath.FromSlash(strings.TrimSpace(d)))
-		if strings.TrimSpace(d) == "" || !filepath.IsLocal(clean) {
-			return nil, fmt.Errorf("%s: track %q must be a folder inside the project", ConfigFile, d)
-		}
-		if clean = filepath.ToSlash(clean); !seen[clean] {
-			seen[clean] = true
-			dirs = append(dirs, clean)
+	for _, d := range track {
+		if !seen[d] {
+			seen[d] = true
+			dirs = append(dirs, d)
 		}
 	}
 	return dirs, nil
+}
+
+// ExcludedPaths returns the config's project-relative folders and files that
+// are never tracked, even inside a tracked folder.
+func ExcludedPaths(dir string) ([]string, error) {
+	c, err := LoadConfig(dir)
+	if err != nil {
+		return nil, err
+	}
+	return projectPaths("exclude", c.Exclude)
+}
+
+// projectPaths cleans a config list into slash-separated paths inside the project.
+func projectPaths(field string, list []string) ([]string, error) {
+	var paths []string
+	for _, p := range list {
+		clean := filepath.Clean(filepath.FromSlash(strings.TrimSpace(p)))
+		if strings.TrimSpace(p) == "" || !filepath.IsLocal(clean) {
+			return nil, fmt.Errorf("%s: %s %q must be a path inside the project", ConfigFile, field, p)
+		}
+		paths = append(paths, filepath.ToSlash(clean))
+	}
+	return paths, nil
+}
+
+// isExcluded reports whether the project-relative loc is, or is inside, one of excluded.
+func isExcluded(loc string, excluded []string) bool {
+	for _, e := range excluded {
+		if loc == e || strings.HasPrefix(loc, e+"/") {
+			return true
+		}
+	}
+	return false
 }
 
 // skipDir reports folders never scanned: hidden ones (.git, .vite) and
@@ -81,6 +117,7 @@ type SyncReport struct {
 	DocsAdded         []string `json:"docs_added"`
 	DocsUpdated       []string `json:"docs_updated"`
 	DocsRemoved       []string `json:"docs_removed"`
+	DocsMoved         []string `json:"docs_moved"` // "old → new"; not counted as added or removed
 	SectionsAdded     int      `json:"sections_added"`
 	SectionsUpdated   int      `json:"sections_updated"`
 	SectionsRemoved   int      `json:"sections_removed"`
@@ -98,9 +135,14 @@ func IsHumanAuthor(author string) bool {
 }
 
 // ScanDocs returns the project-relative locs of all markdown files in the
-// tracked folders (TrackedDirs), sorted and without repeats.
+// tracked folders (TrackedDirs) but not in the excluded ones (ExcludedPaths),
+// sorted and without repeats.
 func (s *Store) ScanDocs() ([]string, error) {
 	dirs, err := TrackedDirs(s.Dir)
+	if err != nil {
+		return nil, err
+	}
+	excluded, err := ExcludedPaths(s.Dir)
 	if err != nil {
 		return nil, err
 	}
@@ -119,16 +161,21 @@ func (s *Store) ScanDocs() ([]string, error) {
 				if p != root && skipDir(d.Name()) {
 					return filepath.SkipDir
 				}
-				return nil
-			}
-			if !strings.EqualFold(filepath.Ext(p), ".md") {
+			} else if !strings.EqualFold(filepath.Ext(p), ".md") {
 				return nil
 			}
 			rel, err := filepath.Rel(s.Root, p)
 			if err != nil {
 				return err
 			}
-			if loc := filepath.ToSlash(rel); !seen[loc] {
+			loc := filepath.ToSlash(rel)
+			if isExcluded(loc, excluded) {
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if !d.IsDir() && !seen[loc] {
 				seen[loc] = true
 				locs = append(locs, loc)
 			}
@@ -155,7 +202,7 @@ func (s *Store) ParseDoc(loc string) (*ParsedDoc, error) {
 // doc_section nodes, section_of edges and frontmatter domains. It never calls
 // an AI; changed content is flagged needs_summary instead.
 func (s *Store) Sync() (*SyncReport, error) {
-	r := &SyncReport{DocsAdded: []string{}, DocsUpdated: []string{}, DocsRemoved: []string{}}
+	r := &SyncReport{DocsAdded: []string{}, DocsUpdated: []string{}, DocsRemoved: []string{}, DocsMoved: []string{}}
 	locs, err := s.ScanDocs()
 	if err != nil {
 		return nil, err
@@ -171,12 +218,27 @@ func (s *Store) Sync() (*SyncReport, error) {
 		}
 		parsed[loc] = doc
 	}
+	moves, err := s.findMoves(seen, parsed)
+	if err != nil {
+		return nil, err
+	}
 	for _, loc := range locs {
 		if doc := parsed[loc]; doc != nil {
 			if err := s.syncDoc(doc, r); err != nil {
 				r.Errors = append(r.Errors, loc+": "+err.Error())
 				delete(parsed, loc)
 			}
+		}
+	}
+	movedFrom := map[string]bool{}
+	for _, loc := range locs {
+		if old := moves[loc]; old != nil && parsed[loc] != nil {
+			if err := s.carryMove(old, parsed[loc], r); err != nil {
+				r.Errors = append(r.Errors, loc+": "+err.Error())
+				continue
+			}
+			movedFrom[old.Key] = true
+			r.DocsAdded = without(r.DocsAdded, loc)
 		}
 	}
 	// References need every doc and section to exist, so they come last.
@@ -209,7 +271,9 @@ func (s *Store) Sync() (*SyncReport, error) {
 		if err := s.Delete(d.Key); err != nil {
 			return nil, err
 		}
-		r.DocsRemoved = append(r.DocsRemoved, d.Key)
+		if !movedFrom[d.Key] {
+			r.DocsRemoved = append(r.DocsRemoved, d.Key)
+		}
 	}
 
 	pending, err := s.List(Filter{NeedsSummary: true})
@@ -423,6 +487,102 @@ func (s *Store) syncReferences(doc *ParsedDoc, docs map[string]*ParsedDoc, r *Sy
 		}
 	}
 	return nil
+}
+
+// findMoves pairs docs that are new at a loc with docs gone from theirs: first
+// by identical text, then by the same file name and title (a task file moved
+// between tasks/ folders and edited on the way). It returns new loc → old doc.
+func (s *Store) findMoves(seen map[string]bool, parsed map[string]*ParsedDoc) (map[string]*Node, error) {
+	docs, err := s.List(Filter{NodeType: TypeDoc})
+	if err != nil {
+		return nil, err
+	}
+	known := map[string]bool{}
+	var gone []*Node
+	for _, d := range docs {
+		known[d.Key] = true
+		if !seen[d.Key] {
+			gone = append(gone, d)
+		}
+	}
+	var fresh []string
+	for loc := range parsed {
+		if !known[loc] {
+			fresh = append(fresh, loc)
+		}
+	}
+	sort.Strings(fresh)
+	moves := map[string]*Node{}
+	taken := map[string]bool{}
+	pair := func(same func(d *Node, doc *ParsedDoc) bool) {
+		for _, loc := range fresh {
+			for _, d := range gone {
+				if moves[loc] == nil && !taken[d.Key] && same(d, parsed[loc]) {
+					moves[loc], taken[d.Key] = d, true
+				}
+			}
+		}
+	}
+	pair(func(d *Node, doc *ParsedDoc) bool { return d.Hash != "" && d.Hash == doc.Hash })
+	pair(func(d *Node, doc *ParsedDoc) bool { return path.Base(d.Key) == path.Base(doc.Loc) && d.Title == doc.Title })
+	return moves, nil
+}
+
+// carryMove gives a moved doc and its sections what was written about them at
+// the old loc: summary, keyword, author and domains. Text that changed on the
+// way is flagged needs_summary and keeps the old summary until a new one is written.
+func (s *Store) carryMove(old *Node, doc *ParsedDoc, r *SyncReport) error {
+	pairs := [][2]string{{old.Key, doc.Loc}}
+	hash := map[string]string{doc.Loc: doc.Hash}
+	for _, sec := range doc.Sections {
+		pairs = append(pairs, [2]string{old.Key + strings.TrimPrefix(sec.Key, doc.Loc), sec.Key})
+		hash[sec.Key] = sec.Hash
+	}
+	for _, p := range pairs {
+		from, err := s.Get(p[0])
+		if errors.Is(err, ErrNotFound) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		to, err := s.nodeByKey(p[1])
+		if err != nil {
+			return err
+		}
+		if from.Summary != "" && to.GetString("author") != AuthorFrontmatter {
+			patch := graphdb.Props{"summary": from.Summary, "author": from.Author, "needs_summary": from.NeedsSummary || from.Hash != hash[p[1]]}
+			if len(from.Keyword) > 0 {
+				patch["keyword"] = from.Keyword
+			}
+			if err := s.updateNode(to, patch); err != nil {
+				return err
+			}
+		}
+		out, _, err := s.Links(p[0])
+		if err != nil {
+			return err
+		}
+		for _, l := range out {
+			if l.Rel == RelDomainOf && l.Author != AuthorFrontmatter { // frontmatter domains come from the file
+				if _, _, err := s.Link(Link{From: p[1], Rel: RelDomainOf, To: l.To, Author: l.Author}); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	r.DocsMoved = append(r.DocsMoved, old.Key+" → "+doc.Loc)
+	return nil
+}
+
+func without(list []string, v string) []string {
+	out := list[:0]
+	for _, x := range list {
+		if x != v {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 // setParent makes section_of point to exactly one parent.

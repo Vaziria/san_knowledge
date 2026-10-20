@@ -1,3 +1,4 @@
 {
-  "track": ["typescripts/animation"]
+  "track": ["."],
+  "exclude": ["project/sell_to_agensi"]
 }

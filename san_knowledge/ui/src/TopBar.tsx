@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import type { Mode, Palette } from './theme';
 import { Segmented, useApp } from './ui';
 
-export type ViewMode = 'graph' | 'table';
+export type ViewMode = 'graph' | 'table' | 'board';
 
 // A small graph in the node encoding: a domain hexagon linked to a doc and its
 // sections. index.html carries the same drawing (light colours) as the favicon.
@@ -46,11 +46,11 @@ export function TopBar({ counts, mode, setMode, colorMode, toggleColorMode, quer
       <Flex as="form" role="search" gap="8px" flex="1" maxW={{ md: '620px' }} ml={{ md: 'auto' }} order={{ base: 3, md: 0 }} flexBasis={{ base: '100%', md: 'auto' }}
         onSubmit={(e) => { e.preventDefault(); onExplain(); }}>
         <Input ref={searchRef} type="search" size="sm" flex="1" minW="0" bg="bg" autoComplete="off" aria-label="Explain query"
-          placeholder="Ask or search, e.g. rural internet use" value={query} onChange={(e) => setQuery(e.target.value)} />
+          placeholder="Ask or search your project's knowledge" value={query} onChange={(e) => setQuery(e.target.value)} />
         <Button type="submit" size="sm" colorPalette="accent">Explain</Button>
       </Flex>
       <HStack gap="8px" order={{ base: 2, md: 0 }}>
-        <Segmented label="View mode" value={mode} onChange={setMode} options={[{ value: 'graph', text: 'Graph' }, { value: 'table', text: 'Table' }]} />
+        <Segmented label="View mode" value={mode} onChange={setMode} options={[{ value: 'graph', text: 'Graph' }, { value: 'table', text: 'Table' }, { value: 'board', text: 'Board' }]} />
         <IconButton size="sm" variant="outline" aria-label="Toggle theme" title={`Switch to ${colorMode === 'dark' ? 'light' : 'dark'} theme`} onClick={toggleColorMode}>◐</IconButton>
       </HStack>
     </Flex>

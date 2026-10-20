@@ -189,6 +189,19 @@ func TestViewAPI(t *testing.T) {
 	if len(g["nodes"].([]any)) != 3 || len(g["links"].([]any)) != 2 || len(g["communities"].(map[string]any)) != 3 {
 		t.Fatalf("graph: %v", g)
 	}
+	for _, x := range g["nodes"].([]any) {
+		if m := x.(map[string]any); m["hash"] != nil || m["created"] != nil {
+			t.Fatalf("graph node carries panel-only fields: %v", m)
+		}
+	}
+	resp, err := http.Get(ts.URL + "/api/graph") // the transport asks for gzip and unpacks it
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if !resp.Uncompressed {
+		t.Fatal("graph response is not gzipped")
+	}
 	code, n := call("GET", "/api/node?key="+key("docs/ads.md#rural-reach"), nil)
 	if code != 200 || !strings.Contains(n["text"].(string), "76%") {
 		t.Fatalf("node: %d %v", code, n)
@@ -228,7 +241,7 @@ func TestViewAPI(t *testing.T) {
 	}
 	// The page and its script, once the UI is built (the build scripts build it
 	// before testing); before that, a plain "not built" answer.
-	resp, err := http.Get(ts.URL + "/")
+	resp, err = http.Get(ts.URL + "/")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -193,7 +193,11 @@ func fetchCmd(ctx context.Context, cmd *cli.Command) error {
 }
 
 func printSyncReport(w io.Writer, r *kb.SyncReport) {
-	fmt.Fprintf(w, "docs:     +%d ~%d -%d\n", len(r.DocsAdded), len(r.DocsUpdated), len(r.DocsRemoved))
+	fmt.Fprintf(w, "docs:     +%d ~%d -%d", len(r.DocsAdded), len(r.DocsUpdated), len(r.DocsRemoved))
+	if len(r.DocsMoved) > 0 {
+		fmt.Fprintf(w, " (%d moved, summaries kept)", len(r.DocsMoved))
+	}
+	fmt.Fprintln(w)
 	fmt.Fprintf(w, "sections: +%d ~%d -%d", r.SectionsAdded, r.SectionsUpdated, r.SectionsRemoved)
 	if r.SummariesKept > 0 {
 		fmt.Fprintf(w, " (%d renamed, summary kept)", r.SummariesKept)

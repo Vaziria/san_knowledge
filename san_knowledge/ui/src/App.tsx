@@ -1,9 +1,10 @@
 import { Box, Button, Code, Grid, HStack, Spinner, Tabs, Text } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BoardView } from './BoardView';
 import { api, errorText, explain as fetchExplain, q, type AIReport, type Explanation, type GraphResponse, type KNode, type SavedWeb, type SyncReport } from './api';
 import { Dialogs } from './dialogs';
 import { GraphView, type ViewRequest } from './GraphView';
-import { buildGraph, collapsersOf, collapsible, communityColor, communityOf, EMPTY_GRAPH, hiddenByCollapse, isVisible, titleOf, toggled, typeColor, type ColorBy, type Filters, type Graph } from './model';
+import { buildGraph, communityColor, communityOf, EMPTY_GRAPH, expandable, foldedCounts, isVisible, pathTo, shownNodes, titleOf, toggled, typeColor, type ColorBy, type Filters, type Graph } from './model';
 import { ExplainPanel, NodeDetail, Overview } from './Panel';
 import { TableView, type Sort } from './TableView';
 import { palette, useColorMode } from './theme';
@@ -46,8 +47,16 @@ export function App() {
   const [dialog, setDialog] = useState<DialogRequest | null>(null);
   const [request, setRequest] = useState<ViewRequest | null>(null);
   const [tab, setTab] = useState<PanelTab>('detail');
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set()); // none: the graph shows the top level
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // Unfolds what keeps these nodes out of the graph.
+  const reveal = useCallback((keys: Iterable<string>) => {
+    setExpanded((e) => {
+      const add = [...keys].flatMap((k) => pathTo(graphNow.current, e, k));
+      return add.length ? new Set([...e, ...add]) : e;
+    });
+  }, []);
 
   const reload = useCallback(async () => {
     const g = buildGraph(await api<GraphResponse>('GET', '/api/graph'));
@@ -60,12 +69,12 @@ export function App() {
       keyword: g.keywords.includes(f.keyword) ? f.keyword : '',
     }));
     setSelected((s) => (s && g.byKey.has(s) ? s : null));
-    setCollapsed((c) => new Set([...c].filter((k) => collapsible(g, k))));
+    setExpanded((e) => new Set([...e].filter((k) => expandable(g, k))));
     setVersion((v) => v + 1);
     setStatus('ready');
   }, []);
 
-  // Selecting shows the Node Detail tab, and expands collapsed parents so the node is in view.
+  // Selecting shows the Node Detail tab, and expands the path to the node so it is in view.
   const select = useCallback((key: string | null, center = false) => {
     const k = key && graphNow.current.byKey.has(key) ? key : null;
     setSelected(k);
@@ -73,30 +82,31 @@ export function App() {
     if (location.hash !== target.trim()) history.replaceState(null, '', target);
     if (!k) return;
     setTab('detail');
-    setCollapsed((c) => {
-      const hiding = collapsersOf(graphNow.current, c, k);
-      return hiding.length ? new Set([...c].filter((a) => !hiding.includes(a))) : c;
-    });
+    reveal([k]);
     if (center) setRequest({ center: k });
-  }, []);
+  }, [reveal]);
 
-  // Says what happened: in a big graph a few vanishing dots are easy to miss.
-  const toggleCollapse = useCallback((key: string) => {
-    const g = graphNow.current, title = `“${titleOf(g, key)}”`;
-    if (!collapsible(g, key)) {
-      toast(`${title} has nothing under it to collapse.`);
-    } else if (collapsed.has(key)) {
-      setCollapsed(toggled(collapsed, key));
-      toast(`Expanded ${title}.`);
-    } else {
-      setCollapsed(toggled(collapsed, key));
-      toast(`Collapsed ${title}: ${hiddenByCollapse(g, new Set([key])).size} nodes hidden. Double-click it again to expand.`);
-    }
-  }, [collapsed]);
+  // A click in the graph selects the node and shows what is under it.
+  const openNode = useCallback((key: string) => {
+    select(key);
+    if (expandable(graphNow.current, key)) setExpanded((e) => (e.has(key) ? e : new Set([...e, key])));
+  }, [select]);
 
-  const collapseAllDocs = () => {
-    setCollapsed(new Set(graph.nodes.filter((n) => n.node_type === 'doc' && collapsible(graph, n.key)).map((n) => n.key)));
-  };
+  const visible = useCallback((n: KNode) => isVisible(graph, filters, n), [graph, filters]);
+  // Folding only applies to the graph; the table lists every node that passes the filters.
+  const shown = useMemo(() => shownNodes(graph, visible, expanded), [graph, visible, expanded]);
+  const folded = useMemo(() => foldedCounts(graph, visible, expanded, shown), [graph, visible, expanded, shown]);
+
+  // Says what collapsing hid: in a big graph a few vanishing dots are easy to miss.
+  const toggleExpand = useCallback((key: string) => {
+    const next = toggled(expanded, key);
+    setExpanded(next);
+    if (next.has(key)) return;
+    const n = shown.size - shownNodes(graphNow.current, visible, next).size;
+    toast(`Collapsed “${titleOf(graphNow.current, key)}”: ${n} node${n === 1 ? '' : 's'} hidden.`);
+  }, [expanded, shown, visible]);
+
+  const expandAll = () => setExpanded(new Set(graph.nodes.filter((n) => expandable(graph, n.key)).map((n) => n.key)));
 
   const clearExplain = useCallback(() => { setExplained(null); setQuery(''); }, []);
 
@@ -108,9 +118,10 @@ export function App() {
       select(null);
       setTab('detail');
       const keys = new Set(res.explanation.matches.flatMap((m) => [m.node.key, ...m.related.map((r) => r.key)]));
+      reveal(keys);
       if (keys.size) setRequest({ fit: keys });
     } catch (err) { toast(errorText(err), true); }
-  }, [clearExplain, select]);
+  }, [clearExplain, select, reveal]);
 
   const withBusy = useCallback(async (text: string, fn: () => Promise<void>) => {
     setBusy(text);
@@ -120,7 +131,8 @@ export function App() {
   const runSync = () => withBusy('Syncing docs…', async () => {
     const r = await api<SyncReport>('POST', '/api/sync');
     const n = (a: string[] | null) => (a ?? []).length;
-    toast(`Docs +${n(r.docs_added)} ~${n(r.docs_updated)} −${n(r.docs_removed)} · sections +${r.sections_added} ~${r.sections_updated} −${r.sections_removed}`);
+    const moved = n(r.docs_moved ?? null) ? ` (${n(r.docs_moved ?? null)} moved)` : '';
+    toast(`Docs +${n(r.docs_added)} ~${n(r.docs_updated)} −${n(r.docs_removed)}${moved} · sections +${r.sections_added} ~${r.sections_updated} −${r.sections_removed}`);
     await reload();
   });
 
@@ -150,11 +162,6 @@ export function App() {
     (n: KNode) => (colorBy === 'community' ? communityColor(pal, communityOf(graph, n.key)) : typeColor(pal, n.node_type)),
     [graph, pal, colorBy],
   );
-  const visible = useCallback((n: KNode) => isVisible(graph, filters, n), [graph, filters]);
-  // Collapsing only folds the graph; the table still lists every node.
-  const hidden = useMemo(() => hiddenByCollapse(graph, collapsed), [graph, collapsed]);
-  const graphVisible = useCallback((n: KNode) => !hidden.has(n.key) && visible(n), [hidden, visible]);
-
   // Start: schema (is the AI step available?), the graph, then ?q= or #k=.
   useEffect(() => {
     (async () => {
@@ -197,7 +204,7 @@ export function App() {
     graph, pal, colorBy, colorOf, ai, version, select, reload, runFetch,
     openDialog: setDialog,
     filterKeyword: (keyword) => setFilters((f) => ({ ...f, keyword })),
-    collapsed, toggleCollapse,
+    expanded, toggleExpand,
   };
 
   const count = (t: string) => graph.nodes.filter((n) => n.node_type === t).length;
@@ -215,11 +222,16 @@ export function App() {
           onExplain={() => runExplain(query)} />
         <Grid templateColumns={{ base: '1fr', lg: '600px minmax(0, 1fr)' }} templateRows={{ base: 'minmax(360px, 55vh) auto', lg: 'minmax(0, 1fr)' }} minH="0">
           <Box as="section" aria-label="Knowledge graph" position="relative" minW="0" minH="0" bg="bg.panel">
-            <GraphView graph={graph} pal={pal} colorOf={colorOf} visible={graphVisible} collapsed={collapsed} onToggle={toggleCollapse}
+            <GraphView graph={graph} pal={pal} colorOf={colorOf} shown={shown} expanded={expanded} folded={folded} onOpen={openNode}
               explain={explained?.explanation ?? null} selected={selected} onSelect={select} request={request} active={mode === 'graph'} />
             {mode === 'table' && (
               <Box position="absolute" inset="0" overflow="auto">
                 <TableView visible={visible} selected={selected} sort={sort} setSort={setSort} />
+              </Box>
+            )}
+            {mode === 'board' && (
+              <Box position="absolute" inset="0" bg="bg">
+                <BoardView />
               </Box>
             )}
             {empty && (
@@ -257,7 +269,7 @@ export function App() {
                 <Tools busy={!!busy} onSync={runSync} onAI={runAI} onFetch={() => setDialog({ kind: 'fetch' })} onDomain={() => setDialog({ kind: 'domain' })}
                   filters={filters} setFilters={setFilters} setColorBy={setColorBy} mode={mode} hasExplain={!!explained} onClearExplain={clearExplain}
                   onRelayout={() => setRequest({ relayout: true })} onFit={() => setRequest({ fitAll: true })}
-                  onCollapseAll={collapseAllDocs} onExpandAll={collapsed.size ? () => setCollapsed(new Set()) : undefined} />
+                  onExpandAll={expandAll} onCollapseAll={expanded.size ? () => setExpanded(new Set()) : undefined} />
               </Tabs.Content>
             </Tabs.Root>
           </Box>

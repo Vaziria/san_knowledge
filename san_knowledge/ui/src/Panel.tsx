@@ -1,7 +1,7 @@
 import { Box, Button, chakra, CloseButton, Code, Flex, Grid, Heading, HStack, Link, Stack, Table, Text } from '@chakra-ui/react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { api, errorText, q, type Explanation, type KNode, type Link as KLink, type NodeResponse } from './api';
-import { collapsible, communityLabel, communityOf, locOf, titleOf, typeInfo, typeSwatchColor } from './model';
+import { expandable, communityLabel, communityOf, locOf, titleOf, typeInfo, typeSwatchColor } from './model';
 import { Footnote, Mono, PendingBadge, SectionTitle, Swatch, toast, useApp } from './ui';
 
 function ConnList({ children }: { children: ReactNode }) {
@@ -37,7 +37,7 @@ export function Overview() {
   return (
     <>
       <Heading as="h2" fontSize="17px" mt="6px" mb="2px">Explore the graph</Heading>
-      <Text color="fg.muted">Click a node for details. Explain searches docs, sections and domains and highlights the context around a question.</Text>
+      <Text color="fg.muted">The graph starts with domains and the docs that have none. Click a node for details and to show what is under it. Explain searches docs, sections and domains and highlights the context around a question.</Text>
       {pending.length > 0 && (
         <Text color="fg.muted" mt="8px">
           <PendingBadge>{pending.length} need a summary</PendingBadge>{' '}
@@ -74,7 +74,7 @@ function SourceLine({ n }: { n: KNode }) {
 
 export function NodeDetail({ nodeKey }: { nodeKey: string }) {
   const app = useApp();
-  const { graph, colorOf, select, openDialog, reload, version, collapsed, toggleCollapse } = app;
+  const { graph, colorOf, select, openDialog, reload, version, expanded, toggleExpand } = app;
   const [data, setData] = useState<NodeResponse | null>(null);
 
   useEffect(() => {
@@ -128,9 +128,9 @@ export function NodeDetail({ nodeKey }: { nodeKey: string }) {
       <HStack gap="6px" mt="12px" wrap="wrap">
         <Button size="xs" variant="outline" onClick={() => openDialog({ kind: 'edit', node: n })}>Edit</Button>
         {!isDomain && <Button size="xs" variant="outline" onClick={() => openDialog({ kind: 'assign', key: n.key })}>Assign domain</Button>}
-        {collapsible(graph, n.key) && (
-          <Button size="xs" variant="outline" title="Hide or show what is under it in the graph (or double-click the node)" onClick={() => toggleCollapse(n.key)}>
-            {collapsed.has(n.key) ? 'Expand' : 'Collapse'} {isDomain ? 'docs' : 'sections'}
+        {expandable(graph, n.key) && (
+          <Button size="xs" variant="outline" title="Hide or show what is under it in the graph (clicking the node shows it)" onClick={() => toggleExpand(n.key)}>
+            {expanded.has(n.key) ? 'Collapse' : 'Expand'} {isDomain ? 'docs' : 'sections'}
           </Button>
         )}
         {isDomain && <Button size="xs" variant="ghost" colorPalette="red" onClick={() => openDialog({ kind: 'delete', node: n, members: members.length })}>Delete</Button>}

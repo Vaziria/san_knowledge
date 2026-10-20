@@ -33,10 +33,10 @@ export interface Graph {
   byKey: Map<string, KNode>;
   degree: Map<string, number>;
   domainsOf: Map<string, string[]>; // own domain_of edges
-  // What collapsing a node hides directly: a doc's or section's sections
-  // (section_of), a domain's docs and sections (domain_of).
-  childrenOf: Map<string, string[]>;
-  parentOf: Map<string, string>; // section_of parent
+  // What a node hangs from in the graph: a section from its parent doc or
+  // section, a doc from its domains. Nodes without one are the top level.
+  upOf: Map<string, string[]>;
+  childrenOf: Map<string, string[]>; // the reverse of upOf
   communities: Map<string, number>; // Leiden, 0 = largest
   domains: KNode[]; // sorted by title
   keywords: string[]; // sorted
@@ -45,20 +45,27 @@ export interface Graph {
 export function buildGraph(res: GraphResponse): Graph {
   const nodes = res.nodes ?? [];
   const links = res.links ?? [];
+  const byKey = new Map(nodes.map((n) => [n.key, n]));
   const degree = new Map<string, number>();
   const domainsOf = new Map<string, string[]>();
-  const childrenOf = new Map<string, string[]>();
   const parentOf = new Map<string, string>();
   for (const l of links) {
     degree.set(l.from, (degree.get(l.from) ?? 0) + 1);
     degree.set(l.to, (degree.get(l.to) ?? 0) + 1);
     if (l.rel === 'domain_of') domainsOf.set(l.from, [...(domainsOf.get(l.from) ?? []), l.to]);
     if (l.rel === 'section_of') parentOf.set(l.from, l.to);
-    if (l.rel === 'domain_of' || l.rel === 'section_of') childrenOf.set(l.to, [...(childrenOf.get(l.to) ?? []), l.from]);
+  }
+  const upOf = new Map<string, string[]>();
+  const childrenOf = new Map<string, string[]>();
+  for (const n of nodes) {
+    const parent = parentOf.get(n.key);
+    const ups = (parent ? [parent] : domainsOf.get(n.key) ?? []).filter((k) => byKey.has(k));
+    if (!ups.length) continue;
+    upOf.set(n.key, ups);
+    for (const u of ups) childrenOf.set(u, [...(childrenOf.get(u) ?? []), n.key]);
   }
   return {
-    nodes, links, degree, domainsOf, childrenOf, parentOf,
-    byKey: new Map(nodes.map((n) => [n.key, n])),
+    nodes, links, byKey, degree, domainsOf, upOf, childrenOf,
     communities: new Map(Object.entries(res.communities ?? {})),
     domains: nodes.filter((n) => n.node_type === 'domain').sort((a, b) => a.title.localeCompare(b.title)),
     keywords: [...new Set(nodes.flatMap((n) => n.keyword ?? []))].sort(),
@@ -95,28 +102,54 @@ export function isVisible(g: Graph, f: Filters, n: KNode): boolean {
   return true;
 }
 
-// The nodes a set of collapsed nodes hides in the graph. A section is hidden
-// when its parent doc/section is collapsed or hidden; a doc or section with
-// domains is hidden when all of its domains are collapsed.
-export function hiddenByCollapse(g: Graph, collapsed: Set<string>): Set<string> {
+// The nodes the graph shows: those that pass the filters and are not folded
+// away. Everything starts folded, so only the top level shows (domains, and
+// docs without a domain); a node shows once something it hangs from is
+// expanded and shown. A node the filters hide folds nothing: what hangs from
+// it takes its place, so a keyword filter still shows its matching sections.
+export function shownNodes(g: Graph, pass: (n: KNode) => boolean, expanded: Set<string>): Set<string> {
   const memo = new Map<string, boolean>();
-  const hidden = (key: string): boolean => {
+  const placed = (key: string): boolean => {
     const known = memo.get(key);
     if (known !== undefined) return known;
     memo.set(key, false); // guards against a section_of cycle
-    const parent = g.parentOf.get(key), domains = g.domainsOf.get(key) ?? [];
-    const h = (!!parent && (collapsed.has(parent) || hidden(parent))) || (domains.length > 0 && domains.every((d) => collapsed.has(d)));
-    memo.set(key, h);
-    return h;
+    const ups = g.upOf.get(key) ?? [];
+    const p = !ups.length || ups.some((u) => (!pass(g.byKey.get(u)!) || expanded.has(u)) && placed(u));
+    memo.set(key, p);
+    return p;
   };
-  return new Set(g.nodes.filter((n) => hidden(n.key)).map((n) => n.key));
+  return new Set(g.nodes.filter((n) => pass(n) && placed(n.key)).map((n) => n.key));
 }
 
-export const collapsible = (g: Graph, key: string) => (g.childrenOf.get(key) ?? []).length > 0;
+export const expandable = (g: Graph, key: string) => (g.childrenOf.get(key) ?? []).length > 0;
 
-// The collapsed nodes that keep `key` out of the graph (to expand when it is selected).
-export const collapsersOf = (g: Graph, collapsed: Set<string>, key: string) =>
-  [...collapsed].filter((c) => hiddenByCollapse(g, new Set([c])).has(key));
+// The nodes to expand so that `key` is no longer folded away (it is selected).
+export function pathTo(g: Graph, expanded: Set<string>, key: string): string[] {
+  const out: string[] = [], seen = new Set<string>();
+  for (let k: string | undefined = key; k && !seen.has(k);) {
+    seen.add(k);
+    const ups: string[] = g.upOf.get(k) ?? [];
+    const up: string | undefined = ups.find((u) => expanded.has(u)) ?? ups[0];
+    if (up && !expanded.has(up)) out.push(up);
+    k = up;
+  }
+  return out;
+}
+
+// For each shown node that is folded, how many nodes expanding it would show.
+export function foldedCounts(g: Graph, pass: (n: KNode) => boolean, expanded: Set<string>, shown: Set<string>): Map<string, number> {
+  const reveals = (key: string, seen: Set<string>): number => (g.childrenOf.get(key) ?? []).reduce((sum, c) => {
+    if (seen.has(c)) return sum;
+    seen.add(c);
+    return sum + (pass(g.byKey.get(c)!) ? (shown.has(c) ? 0 : 1) : reveals(c, seen));
+  }, 0);
+  const out = new Map<string, number>();
+  for (const key of shown) {
+    const n = expanded.has(key) ? 0 : reveals(key, new Set());
+    if (n) out.set(key, n);
+  }
+  return out;
+}
 
 // A community is named after its best-connected node, preferring domains, then docs.
 export function communityNames(g: Graph): Map<number, string> {

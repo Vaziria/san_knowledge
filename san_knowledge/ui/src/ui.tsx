@@ -17,8 +17,8 @@ export interface AppContext {
   openDialog: (d: DialogRequest) => void;
   runFetch: (url: string) => void;
   filterKeyword: (keyword: string) => void;
-  collapsed: Set<string>; // docs/sections whose sections are hidden in the graph
-  toggleCollapse: (key: string) => void;
+  expanded: Set<string>; // nodes whose docs/sections the graph shows
+  toggleExpand: (key: string) => void;
 }
 
 export type DialogRequest =

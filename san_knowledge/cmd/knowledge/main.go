@@ -257,8 +257,12 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 					if err != nil {
 						return err
 					}
+					excluded, err := kb.ExcludedPaths(dir)
+					if err != nil {
+						return err
+					}
 					w := cmd.Root().Writer
-					return emit(w, cmd.Bool("json"), map[string]any{"data": dir, "docs": filepath.Join(filepath.Dir(dir), kb.DocsDir), "tracked": tracked},
+					return emit(w, cmd.Bool("json"), map[string]any{"data": dir, "docs": filepath.Join(filepath.Dir(dir), kb.DocsDir), "tracked": tracked, "excluded": excluded},
 						func() { fmt.Fprintln(w, dir) })
 				},
 			},

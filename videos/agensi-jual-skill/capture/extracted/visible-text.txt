@@ -1,0 +1,508 @@
+[span] New:
+[p] Agensi is agent-native.
+[span] Connect your agent once and install skills on demand.
+[span] Connect your agent
+[p] Install your first Free Skill!
+[p] Sign in with Google in one tap.
+[button] Continue with Google
+[a] For Creators
+[a] For Creators
+[h1] The Skill Marketplace for
+[span] AI Agents
+[p] Give your agent
+[p] 12,000+
+[p] new Skills instantly. Built by experts. Safe to use
+[a] Browse Skills
+[a] Connect your agent
+[span] 12,000+
+[span] Skills
+[span] 12,000+
+[span] Users
+[span] 1,500+
+[span] Creators
+[p] or describe what you need and our agent will find the right skill for you
+[span] Find skills
+[button] act as my business consultant
+[button] reply to customer support emails
+[button] write social posts for my business
+[button] Build a high converting landing page
+[div] Skill of the Month
+[p] GEO-SEO Suite — AI Search Optimization
+[p] Juan Gabriel Gomila Salas
+[span] $19.99
+[span] $29.99
+[span] RECENTLY LISTED SKILLS
+[p] Product Hunt Launch: Tagline, Gallery & Day-of Plan
+[p] KritikosgnsStudio
+[span] $4.99
+[p] Elite GitHub Gem Seeker Pro: AI Tool Finder
+[p] Skill Ninja
+[span] $14.99
+[p] ai shopping visibility
+[p] Biswajeet Kumar
+[span] $20/mo
+[p] Works with the AI Agents you already use
+[span] more
+[h2] Trending this month
+[p] Trending skills in the last 30 days
+[a] View all
+[div] Skill of the Month
+[h3] GEO SEO Suite — AI Search Optimization
+[a] Juan Gabriel Gomila Salas
+[span] $19.99
+[span] $29.99
+[p] Full suite of 15+ GEO+SEO audit tools that scores your visibility across ChatGPT, Perplexity and Google AI Overviews 0-100 and ships the client-ready report.
+[span] 5.0
+[h3] stock breakout picker
+[a] Fredrik Akerstrom
+[span] $10
+[p] Rank the strongest US and Swedish stock breakouts using Minervini, CAN SLIM, and deep volume analysis.
+[span] 5.0
+[h3] clone site to elementor
+[a] Shai Ben - Dor
+[p] Clone any webpage into fully editable native Elementor Pro widgets with pixel-perfect accuracy.
+[span] 135
+[span] 5.0
+[h3] Performance Optimization: Profile First, Then Fix
+[a] HEMAPRIYAN RK
+[span] $12
+[p] Profiles before touching code, fixes the real bottleneck, and proves the speedup with the same measurement.
+[h3] Online Course Builder
+[a] PubsProToolkit
+[span] $49
+[p] Create an online course people buy and finish: validate the idea, outline modules and lessons, price it, and write the sales page and launch plan for Teachable, Udemy, Kajabi, Podia, Gumroad or self-hosted.
+[span] 5.0
+[h3] agentic workflow
+[a] Sinu
+[p] A risk-aware, evidence-based engineering lifecycle protocol for robust agentic task execution and safety.
+[span] 5.0
+[h2] Recently listed
+[p] The latest skills on Agensi
+[a] View all
+[h3] Weekly Review: Cash, Pipeline & Three Priorities
+[a] KritikosgnsStudio
+[span] $4.99
+[p] Turns your weekly numbers into a short business review with a runway signal and exactly three priorities.
+[h3] Testimonial Request: Effortless Client Reviews
+[a] KritikosgnsStudio
+[span] $4.99
+[p] Asks a happy client for a testimonial with a pre-written draft they can approve in a minute, plus a referral follow-up.
+[h3] Status Update: Honest 200 Word Client Updates
+[a] KritikosgnsStudio
+[span] $4.99
+[p] Turns your messy notes into a client update with an honest status, dates and a clear "needs you" section.
+[h3] Product Hunt Launch: Tagline, Gallery & Day of Plan
+[a] KritikosgnsStudio
+[span] $4.99
+[p] Prepares every Product Hunt field and the launch-day routine, within Product Hunt's community rules.
+[h3] Pricing Page: Tiers, Price Math & Page Copy
+[a] KritikosgnsStudio
+[span] $4.99
+[p] Designs 1–3 pricing tiers with cost-floor and value-ceiling math, usage fences and ready-to-paste page copy.
+[h3] Launch Plan: Dated T 14 to T+7 Checklist
+[a] KritikosgnsStudio
+[span] $4.99
+[p] Builds a dated two-week launch calendar for one person, every task under an hour, with UTM links.
+[h2] What users are buying
+[p] The busiest categories in the marketplace
+[span] Frontend & Web Apps
+[span] 392
+[span] skills
+[p] LLM becomes an Award Winning App & Site Designer
+[p] Aman G.
+[span] $9.99
+[p] OptiTech Frontend Developer (skill 1 of 6)
+[p] Ilya Demidov
+[span] $20
+[p] Website Designer
+[p] The Lily Studio
+[p] Cinematic Landing Page Builder
+[p] Martin Gunderman
+[span] $19
+[span] Trading & Investing
+[span] 302
+[span] skills
+[p] stock breakout picker
+[p] Fredrik Akerstrom
+[span] $10
+[p] ai agent risk governor
+[p] nowrich
+[p] Market Quote Desk
+[p] Edric Vale
+[p] agent financial research workflow
+[p] Timoranjes
+[span] Marketing & SEO
+[span] 715
+[span] skills
+[p] GEO SEO Suite — AI Search Optimization
+[p] Juan Gabriel Gomila Salas
+[span] $29.99
+[p] Internal Linking & Site Architecture Optimizer
+[p] Shandra
+[span] $9.99
+[p] Landing Page & Conversion Copy Gate
+[p] PubsProToolkit
+[span] $49
+[p] keyword research
+[p] Roy Yuen
+[span] Branding & Design
+[span] 155
+[span] skills
+[p] clone site to elementor
+[p] Shai Ben - Dor
+[p] nex brand identity
+[p] Nex AI
+[span] $19
+[p] Design Systems Engineering: Design Context for AI Agents
+[p] Ahmed Rehan
+[span] $9.99
+[p] professional svg logo builder
+[p] nowrich
+[span] Writing & Content
+[span] 315
+[span] skills
+[p] AI Text Humanizer & Sounds AI Detector Gate
+[p] PubsProToolkit
+[span] $14
+[p] personal love letter writer
+[p] nowrich
+[p] Human Style AI Text Rewriter & Authentic Voice Editor
+[p] Shandra
+[span] $50
+[p] AI Animation Production Studio OS™
+[p] Shivangi Singh
+[span] $9.99
+[span] Image & Video
+[span] 164
+[span] skills
+[p] Video Frame Extractor
+[p] Edric Vale
+[p] abstract memory panel
+[p] deng qi
+[span] $3.33
+[p] Motion Studio: Motion Graphics Videos Written in Code
+[p] SAUL ROJAS COILA
+[span] $19
+[p] AI Storyboard Prompt Builder
+[p] Promptifypro
+[span] $5.99
+[span] Vetted creators
+[h2] Real experts behind every skill
+[p] Every skill on Agensi is built by a vetted creator and security scanned before it goes live.
+[p] Nex AI
+[span] Verified creator
+[div] 310
+[div] Skills
+[div] 329
+[div] Downloads
+[p] StrategistKit
+[span] Verified creator
+[div] 222
+[div] Skills
+[div] Downloads
+[p] Edric Vale
+[span] Verified creator
+[div] 184
+[div] Skills
+[div] 1,234
+[div] Downloads
+[p] JustHandled Labs
+[span] Verified creator
+[div] 196
+[div] Skills
+[div] 163
+[div] Downloads
+[p] PubsProToolkit
+[span] Verified creator
+[div] 175
+[div] Skills
+[div] 478
+[div] Downloads
+[p] Echo Rose
+[span] Verified creator
+[div] 180
+[div] Skills
+[div] Downloads
+[p] Roy Yuen
+[span] Verified creator
+[div] 114
+[div] Skills
+[div] 2,532
+[div] Downloads
+[p] mochalatte
+[span] Verified creator
+[div] 157
+[div] Skills
+[div] 185
+[div] Downloads
+[p] GarphenGate
+[span] Verified creator
+[div] 157
+[div] Skills
+[div] Downloads
+[p] Shandra
+[span] Verified creator
+[div] 155
+[div] Skills
+[div] 102
+[div] Downloads
+[p] Timoranjes
+[span] Verified creator
+[div] Skills
+[div] 568
+[div] Downloads
+[p] Mamba Labs
+[span] Verified creator
+[div] Skills
+[div] 116
+[div] Downloads
+[span] Previous slide
+[span] Next slide
+[a] Explore all creators
+[p] Are you an expert?
+[a] Become a creator
+[h2] Browse by Category
+[p] Find skills organized by what they help you do.
+[h3] Agents & Orchestration
+[span] 1281
+[p] Skills for building multi-agent systems, delegating work to subagents, and orchestrating tools across an agent team. Ship agents that coordinate instead of colliding.
+[span] Browse
+[h3] Business & Operations
+[span] 1209
+[p] Skills for project management, product strategy, client delivery, risk assessment, and operational workflows. Help your AI agent run the business, not just write code.
+[span] Browse
+[h3] Marketing & SEO
+[span] 715
+[p] Skills for SEO research, content strategy, ad copy, and conversion-rate optimization. Help your AI agent ship marketing assets that actually convert.
+[span] Browse
+[h3] Workflow Automation
+[span] 526
+[p] Skills that help AI agents automate repetitive workflows, orchestrate tools, and connect systems. Cut manual work and standardize how tasks get done.
+[span] Browse
+[h3] E-commerce
+[span] 447
+[p] Skills for Shopify, WooCommerce, Etsy, and Amazon sellers: listing optimization, storefront ops, and marketplace SEO. Run stores that actually convert.
+[span] Browse
+[h3] Security
+[span] 445
+[p] Skills for security audits, static analysis, vulnerability triage, threat modeling, and secrets hygiene. Ship safer software with fewer surprises.
+[span] Browse
+[h3] Finance & Accounting
+[span] 445
+[p] Skills for accounting workflows, financial analysis, budgeting, invoicing, and fintech automation. Handle the numbers without the spreadsheet archaeology.
+[span] Browse
+[h3] APIs & Backend
+[span] 435
+[p] Skills for REST APIs, GraphQL endpoints, authentication flows, and backend services. Design, document, and ship robust server-side systems faster.
+[span] Browse
+[h3] DevOps & Cloud
+[span] 419
+[p] Skills for CI/CD pipelines, containers, infrastructure-as-code, cloud platforms, and monitoring. Automate deployment and reduce operational overhead.
+[span] Browse
+[h3] Research & Analysis
+[span] 410
+[p] Skills for market research, competitor teardowns, data analysis, and reporting. Turn scattered sources into decisions you can defend.
+[span] Browse
+[h3] Frontend & Web Apps
+[span] 392
+[p] Skills that help AI agents design and build web interfaces — landing pages, UI components, layouts, styling, and design systems. Ship pixel-perfect, on-brand product surfaces faster.
+[span] Browse
+[h3] Sales & Lead Gen
+[span] 365
+[p] Skills for prospecting, outbound sequences, CRM workflows, funnel optimization, and closing more deals. Help your AI agent fill the pipeline and work it end-to-end.
+[span] Browse
+[a] View All Categories
+[span] For Skill Users
+[h2] Give your agent
+[span] new capabilities
+[p] Your agent is capable but generic. A skill is a capability someone else already built and tested. Connect Agensi once and your agent can do new work the moment you ask for it.
+[h3] What is a skill?
+[p] A skill is a capability your agent loads before it answers you. It hands your agent the exact steps an expert would follow, so it can do work it couldn't do out of the box.
+[span] Capabilities on demand.
+[span] Add something your agent was never trained on: cold emails that get replies, audits that catch the real bugs, pages that ship.
+[span] No prompt engineering.
+[span] The skill brings the know-how. You just say what you need in plain English.
+[span] Runs inside your agent.
+[span] Nothing to download or keep up to date. Connect Agensi once and your agent always runs the latest version.
+[span] You approve every purchase.
+[span] Your agent finds the right skill and asks before it spends a cent. Every skill is built by a vetted expert and passes an 8-point security scan.
+[span] your agent
+[div] Write a cold email to a SaaS CTO
+[span] How It Works
+[h2] Three steps to expert AI output
+[p] No setup. No downloads. Connect your agent once, then just ask.
+[span] mcp.agensi.io
+[span] Agensi connector
+[span] Signing in…
+[h3] Connect your agent once
+[p] Add Agensi to your agent with one line and sign in through the connector. Free to connect, no code.
+[code] connect mcp.agensi.io
+[p] Connected. Your agent now has the whole store.
+[h3] Ask. Approve. Done.
+[p] Tell your agent what you need. It finds the right skill and asks before it spends a cent.
+[div] Find me a skill that writes cold emails
+[span] cold-email-outbound-pack
+[p] Buy this skill for $9?
+[span] Approve
+[span] Cancel
+[h3] Better results, every time
+[p] Your agent loads the skill and runs the task. Every update reaches you automatically.
+[span] cold-email-outbound-pack running
+[p] Expert output. Latest version, every run.
+[p] Or connect once and let your AI do it all: it searches the store, recommends the best skill, and runs it after you approve.
+[code] https://mcp.agensi.io/mcp/auth
+[a] Connect your AI
+[a] Read the setup guide
+[span] For Skill Creators
+[h2] Build a business on
+[span] Agensi
+[p] Sell your expertise to AI agents. Package it once, ship updates, and earn on repeat - buyers' agents always run your latest version.
+[p] One-time skills or subscription software
+[p] Sell a self-contained skill as a one-off purchase. If it needs ongoing maintenance and updates, price it as a subscription.
+[p] Your skills run inside agents
+[p] Listed on the Agensi store and reachable from any AI agent through MCP. Nothing for buyers to download. Your skill runs in their agent, on demand.
+[p] Updates reach every buyer instantly
+[p] Publish a new version and every buyer's agent runs it on their next task. No stale copies floating around, no re-delivery.
+[p] Keep 70%, paid to your bank
+[p] Fair split on every sale. Payouts via Stripe, or USDC on Solana through Zoneless. No hidden fees.
+[span] creator dashboard
+[span] seo-audit-pro
+[span] $9.00
+[div] Live on Agensi · any agent can buy it
+[span] You keep 70% of $9 · paid to your bank
+[span] 0.00
+[a] Start Selling
+[a] See how selling works
+[p] Flat 30% platform fee on every sale. No per-transaction flat fee. No hidden charges.
+[p] Payouts powered by
+[h2] Latest from the Learning Center
+[p] Guides, tutorials, and deep-dives on AI agent skills.
+[div] Guides
+[h3] Claude Managed Agents and Dispatch Explained
+[p] What Claude Managed Agents and Dispatch are, how they differ, what runs cost and which limits apply. Checked against Anthropic docs on 19-10-2026.
+[span] Oct 19, 2026
+[span] min
+[div] Guides
+[h3] AGENTS.md in Claude: Does Claude Read It?
+[p] Claude Code reads AGENTS.md only when no CLAUDE.md exists. What that means for Cursor and Codex teams, and the one-line import. Checked 19-10-2026.
+[span] Oct 19, 2026
+[span] min
+[div] Guides
+[h3] Claude Agent SDK: Build Your Own Agents
+[p] Build an agent with the Claude Agent SDK in Python or TypeScript: setup, tools, subagents, permissions, cost and hosting. Checked 19-10-2026.
+[span] Oct 19, 2026
+[span] min
+[a] View All Articles
+[h2] Browse by Agent marketplace
+[p] Skills follow the open SKILL.md standard, so most work everywhere. Each marketplace below is filtered to the skills that run in that agent, with install steps for it.
+[span] Claude Code
+[span] Marketplace
+[span] Cursor
+[span] Marketplace
+[span] Codex CLI
+[span] Marketplace
+[span] Gemini CLI
+[span] Marketplace
+[span] GitHub Copilot
+[span] Marketplace
+[span] Windsurf
+[span] Marketplace
+[span] OpenClaw
+[span] Marketplace
+[span] Aider
+[span] Marketplace
+[span] Cline
+[span] Marketplace
+[span] VS Code
+[span] Marketplace
+[span] Grok
+[span] Marketplace
+[span] Grok Bot
+[span] Marketplace
+[span] Zed
+[span] Marketplace
+[span] Kiro
+[span] Marketplace
+[span] Manus
+[span] Marketplace
+[span] Muse
+[span] Marketplace
+[span] Cue
+[span] Marketplace
+[span] Dots
+[span] Marketplace
+[span] FAQ
+[h2] Got questions?
+[p] Everything you need to know before getting started.
+[button] What is Agensi?
+[button] What is a skill?
+[button] Do I need to know how to code?
+[button] Which AI tools do skills work with?
+[button] What does it cost?
+[button] Is it a one-time purchase?
+[button] Can I get a refund?
+[button] How are skills checked for safety?
+[button] How do I use a skill?
+[button] What if I can't find the skill I need?
+[h2] Get in touch
+[p] Questions, partnership ideas, or feedback on the platform? Tell us what's working and what isn't, we love to hear from you!
+[h3] Samuel Rose
+[p] Founder & CEO of Agensi
+[a] Email Us
+[button] Message Me
+[a] Book a Call
+[p] info@agensi.io
+[p] We typically respond within a few hours during business hours.
+[p] The Marketplace for AI Agent Skills
+[p] The Marketplace for AI Agent Skills
+[h4] Marketplace
+[a] Free Skills
+[a] Skill Bundles
+[a] AI Skill Search
+[a] Creators
+[a] Request a Skill
+[a] Learn Hub
+[a] Getting Started
+[a] Setup Guides
+[a] Agent Guides
+[a] Comparisons
+[a] Best Skills
+[a] Format and Reference
+[a] MCP and Protocols
+[a] For Creators
+[a] Deep Dives
+[a] MCP Setup Guide
+[a] Security
+[a] Leaderboard
+[h4] Skill Creators
+[a] Sell a Skill
+[a] Creator Dashboard
+[a] Privacy Policy
+[a] Terms of Service
+[a] DMCA Policy
+[a] Responsible Disclosure
+[a] Stripe Payment Terms
+[a] All Agents
+[a] Claude Code Marketplace
+[a] Cursor Marketplace
+[a] Codex CLI Marketplace
+[a] Gemini CLI Marketplace
+[a] GitHub Copilot Marketplace
+[a] Windsurf Marketplace
+[a] OpenClaw Marketplace
+[a] Aider Marketplace
+[a] Cline Marketplace
+[a] VS Code Marketplace
+[a] Grok Marketplace
+[a] Grok Bot Marketplace
+[a] Zed Marketplace
+[a] Kiro Marketplace
+[a] Manus Marketplace
+[a] Muse Marketplace
+[a] Cue Marketplace
+[a] Dots Marketplace
+[h4] Stay in the loop
+[p] Get the latest skills, features, and marketplace updates.
+[button] Subscribe
+[p] © 2026 Agensi.io. All rights reserved.
+[p] Find a skill. Use it through your agent.

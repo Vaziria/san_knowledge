@@ -1,0 +1,425 @@
+<template id="08-on-agensi-template">
+  <div data-hf-id="hf-hmn5"
+    id="root"
+    data-composition-id="08-on-agensi"
+    data-width="1920"
+    data-height="1080"
+    data-start="0"
+    data-duration="6"
+  >
+    <style>
+      @font-face {
+        font-family: "EB Garamond";
+        src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+
+      #root {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      /* full-duration navy ground (frame.md "cream" key = the remapped navy ground) */
+      #root #\30 8-on-agensi-ground {
+        position: absolute;
+        inset: 0;
+        background: #1f2a44;
+      }
+
+      /* the frame container: all type is sized in cqw against it */
+      #root #\30 8-on-agensi-stage {
+        position: absolute;
+        inset: 0;
+        container-type: size;
+      }
+      #root #\30 8-on-agensi-fade {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* lockup band: crane mark + wordmark, fixed for the whole shot */
+      #root #\30 8-on-agensi-lockup {
+        position: absolute;
+        left: 0;
+        top: 236px;
+        width: 1920px;
+        height: 368px;
+        transform-origin: 960px 184px;
+      }
+
+      /* crane mark box: viewBox 44 90 420 368 at 1:1, crane ink ~322px tall (30% of 1080) */
+      #root #\30 8-on-agensi-mark {
+        position: absolute;
+        left: 398px;
+        top: 0;
+        width: 420px;
+        height: 368px;
+        z-index: 2;
+      }
+      #root [class~="08-on-agensi-piece"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 420px;
+        height: 368px;
+        overflow: visible;
+      }
+
+      /* wordmark: revealed by a mask whose left edge rides the mark's right edge */
+      #root #\30 8-on-agensi-wordwrap {
+        position: absolute;
+        left: 840px;
+        top: 60px;
+        width: 760px;
+        height: 260px;
+        z-index: 1;
+      }
+      #root #\30 8-on-agensi-word {
+        position: absolute;
+        left: 18px;
+        top: 55px;
+        margin: 0;
+        font-family: "EB Garamond", serif;
+        font-weight: 400;
+        font-size: 7.3cqw;
+        line-height: 1.02;
+        letter-spacing: -0.022em;
+        color: #f3f2ee;
+        white-space: nowrap;
+      }
+
+      /* lead line (Inter lead, ink) */
+      #root #\30 8-on-agensi-lead {
+        position: absolute;
+        left: 0;
+        top: 646px;
+        width: 1920px;
+        margin: 0;
+        text-align: center;
+        font-family: "Inter", sans-serif;
+        font-weight: 400;
+        font-size: 2.08cqw;
+        line-height: 1.5;
+        color: #f3f2ee;
+        white-space: nowrap;
+      }
+
+      /* the one voltage: coral-callout pill in the brand blue */
+      #root #\30 8-on-agensi-pillrow {
+        position: absolute;
+        left: 0;
+        top: 742px;
+        width: 1920px;
+        height: 88px;
+        display: flex;
+        justify-content: center;
+      }
+      #root #\30 8-on-agensi-pill {
+        display: flex;
+        align-items: center;
+        height: 88px;
+        padding: 0 56px;
+        border-radius: 9999px;
+        background: #2a78d6;
+      }
+      #root #\30 8-on-agensi-pilltext {
+        display: block;
+        font-family: "Inter", sans-serif;
+        font-weight: 400;
+        font-size: 2.08cqw;
+        line-height: 1;
+        color: #f3f2ee;
+        white-space: nowrap;
+      }
+    </style>
+
+    <div data-hf-id="hf-yyo8"
+      id="08-on-agensi-ground"
+      class="clip"
+      data-start="0"
+      data-duration="6"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-btns"
+      id="08-on-agensi-stage"
+      class="clip"
+      data-start="0"
+      data-duration="6"
+      data-track-index="1"
+    >
+      <div data-hf-id="hf-hyi6" id="08-on-agensi-fade">
+        <div data-hf-id="hf-ya4a" id="08-on-agensi-lockup">
+          <div data-hf-id="hf-p7qw" id="08-on-agensi-wordwrap">
+            <p data-hf-id="hf-3art" id="08-on-agensi-word">project-brain</p>
+          </div>
+
+          <div data-hf-id="hf-h16f" id="08-on-agensi-mark">
+            <!-- faint shadow under the crane (kept from the logo file) -->
+            <svg data-hf-id="hf-392u"
+              id="08-on-agensi-shadow"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 218px 350px"
+            >
+              <ellipse data-hf-id="hf-6ave" cx="262" cy="440" rx="120" ry="10" fill="#000" opacity=".25" />
+            </svg>
+            <!-- back wing -->
+            <svg data-hf-id="hf-g99t"
+              id="08-on-agensi-bw1"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 247px 254px"
+            >
+              <g data-hf-id="hf-qo9v" transform="translate(0 46)"><path data-hf-id="hf-zv6t" d="M262 298 394 92 320 298Z" fill="#3cc792" /></g>
+            </svg>
+            <svg data-hf-id="hf-qdm8"
+              id="08-on-agensi-bw2"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 292px 254px"
+            >
+              <g data-hf-id="hf-h4df" transform="translate(0 46)"><path data-hf-id="hf-ufcq" d="M320 298 394 92 352 298Z" fill="#138a5f" /></g>
+            </svg>
+            <!-- tail -->
+            <svg data-hf-id="hf-pnsu"
+              id="08-on-agensi-tl1"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 274px 256px"
+            >
+              <g data-hf-id="hf-gq2e" transform="translate(0 46)"><path data-hf-id="hf-a8f2" d="M318 300 456 206 348 300Z" fill="#eb6834" /></g>
+            </svg>
+            <svg data-hf-id="hf-afs9"
+              id="08-on-agensi-tl2"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 304px 256px"
+            >
+              <g data-hf-id="hf-gbrd" transform="translate(0 46)"><path data-hf-id="hf-suf9" d="M348 300 456 206 374 300Z" fill="#c4501f" /></g>
+            </svg>
+            <!-- neck and head -->
+            <svg data-hf-id="hf-vh40"
+              id="08-on-agensi-nk1"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 132px 256px"
+            >
+              <g data-hf-id="hf-fxgc" transform="translate(0 46)"><path data-hf-id="hf-drxn" d="M148 300 86 126 176 300Z" fill="#c4501f" /></g>
+            </svg>
+            <svg data-hf-id="hf-qraw"
+              id="08-on-agensi-nk2"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 162px 256px"
+            >
+              <g data-hf-id="hf-fj5b" transform="translate(0 46)"><path data-hf-id="hf-m8z9" d="M176 300 86 126 206 300Z" fill="#eb6834" /></g>
+            </svg>
+            <svg data-hf-id="hf-m0mv"
+              id="08-on-agensi-hd"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 42px 82px"
+            >
+              <g data-hf-id="hf-f4ua" transform="translate(0 46)"><path data-hf-id="hf-1i1u" d="M86 126 52 160 100 148Z" fill="#c4501f" /></g>
+            </svg>
+            <!-- body: the two halves open on their shared vertical crease (x 258) -->
+            <svg data-hf-id="hf-b6wu"
+              id="08-on-agensi-bd1"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 214px 256px"
+            >
+              <g data-hf-id="hf-eqj9" transform="translate(0 46)"><path data-hf-id="hf-3h41" d="M148 300H258V374Z" fill="#f2864f" /></g>
+            </svg>
+            <svg data-hf-id="hf-7wit"
+              id="08-on-agensi-bd2"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 214px 256px"
+            >
+              <g data-hf-id="hf-ec88" transform="translate(0 46)"><path data-hf-id="hf-upwu" d="M258 300H374L258 374Z" fill="#c4501f" /></g>
+            </svg>
+            <!-- front wing: the two halves open on their near-vertical crease -->
+            <svg data-hf-id="hf-a8ya"
+              id="08-on-agensi-fw1"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 233px 160px"
+            >
+              <g data-hf-id="hf-dxx7" transform="translate(0 46)"><path data-hf-id="hf-wyeg" d="M194 300 292 52 262 300Z" fill="#4b92e6" /></g>
+            </svg>
+            <svg data-hf-id="hf-d8y9"
+              id="08-on-agensi-fw2"
+              class="08-on-agensi-piece"
+              viewBox="44 90 420 368"
+              width="420"
+              height="368"
+              style="transform-origin: 233px 160px"
+            >
+              <g data-hf-id="hf-m9ih" transform="translate(0 46)"><path data-hf-id="hf-8tmv" d="M262 300 292 52 326 300Z" fill="#1d5aa6" /></g>
+            </svg>
+          </div>
+        </div>
+
+        <p data-hf-id="hf-s4pe" id="08-on-agensi-lead">One living knowledge graph for you and your AI agents.</p>
+
+        <div data-hf-id="hf-d3ef" id="08-on-agensi-pillrow">
+          <div data-hf-id="hf-8ub9" id="08-on-agensi-pill">
+            <span data-hf-id="hf-0fu3" id="08-on-agensi-pilltext">Find it on Agensi.io</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        var ID = "08-on-agensi";
+        var el = function (name) {
+          return document.getElementById(ID + "-" + name);
+        };
+        var tl = gsap.timeline({ paused: true });
+        var PERSP = 800;
+
+        // Scene 1 (0.0-2.2s): the crane folds together piece by piece, like paper.
+        // Each polygon flips in from its own hinge (rotateX / rotateY), scale 0.9 -> 1,
+        // opacity 0 -> 1. Order: back wing, tail, neck and head, body, front wing last.
+        var pieces = [
+          ["bw1", 0.08, { rotationX: -70 }],
+          ["bw2", 0.18, { rotationX: -64, rotationY: 28 }],
+          ["tl1", 0.46, { rotationY: -76 }],
+          ["tl2", 0.56, { rotationY: -76 }],
+          ["nk1", 0.84, { rotationY: 74 }],
+          ["nk2", 0.94, { rotationY: 74 }],
+          ["hd", 1.06, { rotationX: -78 }],
+          ["bd1", 1.22, { rotationY: -80 }],
+          ["bd2", 1.32, { rotationY: 80 }],
+          ["fw1", 1.58, { rotationY: -78 }],
+          ["fw2", 1.68, { rotationY: 78 }],
+        ];
+        pieces.forEach(function (p) {
+          var from = { opacity: 0, scale: 0.9, rotationX: 0, rotationY: 0, transformPerspective: PERSP };
+          var k;
+          for (k in p[2]) from[k] = p[2][k];
+          tl.fromTo(
+            el(p[0]),
+            from,
+            {
+              opacity: 1,
+              scale: 1,
+              rotationX: 0,
+              rotationY: 0,
+              transformPerspective: PERSP,
+              duration: p[0].charAt(0) === "f" ? 0.5 : 0.55,
+              ease: "power3.out",
+            },
+            p[1],
+          );
+        });
+        // the faint shadow settles in with the body
+        tl.fromTo(
+          el("shadow"),
+          { opacity: 0, scaleX: 0.5 },
+          { opacity: 1, scaleX: 1, duration: 0.6, ease: "power2.out" },
+          1.26,
+        );
+
+        // Scene 2 (2.2-3.8s): the mark slides left while the wordmark slides out from
+        // behind it. The mask's left edge rides the mark's right edge: same start,
+        // duration and ease, so the two stay in lockstep (offset 352px = centred mark).
+        var SHIFT = 352;
+        tl.fromTo(
+          el("mark"),
+          { x: SHIFT },
+          { x: 0, duration: 0.95, ease: "power3.inOut" },
+          2.2,
+        );
+        tl.fromTo(
+          el("wordwrap"),
+          { clipPath: "inset(0px 0px 0px " + SHIFT + "px)" },
+          { clipPath: "inset(0px 0px 0px 0px)", duration: 0.95, ease: "power3.inOut" },
+          2.2,
+        );
+        tl.fromTo(
+          el("word"),
+          { x: -340, opacity: 0 },
+          { x: 0, opacity: 1, duration: 1.0, ease: "power3.out" },
+          2.25,
+        );
+        // life in the hold: an almost imperceptible scale-up of the lockup
+        tl.fromTo(
+          el("lockup"),
+          { scale: 1 },
+          { scale: 1.02, duration: 2.8, ease: "none" },
+          3.2,
+        );
+
+        // Scene 3 (3.8-6.0s): lead line fades up, then the blue pill wipes in left to right.
+        tl.fromTo(
+          el("lead"),
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+          3.8,
+        );
+        tl.fromTo(
+          el("pill"),
+          { clipPath: "inset(0px 100% 0px 0px round 36px)" },
+          { clipPath: "inset(0px 0% 0px 0px round 36px)", duration: 0.7, ease: "power2.inOut" },
+          4.6,
+        );
+        tl.fromTo(
+          el("pilltext"),
+          { opacity: 0, x: -14 },
+          { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+          4.78,
+        );
+
+        // Final frame: the only real exit, the whole frame fades to the navy ground.
+        tl.fromTo(
+          el("fade"),
+          { opacity: 1 },
+          { opacity: 0, duration: 0.5, ease: "power1.inOut" },
+          5.5,
+        );
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines[ID] = tl;
+      })();
+    </script>
+  </div>
+</template>

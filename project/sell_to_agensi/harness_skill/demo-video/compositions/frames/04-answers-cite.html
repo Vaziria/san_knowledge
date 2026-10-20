@@ -1,0 +1,306 @@
+<template>
+  <div data-hf-id="hf-gpuv" id="root" data-composition-id="04-answers-cite" data-start="0" data-duration="10.5" data-width="1920" data-height="1080">
+    <style>
+      /* Frame 04 — Answers with file and line. Ids/classes carry the frame prefix; a class
+         starting with a digit is written \30 4-... in CSS. */
+      @font-face { font-family: "EB Garamond"; src: url("assets/fonts/EBGaramond-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/JetBrainsMono-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+
+      #root { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; container-type: size; }
+
+      .\30 4-answers-cite-ground { position: absolute; inset: 0; background: #1f2a44; }
+      .\30 4-answers-cite-layer { position: absolute; inset: 0; }
+
+      /* ── top text strip: kicker-spike + headline cues (left edge = window left edge) ── */
+      .\30 4-answers-cite-kicker {
+        position: absolute; left: 328px; top: 46px; display: flex; align-items: center; gap: 14px;
+        font-family: "JetBrains Mono", monospace; font-weight: 400; font-size: 28px; line-height: 1;
+        letter-spacing: 0.16em; text-transform: uppercase; color: rgba(243, 242, 238, 0.78); white-space: nowrap;
+      }
+      .\30 4-answers-cite-spike { display: block; width: 22px; height: 22px; }
+      .\30 4-answers-cite-hl {
+        position: absolute; left: 328px; top: 84px; margin: 0;
+        font-family: "EB Garamond", serif; font-weight: 400; font-size: 68px; line-height: 1.06;
+        letter-spacing: -0.018em; color: #f3f2ee; white-space: nowrap;
+      }
+      .\30 4-answers-cite-w { display: inline-block; }
+
+      /* ── the window: rounded hairline panel holding the real screenshot ── */
+      .\30 4-answers-cite-win {
+        position: absolute; left: 328px; top: 184px; width: 1264px; height: 711px;
+        border-radius: 12px; overflow: hidden; background: #1a1a19;
+        box-shadow: 0 1px 3px rgba(6, 10, 22, 0.30), 0 14px 40px rgba(6, 10, 22, 0.34);
+      }
+      .\30 4-answers-cite-winline {
+        position: absolute; inset: 0; border-radius: 12px; border: 1px solid rgba(243, 242, 238, 0.12);
+        box-sizing: border-box; pointer-events: none;
+      }
+      /* camera layer: laid out at the PNG's native 3840x2160 so every zoom is a scale <= 1 (sharp) */
+      .\30 4-answers-cite-cam { position: absolute; left: 0; top: 0; width: 3840px; height: 2160px; transform-origin: 0 0; }
+      .\30 4-answers-cite-shot { position: absolute; left: 0; top: 0; display: block; width: 3840px; height: 2160px; }
+
+      /* overlays in the PNG's own pixel space (they ride the camera with the screenshot) */
+      .\30 4-answers-cite-qpatch { position: absolute; left: 2198px; top: 34px; width: 402px; height: 50px; background: #0d0d0d; }
+      .\30 4-answers-cite-typed {
+        position: absolute; left: 2210px; top: 43.3px; width: 380px; white-space: pre;
+        font-family: "Inter", sans-serif; font-weight: 400; font-size: 26.3px; line-height: 26.3px; color: #fbfbfb;
+      }
+      .\30 4-answers-cite-caret {
+        display: inline-block; width: 2.5px; height: 31px; margin-left: 1.5px; vertical-align: -6px; background: #fbfbfb;
+      }
+      .\30 4-answers-cite-btnpatch { position: absolute; left: 3274px; top: 16px; width: 158px; height: 80px; background: #1a1a19; }
+      .\30 4-answers-cite-btn {
+        position: absolute; left: 3274px; top: 16px; width: 158px; height: 80px; transform-origin: 50% 50%;
+        background-image: url("assets/03-explain.png"); background-repeat: no-repeat;
+        background-size: 3840px 2160px; background-position: -3274px -16px;
+      }
+      .\30 4-answers-cite-dim { position: absolute; left: 1200px; top: 116px; width: 2640px; height: 2044px; background: #1a1a19; }
+      .\30 4-answers-cite-mark { position: absolute; left: 190px; top: 700px; width: 440px; height: 90px; overflow: visible; }
+
+      /* ── code surface (terminal-simulator catalog component, restyled to frame.md code-surface) ── */
+      .\30 4-answers-cite-term {
+        /* top/bottom edges sit in the gaps between the screenshot's text rows at the match-2 view */
+        position: absolute; left: 1016px; top: 414px; width: 842px; box-sizing: border-box;
+        border-radius: 8px; overflow: hidden; background: #121a2c; border: 1px solid rgba(243, 242, 238, 0.14);
+        box-shadow: 0 1px 3px rgba(5, 8, 18, 0.35), 0 18px 48px rgba(5, 8, 18, 0.45);
+        font-family: "JetBrains Mono", monospace; color: #f3f2ee;
+      }
+      .\30 4-answers-cite-chrome {
+        height: 56px; display: flex; align-items: center; gap: 9px; padding: 0 22px; box-sizing: border-box;
+        background: #1b2642; border-bottom: 1px solid rgba(243, 242, 238, 0.10);
+        font-size: 23px; font-weight: 400; letter-spacing: 0.02em; color: rgba(243, 242, 238, 0.68); white-space: nowrap;
+      }
+      .\30 4-answers-cite-dot { width: 12px; height: 12px; border-radius: 999px; background: rgba(243, 242, 238, 0.20); flex: none; }
+      .\30 4-answers-cite-title { margin-left: 12px; }
+      .\30 4-answers-cite-tbody {
+        padding: 26px 28px 30px; box-sizing: border-box; width: 840px;
+        font-size: 25px; font-weight: 400; line-height: 38.75px; white-space: pre-wrap; color: rgba(243, 242, 238, 0.90);
+      }
+      .\30 4-answers-cite-ln { display: block; min-height: 38.75px; }
+      .\30 4-answers-cite-h { color: #f3f2ee; font-weight: 700; }
+      .\30 4-answers-cite-mut { color: rgba(243, 242, 238, 0.50); }
+      .\30 4-answers-cite-str { color: #5DB8A6; }
+      .\30 4-answers-cite-num { color: #E8A55A; }
+    </style>
+
+    <!-- track 0: full-duration navy ground -->
+    <div data-hf-id="hf-svac" id="04-answers-cite-ground" class="clip 04-answers-cite-ground" data-start="0" data-duration="10.5" data-track-index="0"></div>
+
+    <!-- track 1: the window with the real screenshot (cutout / focal) -->
+    <div data-hf-id="hf-4q4m" id="04-answers-cite-stage" class="clip 04-answers-cite-layer" data-start="0" data-duration="10.5" data-track-index="1">
+      <div data-hf-id="hf-uo6o" id="04-answers-cite-win" class="04-answers-cite-win">
+        <div data-hf-id="hf-mvvt" id="04-answers-cite-cam" class="04-answers-cite-cam" data-layout-allow-overflow>
+          <img data-hf-id="hf-6j8l" class="04-answers-cite-shot" src="assets/03-explain.png" alt="" width="3840" height="2160" />
+          <!-- the graph area lights up as the result lands -->
+          <div data-hf-id="hf-4dcw" id="04-answers-cite-dim" class="04-answers-cite-dim"></div>
+          <!-- ground-matched patch over the real query + the typed overlay, dropped after the submit -->
+          <div data-hf-id="hf-h3kh" id="04-answers-cite-qfix" data-layout-allow-overflow>
+            <div data-hf-id="hf-5ygy" class="04-answers-cite-qpatch"></div>
+            <div data-hf-id="hf-p37p" class="04-answers-cite-typed"><span data-hf-id="hf-uhmn" id="04-answers-cite-qtext"></span><span data-hf-id="hf-7lbn" id="04-answers-cite-caret" class="04-answers-cite-caret"></span></div>
+          </div>
+          <!-- the real Explain button pixels, lifted so they can take a press -->
+          <div data-hf-id="hf-rhn9" class="04-answers-cite-btnpatch"></div>
+          <div data-hf-id="hf-a5to" id="04-answers-cite-btn" class="04-answers-cite-btn"></div>
+          <!-- marker box around docs/product/pricing.md:15 (marker-highlight stroke mechanic) -->
+          <svg data-hf-id="hf-ry62" id="04-answers-cite-mark" class="04-answers-cite-mark" viewBox="0 0 440 90" width="440" height="90" aria-hidden="true">
+            <path data-hf-id="hf-b6d1" id="04-answers-cite-markpath" d="M 44 33 H 401 A 10 10 0 0 1 411 43 V 59 A 10 10 0 0 1 401 69 H 32 A 10 10 0 0 1 22 59 V 43 A 10 10 0 0 1 32 33 H 66" fill="none" stroke="#2a78d6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-nirh" class="04-answers-cite-winline"></div>
+      </div>
+    </div>
+
+    <!-- track 2: the agent's view, a code-surface card quoting terminal-explain.txt verbatim -->
+    <div data-hf-id="hf-2hj8" id="04-answers-cite-cardlayer" class="clip 04-answers-cite-layer" data-start="0" data-duration="10.5" data-track-index="2">
+      <div data-hf-id="hf-kbmy" id="04-answers-cite-term" class="04-answers-cite-term">
+        <div data-hf-id="hf-12ul" class="04-answers-cite-chrome">
+          <span data-hf-id="hf-k6d7" class="04-answers-cite-dot"></span><span data-hf-id="hf-3ke3" class="04-answers-cite-dot"></span><span data-hf-id="hf-3632" class="04-answers-cite-dot"></span>
+          <span data-hf-id="hf-lc4f" class="04-answers-cite-title">knowledge explain</span>
+        </div>
+        <div data-hf-id="hf-9v9h" class="04-answers-cite-tbody"><span data-hf-id="hf-w94o" id="04-answers-cite-l1" class="04-answers-cite-ln"><span data-hf-id="hf-aux1" class="04-answers-cite-h">## 2. Why there is no free tier</span><span data-hf-id="hf-9sp7" class="04-answers-cite-mut"> (doc_section `docs/product/pricing.md#why-there-is-no-free-tier`)</span></span><span data-hf-id="hf-4x0j" id="04-answers-cite-l2" class="04-answers-cite-ln"><span data-hf-id="hf-y5e9" class="04-answers-cite-mut">- loc: </span><span data-hf-id="hf-7w0c" class="04-answers-cite-str">docs/product/pricing.md</span><span data-hf-id="hf-2g46" class="04-answers-cite-num">:15</span></span><span data-hf-id="hf-puig" id="04-answers-cite-l3" class="04-answers-cite-ln"><span data-hf-id="hf-u7va" class="04-answers-cite-mut">- keyword: </span>free tier, trial, conversion</span><span data-hf-id="hf-0cm4" class="04-answers-cite-ln"></span><span data-hf-id="hf-kvn2" id="04-answers-cite-l4" class="04-answers-cite-ln">The free tier was dropped in September after 4,100 sign-ups produced only 38 upgrades; a 14-day Pro trial replaced it.</span></div>
+      </div>
+    </div>
+
+    <!-- track 3: top text strip -->
+    <div data-hf-id="hf-rp4s" id="04-answers-cite-strip" class="clip 04-answers-cite-layer" data-start="0" data-duration="10.5" data-track-index="3">
+      <div data-hf-id="hf-sg88" class="04-answers-cite-kicker">
+        <svg data-hf-id="hf-v3o8" id="04-answers-cite-spike" class="04-answers-cite-spike" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <g data-hf-id="hf-43pp" stroke="#2a78d6" stroke-width="4.4" stroke-linecap="round">
+            <line data-hf-id="hf-8epb" x1="12" y1="2.5" x2="12" y2="21.5" />
+            <line data-hf-id="hf-ezpu" x1="3.8" y1="7.25" x2="20.2" y2="16.75" />
+            <line data-hf-id="hf-3muu" x1="3.8" y1="16.75" x2="20.2" y2="7.25" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-g3f8" id="04-answers-cite-ktext">Explain</span>
+      </div>
+      <p data-hf-id="hf-f8ve" id="04-answers-cite-hla" class="04-answers-cite-hl"><span data-hf-id="hf-q8le" class="04-answers-cite-w">Ask</span> <span data-hf-id="hf-g1b0" class="04-answers-cite-w">a</span> <span data-hf-id="hf-kbj5" class="04-answers-cite-w">question.</span></p>
+      <p data-hf-id="hf-935l" id="04-answers-cite-hlb" class="04-answers-cite-hl"><span data-hf-id="hf-j9vq" class="04-answers-cite-w" data-cue="2">Get</span> <span data-hf-id="hf-vm3t" class="04-answers-cite-w" data-cue="2">the</span> <span data-hf-id="hf-ieks" class="04-answers-cite-w" data-cue="2">answer</span> <span data-hf-id="hf-j4zn" class="04-answers-cite-w" data-cue="3">with</span> <span data-hf-id="hf-uk5a" class="04-answers-cite-w" data-cue="3">the</span> <span data-hf-id="hf-8fit" class="04-answers-cite-w" data-cue="3">file</span> <span data-hf-id="hf-4igc" class="04-answers-cite-w" data-cue="3">and</span> <span data-hf-id="hf-246p" class="04-answers-cite-w" data-cue="3">line</span> <span data-hf-id="hf-e4g6" class="04-answers-cite-w" data-cue="3">it</span> <span data-hf-id="hf-9ys5" class="04-answers-cite-w" data-cue="3">came</span> <span data-hf-id="hf-r0kb" class="04-answers-cite-w" data-cue="3">from.</span></p>
+      <p data-hf-id="hf-8bhs" id="04-answers-cite-hlc" class="04-answers-cite-hl"><span data-hf-id="hf-dnsq" class="04-answers-cite-w">Your</span> <span data-hf-id="hf-dy5b" class="04-answers-cite-w">agents</span> <span data-hf-id="hf-hv6v" class="04-answers-cite-w">get</span> <span data-hf-id="hf-whm4" class="04-answers-cite-w">the</span> <span data-hf-id="hf-bpgr" class="04-answers-cite-w">same</span> <span data-hf-id="hf-d7q1" class="04-answers-cite-w">answer,</span> <span data-hf-id="hf-8me7" class="04-answers-cite-w">over</span> <span data-hf-id="hf-gm6f" class="04-answers-cite-w">MCP.</span></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        "use strict";
+        var ID = "04-answers-cite";
+        var tl = gsap.timeline({ paused: true });
+
+        function el(key) {
+          return document.getElementById(ID + "-" + key);
+        }
+        function wordsOf(key, cue) {
+          var all = el(key).getElementsByClassName(ID + "-w");
+          var out = [];
+          for (var i = 0; i < all.length; i++) {
+            if (!cue || all[i].getAttribute("data-cue") === cue) out.push(all[i]);
+          }
+          return out;
+        }
+
+        // ── Camera geometry (PNG pixel space, 3840x2160; window 1264x711) ──
+        // Single-wrapper camera, origin 0 0: screen = (x, y) + scale * p. A view whose left/top
+        // source edge is (vx, vy) at scale S is x = -vx*S, y = -vy*S (the counter-translate).
+        var WIN_H = 711;
+        var BAR_H = 110; // scene 1: the window is a bar showing only the app's top bar
+        var BAR_Y = (WIN_H - BAR_H) / 2; // the bar sits on the window's centre line
+        var S1 = 0.97; // search box + Explain button (x 2188-3427) fill ~95% of the bar
+        var VX1 = 2806 - 1264 / S1 / 2; // view centred on the input row, right edge clear of the Graph toggle
+        var S_FULL = 1264 / 3840; // the whole result
+        var S2 = 1.0; // match 2 at native 2x pixels (sharp)
+        var VY2 = 400; // view y 400-1111: matches 1-3, match 2's path line on the centre line
+
+        var cam = el("cam");
+        var win = el("win");
+        gsap.set(cam, { x: -VX1 * S1, y: 0, scale: S1, transformOrigin: "0 0", force3D: false });
+        gsap.set(win, { y: BAR_Y, height: BAR_H, force3D: false });
+        gsap.set(el("dim"), { opacity: 0.6 });
+
+        // ── Scene 1 (0.0-3.0s): kicker + "Ask a question." + the search bar; the query types ──
+        tl.fromTo(el("spike"), { opacity: 0, scale: 0.92, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 0);
+        tl.fromTo(el("ktext"), { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 0.05);
+        wordsOf("hla").forEach(function (w, i) {
+          tl.fromTo(w, { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.08 + i * 0.07);
+        });
+        tl.fromTo(el("stage"), { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.12);
+
+        // discrete-text-sequence: one state per keystroke, quicker inside words, a beat after
+        // each space; the caret blinks once before typing and stays lit while typing.
+        var QUERY = "why did we drop the free tier";
+        var KEYS = [];
+        var kt = 0.8;
+        for (var i = 0; i < QUERY.length; i++) {
+          if (i > 0) kt += QUERY.charAt(i - 1) === " " ? 0.095 : 0.047 + (((i * 7) % 5) - 2) * 0.004;
+          KEYS.push(kt);
+        }
+        function typedAt(time) {
+          for (var k = KEYS.length - 1; k >= 0; k--) {
+            if (time >= KEYS[k]) return QUERY.slice(0, k + 1);
+          }
+          return "";
+        }
+        function caretAt(time) {
+          if (time >= 2.6) return "0"; // the click takes focus off the input
+          if (time >= 0.52) return "1";
+          return time < 0.28 ? "1" : "0";
+        }
+        var qtext = el("qtext");
+        var caret = el("caret");
+        qtext.textContent = "";
+        caret.style.opacity = "1";
+        var drv = { t: 0 };
+        tl.to(drv, {
+          t: 10,
+          duration: 10,
+          ease: "none",
+          onUpdate: function () {
+            qtext.textContent = typedAt(drv.t);
+            caret.style.opacity = caretAt(drv.t);
+          },
+        }, 0);
+
+        // 2.6s: the real Explain button takes a short, smooth press
+        tl.fromTo(el("btn"), { scale: 1 }, { scale: 0.93, duration: 0.09, ease: "power2.out", force3D: false, immediateRender: false }, 2.6);
+        tl.fromTo(el("btn"), { scale: 0.93 }, { scale: 1, duration: 0.26, ease: "power3.out", force3D: false, immediateRender: false }, 2.69);
+        // then the patch goes and the real query pixels show
+        tl.fromTo(el("qfix"), { opacity: 1 }, { opacity: 0, duration: 0.14, ease: "power1.inOut", immediateRender: false }, 2.74);
+
+        // ── Headline seams: waterfall cut (cut-catalog §4) ──
+        function waterfallOut(ws, at) {
+          ws.forEach(function (w, i) {
+            var s = at + i * 0.022;
+            tl.fromTo(w, { x: 0 }, { x: -230, duration: 0.34, ease: "power4.in", immediateRender: false }, s);
+            tl.fromTo(w, { opacity: 1 }, { opacity: 0, duration: 0.18, ease: "power1.in", immediateRender: false }, s);
+          });
+        }
+        function waterfallIn(ws, at) {
+          var s = at;
+          var gap = 0.05;
+          ws.forEach(function (w) {
+            tl.fromTo(w, { x: 230 }, { x: 0, duration: 0.3, ease: "power4.out" }, s);
+            tl.fromTo(w, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power1.out" }, s);
+            s += gap;
+            gap *= 0.84;
+          });
+        }
+
+        // ── Scene 2 (3.0-6.4s): submit -> the window pulls back to the whole result ──
+        waterfallOut(wordsOf("hla"), 2.98); // last word dies at 3.20
+        waterfallIn(wordsOf("hlb", "2"), 3.2); // "Get the answer"
+
+        // coordinate-target-zoom reversed: the bar opens into the full window while the camera
+        // pulls back from the input row to the whole screenshot. One decelerating move; window
+        // and camera share start, duration and ease so every pixel travels a straight line.
+        tl.fromTo(win, { y: BAR_Y, height: BAR_H }, { y: 0, height: WIN_H, duration: 1.3, ease: "power3.out", force3D: false, immediateRender: false }, 3.0);
+        tl.fromTo(cam, { x: -VX1 * S1, y: 0, scale: S1 }, { x: 0, y: 0, scale: S_FULL, duration: 1.3, ease: "power3.out", force3D: false, immediateRender: false }, 3.0);
+        tl.fromTo(el("dim"), { opacity: 0.6 }, { opacity: 0, duration: 0.9, ease: "power2.out", immediateRender: false }, 3.45);
+
+        // cue 3 appends to the same line: per-word staggered reveal, accelerating cascade
+        (function () {
+          var s = 4.2;
+          var gap = 0.07;
+          wordsOf("hlb", "3").forEach(function (w) {
+            tl.fromTo(w, { x: 40 }, { x: 0, duration: 0.5, ease: "power3.out" }, s);
+            tl.fromTo(w, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, s);
+            s += gap;
+            gap *= 0.9;
+          });
+        })();
+
+        // 5.0s: short zoom-to-target onto match 2 (view clamped to the PNG's left edge)
+        tl.fromTo(cam, { x: 0, y: 0, scale: S_FULL }, { x: 0, y: -VY2 * S2, scale: S2, duration: 0.8, ease: "power3.inOut", force3D: false, immediateRender: false }, 5.0);
+
+        // 5.4s: the blue rounded marker box draws around docs/product/pricing.md:15
+        var mp = el("markpath");
+        var len = mp.getTotalLength ? mp.getTotalLength() : 0;
+        if (!len || !isFinite(len)) len = 1400;
+        mp.style.strokeDasharray = len + " " + len;
+        gsap.set(mp, { strokeDashoffset: len, opacity: 0 });
+        tl.set(mp, { opacity: 1 }, 5.4);
+        tl.fromTo(mp, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut", immediateRender: false }, 5.4);
+
+        // ── Scene 3 (6.4-10.0s): the agent's terminal view slides in over the right third ──
+        var term = el("term");
+        tl.fromTo(term, { x: 280 }, { x: 0, duration: 0.75, ease: "power3.out" }, 6.4);
+        tl.fromTo(term, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 6.4);
+
+        // terminal log append: each real line arrives whole, with a short lift
+        [["l1", 6.8], ["l2", 7.2], ["l3", 7.55], ["l4", 7.95]].forEach(function (L) {
+          var line = el(L[0]);
+          tl.fromTo(line, { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, L[1]);
+          tl.fromTo(line, { y: 10 }, { y: 0, duration: 0.3, ease: "power3.out" }, L[1]);
+        });
+
+        // cue 4 at 7.0s
+        waterfallOut(wordsOf("hlb"), 6.6); // 11 words, the last dies at 7.00
+        waterfallIn(wordsOf("hlc"), 7.0);
+
+        // hold from 8.6s: still
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines[ID] = tl;
+      })();
+    </script>
+  </div>
+</template>

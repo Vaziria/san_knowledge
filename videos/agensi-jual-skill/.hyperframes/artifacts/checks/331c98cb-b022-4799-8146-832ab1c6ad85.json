@@ -1,0 +1,127 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 11
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 1,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 6.444,
+        "selector": "#f01-pay-text",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": -31.23,
+          "top": 426.8,
+          "right": 1951.23,
+          "bottom": 574.41,
+          "width": 1982.46,
+          "height": 147.61
+        },
+        "containerSelector": "#f01-pay",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 80,
+          "top": 435.08,
+          "right": 1840,
+          "bottom": 566.13,
+          "width": 1760,
+          "height": 131.05
+        },
+        "overflow": {
+          "left": 111.23,
+          "right": 111.23
+        },
+        "dataAttributes": {
+          "data-hf-id": "hf-8tum"
+        },
+        "sourceFile": "compositions/frames/01-instruksi.html",
+        "bbox": {
+          "x": -31.23,
+          "y": 426.8,
+          "width": 1982.46,
+          "height": 147.61
+        },
+        "firstSeen": 6.444,
+        "lastSeen": 6.444,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6.444
+        ]
+      }
+    ],
+    "duration": 116,
+    "samples": [
+      6.444,
+      19.333,
+      32.222,
+      45.111,
+      58,
+      70.889,
+      83.778,
+      96.667,
+      109.556
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 1,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      6.444,
+      32.222,
+      58,
+      83.778,
+      109.556
+    ],
+    "checked": 51,
+    "passed": 51
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

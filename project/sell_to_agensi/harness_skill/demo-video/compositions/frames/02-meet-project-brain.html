@@ -1,0 +1,218 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+    }
+
+    /* Full-bleed navy ground (frame.md "cream" key = #1f2a44), its own full-duration clip. */
+    #f02-meet-project-brain-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* Stage: the container every cqw resolves against (frame.md container law). */
+    #f02-meet-project-brain-stage {
+      position: absolute;
+      inset: 0;
+      container-type: size;
+    }
+
+    /* The crane mark. Final slot top 120px; Scene 1 holds it 120px lower via the timeline. */
+    #f02-meet-project-brain-mark {
+      position: absolute;
+      left: 50%;
+      top: 120px;
+      width: 352px;
+      height: 301px;
+      margin-left: -176px;
+    }
+    #f02-meet-project-brain-mark-pop {
+      width: 100%;
+      height: 100%;
+      transform-origin: 50% 50%;
+      will-change: transform, opacity;
+    }
+    #f02-meet-project-brain-mark-pop svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Centered type lines: EB Garamond 400, ink, sentence case. */
+    .f02-meet-project-brain-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      margin: 0;
+      text-align: center;
+      white-space: nowrap;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      color: #f3f2ee;
+      --blur: 0px;
+      filter: blur(var(--blur));
+      will-change: transform, opacity, filter;
+    }
+
+    /* Wordmark: display (7.3cqw ~ 140px). */
+    #f02-meet-project-brain-wordmark {
+      top: 432px;
+      font-size: 7.3cqw;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+    }
+
+    /* Claim: display-italic face at headline size (4.6cqw ~ 88px). */
+    .f02-meet-project-brain-claim {
+      font-size: 4.6cqw;
+      line-height: 1.06;
+      letter-spacing: -0.012em;
+      font-style: italic;
+    }
+    #f02-meet-project-brain-claim-1 {
+      top: 626px;
+    }
+    #f02-meet-project-brain-claim-2 {
+      top: 720px;
+    }
+
+    /* The frame's one blue voltage (frame.md "coral" key = #2a78d6). */
+    .f02-meet-project-brain-voltage {
+      color: #2a78d6;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+  <div data-hf-id="hf-vhqs"
+    id="root"
+    data-composition-id="02-meet-project-brain"
+    data-start="0"
+    data-duration="6.6"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-r7gj"
+      id="f02-meet-project-brain-ground"
+      class="clip"
+      data-start="0"
+      data-duration="6.6"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-izup"
+      id="f02-meet-project-brain-stage"
+      class="clip"
+      data-start="0"
+      data-duration="6.6"
+      data-track-index="1"
+    >
+      <!-- assets/project-brain-logo.svg, inlined: the crane paths only (its navy tile equals the ground). -->
+      <div data-hf-id="hf-c558" id="f02-meet-project-brain-mark">
+        <div data-hf-id="hf-1l16" id="f02-meet-project-brain-mark-pop">
+          <svg data-hf-id="hf-s2mj" viewBox="36 84 440 376" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <ellipse data-hf-id="hf-6ave" cx="262" cy="440" rx="120" ry="10" fill="#000" opacity=".25" />
+            <g data-hf-id="hf-qo9v" transform="translate(0 46)">
+              <path data-hf-id="hf-zv6t" d="M262 298 394 92 320 298Z" fill="#3cc792" />
+              <path data-hf-id="hf-ufcq" d="M320 298 394 92 352 298Z" fill="#138a5f" />
+              <path data-hf-id="hf-a8f2" d="M318 300 456 206 348 300Z" fill="#eb6834" />
+              <path data-hf-id="hf-suf9" d="M348 300 456 206 374 300Z" fill="#c4501f" />
+              <path data-hf-id="hf-drxn" d="M148 300 86 126 176 300Z" fill="#c4501f" />
+              <path data-hf-id="hf-m8z9" d="M176 300 86 126 206 300Z" fill="#eb6834" />
+              <path data-hf-id="hf-1i1u" d="M86 126 52 160 100 148Z" fill="#c4501f" />
+              <path data-hf-id="hf-3h41" d="M148 300H258V374Z" fill="#f2864f" />
+              <path data-hf-id="hf-upwu" d="M258 300H374L258 374Z" fill="#c4501f" />
+              <path data-hf-id="hf-wyeg" d="M194 300 292 52 262 300Z" fill="#4b92e6" />
+              <path data-hf-id="hf-8tmv" d="M262 300 292 52 326 300Z" fill="#1d5aa6" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-6nmh" id="f02-meet-project-brain-wordmark" class="f02-meet-project-brain-line">project-brain</div>
+
+      <div data-hf-id="hf-4f3y"
+        id="f02-meet-project-brain-claim-1"
+        class="f02-meet-project-brain-line f02-meet-project-brain-claim"
+      >
+        One <span data-hf-id="hf-dmiy" class="f02-meet-project-brain-voltage">living</span> knowledge graph
+      </div>
+      <div data-hf-id="hf-2e61"
+        id="f02-meet-project-brain-claim-2"
+        class="f02-meet-project-brain-line f02-meet-project-brain-claim"
+      >
+        for you and your AI agents.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var ID = "02-meet-project-brain";
+      // Authored ids carry the frame id behind a letter ("f02-…") so they stay valid CSS selectors.
+      function sel(name) {
+        return "#f" + ID + "-" + name;
+      }
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-1.9s): the crane arrives with a spring-pop entrance on a smooth
+      // power3 settle (no overshoot), landing inside 0.0-0.6s on the music hit; holds.
+      tl.fromTo(
+        sel("mark-pop"),
+        { scale: 0, opacity: 0, y: 12 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        0,
+      );
+
+      // The mark sits 120px below its final slot through Scene 1, then (Scene 2, 1.9s)
+      // eases up a little into the stack.
+      tl.fromTo(
+        sel("mark"),
+        { y: 120 },
+        { y: 0, duration: 0.75, ease: "power2.inOut" },
+        1.9,
+      );
+
+      // Blur-snap handoff: an incoming line slide-up crossfades in beneath and snaps into
+      // focus (text-scale peak blur 10px, per the cut catalog's blur logic).
+      function blurSnapIn(name, at, rise) {
+        tl.fromTo(
+          sel(name),
+          { y: rise, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
+          at,
+        );
+        tl.fromTo(
+          sel(name),
+          { "--blur": "10px" },
+          { "--blur": "0px", duration: 0.5, ease: "expo.out" },
+          at,
+        );
+      }
+
+      // Scene 2: the wordmark "project-brain" joins as the mark clears the slot.
+      blurSnapIn("wordmark", 2.25, 40);
+
+      // Scene 3 (3.6-6.0s): the claim in two cues beneath the wordmark; then held still.
+      blurSnapIn("claim-1", 3.6, 36);
+      blurSnapIn("claim-2", 4.6, 36);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

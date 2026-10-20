@@ -1,0 +1,143 @@
+<template>
+  <style>
+    @font-face { font-family: "EB Garamond"; src: url("assets/fonts/EBGaramond-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+      font-family: "Inter", sans-serif;
+    }
+
+    /* Ground: navy (frame.md `cream` key) as a full-duration clip layer. */
+    .f04-ground { position: absolute; inset: 0; background: #1f2a44; }
+
+    /* Everything that fades out in the last 0.5 s lives on this one layer. */
+    .f04-stage { position: absolute; inset: 0; }
+
+    /* ---- the floating window (real agensi.io/sell capture, never repainted) ----
+       x 60-1020, y 180-760. The page's headline, buttons and stats sit left of x 850;
+       only the edge of the page's right-hand card reaches the x 907-1020 strip. */
+    .f04-window {
+      position: absolute; left: 60px; top: 180px; width: 960px; height: 580px;
+      border-radius: 12px; overflow: hidden;
+      background: #26324f;
+      box-shadow: 0 0 0 1px rgba(243, 242, 238, 0.14), 0 18px 48px rgba(10, 14, 26, 0.38);
+    }
+    .f04-cam { position: absolute; inset: 0; transform-origin: 30% 40%; }
+    /* View region x 165-910, y 141-592 of the 1920x1080 view at 1.288 (the 3840x2160 2x capture). */
+    .f04-shot {
+      position: absolute; display: block; max-width: none;
+      left: -212.5px; top: -182px; width: 2473px; height: 1391px;
+    }
+
+    /* ---- "Mulai jual skill-mu:" (display, one line, 110 px) ---- */
+    .f04-hmask {
+      position: absolute; left: 60px; top: 880px;
+      overflow: hidden; padding: 20px 24px 30px 0;
+    }
+    .f04-head {
+      font-family: "EB Garamond", serif; font-weight: 400;
+      font-size: 110px; line-height: 1.02; letter-spacing: -0.022em;
+      color: #f3f2ee; white-space: nowrap;
+    }
+    .f04-word { display: inline-block; }
+
+    /* ---- the address pill (coral-callout: the frame's one blue voltage) ---- */
+    .f04-pill {
+      position: absolute; left: 60px; top: 1090px; width: 700px; height: 180px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      background: #2a78d6; border-radius: 9999px;
+    }
+    .f04-pilltxt {
+      display: block; position: relative; top: -6px;
+      white-space: nowrap;
+      font-family: "Inter", sans-serif; font-weight: 400;
+      font-size: 92px; line-height: 1; letter-spacing: -0.005em;
+      color: #f3f2ee;
+    }
+    /* The wipe's leading edge: rides the clip front, then fades. */
+    .f04-edge {
+      position: absolute; left: 0; top: 0; width: 8px; height: 100%;
+      background: rgba(243, 242, 238, 0.6);
+    }
+
+    /* ---- sign-off crane (its navy tile equals the ground; the beak lines up with x 60) ---- */
+    .f04-crane {
+      position: absolute; left: 50px; top: 1316px; width: 100px; height: 100px;
+      display: block;
+    }
+  </style>
+
+  <div id="root" data-composition-id="04-mulai" data-width="1080" data-height="1920" data-duration="6">
+    <div id="f04-ground" class="clip f04-ground" data-start="0" data-duration="6" data-track-index="0"></div>
+
+    <div id="f04-stage" class="clip f04-stage" data-start="0" data-duration="6" data-track-index="1">
+      <div id="f04-window" class="f04-window">
+        <div id="f04-cam" class="f04-cam" data-layout-allow-overflow>
+          <img id="f04-shot" class="f04-shot" data-layout-allow-overflow src="assets/agensi-sell.png" alt="" />
+        </div>
+      </div>
+
+      <div id="f04-hmask" class="f04-hmask">
+        <div id="f04-head" class="f04-head"><span id="f04-w1" class="f04-word">Mulai</span> <span id="f04-w2" class="f04-word">jual</span> <span id="f04-w3" class="f04-word">skill-mu:</span></div>
+      </div>
+
+      <div id="f04-pill" class="f04-pill">
+        <span id="f04-pilltxt" class="f04-pilltxt">agensi.io/sell</span>
+        <span id="f04-edge" class="f04-edge"></span>
+      </div>
+
+      <img id="f04-crane" class="f04-crane" src="assets/project-brain-logo.svg" alt="" />
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-2.2s): the sell-page window rises in at the top.
+      tl.fromTo("#f04-window",
+        { opacity: 0, y: 64, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "power3.out" }, 0.05);
+      // 0.6s: "Mulai jual skill-mu:" rises out of its mask, word by word.
+      tl.fromTo(["#f04-w1", "#f04-w2", "#f04-w3"],
+        { yPercent: 130 },
+        { yPercent: 0, duration: 0.8, ease: "power3.out", stagger: 0.08 }, 0.6);
+
+      // Scene 2 (2.2-6.0s). 2.4s (host ting): the blue pill wipes in left to right,
+      // a thin ink edge riding the clip front.
+      tl.fromTo("#f04-pill",
+        { clipPath: "inset(0% 100% 0% 0%)" },
+        { clipPath: "inset(0% 0% 0% 0%)", duration: 0.6, ease: "power3.out" }, 2.4);
+      tl.fromTo("#f04-edge",
+        { x: -8 },
+        { x: 692, duration: 0.6, ease: "power3.out" }, 2.4);
+      tl.fromTo("#f04-edge",
+        { opacity: 1 },
+        { opacity: 0, duration: 0.25, ease: "power1.out", immediateRender: false }, 2.85);
+      tl.fromTo("#f04-pilltxt",
+        { x: -24 },
+        { x: 0, duration: 0.6, ease: "power3.out" }, 2.4);
+
+      // 3.0s: the crane settles under the pill (fade + 0.92 -> 1, no overshoot).
+      tl.fromTo("#f04-crane",
+        { opacity: 0, y: 18, scale: 0.92 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" }, 3.0);
+
+      // Hold 3.7-5.5s. Final frame of the video: fade to the navy ground in the last 0.5 s.
+      tl.fromTo("#f04-stage",
+        { opacity: 1 },
+        { opacity: 0, duration: 0.5, ease: "power1.inOut", immediateRender: false }, 5.5);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["04-mulai"] = tl;
+    })();
+  </script>
+</template>

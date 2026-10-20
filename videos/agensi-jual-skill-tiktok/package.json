@@ -1,0 +1,11 @@
+{
+  "name": "agensi-jual-skill-tiktok",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.8.176 preview",
+    "check": "npx --yes hyperframes@0.8.176 check",
+    "render": "npx --yes hyperframes@0.8.176 render",
+    "publish": "npx --yes hyperframes@0.8.176 publish"
+  }
+}

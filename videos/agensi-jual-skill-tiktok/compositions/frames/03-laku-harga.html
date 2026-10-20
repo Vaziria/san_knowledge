@@ -1,0 +1,430 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    /* Frame 3 - Yang laku dan harganya. 1080x1920, code-editorial on the navy ground.
+       Everything sits in the TikTok-safe column x 60-900, y 160-1500:
+         kicker        y  172 -  204
+         display       y  226 -  340   "Yang paling laku:"
+         window        y  384 -  770   real agensi.io guide, zoomed onto its quick answer
+         chips         y  806 -  880   three tile chips, one row (wraps if needed)
+         rule          y  924
+         headline      y  952 - 1045   "Harga per skill:"
+         price cards   y 1086 - 1376   two dark cards side by side
+         source label  y 1410 - 1438   "panduan Agensi" */
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+    }
+    #root * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* full-bleed ground: navy (frame.md "cream" key on the dark brand) */
+    #f03-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* kicker-spike: JetBrains Mono uppercase 0.16em, blue spike mark */
+    #f03-kicker {
+      position: absolute;
+      left: 60px;
+      top: 172px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    #f03-spike {
+      display: block;
+      width: 30px;
+      height: 30px;
+      flex: none;
+      transform-origin: 50% 50%;
+    }
+    #f03-kicker-text {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 32px;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+
+    /* display ramp, re-stepped for a phone: EB Garamond 400, sentence case, negative tracking */
+    #f03-h1 {
+      position: absolute;
+      left: 56px;
+      top: 226px;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 112px;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+    #f03-h2 {
+      position: absolute;
+      left: 58px;
+      top: 952px;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 88px;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+    .f03-w {
+      display: inline-block;
+    }
+
+    /* the floating window: hairline panel, title bar, light page inside */
+    #f03-window {
+      position: absolute;
+      left: 60px;
+      top: 384px;
+      width: 840px;
+      height: 386px;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      background: #26324f;
+      box-shadow:
+        0 1px 3px rgba(18, 26, 44, 0.3),
+        0 8px 24px rgba(18, 26, 44, 0.28);
+      overflow: hidden;
+    }
+    #f03-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 22px;
+      background: #26324f;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.12);
+    }
+    .f03-dot {
+      display: block;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: rgba(243, 242, 238, 0.22);
+    }
+    /* the camera's viewport: 838 x 340 */
+    #f03-view {
+      position: absolute;
+      left: 0;
+      top: 44px;
+      width: 838px;
+      height: 340px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+    /* the world: the 2x capture drawn at its 1x size (1920 x 1080); camera = GSAP x / y / scale */
+    #f03-world {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 0 0;
+    }
+    #f03-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: block;
+      width: 1920px;
+      height: 1080px;
+    }
+    /* blue underline under "Code review, testing, and git automation skills sell / the most",
+       placed in the capture's 1x pixel space (measured from the PNG: line 1 words x 693-1119,
+       baseline 764; line 2 "the most" x 552-626, baseline 796) */
+    .f03-mark {
+      position: absolute;
+      height: 4px;
+      border-radius: 2px;
+      background: #2a78d6;
+      transform-origin: 0% 50%;
+    }
+    #f03-u1 {
+      left: 691px;
+      top: 769.5px;
+      width: 430px;
+    }
+    #f03-u2 {
+      left: 550px;
+      top: 801.5px;
+      width: 78px;
+    }
+
+    /* chips: tile cards, mono */
+    #f03-chips {
+      position: absolute;
+      left: 60px;
+      top: 806px;
+      width: 840px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .f03-chip {
+      display: block;
+      padding: 18px 24px;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 8px;
+      background: #26324f;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 36px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      color: #f3f2ee;
+      transform-origin: 50% 50%;
+    }
+
+    /* section-rule: the only separator */
+    #f03-rule {
+      position: absolute;
+      left: 60px;
+      top: 924px;
+      width: 840px;
+      height: 1px;
+      background: rgba(243, 242, 238, 0.2);
+      transform-origin: 0% 50%;
+    }
+
+    /* price cards: dark-card surface, hairline, one soft shadow */
+    .f03-card {
+      position: absolute;
+      top: 1086px;
+      width: 410px;
+      height: 290px;
+      padding: 0 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #162038;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      box-shadow:
+        0 1px 3px rgba(18, 26, 44, 0.3),
+        0 8px 24px rgba(18, 26, 44, 0.22);
+      transform-origin: 50% 50%;
+    }
+    #f03-card1 {
+      left: 60px;
+    }
+    #f03-card2 {
+      left: 490px;
+    }
+    .f03-fig {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 112px;
+      line-height: 0.95;
+      letter-spacing: -0.025em;
+      font-variant-numeric: lining-nums;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+    /* the voltage: brand blue on #162038 is 3.66:1 (large text) */
+    #f03-fig1 {
+      color: #2a78d6;
+    }
+    .f03-card-rule {
+      width: 100%;
+      height: 1px;
+      margin: 28px 0 24px;
+      background: rgba(243, 242, 238, 0.14);
+      transform-origin: 50% 50%;
+    }
+    .f03-label {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      color: rgba(243, 242, 238, 0.82);
+    }
+
+    /* source note: mono-label */
+    #f03-source {
+      position: absolute;
+      left: 60px;
+      top: 1410px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      color: rgba(243, 242, 238, 0.7);
+    }
+  </style>
+
+  <div id="root" data-composition-id="03-laku-harga" data-start="0" data-duration="9.5" data-width="1080" data-height="1920">
+    <div id="f03-ground" class="clip" data-start="0" data-duration="9.5" data-track-index="0"></div>
+
+    <div id="f03-kicker">
+      <svg id="f03-spike" viewBox="0 0 26 26" aria-hidden="true">
+        <g stroke="#2a78d6" stroke-width="3.6" stroke-linecap="round">
+          <line x1="13" y1="2.5" x2="13" y2="23.5" />
+          <line x1="3.9" y1="7.75" x2="22.1" y2="18.25" />
+          <line x1="3.9" y1="18.25" x2="22.1" y2="7.75" />
+        </g>
+      </svg>
+      <span id="f03-kicker-text">YANG LAKU</span>
+    </div>
+
+    <h1 id="f03-h1"><span class="f03-w">Yang</span> <span class="f03-w">paling</span> <span class="f03-w">laku:</span></h1>
+
+    <div id="f03-window">
+      <div id="f03-bar">
+        <span class="f03-dot"></span>
+        <span class="f03-dot"></span>
+        <span class="f03-dot"></span>
+      </div>
+      <div id="f03-view">
+        <div id="f03-world" data-layout-allow-overflow>
+          <img id="f03-shot" src="assets/agensi-guide-what-sells.png" alt="Agensi guide: What SKILL.md Skills Sell Best?" data-layout-allow-overflow />
+          <div id="f03-u1" class="f03-mark"></div>
+          <div id="f03-u2" class="f03-mark"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="f03-chips">
+      <div class="f03-chip">code review</div>
+      <div class="f03-chip">testing</div>
+      <div class="f03-chip">otomasi git</div>
+    </div>
+
+    <div id="f03-rule"></div>
+
+    <h2 id="f03-h2"><span class="f03-w">Harga</span> <span class="f03-w">per</span> <span class="f03-w">skill:</span></h2>
+
+    <div id="f03-card1" class="f03-card">
+      <div id="f03-fig1" class="f03-fig">$5–15</div>
+      <div class="f03-card-rule"></div>
+      <div class="f03-label">satu tugas</div>
+    </div>
+    <div id="f03-card2" class="f03-card">
+      <div id="f03-fig2" class="f03-fig">$20–50</div>
+      <div class="f03-card-rule"></div>
+      <div class="f03-label">skill lengkap</div>
+    </div>
+
+    <div id="f03-source">panduan Agensi</div>
+  </div>
+
+  <script>
+    (function () {
+      var DURATION = 9;
+
+      // Cue times, frame-local seconds (packet Scene lines; the pops land on host_sfx).
+      var T = {
+        kicker: 0.1, // Scene 1: kicker + display at the top
+        h1: 0.25,
+        window: 0.15, // the guide window, already zoomed onto its quick answer
+        underline: 1.0, // blue underline under the sentence
+        chips: 2.0, // Scene 2: pop.wav
+        rule: 4.8, // Scene 3
+        h2: 5.0, // "Harga per skill:"
+        cards: 5.6, // pop.wav
+        source: 6.4, // "panduan Agensi", then hold still
+      };
+
+      // Camera poses for #f03-world (transform-origin 0 0). Viewport 838 x 340.
+      // In capture 1x px the quick-answer text spans x 552-1121, the box y 742-934;
+      // the paragraph above ends at y 706, the next heading starts at y 998, the
+      // table of contents starts at x 1173. Every pose keeps those out of view and
+      // keeps the sentence's right end left of frame x 900. Each pose centres the text
+      // (x 836.5 -> 419): x = 419 - s * 836.5, y = 170 - s * cy.
+      var POSE_IN = { x: -626.63, y: -887.5, scale: 1.25 }; // cy 846, a little wider
+      var POSE_ON = { x: -693.55, y: -944.54, scale: 1.33 }; // cy 838, text x 41-797
+
+      var tl = gsap.timeline({ paused: true });
+
+      // ── Scene 1 (0.0–1.8): kicker, display, window, underline ──
+      tl.fromTo("#f03-spike", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, T.kicker);
+      tl.fromTo("#f03-kicker-text", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, T.kicker + 0.08);
+      gsap.utils.toArray("#f03-h1 .f03-w").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, T.h1 + i * 0.08);
+      });
+
+      tl.fromTo("#f03-window", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, T.window);
+      tl.fromTo(
+        "#f03-world",
+        { x: POSE_IN.x, y: POSE_IN.y, scale: POSE_IN.scale, transformOrigin: "0 0" },
+        { x: POSE_ON.x, y: POSE_ON.y, scale: POSE_ON.scale, transformOrigin: "0 0", duration: 0.85, ease: "power2.out" },
+        0
+      );
+
+      // one pen stroke: line 1 then the wrap to "the most"
+      tl.fromTo("#f03-u1", { scaleX: 0 }, { scaleX: 1, duration: 0.42, ease: "power1.in" }, T.underline);
+      tl.fromTo("#f03-u2", { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power1.out" }, T.underline + 0.42);
+
+      // the camera holds on the quick answer after its first zoom (no drift)
+
+      // ── Scene 2 (1.8–4.8): three chips pop into their slots ──
+      gsap.utils.toArray("#f03-chips .f03-chip").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, scale: 0.5, y: 16 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power4.out" }, T.chips + i * 0.08);
+      });
+
+      // ── Scene 3 (4.8–9.0): headline, two price cards, source note, hold ──
+      tl.fromTo("#f03-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, T.rule);
+      gsap.utils.toArray("#f03-h2 .f03-w").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, T.h2 + i * 0.08);
+      });
+
+      ["#f03-card1", "#f03-card2"].forEach(function (sel, i) {
+        var t = T.cards + i * 0.1;
+        tl.fromTo(sel, { opacity: 0, scale: 0.5, y: 24 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power4.out" }, t);
+        tl.fromTo(sel + " .f03-card-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, t + 0.16);
+        tl.fromTo(sel + " .f03-label", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, t + 0.2);
+      });
+
+      tl.fromTo("#f03-source", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, T.source);
+
+      // hold still to the end; anchor the timeline at the full duration
+      tl.set({}, {}, DURATION);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["03-laku-harga"] = tl;
+    })();
+  </script>
+</template>

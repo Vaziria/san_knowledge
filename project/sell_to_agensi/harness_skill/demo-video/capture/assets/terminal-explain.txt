@@ -1,0 +1,28 @@
+# Knowledge context: why did we drop the free tier
+
+## 1. 0003 Drop the free tier (doc `docs/decisions/0003-drop-free-tier.md`)
+- loc: docs/decisions/0003-drop-free-tier.md
+- domain: Product
+- keyword: free tier, trial, pricing decision
+
+Replaced the free tier with a 14-day Pro trial on 2026-09-14: 0.9% of free sign-ups upgraded and free accounts opened 61% of support tickets.
+
+Related:
+- Product (domain `product`) [domain_of, depth 1]
+- Context (doc_section `docs/decisions/0003-drop-free-tier.md#context`) [section_of, depth 1]: 4,100 free sign-ups since June, 38 paid upgrades (0.9%), and 61% of support tickets from free accounts.
+- Decision (doc_section `docs/decisions/0003-drop-free-tier.md#decision`) [section_of, depth 1]: A 14-day Pro trial replaces the free tier; existing free accounts keep 10 invoices a month until 2027.
+- Consequences (doc_section `docs/decisions/0003-drop-free-tier.md#consequences`) [section_of, depth 1]: The pricing page and the landing copy were updated to match.
+- Pricing section (doc_section `docs/marketing/landing-copy.md#pricing-section`) [reference, depth 1]
+- Why there is no free tier (doc_section `docs/product/pricing.md#why-there-is-no-free-tier`) [reference, depth 1]: The free tier was dropped in September after 4,100 sign-ups produced only 38 upgrades; a 14-day Pro trial replaced it.
+
+## 2. Why there is no free tier (doc_section `docs/product/pricing.md#why-there-is-no-free-tier`)
+- loc: docs/product/pricing.md:15
+- keyword: free tier, trial, conversion
+
+The free tier was dropped in September after 4,100 sign-ups produced only 38 upgrades; a 14-day Pro trial replaced it.
+
+Related:
+- Pricing (doc `docs/product/pricing.md`) [section_of, depth 1]: Three plans (Solo $9, Pro $19, Team $49 a month), two months free on annual plans, and why the free tier was replaced by a 14-day trial.
+- 0003 Drop the free tier (doc `docs/decisions/0003-drop-free-tier.md`) [reference, depth 1]: Replaced the free tier with a 14-day Pro trial on 2026-09-14: 0.9% of free sign-ups upgraded and free accounts opened 61% of support tickets.
+- Consequences (doc_section `docs/decisions/0003-drop-free-tier.md#consequences`) [reference, depth 1]: The pricing page and the landing copy were updated to match.
+

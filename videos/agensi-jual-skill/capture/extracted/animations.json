@@ -1,0 +1,106 @@
+{
+  "summary": {
+    "webAnimations": 2,
+    "cssDeclarations": 289,
+    "scrollTargets": 61,
+    "cdpAnimations": 47,
+    "canvases": 0
+  },
+  "namedAnimations": [
+    "enter",
+    "spin",
+    "ping",
+    "accordion-up"
+  ],
+  "scrollTriggeredElements": 61,
+  "representativeAnimations": [
+    {
+      "type": "CSSAnimation",
+      "playState": "running",
+      "animationName": "spin",
+      "targetSelector": "svg",
+      "targetRect": {
+        "x": 1125.9927978515625,
+        "y": 5434.14892578125,
+        "width": 17.701904296875,
+        "height": 17.7021484375,
+        "top": 5434.14892578125,
+        "right": 1143.6947021484375,
+        "bottom": 5451.85107421875,
+        "left": 1125.9927978515625
+      },
+      "keyframes": [
+        {
+          "offset": 0,
+          "easing": "linear",
+          "composite": "replace",
+          "transform": "none",
+          "computedOffset": 0
+        },
+        {
+          "offset": 1,
+          "easing": "linear",
+          "composite": "auto",
+          "transform": "rotate(360deg)",
+          "computedOffset": 1
+        }
+      ],
+      "timing": {
+        "duration": 1000,
+        "delay": 0,
+        "iterations": null,
+        "easing": "linear",
+        "direction": "normal"
+      }
+    },
+    {
+      "type": "CSSAnimation",
+      "playState": "running",
+      "animationName": "ping",
+      "targetSelector": "span.animate-ping.absolute.inline-flex",
+      "targetRect": {
+        "x": 1193.3946533203125,
+        "y": 6118.14453125,
+        "width": 15.210693359375,
+        "height": 15.2109375,
+        "top": 6118.14453125,
+        "right": 1208.6053466796875,
+        "bottom": 6133.35546875,
+        "left": 1193.3946533203125
+      },
+      "keyframes": [
+        {
+          "offset": 0,
+          "easing": "cubic-bezier(0, 0, 0.2, 1)",
+          "composite": "replace",
+          "opacity": "0.75",
+          "transform": "none",
+          "computedOffset": 0
+        },
+        {
+          "offset": 0.75,
+          "easing": "cubic-bezier(0, 0, 0.2, 1)",
+          "composite": "auto",
+          "opacity": "0",
+          "transform": "scale(2)",
+          "computedOffset": 0.75
+        },
+        {
+          "offset": 1,
+          "easing": "cubic-bezier(0, 0, 0.2, 1)",
+          "composite": "auto",
+          "opacity": "0",
+          "transform": "scale(2)",
+          "computedOffset": 1
+        }
+      ],
+      "timing": {
+        "duration": 1000,
+        "delay": 0,
+        "iterations": null,
+        "easing": "linear",
+        "direction": "normal"
+      }
+    }
+  ]
+}

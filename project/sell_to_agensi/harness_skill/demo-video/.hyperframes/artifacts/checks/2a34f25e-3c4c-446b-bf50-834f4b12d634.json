@@ -1,0 +1,1310 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 68,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-bg\" starts with a digit, so the common selector `#03-one-graph-bg` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-bg",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-stage\" starts with a digit, so the common selector `#03-one-graph-stage` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-stage",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-plate\" starts with a digit, so the common selector `#03-one-graph-plate` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-plate",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-float\" starts with a digit, so the common selector `#03-one-graph-float` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-float",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-win\" starts with a digit, so the common selector `#03-one-graph-win` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-win",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-screen\" starts with a digit, so the common selector `#03-one-graph-screen` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-screen",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-scrA\" starts with a digit, so the common selector `#03-one-graph-scrA` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-scrA",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-zoomOuter\" starts with a digit, so the common selector `#03-one-graph-zoomOuter` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-zoomOuter",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-zoomInner\" starts with a digit, so the common selector `#03-one-graph-zoomInner` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-zoomInner",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-scrB\" starts with a digit, so the common selector `#03-one-graph-scrB` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-scrB",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-rim\" starts with a digit, so the common selector `#03-one-graph-rim` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-rim",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-col\" starts with a digit, so the common selector `#03-one-graph-col` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-col",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-kicker\" starts with a digit, so the common selector `#03-one-graph-kicker` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-kicker",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-spike\" starts with a digit, so the common selector `#03-one-graph-spike` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-spike",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-kicker-text\" starts with a digit, so the common selector `#03-one-graph-kicker-text` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-kicker-text",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-headA\" starts with a digit, so the common selector `#03-one-graph-headA` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-headA",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-chips\" starts with a digit, so the common selector `#03-one-graph-chips` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-chips",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-headB\" starts with a digit, so the common selector `#03-one-graph-headB` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-headB",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-headC\" starts with a digit, so the common selector `#03-one-graph-headC` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-headC",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"03-one-graph-see\" starts with a digit, so the common selector `#03-one-graph-see` throws a SyntaxError in querySelector().",
+        "selector": "#03-one-graph-see",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\03-one-graph.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-ground\" starts with a digit, so the common selector `#04-answers-cite-ground` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-ground",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-stage\" starts with a digit, so the common selector `#04-answers-cite-stage` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-stage",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-win\" starts with a digit, so the common selector `#04-answers-cite-win` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-win",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-cam\" starts with a digit, so the common selector `#04-answers-cite-cam` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-cam",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-dim\" starts with a digit, so the common selector `#04-answers-cite-dim` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-dim",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-qfix\" starts with a digit, so the common selector `#04-answers-cite-qfix` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-qfix",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-qtext\" starts with a digit, so the common selector `#04-answers-cite-qtext` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-qtext",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-caret\" starts with a digit, so the common selector `#04-answers-cite-caret` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-caret",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-btn\" starts with a digit, so the common selector `#04-answers-cite-btn` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-btn",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-mark\" starts with a digit, so the common selector `#04-answers-cite-mark` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-mark",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-markpath\" starts with a digit, so the common selector `#04-answers-cite-markpath` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-markpath",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-cardlayer\" starts with a digit, so the common selector `#04-answers-cite-cardlayer` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-cardlayer",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-term\" starts with a digit, so the common selector `#04-answers-cite-term` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-term",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-l1\" starts with a digit, so the common selector `#04-answers-cite-l1` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-l1",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-l2\" starts with a digit, so the common selector `#04-answers-cite-l2` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-l2",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-l3\" starts with a digit, so the common selector `#04-answers-cite-l3` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-l3",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-l4\" starts with a digit, so the common selector `#04-answers-cite-l4` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-l4",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-strip\" starts with a digit, so the common selector `#04-answers-cite-strip` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-strip",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-spike\" starts with a digit, so the common selector `#04-answers-cite-spike` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-spike",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-ktext\" starts with a digit, so the common selector `#04-answers-cite-ktext` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-ktext",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-hla\" starts with a digit, so the common selector `#04-answers-cite-hla` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-hla",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-hlb\" starts with a digit, so the common selector `#04-answers-cite-hlb` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-hlb",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"04-answers-cite-hlc\" starts with a digit, so the common selector `#04-answers-cite-hlc` throws a SyntaxError in querySelector().",
+        "selector": "#04-answers-cite-hlc",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\04-answers-cite.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"06-work-links-in-ground\" starts with a digit, so the common selector `#06-work-links-in-ground` throws a SyntaxError in querySelector().",
+        "selector": "#06-work-links-in-ground",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\06-work-links-in.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"06-work-links-in-refmask\" starts with a digit, so the common selector `#06-work-links-in-refmask` throws a SyntaxError in querySelector().",
+        "selector": "#06-work-links-in-refmask",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\06-work-links-in.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-ground\" starts with a digit, so the common selector `#08-on-agensi-ground` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-ground",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-stage\" starts with a digit, so the common selector `#08-on-agensi-stage` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-stage",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-fade\" starts with a digit, so the common selector `#08-on-agensi-fade` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-fade",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-lockup\" starts with a digit, so the common selector `#08-on-agensi-lockup` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-lockup",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-wordwrap\" starts with a digit, so the common selector `#08-on-agensi-wordwrap` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-wordwrap",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-word\" starts with a digit, so the common selector `#08-on-agensi-word` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-word",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-mark\" starts with a digit, so the common selector `#08-on-agensi-mark` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-mark",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-shadow\" starts with a digit, so the common selector `#08-on-agensi-shadow` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-shadow",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-bw1\" starts with a digit, so the common selector `#08-on-agensi-bw1` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-bw1",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-bw2\" starts with a digit, so the common selector `#08-on-agensi-bw2` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-bw2",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-tl1\" starts with a digit, so the common selector `#08-on-agensi-tl1` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-tl1",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-tl2\" starts with a digit, so the common selector `#08-on-agensi-tl2` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-tl2",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-nk1\" starts with a digit, so the common selector `#08-on-agensi-nk1` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-nk1",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-nk2\" starts with a digit, so the common selector `#08-on-agensi-nk2` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-nk2",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-hd\" starts with a digit, so the common selector `#08-on-agensi-hd` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-hd",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-bd1\" starts with a digit, so the common selector `#08-on-agensi-bd1` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-bd1",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-bd2\" starts with a digit, so the common selector `#08-on-agensi-bd2` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-bd2",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-fw1\" starts with a digit, so the common selector `#08-on-agensi-fw1` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-fw1",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-fw2\" starts with a digit, so the common selector `#08-on-agensi-fw2` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-fw2",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-lead\" starts with a digit, so the common selector `#08-on-agensi-lead` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-lead",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-pillrow\" starts with a digit, so the common selector `#08-on-agensi-pillrow` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-pillrow",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-pill\" starts with a digit, so the common selector `#08-on-agensi-pill` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-pill",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      },
+      {
+        "code": "id_requires_css_escape",
+        "severity": "warning",
+        "message": "id=\"08-on-agensi-pilltext\" starts with a digit, so the common selector `#08-on-agensi-pilltext` throws a SyntaxError in querySelector().",
+        "selector": "#08-on-agensi-pilltext",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\project\\sell_to_agensi\\harness_skill\\demo-video\\compositions\\frames\\08-on-agensi.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime."
+      }
+    ],
+    "filesScanned": 10
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 1,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "warning",
+        "time": 30,
+        "selector": "img.flags-outdated-shot",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 2009,
+          "top": -11,
+          "right": 4697,
+          "bottom": 1501,
+          "width": 2688,
+          "height": 1512
+        },
+        "containerSelector": "div.flags-outdated-screen",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 2009,
+          "top": 73,
+          "right": 2847.6,
+          "bottom": 879.4,
+          "width": 838.6,
+          "height": 806.4
+        },
+        "overflow": {
+          "right": 1849.4,
+          "top": 84,
+          "bottom": 621.6
+        },
+        "dataAttributes": {
+          "data-hf-authored-opacity": ""
+        },
+        "sourceFile": "compositions/frames/05-flags-outdated.html",
+        "bbox": {
+          "x": 2009,
+          "y": -11,
+          "width": 2688,
+          "height": 1512
+        },
+        "firstSeen": 30,
+        "lastSeen": 36.667,
+        "occurrences": 2,
+        "heldMs": 0,
+        "times": [
+          30,
+          36.667
+        ]
+      },
+      {
+        "code": "escaped_container",
+        "severity": "warning",
+        "time": 30,
+        "selector": "img.flags-outdated-shot",
+        "message": "Positioned element renders far outside its offset parent — its coordinates were likely computed in a different frame (canvas/viewport pixels).",
+        "rect": {
+          "left": 2009,
+          "top": -11,
+          "right": 4697,
+          "bottom": 1501,
+          "width": 2688,
+          "height": 1512
+        },
+        "containerSelector": "div.flags-outdated-screen",
+        "text": "",
+        "fixHint": "Compute left/top in the offset parent's frame (subtract its rect), or mark intentional placement with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 2009,
+          "top": 73,
+          "right": 2847.6,
+          "bottom": 879.4,
+          "width": 838.6,
+          "height": 806.4
+        },
+        "dataAttributes": {
+          "data-hf-authored-opacity": ""
+        },
+        "sourceFile": "compositions/frames/05-flags-outdated.html",
+        "bbox": {
+          "x": 2009,
+          "y": -11,
+          "width": 2688,
+          "height": 1512
+        },
+        "firstSeen": 30,
+        "lastSeen": 36.667,
+        "occurrences": 2,
+        "heldMs": 0,
+        "times": [
+          30,
+          36.667
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 50,
+        "selector": "#table-07-yours-local",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": -28.8,
+          "top": -16.2,
+          "right": 1948.8,
+          "bottom": 1096.2,
+          "width": 1977.6,
+          "height": 1112.4
+        },
+        "containerSelector": "#backdrop-07-yours-local",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 28.8,
+          "right": 28.8,
+          "top": 16.2,
+          "bottom": 16.2
+        },
+        "dataAttributes": {
+          "data-hf-authored-opacity": ""
+        },
+        "sourceFile": "compositions/frames/07-yours-local.html",
+        "bbox": {
+          "x": -28.8,
+          "y": -16.2,
+          "width": 1977.6,
+          "height": 1112.4
+        },
+        "firstSeen": 50,
+        "lastSeen": 50,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          50
+        ]
+      }
+    ],
+    "duration": 60,
+    "samples": [
+      3.333,
+      10,
+      16.667,
+      23.333,
+      30,
+      36.667,
+      43.333,
+      50,
+      56.667
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 3,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      3.333,
+      16.667,
+      30,
+      43.333,
+      56.667
+    ],
+    "checked": 44,
+    "passed": 44
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

@@ -1,0 +1,310 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: "EB Garamond"; font-style: normal; font-weight: 400; font-display: block; src: url("assets/fonts/EBGaramond-400.woff2") format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: block; src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2"); }
+
+    /* Frame 7 — Yang paling laku. 1920x1080, code-editorial on the navy ground.
+       Every length is in --u = 1/1920 of the frame width (cqw). Left: the real agensi.io guide
+       in a floating window, x 80→1240, y 150→862; the camera travels inside the window only.
+       Right: the text column, x 1304→1840. Nothing sits below y 900. */
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      container-type: size;
+      --u: calc(100cqw / 1920);
+    }
+    #root * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    #f07-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* ── the floating window ── */
+    #f07-window {
+      position: absolute;
+      left: calc(var(--u) * 80);
+      top: calc(var(--u) * 150);
+      width: calc(var(--u) * 1160);
+      height: calc(var(--u) * 712);
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: calc(var(--u) * 12);
+      background: #26324f;
+      box-shadow: 0 calc(var(--u) * 4) calc(var(--u) * 16) rgba(18, 26, 44, 0.45);
+      overflow: hidden;
+    }
+    #f07-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: calc(var(--u) * 34);
+      display: flex;
+      align-items: center;
+      gap: calc(var(--u) * 8);
+      padding-left: calc(var(--u) * 18);
+      background: #26324f;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.12);
+    }
+    .f07-dot {
+      display: block;
+      width: calc(var(--u) * 10);
+      height: calc(var(--u) * 10);
+      border-radius: 50%;
+      background: rgba(243, 242, 238, 0.22);
+    }
+    /* the camera's viewport: 1158 x 676 */
+    #f07-view {
+      position: absolute;
+      left: 0;
+      top: calc(var(--u) * 34);
+      width: calc(var(--u) * 1158);
+      height: calc(var(--u) * 676);
+      overflow: hidden;
+      background: #f3f2ee;
+    }
+    /* the world: the screenshot at its 1x size (1920 x 1080), camera transform written by applyCamera() */
+    #f07-world {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: calc(var(--u) * 1920);
+      height: calc(var(--u) * 1080);
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    #f07-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* blue marker underlines, placed in the screenshot's 1x pixel space (measured from the PNG) */
+    .f07-mark {
+      position: absolute;
+      height: calc(var(--u) * 4);
+      border-radius: calc(var(--u) * 2);
+      background: #2a78d6;
+      transform-origin: 0% 50%;
+    }
+    #f07-u1a { left: calc(var(--u) * 691); top: calc(var(--u) * 769.5); width: calc(var(--u) * 430); }
+    #f07-u1b { left: calc(var(--u) * 550); top: calc(var(--u) * 801.5); width: calc(var(--u) * 78); }
+    #f07-u3a { left: calc(var(--u) * 551); top: calc(var(--u) * 865.5); width: calc(var(--u) * 529); }
+    #f07-u3b { left: calc(var(--u) * 550); top: calc(var(--u) * 897.5); width: calc(var(--u) * 571); }
+    #f07-u3c { left: calc(var(--u) * 550); top: calc(var(--u) * 929.5); width: calc(var(--u) * 199); }
+
+    /* ── the text column ── */
+    #f07-col {
+      position: absolute;
+      left: calc(var(--u) * 1304);
+      top: calc(var(--u) * 150);
+      width: calc(var(--u) * 536);
+      color: #f3f2ee;
+    }
+    #f07-kicker {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--u) * 14);
+      height: calc(var(--u) * 34);
+    }
+    #f07-spike {
+      display: block;
+      width: calc(var(--u) * 26);
+      height: calc(var(--u) * 26);
+      flex: none;
+      transform-origin: 50% 50%;
+    }
+    #f07-kicker-text {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: calc(var(--u) * 28);
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: rgba(243, 242, 238, 0.78);
+    }
+    .f07-head {
+      font-family: "EB Garamond", Georgia, serif;
+      font-weight: 400;
+      font-size: calc(var(--u) * 84);
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      color: #f3f2ee;
+    }
+    #f07-h1 {
+      margin-top: calc(var(--u) * 30);
+    }
+    #f07-h2 {
+      margin-top: calc(var(--u) * 32);
+    }
+    .f07-w {
+      display: inline-block;
+    }
+    .f07-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: calc(var(--u) * 12);
+      margin-top: calc(var(--u) * 28);
+    }
+    .f07-chip {
+      display: block;
+      padding: calc(var(--u) * 14) calc(var(--u) * 16);
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: calc(var(--u) * 8);
+      background: #26324f;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: calc(var(--u) * 26);
+      line-height: 1;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      color: #f3f2ee;
+      transform-origin: 50% 50%;
+    }
+    #f07-rule {
+      margin-top: calc(var(--u) * 36);
+      width: 100%;
+      height: 1px;
+      background: rgba(243, 242, 238, 0.2);
+      transform-origin: 0% 50%;
+    }
+  </style>
+
+  <div data-hf-id="hf-afik" id="root" data-composition-id="07-paling-laku" data-start="0" data-duration="12.5" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-75ux" id="f07-ground" class="clip" data-start="0" data-duration="12.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-okf3" id="f07-window">
+      <div data-hf-id="hf-7j3i" id="f07-bar">
+        <span data-hf-id="hf-dpjk" class="f07-dot"></span>
+        <span data-hf-id="hf-2t0o" class="f07-dot"></span>
+        <span data-hf-id="hf-1m3l" class="f07-dot"></span>
+      </div>
+      <div data-hf-id="hf-ic7s" id="f07-view">
+        <div data-hf-id="hf-81u2" id="f07-world" data-layout-allow-overflow>
+          <img data-hf-id="hf-yyk3" id="f07-shot" src="assets/agensi-guide-what-sells.png" alt="Agensi guide: What SKILL.md Skills Sell Best?" data-layout-allow-overflow>
+          <div data-hf-id="hf-co6s" class="f07-mark" id="f07-u1a"></div>
+          <div data-hf-id="hf-lc2n" class="f07-mark" id="f07-u1b"></div>
+          <div data-hf-id="hf-gd7a" class="f07-mark" id="f07-u3a"></div>
+          <div data-hf-id="hf-cf39" class="f07-mark" id="f07-u3b"></div>
+          <div data-hf-id="hf-bnfg" class="f07-mark" id="f07-u3c"></div>
+        </div>
+      </div>
+    </div>
+
+    <div data-hf-id="hf-hugj" id="f07-col">
+      <div data-hf-id="hf-8tp0" id="f07-kicker">
+        <svg data-hf-id="hf-5enc" id="f07-spike" viewBox="0 0 24 24" aria-hidden="true">
+          <g data-hf-id="hf-frlv" stroke="#2a78d6" stroke-width="4" stroke-linecap="round" fill="none">
+            <line data-hf-id="hf-8epb" x1="12" y1="2.5" x2="12" y2="21.5" />
+            <line data-hf-id="hf-09pb" x1="3.77" y1="7.25" x2="20.23" y2="16.75" />
+            <line data-hf-id="hf-n8kb" x1="3.77" y1="16.75" x2="20.23" y2="7.25" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-c4i7" id="f07-kicker-text">YANG LAKU</span>
+      </div>
+      <h2 data-hf-id="hf-q0au" id="f07-h1" class="f07-head"><span data-hf-id="hf-0bvz" class="f07-w">Yang</span> <span data-hf-id="hf-lttx" class="f07-w">paling</span> <span data-hf-id="hf-3ugp" class="f07-w">laku:</span></h2>
+      <div data-hf-id="hf-2z2l" id="f07-chips1" class="f07-chips">
+        <div data-hf-id="hf-azu7" class="f07-chip">code review</div>
+        <div data-hf-id="hf-upgs" class="f07-chip">testing</div>
+        <div data-hf-id="hf-3c46" class="f07-chip">otomasi git</div>
+      </div>
+      <div data-hf-id="hf-2wp5" id="f07-rule"></div>
+      <h2 data-hf-id="hf-m26t" id="f07-h2" class="f07-head"><span data-hf-id="hf-f1s2" class="f07-w">Peluang</span> <span data-hf-id="hf-0sgf" class="f07-w">yang</span> <span data-hf-id="hf-agjg" class="f07-w">masih</span> <span data-hf-id="hf-xrna" class="f07-w">terbuka:</span></h2>
+      <div data-hf-id="hf-6x6m" id="f07-chips2" class="f07-chips">
+        <div data-hf-id="hf-1cll" class="f07-chip">DevOps</div>
+        <div data-hf-id="hf-pi8c" class="f07-chip">Python dan JavaScript</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var byId = function (name) {
+        return document.getElementById("f07-" + name);
+      };
+      var tl = gsap.timeline({ paused: true });
+
+      // ── the camera: one state, one writer ──
+      // cam.s = zoom, (cam.cx, cam.cy) = the screenshot point (1x px) at the viewport centre.
+      // The targets are fixed pixel positions in the PNG (measured once from the file, baked here),
+      // so no layout measurement is needed. Viewport = 1158 x 676 design units.
+      var world = byId("world");
+      var VW = 1158;
+      var VH = 676;
+      var cam = { s: 0.92, cx: 860, cy: 600 };
+      function applyCamera() {
+        var x = VW / 2 - cam.s * cam.cx;
+        var y = VH / 2 - cam.s * cam.cy;
+        world.style.transform =
+          "translate(calc(var(--u) * " + x.toFixed(3) + "), calc(var(--u) * " + y.toFixed(3) + ")) scale(" + cam.s.toFixed(5) + ")";
+      }
+      applyCamera();
+
+      var POSE_TITLE_IN = { s: 0.92, cx: 860, cy: 600 }; // title + quick-answer box, arriving
+      var POSE_TITLE = { s: 0.95, cx: 860, cy: 594 }; // title + quick-answer box, settled
+      var POSE_S1 = { s: 1.65, cx: 818, cy: 775 }; // first sentence ("... sell the most")
+      var POSE_S3 = { s: 1.84, cx: 824, cy: 893 }; // last sentence ("biggest untapped opportunities ..."); top edge in the gap above the box
+
+      function leg(from, to, at, dur, ease, first) {
+        tl.fromTo(
+          cam,
+          { s: from.s, cx: from.cx, cy: from.cy },
+          { s: to.s, cx: to.cx, cy: to.cy, duration: dur, ease: ease, onUpdate: applyCamera, immediateRender: !!first },
+          at
+        );
+      }
+
+      // Scene 1 (0.0–2.6): the window arrives already dived onto the title + quick answer
+      tl.fromTo(byId("window"), { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0);
+      leg(POSE_TITLE_IN, POSE_TITLE, 0, 1.7, "power2.out", true);
+
+      tl.fromTo(byId("spike"), { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo(byId("kicker-text"), { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.2);
+      gsap.utils.toArray("#f07-h1 .f07-w").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.35 + i * 0.07);
+      });
+
+      // dive onto the first sentence (hard out: fast arrival, sharp settle)
+      leg(POSE_TITLE, POSE_S1, 1.7, 1.1, "power4.out");
+
+      // Scene 2 (2.6–6.6): marker underline draws at 2.8; chips pop at 3.0
+      // the camera holds on sentence 1 until the 6.6s travel (no drift during the read)
+      tl.fromTo(byId("u1a"), { scaleX: 0 }, { scaleX: 1, duration: 0.42, ease: "power1.in" }, 2.8);
+      tl.fromTo(byId("u1b"), { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power1.out" }, 3.22);
+
+      gsap.utils.toArray("#f07-chips1 .f07-chip").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, scale: 0, y: 16 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.0 + i * 0.06);
+      });
+
+      // Scene 3 (6.6–12.0): one smooth travel to the last sentence, landed by 7.6, then still
+      leg(POSE_S1, POSE_S3, 6.6, 1.0, "power2.inOut");
+      tl.fromTo(byId("rule"), { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, 7.7);
+      tl.fromTo(byId("u3a"), { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power1.in" }, 7.8);
+      tl.fromTo(byId("u3b"), { scaleX: 0 }, { scaleX: 1, duration: 0.42, ease: "none" }, 8.2);
+      tl.fromTo(byId("u3c"), { scaleX: 0 }, { scaleX: 1, duration: 0.16, ease: "power1.out" }, 8.62);
+
+      gsap.utils.toArray("#f07-h2 .f07-w").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 8.2 + i * 0.06);
+      });
+      gsap.utils.toArray("#f07-chips2 .f07-chip").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, scale: 0, y: 16 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" }, 8.2 + i * 0.06);
+      });
+
+      // hold still to the end; anchor so the timeline spans the full 12s
+      tl.eventCallback("onUpdate", applyCamera);
+      tl.to({}, { duration: 12 }, 0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["07-paling-laku"] = tl;
+    })();
+  </script>
+</template>

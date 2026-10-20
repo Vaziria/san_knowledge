@@ -1,0 +1,357 @@
+{
+  "typography": [
+    {
+      "role": "display",
+      "fontFamily": "Plus Jakarta Sans",
+      "fontSize": "60px",
+      "fontWeight": "700",
+      "lineHeight": "66px",
+      "letterSpacing": "-1.5px",
+      "color": "#0F1729",
+      "sampleText": "The Skill Marketplace for AI Agents"
+    },
+    {
+      "role": "heading",
+      "fontFamily": "Plus Jakarta Sans",
+      "fontSize": "36px",
+      "fontWeight": "700",
+      "lineHeight": "40px",
+      "letterSpacing": "normal",
+      "color": "#0F1729",
+      "sampleText": "Real experts behind every skill"
+    },
+    {
+      "role": "heading-2",
+      "fontFamily": "Plus Jakarta Sans",
+      "fontSize": "30px",
+      "fontWeight": "700",
+      "lineHeight": "36px",
+      "letterSpacing": "normal",
+      "color": "#0F1729",
+      "sampleText": "Browse by Category"
+    },
+    {
+      "role": "heading-2",
+      "fontFamily": "Plus Jakarta Sans",
+      "fontSize": "24px",
+      "fontWeight": "700",
+      "lineHeight": "32px",
+      "letterSpacing": "normal",
+      "color": "#0F1729",
+      "sampleText": "Trending this month"
+    },
+    {
+      "role": "body",
+      "fontFamily": "Inter",
+      "fontSize": "18px",
+      "fontWeight": "400",
+      "lineHeight": "27px",
+      "letterSpacing": "normal",
+      "color": "#6B7280",
+      "sampleText": "Give your agent 12,000+ new Skills instantly. Built by exper"
+    },
+    {
+      "role": "label",
+      "fontFamily": "Inter",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#6B7280",
+      "sampleText": ""
+    },
+    {
+      "role": "heading-4",
+      "fontFamily": "Plus Jakarta Sans",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "20px",
+      "letterSpacing": "normal",
+      "color": "#0F1729",
+      "sampleText": "Marketplace"
+    },
+    {
+      "role": "link",
+      "fontFamily": "Inter",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "20px",
+      "letterSpacing": "normal",
+      "color": "#6B7280",
+      "sampleText": "Browse"
+    },
+    {
+      "role": "heading-3",
+      "fontFamily": "Plus Jakarta Sans",
+      "fontSize": "13px",
+      "fontWeight": "700",
+      "lineHeight": "17.875px",
+      "letterSpacing": "normal",
+      "color": "#0F1729",
+      "sampleText": "GEO SEO Suite — AI Search Optimization"
+    },
+    {
+      "role": "code",
+      "fontFamily": "ui-monospace",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "16px",
+      "letterSpacing": "normal",
+      "color": "#6B7280",
+      "sampleText": "your agent"
+    }
+  ],
+  "spacing": {
+    "observed": [
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      16,
+      40,
+      64,
+      192
+    ],
+    "baseUnit": 8
+  },
+  "radius": [
+    "10px",
+    "12px",
+    "16px",
+    "3.35544e+07px"
+  ],
+  "shadows": [
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "count": 12
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "count": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px",
+      "count": 2
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.828 0.0183479 0.188107 / 0.25) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "count": 2
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px -1px",
+      "count": 1
+    }
+  ],
+  "buttons": [
+    {
+      "label": "button",
+      "background": "transparent",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#FFFFFF",
+      "padding": "4px",
+      "borderRadius": "10px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "24px"
+    },
+    {
+      "label": "Continue with Google",
+      "background": "#2A6DF4",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#FFFFFF",
+      "padding": "10px 16px",
+      "borderRadius": "16px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "none",
+      "fontSize": "14px",
+      "fontWeight": "500",
+      "height": "40px"
+    },
+    {
+      "label": "Sign In",
+      "background": "#2A6DF4",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#FFFFFF",
+      "padding": "0px 12px",
+      "borderRadius": "10px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "height": "36px"
+    },
+    {
+      "label": "act as my business consultant",
+      "background": "transparent",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#6B7280",
+      "padding": "4px 10px",
+      "borderRadius": "3.35544e+07px",
+      "border": "1px solid oklab(0.927668 -0.000507563 -0.00573558 / 0.6)",
+      "boxShadow": "none",
+      "fontSize": "11px",
+      "fontWeight": "400",
+      "height": "26.5px"
+    },
+    {
+      "label": "button",
+      "background": "transparent",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#0F1729",
+      "padding": "0px",
+      "borderRadius": "16px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "48px"
+    },
+    {
+      "label": "button",
+      "background": "transparent",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#6B7280",
+      "padding": "0px",
+      "borderRadius": "0px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "28px"
+    }
+  ],
+  "cards": [
+    {
+      "label": "card",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#0F1729",
+      "padding": "16px",
+      "borderRadius": "16px",
+      "border": "1px solid rgb(229, 231, 235)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "74px"
+    },
+    {
+      "label": "card",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#0F1729",
+      "padding": "0px",
+      "borderRadius": "16px",
+      "border": "2px solid oklab(0.828 0.0183479 0.188107 / 0.7)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "196.75px"
+    }
+  ],
+  "nav": {
+    "label": "navigation",
+    "background": "#FFFFFF",
+    "backgroundImage": "",
+    "backdropFilter": "",
+    "color": "#0F1729",
+    "padding": "0px",
+    "borderRadius": "0px",
+    "border": "1px solid rgb(229, 231, 235)",
+    "boxShadow": "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px -1px",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "height": "66px"
+  },
+  "chips": [
+    {
+      "label": "Skill of the Month",
+      "background": "oklch(0.828 0.189 84.429)",
+      "color": "oklch(0.279 0.077 45.635)",
+      "padding": "2px 10px",
+      "borderRadius": "3.35544e+07px",
+      "border": "1px solid oklab(0.769 0.0640531 0.176752 / 0.8)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.828 0.0183479 0.188107 / 0.25) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "height": "21px"
+    },
+    {
+      "label": "-33%",
+      "background": "oklch(0.586 0.253 17.585)",
+      "color": "#FFFFFF",
+      "padding": "2px 8px",
+      "borderRadius": "3.35544e+07px",
+      "border": "1px solid oklch(0.514 0.222 16.935)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "height": "21px"
+    },
+    {
+      "label": "-33%",
+      "background": "oklch(0.586 0.253 17.585)",
+      "color": "#FFFFFF",
+      "padding": "2px 8px",
+      "borderRadius": "3.35544e+07px",
+      "border": "1px solid rgb(255, 255, 255)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+      "fontSize": "10px",
+      "fontWeight": "600",
+      "height": "21px"
+    },
+    {
+      "label": "$19.99",
+      "background": "oklch(0.586 0.253 17.585)",
+      "color": "#FFFFFF",
+      "padding": "2px 8px",
+      "borderRadius": "3.35544e+07px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "none",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "height": "20px"
+    }
+  ],
+  "statCells": [],
+  "tabs": [
+    {
+      "label": "7",
+      "background": "transparent",
+      "color": "#2A6DF4",
+      "padding": "0px 2px",
+      "borderRadius": "0px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "none",
+      "fontSize": "11px",
+      "fontWeight": "600",
+      "height": "11px"
+    }
+  ],
+  "backgrounds": [
+    {
+      "value": "radial-gradient(80% 50% at 50% -20%, rgba(42, 109, 244, 0.08) 0%, rgba(0, 0, 0, 0) 50%)",
+      "area": 1555200
+    },
+    {
+      "value": "radial-gradient(circle at 1px 1px, rgb(15, 23, 41) 1px, rgba(0, 0, 0, 0) 0px)",
+      "area": 1555200
+    },
+    {
+      "value": "linear-gradient(135deg, rgb(42, 109, 244) 0%, rgb(124, 59, 237) 100%)",
+      "area": 22277
+    }
+  ],
+  "glass": []
+}

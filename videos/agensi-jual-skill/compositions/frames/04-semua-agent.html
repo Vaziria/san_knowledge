@@ -1,0 +1,254 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+    }
+
+    /* ground: full-duration navy field on the lowest track */
+    .f04-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* the real agensi.io capture, shown as a dimmed window behind the line */
+    .f04-window {
+      position: absolute;
+      inset: 0;
+    }
+    .f04-panel {
+      position: absolute;
+      left: 120px;
+      top: 66px;
+      width: 1680px;
+      height: 690px;
+      overflow: hidden;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      background: #1f2a44;
+    }
+    .f04-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1680px;
+      height: 945px;
+      opacity: 0.35;
+    }
+
+    /* foreground: a ground-colour hairline card that carries the pinned line */
+    .f04-copy {
+      position: absolute;
+      inset: 0;
+    }
+    .f04-card {
+      position: absolute;
+      left: 160px;
+      top: 473px;
+      width: 1600px;
+      height: 342px;
+      background: #1f2a44;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+    }
+    .f04-kicker {
+      position: absolute;
+      left: 224px;
+      top: 525px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      white-space: nowrap;
+    }
+    .f04-spike {
+      display: block;
+      width: 26px;
+      height: 26px;
+    }
+    .f04-kicker-text {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-weight: 400;
+      font-size: 1.46cqw;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      line-height: 1;
+      color: #f3f2ee;
+    }
+    .f04-line {
+      position: absolute;
+      left: 224px;
+      top: 569px;
+      display: flex;
+      align-items: baseline;
+      gap: 30px;
+      white-space: nowrap;
+    }
+    .f04-anchor {
+      font-family: "EB Garamond", Georgia, serif;
+      font-weight: 400;
+      font-size: 6.25cqw;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      color: #f3f2ee;
+    }
+    /* the slot: every state shares one grid cell, so the anchor never moves */
+    .f04-slot {
+      position: relative;
+      display: inline-grid;
+      justify-items: start;
+    }
+    .f04-name {
+      grid-area: 1 / 1;
+      position: relative;
+      font-family: "EB Garamond", Georgia, serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 5.73cqw;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      color: #2a78d6;
+      white-space: nowrap;
+      visibility: hidden;
+      opacity: 0;
+    }
+    .f04-rule {
+      position: absolute;
+      left: 2px;
+      right: 0;
+      top: calc(100% + 6px);
+      height: 1px;
+      background: #2a78d6;
+      transform-origin: 0 50%;
+    }
+    .f04-label {
+      position: absolute;
+      left: 2px;
+      top: calc(100% + 30px);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-weight: 400;
+      font-size: 1.35cqw;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+  </style>
+
+  <div data-hf-id="hf-86nz" id="root" data-composition-id="04-semua-agent" data-width="1920" data-height="1080" data-duration="10.5">
+    <div data-hf-id="hf-yp1g" id="f04-ground" class="clip f04-ground" data-start="0" data-duration="10.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-2k7f" id="f04-window" class="clip f04-window" data-start="0" data-duration="10.5" data-track-index="1">
+      <div data-hf-id="hf-30tn" class="f04-panel">
+        <img data-hf-id="hf-ul2t" class="f04-shot" src="assets/agensi-home-agents.png" alt="" />
+      </div>
+    </div>
+
+    <div data-hf-id="hf-goj6" id="f04-copy" class="clip f04-copy" data-start="0" data-duration="10.5" data-track-index="2">
+      <div data-hf-id="hf-icix" class="f04-card"></div>
+
+      <div data-hf-id="hf-q2eg" class="f04-kicker">
+        <svg data-hf-id="hf-wcjk" class="f04-spike" viewBox="0 0 24 24" aria-hidden="true">
+          <g data-hf-id="hf-jsk0" stroke="#2a78d6" stroke-width="3.6" stroke-linecap="round" fill="none">
+            <line data-hf-id="hf-lkjh" x1="12" y1="2.4" x2="12" y2="21.6" />
+            <line data-hf-id="hf-yjd1" x1="3.7" y1="7.2" x2="20.3" y2="16.8" />
+            <line data-hf-id="hf-joyf" x1="3.7" y1="16.8" x2="20.3" y2="7.2" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-plhc" class="f04-kicker-text">STANDAR TERBUKA</span>
+      </div>
+
+      <div data-hf-id="hf-wjn5" class="f04-line">
+        <span data-hf-id="hf-7nio" class="f04-anchor">Satu skill, jalan di</span>
+        <span data-hf-id="hf-pn86" class="f04-slot">
+          <span data-hf-id="hf-dvwc" class="f04-name" data-f04-state="0">Claude Code</span>
+          <span data-hf-id="hf-kxhy" class="f04-name" data-f04-state="1">Cursor</span>
+          <span data-hf-id="hf-dfo0" class="f04-name" data-f04-state="2">Codex CLI</span>
+          <span data-hf-id="hf-8e6t" class="f04-name" data-f04-state="3">GitHub Copilot</span>
+          <span data-hf-id="hf-5m8g" class="f04-name" data-f04-state="4">Gemini CLI<span data-hf-id="hf-z80w" class="f04-rule"></span></span>
+          <span data-hf-id="hf-hbip" class="f04-label">dan agent lain yang memakai standar SKILL.md</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var root = document.querySelector('[data-composition-id="04-semua-agent"]');
+      var q = function (sel) {
+        return root.querySelector(sel);
+      };
+
+      var panel = q(".f04-panel");
+      var card = q(".f04-card");
+      var spike = q(".f04-spike");
+      var kickerText = q(".f04-kicker-text");
+      var anchor = q(".f04-anchor");
+      var rule = q(".f04-rule");
+      var label = q(".f04-label");
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-2.2s): the agents window fades in behind, the kicker, and the
+      // anchor line lands once and pins (no movement after this entrance).
+      tl.fromTo(panel, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" }, 0);
+      // the card is filled with the ground colour from frame one (the window never shows
+      // through it); only its hairline draws in.
+      tl.fromTo(
+        card,
+        { borderColor: "rgba(243, 242, 238, 0)" },
+        { borderColor: "rgba(243, 242, 238, 0.14)", duration: 0.8, ease: "power2.out" },
+        0.1,
+      );
+      tl.fromTo(spike, { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }, 0.15);
+      tl.fromTo(kickerText, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.25);
+      tl.fromTo(anchor, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.2);
+
+      // Scene 2 (2.2-7.0s): discrete-text-sequence. A sparse list of { t, text } states;
+      // each state shows from its t until the next one's t, swapped by an instant hard cut
+      // (zero-duration sets, so every seek lands on the right state).
+      var SEQUENCE = [
+        { t: 2.4, text: "Claude Code" },
+        { t: 3.4, text: "Cursor" },
+        { t: 4.4, text: "Codex CLI" },
+        { t: 5.4, text: "GitHub Copilot" },
+        { t: 6.4, text: "Gemini CLI" },
+      ];
+      var names = root.querySelectorAll(".f04-name");
+      tl.set(names, { autoAlpha: 0 }, 0);
+      for (var i = 0; i < SEQUENCE.length; i++) {
+        if (i > 0) tl.set(names[i - 1], { autoAlpha: 0 }, SEQUENCE[i].t);
+        tl.set(names[i], { autoAlpha: 1 }, SEQUENCE[i].t);
+      }
+
+      // Scene 3 (7.0-10.0s): the slot settles on the last name (a 1px voltage rule draws
+      // on beneath it), the mono line joins under the slot, then the lockup holds still.
+      tl.fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.out" }, 6.8);
+      tl.fromTo(label, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 7.0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["04-semua-agent"] = tl;
+    })();
+  </script>
+</template>

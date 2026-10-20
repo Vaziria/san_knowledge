@@ -1,0 +1,320 @@
+<template>
+  <div data-hf-id="hf-yp48"
+    id="root"
+    data-composition-id="06-work-links-in"
+    data-width="1920"
+    data-height="1080"
+    data-duration="8.5"
+  >
+    <style>
+      @font-face {
+        font-family: "EB Garamond";
+        src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+      #root {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        container-type: size;
+        color: #f3f2ee;
+      }
+      /* Full-bleed navy ground: its own full-duration clip, never on #root. */
+      .\30 6-work-links-in-ground { position: absolute; inset: 0; background: #1f2a44; }
+      /* The one large window: ~90% width, top-aligned, bottom edge above the keep-out. */
+      .\30 6-work-links-in-window {
+        position: absolute;
+        left: 96px;
+        top: 40px;
+        width: 1728px;
+        height: 832px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #1a1a19;
+        box-shadow: 0 1px 3px rgba(9, 13, 24, 0.32), 0 10px 30px rgba(9, 13, 24, 0.3);
+      }
+      .\30 6-work-links-in-window::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(243, 242, 238, 0.12);
+        border-radius: 12px;
+        pointer-events: none;
+      }
+      /* Camera world: the real 3840x2160 capture at native pixels. GSAP writes
+         translate(x, y) scale(s) with origin 0 0 (no CSS transform here). */
+      .\30 6-work-links-in-world { position: absolute; left: 0; top: 0; width: 3840px; height: 2160px; transform-origin: 0 0; }
+      .\30 6-work-links-in-world > img,
+      .\30 6-work-links-in-world > svg { position: absolute; left: 0; top: 0; width: 3840px; height: 2160px; display: block; }
+      .\30 6-work-links-in-world > svg { overflow: visible; pointer-events: none; }
+      /* Overlay text card: tile + hairline, at the window's lower-right. */
+      .\30 6-work-links-in-card {
+        position: absolute;
+        left: 1380px;
+        top: 452px;
+        width: 476px;
+        height: 434px;
+        box-sizing: border-box;
+        padding: 34px 38px 30px;
+        background: #26324f;
+        border: 1px solid rgba(243, 242, 238, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(9, 13, 24, 0.3), 0 8px 24px rgba(9, 13, 24, 0.26);
+      }
+      .\30 6-work-links-in-kicker {
+        display: flex;
+        align-items: center;
+        gap: 0.55em;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 400;
+        font-size: 1.46cqw;
+        line-height: 1;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .\30 6-work-links-in-spike { display: block; width: 0.8em; height: 0.8em; flex: none; }
+      .\30 6-work-links-in-head {
+        margin: 22px 0 0;
+        font-family: "EB Garamond", Georgia, serif;
+        font-weight: 400;
+        font-size: 3.4cqw;
+        line-height: 1.06;
+        letter-spacing: -0.018em;
+      }
+      .\30 6-work-links-in-rule { height: 1px; margin: 24px 0 22px; background: rgba(243, 242, 238, 0.14); transform-origin: 0% 50%; }
+      .\30 6-work-links-in-cue {
+        margin: 0;
+        font-family: "EB Garamond", Georgia, serif;
+        font-weight: 400;
+        font-size: 2cqw;
+        line-height: 1.14;
+        letter-spacing: -0.008em;
+        text-wrap: balance;
+      }
+      .\30 6-work-links-in-cue + .\30 6-work-links-in-cue { margin-top: 12px; }
+      .\30 6-work-links-in-w { display: inline-block; }
+    </style>
+
+    <div data-hf-id="hf-we9x" id="06-work-links-in-ground" class="clip 06-work-links-in-ground" data-start="0" data-duration="8.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-lp7l" class="06-work-links-in-window">
+      <div data-hf-id="hf-tk1e" class="06-work-links-in-world" data-layout-allow-overflow>
+        <img data-hf-id="hf-kwil"
+          src="assets/04-task-done.png"
+          width="3840"
+          height="2160"
+          alt="Knowledge graph view of the finished task Invoice PDF with a payment link"
+        />
+        <svg data-hf-id="hf-lsnp" width="3840" height="2160" viewBox="0 0 3840 2160" aria-hidden="true">
+          <defs data-hf-id="hf-mh0t">
+            <mask data-hf-id="hf-w2o1" id="06-work-links-in-refmask" maskUnits="userSpaceOnUse" x="0" y="0" width="3840" height="2160">
+              <path data-hf-id="hf-p9fs"
+                class="06-work-links-in-refreveal"
+                d="M 2484 1124 Q 2342 1137 2227 1218"
+                fill="none"
+                stroke="#ffffff"
+                stroke-width="18"
+                stroke-linecap="butt"
+              />
+            </mask>
+          </defs>
+          <!-- marker-highlight's underline stroke, customized: two segments under
+               "make test passed (112" / "tests, 9 new)" (the frame's one voltage). -->
+          <svg data-hf-id="hf-wxiq" x="885.4" y="1083" width="242.6" height="12" viewBox="0 0 100 12" preserveAspectRatio="none" overflow="visible">
+            <path data-hf-id="hf-9qu2"
+              class="06-work-links-in-ul1"
+              d="M 2 7 C 20 4.5, 46 8.5, 66 6 C 80 4.5, 92 7.5, 98 5.5"
+              fill="none"
+              stroke="#2a78d6"
+              stroke-width="5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <svg data-hf-id="hf-9gvu" x="257.4" y="1119.5" width="135.5" height="12" viewBox="0 0 100 12" preserveAspectRatio="none" overflow="visible">
+            <path data-hf-id="hf-vfzc"
+              class="06-work-links-in-ul2"
+              d="M 2 6.5 C 22 5, 48 8, 70 6 C 82 5, 92 7, 98 5.5"
+              fill="none"
+              stroke="#2a78d6"
+              stroke-width="5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <!-- Ink dashed stroke traced over the real reference edge (task node ->
+               "Spec: invoice PDF"), a quadratic fit to the capture's edge pixels. -->
+          <path data-hf-id="hf-hci1"
+            d="M 2484 1124 Q 2342 1137 2227 1218"
+            fill="none"
+            stroke="#f3f2ee"
+            stroke-width="5"
+            stroke-dasharray="13 9"
+            stroke-linecap="butt"
+            mask="url(#06-work-links-in-refmask)"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <div data-hf-id="hf-fhlj" class="06-work-links-in-card">
+      <div data-hf-id="hf-o1j2" class="06-work-links-in-kicker">
+        <svg data-hf-id="hf-3fdi" class="06-work-links-in-spike" viewBox="0 0 20 20" aria-hidden="true">
+          <g data-hf-id="hf-umhl" stroke="#2a78d6" stroke-width="2.6" stroke-linecap="round">
+            <line data-hf-id="hf-58or" x1="10" y1="2" x2="10" y2="18" />
+            <line data-hf-id="hf-yvmj" x1="2" y1="10" x2="18" y2="10" />
+            <line data-hf-id="hf-iyly" x1="4.35" y1="4.35" x2="15.65" y2="15.65" />
+            <line data-hf-id="hf-sqtk" x1="15.65" y1="4.35" x2="4.35" y2="15.65" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-ebjt">TASKS</span>
+      </div>
+      <h2 data-hf-id="hf-191u" class="06-work-links-in-head">
+        <span data-hf-id="hf-1so6" class="06-work-links-in-w">Finish</span>
+        <span data-hf-id="hf-sx48" class="06-work-links-in-w">a</span>
+        <span data-hf-id="hf-lhco" class="06-work-links-in-w">task</span>
+      </h2>
+      <div data-hf-id="hf-g7xr" class="06-work-links-in-rule"></div>
+      <p data-hf-id="hf-kxr1" class="06-work-links-in-cue 06-work-links-in-cue2">
+        <span data-hf-id="hf-3trg" class="06-work-links-in-w">it</span>
+        <span data-hf-id="hf-tq9m" class="06-work-links-in-w">links</span>
+        <span data-hf-id="hf-bs32" class="06-work-links-in-w">itself</span>
+        <span data-hf-id="hf-dwpr" class="06-work-links-in-w">into</span>
+        <span data-hf-id="hf-5f14" class="06-work-links-in-w">the</span>
+        <span data-hf-id="hf-xln9" class="06-work-links-in-w">graph,</span>
+      </p>
+      <p data-hf-id="hf-k638" class="06-work-links-in-cue 06-work-links-in-cue3">
+        <span data-hf-id="hf-ea31" class="06-work-links-in-w">with</span>
+        <span data-hf-id="hf-7swz" class="06-work-links-in-w">what</span>
+        <span data-hf-id="hf-c33b" class="06-work-links-in-w">changed</span>
+        <span data-hf-id="hf-bs9u" class="06-work-links-in-w">and</span>
+        <span data-hf-id="hf-ft0p" class="06-work-links-in-w">how</span>
+        <span data-hf-id="hf-lt6s" class="06-work-links-in-w">it</span>
+        <span data-hf-id="hf-2n7q" class="06-work-links-in-w">was</span>
+        <span data-hf-id="hf-q0ks" class="06-work-links-in-w">checked.</span>
+      </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        "use strict";
+        var FRAME_ID = "06-work-links-in";
+        // Frame-prefixed class lookups (no selector parsing: the prefix starts with a digit).
+        function el(name) {
+          return document.getElementsByClassName(FRAME_ID + "-" + name)[0];
+        }
+        function words(name) {
+          return Array.prototype.slice.call(el(name).children);
+        }
+        var world = el("world");
+        var tl = gsap.timeline({ paused: true });
+
+        // ---- Camera (viewport-change: one world wrapper, one camera state) --------
+        // The world carries translate(x, y) scale(s), origin 0 0, so capture pixel p
+        // lands at window-local T + S*p, i.e. T = target - S*p. Poses are baked from
+        // measured 3840x2160 capture coordinates. Window 1728x832; the card covers
+        // window-local x >= 1284, y >= 412.
+        var WIN_W = 1728, WIN_H = 832, IMG_W = 3840, IMG_H = 2160;
+        var POSES = {
+          dive: { x: 0, y: -82.83, scale: 0.668 }, // panel: tabs, title (y 204) .. References (y 1333)
+          drift: { x: 0, y: -89.76, scale: 0.68 }, // near-imperceptible push toward the Done line
+          graph: { x: -1643.15, y: -986, scale: 0.95 }, // task node, reference edge, domain_of to Engineering
+          medium: { x: 0, y: -55.632, scale: 0.456 }, // panel + linked nodes, Engineering left of the card
+        };
+        function pose(name) {
+          var P = POSES[name];
+          return { x: P.x, y: P.y, scale: P.scale, force3D: false };
+        }
+        function focusOf(P) {
+          return { x: (WIN_W / 2 - P.x) / P.scale, y: (WIN_H / 2 - P.y) / P.scale };
+        }
+        // One camera leg baked as dense keyframes: the focus point travels a straight
+        // line in capture space, scale interpolates geometrically with an optional
+        // mid-leg pull-back (dip), and each sample solves T = centre - S*focus, clamped
+        // so the capture always covers the window. Pure arithmetic: any seek lands the
+        // same pose, and both ends are the exact baked poses.
+        function journey(fromName, toName, dip, steps) {
+          var A = POSES[fromName], B = POSES[toName];
+          var fa = focusOf(A), fb = focusOf(B);
+          var xs = [], ys = [], ss = [];
+          for (var i = 0; i <= steps; i++) {
+            var u = i / steps;
+            var s =
+              Math.exp(Math.log(A.scale) * (1 - u) + Math.log(B.scale) * u) *
+              (1 - dip * Math.sin(Math.PI * u));
+            var fx = fa.x + (fb.x - fa.x) * u;
+            var fy = fa.y + (fb.y - fa.y) * u;
+            xs.push(+Math.min(0, Math.max(WIN_W - IMG_W * s, WIN_W / 2 - s * fx)).toFixed(3));
+            ys.push(+Math.min(0, Math.max(WIN_H - IMG_H * s, WIN_H / 2 - s * fy)).toFixed(3));
+            ss.push(+s.toFixed(5));
+          }
+          xs[0] = A.x; ys[0] = A.y; ss[0] = A.scale;
+          xs[steps] = B.x; ys[steps] = B.y; ss[steps] = B.scale;
+          return { x: xs, y: ys, scale: ss, easeEach: "none" };
+        }
+        gsap.set(world, { transformOrigin: "0 0" });
+
+        // Scene 1 (0.0-2.4): already dived in on the panel; a slow drift keeps it alive.
+        var driftTo = pose("drift");
+        driftTo.duration = 2.4;
+        driftTo.ease = "sine.inOut";
+        tl.fromTo(world, pose("dive"), driftTo, 0);
+        // Scene 2 (2.4-4.4): one smooth move from the References entry across to the
+        // graph (slight pull-back mid-travel), landing on the task node and its edges.
+        tl.to(world, { keyframes: journey("drift", "graph", 0.1, 32), duration: 2.0, ease: "power2.inOut", force3D: false, immediateRender: false }, 2.4);
+        // Scene 3 (5.2-6.2): ease back to a medium framing, then held still to 8.0.
+        tl.to(world, { keyframes: journey("graph", "medium", 0, 24), duration: 1.0, ease: "power2.inOut", force3D: false, immediateRender: false }, 5.2);
+
+        // ---- Overlay card: kicker + headline (cue 1, "Finish a task") ----------------
+        tl.fromTo(el("card"), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.05);
+        tl.fromTo(el("spike"), { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }, 0.12);
+        tl.fromTo(words("head"), { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", stagger: 0.07 }, 0.25);
+
+        // ---- Marker underline under the Done line at 1.2s ---------------------------
+        // marker-highlight's mechanic: measured getTotalLength dash reveal; the ink is
+        // opacity 0 until its cue so the round cap paints no early dot. The pen carries
+        // over the line wrap: segment 2 starts as segment 1 lands.
+        [["ul1", 1.2, 0.4, "power2.in"], ["ul2", 1.6, 0.28, "power2.out"]].forEach(function (m) {
+          var path = el(m[0]);
+          var len = path.getTotalLength();
+          path.style.strokeDasharray = String(len);
+          gsap.set(path, { strokeDashoffset: len, opacity: 0 });
+          tl.set(path, { opacity: 1 }, m[1]);
+          tl.fromTo(path, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: m[2], ease: m[3] }, m[1]);
+        });
+
+        // ---- Cue 2 (2.4s): "it links itself into the graph," ------------------------
+        tl.fromTo(el("rule"), { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out" }, 2.3);
+        tl.fromTo(words("cue2"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.06 }, 2.4);
+
+        // svg-path-draw: the ink dashed stroke self-draws over the real reference edge
+        // as the camera arrives (task node -> spec). Its solid mask stroke is revealed by
+        // the measured length, so the dashes stay dashed while drawing.
+        var reveal = el("refreveal");
+        var lenRef = reveal.getTotalLength();
+        reveal.style.strokeDasharray = String(lenRef);
+        tl.fromTo(reveal, { strokeDashoffset: lenRef }, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 3.85);
+
+        // ---- Cue 3 (5.2s): "with what changed and how it was checked." --------------
+        tl.fromTo(words("cue3"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.055 }, 5.2);
+
+        tl.set({}, {}, 8); // held still to the end of the 8s frame
+        tl.seek(0);
+        window.__timelines = window.__timelines || {};
+        window.__timelines[FRAME_ID] = tl;
+      })();
+    </script>
+  </div>
+</template>

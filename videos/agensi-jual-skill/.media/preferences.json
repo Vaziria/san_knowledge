@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "youtube",
+      "confirmed_in": [
+        "agensi-jual-skill"
+      ],
+      "updated_at": "2026-10-19T17:13:31.788Z"
+    },
+    "aspect": {
+      "value": "1920x1080",
+      "confirmed_in": [
+        "agensi-jual-skill"
+      ],
+      "updated_at": "2026-10-19T17:13:31.889Z"
+    },
+    "language": {
+      "value": "id",
+      "confirmed_in": [
+        "agensi-jual-skill"
+      ],
+      "updated_at": "2026-10-19T17:13:31.991Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "agensi-jual-skill"
+      ],
+      "updated_at": "2026-10-19T17:13:32.099Z"
+    },
+    "storyboard": {
+      "value": "no",
+      "confirmed_in": [
+        "agensi-jual-skill"
+      ],
+      "updated_at": "2026-10-19T17:13:32.211Z"
+    },
+    "style_preset.product-launch-video": {
+      "value": "code-editorial",
+      "confirmed_in": [
+        "agensi-jual-skill"
+      ],
+      "updated_at": "2026-10-19T17:19:50.245Z"
+    }
+  },
+  "sightings": {}
+}

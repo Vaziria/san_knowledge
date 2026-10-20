@@ -1,0 +1,445 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      color: #f3f2ee;
+      font-family: "Inter", sans-serif;
+      font-weight: 400;
+    }
+
+    /* ground: navy, its own full-duration clip */
+    .f05-ground {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #1f2a44;
+    }
+
+    /* container law: every frame-relative unit is cqw against this box */
+    .f05-stage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      container-type: size;
+    }
+
+    /* the real Agensi capture as a floating window (no browser chrome) */
+    .f05-window {
+      position: absolute;
+      left: 240px;
+      top: 60px;
+      width: 1440px;
+      height: 810px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fbfbfc;
+      box-shadow:
+        0 0 0 1px rgba(243, 242, 238, 0.14),
+        0 2px 6px rgba(6, 10, 22, 0.26),
+        0 14px 36px rgba(6, 10, 22, 0.28);
+      transform-origin: 50% 50%;
+    }
+    .f05-zoom-outer,
+    .f05-zoom-inner {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .f05-zoom-outer {
+      transform-origin: 50% 50%;
+    }
+    .f05-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1440px;
+      height: 810px;
+      display: block;
+    }
+    .f05-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1440px;
+      height: 810px;
+      overflow: visible;
+    }
+    .f05-marker-path {
+      fill: none;
+      stroke: #2a78d6;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1000 1000;
+      stroke-dashoffset: 1004;
+    }
+
+    /* left column: the money */
+    .f05-copy {
+      position: absolute;
+      left: 4.1667cqw;
+      top: 9.4cqw;
+      width: 44cqw;
+    }
+    .f05-kicker {
+      display: flex;
+      align-items: center;
+      gap: 0.75cqw;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 1.46cqw;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #f3f2ee;
+    }
+    .f05-spike {
+      width: 1.4cqw;
+      height: 1.4cqw;
+      flex: none;
+      transform-origin: 50% 50%;
+    }
+    .f05-lockup {
+      display: flex;
+      align-items: baseline;
+      gap: 1.1cqw;
+      margin-top: 1.4cqw;
+      white-space: nowrap;
+    }
+    .f05-lead-in {
+      font-family: "EB Garamond", serif;
+      font-size: 4.6cqw;
+      font-weight: 400;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+    }
+    .f05-figure {
+      display: inline-flex;
+      align-items: baseline;
+      color: #eb6834;
+      transform-origin: 0% 85%;
+    }
+    .f05-num {
+      font-family: "EB Garamond", serif;
+      font-size: 9.4cqw;
+      font-weight: 400;
+      line-height: 0.95;
+      letter-spacing: -0.025em;
+    }
+    .f05-unit {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 2.08cqw;
+      font-weight: 400;
+      line-height: 1;
+      margin-left: 0.45cqw;
+    }
+    .f05-headline {
+      margin-top: 0.3cqw;
+      font-family: "EB Garamond", serif;
+      font-size: 4.6cqw;
+      font-weight: 400;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      white-space: nowrap;
+    }
+    .f05-word {
+      display: inline-block;
+    }
+    .f05-rule {
+      width: 31cqw;
+      height: 1px;
+      margin-top: 2.4cqw;
+      background: rgba(243, 242, 238, 0.2);
+      transform-origin: 0% 50%;
+    }
+    .f05-lead {
+      font-family: "Inter", sans-serif;
+      font-size: 2.08cqw;
+      font-weight: 400;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+    .f05-lead-1 {
+      margin-top: 1.8cqw;
+    }
+    .f05-lead-2 {
+      margin-top: 0.35cqw;
+    }
+  </style>
+
+  <div data-hf-id="hf-3u35"
+    id="root"
+    data-composition-id="05-tujuh-puluh-persen"
+    data-start="0"
+    data-duration="13.5"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-8ofd"
+      id="f05-ground"
+      class="clip f05-ground"
+      data-start="0"
+      data-duration="13.5"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-azxu"
+      id="f05-stage"
+      class="clip f05-stage"
+      data-start="0"
+      data-duration="13.5"
+      data-track-index="1"
+    >
+      <div data-hf-id="hf-1eai" id="f05-window" class="f05-window">
+        <div data-hf-id="hf-h15f" id="f05-zoom-outer" class="f05-zoom-outer" data-layout-allow-overflow>
+          <div data-hf-id="hf-vi4b" id="f05-zoom-inner" class="f05-zoom-inner" data-layout-allow-overflow>
+            <img data-hf-id="hf-7hy1"
+              id="f05-shot"
+              class="f05-shot"
+              src="assets/agensi-home-build-business.png"
+              alt=""
+            />
+          </div>
+        </div>
+        <svg data-hf-id="hf-4fc2"
+          id="f05-marker"
+          class="f05-marker"
+          viewBox="0 0 1440 810"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path data-hf-id="hf-0z6z" id="f05-marker-path" class="f05-marker-path" pathLength="1000" d="M0 0" />
+        </svg>
+      </div>
+
+      <div data-hf-id="hf-t8ry" id="f05-copy" class="f05-copy">
+        <div data-hf-id="hf-chr6" id="f05-kicker" class="f05-kicker">
+          <svg data-hf-id="hf-54ni"
+            id="f05-spike"
+            class="f05-spike"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <g data-hf-id="hf-lcb8" stroke="#2a78d6" stroke-width="3.6" stroke-linecap="round">
+              <line data-hf-id="hf-j3tt" x1="12" y1="2.6" x2="12" y2="21.4" />
+              <line data-hf-id="hf-9lae" x1="3.86" y1="7.3" x2="20.14" y2="16.7" />
+              <line data-hf-id="hf-y8jy" x1="3.86" y1="16.7" x2="20.14" y2="7.3" />
+            </g>
+          </svg>
+          <span data-hf-id="hf-mtki" id="f05-kicker-text" class="f05-kicker-text">UNTUK KREATOR</span>
+        </div>
+
+        <div data-hf-id="hf-g01u" id="f05-lockup" class="f05-lockup">
+          <span data-hf-id="hf-yju5" id="f05-lead-in" class="f05-lead-in">Kamu simpan</span>
+          <span data-hf-id="hf-rhlz" id="f05-figure" class="f05-figure"
+            ><span data-hf-id="hf-kzm4" class="f05-num">70</span><span data-hf-id="hf-80je" class="f05-unit">%</span></span
+          >
+        </div>
+
+        <div data-hf-id="hf-ew1y" id="f05-headline" class="f05-headline">
+          <span data-hf-id="hf-owb3" class="f05-word">dari</span> <span data-hf-id="hf-qg9j" class="f05-word">setiap</span>
+          <span data-hf-id="hf-fqx3" class="f05-word">penjualan.</span>
+        </div>
+
+        <div data-hf-id="hf-2c2a" id="f05-rule" class="f05-rule"></div>
+
+        <div data-hf-id="hf-wvd1" id="f05-lead-1" class="f05-lead f05-lead-1">Jual sekali, atau langganan.</div>
+        <div data-hf-id="hf-nn2u" id="f05-lead-2" class="f05-lead f05-lead-2">Dibayar lewat Stripe, atau USDC.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var ID = "05-tujuh-puluh-persen";
+
+      // The capture is 3840x2160 (2x of a 1920x1080 view). The window shows it at
+      // 1440x810, so 1 window px = 1/0.375 native px. ZOOM 2.4 puts 0.9 native px
+      // under each window px: the zoomed page stays sharp.
+      var NATIVE_W = 3840;
+      var WIN_W = 1440;
+      var WIN_H = 810;
+      var BASE = WIN_W / NATIVE_W;
+      var ZOOM = 2.4;
+
+      // Zoom centre (native px): the "Keep 70%, paid to your bank" line and its
+      // description sit centred. The 1600x900 native view is nudged so its edges fall
+      // in blank gaps between text rows/words (no glyph sliced at the window edge).
+      var CX = 1504;
+      var CY = 1295;
+      // coordinate-target-zoom, nested wrappers: outer scales, inner translates by -offset.
+      var OFF_X = CX * BASE - WIN_W / 2;
+      var OFF_Y = CY * BASE - WIN_H / 2;
+
+      // Marker box around the heading line, measured on the PNG:
+      // glyphs span x 1122-1507, y 1330-1357 (native px); padded, clear of the icon
+      // on the left (ends 1095) and the description line below (starts 1377).
+      var BOX = { x0: 1104, y0: 1315, x1: 1525, y1: 1370 };
+      function winX(x) {
+        return WIN_W / 2 + ZOOM * (x - CX) * BASE;
+      }
+      function winY(y) {
+        return WIN_H / 2 + ZOOM * (y - CY) * BASE;
+      }
+      var x0 = winX(BOX.x0);
+      var x1 = winX(BOX.x1);
+      var y0 = winY(BOX.y0);
+      var y1 = winY(BOX.y1);
+      var r = 10;
+      var d =
+        "M" + (x0 + r) + " " + y0 +
+        " H" + (x1 - r) +
+        " A" + r + " " + r + " 0 0 1 " + x1 + " " + (y0 + r) +
+        " V" + (y1 - r) +
+        " A" + r + " " + r + " 0 0 1 " + (x1 - r) + " " + y1 +
+        " H" + (x0 + r) +
+        " A" + r + " " + r + " 0 0 1 " + x0 + " " + (y1 - r) +
+        " V" + (y0 + r) +
+        " A" + r + " " + r + " 0 0 1 " + (x0 + r) + " " + y0 +
+        " Z";
+      document.getElementById("f05-marker-path").setAttribute("d", d);
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-2.6s): window centred and large, zoom to the line, marker box at 1.8s.
+      tl.fromTo(
+        "#f05-window",
+        { x: 0, y: 14, scale: 0.97 },
+        { x: 0, y: 0, scale: 1, duration: 0.7, ease: "power3.out", force3D: false },
+        0
+      );
+      tl.fromTo(
+        "#f05-zoom-outer",
+        { scale: 1 },
+        { scale: ZOOM, duration: 1.2, ease: "power3.inOut", force3D: false },
+        0.55
+      );
+      tl.fromTo(
+        "#f05-zoom-inner",
+        { x: 0, y: 0 },
+        { x: -OFF_X, y: -OFF_Y, duration: 1.2, ease: "power3.inOut", force3D: false },
+        0.55
+      );
+      tl.fromTo(
+        "#f05-marker-path",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.06, ease: "none" },
+        1.8
+      );
+      tl.fromTo(
+        "#f05-marker-path",
+        { strokeDashoffset: 1004 },
+        { strokeDashoffset: 0, duration: 0.5, ease: "power2.inOut" },
+        1.8
+      );
+
+      // Scene 2 (2.6-6.0s): the window slides right to 45% width and hands the left side to 70%.
+      tl.fromTo(
+        "#f05-window",
+        { x: 0, y: 0, scale: 1 },
+        {
+          x: 448,
+          y: -10,
+          scale: 0.6,
+          duration: 0.85,
+          ease: "power3.out",
+          force3D: false,
+          immediateRender: false,
+        },
+        2.6
+      );
+      tl.fromTo(
+        "#f05-lead-in",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
+        2.78
+      );
+      // "70%" lands at 3.0s (host ting)
+      tl.fromTo(
+        "#f05-figure",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.12, ease: "power1.out" },
+        2.88
+      );
+      tl.fromTo(
+        "#f05-figure",
+        { scale: 1.14 },
+        { scale: 1, duration: 0.2, ease: "power3.out", force3D: false },
+        2.88
+      );
+      tl.fromTo(
+        "#f05-spike",
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out", force3D: false },
+        3.3
+      );
+      tl.fromTo(
+        "#f05-kicker-text",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        3.34
+      );
+      tl.fromTo(
+        "#f05-headline .f05-word",
+        { opacity: 0, y: 22 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", stagger: 0.08 },
+        4.0
+      );
+
+      // Scene 3 (6.0-13.0s): two short lines under the stat, then hold still.
+      tl.fromTo(
+        "#f05-rule",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power3.out", force3D: false },
+        6.35
+      );
+      tl.fromTo(
+        "#f05-lead-1",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        6.6
+      );
+      tl.fromTo(
+        "#f05-lead-2",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        9.0
+      );
+
+      // pin the timeline to the frame's full length (the hold runs to 13s)
+      tl.set({}, {}, 13);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

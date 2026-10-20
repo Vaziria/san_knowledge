@@ -1,0 +1,46 @@
+{
+  "bgm": null,
+  "voices": [],
+  "sfx": [
+    {
+      "frame": 1,
+      "file": "assets/sfx/ting.wav",
+      "offset_s": 3.9,
+      "duration_s": 0.45,
+      "volume": 0.4,
+      "source": "host"
+    },
+    {
+      "frame": 2,
+      "file": "assets/sfx/ting.wav",
+      "offset_s": 4.2,
+      "duration_s": 0.45,
+      "volume": 0.4,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 2.0,
+      "duration_s": 0.18,
+      "volume": 0.35,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 5.6,
+      "duration_s": 0.18,
+      "volume": 0.35,
+      "source": "host"
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/ting.wav",
+      "offset_s": 2.4,
+      "duration_s": 0.45,
+      "volume": 0.4,
+      "source": "host"
+    }
+  ]
+}

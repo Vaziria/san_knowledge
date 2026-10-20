@@ -1,0 +1,468 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+      font-family: "Inter", sans-serif;
+    }
+
+    /* ground: navy, full-duration clip on the lowest track */
+    .f08-bg {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      background: #1f2a44;
+    }
+    .f08-stage {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+
+    /* ---- left column: kicker + headline ---- */
+    .f08-kicker {
+      position: absolute;
+      left: 88px;
+      top: 104px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 34px;
+    }
+    .f08-spike {
+      width: 26px;
+      height: 26px;
+      display: block;
+    }
+    .f08-kicker-text {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 1.46cqw;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      line-height: 1;
+      color: #f3f2ee;
+    }
+    .f08-head {
+      position: absolute;
+      left: 88px;
+      top: 160px;
+      width: 880px;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+    }
+    .f08-line1 {
+      font-size: 2.8cqw;
+      line-height: 1.1;
+      letter-spacing: -0.018em;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+    .f08-line2 {
+      margin-top: 4px;
+      font-size: 4.375cqw;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      font-style: italic;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+    .f08-w {
+      display: inline-block;
+    }
+    .f08-eight {
+      color: #2a78d6;
+    }
+
+    /* ---- left column: the checklist tile card ---- */
+    .f08-card {
+      position: absolute;
+      left: 88px;
+      top: 338px;
+      width: 860px;
+      padding: 18px 32px 18px 32px;
+      background: #26324f;
+      border: 1px solid rgba(243, 242, 238, 0.12);
+      border-radius: 12px;
+      box-shadow:
+        0 1px 3px rgba(10, 14, 26, 0.22),
+        0 6px 20px rgba(10, 14, 26, 0.16);
+    }
+    .f08-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.08);
+    }
+    .f08-row-last {
+      border-bottom: none;
+    }
+    .f08-label {
+      font-family: "Inter", sans-serif;
+      font-weight: 400;
+      font-size: 1.56cqw;
+      line-height: 1.2;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+    .f08-badge {
+      width: 32px;
+      height: 32px;
+      display: block;
+      overflow: visible;
+    }
+    .f08-ring {
+      fill: none;
+      stroke: rgba(243, 242, 238, 0.22);
+      stroke-width: 1.5;
+    }
+    .f08-arc {
+      fill: none;
+      stroke: rgba(243, 242, 238, 0.75);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 0.28 0.72;
+    }
+    .f08-disc {
+      fill: #5db872;
+    }
+    .f08-tick {
+      fill: none;
+      stroke: #121a2c;
+      stroke-width: 2.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1;
+    }
+    .f08-foot {
+      position: relative;
+      margin-top: 10px;
+      padding-top: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      height: 70px;
+    }
+    .f08-foot-rule {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 1px;
+      background: rgba(243, 242, 238, 0.2);
+      transform-origin: 0% 50%;
+    }
+    .f08-score {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 2.92cqw;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: #f3f2ee;
+    }
+    .f08-pass {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 1.46cqw;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      color: #f3f2ee;
+    }
+
+    /* ---- right: the real guide capture as a floating window ---- */
+    .f08-win {
+      position: absolute;
+      left: 1006px;
+      top: 121px;
+      width: 834px;
+      background: #1b2642;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 1px 3px rgba(10, 14, 26, 0.28),
+        0 10px 28px rgba(10, 14, 26, 0.22);
+    }
+    .f08-bar {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 16px;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.1);
+    }
+    .f08-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(243, 242, 238, 0.22);
+    }
+    .f08-view {
+      position: relative;
+      width: 832px;
+      height: 690px;
+      overflow: hidden;
+      background: #f3f2ee;
+    }
+    /* 3840x2160 capture = 2x of a 1920x1080 view; shown at 0.92 of that view,
+       cropped to the article column (view x 508-1412, y 140-890) */
+    .f08-shot {
+      position: absolute;
+      left: -467.36px;
+      top: -128.8px;
+      width: 1766.4px;
+      height: 993.6px;
+      max-width: none;
+      display: block;
+    }
+  </style>
+
+  <div data-hf-id="hf-rnnm" id="root" data-composition-id="08-keamanan" data-width="1920" data-height="1080" data-duration="11.4">
+    <div data-hf-id="hf-jyy8" id="f08-bg" class="clip f08-bg" data-start="0" data-duration="11.4" data-track-index="0"></div>
+
+    <div data-hf-id="hf-iiib" id="f08-stage" class="clip f08-stage" data-start="0" data-duration="11.4" data-track-index="1">
+      <div data-hf-id="hf-6kjw" id="f08-win" class="f08-win">
+        <div data-hf-id="hf-zcl2" class="f08-bar">
+          <span data-hf-id="hf-kqkb" class="f08-dot"></span><span data-hf-id="hf-h7i3" class="f08-dot"></span><span data-hf-id="hf-gt72" class="f08-dot"></span>
+        </div>
+        <div data-hf-id="hf-zz28" class="f08-view">
+          <img data-hf-id="hf-unre" id="f08-shot" data-layout-allow-overflow class="f08-shot" src="assets/agensi-guide-security-scan.png" alt="" />
+        </div>
+      </div>
+
+      <div data-hf-id="hf-mh62" id="f08-kicker" class="f08-kicker">
+        <svg data-hf-id="hf-drij" id="f08-spike" class="f08-spike" viewBox="0 0 24 24" aria-hidden="true">
+          <g data-hf-id="hf-jsk0" stroke="#2a78d6" stroke-width="3.6" stroke-linecap="round" fill="none">
+            <line data-hf-id="hf-ro96" x1="12" y1="3" x2="12" y2="21" />
+            <line data-hf-id="hf-q4o7" x1="4.21" y1="7.5" x2="19.79" y2="16.5" />
+            <line data-hf-id="hf-cb9n" x1="4.21" y1="16.5" x2="19.79" y2="7.5" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-c3nd" id="f08-kicker-text" class="f08-kicker-text">Keamanan</span>
+      </div>
+
+      <div data-hf-id="hf-dfsm" id="f08-head" class="f08-head">
+        <div data-hf-id="hf-gqx2" class="f08-line1">
+          <span data-hf-id="hf-iif1" class="f08-w f08-w1">Sebelum</span>
+          <span data-hf-id="hf-8j72" class="f08-w f08-w1">tayang,</span>
+          <span data-hf-id="hf-kdte" class="f08-w f08-w1">setiap</span>
+          <span data-hf-id="hf-byl1" class="f08-w f08-w1">skill</span>
+          <span data-hf-id="hf-rze1" class="f08-w f08-w1">lolos</span>
+        </div>
+        <div data-hf-id="hf-cst1" class="f08-line2">
+          <span data-hf-id="hf-bm99" id="f08-eight" class="f08-w f08-w2 f08-eight">8</span>
+          <span data-hf-id="hf-td4c" class="f08-w f08-w2">cek</span>
+          <span data-hf-id="hf-rpwp" class="f08-w f08-w2">keamanan</span>
+          <span data-hf-id="hf-mdqp" class="f08-w f08-w2">otomatis.</span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-gtn2" id="f08-card" class="f08-card">
+        <div data-hf-id="hf-irkp" class="f08-row">
+          <span data-hf-id="hf-l897" class="f08-label">Prompt injection</span>
+          <svg data-hf-id="hf-lssp" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-mz1e" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-dnnx" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-oc6r" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-cyh4" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-rrot" class="f08-row">
+          <span data-hf-id="hf-r85q" class="f08-label">Kebocoran data</span>
+          <svg data-hf-id="hf-nev1" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-isw6" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-vmtd" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-hdzn" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-mt4w" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-sylw" class="f08-row">
+          <span data-hf-id="hf-n074" class="f08-label">Perintah berbahaya</span>
+          <svg data-hf-id="hf-ols4" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-j777" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-wtqg" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-gzom" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-lm7t" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-skav" class="f08-row">
+          <span data-hf-id="hf-ricc" class="f08-label">Kunci rahasia di file</span>
+          <svg data-hf-id="hf-o7h3" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-jli8" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-wfff" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-gldl" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-m0iu" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-tr7y" class="f08-row">
+          <span data-hf-id="hf-fwcu" class="f08-label">Kode tersamar</span>
+          <svg data-hf-id="hf-pee6" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-gtd1" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-ufwa" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-g72k" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-ktlr" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-tcwx" class="f08-row">
+          <span data-hf-id="hf-nofs" class="f08-label">Akses jaringan mencurigakan</span>
+          <svg data-hf-id="hf-p035" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-h7o2" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-u1l9" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-fsrj" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-l7ws" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-uju0" class="f08-row">
+          <span data-hf-id="hf-vmwl" class="f08-label">Struktur zip</span>
+          <svg data-hf-id="hf-q708" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-hlz3" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-v8ic" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-fegi" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-k0zp" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-ylbl" class="f08-row f08-row-last">
+          <span data-hf-id="hf-s6xp" class="f08-label">Validitas SKILL.md</span>
+          <svg data-hf-id="hf-psp7" class="f08-badge" viewBox="0 0 32 32" aria-hidden="true">
+            <circle data-hf-id="hf-i0a4" class="f08-ring" cx="16" cy="16" r="14.5" />
+            <circle data-hf-id="hf-uu7b" class="f08-arc" cx="16" cy="16" r="14.5" pathLength="1" />
+            <circle data-hf-id="hf-f05h" class="f08-disc" cx="16" cy="16" r="15.6" />
+            <path data-hf-id="hf-kfaq" class="f08-tick" d="M10 16.6 L14.1 20.6 L22.2 12" pathLength="1" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-18pq" id="f08-foot" class="f08-foot">
+          <div data-hf-id="hf-ginu" id="f08-foot-rule" class="f08-foot-rule"></div>
+          <span data-hf-id="hf-f4pc" id="f08-score" class="f08-score">8/8</span>
+          <span data-hf-id="hf-u214" id="f08-pass" class="f08-pass">lolos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var scope = document.querySelector('[data-composition-id="08-keamanan"]') || document;
+      var q = function (sel) {
+        return Array.prototype.slice.call(scope.querySelectorAll(sel));
+      };
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-2.4s): window, kicker, headline; "8 cek keamanan otomatis." at 1.6s
+      tl.fromTo(
+        "#f08-win",
+        { opacity: 0, y: 28, scale: 0.985, transformOrigin: "50% 50%" },
+        { opacity: 1, y: 0, scale: 1, transformOrigin: "50% 50%", duration: 0.8, ease: "power3.out" },
+        0.1,
+      );
+      tl.fromTo(
+        "#f08-spike",
+        { opacity: 0, scale: 0.92, transformOrigin: "50% 50%" },
+        { opacity: 1, scale: 1, transformOrigin: "50% 50%", duration: 0.5, ease: "power3.out" },
+        0.15,
+      );
+      tl.fromTo(
+        "#f08-kicker-text",
+        { opacity: 0, x: -12 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" },
+        0.2,
+      );
+      q(".f08-w1").forEach(function (el, i) {
+        tl.fromTo(
+          el,
+          { opacity: 0, y: 22 },
+          { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+          0.35 + i * 0.07,
+        );
+      });
+      q(".f08-w2").forEach(function (el, i) {
+        tl.fromTo(
+          el,
+          { opacity: 0, y: 26, scale: i === 0 ? 0.92 : 1, transformOrigin: "50% 80%" },
+          { opacity: 1, y: 0, scale: 1, transformOrigin: "50% 80%", duration: 0.6, ease: "power3.out" },
+          1.6 + i * 0.08,
+        );
+      });
+
+      // Scene 2 (2.4-8.6s): the tile card, eight rows arrive and tick every 0.75s from 2.6s
+      tl.fromTo(
+        "#f08-card",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        2.4,
+      );
+      var rows = q(".f08-row");
+      rows.forEach(function (row, i) {
+        var tick = 2.6 + i * 0.75; // 2.6, 3.35 ... 7.85
+        var arrive = i === 0 ? 2.45 : tick - 0.35;
+        var label = row.querySelector(".f08-label");
+        var arc = row.querySelector(".f08-arc");
+        var disc = row.querySelector(".f08-disc");
+        var check = row.querySelector(".f08-tick");
+
+        // row arrives pending: dim label, a partial arc turning
+        tl.fromTo(row, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, arrive);
+        tl.fromTo(label, { opacity: 0.55 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, tick);
+        tl.fromTo(
+          arc,
+          { rotation: 0, svgOrigin: "16 16" },
+          { rotation: ((tick - arrive) / 0.7) * 360, svgOrigin: "16 16", duration: tick - arrive, ease: "none" },
+          arrive,
+        );
+        // the tick: arc resolves, green disc settles in, check draws on
+        tl.fromTo(arc, { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "power1.out" }, tick);
+        tl.fromTo(
+          disc,
+          { opacity: 0, scale: 0.35, svgOrigin: "16 16" },
+          { opacity: 1, scale: 1, svgOrigin: "16 16", duration: 0.3, ease: "power3.out" },
+          tick,
+        );
+        tl.fromTo(check, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.32, ease: "power2.out" }, tick + 0.08);
+      });
+
+      // footer "8/8 lolos" at 8.6s (host sfx done.wav)
+      tl.fromTo(
+        "#f08-foot-rule",
+        { scaleX: 0, transformOrigin: "0% 50%" },
+        { scaleX: 1, transformOrigin: "0% 50%", duration: 0.5, ease: "power2.out" },
+        8.6,
+      );
+      tl.fromTo("#f08-score", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 8.6);
+      tl.fromTo("#f08-pass", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 8.68);
+
+      // Scene 3 (8.6-11.0s): hold still
+
+      window.__timelines["08-keamanan"] = tl;
+    })();
+  </script>
+</template>

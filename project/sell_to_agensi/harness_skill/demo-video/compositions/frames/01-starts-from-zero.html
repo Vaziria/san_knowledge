@@ -1,0 +1,298 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+    }
+
+    /* full-duration navy ground (frame.md "cream" key = #1f2a44) */
+    .\30 1-starts-from-zero-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+      z-index: 0;
+    }
+
+    /* content region: the top 900px (caption keep-out below) */
+    .\30 1-starts-from-zero-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100cqw;
+      height: 83.3333cqh;
+      z-index: 1;
+    }
+
+    /* one discrete state per beat, swapped by hard cut */
+    .\30 1-starts-from-zero-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      visibility: hidden;
+    }
+
+    /* kicker-spike: JetBrains Mono uppercase 0.16em, coral (brand blue) spike */
+    .\30 1-starts-from-zero-kicker {
+      display: flex;
+      align-items: center;
+      gap: 0.75cqw;
+      margin-bottom: 2.2cqw;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 1.46cqw;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(243, 242, 238, 0.72);
+    }
+    .\30 1-starts-from-zero-kicker-text {
+      margin-right: -0.16em;
+    }
+    .\30 1-starts-from-zero-spike {
+      display: block;
+      width: 1.3cqw;
+      height: 1.3cqw;
+    }
+
+    /* display-cover: <=3 words */
+    .\30 1-starts-from-zero-cover {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 9.9cqw;
+      line-height: 0.98;
+      letter-spacing: -0.028em;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+
+    /* display */
+    .\30 1-starts-from-zero-display {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 7.3cqw;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+
+    /* display-italic (synthesized slant over the 400 face) */
+    .\30 1-starts-from-zero-italic {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 6.7cqw;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+
+    /* headline */
+    .\30 1-starts-from-zero-headline {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 4.6cqw;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      white-space: nowrap;
+      color: #f3f2ee;
+    }
+
+    /* the frame's one voltage: brand blue */
+    .\30 1-starts-from-zero-voltage {
+      margin-top: 2.1cqw;
+      color: #2a78d6;
+    }
+  </style>
+
+  <div data-hf-id="hf-h0px"
+    id="root"
+    data-composition-id="01-starts-from-zero"
+    data-start="0"
+    data-duration="5.4"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-fh53"
+      id="ground-01-starts-from-zero"
+      class="clip 01-starts-from-zero-ground"
+      data-start="0"
+      data-duration="5.4"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-yaio" class="01-starts-from-zero-stage">
+      <!-- Scene 1: kicker + "New session." -->
+      <div data-hf-id="hf-ghgd" class="01-starts-from-zero-state 01-starts-from-zero-s1">
+        <div data-hf-id="hf-rwrp" class="01-starts-from-zero-kicker">
+          <svg data-hf-id="hf-fwhn"
+            class="01-starts-from-zero-spike"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <g data-hf-id="hf-iijb" stroke="#2a78d6" stroke-width="4.2" stroke-linecap="round" fill="none">
+              <line data-hf-id="hf-j3tt" x1="12" y1="2.6" x2="12" y2="21.4" />
+              <line data-hf-id="hf-gm9t" x1="2.6" y1="12" x2="21.4" y2="12" />
+              <line data-hf-id="hf-whra" x1="5.35" y1="5.35" x2="18.65" y2="18.65" />
+              <line data-hf-id="hf-b6de" x1="18.65" y1="5.35" x2="5.35" y2="18.65" />
+            </g>
+          </svg>
+          <span data-hf-id="hf-lb8v" class="01-starts-from-zero-kicker-text">New agent session</span>
+        </div>
+        <div data-hf-id="hf-1mgj" class="01-starts-from-zero-cover 01-starts-from-zero-new">New session.</div>
+      </div>
+
+      <!-- Scene 2: "Your agent forgot everything." -->
+      <div data-hf-id="hf-kfke" class="01-starts-from-zero-state 01-starts-from-zero-s2">
+        <div data-hf-id="hf-16o2" class="01-starts-from-zero-s2-inner">
+          <div data-hf-id="hf-psg6" class="01-starts-from-zero-display">Your agent</div>
+          <div data-hf-id="hf-68h5" class="01-starts-from-zero-italic 01-starts-from-zero-forgot"><span data-hf-id="hf-wptx">f</span><span data-hf-id="hf-txoq">o</span><span data-hf-id="hf-ry5l">r</span><span data-hf-id="hf-x44y">g</span><span data-hf-id="hf-rzwu">o</span><span data-hf-id="hf-r5jj">t</span><span data-hf-id="hf-uckh"> </span><span data-hf-id="hf-xwr0">e</span><span data-hf-id="hf-qcxh">v</span><span data-hf-id="hf-pn38">e</span><span data-hf-id="hf-t02l">r</span><span data-hf-id="hf-pymg">y</span><span data-hf-id="hf-b5yn">t</span><span data-hf-id="hf-vx7v">h</span><span data-hf-id="hf-wbiw">i</span><span data-hf-id="hf-tjdp">n</span><span data-hf-id="hf-u8l2">g</span><span data-hf-id="hf-iyzh">.</span></div>
+        </div>
+      </div>
+
+      <!-- Scene 3: "So you explain the project." + "Again." -->
+      <div data-hf-id="hf-odof" class="01-starts-from-zero-state 01-starts-from-zero-s3">
+        <div data-hf-id="hf-873d" class="01-starts-from-zero-headline 01-starts-from-zero-explain">
+          So you explain the project.
+        </div>
+        <div data-hf-id="hf-cvlw"
+          class="01-starts-from-zero-display 01-starts-from-zero-voltage 01-starts-from-zero-again"
+        >
+          Again.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const FRAME_ID = "01-starts-from-zero";
+      const DURATION = 5;
+      const $ = (name) => document.querySelector("." + CSS.escape(FRAME_ID + "-" + name));
+
+      const tl = gsap.timeline({ paused: true });
+
+      // One beat array drives every entrance and every state swap (kinetic-beat-slam).
+      // Cues: "New session." / "Your agent forgot everything." / "So you explain the project." / "Again."
+      const BEATS = [0.12, 1.3, 2.9, 4.0];
+
+      // ---- discrete-text-sequence: whole-line states at time thresholds, hard cuts ----
+      const STATES = [
+        { t: 0.0, el: $("s1") },
+        { t: BEATS[1], el: $("s2") },
+        { t: BEATS[2], el: $("s3") },
+      ];
+      function stateAt(time) {
+        for (let i = STATES.length - 1; i >= 0; i--) {
+          if (time >= STATES[i].t) return i;
+        }
+        return 0;
+      }
+      function showState(index) {
+        for (let k = 0; k < STATES.length; k++) {
+          STATES[k].el.style.visibility = k === index ? "visible" : "hidden";
+        }
+      }
+      showState(0);
+      const driver = { t: 0 };
+      tl.to(
+        driver,
+        {
+          t: DURATION,
+          duration: DURATION,
+          ease: "none",
+          onUpdate: () => showState(stateAt(driver.t + 1e-6)),
+        },
+        0,
+      );
+
+      // ---- Scene 1 (0.0-1.3): kicker fades in above, "New session." slams on a smooth settle ----
+      tl.fromTo(
+        $("kicker"),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+        0,
+      );
+      tl.fromTo(
+        $("spike"),
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out", transformOrigin: "50% 50%" },
+        0,
+      );
+      tl.fromTo(
+        $("new"),
+        { opacity: 0, scale: 1.5, filter: "blur(16px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.55, ease: "power4.out" },
+        BEATS[0],
+      );
+      tl.to(
+        $("new"),
+        { scale: 0.985, duration: BEATS[1] - (BEATS[0] + 0.55), ease: "sine.out" },
+        BEATS[0] + 0.55,
+      );
+
+      // ---- Scene 2 (1.3-2.9): hard cut in; "forgot everything." dims to ~30%, left to right ----
+      tl.fromTo(
+        $("s2-inner"),
+        { scale: 1.025 },
+        { scale: 1, duration: BEATS[2] - BEATS[1], ease: "power2.out" },
+        BEATS[1],
+      );
+      const letters = Array.prototype.slice.call($("forgot").children);
+      const DIM_START = BEATS[1] + 0.45;
+      const DIM_STEP = 0.035; // fixed per-letter offset: deterministic sweep
+      const DIM_DUR = 0.4;
+      letters.forEach((letter, i) => {
+        tl.fromTo(
+          letter,
+          { opacity: 1 },
+          { opacity: 0.3, duration: DIM_DUR, ease: "power1.inOut" },
+          DIM_START + i * DIM_STEP,
+        );
+      });
+
+      // ---- Scene 3 (2.9-5.0): hard cut to the headline; "Again." punches in at 4.0 and holds ----
+      tl.fromTo(
+        $("explain"),
+        { scale: 1.02 },
+        { scale: 1, duration: BEATS[3] - BEATS[2], ease: "power2.out" },
+        BEATS[2],
+      );
+      tl.fromTo(
+        $("again"),
+        { opacity: 0, scale: 0.6, y: 30 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "expo.out" },
+        BEATS[3],
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[FRAME_ID] = tl;
+    })();
+  </script>
+</template>

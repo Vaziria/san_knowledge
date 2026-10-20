@@ -1,0 +1,419 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-700.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-700.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-700.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      font-family: "Inter", sans-serif;
+      color: #f3f2ee;
+    }
+
+    /* full-bleed ground: navy, the crane tile's own color */
+    #f09-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* ---- left column (38%) ---- */
+    #f09-copy {
+      position: absolute;
+      left: 4.1667cqw;
+      top: 7.6cqw;
+      width: 32.3cqw;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #f09-brand {
+      display: flex;
+      align-items: center;
+      gap: 1.25cqw;
+      height: 5.73cqw;
+    }
+
+    #f09-logo {
+      display: block;
+      width: 5.73cqw;
+      height: 5.73cqw;
+    }
+
+    #f09-kicker {
+      display: flex;
+      align-items: center;
+      gap: 0.73cqw;
+    }
+
+    #f09-spike {
+      display: block;
+      width: 1.35cqw;
+      height: 1.35cqw;
+      transform-origin: 50% 50%;
+    }
+
+    #f09-kicker-text {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      line-height: 1;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+
+    #f09-lead {
+      margin-top: 3.4cqw;
+      font-family: "EB Garamond", serif;
+      font-size: 3.4cqw;
+      font-weight: 400;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+
+    #f09-name {
+      margin-top: 0.1cqw;
+      font-family: "EB Garamond", serif;
+      font-size: 6.4cqw;
+      font-weight: 400;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+
+    #f09-cue {
+      margin-top: 2cqw;
+      font-family: "EB Garamond", serif;
+      font-style: italic;
+      font-size: 2.6cqw;
+      font-weight: 400;
+      line-height: 1.12;
+      letter-spacing: -0.012em;
+      color: #f3f2ee;
+    }
+
+    .f09-line {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .f09-word {
+      display: inline-block;
+    }
+
+    #f09-pill {
+      margin-top: 2.5cqw;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.78cqw 1.56cqw;
+      background: #26324f;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 9999px;
+      font-family: "Inter", sans-serif;
+      font-size: 1.6cqw;
+      font-weight: 400;
+      line-height: 1.2;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+
+    #f09-pill-word {
+      font-weight: 700;
+      color: #3987e5; /* the lighter brand blue: #2a78d6 is under 3:1 on the tile */
+    }
+
+    #f09-url {
+      margin-top: 1.2cqw;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 1.35cqw;
+      font-weight: 400;
+      color: rgba(243, 242, 238, 0.72);
+    }
+
+    /* ---- right: the floating window (62%) ---- */
+    #f09-window {
+      position: absolute;
+      left: 38.54cqw;
+      top: 6.67cqw;
+      width: 57.29cqw;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #121a2c;
+      box-shadow:
+        0 1px 3px rgba(18, 26, 44, 0.55),
+        0 24px 64px rgba(18, 26, 44, 0.6);
+    }
+
+    #f09-bar {
+      position: relative;
+      height: 1.67cqw;
+      background: #1b2642;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.1);
+    }
+
+    .f09-dot {
+      position: absolute;
+      top: 50%;
+      width: 0.52cqw;
+      height: 0.52cqw;
+      margin-top: -0.26cqw;
+      border-radius: 9999px;
+      background: rgba(243, 242, 238, 0.2);
+    }
+
+    #f09-dot-1 {
+      left: 0.83cqw;
+    }
+
+    #f09-dot-2 {
+      left: 1.67cqw;
+    }
+
+    #f09-dot-3 {
+      left: 2.5cqw;
+    }
+
+    #f09-screen {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #121a2c;
+    }
+
+    .f09-shot {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform-origin: 50% 50%;
+    }
+
+    #f09-shot-1 {
+      z-index: 1;
+    }
+
+    #f09-shot-2 {
+      z-index: 2;
+    }
+  </style>
+
+  <div data-hf-id="hf-4ut9"
+    id="root"
+    data-composition-id="09-project-brain"
+    data-start="0"
+    data-duration="14.5"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-rlz1" id="f09-ground" class="clip" data-start="0" data-duration="14.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-8bbp" id="f09-window">
+      <div data-hf-id="hf-yy9s" id="f09-bar">
+        <span data-hf-id="hf-lenn" id="f09-dot-1" class="f09-dot"></span>
+        <span data-hf-id="hf-cqrs" id="f09-dot-2" class="f09-dot"></span>
+        <span data-hf-id="hf-difl" id="f09-dot-3" class="f09-dot"></span>
+      </div>
+      <div data-hf-id="hf-fceh" id="f09-screen">
+        <img data-hf-id="hf-ilr0"
+          id="f09-shot-1"
+          class="f09-shot"
+          src="assets/project-brain-1-graph-view.png"
+          alt="project-brain graph view"
+        />
+        <img data-hf-id="hf-w0b5"
+          id="f09-shot-2"
+          class="f09-shot"
+          src="assets/project-brain-2-explain-with-citations.png"
+          alt="project-brain explain with citations"
+        />
+      </div>
+    </div>
+
+    <div data-hf-id="hf-8gs2" id="f09-copy">
+      <div data-hf-id="hf-cgu0" id="f09-brand">
+        <img data-hf-id="hf-6iy6" id="f09-logo" src="assets/project-brain-logo.svg" alt="project-brain logo" />
+        <div data-hf-id="hf-hhle" id="f09-kicker">
+          <svg data-hf-id="hf-k8gm" id="f09-spike" viewBox="0 0 24 24" aria-hidden="true">
+            <g data-hf-id="hf-iijb" stroke="#2a78d6" stroke-width="4.2" stroke-linecap="round" fill="none">
+              <line data-hf-id="hf-j3tt" x1="12" y1="2.6" x2="12" y2="21.4" />
+              <line data-hf-id="hf-9lae" x1="3.86" y1="7.3" x2="20.14" y2="16.7" />
+              <line data-hf-id="hf-y8jy" x1="3.86" y1="16.7" x2="20.14" y2="7.3" />
+            </g>
+          </svg>
+          <span data-hf-id="hf-dhoe" id="f09-kicker-text">Contoh kami</span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-5n4z" id="f09-lead">
+        <span data-hf-id="hf-832k" class="f09-word f09-lead-word">Kami</span>
+        <span data-hf-id="hf-1jjb" class="f09-word f09-lead-word">juga</span>
+        <span data-hf-id="hf-l4pp" class="f09-word f09-lead-word">mencoba:</span>
+      </div>
+
+      <div data-hf-id="hf-x8n4" id="f09-name">project-brain</div>
+
+      <div data-hf-id="hf-aogm" id="f09-cue">
+        <span data-hf-id="hf-zhuf" class="f09-line">
+          <span data-hf-id="hf-r68f" class="f09-word f09-cue-word">Knowledge</span>
+          <span data-hf-id="hf-ubzn" class="f09-word f09-cue-word">graph</span>
+          <span data-hf-id="hf-tpli" class="f09-word f09-cue-word">untuk</span>
+          <span data-hf-id="hf-r2m7" class="f09-word f09-cue-word">kamu</span>
+        </span>
+        <span data-hf-id="hf-bpxz" class="f09-line">
+          <span data-hf-id="hf-rc24" class="f09-word f09-cue-word">dan</span>
+          <span data-hf-id="hf-72or" class="f09-word f09-cue-word">AI</span>
+          <span data-hf-id="hf-e1kr" class="f09-word f09-cue-word">agent-mu.</span>
+        </span>
+      </div>
+
+      <div data-hf-id="hf-rgf0" id="f09-pill">
+        <span data-hf-id="hf-fz95">Status: sudah&nbsp;</span><span data-hf-id="hf-n4jf" id="f09-pill-word">tayang</span><span data-hf-id="hf-hzh2">&nbsp;di Agensi</span>
+      </div>
+      <div id="f09-url">agensi.io/skills/project-brain</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-3.2s): the window rises in, the crane + kicker settle, then the name.
+      tl.fromTo(
+        "#f09-window",
+        { opacity: 0, y: 90 },
+        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" },
+        0.05,
+      );
+      tl.fromTo(
+        "#f09-logo",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" },
+        0.2,
+      );
+      tl.fromTo(
+        "#f09-spike",
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" },
+        0.4,
+      );
+      tl.fromTo(
+        "#f09-kicker-text",
+        { opacity: 0, x: -12 },
+        { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" },
+        0.5,
+      );
+      tl.fromTo(
+        ".f09-lead-word",
+        { opacity: 0, y: 22 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", stagger: 0.09 },
+        0.75,
+      );
+      tl.fromTo(
+        "#f09-name",
+        { opacity: 0, y: 36 },
+        { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" },
+        1.6,
+      );
+
+      // Scene 2 (3.2-9.6s): the definition line, then the window's screen advances.
+      tl.fromTo(
+        ".f09-cue-word",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.07 },
+        3.8,
+      );
+
+      // Scale-swap at 6.4s: outgoing shrinks + fades fast, incoming (on top) grows in
+      // with a 0.15s overlap. Smooth long-tail arrival instead of back.out (house motion: no overshoot).
+      tl.fromTo(
+        "#f09-shot-1",
+        { scale: 1, opacity: 1 },
+        { scale: 0.8, opacity: 0, duration: 0.4, ease: "power2.in", immediateRender: false },
+        6.4,
+      );
+      tl.fromTo(
+        "#f09-shot-2",
+        { scale: 0.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.65, ease: "expo.out" },
+        6.65,
+      );
+
+      // Scene 3 (9.6-14.0s): the status (live on Agensi since 2026-10-20), lands on the ting at 10.2s; then hold still.
+      tl.fromTo(
+        "#f09-pill",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "expo.out" },
+        10.2,
+      );
+      tl.fromTo(
+        "#f09-pill-word",
+        { color: "#f3f2ee" },
+        { color: "#3987e5", duration: 0.5, ease: "power2.out" },
+        10.45,
+      );
+
+      tl.fromTo("#f09-url", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 10.6);
+
+      // hold to the end of the 14s window
+      tl.set("#f09-ground", { opacity: 1 }, 14);
+
+      window.__timelines["09-project-brain"] = tl;
+    })();
+  </script>
+</template>

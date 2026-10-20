@@ -1,0 +1,258 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+    }
+
+    /* full-bleed ground: navy (frame.md "cream" key on the dark brand) */
+    #f01-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* one scene per hard-cut window; content centred in the top 900px (keep-out below) */
+    .f01-scene {
+      position: absolute;
+      inset: 0;
+      container-type: size;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 80px 180px;
+      color: #f3f2ee;
+      text-align: center;
+    }
+
+    /* kicker-spike: JetBrains Mono uppercase 0.16em, blue spike mark */
+    .f01-kicker {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 2.6cqw;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #f3f2ee;
+    }
+    .f01-kicker-text {
+      margin-right: -0.16em;
+    }
+    .f01-spike {
+      display: block;
+      width: 26px;
+      height: 26px;
+    }
+
+    /* display ramp — EB Garamond 400, sentence case, negative tracking */
+    .f01-display {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: 7.3cqw;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      white-space: nowrap;
+    }
+    .f01-italic {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 6.7cqw;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      white-space: nowrap;
+    }
+    .f01-headline {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 4.6cqw;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      white-space: nowrap;
+    }
+    .f01-line {
+      display: block;
+    }
+    .f01-w {
+      display: inline-block;
+    }
+
+    /* the empty slot "instruksi" lands into */
+    .f01-slot {
+      position: relative;
+      display: inline-block;
+    }
+    /* grows from its right edge so the landing scale never touches "yang" */
+    #f01-w-instruksi {
+      transform-origin: 100% 75%;
+    }
+    .f01-blank {
+      position: absolute;
+      left: 0.06em;
+      right: 0.06em;
+      bottom: 0.2em;
+      height: 1px;
+      background: rgba(243, 242, 238, 0.35);
+    }
+
+    #f01-s2-l2 {
+      margin-top: 0.06em;
+    }
+
+    /* in-flow slot keeps the Scene 3 layout fixed; the payoff clip sits inside it */
+    #f01-pay-slot {
+      position: relative;
+      width: 100%;
+      height: 1.02em;
+      margin-top: 0.12em;
+    }
+    #f01-pay {
+      position: absolute;
+      inset: 0;
+    }
+    #f01-pay-text {
+      color: #2a78d6;
+    }
+  </style>
+
+  <div data-hf-id="hf-dvek" id="root" data-composition-id="01-instruksi" data-width="1920" data-height="1080" data-duration="9.4">
+    <div data-hf-id="hf-cucy" id="f01-ground" class="clip" data-start="0" data-duration="9.4" data-track-index="0"></div>
+
+    <!-- Scene 1 (0.0–2.6s) -->
+    <div data-hf-id="hf-6qzv" id="f01-s1" class="clip f01-scene" data-start="0" data-duration="2.6" data-track-index="1">
+      <div data-hf-id="hf-g7l6" id="f01-kicker" class="f01-kicker">
+        <svg data-hf-id="hf-wd7x" id="f01-spike" class="f01-spike" viewBox="0 0 26 26" aria-hidden="true">
+          <g data-hf-id="hf-lcb8" stroke="#2a78d6" stroke-width="3.6" stroke-linecap="round">
+            <line data-hf-id="hf-n78p" x1="13" y1="2.5" x2="13" y2="23.5" />
+            <line data-hf-id="hf-6uti" x1="3.9" y1="7.75" x2="22.1" y2="18.25" />
+            <line data-hf-id="hf-eqas" x1="3.9" y1="18.25" x2="22.1" y2="7.75" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-pgw5" class="f01-kicker-text">AI AGENT</span>
+      </div>
+      <div data-hf-id="hf-yx5u" class="f01-display">
+        <span data-hf-id="hf-mngy" id="f01-s1-a" class="f01-line">AI agent sekarang</span>
+        <span data-hf-id="hf-ypb4" id="f01-s1-b" class="f01-line">ada di mana-mana.</span>
+      </div>
+    </div>
+
+    <!-- Scene 2 (2.6–6.2s) -->
+    <div data-hf-id="hf-1laz" id="f01-s2" class="clip f01-scene" data-start="2.6" data-duration="3.6" data-track-index="1">
+      <div data-hf-id="hf-0pxv" id="f01-s2-l1" class="f01-display f01-line"><span data-hf-id="hf-s4ha" id="f01-w-tapi" class="f01-w">Tapi</span> <span data-hf-id="hf-z6ke" id="f01-w-agent" class="f01-w">agent</span> <span data-hf-id="hf-49tq" id="f01-w-hanya" class="f01-w">hanya</span> <span data-hf-id="hf-11gq" id="f01-w-sepintar" class="f01-w">sepintar</span></div>
+      <div data-hf-id="hf-x1we" id="f01-s2-l2" class="f01-italic f01-line"><span data-hf-id="hf-baa1" class="f01-slot"><span data-hf-id="hf-p6br" id="f01-w-blank" class="f01-blank"></span><span data-hf-id="hf-lhdq" id="f01-w-instruksi" class="f01-w">instruksi</span></span> <span data-hf-id="hf-020s" id="f01-w-yang" class="f01-w">yang</span> <span data-hf-id="hf-wnmu" id="f01-w-ia" class="f01-w">ia</span> <span data-hf-id="hf-yxhs" id="f01-w-punya" class="f01-w">punya.</span></div>
+    </div>
+
+    <!-- Scene 3 (6.2–9.0s) -->
+    <div data-hf-id="hf-k79q" id="f01-s3" class="clip f01-scene" data-start="6.2" data-duration="3.2" data-track-index="1">
+      <div data-hf-id="hf-4399" id="f01-s3-head" class="f01-headline f01-line">Instruksi itu</div>
+      <div data-hf-id="hf-gmvb" id="f01-pay-slot" class="f01-display">
+        <div data-hf-id="hf-y0xt" id="f01-pay" class="clip" data-start="6.4" data-duration="3" data-track-index="2">
+          <span data-hf-id="hf-8tum" id="f01-pay-text" class="f01-line">bisa kamu jual.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // One beat array drives every reveal (kinetic-beat-slam). Hard cuts at
+      // 2.6 / 6.2 / 6.4 are the clip windows above; these times match them.
+      const BEAT = {
+        kicker: 0.0,
+        s1a: 0.2,
+        s1b: 1.05,
+        s2: 2.6,
+        instruksi: 4.95,
+        s3: 6.2,
+        pay: 6.4, // host_sfx ting.wav lands here
+      };
+
+      // Scene 1 — kicker fades in, spike 0.92 -> 1; the display line slams in on two hits
+      tl.fromTo("#f01-kicker", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power3.out" }, BEAT.kicker);
+      tl.fromTo("#f01-spike", { scale: 0.92 }, { scale: 1, duration: 0.6, ease: "power3.out" }, BEAT.kicker);
+      tl.fromTo(
+        "#f01-s1-a",
+        { scale: 1.5, filter: "blur(16px)", opacity: 0 },
+        { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.7, ease: "power4.out" },
+        BEAT.s1a,
+      );
+      tl.fromTo(
+        "#f01-s1-b",
+        { y: 80, filter: "blur(8px)", opacity: 0 },
+        { y: 0, filter: "blur(0px)", opacity: 1, duration: 0.6, ease: "expo.out" },
+        BEAT.s1b,
+      );
+
+      // Scene 2 — discrete-text-sequence: sparse { t, on } states, each the full set of
+      // words shown from t until the next entry. Jumps are instant (tl.set), no tween.
+      const STATES = [
+        { t: 0, on: [] },
+        { t: BEAT.s2, on: ["tapi"] },
+        { t: 2.82, on: ["tapi", "agent"] },
+        { t: 3.04, on: ["tapi", "agent", "hanya"] },
+        { t: 3.3, on: ["tapi", "agent", "hanya", "sepintar"] },
+        { t: 3.8, on: ["tapi", "agent", "hanya", "sepintar", "blank", "yang"] },
+        { t: 4.02, on: ["tapi", "agent", "hanya", "sepintar", "blank", "yang", "ia"] },
+        { t: 4.26, on: ["tapi", "agent", "hanya", "sepintar", "blank", "yang", "ia", "punya"] },
+        { t: BEAT.instruksi, on: ["tapi", "agent", "hanya", "sepintar", "instruksi", "yang", "ia", "punya"] },
+      ];
+      const WORDS = ["tapi", "agent", "hanya", "sepintar", "blank", "instruksi", "yang", "ia", "punya"];
+      WORDS.forEach(function (id) {
+        const el = "#f01-w-" + id;
+        let shown = false;
+        tl.set(el, { opacity: 0 }, 0);
+        STATES.forEach(function (s) {
+          const now = s.on.indexOf(id) !== -1;
+          if (now !== shown) tl.set(el, { opacity: now ? 1 : 0 }, s.t);
+          shown = now;
+        });
+      });
+      // "instruksi" lands last: appears on the cut, settles from a slightly larger size
+      tl.fromTo(
+        "#f01-w-instruksi",
+        { scale: 1.14 },
+        { scale: 1, duration: 0.5, ease: "power3.out", immediateRender: false },
+        BEAT.instruksi,
+      );
+
+      // Scene 3 — "Instruksi itu" is on from the 6.2 cut (clip window). At 6.4 the
+      // payoff clip opens and the blue line punches in from oversized, then holds still.
+      tl.fromTo(
+        "#f01-pay-text",
+        { scale: 1.2, filter: "blur(10px)", opacity: 0.45 },
+        { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "expo.out" },
+        BEAT.pay,
+      );
+
+      window.__timelines["01-instruksi"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,421 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 11
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 7,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 6.444,
+        "selector": "#f01-pay-text",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": -31.23,
+          "top": 426.8,
+          "right": 1951.23,
+          "bottom": 574.41,
+          "width": 1982.46,
+          "height": 147.61
+        },
+        "containerSelector": "#f01-pay",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 80,
+          "top": 435.08,
+          "right": 1840,
+          "bottom": 566.13,
+          "width": 1760,
+          "height": 131.05
+        },
+        "overflow": {
+          "left": 111.23,
+          "right": 111.23
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/01-instruksi.html",
+        "bbox": {
+          "x": -31.23,
+          "y": 426.8,
+          "width": 1982.46,
+          "height": 147.61
+        },
+        "firstSeen": 6.444,
+        "lastSeen": 6.444,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6.444
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 19.333,
+        "selector": "#f02-zoom-outer",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": -279.8,
+          "top": -404.7,
+          "right": 2945.8,
+          "bottom": 1409.7,
+          "width": 3225.6,
+          "height": 1814.4
+        },
+        "containerSelector": "#f02-viewport",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 829,
+          "top": 219,
+          "right": 1837,
+          "bottom": 786,
+          "width": 1008,
+          "height": 567
+        },
+        "overflow": {
+          "left": 1108.8,
+          "right": 1108.8,
+          "top": 623.7,
+          "bottom": 623.7
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/02-agensi.html",
+        "bbox": {
+          "x": -279.8,
+          "y": -404.7,
+          "width": 3225.6,
+          "height": 1814.4
+        },
+        "firstSeen": 19.333,
+        "lastSeen": 19.333,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          19.333
+        ]
+      },
+      {
+        "code": "escaped_container",
+        "severity": "info",
+        "time": 19.333,
+        "selector": "#f02-zoom-outer",
+        "message": "Positioned element renders far outside its offset parent — its coordinates were likely computed in a different frame (canvas/viewport pixels).",
+        "rect": {
+          "left": -279.8,
+          "top": -404.7,
+          "right": 2945.8,
+          "bottom": 1409.7,
+          "width": 3225.6,
+          "height": 1814.4
+        },
+        "containerSelector": "#f02-viewport",
+        "text": "",
+        "fixHint": "Compute left/top in the offset parent's frame (subtract its rect), or mark intentional placement with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 829,
+          "top": 219,
+          "right": 1837,
+          "bottom": 786,
+          "width": 1008,
+          "height": 567
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/02-agensi.html",
+        "bbox": {
+          "x": -279.8,
+          "y": -404.7,
+          "width": 3225.6,
+          "height": 1814.4
+        },
+        "firstSeen": 19.333,
+        "lastSeen": 19.333,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          19.333
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 32.222,
+        "selector": "#f03-cam",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": -641.5,
+          "top": -55.4,
+          "right": 2622.5,
+          "bottom": 1780.6,
+          "width": 3264,
+          "height": 1836
+        },
+        "containerSelector": "#f03-view",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 81,
+          "top": 135,
+          "right": 981,
+          "bottom": 689,
+          "width": 900,
+          "height": 554
+        },
+        "overflow": {
+          "left": 722.5,
+          "right": 1641.5,
+          "top": 190.4,
+          "bottom": 1091.6
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/03-apa-itu-skill.html",
+        "bbox": {
+          "x": -641.5,
+          "y": -55.4,
+          "width": 3264,
+          "height": 1836
+        },
+        "firstSeen": 32.222,
+        "lastSeen": 32.222,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          32.222
+        ]
+      },
+      {
+        "code": "escaped_container",
+        "severity": "info",
+        "time": 32.222,
+        "selector": "#f03-cam",
+        "message": "Positioned element renders far outside its offset parent — its coordinates were likely computed in a different frame (canvas/viewport pixels).",
+        "rect": {
+          "left": -641.5,
+          "top": -55.4,
+          "right": 2622.5,
+          "bottom": 1780.6,
+          "width": 3264,
+          "height": 1836
+        },
+        "containerSelector": "#f03-view",
+        "text": "",
+        "fixHint": "Compute left/top in the offset parent's frame (subtract its rect), or mark intentional placement with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 81,
+          "top": 135,
+          "right": 981,
+          "bottom": 689,
+          "width": 900,
+          "height": 554
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/03-apa-itu-skill.html",
+        "bbox": {
+          "x": -641.5,
+          "y": -55.4,
+          "width": 3264,
+          "height": 1836
+        },
+        "firstSeen": 32.222,
+        "lastSeen": 32.222,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          32.222
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 58,
+        "selector": "#f06-shot",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 0,
+          "top": 142,
+          "right": 1920,
+          "bottom": 1222,
+          "width": 1920,
+          "height": 1080
+        },
+        "containerSelector": "#f06-window",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 160,
+          "top": 272,
+          "right": 1760,
+          "bottom": 866,
+          "width": 1600,
+          "height": 594
+        },
+        "overflow": {
+          "left": 160,
+          "right": 160,
+          "top": 130,
+          "bottom": 356
+        },
+        "dataAttributes": {
+          "data-hf-authored-opacity": ""
+        },
+        "sourceFile": "compositions/frames/06-harga.html",
+        "bbox": {
+          "x": 0,
+          "y": 142,
+          "width": 1920,
+          "height": 1080
+        },
+        "firstSeen": 58,
+        "lastSeen": 58,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          58
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 83.778,
+        "selector": "#f08-shot",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 539.64,
+          "top": 29.2,
+          "right": 2306.03,
+          "bottom": 1022.8,
+          "width": 1766.39,
+          "height": 993.59
+        },
+        "containerSelector": "div.f08-view",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 1007,
+          "top": 158,
+          "right": 1839,
+          "bottom": 848,
+          "width": 832,
+          "height": 690
+        },
+        "overflow": {
+          "left": 467.36,
+          "right": 467.03,
+          "top": 128.8,
+          "bottom": 174.8
+        },
+        "dataAttributes": {
+          "data-hf-authored-opacity": ""
+        },
+        "sourceFile": "compositions/frames/08-keamanan.html",
+        "bbox": {
+          "x": 539.64,
+          "y": 29.2,
+          "width": 1766.39,
+          "height": 993.59
+        },
+        "firstSeen": 83.778,
+        "lastSeen": 83.778,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          83.778
+        ]
+      }
+    ],
+    "duration": 116,
+    "samples": [
+      6.444,
+      19.333,
+      32.222,
+      45.111,
+      58,
+      70.889,
+      83.778,
+      96.667,
+      109.556
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 7,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 1,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 2.89:1; WCAG AA requires 3:1.",
+        "text": "SKILL.md",
+        "fg": "rgb(42,120,214)",
+        "bg": "rgb(40,50,75)",
+        "ratio": 2.89,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(48,124,215)",
+        "large": true,
+        "selector": "#f03-file",
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/03-apa-itu-skill.html",
+        "bbox": {
+          "x": 1040,
+          "y": 253.609375,
+          "width": 376.09375,
+          "height": 84.46875
+        },
+        "time": 32.222,
+        "times": [
+          32.222
+        ]
+      }
+    ],
+    "enabled": true,
+    "samples": [
+      6.444,
+      32.222,
+      58,
+      83.778,
+      109.556
+    ],
+    "checked": 51,
+    "passed": 50
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

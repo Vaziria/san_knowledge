@@ -1,0 +1,482 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    #root {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      font-family: "Inter", sans-serif;
+      color: #f3f2ee;
+    }
+    #root * {
+      box-sizing: border-box;
+    }
+
+    /* ground: navy, full duration, lowest track */
+    #f03-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* ---------- left: the real agensi.io section as a floating window ---------- */
+    #f03-window {
+      position: absolute;
+      left: 80px;
+      top: 92px;
+      width: 902px;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #26324f;
+      box-shadow:
+        0 1px 3px rgba(10, 14, 26, 0.35),
+        0 6px 20px rgba(10, 14, 26, 0.25);
+    }
+    .f03-winbar {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding-left: 18px;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.12);
+    }
+    .f03-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 9999px;
+      background: rgba(243, 242, 238, 0.22);
+    }
+    #f03-view {
+      position: relative;
+      width: 900px;
+      height: 554px;
+      overflow: hidden;
+    }
+    /* camera layer, in the screenshot's own CSS px (the PNG is a 2x capture of 1920x1080) */
+    #f03-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 0 0;
+    }
+    #f03-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      display: block;
+    }
+    /* marker under "A skill is a capability your agent loads before it answers you."
+       measured on the PNG: x 448.5-902, baseline 196.5, next line's ascenders at 210.5 */
+    #f03-marker {
+      position: absolute;
+      left: 446px;
+      top: 201.5px;
+      width: 459px;
+      height: 3px;
+      border-radius: 2px;
+      background: #2a78d6;
+      transform-origin: 0 50%;
+    }
+
+    /* ---------- right: kicker, headline, code surface, cue ---------- */
+    #f03-col {
+      position: absolute;
+      left: 1040px;
+      top: 92px;
+      width: 800px;
+    }
+    .f03-kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 34px;
+    }
+    #f03-spike {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    #f03-kicker-text {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      line-height: 1;
+      color: #f3f2ee;
+    }
+    .f03-headline {
+      margin-top: 26px;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 4.6cqw;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      color: #f3f2ee;
+    }
+    .f03-hw {
+      display: inline-block;
+    }
+    #f03-file {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 4.15cqw;
+      letter-spacing: -0.01em;
+      color: #3987e5; /* the lighter brand blue: #2a78d6 is 2.89:1 on the navy ground */
+    }
+
+    #f03-card {
+      margin-top: 34px;
+      width: 800px;
+      background: #121a2c;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .f03-cardbar {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px 0 28px;
+      background: #1b2642;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.14);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .f03-cardtitle {
+      color: #f3f2ee;
+    }
+    .f03-cardlabel {
+      color: rgba(243, 242, 238, 0.5);
+    }
+    .f03-code {
+      padding: 20px 28px 22px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 1.41cqw;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+    .f03-line {
+      height: 1.6em;
+      white-space: pre;
+    }
+    .f03-k {
+      color: #f3f2ee;
+    }
+    .f03-v {
+      color: #5db8a6;
+    }
+    .f03-line.f03-fence .f03-k {
+      color: rgba(243, 242, 238, 0.45);
+    }
+    .f03-caret {
+      display: inline-block;
+      width: 10px;
+      height: 1.05em;
+      margin-left: 2px;
+      vertical-align: -0.2em;
+      background: #f3f2ee;
+      opacity: 0;
+    }
+
+    .f03-cue1 {
+      margin-top: 30px;
+      font-family: "Inter", sans-serif;
+      font-weight: 400;
+      font-size: 2.08cqw;
+      line-height: 1.35;
+      color: rgba(243, 242, 238, 0.88);
+      white-space: nowrap;
+    }
+    .f03-w {
+      display: inline-block;
+    }
+
+    /* ---------- bottom: the display-italic cue (stepped down to the 78cqw measure) ---------- */
+    #f03-cue2 {
+      position: absolute;
+      left: 76px;
+      top: 752px;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 5.4cqw;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+  </style>
+
+  <div data-hf-id="hf-i2w8"
+    id="root"
+    data-composition-id="03-apa-itu-skill"
+    data-start="0"
+    data-duration="12.5"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-it5p" id="f03-ground" class="clip" data-start="0" data-duration="12.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-8yer" id="f03-window">
+      <div data-hf-id="hf-kwtz" class="f03-winbar">
+        <span data-hf-id="hf-4uj0" class="f03-dot"></span><span data-hf-id="hf-bo2s" class="f03-dot"></span><span data-hf-id="hf-ah5p" class="f03-dot"></span>
+      </div>
+      <div data-hf-id="hf-ku4s" id="f03-view">
+        <div data-hf-id="hf-01vr" id="f03-cam" data-layout-allow-overflow>
+          <img data-hf-id="hf-1qta" id="f03-shot" src="assets/agensi-home-what-is-skill.png" width="1920" height="1080" alt="" />
+          <div data-hf-id="hf-ptpt" id="f03-marker"></div>
+        </div>
+      </div>
+    </div>
+
+    <div data-hf-id="hf-bbjr" id="f03-col">
+      <div data-hf-id="hf-o28l" class="f03-kicker">
+        <svg data-hf-id="hf-stas" id="f03-spike" viewBox="0 0 24 24" aria-hidden="true">
+          <g data-hf-id="hf-iijb" stroke="#2a78d6" stroke-width="4.2" stroke-linecap="round" fill="none">
+            <line data-hf-id="hf-ro96" x1="12" y1="3" x2="12" y2="21" />
+            <line data-hf-id="hf-repo" x1="4.2" y1="7.5" x2="19.8" y2="16.5" />
+            <line data-hf-id="hf-dld0" x1="4.2" y1="16.5" x2="19.8" y2="7.5" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-7b4y" id="f03-kicker-text">Skill</span>
+      </div>
+
+      <div data-hf-id="hf-cumu" class="f03-headline">
+        <span data-hf-id="hf-yi9d" class="f03-hw">Skill</span> <span data-hf-id="hf-ff5o" class="f03-hw">itu</span> <span data-hf-id="hf-var3" class="f03-hw">satu</span>
+        <span data-hf-id="hf-9sq8" class="f03-hw">file:</span><br data-hf-id="hf-x5px" />
+        <span data-hf-id="hf-11l2" id="f03-file">SKILL.md</span>
+      </div>
+
+      <div data-hf-id="hf-ldcp" id="f03-card">
+        <div data-hf-id="hf-u4fn" class="f03-cardbar">
+          <span data-hf-id="hf-dcyl" class="f03-cardtitle">SKILL.md</span>
+          <span data-hf-id="hf-zmfy" class="f03-cardlabel">contoh</span>
+        </div>
+        <div data-hf-id="hf-a17t" class="f03-code">
+          <div data-hf-id="hf-1028" class="f03-line" id="f03-l0"><span data-hf-id="hf-fv0a" class="f03-k"></span><span data-hf-id="hf-friv" class="f03-v"></span><span data-hf-id="hf-nhs4" class="f03-caret"></span></div>
+          <div data-hf-id="hf-1rq1" class="f03-line" id="f03-l1"><span data-hf-id="hf-nkv2" class="f03-k"></span><span data-hf-id="hf-abrr" class="f03-v"></span><span data-hf-id="hf-1v5o" class="f03-caret"></span></div>
+          <div data-hf-id="hf-5pu2" class="f03-line" id="f03-l2"><span data-hf-id="hf-nz63" class="f03-k"></span><span data-hf-id="hf-9xgq" class="f03-v"></span><span data-hf-id="hf-0o8l" class="f03-caret"></span></div>
+          <div data-hf-id="hf-bvjv" class="f03-line" id="f03-l3"><span data-hf-id="hf-odh4" class="f03-k"></span><span data-hf-id="hf-9j5p" class="f03-v"></span><span data-hf-id="hf-12jm" class="f03-caret"></span></div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-j5qo" class="f03-cue1">
+        <span data-hf-id="hf-m7fp" class="f03-w f03-c1">Isinya</span> <span data-hf-id="hf-5vm0" class="f03-w f03-c1">langkah</span>
+        <span data-hf-id="hf-crgv" class="f03-w f03-c1">kerja</span> <span data-hf-id="hf-xhsj" class="f03-w f03-c1">seorang</span>
+        <span data-hf-id="hf-j668" class="f03-w f03-c1">ahli.</span>
+      </div>
+    </div>
+
+    <div data-hf-id="hf-ekou" id="f03-cue2">
+      <span data-hf-id="hf-k3uk" class="f03-w f03-c2">Agent</span> <span data-hf-id="hf-a8ae" class="f03-w f03-c2">memuatnya</span>
+      <span data-hf-id="hf-8ouw" class="f03-w f03-c2">sebelum</span> <span data-hf-id="hf-83so" class="f03-w f03-c2">menjawab.</span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const DURATION = 12;
+
+      // ---- Scene 1 (0.0-2.8s): window + kicker + headline ----
+      tl.fromTo(
+        "#f03-window",
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+        0,
+      );
+      // camera: push in on "What is a skill?" + its first paragraph, then hold still.
+      // start shows x 410-966 / y 101-443 of the page; end shows x 425-954 / y 112-438.
+      // every edge stays in white space for the whole move (banner ends at y 98.5,
+      // the agent panel starts at x 977, bullet 3 ends at y 430, bullet 4 starts at y 446).
+      tl.fromTo(
+        "#f03-cam",
+        { x: -664.2, y: -163.62, scale: 1.62 },
+        { x: -722.5, y: -190.4, scale: 1.7, duration: 4, ease: "power2.out" },
+        0,
+      );
+
+      tl.fromTo(
+        "#f03-spike",
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out", transformOrigin: "50% 50%" },
+        0.25,
+      );
+      tl.fromTo(
+        "#f03-kicker-text",
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+        0.32,
+      );
+      tl.fromTo(
+        ".f03-hw",
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.08 },
+        0.5,
+      );
+      tl.fromTo(
+        "#f03-file",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        1.4,
+      );
+
+      // ---- Scene 2 (2.8-6.6s): SKILL.md code surface types itself; cue 1 at 4.8s ----
+      tl.fromTo(
+        "#f03-card",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        2.8,
+      );
+
+      // discrete-text-sequence: sparse states, reverse-searched, instant jumps.
+      // Keystroke states sit on the keys.wav hits (host_sfx at 3.6s and 4.6s).
+      const F = "---";
+      const N = "name: cold-email-writer";
+      const D = "description: Menulis cold email yang dibalas";
+      const SEQUENCE = [
+        { t: 0.0, text: "" },
+        { t: 3.6, text: F },
+        { t: 3.68, text: F + "\nn" },
+        { t: 3.76, text: F + "\nname" },
+        { t: 3.8, text: F + "\nname:" },
+        { t: 3.88, text: F + "\nname: co" },
+        { t: 3.98, text: F + "\nname: cold" },
+        { t: 4.02, text: F + "\nname: cold-em" },
+        { t: 4.1, text: F + "\nname: cold-email" },
+        { t: 4.18, text: F + "\nname: cold-email-wr" },
+        { t: 4.24, text: F + "\nname: cold-email-writ" },
+        { t: 4.32, text: F + "\n" + N },
+        { t: 4.6, text: F + "\n" + N + "\ndescr" },
+        { t: 4.68, text: F + "\n" + N + "\ndescription: M" },
+        { t: 4.76, text: F + "\n" + N + "\ndescription: Menul" },
+        { t: 4.8, text: F + "\n" + N + "\ndescription: Menulis" },
+        { t: 4.88, text: F + "\n" + N + "\ndescription: Menulis cold" },
+        { t: 4.98, text: F + "\n" + N + "\ndescription: Menulis cold em" },
+        { t: 5.02, text: F + "\n" + N + "\ndescription: Menulis cold email" },
+        { t: 5.1, text: F + "\n" + N + "\ndescription: Menulis cold email ya" },
+        { t: 5.18, text: F + "\n" + N + "\ndescription: Menulis cold email yang" },
+        { t: 5.24, text: F + "\n" + N + "\ndescription: Menulis cold email yang diba" },
+        { t: 5.32, text: F + "\n" + N + "\n" + D },
+        { t: 5.62, text: F + "\n" + N + "\n" + D + "\n" + F },
+      ];
+      function textAt(time) {
+        for (let i = SEQUENCE.length - 1; i >= 0; i--) {
+          if (time >= SEQUENCE[i].t) return SEQUENCE[i].text;
+        }
+        return "";
+      }
+
+      const lineEls = [0, 1, 2, 3].map(function (i) {
+        const el = document.getElementById("f03-l" + i);
+        return {
+          el: el,
+          k: el.querySelector(".f03-k"),
+          v: el.querySelector(".f03-v"),
+          caret: el.querySelector(".f03-caret"),
+        };
+      });
+
+      const CARD_IN = 2.8;
+      const TYPE_START = 3.55;
+      const TYPE_END = 5.9;
+      const BLINK_PERIOD = 0.66; // one cycle per 0.66s, inside the 0.5-0.8s band
+
+      function render(time) {
+        const text = textAt(time);
+        const lines = text.split("\n");
+        const active = lines.length - 1;
+        let caretOn = false;
+        if (time >= CARD_IN) {
+          if (time >= TYPE_START && time < TYPE_END) caretOn = true;
+          else caretOn = Math.sin((2 * Math.PI * (time - CARD_IN)) / BLINK_PERIOD) >= 0;
+        }
+        for (let i = 0; i < lineEls.length; i++) {
+          const L = lineEls[i];
+          const s = i < lines.length ? lines[i] : "";
+          const colon = s.indexOf(":");
+          const isFence = s.charAt(0) === "-";
+          L.el.classList.toggle("f03-fence", isFence);
+          const key = colon >= 0 ? s.slice(0, colon + 1) : s;
+          const val = colon >= 0 ? s.slice(colon + 1) : "";
+          if (L.k.textContent !== key) L.k.textContent = key;
+          if (L.v.textContent !== val) L.v.textContent = val;
+          L.caret.style.opacity = i === active && caretOn ? "1" : "0";
+        }
+      }
+      render(0);
+
+      const driver = { t: 0 };
+      tl.to(
+        driver,
+        {
+          t: DURATION,
+          duration: DURATION,
+          ease: "none",
+          onUpdate: function () {
+            render(driver.t);
+          },
+        },
+        0,
+      );
+
+      tl.fromTo(
+        ".f03-c1",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", stagger: 0.05 },
+        4.8,
+      );
+
+      // ---- Scene 3 (6.6-12.0s): display-italic cue at 7.2s, marker draws at 7.6s, hold ----
+      tl.fromTo(
+        ".f03-c2",
+        { opacity: 0, y: 36 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.09 },
+        7.2,
+      );
+      tl.fromTo(
+        "#f03-marker",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.8, ease: "power2.inOut" },
+        7.6,
+      );
+
+      window.__timelines["03-apa-itu-skill"] = tl;
+    })();
+  </script>
+</template>

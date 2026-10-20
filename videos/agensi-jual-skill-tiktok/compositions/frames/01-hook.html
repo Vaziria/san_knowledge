@@ -1,0 +1,229 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+    }
+
+    /* full-bleed ground: navy (frame.md "cream" key on the dark brand) */
+    #f01-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* one scene per hard-cut window; the container is the 1080x1920 frame */
+    .f01-scene {
+      position: absolute;
+      inset: 0;
+      container-type: size;
+      color: #f3f2ee;
+    }
+
+    /* text block left-aligned at x 80, vertically centred on y 700;
+       right edge x 900 keeps clear of TikTok's button rail */
+    .f01-stage {
+      position: absolute;
+      left: 80px;
+      width: 820px;
+      top: 0;
+      height: 1400px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      transform-origin: 0% 50%;
+    }
+
+    /* kicker-spike: JetBrains Mono uppercase 0.16em, blue spike mark */
+    .f01-kicker {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 52px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #f3f2ee;
+    }
+    .f01-spike {
+      display: block;
+      width: 30px;
+      height: 30px;
+    }
+
+    /* display ramp, re-stepped for a phone: EB Garamond 400, sentence case, negative tracking */
+    .f01-display {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: 12.6cqw;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      white-space: nowrap;
+    }
+    .f01-italic {
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 11.6cqw;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      white-space: nowrap;
+    }
+    .f01-payoff-size {
+      font-size: 15.5cqw;
+    }
+    .f01-line {
+      display: block;
+      transform-origin: 0% 50%;
+    }
+
+    #f01-s1-a {
+      transform-origin: 0% 50%;
+    }
+    #f01-s1-b {
+      margin-top: 0.22em;
+    }
+
+    /* in-flow slot keeps Scene 2's layout fixed; the payoff clip sits inside it */
+    #f01-pay-slot {
+      position: relative;
+      width: 100%;
+      height: 2.04em;
+      margin-top: 0.08em;
+    }
+    #f01-pay {
+      position: absolute;
+      inset: 0;
+    }
+    #f01-pay-text {
+      color: #2a78d6;
+      transform-origin: 0% 50%;
+    }
+  </style>
+
+  <div id="root" data-composition-id="01-hook" data-width="1080" data-height="1920" data-duration="6.4">
+    <div id="f01-ground" class="clip" data-start="0" data-duration="6.4" data-track-index="0"></div>
+
+    <!-- Scene 1 (0.0–3.7s): kicker, then two stacked statements -->
+    <div id="f01-s1" class="clip f01-scene" data-start="0" data-duration="3.7" data-track-index="1">
+      <div id="f01-s1-stage" class="f01-stage">
+        <div id="f01-kicker" class="f01-kicker">
+          <svg id="f01-spike" class="f01-spike" viewBox="0 0 26 26" aria-hidden="true">
+            <g stroke="#2a78d6" stroke-width="3.6" stroke-linecap="round">
+              <line x1="13" y1="2.5" x2="13" y2="23.5" />
+              <line x1="3.9" y1="7.75" x2="22.1" y2="18.25" />
+              <line x1="3.9" y1="18.25" x2="22.1" y2="7.75" />
+            </g>
+          </svg>
+          <span class="f01-kicker-text">AI AGENT</span>
+        </div>
+        <div id="f01-s1-a" class="f01-display">
+          <span class="f01-line">AI agent hanya</span>
+          <span class="f01-line">sepintar</span>
+        </div>
+        <div id="f01-s1-b" class="f01-italic">
+          <span id="f01-s1-b1" class="f01-line">instruksi yang</span>
+          <span id="f01-s1-b2" class="f01-line">ia punya.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scene 2 (3.7–6.0s): hard cut to the payoff statement -->
+    <div id="f01-s2" class="clip f01-scene" data-start="3.7" data-duration="2.7" data-track-index="1">
+      <div id="f01-s2-stage" class="f01-stage">
+        <div id="f01-s2-head" class="f01-display f01-payoff-size f01-line">Instruksi itu</div>
+        <div id="f01-pay-slot" class="f01-display f01-payoff-size">
+          <div id="f01-pay" class="clip" data-start="3.9" data-duration="2.5" data-track-index="2">
+            <div id="f01-pay-text">
+              <span class="f01-line">bisa kamu</span>
+              <span class="f01-line">jual.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // One beat array drives every reveal (kinetic-beat-slam). The hard cut at 3.7
+      // and the payoff at 3.9 are also the clip windows above.
+      const BEAT = {
+        kicker: 0.0,
+        s1a: 0.15,
+        s1b: 1.4,
+        cut: 3.7,
+        pay: 3.9, // host_sfx ting.wav lands here
+        end: 6.0,
+      };
+
+      // Scene 1 — kicker fades in, spike 0.92 -> 1
+      tl.fromTo("#f01-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power3.out" }, BEAT.kicker);
+      tl.fromTo("#f01-spike", { scale: 0.92 }, { scale: 1, duration: 0.5, ease: "power3.out" }, BEAT.kicker);
+
+      // Hit 1: "AI agent hanya sepintar" slams in (scale + blur, hard power4 attack)
+      tl.fromTo(
+        "#f01-s1-a",
+        { scale: 1.25, filter: "blur(14px)", opacity: 0 },
+        { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "power4.out" },
+        BEAT.s1a,
+      );
+
+      // Hit 2: "instruksi yang ia punya." side-snaps in from the left, line by line (expo snap)
+      tl.fromTo(
+        "#f01-s1-b1",
+        { x: -100, filter: "blur(8px)", opacity: 0 },
+        { x: 0, filter: "blur(0px)", opacity: 1, duration: 0.45, ease: "expo.out" },
+        BEAT.s1b,
+      );
+      tl.fromTo(
+        "#f01-s1-b2",
+        { x: -100, filter: "blur(8px)", opacity: 0 },
+        { x: 0, filter: "blur(0px)", opacity: 1, duration: 0.45, ease: "expo.out" },
+        BEAT.s1b + 0.12,
+      );
+
+
+      // Scene 2 — hard cut: "Instruksi itu" is on from 3.7 and settles from slightly large
+      tl.fromTo("#f01-s2-head", { scale: 1.06 }, { scale: 1, duration: 0.4, ease: "circ.out" }, BEAT.cut);
+
+      // Payoff: at 3.9 the blue "bisa kamu jual." punches in from oversized, then holds
+      tl.fromTo(
+        "#f01-pay-text",
+        { scale: 1.2, filter: "blur(10px)", opacity: 0.45 },
+        { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "expo.out" },
+        BEAT.pay,
+      );
+
+
+      window.__timelines["01-hook"] = tl;
+    })();
+  </script>
+</template>

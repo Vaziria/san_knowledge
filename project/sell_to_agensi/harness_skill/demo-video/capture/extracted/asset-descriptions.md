@@ -1,0 +1,27 @@
+# Asset inventory
+
+Real captures of san_knowledge's local view (dark theme) running the Paperboat sample project (a fictional invoicing app for freelancers: 5 domains, 20 docs, 50 sections, 32 links). Screenshots are 3840x2160 (1920x1080 viewport at 2x), so a push-in up to 2x stays sharp. Coordinates below are in the 3840x2160 image. Layout of every view screen: a top bar (y 0-115) with the app title and counts at left and the search box + Explain button at right (x 2190-3430); a 1200 px side panel at left (x 0-1200, below the bar) with Node Detail / Tools tabs; the graph canvas at right (x 1200-3840).
+
+## Screens
+
+- `01-overview.png` - The graph's top level on first load: five domain hexagons (Engineering pink, Marketing blue, Operations green, Product teal, Research red) and the two docs without a domain (Agent instructions, Paperboat README), each labelled with "(+N)" = what expanding shows. Side panel "Explore the graph": domains list and docs list. Header counts "5 domains · 20 docs · 50 sections · 12 need summary" at x 110-670, y 25-95. Nodes sit far apart (measured by the frame 03 worker on the final capture): Engineering (1548, 251), Operations (1452, 902), Research (1439, 1469), Marketing (3510, 890), Product (3510, 1454), the Agent instructions doc (3639, 279). Use: the "before" of the expansion; the counts line as proof of scale.
+- `05-expanded.png` - "Expand all": every doc and section of the sample project as one connected graph (coloured by community, squares = docs, circles = sections, hexagons = domains), with section_of, domain_of and dashed reference edges. Graph bounding box about x 1300-3735, y 365-1885 (measured on the final capture). Same side panel as 01. Use: the hero "living knowledge graph" shot; slow push-in on the graph region.
+- `03-explain.png` - Explain for "why did we drop the free tier": the query sits in the search box (x 2190-3260, y 25-90). Side panel lists 8 matches, each with title, path and line, and summary: "0003 Drop the free tier" `docs/decisions/0003-drop-free-tier.md` (y 470-650), "Why there is no free tier" `docs/product/pricing.md:15` (y 700-850), "Decision" `docs/decisions/0003-drop-free-tier.md:9`, "Context" `...:5`, "Consequences" `...:13`. The graph highlights only the context (Pricing, 0003 Drop the free tier, Landing page copy, Product, Marketing; edge labels section_of / reference / domain_of), the rest dimmed. Highlight cluster x 1900-3300, y 480-1800. Use: "answers cite file and line" - push into the panel's `docs/product/pricing.md:15` line.
+- `02-pricing-doc.png` - Node Detail of the doc "Pricing" (`docs/product/pricing.md`): summary "Three plans (Solo $9, Pro $19, Team $49 a month)...", keywords chips, domain Product, Sections (3) with line numbers (Plans line 3, Annual discount line 11, Why there is no free tier line 15) and their summaries (y 820-1180), Referenced by `README.md:5`. Graph at right: Pricing -> Product with domain_of edge. Use: what a single doc looks like; sections with line numbers.
+- `07-outdated.png` - Node Detail of the section "Annual discount" (`docs/product/pricing.md:11`) after its text was edited: a dashed "needs summary" badge (x 515-707, y 144-179) next to the type chip; the OLD summary "Annual plans get two months free (17% off)..." (x 207-1145, y 300-335); the opened "Section text" box showing the NEW text "Annual plans get three months free (25% off). Monthly plans get no discount." (x 207-1165, y 1133-1242). Header counts now "14 need summary". In the graph, the Pricing doc node has a dashed border (x 2185-2260, y 690-760). Use: "knowledge that knows when it is outdated" - contrast old summary vs new text, then the badge.
+- `04-task-done.png` - Node Detail of the finished task "Invoice PDF with a payment link" (`tasks/done/01-invoice-pdf.md`): summary "Done: invoice PDFs ... checked with 112 passing tests ...", domain Engineering, Sections (3): Do and Check marked "needs summary", Done with its summary (y 1020-1110); References (1) "Spec: invoice PDF" `docs/specs/invoice-pdf.md` (y 1225-1325). Graph: the task node (2520, 1120) with a reference edge to "Spec: invoice PDF" (2180, 1250) and a domain_of edge to the Engineering hub (2690, 1790), around it Multi-currency invoices, Dark mode, Payment reminders, 0002 Stripe for payments. Use: "finished work links itself into the graph".
+- `06-table.png` - Table view: every node with Title, Type, Location (`path:line`), Domain, Keywords, Summary ("done" or a dashed "needs summary" chip). Table area x 1200-3840, y 120-2160. Use: optional quick cut showing everything is listed and checkable.
+
+## Terminal output (real, from the knowledge CLI)
+
+- `terminal-explain.txt` - `knowledge explain "why did we drop the free tier" --limit 2 --depth 0`: markdown context with `loc: docs/product/pricing.md:15`, summaries and related nodes. Use: the agent's view of the same answer (render as a terminal / code surface, quoting real lines only).
+- `terminal-sync.txt` - `knowledge sync --no-ai` right after the edit: "docs: +0 ~1 -0 / sections: +0 ~1 -0 / references: +0 -0 / needs summary: 14". Use: the sync that flags the change.
+
+## Brand
+
+- `project-brain-logo.svg` - the origami crane logo on a dark navy rounded tile (512x512): front wing blue, back wing green, body/neck/tail orange. Use: the closing sting.
+- `project-brain-logo-light.svg` - the same crane on a cream tile.
+
+## Audio
+
+- `mistjapanese.wav` - the user's own track (210 s, calm Japanese-flavoured ambient); the music bed. Pick the strongest ~60 s, fade in and out.

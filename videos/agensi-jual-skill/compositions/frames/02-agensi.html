@@ -1,0 +1,393 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+    }
+
+    /* full-bleed navy ground, its own clip layer */
+    #f02-ground {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    #f02-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+    }
+
+    /* ---------- left column (40%) ---------- */
+    #f02-col {
+      position: absolute;
+      left: 88px;
+      top: 160px;
+      width: 700px;
+    }
+
+    #f02-kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 28px;
+      margin: 0 0 30px 0;
+    }
+    #f02-spike {
+      display: block;
+      width: 24px;
+      height: 24px;
+      transform-origin: 50% 50%;
+    }
+    #f02-kicker-text {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 1.46cqw; /* 28px */
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(243, 242, 238, 0.78);
+    }
+
+    #f02-display {
+      margin: 0 0 12px 0;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 4.79cqw; /* 92px — sized to the 700px column */
+      line-height: 1.04;
+      letter-spacing: -0.022em;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+    .f02-word {
+      display: inline-block;
+    }
+    #f02-w2 {
+      color: #2a78d6; /* the voltage */
+    }
+
+    #f02-headline {
+      margin: 0 0 40px 0;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 3.125cqw; /* 60px */
+      line-height: 1.1;
+      letter-spacing: -0.018em;
+      color: #f3f2ee;
+    }
+    .f02-line {
+      display: block;
+    }
+
+    #f02-rule {
+      width: 600px;
+      height: 1px;
+      margin: 0 0 34px 0;
+      background: rgba(243, 242, 238, 0.18);
+      transform-origin: 0% 50%;
+    }
+
+    .f02-lockup {
+      display: flex;
+      align-items: baseline;
+      gap: 26px;
+      margin: 0 0 4px 0;
+    }
+    .f02-fig-box {
+      width: 426px; /* fixed: no layout shift as the digit count grows */
+      display: flex;
+      justify-content: flex-end;
+      align-items: baseline;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 7.29cqw; /* 140px */
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+    .f02-fig {
+      display: inline-block;
+      transform-origin: 100% 80%;
+    }
+    .f02-plus {
+      display: inline-block;
+    }
+    .f02-unit {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 2.08cqw; /* 40px */
+      line-height: 1;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(243, 242, 238, 0.72);
+    }
+    #f02-lock2 {
+      margin-bottom: 26px;
+    }
+
+    #f02-source {
+      margin: 0;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 1.35cqw; /* 26px */
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+      color: rgba(243, 242, 238, 0.6);
+    }
+
+    /* ---------- right window (60%) ---------- */
+    #f02-window {
+      position: absolute;
+      left: 828px;
+      top: 184px;
+      width: 1010px;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #1b2642;
+      box-shadow: 0 24px 64px rgba(10, 14, 28, 0.42);
+    }
+    #f02-bar {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 0 0 18px;
+      background: #1b2642;
+      border-bottom: 1px solid rgba(243, 242, 238, 0.1);
+    }
+    .f02-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      background: rgba(243, 242, 238, 0.22);
+    }
+    #f02-viewport {
+      position: relative;
+      width: 1008px;
+      height: 567px;
+      overflow: hidden;
+      background: #f7f8fb;
+    }
+    #f02-zoom-outer {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 50%;
+    }
+    #f02-zoom-inner {
+      position: absolute;
+      inset: 0;
+    }
+    #f02-shot {
+      display: block;
+      width: 1008px;
+      height: 567px;
+    }
+    #f02-mark {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1008px;
+      height: 567px;
+      overflow: visible;
+      pointer-events: none;
+    }
+  </style>
+
+  <div data-hf-id="hf-o4fm"
+    id="root"
+    data-composition-id="02-agensi"
+    data-start="0"
+    data-duration="11.5"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-5rm5" id="f02-ground" class="clip" data-start="0" data-duration="11.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-skg5" id="f02-stage" class="clip" data-start="0" data-duration="11.5" data-track-index="1">
+      <div data-hf-id="hf-ul4i" id="f02-col">
+        <div data-hf-id="hf-10un" id="f02-kicker">
+          <svg data-hf-id="hf-ah11" id="f02-spike" viewBox="0 0 24 24" aria-hidden="true">
+            <g data-hf-id="hf-1q9y" fill="#2a78d6">
+              <rect data-hf-id="hf-1p1n" x="9.9" y="1" width="4.2" height="22" />
+              <rect data-hf-id="hf-h9lu" x="9.9" y="1" width="4.2" height="22" transform="rotate(60 12 12)" />
+              <rect data-hf-id="hf-urmp" x="9.9" y="1" width="4.2" height="22" transform="rotate(120 12 12)" />
+            </g>
+          </svg>
+          <span data-hf-id="hf-ol3z" id="f02-kicker-text">MARKETPLACE</span>
+        </div>
+
+        <h1 data-hf-id="hf-5w2k" id="f02-display"><span data-hf-id="hf-t4ss" class="f02-word" id="f02-w1">Namanya</span> <span data-hf-id="hf-auhf" class="f02-word" id="f02-w2">Agensi.io</span></h1>
+
+        <p data-hf-id="hf-b4fd" id="f02-headline"><span data-hf-id="hf-uh7y" class="f02-line" id="f02-l1">marketplace skill</span><span data-hf-id="hf-7r03" class="f02-line" id="f02-l2">untuk AI agent.</span></p>
+
+        <div data-hf-id="hf-by2e" id="f02-rule"></div>
+
+        <div data-hf-id="hf-xdzu" class="f02-lockup" id="f02-lock1">
+          <div data-hf-id="hf-qpkh" class="f02-fig-box"><span data-hf-id="hf-a8be" class="f02-fig" id="f02-fig1">0</span><span data-hf-id="hf-rrbd" class="f02-plus" id="f02-plus1">+</span></div>
+          <span data-hf-id="hf-0as1" class="f02-unit" id="f02-unit1">SKILL</span>
+        </div>
+        <div data-hf-id="hf-tfvt" class="f02-lockup" id="f02-lock2">
+          <div data-hf-id="hf-kwrp" class="f02-fig-box"><span data-hf-id="hf-mo2f" class="f02-fig" id="f02-fig2">0</span><span data-hf-id="hf-jiyg" class="f02-plus" id="f02-plus2">+</span></div>
+          <span data-hf-id="hf-wjlh" class="f02-unit" id="f02-unit2">KREATOR</span>
+        </div>
+
+        <p data-hf-id="hf-0exp" id="f02-source">angka dari halaman Agensi, Oktober 2026</p>
+      </div>
+
+      <div data-hf-id="hf-v9lc" id="f02-window">
+        <div data-hf-id="hf-o7dn" id="f02-bar"><span data-hf-id="hf-v20p" class="f02-dot"></span><span data-hf-id="hf-sc0d" class="f02-dot"></span><span data-hf-id="hf-tixg" class="f02-dot"></span></div>
+        <div data-hf-id="hf-35a2" id="f02-viewport">
+          <div data-hf-id="hf-tqsa" id="f02-zoom-outer" data-layout-allow-overflow>
+            <div data-hf-id="hf-6gt6" id="f02-zoom-inner">
+              <img data-hf-id="hf-n2mw" id="f02-shot" src="assets/agensi-home-hero.png" alt="" />
+            </div>
+          </div>
+          <svg data-hf-id="hf-hw7f" id="f02-mark" viewBox="0 0 1008 567" aria-hidden="true">
+            <path data-hf-id="hf-v4tp"
+              id="f02-mark-path"
+              d="M70 310 C 300 303, 640 314, 938 306"
+              fill="none"
+              stroke="#2a78d6"
+              stroke-width="5"
+              stroke-linecap="round"
+              pathLength="1000"
+              stroke-dasharray="1000 2000"
+              stroke-dashoffset="1004"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var OUT = "power3.out";
+
+      // ---- zoom-to-target constants (coordinate-target-zoom, nested wrappers: T = -offset) ----
+      // agensi-home-hero.png is 3840x2160; its counts row
+      // ("12,000+ Skills · 12,000+ Users · 1,500+ Creators") measures x 900–1923, y 1224–1259,
+      // visual centre (1411.5, 1242). Shown at 1008x567 in the viewport.
+      var VW = 1008;
+      var VH = 567;
+      var K = VW / 3840;
+      var OFF_X = 1411.5 * K - VW / 2; // -133.5
+      var OFF_Y = 1242 * K - VH / 2; //  42.5
+      var ZOOM = 3.2; // row = 859px wide at peak (85% of the viewport); source res 3.8x
+
+      function fmt(n) {
+        return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      }
+
+      // ---- Scene 1 (0.0–3.0): window rises in; kicker + "Namanya Agensi.io" ----
+      tl.fromTo("#f02-window", { opacity: 0, y: 72 }, { opacity: 1, y: 0, duration: 1.2, ease: OUT }, 0);
+      tl.fromTo("#f02-spike", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.6, ease: OUT }, 0.2);
+      tl.fromTo("#f02-kicker-text", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.7, ease: OUT }, 0.28);
+      tl.fromTo("#f02-w1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.9, ease: OUT }, 0.5);
+      tl.fromTo("#f02-w2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.9, ease: OUT }, 0.82);
+
+      // ---- Scene 2 (3.0–5.6): headline; zoom onto the counts row; marker underline at 5.0 ----
+      tl.fromTo("#f02-l1", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.8, ease: OUT }, 3.0);
+      tl.fromTo("#f02-l2", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.8, ease: OUT }, 3.18);
+      tl.fromTo("#f02-zoom-outer", { scale: 1 }, { scale: ZOOM, duration: 1.4, ease: "power3.inOut" }, 3.4);
+      tl.fromTo(
+        "#f02-zoom-inner",
+        { x: 0, y: 0 },
+        { x: -OFF_X, y: -OFF_Y, duration: 1.4, ease: "power3.inOut" },
+        3.4,
+      );
+      tl.fromTo(
+        "#f02-mark-path",
+        { strokeDashoffset: 1004 },
+        { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut" },
+        5.0,
+      );
+
+      // ---- Scene 3 (5.6–11.0): two number-lockups count up (counting-dynamic-scale), land at 7.4 ----
+      var LAND = 7.4; // host_sfx ting.wav
+      var START_SCALE = 0.5;
+      var fig1 = document.getElementById("f02-fig1");
+      var fig2 = document.getElementById("f02-fig2");
+      var c1 = { v: 0 };
+      var c2 = { v: 0 };
+
+      tl.fromTo("#f02-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: OUT }, 5.5);
+
+      // lockup 1: 12.000+ SKILL
+      tl.fromTo("#f02-lock1", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 5.6);
+      tl.to(
+        c1,
+        {
+          v: 12000,
+          duration: LAND - 5.6,
+          ease: "power2.out",
+          onUpdate: function () {
+            fig1.textContent = fmt(Math.round(c1.v));
+          },
+        },
+        5.6,
+      );
+      tl.fromTo(fig1, { scale: START_SCALE }, { scale: 1, duration: LAND - 5.6, ease: "power2.out" }, 5.6);
+      tl.fromTo("#f02-unit1", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: OUT }, 5.75);
+
+      // lockup 2: 1.500+ KREATOR
+      tl.fromTo("#f02-lock2", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 5.9);
+      tl.to(
+        c2,
+        {
+          v: 1500,
+          duration: LAND - 5.9,
+          ease: "power2.out",
+          onUpdate: function () {
+            fig2.textContent = fmt(Math.round(c2.v));
+          },
+        },
+        5.9,
+      );
+      tl.fromTo(fig2, { scale: START_SCALE }, { scale: 1, duration: LAND - 5.9, ease: "power2.out" }, 5.9);
+      tl.fromTo("#f02-unit2", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: OUT }, 6.05);
+
+      // the "+" lands on the ting, once both counts have arrived
+      tl.fromTo(
+        ["#f02-plus1", "#f02-plus2"],
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" },
+        LAND,
+      );
+
+      // source note, then hold still to 11.0
+      tl.fromTo("#f02-source", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: OUT }, 7.9);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["02-agensi"] = tl;
+    })();
+  </script>
+</template>

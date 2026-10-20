@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- project-brain: an origami crane in flight, folded from plain paper, in the san_knowledge palette. Two tones per piece show the folds. -->
+  <rect width="512" height="512" rx="112" fill="#1f2a44"/>
+  <ellipse cx="262" cy="440" rx="120" ry="10" fill="#000" opacity=".25"/>
+  <g transform="translate(0 46)">
+    <!-- back wing -->
+    <path d="M262 298 394 92 320 298Z" fill="#3cc792"/>
+    <path d="M320 298 394 92 352 298Z" fill="#138a5f"/>
+    <!-- tail -->
+    <path d="M318 300 456 206 348 300Z" fill="#eb6834"/>
+    <path d="M348 300 456 206 374 300Z" fill="#c4501f"/>
+    <!-- neck and head -->
+    <path d="M148 300 86 126 176 300Z" fill="#c4501f"/>
+    <path d="M176 300 86 126 206 300Z" fill="#eb6834"/>
+    <path d="M86 126 52 160 100 148Z" fill="#c4501f"/>
+    <!-- body -->
+    <path d="M148 300H258V374Z" fill="#f2864f"/>
+    <path d="M258 300H374L258 374Z" fill="#c4501f"/>
+    <!-- front wing -->
+    <path d="M194 300 292 52 262 300Z" fill="#4b92e6"/>
+    <path d="M262 300 292 52 326 300Z" fill="#1d5aa6"/>
+  </g>
+</svg>

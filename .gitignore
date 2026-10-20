@@ -9,8 +9,8 @@ san_knowledge/internal/ownview/dist/*
 
 # Live graph database: binary bbolt file, rewritten on every change.
 # Version knowledge through JSON exports instead: bin/knowledge.exe export knowledge_data/export.json
-knowledge_data/*.db
-knowledge_data/*.db.lock
+**/knowledge_data/*.db
+**/knowledge_data/*.db.lock
 
 # graphify's code graph: rebuilt from the code with `graphify update .`
 graphify-out/

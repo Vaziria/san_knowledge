@@ -1,0 +1,62 @@
+{
+  "schema": "hyperframes.capture.icons.v1",
+  "headline": {
+    "file": "assets/favicon.svg",
+    "source": "assets/icon-icon-unsized.svg",
+    "rank": 0,
+    "shape": "bare-mark",
+    "reason": "the only candidate is a bare mark"
+  },
+  "icons": [
+    {
+      "file": "assets/icon-icon-unsized.svg",
+      "url": "https://www.agensi.io/favicon.svg",
+      "rel": "icon",
+      "sizes": null,
+      "type": "image/svg+xml",
+      "rank": 0,
+      "shape": "bare-mark",
+      "shapeReason": "first painted element is <path> with margins"
+    },
+    {
+      "file": "assets/icon-apple-touch-icon-180x180.png",
+      "url": "https://www.agensi.io/apple-touch-icon.png",
+      "rel": "apple-touch-icon",
+      "sizes": "180x180",
+      "type": null,
+      "rank": 1,
+      "shape": "bare-mark",
+      "shapeReason": "0 of 4 edge midpoints are opaque, so the drawing has transparent margins"
+    },
+    {
+      "file": "assets/icon-icon-32x32.png",
+      "url": "https://www.agensi.io/favicon-32x32.png",
+      "rel": "icon",
+      "sizes": "32x32",
+      "type": "image/png",
+      "rank": 2,
+      "shape": "bare-mark",
+      "shapeReason": "0 of 4 edge midpoints are opaque, so the drawing has transparent margins"
+    },
+    {
+      "file": "assets/icon-icon-16x16.png",
+      "url": "https://www.agensi.io/favicon-16x16.png",
+      "rel": "icon",
+      "sizes": "16x16",
+      "type": "image/png",
+      "rank": 3,
+      "shape": "bare-mark",
+      "shapeReason": "0 of 4 edge midpoints are opaque, so the drawing has transparent margins"
+    },
+    {
+      "file": "assets/icon-icon-unsized-2.ico",
+      "url": "https://www.agensi.io/favicon.ico",
+      "rel": "icon",
+      "sizes": null,
+      "type": "image/x-icon",
+      "rank": 4,
+      "shape": "unknown",
+      "shapeReason": "image format could not be decoded for inspection"
+    }
+  ]
+}

@@ -1,0 +1,318 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+      font-family: "EB Garamond", serif;
+    }
+
+    /* track 0: navy ground */
+    #ground-07-yours-local {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    /* track 1: the real table capture, dimmed + defocused */
+    #backdrop-07-yours-local {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #table-07-yours-local {
+      --dof: 0px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+      filter: blur(var(--dof));
+      will-change: filter;
+      transform-origin: 50% 50%;
+    }
+
+    /* track 2: the accumulating list */
+    #content-07-yours-local {
+      position: absolute;
+      inset: 0;
+    }
+    #column-07-yours-local {
+      position: absolute;
+      left: 192px;
+      top: 222px;
+      width: 1328px;
+    }
+
+    #kicker-07-yours-local {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      height: 40px;
+    }
+    #spike-07-yours-local {
+      display: block;
+      width: 24px;
+      height: 24px;
+      flex: none;
+      transform-origin: 50% 50%;
+    }
+    #kicker-text-07-yours-local {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #f3f2ee;
+      opacity: 0.82;
+    }
+
+    #list-07-yours-local {
+      position: relative;
+      margin-top: 28px;
+    }
+    [class~="07-yours-local-rule"] {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: rgba(243, 242, 238, 0.16);
+      transform-origin: 0% 50%;
+    }
+    #rule-top-07-yours-local {
+      top: 0;
+    }
+    [class~="07-yours-local-row"] {
+      position: relative;
+      height: 124px;
+      display: flex;
+      align-items: center;
+    }
+    [class~="07-yours-local-row"] > [class~="07-yours-local-rule"] {
+      bottom: 0;
+    }
+    [class~="07-yours-local-marker"] {
+      flex: none;
+      width: 12px;
+      height: 12px;
+      margin-right: 40px;
+      border-radius: 9999px;
+      background: #f3f2ee;
+      transform-origin: 50% 50%;
+    }
+    [class~="07-yours-local-line"] {
+      display: block;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 3.35cqw;
+      line-height: 1.06;
+      letter-spacing: -0.014em;
+      white-space: nowrap;
+      color: #f3f2ee;
+      transform-origin: 0% 60%;
+    }
+    [class~="07-yours-local-voltage"] {
+      color: #2a78d6;
+    }
+    #chip-07-yours-local {
+      flex: none;
+      margin-left: 28px;
+      padding: 9px 16px 10px;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 6px;
+      background: #121a2c;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      color: #f3f2ee;
+      transform-origin: 50% 50%;
+    }
+  </style>
+
+  <div data-hf-id="hf-2ubm"
+    id="root"
+    data-composition-id="07-yours-local"
+    data-width="1920"
+    data-height="1080"
+    data-start="0"
+    data-duration="7.4"
+  >
+    <div data-hf-id="hf-5upr"
+      id="ground-07-yours-local"
+      class="clip"
+      data-start="0"
+      data-duration="7.4"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-8gaq"
+      id="backdrop-07-yours-local" data-layout-allow-overflow
+      class="clip"
+      data-start="0"
+      data-duration="7.4"
+      data-track-index="1"
+    >
+      <img data-hf-id="hf-nuq7" id="table-07-yours-local" src="assets/06-table.png" alt="" />
+    </div>
+
+    <div data-hf-id="hf-dxn1"
+      id="content-07-yours-local"
+      class="clip"
+      data-start="0"
+      data-duration="7.4"
+      data-track-index="2"
+    >
+      <div data-hf-id="hf-ou3e" id="column-07-yours-local">
+        <div data-hf-id="hf-1p0l" id="kicker-07-yours-local">
+          <svg data-hf-id="hf-gnaz" id="spike-07-yours-local" viewBox="0 0 24 24" aria-hidden="true">
+            <g data-hf-id="hf-1q9y" fill="#2a78d6">
+              <rect data-hf-id="hf-1ik4" x="9.6" y="0.5" width="4.8" height="23" rx="2.4" />
+              <rect data-hf-id="hf-g055" x="9.6" y="0.5" width="4.8" height="23" rx="2.4" transform="rotate(60 12 12)" />
+              <rect data-hf-id="hf-tiue" x="9.6" y="0.5" width="4.8" height="23" rx="2.4" transform="rotate(120 12 12)" />
+            </g>
+          </svg>
+          <span data-hf-id="hf-lal0" id="kicker-text-07-yours-local">No lock-in</span>
+        </div>
+
+        <div data-hf-id="hf-pg5g" id="list-07-yours-local">
+          <div data-hf-id="hf-s7gy" id="rule-top-07-yours-local" class="07-yours-local-rule"></div>
+
+          <div data-hf-id="hf-5f8d" class="07-yours-local-row">
+            <div data-hf-id="hf-m7xa" id="marker-1-07-yours-local" class="07-yours-local-marker"></div>
+            <div data-hf-id="hf-o20b" id="line-1-07-yours-local" class="07-yours-local-line">
+              <span data-hf-id="hf-iuie" class="07-yours-local-voltage">Your files</span> stay the source of truth.
+            </div>
+            <div data-hf-id="hf-aybp" class="07-yours-local-rule"></div>
+          </div>
+
+          <div data-hf-id="hf-iagh" class="07-yours-local-row">
+            <div data-hf-id="hf-4jhz" id="marker-2-07-yours-local" class="07-yours-local-marker"></div>
+            <div data-hf-id="hf-xlrb" id="line-2-07-yours-local" class="07-yours-local-line">Runs locally. No API key.</div>
+            <div data-hf-id="hf-j6ah" class="07-yours-local-rule"></div>
+          </div>
+
+          <div data-hf-id="hf-jhdk" class="07-yours-local-row">
+            <div data-hf-id="hf-7jnk" id="marker-3-07-yours-local" class="07-yours-local-marker"></div>
+            <div data-hf-id="hf-hrds" id="line-3-07-yours-local" class="07-yours-local-line">
+              One MCP server for every agent session.
+            </div>
+            <div data-hf-id="hf-kd7k" class="07-yours-local-rule"></div>
+          </div>
+
+          <div data-hf-id="hf-j32j" class="07-yours-local-row">
+            <div data-hf-id="hf-d121" id="marker-4-07-yours-local" class="07-yours-local-marker"></div>
+            <div data-hf-id="hf-n81b" id="line-4-07-yours-local" class="07-yours-local-line">
+              Built in Go, on an embedded graph database.
+            </div>
+            <div data-hf-id="hf-k7x7" id="chip-07-yours-local">goraphdb</div>
+            <div data-hf-id="hf-jywj" class="07-yours-local-rule"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var ID = "07-yours-local";
+      function el(name) {
+        return document.getElementById(name + "-" + ID);
+      }
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-1.4s) — backdrop fades in dimmed, then defocuses (depth-of-field
+      // focal pull: the table recedes, the list stays the only sharp plane). The
+      // backdrop holds still at scale 1.03, which keeps the blurred edges outside the frame.
+      var table = el("table");
+      tl.fromTo(table, { opacity: 0 }, { opacity: 0.25, duration: 0.9, ease: "power2.out" }, 0);
+      tl.fromTo(
+        table,
+        { "--dof": "0px" },
+        { "--dof": "7px", duration: 1.1, ease: "power2.inOut" },
+        0,
+      );
+      tl.set(table, { scale: 1.03 }, 0); // static: this is a held breather frame, no back-half push
+
+      // Kicker: coral spike fades + scales 0.92 -> 1; label rises in.
+      tl.fromTo(
+        el("spike"),
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" },
+        0.08,
+      );
+      tl.fromTo(
+        el("kicker-text"),
+        { opacity: 0, y: 10 },
+        { opacity: 0.82, y: 0, duration: 0.5, ease: "power3.out" },
+        0.1,
+      );
+
+      // The empty 4-slot list: hairline rows draw on, top to bottom.
+      var rules = Array.prototype.slice.call(document.getElementsByClassName(ID + "-rule"));
+      rules.forEach(function (rule, i) {
+        tl.fromTo(
+          rule,
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.7, ease: "power3.out" },
+          0.12 + i * 0.06,
+        );
+      });
+
+      // Lines pop into their slots on the voiceover cues (spring-pop entrance, smooth:
+      // power3.out, no overshoot). The marker pops in place; the line grows out of it.
+      var CUES = [0.3, 1.45, 2.85, 4.25];
+      CUES.forEach(function (t, i) {
+        var n = i + 1;
+        tl.fromTo(
+          el("marker-" + n),
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" },
+          t,
+        );
+        tl.fromTo(
+          el("line-" + n),
+          { scale: 0, opacity: 0, y: 14 },
+          { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+          t + 0.05,
+        );
+      });
+
+      // Scene 4 tail: the goraphdb chip lands at the end of line 4.
+      tl.fromTo(
+        el("chip"),
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" },
+        4.75,
+      );
+
+      // Scene 5 (5.6-7.0s): all four lines co-resident, held still.
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["07-yours-local"] = tl;
+    })();
+  </script>
+</template>

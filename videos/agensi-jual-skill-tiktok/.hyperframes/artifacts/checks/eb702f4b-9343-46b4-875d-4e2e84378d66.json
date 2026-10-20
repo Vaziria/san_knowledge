@@ -1,0 +1,390 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 5
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 3,
+    "infoCount": 5,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "warning",
+        "time": 8.333,
+        "selector": "#f02-tail",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 76,
+          "top": 1252.63,
+          "right": 900,
+          "bottom": 1454.78,
+          "width": 824,
+          "height": 202.16
+        },
+        "containerSelector": "#f02-lockup",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 80,
+          "top": 788,
+          "right": 900,
+          "bottom": 1454.78,
+          "width": 820,
+          "height": 666.78
+        },
+        "overflow": {
+          "left": 4
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/02-tujuh-puluh.html",
+        "bbox": {
+          "x": 76,
+          "y": 1252.63,
+          "width": 824,
+          "height": 202.16
+        },
+        "firstSeen": 8.333,
+        "lastSeen": 15,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          8.333,
+          11.667,
+          15
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "warning",
+        "time": 11.667,
+        "selector": "#f02-lead-in",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 74,
+          "top": 788,
+          "right": 900,
+          "bottom": 896,
+          "width": 826,
+          "height": 108
+        },
+        "containerSelector": "#f02-lockup",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 80,
+          "top": 788,
+          "right": 900,
+          "bottom": 1454.78,
+          "width": 820,
+          "height": 666.78
+        },
+        "overflow": {
+          "left": 6
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/02-tujuh-puluh.html",
+        "bbox": {
+          "x": 74,
+          "y": 788,
+          "width": 826,
+          "height": 108
+        },
+        "firstSeen": 11.667,
+        "lastSeen": 15,
+        "occurrences": 2,
+        "heldMs": 0,
+        "times": [
+          11.667,
+          15
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "warning",
+        "time": 11.667,
+        "selector": "#f02-figure",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 66,
+          "top": 900,
+          "right": 900,
+          "bottom": 1232.63,
+          "width": 834,
+          "height": 332.63
+        },
+        "containerSelector": "#f02-lockup",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 80,
+          "top": 788,
+          "right": 900,
+          "bottom": 1454.78,
+          "width": 820,
+          "height": 666.78
+        },
+        "overflow": {
+          "left": 14
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/02-tujuh-puluh.html",
+        "bbox": {
+          "x": 66,
+          "y": 900,
+          "width": 834,
+          "height": 332.63
+        },
+        "firstSeen": 11.667,
+        "lastSeen": 15,
+        "occurrences": 2,
+        "heldMs": 0,
+        "times": [
+          11.667,
+          15
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 6.369,
+        "selector": "#f01-s2-head",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 0,
+          "top": 0,
+          "right": 1080,
+          "bottom": 282.94,
+          "width": 1080,
+          "height": 282.94
+        },
+        "containerSelector": "#f02-kicker-text",
+        "text": "Instruksi itu",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/01-hook.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 282.94
+        },
+        "firstSeen": 6.369,
+        "lastSeen": 6.369,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6.369
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 6.369,
+        "selector": "#f01-pay-text > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 0,
+          "top": 211.16,
+          "right": 853.37,
+          "bottom": 662.11,
+          "width": 853.37,
+          "height": 450.95
+        },
+        "containerSelector": "#f02-head",
+        "text": "bisa kamu",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/01-hook.html",
+        "bbox": {
+          "x": 0,
+          "y": 211.16,
+          "width": 853.37,
+          "height": 450.95
+        },
+        "firstSeen": 6.369,
+        "lastSeen": 6.369,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6.369
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 24.302,
+        "selector": "#f03-h2 > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 58,
+          "top": 941,
+          "right": 259.27,
+          "bottom": 1056,
+          "width": 201.27,
+          "height": 115
+        },
+        "containerSelector": "#f04-w1",
+        "text": "Harga",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/03-laku-harga.html",
+        "bbox": {
+          "x": 58,
+          "y": 941,
+          "width": 201.27,
+          "height": 115
+        },
+        "firstSeen": 24.302,
+        "lastSeen": 24.302,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          24.302
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 24.302,
+        "selector": "#f03-h2 > span:nth-of-type(2)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 275.3,
+          "top": 941,
+          "right": 379.94,
+          "bottom": 1056,
+          "width": 104.64,
+          "height": 115
+        },
+        "containerSelector": "#f04-w2",
+        "text": "per",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/03-laku-harga.html",
+        "bbox": {
+          "x": 275.3,
+          "y": 941,
+          "width": 104.64,
+          "height": 115
+        },
+        "firstSeen": 24.302,
+        "lastSeen": 24.302,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          24.302
+        ]
+      },
+      {
+        "code": "text_box_overflow",
+        "severity": "info",
+        "time": 25,
+        "selector": "#f04-w3",
+        "message": "Text extends outside its nearest visual/container box.",
+        "rect": {
+          "left": 484.88,
+          "top": 934.92,
+          "right": 830.94,
+          "bottom": 1047.12,
+          "width": 346.06,
+          "height": 112.2
+        },
+        "containerSelector": "#f04-hmask",
+        "text": "skill-mu:",
+        "fixHint": "Text is 346px x 112px inside 795px x 162px and overflows by up to 5px; increase the container height to at least ~167px, or allow wrapping with max-width/fitTextFontSize.",
+        "containerRect": {
+          "left": 60,
+          "top": 880,
+          "right": 854.94,
+          "bottom": 1042.19,
+          "width": 794.94,
+          "height": 162.19
+        },
+        "overflow": {
+          "bottom": 4.93
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/frames/04-mulai.html",
+        "bbox": {
+          "x": 484.88,
+          "y": 934.92,
+          "width": 346.06,
+          "height": 112.2
+        },
+        "firstSeen": 25,
+        "lastSeen": 25,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          25
+        ]
+      }
+    ],
+    "duration": 30,
+    "samples": [
+      1.667,
+      5,
+      8.333,
+      11.667,
+      15,
+      18.333,
+      21.667,
+      25,
+      28.333
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 8,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      1.667,
+      8.333,
+      15,
+      21.667,
+      28.333
+    ],
+    "checked": 35,
+    "passed": 35
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

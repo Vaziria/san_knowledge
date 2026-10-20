@@ -1,0 +1,378 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      color: #f3f2ee;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+    }
+
+    /* ground: navy, its own full-duration clip */
+    .f02-ground {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #1f2a44;
+    }
+
+    /* container law: type sizes are cqw against this 1080-wide box */
+    .f02-stage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      container-type: size;
+    }
+
+    /* ---- top: kicker + "Di Agensi.io," ---- */
+    .f02-kicker {
+      position: absolute;
+      left: 80px;
+      top: 176px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 2.963cqw; /* 32px */
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+    .f02-spike {
+      width: 30px;
+      height: 30px;
+      flex: none;
+      transform-origin: 50% 50%;
+    }
+    .f02-head {
+      position: absolute;
+      left: 74px;
+      top: 226px;
+      font-size: 10cqw; /* 108px */
+      line-height: 1;
+      letter-spacing: -0.022em;
+      white-space: nowrap;
+    }
+
+    /* ---- the real Agensi capture as a floating window ---- */
+    /* outer box: position + the Scene 2 shrink (origin top-left) */
+    .f02-window-pos {
+      position: absolute;
+      left: 60px;
+      top: 540px;
+      width: 960px;
+      height: 540px;
+      transform-origin: 0 0;
+    }
+    /* inner box: the window chrome + its entrance */
+    .f02-window {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fbfbfc;
+      box-shadow:
+        0 0 0 1px rgba(243, 242, 238, 0.14),
+        0 16px 40px rgba(6, 10, 22, 0.34);
+    }
+    /* the two screens: same footprint, same centre (scale-swap) */
+    .f02-screen {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: 10px;
+      transform-origin: 50% 50%;
+    }
+    .f02-screen-hero {
+      z-index: 1;
+    }
+    .f02-screen-biz {
+      z-index: 2;
+    }
+    .f02-hero-img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 960px;
+      height: 540px;
+      display: block;
+    }
+    /* 3840x2160 capture at 1.07 window px per native px, view origin at
+       native (997.4, 1046): the "Updates reach every buyer" and "Keep 70%"
+       blocks, every window edge on blank page (no glyph sliced). */
+    .f02-biz-img {
+      position: absolute;
+      left: -1067.22px;
+      top: -1119.22px;
+      width: 4108.8px;
+      height: 2311.2px;
+      max-width: none;
+      display: block;
+    }
+    .f02-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 960px;
+      height: 540px;
+      z-index: 3;
+      overflow: visible;
+    }
+    .f02-marker-path {
+      fill: none;
+      stroke: #2a78d6;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      /* pathLength 1000: GSAP writes whole px, so 1/1000 steps draw smoothly */
+      stroke-dasharray: 1000 1000;
+      stroke-dashoffset: 1000;
+    }
+
+    /* ---- the money: kamu simpan / 70% / dari setiap penjualan skill. ---- */
+    .f02-lockup {
+      position: absolute;
+      left: 80px;
+      top: 788px;
+      width: 820px;
+    }
+    .f02-lead-in {
+      margin-left: -6px;
+      font-size: 10cqw; /* 108px */
+      line-height: 1;
+      letter-spacing: -0.022em;
+      white-space: nowrap;
+    }
+    .f02-figure {
+      display: flex;
+      align-items: baseline;
+      margin-top: 4px;
+      margin-left: -14px;
+      color: #eb6834;
+      transform-origin: 0% 80%;
+      white-space: nowrap;
+    }
+    .f02-num {
+      font-size: 38.5cqw; /* 416px */
+      line-height: 0.8;
+      letter-spacing: -0.025em;
+      font-variant-numeric: lining-nums;
+    }
+    .f02-unit {
+      margin-left: 10px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12cqw;
+      font-weight: 400;
+      line-height: 1;
+    }
+    .f02-tail {
+      margin-top: 20px;
+      margin-left: -4px;
+      font-size: 9cqw; /* 97px */
+      line-height: 1.04;
+      letter-spacing: -0.018em;
+      white-space: nowrap;
+    }
+    .f02-word {
+      display: inline-block;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="02-tujuh-puluh"
+    data-start="0"
+    data-duration="9.5"
+    data-width="1080"
+    data-height="1920"
+  >
+    <div
+      id="f02-ground"
+      class="clip f02-ground"
+      data-start="0"
+      data-duration="9.5"
+      data-track-index="0"
+    ></div>
+
+    <div
+      id="f02-stage"
+      class="clip f02-stage"
+      data-start="0"
+      data-duration="9.5"
+      data-track-index="1"
+    >
+      <div id="f02-kicker" class="f02-kicker">
+        <svg id="f02-spike" class="f02-spike" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#2a78d6" stroke-width="3.6" stroke-linecap="round">
+            <line x1="12" y1="2.6" x2="12" y2="21.4" />
+            <line x1="3.86" y1="7.3" x2="20.14" y2="16.7" />
+            <line x1="3.86" y1="16.7" x2="20.14" y2="7.3" />
+          </g>
+        </svg>
+        <span id="f02-kicker-text" class="f02-kicker-text">AGENSI.IO</span>
+      </div>
+
+      <div id="f02-head" class="f02-head">Di Agensi.io,</div>
+
+      <div id="f02-window-pos" class="f02-window-pos">
+        <div id="f02-window" class="f02-window">
+          <div id="f02-screen-hero" class="f02-screen f02-screen-hero">
+            <img id="f02-hero-img" class="f02-hero-img" src="assets/agensi-home-hero.png" alt="" />
+          </div>
+          <div id="f02-screen-biz" class="f02-screen f02-screen-biz" data-layout-allow-overflow>
+            <img
+              id="f02-biz-img"
+              class="f02-biz-img"
+              src="assets/agensi-home-build-business.png"
+              alt=""
+              data-layout-allow-overflow
+            />
+          </div>
+          <!-- marker box around "Keep 70%, paid to your bank": glyphs measured at
+               native x 1122-1507, y 1331-1357; box native 1104-1525 x 1315-1370
+               (clear of the icon, ends 1095, and the line below, starts 1377),
+               mapped to window px: (n - origin) * 1.07 -->
+          <svg id="f02-marker" class="f02-marker" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg">
+            <path
+              id="f02-marker-path"
+              class="f02-marker-path"
+              pathLength="1000"
+              d="M124.1 287.8 H554.5 A10 10 0 0 1 564.5 297.8 V336.7 A10 10 0 0 1 554.5 346.7 H124.1 A10 10 0 0 1 114.1 336.7 V297.8 A10 10 0 0 1 124.1 287.8 Z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div id="f02-lockup" class="f02-lockup">
+        <div id="f02-lead-in" class="f02-lead-in">kamu simpan</div>
+        <div id="f02-figure" class="f02-figure">
+          <span class="f02-num">70</span><span class="f02-unit">%</span>
+        </div>
+        <div id="f02-tail" class="f02-tail">
+          <span class="f02-word">dari</span> <span class="f02-word">setiap</span><br />
+          <span class="f02-word">penjualan</span> <span class="f02-word">skill.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var ID = "02-tujuh-puluh";
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-3.0s): kicker + "Di Agensi.io,", the window with the home page,
+      // scale-swap to the zoomed "Keep 70%" line at 1.6s, marker box at 2.4s.
+      tl.fromTo(
+        "#f02-spike",
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out", force3D: false },
+        0
+      );
+      tl.fromTo(
+        "#f02-kicker-text",
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" },
+        0.05
+      );
+      tl.fromTo(
+        "#f02-head",
+        { opacity: 0, y: 36 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        0.1
+      );
+      tl.fromTo(
+        "#f02-window",
+        { opacity: 0, y: 56 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        0.2
+      );
+
+      // scale-swap (shared centre): the outgoing shrinks + fades fast (power2.in),
+      // the incoming arrives 0.1s before the exit ends and settles without
+      // overshoot (the video's motion grammar: no bounce). Its opacity has its
+      // own short ramp so the two busy pages never sit half-on together.
+      tl.fromTo(
+        "#f02-screen-hero",
+        { scale: 1 },
+        { scale: 0.8, duration: 0.35, ease: "power2.in", force3D: false },
+        1.6
+      );
+      tl.fromTo("#f02-screen-hero", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in" }, 1.6);
+      tl.fromTo(
+        "#f02-screen-biz",
+        { scale: 0.8 },
+        { scale: 1, duration: 0.6, ease: "expo.out", force3D: false },
+        1.85
+      );
+      tl.fromTo("#f02-screen-biz", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 1.85);
+
+      // marker box draws on around the line
+      tl.fromTo("#f02-marker-path", { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, 2.4);
+      tl.fromTo(
+        "#f02-marker-path",
+        { strokeDashoffset: 1000 },
+        { strokeDashoffset: 0, duration: 0.5, ease: "power2.inOut" },
+        2.4
+      );
+
+      // Scene 2 (3.0-9.0s): the window shrinks up out of the way (0.7, top),
+      // then "kamu simpan" (3.6s), "70%" lands at 4.2s (host ting), the tail at 5.2s.
+      tl.fromTo(
+        "#f02-window-pos",
+        { x: 0, y: 0, scale: 1 },
+        { x: 20, y: -162, scale: 0.7, duration: 0.8, ease: "power3.inOut", force3D: false },
+        3.0
+      );
+      tl.fromTo(
+        "#f02-lead-in",
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        3.6
+      );
+      tl.fromTo("#f02-figure", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power1.out" }, 4.08);
+      tl.fromTo(
+        "#f02-figure",
+        { scale: 1.16 },
+        { scale: 1, duration: 0.24, ease: "power3.out", force3D: false },
+        4.08
+      );
+      tl.fromTo(
+        "#f02-tail .f02-word",
+        { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.08 },
+        5.2
+      );
+
+      // hold still to the frame's full length
+      tl.set({}, {}, 9);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

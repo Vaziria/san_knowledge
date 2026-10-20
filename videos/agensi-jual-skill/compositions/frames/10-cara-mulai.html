@@ -1,0 +1,235 @@
+<template>
+  <style>
+    @font-face { font-family: "EB Garamond"; src: url("assets/fonts/EBGaramond-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      color: #f3f2ee;
+      font-family: "Inter", sans-serif;
+    }
+
+    /* Ground: navy (frame.md `cream` key) as a full-duration clip layer. */
+    .f10-ground { position: absolute; inset: 0; background: #1f2a44; }
+
+    /* Everything that fades out in the last 0.5 s lives on this one layer. */
+    .f10-stage { position: absolute; inset: 0; }
+
+    /* ---- left column ---- */
+    .f10-kicker {
+      position: absolute; left: 80px; top: 120px;
+      display: flex; align-items: center; gap: 14px;
+      font-family: "JetBrains Mono", monospace; font-weight: 400;
+      font-size: 28px; line-height: 1; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #f3f2ee; white-space: nowrap;
+    }
+    .f10-spike { display: block; width: 26px; height: 26px; flex: none; }
+
+    .f10-hmask {
+      position: absolute; left: 80px; top: 150px;
+      overflow: hidden; padding: 14px 24px 26px 0;
+    }
+    .f10-head {
+      font-family: "EB Garamond", serif; font-weight: 400;
+      font-size: 7.3cqw; line-height: 1.02; letter-spacing: -0.022em;
+      color: #f3f2ee; white-space: nowrap;
+    }
+
+    .f10-list { position: absolute; left: 80px; top: 356px; width: 860px; }
+    .f10-row {
+      position: relative; height: 80px; padding-top: 10px;
+      display: flex; align-items: baseline;
+    }
+    .f10-num {
+      flex: none; width: 66px;
+      font-family: "JetBrains Mono", monospace; font-weight: 400;
+      font-size: 34px; line-height: 60px;
+      color: rgba(243, 242, 238, 0.6);
+      transform-origin: 30% 60%;
+    }
+    .f10-txt {
+      display: block; white-space: nowrap;
+      font-family: "Inter", sans-serif; font-weight: 400;
+      font-size: 2.08cqw; line-height: 60px;
+      color: #f3f2ee;
+      padding: 6px 8px 8px 0; margin: -6px -8px -8px 0;
+    }
+    .f10-rule {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+      background: rgba(243, 242, 238, 0.14);
+      transform-origin: 0% 50%;
+    }
+
+    .f10-pill {
+      position: absolute; left: 80px; top: 716px;
+      display: inline-block; overflow: hidden;
+      background: #2a78d6; border-radius: 9999px;
+      padding: 22px 40px;
+    }
+    .f10-pilltxt {
+      display: block; white-space: nowrap;
+      font-family: "Inter", sans-serif; font-weight: 400;
+      font-size: 2.3cqw; line-height: 1; letter-spacing: -0.005em;
+      color: #f3f2ee;
+    }
+    .f10-note {
+      position: absolute; left: 80px; top: 830px;
+      font-family: "JetBrains Mono", monospace; font-weight: 400;
+      font-size: 26px; line-height: 1; letter-spacing: 0.02em;
+      color: rgba(243, 242, 238, 0.6); white-space: nowrap;
+    }
+
+    /* ---- right window (real agensi.io captures, never repainted) ---- */
+    .f10-window {
+      position: absolute; left: 1000px; top: 120px; width: 840px; height: 700px;
+      border-radius: 12px; overflow: hidden;
+      background: #26324f;
+      box-shadow: 0 0 0 1px rgba(243, 242, 238, 0.14), 0 18px 48px rgba(10, 14, 26, 0.38);
+    }
+    .f10-screen { position: absolute; inset: 0; overflow: hidden; transform-origin: 50% 50%; }
+    .f10-screen-sell { z-index: 2; }
+    .f10-screen-guide { z-index: 1; }
+    .f10-cam { position: absolute; inset: 0; transform-origin: 0 0; }
+    .f10-shot { position: absolute; display: block; max-width: none; }
+    /* Guide: 1920x1080 view region x 480-1440, y 140-940 at 0.875 (title + quick answer + contents). */
+    .f10-shot-guide { left: -420px; top: -122.5px; width: 1680px; height: 945px; }
+    /* Sell: view region x 160-806, y 104-642 at 1.3 (headline, Start Selling, 70% to you). */
+    .f10-shot-sell { left: -208px; top: -135.2px; width: 2496px; height: 1404px; }
+  </style>
+
+  <div data-hf-id="hf-g5dh" id="root" data-composition-id="10-cara-mulai" data-width="1920" data-height="1080" data-duration="13">
+    <div data-hf-id="hf-aq1m" id="f10-ground" class="clip f10-ground" data-start="0" data-duration="13" data-track-index="0"></div>
+
+    <div data-hf-id="hf-gbov" id="f10-stage" class="clip f10-stage" data-start="0" data-duration="13" data-track-index="1">
+      <div data-hf-id="hf-dusi" id="f10-window" class="f10-window">
+        <div data-hf-id="hf-8aum" id="f10-scr-guide" class="f10-screen f10-screen-guide">
+          <div data-hf-id="hf-xdvf" id="f10-cam" class="f10-cam" data-layout-allow-overflow>
+            <img data-hf-id="hf-daxw" id="f10-img-guide" class="f10-shot f10-shot-guide" data-layout-allow-overflow src="assets/agensi-guide-how-to-sell.png" alt="" />
+          </div>
+        </div>
+        <div data-hf-id="hf-f5gk" id="f10-scr-sell" class="f10-screen f10-screen-sell">
+          <img data-hf-id="hf-q88y" id="f10-img-sell" class="f10-shot f10-shot-sell" data-layout-allow-overflow src="assets/agensi-sell.png" alt="" />
+        </div>
+      </div>
+
+      <div data-hf-id="hf-bhw6" id="f10-kicker" class="f10-kicker">
+        <svg data-hf-id="hf-jte9" id="f10-spike" class="f10-spike" viewBox="0 0 24 24" aria-hidden="true">
+          <g data-hf-id="hf-oibu" stroke="#2a78d6" stroke-width="3.4" stroke-linecap="round" fill="none">
+            <line data-hf-id="hf-j3tt" x1="12" y1="2.6" x2="12" y2="21.4" />
+            <line data-hf-id="hf-gm9t" x1="2.6" y1="12" x2="21.4" y2="12" />
+            <line data-hf-id="hf-whra" x1="5.35" y1="5.35" x2="18.65" y2="18.65" />
+            <line data-hf-id="hf-b6de" x1="18.65" y1="5.35" x2="5.35" y2="18.65" />
+          </g>
+        </svg>
+        <span data-hf-id="hf-c57k">CARA MULAI</span>
+      </div>
+
+      <div data-hf-id="hf-cdc2" id="f10-hmask" class="f10-hmask">
+        <div data-hf-id="hf-tlgz" id="f10-head" class="f10-head">Cara mulai:</div>
+      </div>
+
+      <div data-hf-id="hf-fxdu" id="f10-list" class="f10-list">
+        <div data-hf-id="hf-zlhz" id="f10-row1" class="f10-row">
+          <span data-hf-id="hf-884v" id="f10-num1" class="f10-num">1.</span>
+          <span data-hf-id="hf-x7fv" id="f10-txt1" class="f10-txt">Buat akun, sambungkan Stripe.</span>
+          <span data-hf-id="hf-9c6k" id="f10-rule1" class="f10-rule"></span>
+        </div>
+        <div data-hf-id="hf-srzg" id="f10-row2" class="f10-row">
+          <span data-hf-id="hf-c92f" id="f10-num2" class="f10-num">2.</span>
+          <span data-hf-id="hf-zt2u" id="f10-txt2" class="f10-txt">Kemas skill jadi zip berisi SKILL.md.</span>
+          <span data-hf-id="hf-i02f" id="f10-rule2" class="f10-rule"></span>
+        </div>
+        <div data-hf-id="hf-pho5" id="f10-row3" class="f10-row">
+          <span data-hf-id="hf-iidz" id="f10-num3" class="f10-num">3.</span>
+          <span data-hf-id="hf-7yd5" id="f10-txt3" class="f10-txt">Kirim untuk review keamanan.</span>
+          <span data-hf-id="hf-e1ye" id="f10-rule3" class="f10-rule"></span>
+        </div>
+        <div data-hf-id="hf-89du" id="f10-row4" class="f10-row">
+          <span data-hf-id="hf-zt0n" id="f10-num4" class="f10-num">4.</span>
+          <span data-hf-id="hf-15pm" id="f10-txt4" class="f10-txt">Pasang harga, lalu tayang.</span>
+          <span data-hf-id="hf-mpu9" id="f10-rule4" class="f10-rule"></span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-snoa" id="f10-pill" class="f10-pill">
+        <span data-hf-id="hf-44wt" id="f10-pilltxt" class="f10-pilltxt">agensi.io/sell</span>
+      </div>
+      <div data-hf-id="hf-o0k7" id="f10-note" class="f10-note">panduan lengkap di Agensi</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-1.8s): the guide window floats in, kicker, then the headline rises out of its mask.
+      tl.fromTo("#f10-window",
+        { opacity: 0, y: 28, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "power3.out" }, 0.05);
+      tl.fromTo("#f10-kicker",
+        { opacity: 0, x: -14 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.1);
+      tl.fromTo("#f10-spike",
+        { scale: 0.92 },
+        { scale: 1, duration: 0.5, ease: "power3.out" }, 0.1);
+      tl.fromTo("#f10-head",
+        { yPercent: 105 },
+        { yPercent: 0, duration: 0.8, ease: "power3.out" }, 0.3);
+
+      // Scene 2 opens (1.8-2.8s): zoom-to-target on the guide's Quick Answer, then hold.
+      // View region x 508-1153, y 466-1003 fills the window: scale 0.875 -> 1.3023 (x1.4884 on the cam).
+      tl.fromTo("#f10-cam",
+        { x: 0, y: 0, scale: 1 },
+        { x: -36.47, y: -424.56, scale: 1.4884, duration: 1.0, ease: "power2.inOut" }, 1.8);
+
+      // Scene 2 (1.8-8.2s): the four steps pop into their slots and stay (host pop sfx at each time).
+      var STEPS = [2.0, 3.6, 5.2, 6.8];
+      for (var i = 0; i < STEPS.length; i++) {
+        var t = STEPS[i];
+        var n = i + 1;
+        tl.fromTo("#f10-num" + n,
+          { opacity: 0, scale: 0.6 },
+          { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, t);
+        tl.fromTo("#f10-txt" + n,
+          { clipPath: "inset(0% 100% 0% 0%)", x: 16 },
+          { clipPath: "inset(0% 0% 0% 0%)", x: 0, duration: 0.6, ease: "power3.out" }, t + 0.05);
+        tl.fromTo("#f10-rule" + n,
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.8, ease: "power3.out" }, t);
+      }
+
+      // Scene 3 (8.2-13.0s): the window's screen advances guide -> sell page (scale-swap, smooth settle).
+      tl.fromTo("#f10-scr-guide",
+        { scale: 1, opacity: 1 },
+        { scale: 0.86, opacity: 0, duration: 0.35, ease: "power2.in", immediateRender: false }, 8.4);
+      tl.fromTo("#f10-scr-sell",
+        { scale: 0.86, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" }, 8.6);
+
+      // 9.0s (host ting): the blue pill wipes in left to right under the list; the note follows.
+      tl.fromTo("#f10-pill",
+        { clipPath: "inset(0% 100% 0% 0%)" },
+        { clipPath: "inset(0% 0% 0% 0%)", duration: 0.6, ease: "power3.out" }, 9.0);
+      tl.fromTo("#f10-pilltxt",
+        { x: -18 },
+        { x: 0, duration: 0.6, ease: "power3.out" }, 9.0);
+      tl.fromTo("#f10-note",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 9.5);
+
+      // Hold still 9.6-12.5s. Final frame of the video: fade to the navy ground in the last 0.5 s.
+      tl.fromTo("#f10-stage",
+        { opacity: 1 },
+        { opacity: 0, duration: 0.5, ease: "power1.inOut", immediateRender: false }, 12.5);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["10-cara-mulai"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,466 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "EB Garamond";
+      src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      color: #f3f2ee;
+    }
+
+    /* Depth layer 1: the navy ground, a full-duration clip (never on #root). */
+    #\30 3-one-graph-bg {
+      position: absolute;
+      inset: 0;
+      background: #1f2a44;
+    }
+
+    #\30 3-one-graph-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ---- Left column (35%) ---- */
+    #\30 3-one-graph-col {
+      position: absolute;
+      left: 80px;
+      top: 0;
+      width: 600px;
+      height: 900px;
+    }
+
+    #\30 3-one-graph-kicker {
+      position: absolute;
+      left: 0;
+      top: 170px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(243, 242, 238, 0.74);
+      white-space: nowrap;
+    }
+
+    #\30 3-one-graph-spike {
+      display: block;
+      width: 26px;
+      height: 26px;
+      flex: none;
+      transform-origin: 50% 50%;
+    }
+
+    #\30 3-one-graph-kicker-text {
+      display: block;
+    }
+
+    [class~="03-one-graph-head"] {
+      position: absolute;
+      left: 0;
+      width: 600px;
+      font-family: "EB Garamond", serif;
+      font-weight: 400;
+      font-size: 76px;
+      line-height: 1.06;
+      letter-spacing: -0.018em;
+      color: #f3f2ee;
+    }
+
+    #\30 3-one-graph-headA {
+      top: 230px;
+    }
+
+    #\30 3-one-graph-headB {
+      top: 524px;
+    }
+
+    #\30 3-one-graph-headC {
+      top: 612px;
+      font-size: 120px;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      font-style: italic;
+    }
+
+    [class~="03-one-graph-line"] {
+      display: block;
+      white-space: nowrap;
+    }
+
+    [class~="03-one-graph-word"] {
+      display: inline-block;
+    }
+
+    #\30 3-one-graph-see {
+      color: #2a78d6;
+    }
+
+    #\30 3-one-graph-chips {
+      position: absolute;
+      left: 0;
+      top: 428px;
+      display: flex;
+      gap: 12px;
+    }
+
+    [class~="03-one-graph-chip"] {
+      display: block;
+      padding: 11px 18px;
+      background: #26324f;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      color: #f3f2ee;
+      white-space: nowrap;
+    }
+
+    /* ---- Right column (65%): the floating window ---- */
+    /* Depth layer 2: a half-step tile plate offset behind the window. */
+    #\30 3-one-graph-plate {
+      position: absolute;
+      left: 768px;
+      top: 200px;
+      width: 1104px;
+      height: 621px;
+      background: #26324f;
+      border: 1px solid rgba(243, 242, 238, 0.1);
+      border-radius: 12px;
+      transform-origin: 50% 50%;
+    }
+
+    /* Depth layer 3: the window. Float wrapper drifts; window itself enters. */
+    #\30 3-one-graph-float {
+      position: absolute;
+      left: 736px;
+      top: 168px;
+      width: 1104px;
+      height: 621px;
+    }
+
+    #\30 3-one-graph-win {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      box-shadow:
+        0 2px 6px rgba(9, 13, 26, 0.32),
+        0 18px 44px rgba(9, 13, 26, 0.34);
+    }
+
+    #\30 3-one-graph-screen {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      background: #1a1a19;
+    }
+
+    [class~="03-one-graph-scr"] {
+      position: absolute;
+      inset: 0;
+      width: 1104px;
+      height: 621px;
+      transform-origin: 50% 50%;
+    }
+
+    #\30 3-one-graph-scrA {
+      z-index: 1;
+    }
+
+    #\30 3-one-graph-scrB {
+      z-index: 2;
+    }
+
+    #\30 3-one-graph-zoomOuter,
+    #\30 3-one-graph-zoomInner {
+      position: absolute;
+      inset: 0;
+      width: 1104px;
+      height: 621px;
+      transform-origin: 50% 50%;
+    }
+
+    [class~="03-one-graph-shot"] {
+      display: block;
+      width: 1104px;
+      height: 621px;
+    }
+
+    #\30 3-one-graph-rim {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      border: 1px solid rgba(243, 242, 238, 0.14);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+  </style>
+
+  <div data-hf-id="hf-i8qo"
+    id="root"
+    data-composition-id="03-one-graph"
+    data-start="0"
+    data-duration="9.5"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-js23"
+      id="03-one-graph-bg"
+      class="clip"
+      data-start="0"
+      data-duration="9.5"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-l735"
+      id="03-one-graph-stage"
+      class="clip"
+      data-start="0"
+      data-duration="9.5"
+      data-track-index="1"
+    >
+      <!-- Right: plate + floating window -->
+      <div data-hf-id="hf-ugnp" id="03-one-graph-plate"></div>
+
+      <div data-hf-id="hf-j0c3" id="03-one-graph-float">
+        <div data-hf-id="hf-qzvb" id="03-one-graph-win">
+          <div data-hf-id="hf-a91r" id="03-one-graph-screen">
+            <!-- Screen 1: the real top level, zoomed by a nested camera -->
+            <div data-hf-id="hf-cxoc" id="03-one-graph-scrA" class="03-one-graph-scr" data-layout-allow-overflow>
+              <div data-hf-id="hf-lge2" id="03-one-graph-zoomOuter" data-layout-allow-overflow>
+                <div data-hf-id="hf-wvif" id="03-one-graph-zoomInner" data-layout-allow-overflow>
+                  <img data-hf-id="hf-ac37"
+                    class="03-one-graph-shot"
+                    src="assets/01-overview.png"
+                    alt="Knowledge graph top level: five domains and the docs without a domain"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- Screen 2: the whole project as one connected graph -->
+            <div data-hf-id="hf-nt5z" id="03-one-graph-scrB" class="03-one-graph-scr" data-layout-allow-overflow>
+              <img data-hf-id="hf-zqa8"
+                class="03-one-graph-shot"
+                src="assets/05-expanded.png"
+                alt="Every doc and section expanded into one connected graph"
+              />
+            </div>
+          </div>
+          <div data-hf-id="hf-vj8d" id="03-one-graph-rim"></div>
+        </div>
+      </div>
+
+      <!-- Left: kicker, headline parts, chips -->
+      <div data-hf-id="hf-0y7j" id="03-one-graph-col">
+        <div data-hf-id="hf-jhps" id="03-one-graph-kicker">
+          <svg data-hf-id="hf-sgdc" id="03-one-graph-spike" viewBox="0 0 26 26" aria-hidden="true">
+            <g data-hf-id="hf-ox3y" stroke="#2a78d6" stroke-width="5" stroke-linecap="round">
+              <line data-hf-id="hf-nr0s" x1="13" y1="3" x2="13" y2="23" />
+              <line data-hf-id="hf-cx8p" x1="4.34" y1="8" x2="21.66" y2="18" />
+              <line data-hf-id="hf-x1gz" x1="4.34" y1="18" x2="21.66" y2="8" />
+            </g>
+          </svg>
+          <span data-hf-id="hf-4u56" id="03-one-graph-kicker-text">Your project, as a graph</span>
+        </div>
+
+        <div data-hf-id="hf-mz9j" id="03-one-graph-headA" class="03-one-graph-head">
+          <span data-hf-id="hf-1v1d" class="03-one-graph-line"
+            ><span data-hf-id="hf-kxtu" class="03-one-graph-word 03-one-graph-wA">Every</span>
+            <span data-hf-id="hf-fi4y" class="03-one-graph-word 03-one-graph-wA">markdown</span>
+            <span data-hf-id="hf-wym9" class="03-one-graph-word 03-one-graph-wA">file</span></span
+          >
+          <span data-hf-id="hf-00ad" class="03-one-graph-line"
+            ><span data-hf-id="hf-e0pg" class="03-one-graph-word 03-one-graph-wA">in</span>
+            <span data-hf-id="hf-0epo" class="03-one-graph-word 03-one-graph-wA">your</span>
+            <span data-hf-id="hf-clnw" class="03-one-graph-word 03-one-graph-wA">project</span></span
+          >
+        </div>
+
+        <div data-hf-id="hf-fgvk" id="03-one-graph-chips">
+          <span data-hf-id="hf-6i7a" class="03-one-graph-chip">docs</span>
+          <span data-hf-id="hf-nwez" class="03-one-graph-chip">specs</span>
+          <span data-hf-id="hf-j4fw" class="03-one-graph-chip">decisions</span>
+          <span data-hf-id="hf-93ep" class="03-one-graph-chip">tasks</span>
+        </div>
+
+        <div data-hf-id="hf-ebdo" id="03-one-graph-headB" class="03-one-graph-head">
+          <span data-hf-id="hf-177g" class="03-one-graph-line"
+            ><span data-hf-id="hf-qmjq" class="03-one-graph-word 03-one-graph-wB">becomes</span>
+            <span data-hf-id="hf-11iw" class="03-one-graph-word 03-one-graph-wB">one</span>
+            <span data-hf-id="hf-e308" class="03-one-graph-word 03-one-graph-wB">graph</span></span
+          >
+        </div>
+
+        <div data-hf-id="hf-f31h" id="03-one-graph-headC" class="03-one-graph-head">
+          <span data-hf-id="hf-0swf" class="03-one-graph-line"
+            ><span data-hf-id="hf-tnas" class="03-one-graph-word 03-one-graph-wC">you</span>
+            <span data-hf-id="hf-43n1" class="03-one-graph-word 03-one-graph-wC">can</span>
+            <span data-hf-id="hf-zem5" id="03-one-graph-see" class="03-one-graph-word 03-one-graph-wC">see.</span></span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var ID = "03-one-graph";
+      var byId = function (name) {
+        return document.getElementById(ID + "-" + name);
+      };
+      var byClass = function (name) {
+        return Array.prototype.slice.call(
+          document.querySelectorAll('[class~="' + ID + "-" + name + '"]'),
+        );
+      };
+
+      var tl = gsap.timeline({ paused: true });
+
+      // ---------- Scene 1 (0.0-1.6s): window rises in, kicker + headline A ----------
+      tl.fromTo(
+        byId("win"),
+        { y: 64, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.0, ease: "power3.out" },
+        0.05,
+      );
+      tl.fromTo(
+        byId("plate"),
+        { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1, duration: 1.1, ease: "power2.out" },
+        0.25,
+      );
+      tl.fromTo(
+        byId("spike"),
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" },
+        0.15,
+      );
+      tl.fromTo(
+        byId("kicker-text"),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        0.2,
+      );
+      tl.fromTo(
+        byClass("wA"),
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.08 },
+        0.45,
+      );
+
+      // ---------- Scene 2 (1.6-4.2s): chips (dynamic-content-sequencing) ----------
+      // Each chip's window = BASE + chars x SEC_PER_CHAR, pre-computed once.
+      var CHIP_START = 1.6;
+      var BASE_DURATION = 0.5;
+      var SEC_PER_CHAR = 0.03;
+      var chips = byClass("chip");
+      var cumulative = CHIP_START;
+      var CHIP_TIMELINE = chips.map(function (el) {
+        var start = cumulative;
+        cumulative += BASE_DURATION + el.textContent.length * SEC_PER_CHAR;
+        return { el: el, start: start };
+      });
+      CHIP_TIMELINE.forEach(function (entry) {
+        tl.fromTo(
+          entry.el,
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
+          entry.start,
+        );
+      });
+
+      // Coordinate-target zoom onto the left half of the graph canvas
+      // (Engineering (+9) and Operations (+2) hexagons with their labels).
+      // Screenshot is 3840x2160 shown at 1104x621 (k = 0.2875).
+      // Nested wrappers: outer scales about centre, inner translates by T = -offset.
+      var W = 1104;
+      var H = 621;
+      var K = W / 3840;
+      var TARGET_SRC_X = 1760;
+      var TARGET_SRC_Y = 600;
+      var TARGET_OFFSET_X = TARGET_SRC_X * K - W / 2; // -46
+      var TARGET_OFFSET_Y = TARGET_SRC_Y * K - H / 2; // -138
+      var ZOOM_SCALE = 2.35; // effective 0.68 of source pixels: stays sharp
+      var ZOOM_AT = 1.7;
+      var ZOOM_DUR = 1.4;
+      tl.fromTo(
+        byId("zoomOuter"),
+        { scale: 1 },
+        { scale: ZOOM_SCALE, duration: ZOOM_DUR, ease: "power3.inOut" },
+        ZOOM_AT,
+      );
+      tl.fromTo(
+        byId("zoomInner"),
+        { x: 0, y: 0 },
+        { x: -TARGET_OFFSET_X, y: -TARGET_OFFSET_Y, duration: ZOOM_DUR, ease: "power3.inOut" },
+        ZOOM_AT,
+      );
+
+      // ---------- Scene 3 (4.2-6.6s): "becomes one graph" + scale-swap ----------
+      tl.fromTo(
+        byClass("wB"),
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.09 },
+        4.2,
+      );
+      var TRIGGER = 4.3;
+      var EXIT_DUR = 0.4;
+      var ENTER_DUR = 0.65;
+      var OVERLAP = 0.15;
+      var EXIT_SCALE = 0.72;
+      tl.fromTo(
+        byId("scrA"),
+        { scale: 1, opacity: 1 },
+        {
+          scale: EXIT_SCALE,
+          opacity: 0,
+          duration: EXIT_DUR,
+          ease: "power2.in",
+          immediateRender: false,
+        },
+        TRIGGER,
+      );
+      tl.fromTo(
+        byId("scrB"),
+        { scale: EXIT_SCALE, opacity: 0 },
+        { scale: 1, opacity: 1, duration: ENTER_DUR, ease: "power3.out" },
+        TRIGGER + EXIT_DUR - OVERLAP,
+      );
+
+      // ---------- Scene 4 (6.6-9.0s): "you can see." lands, held read ----------
+      tl.fromTo(
+        byClass("wC"),
+        { opacity: 0, y: 36 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", stagger: 0.12 },
+        6.6,
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,453 @@
+<template>
+  <div data-hf-id="hf-4ek1"
+    id="root"
+    data-composition-id="05-flags-outdated"
+    data-start="0"
+    data-duration="9.5"
+    data-width="1920"
+    data-height="1080"
+  >
+    <style>
+      @font-face {
+        font-family: "EB Garamond";
+        src: url("assets/fonts/EBGaramond-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+
+      #root {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        container-type: size;
+        isolation: isolate;
+        color: #f3f2ee;
+        font-family: "EB Garamond", serif;
+      }
+      #root *,
+      #root *::before,
+      #root *::after {
+        box-sizing: border-box;
+      }
+
+      /* Full-bleed ground: navy, on its own full-duration clip. */
+      .flags-outdated-ground {
+        position: absolute;
+        inset: 0;
+        background: #1f2a44;
+      }
+      .flags-outdated-stage {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* ---------- Left: the real side-panel crop (07-outdated.png) ---------- */
+      /* Crop x 0-1198, y 120-1272 of the 3840x2160 capture, shown at 0.7. */
+      .flags-outdated-window {
+        position: absolute;
+        left: 88px;
+        top: 72px;
+        width: 838.6px;
+        height: 806.4px;
+        box-sizing: content-box !important;
+        border: 1px solid rgba(243, 242, 238, 0.14);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #0d0d0d;
+        box-shadow:
+          0 1px 3px rgba(6, 10, 20, 0.35),
+          0 14px 40px rgba(6, 10, 20, 0.3);
+      }
+      /* Screen layer in full-image pixels (y minus the 120px crop offset). */
+      .flags-outdated-screen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1198px;
+        height: 1152px;
+        transform: scale(0.7);
+        transform-origin: 0 0;
+        overflow: hidden;
+      }
+      .flags-outdated-shot {
+        position: absolute;
+        left: 0;
+        top: -120px;
+        width: 3840px;
+        height: 2160px;
+        max-width: none;
+        display: block;
+      }
+
+      /* Panel-fill patch hiding the dashed "needs summary" badge until its cue. */
+      .flags-outdated-badge-cover,
+      .flags-outdated-badge-pop {
+        position: absolute;
+        left: 509px;
+        top: 18px;
+        width: 203px;
+        height: 48px;
+      }
+      .flags-outdated-badge-cover {
+        background: #0d0d0d;
+      }
+      /* The capture's own badge pixels, popped in at the cue. */
+      .flags-outdated-badge-pop {
+        background: url("assets/07-outdated.png") -509px -138px / 3840px 2160px no-repeat;
+        transform-origin: 50% 50%;
+      }
+
+      /* Box-fill patch over the Section text, carrying the typed overlay. */
+      .flags-outdated-code-patch {
+        position: absolute;
+        left: 219px;
+        top: 1025px;
+        width: 934px;
+        height: 87px;
+        background: #232321;
+      }
+      .flags-outdated-typed {
+        position: absolute;
+        left: 12.5px;
+        top: 5.55px;
+        margin: 0;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 400;
+        font-size: 23.475px; /* 0.6em advance = the capture's 14.085px mono cell */
+        line-height: 36px;
+        letter-spacing: 0;
+        color: #c3c2b7;
+        white-space: pre;
+      }
+      .flags-outdated-caret {
+        display: inline-block;
+        width: 2.5px;
+        height: 28px;
+        margin-left: -1px;
+        margin-right: -1.5px;
+        vertical-align: -6px;
+        background: #c3c2b7;
+      }
+
+      /* Orange underline under the OLD summary's "two months free (17% off)". */
+      .flags-outdated-mark {
+        position: absolute;
+        left: 418px;
+        top: 214px;
+        width: 333px;
+        height: 18px;
+        overflow: visible;
+      }
+
+      /* ---------- Right: text column ---------- */
+      .flags-outdated-col {
+        position: absolute;
+        left: 1000px;
+        top: 0;
+        width: 840px;
+        height: 900px;
+      }
+      .flags-outdated-kicker {
+        position: absolute;
+        left: 0;
+        top: 98px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        height: 34px;
+      }
+      .flags-outdated-spike {
+        width: 24px;
+        height: 24px;
+        display: block;
+        transform-origin: 50% 50%;
+      }
+      .flags-outdated-kicker-text {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 400;
+        font-size: 28px;
+        line-height: 34px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(243, 242, 238, 0.86);
+        white-space: nowrap;
+      }
+      .flags-outdated-cue1,
+      .flags-outdated-cue2,
+      .flags-outdated-cue3 {
+        position: absolute;
+        left: 0;
+        margin: 0;
+        font-family: "EB Garamond", serif;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+      .flags-outdated-cue1 {
+        top: 150px;
+        font-size: 4.6cqw;
+        line-height: 1.06;
+        letter-spacing: -0.018em;
+        color: #f3f2ee;
+      }
+      .flags-outdated-cue2 {
+        top: 262px;
+        font-size: 2.92cqw;
+        line-height: 1.16;
+        letter-spacing: -0.012em;
+        color: rgba(243, 242, 238, 0.82);
+      }
+      .flags-outdated-cue3 {
+        top: 622px;
+        font-size: 6.2cqw;
+        font-style: italic;
+        line-height: 1.04;
+        letter-spacing: -0.012em;
+        color: #f3f2ee;
+        transform-origin: 0% 50%;
+      }
+      .flags-outdated-word {
+        display: inline-block;
+      }
+      .flags-outdated-voltage {
+        color: #2a78d6;
+      }
+
+      /* Code-surface strip (terminal-simulator block, restyled to frame.md). */
+      .flags-outdated-term {
+        position: absolute;
+        left: 0;
+        top: 432px;
+        width: 560px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #121a2c;
+        border: 1px solid rgba(243, 242, 238, 0.14);
+        color: #f3f2ee;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .flags-outdated-term-chrome {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        background: #1b2642;
+        border-bottom: 1px solid rgba(243, 242, 238, 0.1);
+      }
+      .flags-outdated-term-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 9999px;
+        background: rgba(243, 242, 238, 0.24);
+        box-shadow:
+          16px 0 rgba(243, 242, 238, 0.17),
+          32px 0 rgba(243, 242, 238, 0.12);
+      }
+      .flags-outdated-term-body {
+        padding: 18px 26px 20px;
+        min-height: 128px;
+      }
+      .flags-outdated-term-line {
+        font-size: 30px;
+        line-height: 45px;
+        white-space: pre;
+        color: rgba(243, 242, 238, 0.92);
+      }
+      .flags-outdated-term-dim {
+        color: rgba(243, 242, 238, 0.5);
+      }
+      .flags-outdated-term-num {
+        color: #e8a55a;
+      }
+    </style>
+
+    <div data-hf-id="hf-vi7u" id="f05-flags-outdated-ground" class="clip flags-outdated-ground" data-start="0" data-duration="9.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-d3cn" id="f05-flags-outdated-stage" class="clip flags-outdated-stage" data-start="0" data-duration="9.5" data-track-index="1">
+      <!-- Left: the real panel, in a hairline window -->
+      <div data-hf-id="hf-t2jk" class="flags-outdated-window" id="f05-flags-outdated-window">
+        <div data-hf-id="hf-3fe2" class="flags-outdated-screen" data-layout-allow-overflow>
+          <img data-hf-id="hf-uoe2" class="flags-outdated-shot" src="assets/07-outdated.png" alt="Knowledge Graph side panel: section Annual discount, needs summary" />
+          <div data-hf-id="hf-vy8e" class="flags-outdated-badge-cover" id="f05-flags-outdated-badge-cover"></div>
+          <div data-hf-id="hf-qp1q" class="flags-outdated-badge-pop" id="f05-flags-outdated-badge-pop"></div>
+          <svg data-hf-id="hf-abqf" class="flags-outdated-mark" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
+            <path data-hf-id="hf-kp1g" id="f05-flags-outdated-mark-path" d="M 2 7 C 20 4.5, 46 8.5, 66 6 C 80 4.5, 92 7.5, 98 5.5" fill="none" stroke="#eb6834" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <div data-hf-id="hf-kwhs" class="flags-outdated-code-patch" id="f05-flags-outdated-code-patch">
+            <p data-hf-id="hf-ljg2" class="flags-outdated-typed"><span data-hf-id="hf-jbo9" id="f05-flags-outdated-typed-before"></span><span data-hf-id="hf-0fan" class="flags-outdated-caret" id="f05-flags-outdated-caret"></span><span data-hf-id="hf-0igm" id="f05-flags-outdated-typed-after"></span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: text column -->
+      <div data-hf-id="hf-97c3" class="flags-outdated-col">
+        <div data-hf-id="hf-7ero" class="flags-outdated-kicker">
+          <svg data-hf-id="hf-j8id" class="flags-outdated-spike" id="f05-flags-outdated-spike" viewBox="0 0 24 24" aria-hidden="true">
+            <g data-hf-id="hf-qtjf" stroke="#2a78d6" stroke-width="4.2" stroke-linecap="round">
+              <line data-hf-id="hf-ro96" x1="12" y1="3" x2="12" y2="21" />
+              <line data-hf-id="hf-repo" x1="4.2" y1="7.5" x2="19.8" y2="16.5" />
+              <line data-hf-id="hf-dld0" x1="4.2" y1="16.5" x2="19.8" y2="7.5" />
+            </g>
+          </svg>
+          <span data-hf-id="hf-wh4t" class="flags-outdated-kicker-text" id="f05-flags-outdated-kicker-text">Stays true</span>
+        </div>
+
+        <h2 data-hf-id="hf-2g9r" class="flags-outdated-cue1" id="f05-flags-outdated-cue1">
+          <span data-hf-id="hf-1sek" class="flags-outdated-word">Change</span> <span data-hf-id="hf-3g33" class="flags-outdated-word">the</span> <span data-hf-id="hf-c1nf" class="flags-outdated-word">text</span>
+        </h2>
+
+        <p data-hf-id="hf-1wt5" class="flags-outdated-cue2" id="f05-flags-outdated-cue2">
+          <span data-hf-id="hf-f6jh" class="flags-outdated-word">and</span> <span data-hf-id="hf-bqz3" class="flags-outdated-word">the</span> <span data-hf-id="hf-hixt" class="flags-outdated-word">old</span> <span data-hf-id="hf-f3qc" class="flags-outdated-word">summary</span> <span data-hf-id="hf-6mwk" class="flags-outdated-word">is</span><br data-hf-id="hf-x5px" />
+          <span data-hf-id="hf-v8vm" class="flags-outdated-word">flagged</span> <span data-hf-id="hf-4fek" class="flags-outdated-word">as</span> <span data-hf-id="hf-vbzu" class="flags-outdated-word">outdated.</span>
+        </p>
+
+        <div data-hf-id="hf-pgro" class="flags-outdated-term" id="f05-flags-outdated-term">
+          <div data-hf-id="hf-nb78" class="flags-outdated-term-chrome"><span data-hf-id="hf-68wk" class="flags-outdated-term-dot"></span></div>
+          <div data-hf-id="hf-b7k6" class="flags-outdated-term-body">
+            <div data-hf-id="hf-xa19" class="flags-outdated-term-line" id="f05-flags-outdated-term-l1">sections: <span data-hf-id="hf-4s78" class="flags-outdated-term-dim">+0</span> <span data-hf-id="hf-c4oo" class="flags-outdated-term-num">~1</span> <span data-hf-id="hf-i436" class="flags-outdated-term-dim">-0</span></div>
+            <div data-hf-id="hf-tmdn" class="flags-outdated-term-line" id="f05-flags-outdated-term-l2">needs summary: <span data-hf-id="hf-67dc" class="flags-outdated-term-num">14</span></div>
+          </div>
+        </div>
+
+        <p data-hf-id="hf-mo2d" class="flags-outdated-cue3" id="f05-flags-outdated-cue3">Nothing goes<br data-hf-id="hf-rsrt" />stale <span data-hf-id="hf-oxdk" class="flags-outdated-voltage">silently</span>.</p>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        "use strict";
+        var FID = "05-flags-outdated";
+        var DURATION = 9;
+        function byId(name) {
+          return document.getElementById("f05-flags-outdated-" + name);
+        }
+        function words(name) {
+          return Array.prototype.slice.call(byId(name).querySelectorAll(".flags-outdated-word"));
+        }
+        // Seek-safe entrance: explicit from + to on the one paused timeline.
+        function enter(target, from, to, at) {
+          tl.fromTo(target, from, to, at);
+        }
+
+        var tl = gsap.timeline({ paused: true });
+
+        // ---------- Scene 1 (0.0-2.6s): kicker, cue 1, backspace-and-retype ----------
+        // Kicker: the spike fades + scales 0.92 -> 1; the label slides in beside it.
+        enter(byId("spike"), { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 0.1);
+        enter(byId("kicker-text"), { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.16);
+
+        // Cue 1 "Change the text": per-word staggered reveal.
+        words("cue1").forEach(function (w, i) {
+          enter(w, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.3 + i * 0.08);
+        });
+
+        // Section text (discrete-text-sequence) on a box-fill patch: type the
+        // old sentence, step the caret before ".", hold backspace through the
+        // old phrase, retype the new one; then the patch drops onto the real pixels.
+        var BASE = "Annual plans get ";
+        var OLD_PHRASE = "two months free (17% off)";
+        var SEQUENCE = [
+          { t: 0.0, b: "", a: "" },
+          { t: 0.12, b: "Ann", a: "" },
+          { t: 0.2, b: "Annual ", a: "" },
+          { t: 0.3, b: "Annual plans ", a: "" },
+          { t: 0.4, b: BASE, a: "" },
+          { t: 0.5, b: BASE + "two ", a: "" },
+          { t: 0.6, b: BASE + "two months ", a: "" },
+          { t: 0.7, b: BASE + "two months free ", a: "" },
+          { t: 0.8, b: BASE + "two months free (17% ", a: "" },
+          { t: 0.9, b: BASE + OLD_PHRASE + ".", a: "" },
+          { t: 1.16, b: BASE + OLD_PHRASE, a: "." }, // caret steps left, before the period
+        ];
+        for (var i = 1; i <= OLD_PHRASE.length; i++) {
+          // held backspace, one character per ~0.021s
+          SEQUENCE.push({ t: 1.32 + i * 0.021, b: BASE + OLD_PHRASE.slice(0, OLD_PHRASE.length - i), a: "." });
+        }
+        [
+          [1.98, "thr"],
+          [2.06, "three "],
+          [2.14, "three mon"],
+          [2.22, "three months "],
+          [2.3, "three months free "],
+          [2.38, "three months free (25"],
+          [2.46, "three months free (25% off)"],
+        ].forEach(function (s) {
+          SEQUENCE.push({ t: s[0], b: BASE + s[1], a: "." }); // retype in keystroke clusters
+        });
+
+        var beforeEl = byId("typed-before");
+        var afterEl = byId("typed-after");
+        var caretEl = byId("caret");
+        function stateAt(time) {
+          for (var k = SEQUENCE.length - 1; k >= 0; k--) {
+            if (time >= SEQUENCE[k].t) return SEQUENCE[k];
+          }
+          return SEQUENCE[0];
+        }
+        function renderTyping(time) {
+          var s = stateAt(time);
+          if (beforeEl.textContent !== s.b) beforeEl.textContent = s.b;
+          if (afterEl.textContent !== s.a) afterEl.textContent = s.a;
+          // Caret: solid while keys land, then a square-wave blink (0.3s half-period).
+          var since = time - s.t;
+          var on = since < 0.3 || Math.floor((since - 0.3) / 0.3) % 2 === 1;
+          caretEl.style.opacity = on ? "1" : "0";
+        }
+        var driver = { t: 0 };
+        tl.fromTo(driver, { t: 0 }, { t: DURATION, duration: DURATION, ease: "none", onUpdate: function () { renderTyping(driver.t); } }, 0);
+        renderTyping(0);
+
+        // The patch drops: the capture's real section-text pixels show.
+        enter(byId("code-patch"), { opacity: 1 }, { opacity: 0, duration: 0.16, ease: "power1.out" }, 2.55);
+
+        // ---------- Scene 2 (2.6-5.4s): the couple fires ----------
+        // The real "needs summary" badge snaps in (spring-pop, smooth settle),
+        // then cover + popped copy go so the capture's own pixels show.
+        var badgePop = byId("badge-pop");
+        enter(badgePop, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 2.8);
+        tl.set([byId("badge-cover"), badgePop], { opacity: 0 }, 3.34);
+
+        // Cue 2 "and the old summary is / flagged as outdated.": per-word reveal.
+        words("cue2").forEach(function (w, i) {
+          enter(w, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 2.72 + i * 0.08);
+        });
+
+        // Orange underline under the old summary: dash draw at 3.4s. The ink
+        // stays at opacity 0 until the cue (the round cap would paint a dot).
+        var markPath = byId("mark-path");
+        var markLen = 100;
+        try {
+          var measured = markPath.getTotalLength();
+          if (measured > 0) markLen = measured;
+        } catch (e) {}
+        markPath.style.strokeDasharray = String(markLen + 1);
+        enter(markPath, { opacity: 0 }, { opacity: 1, duration: 0.01, ease: "none" }, 3.4);
+        enter(markPath, { strokeDashoffset: markLen + 1 }, { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut" }, 3.4);
+
+        // Code-surface strip, then its real lines append one by one.
+        enter(byId("term"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 4.2);
+        enter(byId("term-l1"), { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, 4.55);
+        enter(byId("term-l2"), { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, 4.9);
+
+        // ---------- Scene 3 (5.4-9.0s): the payoff line lands, then holds ----------
+        // Inverse zoom-through entry: arrives oversized and retracts into place.
+        enter(byId("cue3"), { opacity: 0, scale: 1.25, filter: "blur(10px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.6, ease: "expo.out" }, 5.4);
+        // Earlier copy steps back so the payoff reads first; then still to the end.
+        enter([byId("cue1"), byId("cue2")], { opacity: 1 }, { opacity: 0.55, duration: 0.6, ease: "power2.out" }, 5.45);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines[FID] = tl;
+      })();
+    </script>
+  </div>
+</template>

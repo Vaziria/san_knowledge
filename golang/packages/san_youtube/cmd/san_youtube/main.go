@@ -54,6 +54,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 			return runStatus(ctx, args[1:], stdout, stderr)
 		case "upload":
 			return runUpload(ctx, args[1:], stdout, stderr)
+		case "videos":
+			return runVideos(ctx, args[1:], stdout, stderr)
 		}
 	}
 

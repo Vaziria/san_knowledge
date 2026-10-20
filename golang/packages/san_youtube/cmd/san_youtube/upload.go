@@ -21,6 +21,8 @@ const uploadUsage = `usage:
   san_youtube upload [flags] <post.md | video>
                                          upload a video, such as a Short, and save it as private,
                                          or schedule it with -at; it is never published at once
+  san_youtube videos                     list Studio's videos and Shorts, newest first, with what is
+                                         scheduled: check it before scheduling another (one a day)
 
 flags for every command:
   -profile <name | dir>  Chrome profile: a name (default "default", shared by the san_* tools) or a folder

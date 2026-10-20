@@ -234,7 +234,12 @@ bin\san_youtube.exe status -profile basic             # signed in (D:\research\m
 bin\san_youtube.exe upload -dry-run youtube.md        # what would be uploaded; opens nothing
 bin\san_youtube.exe upload -profile basic youtube.md  # upload, and save as private
 bin\san_youtube.exe upload -profile basic -at "2026-10-20 19:00" youtube.md   # upload, and schedule
+bin\san_youtube.exe videos -profile basic             # list Studio's Videos and Shorts, with what is scheduled
 ```
+
+Check `videos` before scheduling: the plan is one video a day
+([docs/social_posting.md](../../../docs/social_posting.md)). It only reads: it opens the upload
+dialog the way `upload` does, closes it, and reads the content list's Videos and Shorts tabs.
 
 The Google session is in the `basic` profile (2026-10-13). That account's
 channel is **Heri Santoso Dev** (@herisantoso1239), not @GetResolved. A video

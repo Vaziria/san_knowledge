@@ -427,7 +427,16 @@ func (t *tab) readVisibility() (*visibilityState, error) {
 	if v == nil {
 		return nil, fmt.Errorf("%w: the visibility step is not shown", ErrStudio)
 	}
+	v.Date, v.Time = plainSpaces(v.Date), plainSpaces(v.Time)
 	return v, nil
+}
+
+// plainSpaces turns the no-break spaces Studio puts in dates and times into
+// plain ones, so they compare with what was typed: it shows "7:00 PM"
+// after "7:00 PM" is typed (2026-10-14), as Chrome's Intl date formatting
+// now does.
+func plainSpaces(s string) string {
+	return strings.NewReplacer(" ", " ", " ", " ").Replace(s)
 }
 
 // private chooses Private under "Save or publish".

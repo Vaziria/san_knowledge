@@ -163,5 +163,35 @@ window.__sanYouTube = (() => {
         date: text(r.querySelector('.tablecell-date')),
       };
     },
+
+    // The upload dialog's close (X) button, marked data-san-close so that the
+    // Go side can give it a real click; false when there is none.
+    markClose() {
+      document.querySelectorAll('[data-san-close]').forEach((e) => e.removeAttribute('data-san-close'));
+      const d = document.querySelector('ytcp-uploads-dialog');
+      if (!d) return false;
+      const c = [...d.querySelectorAll('[id*=close i], [aria-label]')].filter(visible)
+        .find((e) => /close/i.test(e.id) || /^(close|tutup)$/i.test(e.getAttribute('aria-label') || ''));
+      if (!c) return false;
+      c.setAttribute('data-san-close', '');
+      return true;
+    },
+
+    // The upload dialog's buttons, for an error when Studio's markup changed.
+    dialogButtons() {
+      const d = document.querySelector('ytcp-uploads-dialog');
+      if (!d) return [];
+      return [...d.querySelectorAll('button, [role=button], ytcp-icon-button, ytcp-button')].filter(visible)
+        .map((e) => `${e.tagName.toLowerCase()}#${e.id} "${e.getAttribute('aria-label') || text(e)}"`).slice(0, 20);
+    },
+
+    // Every row of the content list's open tab, as row reads one.
+    rows() {
+      return [...document.querySelectorAll('ytcp-video-row')].map((r) => ({
+        title: text(r.querySelector('#video-title')),
+        visibility: text(r.querySelector('.tablecell-visibility')),
+        date: text(r.querySelector('.tablecell-date')),
+      }));
+    },
   };
 })();

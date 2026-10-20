@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "historyId": "e8704d16-be45-49e7-a457-e635c70a9ad9",
+  "currentRevision": null,
+  "pendingChanges": false,
+  "files": {
+    "AGENTS.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "CLAUDE.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "assets/fonts/barlow-latin-600-normal.woff2": {
+      "hash": "4b52ddd4836b592df0e4832b8286956883cdc651b015126bdd18f184b7f90cc3",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\4b\\4b52ddd4836b592df0e4832b8286956883cdc651b015126bdd18f184b7f90cc3"
+    },
+    "assets/fonts/barlow-latin-700-normal.woff2": {
+      "hash": "2d797dd8b35dcb3413e1af9d7052b3f4f8c341a147cdcb01f4f06af80db53289",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\2d\\2d797dd8b35dcb3413e1af9d7052b3f4f8c341a147cdcb01f4f06af80db53289"
+    },
+    "assets/fonts/barlow-latin-800-normal.woff2": {
+      "hash": "231d487a993e28bc5567c2be8da48acd8e0a209891c11448491eab45db0f8d7c",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\23\\231d487a993e28bc5567c2be8da48acd8e0a209891c11448491eab45db0f8d7c"
+    },
+    "assets/footage.mp4.source": {
+      "hash": "826ee336f996cc6275066632b84287ca403f5343e69fc94b840bbfeff58c4f64",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\82\\826ee336f996cc6275066632b84287ca403f5343e69fc94b840bbfeff58c4f64"
+    },
+    "assets/tutorial-data.js": {
+      "hash": "7d9c643890ac66b565dcb3046f09f494840c1b6e455684c6c34a227364bbb42a",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\7d\\7d9c643890ac66b565dcb3046f09f494840c1b6e455684c6c34a227364bbb42a"
+    },
+    "assets/tutorial.js": {
+      "hash": "4e8e112c7d36897a7da0c2c605de9bf5ebbd1a3d1dd55a79f4a0df41f5532576",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\4e\\4e8e112c7d36897a7da0c2c605de9bf5ebbd1a3d1dd55a79f4a0df41f5532576"
+    },
+    "compositions/vertical.html": {
+      "hash": "859419292d2bef50b98a040376037d0fa42e0e1b903eb0aebd1d24b89980b70c",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\85\\859419292d2bef50b98a040376037d0fa42e0e1b903eb0aebd1d24b89980b70c"
+    },
+    "frame.md": {
+      "hash": "3af0a1e5e61bece19841671672d7732082f03d5699b713475e90323a21dbcc89",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\3a\\3af0a1e5e61bece19841671672d7732082f03d5699b713475e90323a21dbcc89"
+    },
+    "hyperframes.json": {
+      "hash": "ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\ad\\ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17"
+    },
+    "index.html": {
+      "hash": "921616b373534f30fbe89af5c9386c1166750dedb77ab4d234ad0311e107a466",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\92\\921616b373534f30fbe89af5c9386c1166750dedb77ab4d234ad0311e107a466"
+    },
+    "meta.json": {
+      "hash": "ecbb80829bcdb80c468be35f92db12d32147b755ef84d33f540c851ade992a38",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\ec\\ecbb80829bcdb80c468be35f92db12d32147b755ef84d33f540c851ade992a38"
+    },
+    "package.json": {
+      "hash": "37dc11af49598894aa800a5008b5b787d91148ae55f0b44057bb9e71176f6824",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\37\\37dc11af49598894aa800a5008b5b787d91148ae55f0b44057bb9e71176f6824"
+    },
+    "assets/footage.mp4": {
+      "hash": "59b68dbc99e1a74b28150e0906e7a3b5339e17ef75e57fcce94817e9207cb573",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e8704d16-be45-49e7-a457-e635c70a9ad9\\blobs\\59\\59b68dbc99e1a74b28150e0906e7a3b5339e17ef75e57fcce94817e9207cb573"
+    }
+  },
+  "revisions": {},
+  "checks": {
+    "latest": {
+      "revision": null,
+      "id": "cb68dc50-71a8-4d33-9c26-0fb6483c7938"
+    },
+    "revisions": {},
+    "unversioned": [
+      {
+        "id": "cb68dc50-71a8-4d33-9c26-0fb6483c7938",
+        "scope": "project",
+        "report": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\artifacts\\checks\\cb68dc50-71a8-4d33-9c26-0fb6483c7938.json",
+        "metadata": {
+          "ok": true,
+          "browserSkipped": false,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 3000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1792175600698,
+        "contentHash": "d1772d05b02ef2fe58e2c743cba5d8c34958bf06fdedcb177e78955d8b415572",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": {
+      "revision": null,
+      "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-6"
+    },
+    "revisions": {},
+    "unversioned": [
+      {
+        "scope": "full",
+        "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-0",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\snap-main\\frame-00-at-3s.png",
+        "time": 3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175665609,
+        "contentHash": "4551233a8fd13f3c7a7a3cc4af5942ec65f4414def57f23ad3d9e30afed33f99",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-1",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\snap-main\\frame-01-at-8.4s.png",
+        "time": 8.4,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175665609,
+        "contentHash": "7826210cd0e9112d8d26e016ee815016462e23391e17424d984e2f8e177e5e86",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-2",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\snap-main\\frame-02-at-13.7s.png",
+        "time": 13.7,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175665610,
+        "contentHash": "cd4941620713cc51b516d32868ca2961c25799eb9141e172744d160245fa57bb",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-3",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\snap-main\\frame-03-at-17.3s.png",
+        "time": 17.3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175665610,
+        "contentHash": "941e8031d89a26528fc9c067e29ed617690f6b28b361edf3787fe2fb1c3efa94",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-4",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\snap-main\\frame-04-at-21.9s.png",
+        "time": 21.9,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175665610,
+        "contentHash": "e20584ecfb6c23423916edbb31dc98a5f60e1ef0380cc90902432df26c3821ec",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-5",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\snap-main\\frame-05-at-26s.png",
+        "time": 26,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175665610,
+        "contentHash": "7a638382cdd0e64b2bcd916b00768d9322fbf4f7340850279ed7faa874e9e82e",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "d86179d9-01ed-4177-aa47-67ff988ea3a2-6",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\.hyperframes\\snap-main\\frame-06-at-29.7s.png",
+        "time": 29.7,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175665610,
+        "contentHash": "6800c473cf4f39fee4d5e09830a09d684bdddd46ba2e6d70a4dd4276bb562817",
+        "revision": null,
+        "inputFingerprint": "9a4ba06ab672acc3dcddb78c1fd41b31e938f9b697a54e0c3d50cd50730bea32",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "renders": {
+    "latest": {
+      "id": "2f9ce64d-6a16-48df-92af-e3cc73d80c41",
+      "completedAt": 1792176598043,
+      "output": "D:\\research\\marketing\\videos\\blender-aset-game\\03-mirror\\renders\\mirror-modifier-9x16.mp4",
+      "status": "completed",
+      "revision": null
+    },
+    "retainedRevisions": []
+  },
+  "pendingArtifactCleanup": []
+}

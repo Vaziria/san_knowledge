@@ -1,0 +1,272 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 3,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "timeline_track_too_dense",
+        "severity": "warning",
+        "message": "Track 3 has 12 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\videos\\blender-material-tutorial\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate."
+      },
+      {
+        "code": "duplicate_media_discovery_risk",
+        "severity": "warning",
+        "message": "Detected 2 matching video entries with the same source/start/duration.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\videos\\blender-material-tutorial\\compositions\\vertical.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Avoid duplicated media nodes that can be discovered twice during compilation."
+      },
+      {
+        "code": "timeline_track_too_dense",
+        "severity": "warning",
+        "message": "Track 3 has 12 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "D:\\research\\marketing\\videos\\blender-material-tutorial\\compositions\\vertical.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move coherent scene groups into smaller .html files and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate."
+      }
+    ],
+    "filesScanned": 2
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 3,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "escaped_container",
+        "severity": "warning",
+        "time": 3.839,
+        "selector": "div.ring-scale",
+        "message": "Positioned element renders far outside its offset parent — its coordinates were likely computed in a different frame (canvas/viewport pixels).",
+        "rect": {
+          "left": 1026,
+          "top": 526,
+          "right": 1094,
+          "bottom": 594,
+          "width": 68,
+          "height": 68
+        },
+        "containerSelector": "div.ring",
+        "text": "",
+        "fixHint": "Compute left/top in the offset parent's frame (subtract its rect), or mark intentional placement with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 1060,
+          "top": 560,
+          "right": 1061,
+          "bottom": 561,
+          "width": 1,
+          "height": 1
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1026,
+          "y": 526,
+          "width": 68,
+          "height": 68
+        },
+        "firstSeen": 3.839,
+        "lastSeen": 65.261,
+        "occurrences": 9,
+        "heldMs": 0,
+        "times": [
+          3.839,
+          11.517,
+          19.194,
+          26.872,
+          34.55,
+          42.228,
+          49.906,
+          57.583,
+          65.261
+        ]
+      },
+      {
+        "code": "escaped_container",
+        "severity": "warning",
+        "time": 19.194,
+        "selector": "div.cam",
+        "message": "Positioned element renders far outside its offset parent — its coordinates were likely computed in a different frame (canvas/viewport pixels).",
+        "rect": {
+          "left": -1920,
+          "top": -660,
+          "right": 1920,
+          "bottom": 1500,
+          "width": 3840,
+          "height": 2160
+        },
+        "containerSelector": "#view-main",
+        "text": "",
+        "fixHint": "Compute left/top in the offset parent's frame (subtract its rect), or mark intentional placement with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1920,
+          "y": -660,
+          "width": 3840,
+          "height": 2160
+        },
+        "firstSeen": 19.194,
+        "lastSeen": 65.261,
+        "occurrences": 2,
+        "heldMs": 0,
+        "times": [
+          19.194,
+          65.261
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "warning",
+        "time": 34.55,
+        "selector": "div.cam",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": -672,
+          "top": -189,
+          "right": 1920,
+          "bottom": 1269,
+          "width": 2592,
+          "height": 1458
+        },
+        "containerSelector": "#view-main",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 672,
+          "top": 189,
+          "bottom": 189
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -672,
+          "y": -189,
+          "width": 2592,
+          "height": 1458
+        },
+        "firstSeen": 11.517,
+        "lastSeen": 65.261,
+        "occurrences": 7,
+        "heldMs": 0,
+        "times": [
+          11.517,
+          19.194,
+          26.872,
+          34.55,
+          42.228,
+          57.583,
+          65.261
+        ]
+      }
+    ],
+    "duration": 69.1,
+    "samples": [
+      3.839,
+      11.517,
+      19.194,
+      26.872,
+      34.55,
+      42.228,
+      49.906,
+      57.583,
+      65.261
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 3,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      3.839,
+      19.194,
+      34.55,
+      49.906,
+      65.261
+    ],
+    "checked": 7,
+    "passed": 7
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

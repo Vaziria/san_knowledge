@@ -1,0 +1,183 @@
+{
+ "window": {
+  "x": 0,
+  "y": 0,
+  "w": 1920,
+  "h": 1080
+ },
+ "workspace": "Shading",
+ "areas": [
+  {
+   "type": "PROPERTIES",
+   "ui_type": "PROPERTIES",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 1579,
+     "y": 223,
+     "w": 339,
+     "h": 32
+    },
+    {
+     "type": "NAVIGATION_BAR",
+     "x": 1579,
+     "y": 255,
+     "w": 36,
+     "h": 796
+    },
+    {
+     "type": "WINDOW",
+     "x": 1615,
+     "y": 255,
+     "w": 303,
+     "h": 796
+    }
+   ],
+   "x": 1579,
+   "y": 223,
+   "w": 339,
+   "h": 828
+  },
+  {
+   "type": "OUTLINER",
+   "ui_type": "OUTLINER",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 1579,
+     "y": 33,
+     "w": 339,
+     "h": 32
+    },
+    {
+     "type": "WINDOW",
+     "x": 1579,
+     "y": 65,
+     "w": 339,
+     "h": 155
+    }
+   ],
+   "x": 1579,
+   "y": 33,
+   "w": 339,
+   "h": 187
+  },
+  {
+   "type": "IMAGE_EDITOR",
+   "ui_type": "IMAGE_EDITOR",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 2,
+     "y": 544,
+     "w": 289,
+     "h": 32
+    },
+    {
+     "type": "TOOL_HEADER",
+     "x": 2,
+     "y": 576,
+     "w": 289,
+     "h": 32
+    },
+    {
+     "type": "WINDOW",
+     "x": 2,
+     "y": 576,
+     "w": 289,
+     "h": 475
+    }
+   ],
+   "x": 2,
+   "y": 544,
+   "w": 289,
+   "h": 507
+  },
+  {
+   "type": "NODE_EDITOR",
+   "ui_type": "ShaderNodeTree",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 294,
+     "y": 544,
+     "w": 1282,
+     "h": 32
+    },
+    {
+     "type": "WINDOW",
+     "x": 294,
+     "y": 576,
+     "w": 1282,
+     "h": 475
+    }
+   ],
+   "x": 294,
+   "y": 544,
+   "w": 1282,
+   "h": 507
+  },
+  {
+   "type": "FILE_BROWSER",
+   "ui_type": "FILES",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 2,
+     "y": 33,
+     "w": 289,
+     "h": 32
+    },
+    {
+     "type": "UI",
+     "x": 2,
+     "y": 65,
+     "w": 289,
+     "h": 86
+    },
+    {
+     "type": "WINDOW",
+     "x": 2,
+     "y": 151,
+     "w": 289,
+     "h": 390
+    }
+   ],
+   "x": 2,
+   "y": 33,
+   "w": 289,
+   "h": 508
+  },
+  {
+   "type": "VIEW_3D",
+   "ui_type": "VIEW_3D",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 294,
+     "y": 33,
+     "w": 1282,
+     "h": 32
+    },
+    {
+     "type": "TOOL_HEADER",
+     "x": 294,
+     "y": 65,
+     "w": 1282,
+     "h": 32
+    },
+    {
+     "type": "WINDOW",
+     "x": 294,
+     "y": 33,
+     "w": 1282,
+     "h": 508
+    }
+   ],
+   "x": 294,
+   "y": 33,
+   "w": 1282,
+   "h": 508
+  }
+ ]
+}

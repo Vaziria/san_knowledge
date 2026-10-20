@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "historyId": "b884f525-53f9-428d-b224-0fd7bb5397d0",
+  "currentRevision": null,
+  "pendingChanges": false,
+  "files": {
+    "AGENTS.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "CLAUDE.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "assets/fonts/barlow-latin-600-normal.woff2": {
+      "hash": "4b52ddd4836b592df0e4832b8286956883cdc651b015126bdd18f184b7f90cc3",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\4b\\4b52ddd4836b592df0e4832b8286956883cdc651b015126bdd18f184b7f90cc3"
+    },
+    "assets/fonts/barlow-latin-700-normal.woff2": {
+      "hash": "2d797dd8b35dcb3413e1af9d7052b3f4f8c341a147cdcb01f4f06af80db53289",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\2d\\2d797dd8b35dcb3413e1af9d7052b3f4f8c341a147cdcb01f4f06af80db53289"
+    },
+    "assets/fonts/barlow-latin-800-normal.woff2": {
+      "hash": "231d487a993e28bc5567c2be8da48acd8e0a209891c11448491eab45db0f8d7c",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\23\\231d487a993e28bc5567c2be8da48acd8e0a209891c11448491eab45db0f8d7c"
+    },
+    "assets/footage.mp4.source": {
+      "hash": "42e9f2d2d03cd22fb535d7e1d3a29dda41f07eb44cc8a51ffe7c6c505d5a211b",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\42\\42e9f2d2d03cd22fb535d7e1d3a29dda41f07eb44cc8a51ffe7c6c505d5a211b"
+    },
+    "assets/tutorial-data.js": {
+      "hash": "af33d94cc59fc575210a367feac7e83fc679851408793a7dc509c7203c186892",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\af\\af33d94cc59fc575210a367feac7e83fc679851408793a7dc509c7203c186892"
+    },
+    "assets/tutorial.js": {
+      "hash": "4e8e112c7d36897a7da0c2c605de9bf5ebbd1a3d1dd55a79f4a0df41f5532576",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\4e\\4e8e112c7d36897a7da0c2c605de9bf5ebbd1a3d1dd55a79f4a0df41f5532576"
+    },
+    "compositions/vertical.html": {
+      "hash": "f02bc2c6c737909a9249e9adb8537bdbee5c35ba725b9ebc5bfd1064358b595d",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\f0\\f02bc2c6c737909a9249e9adb8537bdbee5c35ba725b9ebc5bfd1064358b595d"
+    },
+    "frame.md": {
+      "hash": "3af0a1e5e61bece19841671672d7732082f03d5699b713475e90323a21dbcc89",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\3a\\3af0a1e5e61bece19841671672d7732082f03d5699b713475e90323a21dbcc89"
+    },
+    "hyperframes.json": {
+      "hash": "ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\ad\\ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17"
+    },
+    "index.html": {
+      "hash": "965b186ea4cade9e5da8a737f4bc9737c0d4a69a07ab8f0e29d70da0887456f0",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\96\\965b186ea4cade9e5da8a737f4bc9737c0d4a69a07ab8f0e29d70da0887456f0"
+    },
+    "meta.json": {
+      "hash": "6f19ddb42687719f74ff45c15f9860504f83d986cbee50b43a90655934fbc21e",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\6f\\6f19ddb42687719f74ff45c15f9860504f83d986cbee50b43a90655934fbc21e"
+    },
+    "package.json": {
+      "hash": "a1744dc09b7b8b164a5cf6e66aa58d6890646707ab2edcb9d1fccf89bd66bbfd",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\a1\\a1744dc09b7b8b164a5cf6e66aa58d6890646707ab2edcb9d1fccf89bd66bbfd"
+    },
+    "assets/footage.mp4": {
+      "hash": "e64d85c10d528d581b788ab81154b4f025a196527003d5f8fc66bd6c31023c8a",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\b884f525-53f9-428d-b224-0fd7bb5397d0\\blobs\\e6\\e64d85c10d528d581b788ab81154b4f025a196527003d5f8fc66bd6c31023c8a"
+    }
+  },
+  "revisions": {},
+  "checks": {
+    "latest": {
+      "revision": null,
+      "id": "5a340a3f-a55e-4e5d-87c6-50a18ccbf632"
+    },
+    "revisions": {},
+    "unversioned": [
+      {
+        "id": "5a340a3f-a55e-4e5d-87c6-50a18ccbf632",
+        "scope": "project",
+        "report": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\artifacts\\checks\\5a340a3f-a55e-4e5d-87c6-50a18ccbf632.json",
+        "metadata": {
+          "ok": true,
+          "browserSkipped": false,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 3000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1792175554325,
+        "contentHash": "9929bd82f5d7b30d7b788f21615dcedc9e9a30453475a36bafbbc1656085150c",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": {
+      "revision": null,
+      "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-6"
+    },
+    "revisions": {},
+    "unversioned": [
+      {
+        "scope": "full",
+        "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-0",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\snap-main\\frame-00-at-3s.png",
+        "time": 3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175626251,
+        "contentHash": "870351855c437ee9178e663eed97c557e0bf40181e701b654b342c0165ec2dc6",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-1",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\snap-main\\frame-01-at-8.6s.png",
+        "time": 8.6,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175626251,
+        "contentHash": "df209668e790d7dbc53fcfa464717eab8691d2ad8e99b4bc3824121c499433eb",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-2",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\snap-main\\frame-02-at-12.5s.png",
+        "time": 12.5,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175626252,
+        "contentHash": "94fb0ae16b6f3bde9bdfc9328ef71ac45467c7d9ae37ad5deb6f9089138ec9db",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-3",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\snap-main\\frame-03-at-16.3s.png",
+        "time": 16.3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175626252,
+        "contentHash": "4ac546a3026ccb3ab4b67b01c1b8189458c3ebe14b21f92d33572e736fe503bf",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-4",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\snap-main\\frame-04-at-21.9s.png",
+        "time": 21.9,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175626252,
+        "contentHash": "ca86541129cfc32486a88b5799b253139e015daa59b472459b203af32d27d6eb",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-5",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\snap-main\\frame-05-at-27s.png",
+        "time": 27,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175626252,
+        "contentHash": "6e5574a4ae9599053a2be92fd418ca2a8cf92dd6f4095ac26b8ac004842536cc",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "7655e945-82a1-4765-b3e4-bd17ce298e6a-6",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\.hyperframes\\snap-main\\frame-06-at-32s.png",
+        "time": 32,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175626252,
+        "contentHash": "dae143d1a90aa819a813fe71cc2f208a17aa3d43b8580c0189c3df7d4f1f5e1f",
+        "revision": null,
+        "inputFingerprint": "5e0530d50ae905d7d85c6b87d38a1d2bd93985a3742cd86fff56a50ec7e3f919",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "renders": {
+    "latest": {
+      "id": "feb429f8-2f16-4db8-b44c-d1d5b531ceca",
+      "completedAt": 1792176000732,
+      "output": "D:\\research\\marketing\\videos\\blender-aset-game\\01-fisika\\renders\\kubus-jatuh-rigid-body-9x16.mp4",
+      "status": "completed",
+      "revision": null
+    },
+    "retainedRevisions": []
+  },
+  "pendingArtifactCleanup": []
+}

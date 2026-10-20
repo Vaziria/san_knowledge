@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Barlow";
+        src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Barlow";
+        src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "Barlow";
+        src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2");
+        font-weight: 800;
+      }
+      :root {
+        --ink: #111111;
+        --cream: #f0ece5;
+        --orange: #e85d26;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #111111;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--ink);
+        font-family: "Barlow", sans-serif;
+      }
+      .view {
+        position: absolute;
+        overflow: hidden;
+        background: var(--ink);
+      }
+      .cam,
+      .cam video {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+      .ov,
+      .ripples {
+        position: absolute;
+        inset: 0;
+      }
+      .ring {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1px;
+        height: 1px;
+      }
+      .ring-scale {
+        position: absolute;
+        left: -34px;
+        top: -34px;
+        width: 68px;
+        height: 68px;
+      }
+      .ring-dot {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 4px solid var(--orange);
+        background: rgba(232, 93, 38, 0.16);
+      }
+      .ripple {
+        position: absolute;
+        width: 110px;
+        height: 110px;
+        margin: -55px 0 0 -55px;
+        border-radius: 50%;
+        border: 5px solid var(--orange);
+        opacity: 0;
+      }
+      .caption {
+        position: absolute;
+        left: 96px;
+        bottom: 72px;
+        max-width: 1160px;
+        background: rgba(17, 17, 17, 0.93);
+        padding: 22px 36px 28px;
+        color: var(--cream);
+        font-weight: 600;
+        font-size: 46px;
+        line-height: 1.22;
+      }
+      .caption::before {
+        content: "";
+        display: block;
+        width: 56px;
+        height: 5px;
+        background: var(--orange);
+        margin-bottom: 14px;
+      }
+      .chip {
+        /* Just above the (one-line) caption, left: zooms on the panel keep this corner clear. */
+        position: absolute;
+        left: 96px;
+        bottom: 214px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: rgba(17, 17, 17, 0.93);
+        padding: 16px 22px;
+      }
+      .chip-kind {
+        color: var(--orange);
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 500;
+        font-size: 24px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .chip-text {
+        color: var(--cream);
+        font-weight: 800;
+        font-size: 40px;
+        line-height: 1.1;
+      }
+      .chip-text.is-key {
+        border: 3px solid var(--cream);
+        padding: 2px 18px 4px;
+        min-width: 66px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-5piy"
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="69.1"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div data-hf-id="hf-zpo5" class="view" id="view-main" style="left: 0; top: 0; width: 1920px; height: 1080px">
+        <div data-hf-id="hf-eb3c" class="cam" data-layout-allow-overflow>
+          <video data-hf-id="hf-6ae7"
+            id="footage"
+            class="clip"
+            src="assets/footage.mp4"
+            muted
+            playsinline
+            data-start="0"
+            data-duration="69.1"
+            data-track-index="0"
+          ></video>
+          <div data-hf-id="hf-xx03" class="ov">
+            <div data-hf-id="hf-tgbt" class="ripples"></div>
+            <div data-hf-id="hf-r30r" class="ring" data-layout-allow-overflow><div data-hf-id="hf-69x7" class="ring-scale"><div data-hf-id="hf-b8io" class="ring-dot"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- generated:captions -->
+      <div data-hf-id="hf-9g5y" class="caption clip" id="cap-1" data-start="1.26" data-duration="4.44" data-track-index="2">Apa itu material? Material = tampilan permukaan objek.</div>
+      <div data-hf-id="hf-itvf" class="caption clip" id="cap-2" data-start="5.7" data-duration="5.62" data-track-index="2">Tekan Z, pilih Material Preview agar material terlihat.</div>
+      <div data-hf-id="hf-w029" class="caption clip" id="cap-3" data-start="11.32" data-duration="3.56" data-track-index="2">Klik objek untuk memilihnya.</div>
+      <div data-hf-id="hf-ok5w" class="caption clip" id="cap-4" data-start="14.88" data-duration="4.62" data-track-index="2">Buka tab Material. Bola ini belum punya material.</div>
+      <div data-hf-id="hf-kdc5" class="caption clip" id="cap-5" data-start="19.5" data-duration="4.81" data-track-index="2">Klik New. Material baru dibuat (Principled BSDF).</div>
+      <div data-hf-id="hf-3sxk" class="caption clip" id="cap-6" data-start="24.31" data-duration="6.94" data-track-index="2">Base Color: warna dasar permukaan.</div>
+      <div data-hf-id="hf-gbqx" class="caption clip" id="cap-7" data-start="31.25" data-duration="5.09" data-track-index="2">Metallic 1: permukaan jadi seperti logam.</div>
+      <div data-hf-id="hf-3dw2" class="caption clip" id="cap-8" data-start="36.34" data-duration="12.37" data-track-index="2">Roughness kecil = mengkilap, besar = doff.</div>
+      <div data-hf-id="hf-gu04" class="caption clip" id="cap-9" data-start="48.71" data-duration="5.76" data-track-index="2">Di balik layar, material adalah susunan node.</div>
+      <div data-hf-id="hf-omdt" class="caption clip" id="cap-10" data-start="54.47" data-duration="5.93" data-track-index="2">Principled BSDF mengatur warna, logam, kekasaran.</div>
+      <div data-hf-id="hf-dm4j" class="caption clip" id="cap-11" data-start="60.4" data-duration="3.63" data-track-index="2">Hasilnya dikirim ke Material Output.</div>
+      <div data-hf-id="hf-hc5p" class="caption clip" id="cap-12" data-start="64.03" data-duration="5.07" data-track-index="2">Material = resep tampilan permukaan objek.</div>
+      <!-- /generated:captions -->
+
+      <!-- generated:chips -->
+      <div data-hf-id="hf-md5n" class="chip clip" id="chip-1" data-start="6.75" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-s64p" class="chip-kind">Tekan</span><span data-hf-id="hf-5dx9" class="chip-text is-key">Z</span></div>
+      <div data-hf-id="hf-hzfb" class="chip clip" id="chip-2" data-start="8.65" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-8odt" class="chip-kind">Klik</span><span data-hf-id="hf-f57w" class="chip-text">Material Preview</span></div>
+      <div data-hf-id="hf-z05q" class="chip clip" id="chip-3" data-start="12.2" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-n145" class="chip-kind">Klik</span><span data-hf-id="hf-qxb1" class="chip-text">Bola</span></div>
+      <div data-hf-id="hf-fmwi" class="chip clip" id="chip-4" data-start="16.01" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-o818" class="chip-kind">Klik</span><span data-hf-id="hf-sff1" class="chip-text">Material Properties</span></div>
+      <div data-hf-id="hf-11hr" class="chip clip" id="chip-5" data-start="20.35" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-ntq7" class="chip-kind">Klik</span><span data-hf-id="hf-4ja1" class="chip-text">New</span></div>
+      <div data-hf-id="hf-f7ux" class="chip clip" id="chip-6" data-start="25.04" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-p0na" class="chip-kind">Klik</span><span data-hf-id="hf-4513" class="chip-text">Base Color</span></div>
+      <div data-hf-id="hf-unsw" class="chip clip" id="chip-7" data-start="26.9" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-omc9" class="chip-kind">Klik</span><span data-hf-id="hf-p46y" class="chip-text">Roda warna</span></div>
+      <div data-hf-id="hf-s45r" class="chip clip" id="chip-8" data-start="32.0" data-duration="0.51" data-track-index="3"><span data-hf-id="hf-pt9c" class="chip-kind">Klik</span><span data-hf-id="hf-objk" class="chip-text">Metallic</span></div>
+      <div data-hf-id="hf-knj3" class="chip clip" id="chip-9" data-start="32.51" data-duration="0.76" data-track-index="3"><span data-hf-id="hf-bb1m" class="chip-kind">Ketik</span><span data-hf-id="hf-bwp8" class="chip-text is-key">1</span></div>
+      <div data-hf-id="hf-4adw" class="chip clip" id="chip-10" data-start="33.27" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-qk1p" class="chip-kind">Tekan</span><span data-hf-id="hf-oqkd" class="chip-text is-key">Enter</span></div>
+      <div data-hf-id="hf-w4vq" class="chip clip" id="chip-11" data-start="37.04" data-duration="10.25" data-track-index="3"><span data-hf-id="hf-awqg" class="chip-kind">Geser</span><span data-hf-id="hf-1ail" class="chip-text">Roughness</span></div>
+      <div data-hf-id="hf-ba1t" class="chip clip" id="chip-12" data-start="50.01" data-duration="1.65" data-track-index="3"><span data-hf-id="hf-peyb" class="chip-kind">Klik</span><span data-hf-id="hf-714l" class="chip-text">Shading</span></div>
+      <!-- /generated:chips -->
+    </div>
+
+    <script src="assets/tutorial-data.js"></script>
+    <script src="assets/tutorial.js"></script>
+    <script>
+      // Camera: [time, centre x, centre y, scale, transition s] in recording pixels.
+      const S = window.stepAt;
+      const wide = [960, 540, 1];
+      const sphereAndPanel = [1209, 540, 1.35];
+      const view = {
+        el: document.getElementById("view-main"),
+        w: 1920,
+        h: 1080,
+        keys: [
+          [0, ...wide],
+          [S(2), 1000, 560, 1.5], // the Z pie next to the sphere
+          [S(3), ...sphereAndPanel], // select: sphere and the panel's tabs
+          [S(4), 1440, 600, 2.0], // Material tab
+          [S(5), 1440, 430, 2.0], // New
+          [S(6), 1209, 420, 1.35], // colour picker and the sphere
+          [S(7), 1440, 612, 2.0], // Metallic field
+          [window.keyAt("Enter") + 0.3, ...sphereAndPanel], // see the sphere turn to metal
+          [S(9), ...wide], // workspace tabs
+          [S(10), 935, 760, 1.7], // node editor
+          [S(11), 1000, 740, 1.7], // towards Material Output
+          [S(12), 921, 290, 2.2, 1.0], // the finished sphere, framed inside the Shading viewport
+        ],
+      };
+      const tl = window.buildTutorial([view]);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

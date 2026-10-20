@@ -1,0 +1,128 @@
+{
+ "window": {
+  "x": 0,
+  "y": 0,
+  "w": 1920,
+  "h": 1080
+ },
+ "workspace": "Layout",
+ "areas": [
+  {
+   "type": "PROPERTIES",
+   "ui_type": "PROPERTIES",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 1579,
+     "y": 223,
+     "w": 339,
+     "h": 32
+    },
+    {
+     "type": "NAVIGATION_BAR",
+     "x": 1579,
+     "y": 255,
+     "w": 36,
+     "h": 796
+    },
+    {
+     "type": "WINDOW",
+     "x": 1615,
+     "y": 255,
+     "w": 303,
+     "h": 796
+    }
+   ],
+   "x": 1579,
+   "y": 223,
+   "w": 339,
+   "h": 828
+  },
+  {
+   "type": "OUTLINER",
+   "ui_type": "OUTLINER",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 1579,
+     "y": 33,
+     "w": 339,
+     "h": 32
+    },
+    {
+     "type": "WINDOW",
+     "x": 1579,
+     "y": 65,
+     "w": 339,
+     "h": 155
+    }
+   ],
+   "x": 1579,
+   "y": 33,
+   "w": 339,
+   "h": 187
+  },
+  {
+   "type": "DOPESHEET_EDITOR",
+   "ui_type": "TIMELINE",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 2,
+     "y": 978,
+     "w": 1574,
+     "h": 32
+    },
+    {
+     "type": "WINDOW",
+     "x": 2,
+     "y": 1010,
+     "w": 1574,
+     "h": 41
+    }
+   ],
+   "x": 2,
+   "y": 978,
+   "w": 1574,
+   "h": 73
+  },
+  {
+   "type": "VIEW_3D",
+   "ui_type": "VIEW_3D",
+   "regions": [
+    {
+     "type": "HEADER",
+     "x": 2,
+     "y": 33,
+     "w": 1574,
+     "h": 32
+    },
+    {
+     "type": "TOOL_HEADER",
+     "x": 2,
+     "y": 65,
+     "w": 1574,
+     "h": 32
+    },
+    {
+     "type": "TOOLS",
+     "x": 2,
+     "y": 97,
+     "w": 70,
+     "h": 878
+    },
+    {
+     "type": "WINDOW",
+     "x": 2,
+     "y": 33,
+     "w": 1574,
+     "h": 942
+    }
+   ],
+   "x": 2,
+   "y": 33,
+   "w": 1574,
+   "h": 942
+  }
+ ]
+}

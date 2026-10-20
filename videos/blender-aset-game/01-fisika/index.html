@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Barlow";
+        src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Barlow";
+        src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "Barlow";
+        src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2");
+        font-weight: 800;
+      }
+      :root {
+        --ink: #111111;
+        --cream: #f0ece5;
+        --orange: #e85d26;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #111111;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--ink);
+        font-family: "Barlow", sans-serif;
+      }
+      .view {
+        position: absolute;
+        overflow: hidden;
+        background: var(--ink);
+      }
+      .cam,
+      .cam video {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+      .ov,
+      .ripples {
+        position: absolute;
+        inset: 0;
+      }
+      .ring {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1px;
+        height: 1px;
+      }
+      .ring-scale {
+        position: absolute;
+        left: -34px;
+        top: -34px;
+        width: 68px;
+        height: 68px;
+      }
+      .ring-dot {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 4px solid var(--orange);
+        background: rgba(232, 93, 38, 0.16);
+      }
+      .ripple {
+        position: absolute;
+        width: 110px;
+        height: 110px;
+        margin: -55px 0 0 -55px;
+        border-radius: 50%;
+        border: 5px solid var(--orange);
+        opacity: 0;
+      }
+      .caption {
+        position: absolute;
+        left: 96px;
+        bottom: 72px;
+        max-width: 1160px;
+        background: rgba(17, 17, 17, 0.93);
+        padding: 22px 36px 28px;
+        color: var(--cream);
+        font-weight: 600;
+        font-size: 46px;
+        line-height: 1.22;
+      }
+      .caption::before {
+        content: "";
+        display: block;
+        width: 56px;
+        height: 5px;
+        background: var(--orange);
+        margin-bottom: 14px;
+      }
+      .chip {
+        /* Just above the (one-line) caption, left: zooms on the panel keep this corner clear. */
+        position: absolute;
+        left: 96px;
+        bottom: 214px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: rgba(17, 17, 17, 0.93);
+        padding: 16px 22px;
+      }
+      .chip-kind {
+        color: var(--orange);
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 500;
+        font-size: 24px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .chip-text {
+        color: var(--cream);
+        font-weight: 800;
+        font-size: 40px;
+        line-height: 1.1;
+      }
+      .chip-text.is-key {
+        border: 3px solid var(--cream);
+        padding: 2px 18px 4px;
+        min-width: 66px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="34.5"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="view" id="view-main" style="left: 0; top: 0; width: 1920px; height: 1080px">
+        <div class="cam" data-layout-allow-overflow>
+          <video
+            id="footage"
+            class="clip"
+            src="assets/footage.mp4"
+            muted
+            playsinline
+            data-start="0"
+            data-duration="34.5"
+            data-track-index="0"
+          ></video>
+          <div class="ov">
+            <div class="ripples"></div>
+            <div class="ring" data-layout-allow-overflow><div class="ring-scale"><div class="ring-dot"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- generated:captions -->
+      <div class="caption clip" id="cap-1" data-start="1.13" data-duration="4.43" data-track-index="2">Di Blender tidak ada gravitasi otomatis. Kubus ini melayang.</div>
+      <div class="caption clip" id="cap-2" data-start="5.56" data-duration="4.47" data-track-index="2">Klik kubus, lalu buka tab Physics.</div>
+      <div class="caption clip" id="cap-3" data-start="10.03" data-duration="4.71" data-track-index="2">Klik Rigid Body. Type Active: kubus jatuh karena gravitasi.</div>
+      <div class="caption clip" id="cap-4" data-start="14.74" data-duration="4.92" data-track-index="2">Klik tanah, beri Rigid Body juga.</div>
+      <div class="caption clip" id="cap-5" data-start="19.66" data-duration="4.16" data-track-index="2">Ubah Type ke Passive: padat, tapi tidak bergerak.</div>
+      <div class="caption clip" id="cap-6" data-start="23.82" data-duration="5.45" data-track-index="2">Tekan Space: kubus jatuh dan berhenti di tanah.</div>
+      <div class="caption clip" id="cap-7" data-start="29.27" data-duration="5.23" data-track-index="2">Active = bergerak, Passive = diam tapi padat.</div>
+      <!-- /generated:captions -->
+
+      <!-- generated:chips -->
+      <div class="chip clip" id="chip-1" data-start="6.31" data-duration="1.65" data-track-index="3"><span class="chip-kind">Klik</span><span class="chip-text">Kubus</span></div>
+      <div class="chip clip" id="chip-2" data-start="8.36" data-duration="1.65" data-track-index="3"><span class="chip-kind">Klik</span><span class="chip-text">Physics</span></div>
+      <div class="chip clip" id="chip-3" data-start="10.79" data-duration="1.65" data-track-index="3"><span class="chip-kind">Klik</span><span class="chip-text">Rigid Body</span></div>
+      <div class="chip clip" id="chip-4" data-start="16.05" data-duration="1.65" data-track-index="3"><span class="chip-kind">Klik</span><span class="chip-text">Tanah</span></div>
+      <div class="chip clip" id="chip-5" data-start="18.2" data-duration="1.65" data-track-index="3"><span class="chip-kind">Klik</span><span class="chip-text">Rigid Body</span></div>
+      <div class="chip clip" id="chip-6" data-start="20.35" data-duration="1.4" data-track-index="3"><span class="chip-kind">Klik</span><span class="chip-text">Type</span></div>
+      <div class="chip clip" id="chip-7" data-start="21.75" data-duration="1.65" data-track-index="3"><span class="chip-kind">Klik</span><span class="chip-text">Passive</span></div>
+      <div class="chip clip" id="chip-8" data-start="25.26" data-duration="1.65" data-track-index="3"><span class="chip-kind">Tekan</span><span class="chip-text is-key">Space</span></div>
+      <div class="chip clip" id="chip-9" data-start="28.62" data-duration="0.77" data-track-index="3"><span class="chip-kind">Tekan</span><span class="chip-text is-key">Space</span></div>
+      <div class="chip clip" id="chip-10" data-start="29.39" data-duration="0.74" data-track-index="3"><span class="chip-kind">Tekan</span><span class="chip-text is-key">Shift + ←</span></div>
+      <div class="chip clip" id="chip-11" data-start="30.13" data-duration="1.65" data-track-index="3"><span class="chip-kind">Tekan</span><span class="chip-text is-key">Space</span></div>
+      <!-- /generated:chips -->
+    </div>
+
+    <script src="assets/tutorial-data.js"></script>
+    <script src="assets/tutorial.js"></script>
+    <script>
+      // Camera: [time, centre x, centre y, scale, transition s] in recording pixels.
+      const S = window.stepAt;
+      const wide = [960, 540, 1];
+      const view = {
+        el: document.getElementById("view-main"),
+        w: 1920,
+        h: 1080,
+        keys: [
+          [0, ...wide],
+          [S(2), 1209, 540, 1.35], // the cube and the Properties tabs
+          [S(3), 1600, 520, 2.0], // Rigid Body button and Type: Active
+          [S(4), 1209, 560, 1.35], // click the ground, Rigid Body again
+          [S(5), 1600, 600, 2.0], // Type menu: Passive
+          [S(6), 820, 540, 1.3], // the cube falls onto the ground
+        ],
+      };
+      const tl = window.buildTutorial([view]);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

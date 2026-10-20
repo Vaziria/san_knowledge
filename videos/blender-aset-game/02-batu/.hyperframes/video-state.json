@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "historyId": "e4a755ee-66fb-417e-b730-4ad355497750",
+  "currentRevision": null,
+  "pendingChanges": false,
+  "files": {
+    "AGENTS.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "CLAUDE.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "assets/fonts/barlow-latin-600-normal.woff2": {
+      "hash": "4b52ddd4836b592df0e4832b8286956883cdc651b015126bdd18f184b7f90cc3",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\4b\\4b52ddd4836b592df0e4832b8286956883cdc651b015126bdd18f184b7f90cc3"
+    },
+    "assets/fonts/barlow-latin-700-normal.woff2": {
+      "hash": "2d797dd8b35dcb3413e1af9d7052b3f4f8c341a147cdcb01f4f06af80db53289",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\2d\\2d797dd8b35dcb3413e1af9d7052b3f4f8c341a147cdcb01f4f06af80db53289"
+    },
+    "assets/fonts/barlow-latin-800-normal.woff2": {
+      "hash": "231d487a993e28bc5567c2be8da48acd8e0a209891c11448491eab45db0f8d7c",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\23\\231d487a993e28bc5567c2be8da48acd8e0a209891c11448491eab45db0f8d7c"
+    },
+    "assets/footage.mp4.source": {
+      "hash": "e0c29e064c49034934d0432b7f830d86ea9484391e36845c52a46cea54c4251e",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\e0\\e0c29e064c49034934d0432b7f830d86ea9484391e36845c52a46cea54c4251e"
+    },
+    "assets/tutorial-data.js": {
+      "hash": "b6622e710d78da497faef46da3a2adac6221c8337abe75f5cad603e5152153ec",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\b6\\b6622e710d78da497faef46da3a2adac6221c8337abe75f5cad603e5152153ec"
+    },
+    "assets/tutorial.js": {
+      "hash": "4e8e112c7d36897a7da0c2c605de9bf5ebbd1a3d1dd55a79f4a0df41f5532576",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\4e\\4e8e112c7d36897a7da0c2c605de9bf5ebbd1a3d1dd55a79f4a0df41f5532576"
+    },
+    "compositions/vertical.html": {
+      "hash": "2c138c9a9776226053d6530e6c0eff285cca42323461ad15cdc662e8a3e04d3c",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\2c\\2c138c9a9776226053d6530e6c0eff285cca42323461ad15cdc662e8a3e04d3c"
+    },
+    "frame.md": {
+      "hash": "3af0a1e5e61bece19841671672d7732082f03d5699b713475e90323a21dbcc89",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\3a\\3af0a1e5e61bece19841671672d7732082f03d5699b713475e90323a21dbcc89"
+    },
+    "hyperframes.json": {
+      "hash": "ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\ad\\ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17"
+    },
+    "index.html": {
+      "hash": "32eff9f83d34c7b14441f338c3df0e35afd3730e4e9bc623feee5386447c6832",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\32\\32eff9f83d34c7b14441f338c3df0e35afd3730e4e9bc623feee5386447c6832"
+    },
+    "meta.json": {
+      "hash": "1f3b7116ca856c7205aea0fd12fb34645e2d1d35b6d18c1ee607b50e007f088a",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\1f\\1f3b7116ca856c7205aea0fd12fb34645e2d1d35b6d18c1ee607b50e007f088a"
+    },
+    "package.json": {
+      "hash": "4f388f091dadaf70d9be21d5962a6d438ad7e26107804b01752f9966ca025123",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\4f\\4f388f091dadaf70d9be21d5962a6d438ad7e26107804b01752f9966ca025123"
+    },
+    "assets/footage.mp4": {
+      "hash": "27b996ec3e9342ee827e448244a17a8ed5820e701b2c5f33596b70f6926a0930",
+      "content": "C:\\Users\\heris\\.cache\\hyperframes\\history\\e4a755ee-66fb-417e-b730-4ad355497750\\blobs\\27\\27b996ec3e9342ee827e448244a17a8ed5820e701b2c5f33596b70f6926a0930"
+    }
+  },
+  "revisions": {},
+  "checks": {
+    "latest": {
+      "revision": null,
+      "id": "f0eb70da-ac41-47ab-83bd-3d7e99e0888c"
+    },
+    "revisions": {},
+    "unversioned": [
+      {
+        "id": "f0eb70da-ac41-47ab-83bd-3d7e99e0888c",
+        "scope": "project",
+        "report": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\artifacts\\checks\\f0eb70da-ac41-47ab-83bd-3d7e99e0888c.json",
+        "metadata": {
+          "ok": true,
+          "browserSkipped": false,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 3000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1792175580237,
+        "contentHash": "5c1d9f25ec73c1bf09d341081f772a4d10ccdddc0cb682efcf7b66a9a98386d6",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": {
+      "revision": null,
+      "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-6"
+    },
+    "revisions": {},
+    "unversioned": [
+      {
+        "scope": "full",
+        "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-0",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\snap-main\\frame-00-at-3s.png",
+        "time": 3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175648230,
+        "contentHash": "c49f8c450b84cec1c051f8696b69849496629df2b5c7f5b55cbea3f6afad8ca9",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-1",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\snap-main\\frame-01-at-8.4s.png",
+        "time": 8.4,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175648230,
+        "contentHash": "34b7a8111da337be8b8113fa6006175adc375868dd0b3b6482591efa34a370ca",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-2",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\snap-main\\frame-02-at-12s.png",
+        "time": 12,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175648230,
+        "contentHash": "390797ede52bf6328321019554c31eb9dcda4900645b8eafbe2fb377afdb6ca6",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-3",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\snap-main\\frame-03-at-17.5s.png",
+        "time": 17.5,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175648230,
+        "contentHash": "b2917a096c083c37b89ae71b2fe6b10e8f8e49faee16534ae7bfb5bdb89b3a43",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-4",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\snap-main\\frame-04-at-23s.png",
+        "time": 23,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175648230,
+        "contentHash": "87e0186b2b11d8da1972a873db2f2bcb4c1716335c5c02511c09af9f20dbbb15",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-5",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\snap-main\\frame-05-at-28.8s.png",
+        "time": 28.8,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175648230,
+        "contentHash": "effc494c6f746f25cfb7f07436cfa6c72f01bc760a911d6f8d5d2d47ec9846bb",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "c5413e86-0e3e-42d4-92bb-c52b782a369e-6",
+        "image": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\.hyperframes\\snap-main\\frame-06-at-33.5s.png",
+        "time": 33.5,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1792175648230,
+        "contentHash": "16b4729503593bd521e8ee5c6dd6e4e067213d48b8df507947c36330723ea84a",
+        "revision": null,
+        "inputFingerprint": "6b484009a7a8684ed80dfa0b9a9a282c4a9b3d0fdcf1415279431772145e11ec",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "renders": {
+    "latest": {
+      "id": "d7d0e1a7-be4f-44f6-8986-13cae975e297",
+      "completedAt": 1792176314110,
+      "output": "D:\\research\\marketing\\videos\\blender-aset-game\\02-batu\\renders\\batu-low-poly-9x16.mp4",
+      "status": "completed",
+      "revision": null
+    },
+    "retainedRevisions": []
+  },
+  "pendingArtifactCleanup": []
+}

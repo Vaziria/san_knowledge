@@ -3,8 +3,19 @@ module github.com/wargasipil/san_tiktok
 go 1.26
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20260912003405-686a5c723acc // indirect
-	github.com/chromedp/chromedp v0.16.0 // indirect
+	github.com/chromedp/cdproto v0.0.0-20260912003405-686a5c723acc
+	github.com/chromedp/chromedp v0.16.0
+	gopkg.in/yaml.v3 v3.0.1
+)
+
+require (
+	github.com/Davincible/chromedp-undetected v1.3.8 // indirect
+	github.com/Xuanwo/go-locale v1.1.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
+	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15 // indirect
+	golang.org/x/text v0.5.0 // indirect
 )
 
 require (

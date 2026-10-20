@@ -3,10 +3,12 @@
 //
 // TikTok's Content Posting API needs a registered app, and an app TikTok has
 // not audited can only post private videos. TikTok Studio's upload page has no
-// such limit, so the package does what a person does there: it gives the page
-// the video file, types the caption, sets who can watch and what viewers may
-// do, then posts or schedules it. TikTok publishes a scheduled video by
-// itself; the package never builds a request to TikTok's backend.
+// such limit, so the package does what a person does there (Client.Post): it
+// gives the page the video file, types the caption, picking each #hashtag from
+// TikTok's suggestions, sets when to post and who can see it, then schedules
+// it for everyone, or posts it now for Only you. TikTok publishes a scheduled
+// video by itself; the package never builds a request to TikTok's backend, and
+// never makes a video public at once.
 //
 // The browser runs headful against a profile shared with the other san_*
 // tools (san_profile_manager), logged in once by hand (Login). Google's
@@ -31,6 +33,7 @@ type Client struct {
 	browser *san_profile_manager.Browser
 	opts    options
 	mu      sync.Mutex
+	warm    bool // the tab has started at TikTok's home page; see warmUp
 }
 
 type options struct {

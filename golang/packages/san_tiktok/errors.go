@@ -16,4 +16,14 @@ var (
 	// a captcha or a verification check. Someone has to look at the browser
 	// window.
 	ErrNeedsHuman = errors.New("san_tiktok: the browser needs a human")
+
+	// ErrInvalidPost is returned for a post TikTok would refuse: no video
+	// file, a caption too long, or a publish time off Studio's 5-minute steps.
+	ErrInvalidPost = errors.New("san_tiktok: the post is not valid")
+
+	// ErrTooSoon is returned for a publish time less than MinLead from now.
+	ErrTooSoon = errors.New("san_tiktok: the publish time is too soon")
+
+	// ErrTooLate is returned for a publish time more than MaxLead from now.
+	ErrTooLate = errors.New("san_tiktok: the publish time is too far ahead")
 )

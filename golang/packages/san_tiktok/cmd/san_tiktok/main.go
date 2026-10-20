@@ -2,6 +2,9 @@
 //
 //	san_tiktok login                 sign in to TikTok once, in Chrome on the shared profile
 //	san_tiktok status                say whether that profile is signed in
+//	san_tiktok post post.md          post a video now (Only you), or schedule it with -at (post.go)
+//	san_tiktok posts                 list Studio's Posts, with what is scheduled (posts.go)
+//	san_tiktok delete -caption … -when …   delete one post from that list (delete.go)
 //
 // The browser is Chrome on the profile the san_* tools share (-profile, a
 // name kept by san_profile_manager or a folder; default "default"), or a
@@ -39,6 +42,13 @@ func main() {
 const usage = `usage:
   san_tiktok login                       sign in to TikTok once, in Chrome on the shared profile
   san_tiktok status                      say whether that profile is signed in
+  san_tiktok post [flags] <post.md | video>
+                                         post a video now, seen by Only you, or schedule it
+                                         with -at for everyone; it is never public at once
+  san_tiktok posts                       list Studio's Posts, newest first, with what is scheduled:
+                                         check it before scheduling another (one a day)
+  san_tiktok delete -caption <text> -when "Oct 16, 7:00 PM" [-dry-run]
+                                         delete the one post whose row holds both
 
 flags for every command:
   -profile <name | dir>  Chrome profile: a name (default "default", shared by the san_* tools) or a folder
@@ -55,6 +65,12 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 		return runLogin(ctx, args[1:], stderr)
 	case "status":
 		return runStatus(ctx, args[1:], stdout, stderr)
+	case "post":
+		return runPost(ctx, args[1:], stdout, stderr)
+	case "posts":
+		return runPosts(ctx, args[1:], stdout, stderr)
+	case "delete":
+		return runDelete(ctx, args[1:], stdout, stderr)
 	case "help", "-h", "-help", "--help":
 		fmt.Fprintln(stderr, usage)
 		return nil

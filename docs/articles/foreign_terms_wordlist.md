@@ -94,7 +94,7 @@ Write these as they are, with no Indonesian equivalent next to them.
 | channel | saluran | the Go meaning; explained at first use as "saluran milik Go" |
 | proxy | | a program that forwards connections, as in "proxy TCP" |
 | network namespace | | the Linux feature; "namespace" on its own after first use |
-| log | catatan | "log dari Bind" |
+| log | catatan | "log dari Bind"; also Kafka's log, explained at first use as a list of messages that only grows at its end. Where both meanings could meet, write "catatan yang ditulis program" for the first |
 | hotspot | | "hotspot ponsel" |
 | base64 | | explained at first use as a way to write any bytes with letters and digits |
 | flag | | a command-line flag, as in "flag `-config`" |
@@ -149,6 +149,57 @@ Write these as they are, with no Indonesian equivalent next to them.
 | link, emoji, spammer | tautan | |
 | variation selector | | the invisible character that changes how an emoji looks |
 | cron | | "baris `@reboot`" |
+| message broker | perantara pesan | explained at first use as a server that receives, keeps and delivers messages; "broker" on its own after that |
+| producer, consumer | pengirim, penerima (as the term) | the programs that send to and take from a broker; "consumer-nya" with a suffix. "pengirim" and "penerima" stay for the plain idea, before the terms are introduced |
+| exchange | | the broker's entry point; the kinds keep Indonesian word order, like "server DNS": "exchange direct", "exchange fanout", "exchange topic", "exchange headers" |
+| queue | antrean | the broker's named queue, beside exchange and binding: "queue `email`", "queue-nya". The VPN series keeps "antrean" for the relay's per-client queue |
+| binding | ikatan | the rule from an exchange to a queue; "binding-nya". "terikat dengan" is fine for the verb |
+| routing key | kunci routing | the label a message is sent with, as in `pesanan.dibuat` |
+| ack, acknowledgement | | "di-ack", "ack-nya"; "ack otomatis", "ack manual" |
+| at-most-once, at-least-once, exactly-once | | delivery guarantees; explained at first use |
+| idempotent | | a consumer that can process the same message twice safely |
+| publisher confirm | | the broker's ack to the producer |
+| durable, persistent | | a queue kept on disk, and a message written to disk: "queue durable", "pesan persistent" |
+| restart | | "di-restart", explained at first use as switched off and on again |
+| disk | cakram | |
+| cluster | | several servers that each keep a copy |
+| prefetch | | how many unacked messages a consumer may hold |
+| throughput | | messages processed per second |
+| event | peristiwa | Kafka's name for a message |
+| topic | | Kafka's log; not the same as "exchange topic" |
+| offset | | a consumer's position in a Kafka log |
+| partition | partisi | a piece of a Kafka topic |
+| consumer group, share group | | Kafka's groups of consumers |
+| subject | subjek | NATS's address for a message |
+| core NATS, JetStream | | NATS without storage, and its storage layer |
+| stream | | RabbitMQ's queue that keeps messages after they are read |
+| flash sale | | explained at first use as a big discount for a short time |
+| timeout | batas waktu (as the term) | explained at first use as "batas waktu menunggu jawaban" |
+| invoice | faktur, tagihan | |
+| database | basis data | |
+| backup | cadangan | "di-backup" |
+| aset game | | an object made to be used in a game (Blender article); "aset" is the Indonesian spelling |
+| game engine | mesin game | the program that runs a game, such as Godot; explained at first use |
+| low poly | | a model with as few faces as possible |
+| face | bidang, sisi | one of the small surfaces a 3D model is made of; explained at first use |
+| mesh | jaring | the points, edges and faces of an object; "Mesh" with a capital is also one of the collision shapes |
+| origin | titik asal | an object's pivot dot in Blender; "origin-nya" |
+| Object Mode, Edit Mode, Sculpt Mode | mode objek, mode edit | Blender's modes, written as the interface names them |
+| rigid body | benda kaku | Blender's physics for solid objects |
+| Active, Passive | aktif, pasif | the rigid body types, as Blender names them |
+| collision shape | bentuk tabrakan | the invisible shape physics uses; "collision shape-nya" |
+| collision | | in compounds such as "collision statis" (a game engine's static collision) |
+| convex, Convex Hull | cembung | explained at first use as having no dent or hole |
+| modifier | pengubah | "Mirror modifier"; explained at first use |
+| viewport | | Blender's 3D area |
+| 3D cursor | kursor 3D | Blender's red and white ring where new objects appear; "kursor" stays for the mouse pointer |
+| apply | menerapkan | "di-apply", as in Blender's Object, Apply |
+| bake | memanggang | "di-bake", storing a material as an image |
+| node | simpul | Blender's material nodes |
+| render | | "di-render", explained at first use |
+| UV unwrap | | explained at first use |
+| glTF | | the 3D file format |
+| Blender's interface names | | Sidebar, Properties, Physics, Modifier, Add Modifier, Randomize, Amount, Random Seed, Clipping, Merge, Apply Modifiers and the like stay exactly as Blender shows them |
 
 ## Keep in Indonesian
 
@@ -162,7 +213,13 @@ Everyday words that Indonesian readers use, including Indonesian spellings of bo
 | jaringan virtual | virtual network | |
 | alamat | address | |
 | koneksi | connection | "koneksi masuk", "koneksi keluar" |
-| pesan | message | a WebSocket message |
+| pesan | message | a WebSocket message; also a message sent through a broker |
+| lonjakan | burst, spike | a sudden rise in orders or messages |
+| asinkron, sinkron | asynchronous, synchronous | |
+| salinan | copy | "satu salinan pesan di setiap queue" |
+| memori | memory | |
+| transaksi | transaction | a database transaction; explained at first use |
+| tabel, baris | table, row | database tables and rows |
 | fungsi | function | "fungsi penerima" |
 | konfigurasi | configuration | |
 | sertifikat | certificate | "sertifikat HTTPS" |
@@ -198,3 +255,12 @@ Everyday words that Indonesian readers use, including Indonesian spellings of bo
 | kartu SD | SD card | |
 | kursor | cursor | |
 | pengumpan | feeder | the part that writes sound to the encoder on the clock |
+| fisika | physics | "fisika di Blender" |
+| gravitasi | gravity | |
+| tabrakan, bertabrakan | collision, collide | the plain idea; "collision shape" is the term |
+| tekstur | texture | |
+| ekspor, diekspor, mengimpor | export, import | |
+| simetris | symmetric | |
+| cermin, garis cermin | mirror, mirror line | the plain idea; "Mirror modifier" is the term |
+| titik | point, vertex | the points of a mesh, in running text |
+| kubus, bola, tiang, batu, tanah | cube, sphere, pillar, stone, ground | object names in running text; Blender's own object names (Cube, Plane) stay as shown |

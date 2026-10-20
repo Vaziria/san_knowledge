@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 354" width="1520" height="708" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Tiga broker, tiga cara menyimpan pesan">
+  <defs>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="354" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Tiga broker, tiga cara menyimpan pesan</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Kotak biru adalah pesan yang disimpan broker. Garis putus-putus berarti sudah dihapus atau sedang mati.</text>
+  <!-- RabbitMQ, queue -->
+  <rect x="24" y="76" width="224" height="254" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="100" font-weight="600" fill="#1f1f1f">RabbitMQ, queue</text>
+  <text x="40" y="118" font-size="11.5" fill="#5f5f5f">pesan dihapus setelah ack</text>
+  <text x="40" y="296" font-size="11.5" fill="#5f5f5f">Broker hanya menyimpan pesan</text>
+  <text x="40" y="312" font-size="11.5" fill="#5f5f5f">yang belum selesai.</text>
+  <!-- Kafka, log -->
+  <rect x="268" y="76" width="224" height="254" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="284" y="100" font-weight="600" fill="#1f1f1f">Kafka, log</text>
+  <text x="284" y="118" font-size="11.5" fill="#5f5f5f">event tetap disimpan</text>
+  <text x="284" y="296" font-size="11.5" fill="#5f5f5f">Event tetap ada sampai masa</text>
+  <text x="284" y="312" font-size="11.5" fill="#5f5f5f">simpannya habis.</text>
+  <!-- Core NATS, subject -->
+  <rect x="512" y="76" width="224" height="254" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="528" y="100" font-weight="600" fill="#1f1f1f">Core NATS, subject</text>
+  <text x="528" y="118" font-size="11.5" fill="#5f5f5f">pesan tidak disimpan</text>
+  <text x="528" y="296" font-size="11.5" fill="#5f5f5f">Pesan hanya sampai ke consumer</text>
+  <text x="528" y="312" font-size="11.5" fill="#5f5f5f">yang sedang terhubung.</text>
+  <text x="72" y="146" text-anchor="middle" font-size="11.5" fill="#5f5f5f">dihapus</text>
+  <text x="168" y="146" text-anchor="middle" font-size="11.5" fill="#5f5f5f">menunggu</text>
+  <rect x="40" y="154" width="32" height="32" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="72" y="154" width="32" height="32" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <rect x="104" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="136" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="168" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="200" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="68" y="236" width="104" height="32" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="120" y="256" text-anchor="middle" font-weight="600" fill="#1f1f1f">consumer</text>
+  <path d="M120 186V236" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="284" y="146" font-size="11.5" fill="#5f5f5f">lama</text>
+  <text x="476" y="146" text-anchor="end" font-size="11.5" fill="#5f5f5f">baru</text>
+  <rect x="284" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="300" y="174" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">0</text>
+  <rect x="316" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="332" y="174" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">1</text>
+  <rect x="348" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="364" y="174" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">2</text>
+  <rect x="380" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="396" y="174" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">3</text>
+  <rect x="412" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="428" y="174" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">4</text>
+  <rect x="444" y="154" width="32" height="32" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="460" y="174" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">5</text>
+  <rect x="284" y="236" width="92" height="40" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="384" y="236" width="92" height="40" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="330" y="252" text-anchor="middle" font-weight="600" fill="#1f1f1f">consumer A</text>
+  <text x="330" y="268" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">offset 2</text>
+  <text x="430" y="252" text-anchor="middle" font-weight="600" fill="#1f1f1f">consumer B</text>
+  <text x="430" y="268" text-anchor="middle" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">offset 5</text>
+  <path d="M330 236L364 188" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M430 236L460 188" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <rect x="574" y="134" width="128" height="28" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="638" y="153" text-anchor="middle" font-weight="600" fill="#1f1f1f">producer</text>
+  <rect x="578" y="180" width="120" height="24" rx="12" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="638" y="196" text-anchor="middle" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">pesanan.dibuat</text>
+  <rect x="528" y="236" width="92" height="40" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="628" y="236" width="92" height="40" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="574" y="252" text-anchor="middle" font-weight="600" fill="#1f1f1f">consumer A</text>
+  <text x="574" y="268" text-anchor="middle" font-size="11.5" fill="#5f5f5f">terhubung</text>
+  <text x="674" y="252" text-anchor="middle" font-weight="600" fill="#5f5f5f">consumer B</text>
+  <text x="674" y="268" text-anchor="middle" font-size="11.5" fill="#5f5f5f">sedang mati</text>
+  <path d="M638 162V180" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M622 204L578 236" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M654 204L672 236" fill="none" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-grey)"/>
+</svg>

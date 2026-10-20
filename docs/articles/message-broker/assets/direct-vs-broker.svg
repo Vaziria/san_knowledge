@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 476" width="1520" height="952" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Tanpa broker, pengirim menunggu semua penerima">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="476" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Tanpa broker, pengirim menunggu semua penerima</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Atas, program pesanan memanggil setiap penerima lalu menunggu. Bawah, ia cukup menitipkan satu pesan ke broker.</text>
+
+  <!-- Panels -->
+  <g fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25">
+    <rect x="24" y="76" width="712" height="160" rx="10"/>
+    <rect x="24" y="252" width="712" height="200" rx="10"/>
+  </g>
+  <text x="40" y="98" font-weight="600" fill="#1f1f1f">Tanpa message broker</text>
+  <text x="40" y="274" font-weight="600" fill="#1f1f1f">Dengan message broker</text>
+
+  <!-- Top panel boxes -->
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="56" y="136" width="140" height="44" rx="8"/>
+    <rect x="400" y="96" width="140" height="34" rx="8"/>
+    <rect x="400" y="141" width="140" height="34" rx="8"/>
+    <rect x="400" y="186" width="140" height="34" rx="8" stroke-dasharray="4 3"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="126" y="162" font-weight="600" fill="#1f1f1f">Program pesanan</text>
+    <text x="126" y="198" font-size="11.5" fill="#5f5f5f">menunggu ketiganya</text>
+    <text x="470" y="117" fill="#1f1f1f">Program stok</text>
+    <text x="470" y="162" fill="#1f1f1f">Program invoice</text>
+    <text x="470" y="207" fill="#5f5f5f">Program email</text>
+  </g>
+  <g font-size="11.5" fill="#5f5f5f">
+    <text x="556" y="117">1. menjawab</text>
+    <text x="556" y="162">2. menjawab</text>
+    <text x="556" y="207">3. mati, pesanan gagal</text>
+  </g>
+
+  <!-- Bottom panel boxes -->
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="56" y="342" width="140" height="44" rx="8"/>
+    <rect x="440" y="286" width="140" height="34" rx="8"/>
+    <rect x="440" y="327" width="140" height="34" rx="8"/>
+    <rect x="440" y="368" width="140" height="34" rx="8" stroke-dasharray="4 3"/>
+    <rect x="440" y="409" width="140" height="34" rx="8"/>
+  </g>
+  <rect x="262" y="312" width="112" height="104" rx="10" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <g text-anchor="middle">
+    <text x="126" y="368" font-weight="600" fill="#1f1f1f">Program pesanan</text>
+    <text x="126" y="404" font-size="11.5" fill="#5f5f5f">langsung selesai</text>
+    <text x="318" y="360" font-weight="600" fill="#1f1f1f">Message</text>
+    <text x="318" y="376" font-weight="600" fill="#1f1f1f">broker</text>
+    <text x="229" y="356" font-size="11.5" fill="#2f76d6">1 pesan</text>
+    <text x="510" y="307" fill="#1f1f1f">Program stok</text>
+    <text x="510" y="348" fill="#1f1f1f">Program invoice</text>
+    <text x="510" y="389" fill="#5f5f5f">Program email</text>
+    <text x="510" y="430" fill="#1f1f1f">Program poin</text>
+  </g>
+  <g font-size="11.5" fill="#5f5f5f">
+    <text x="592" y="389">mati, pesannya menunggu</text>
+    <text x="592" y="430">penerima baru</text>
+  </g>
+
+  <!-- Flows -->
+  <g fill="none" stroke-width="1.5">
+    <path d="M196 150L400 113" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M196 158H400" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M196 166L400 203" stroke="#a8a69c" stroke-dasharray="4 3" marker-end="url(#arrow-grey)"/>
+    <path d="M196 364H262" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M374 340L440 303" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M374 354L440 344" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M374 374L440 385" stroke="#2f76d6" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+    <path d="M374 388L440 426" stroke="#2f76d6" marker-end="url(#arrow)"/>
+  </g>
+</svg>

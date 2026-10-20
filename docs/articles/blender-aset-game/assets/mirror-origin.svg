@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" width="1520" height="760" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#a8a69c"/>
+    </marker>
+  </defs>
+  <rect width="760" height="380" fill="#ffffff"/>
+  <text x="24" y="44" font-size="15" font-weight="600" fill="#1f1f1f">Mirror modifier mencerminkan bentuk terhadap origin objeknya</text>
+  <text x="24" y="64" font-size="12" fill="#5f5f5f">Geser bentuknya sejauh d dari origin di Edit Mode, dan salinannya muncul sejauh d di sisi lain.</text>
+
+  <!-- ground -->
+  <rect x="24" y="88" width="712" height="268" rx="6" fill="#f1f0eb"/>
+  <line x1="70" y1="310" x2="690" y2="310" stroke="#a8a69c" stroke-width="1.5"/>
+
+  <!-- the copy (left) -->
+  <rect x="215" y="150" width="30" height="160" fill="#ffffff" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <!-- the shape you model (right) -->
+  <rect x="515" y="150" width="30" height="160" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="2"/>
+
+  <!-- mirror line through the origin -->
+  <line x1="380" y1="104" x2="380" y2="310" stroke="#5f5f5f" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="380" cy="310" r="5" fill="#1f1f1f" stroke="#ffffff" stroke-width="1.5"/>
+
+  <!-- distances -->
+  <line x1="384" y1="220" x2="526" y2="220" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="376" y1="220" x2="234" y2="220" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="455" y="212" font-size="13" font-weight="600" fill="#1f1f1f" text-anchor="middle">d</text>
+  <text x="305" y="212" font-size="13" font-weight="600" fill="#1f1f1f" text-anchor="middle">d</text>
+  <line x1="234" y1="124" x2="526" y2="124" stroke="#a8a69c" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect x="330" y="114" width="100" height="20" fill="#f1f0eb"/>
+  <text x="380" y="129" font-size="12.5" fill="#1f1f1f" text-anchor="middle">jarak tiang = 2d</text>
+
+  <!-- labels -->
+  <text x="230" y="332" font-size="12.5" fill="#5f5f5f" text-anchor="middle">salinan dari Mirror</text>
+  <text x="380" y="332" font-size="12.5" fill="#1f1f1f" text-anchor="middle">origin</text>
+  <text x="530" y="332" font-size="12.5" fill="#1f1f1f" text-anchor="middle">bentuk yang kamu buat</text>
+  <text x="380" y="349" font-size="11.5" fill="#5f5f5f" text-anchor="middle">garis cermin</text>
+</svg>

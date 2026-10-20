@@ -126,6 +126,25 @@ Current series:
     - `draft -at` with five topics stopped at the fifth ("waited 10s for the topic YouTube"), although all five were saved: Medium removes the topic box once a story has five topics, and the tool found the chips through that box. `topics()` in `editor.js` now looks on the whole page when the box is gone (not yet run with five topics). A `schedule` run straight after that failure also timed out on the date picker; on its own it worked.
   - Drafted and scheduled on LinkedIn on 2026-10-14 with `san_linkedin -profile basic`, one part a day after the VPN series: Oct 24–28 at 09:00 WIB, ids `7515839500716032000`, `7515840541020868608`, `7515842124920262656`, `7515843167586353152`, `7515844270306652161`. Cover and post text as for the VPN series.
 
+Standalone articles:
+
+- **"Apa itu message broker, dan kapan kamu membutuhkannya?"** (`message-broker/`), written 2026-10-15.
+  - It introduces message brokers before a later series on building one ("Seri Membuat Message Broker Sendiri", not planned yet). Its closing section points to that series, and to the series' first question: an existing protocol such as AMQP, or one of our own.
+  - It covers the problem (direct calls in an online shop), the broker as a go-between, its anatomy in RabbitMQ's names, one message walked through, the exchange kinds, ack and redelivery, at-most-once and at-least-once against exactly-once, publisher confirms, durability and clusters, prefetch, RabbitMQ vs Kafka vs core NATS, and the weaknesses with simpler alternatives (direct calls, a database table with `SKIP LOCKED`).
+  - No code. Facts come from sources opened on 2026-10-15: the RabbitMQ docs (AMQP concepts, confirms with prefetch 100 to 300, queues, streams, the topic tutorial), the Kafka 4.2 design docs and intro, the NATS core docs, the PostgreSQL `SELECT` docs, and Wikipedia for the dates (RabbitMQ 2007, Kafka open-sourced early 2011, NATS 2011).
+  - Five diagrams.
+  - Drafted and scheduled on 2026-10-15 on profile `basic`, each on the first free day after the radio series, at 09:00 WIB:
+    - Medium on Oct 26, id `e028fda38dd6`, topics Programming, Software Architecture, RabbitMQ and Kafka.
+    - LinkedIn on Oct 29, id `7516530380879855616`, with the first image as cover and the subtitle as the post's text. "Write article" opened nothing twice, so the tool opened its address, as its README describes.
+- **"Belajar Blender untuk aset game, dari kubus yang jatuh sampai gerbang yang simetris"** (`blender-aset-game/`), written 2026-10-17 from the user's first day of Blender lessons for game assets (summary in [chat_summary/blender_game_asset_basics.md](../chat_summary/blender_game_asset_basics.md)).
+  - It covers why game assets must be light, the origin, rigid body (Active, Passive, the Animated tick), which objects need one, collision shapes, physics in a game engine (Godot's body types and import suffixes), a low-poly stone from an Ico Sphere, and the Mirror modifier, ending with "Kelemahan …".
+  - No code. Blender facts were checked in Blender 5.2.2 on 2026-10-17: gravity 9.81, the eight Shape options, Convex Hull chosen when Rigid Body is added from the Physics tab, 80 faces for a default Ico Sphere, Merge on and Clipping off by default, the glTF exporter's Apply Modifiers off by default. Quotes on Mesh and Convex Hull come from the Blender 5.2 manual's Collisions page; Godot names from the Godot 4.7 docs (physics introduction, node type customization using name suffixes).
+  - Four screenshots taken from the recordings of the video series in `videos/blender-aset-game/`, and two diagrams.
+  - New Blender terms were added to the wordlist without asking the user; check them on review.
+  - Drafted and scheduled on 2026-10-17 on profile `basic`, each on the first free day, at 09:00 WIB:
+    - Medium on Oct 27, id `bea7cd1cbd1e`, topics Blender, Game Development and 3D Modeling.
+    - LinkedIn on Oct 30, id `7516932673391714304`, with the first image as cover and the subtitle as the post's text. "Write article" again opened nothing twice, and the tool opened its address.
+
 ## Structure
 
 - **Argument:** articles are written dialectically, as in [dialectical_writing.md](dialectical_writing.md). Each idea is stated, tested against the strongest objection or alternative, and resolved with its conditions and cost. Run its checklist before handing an article over.

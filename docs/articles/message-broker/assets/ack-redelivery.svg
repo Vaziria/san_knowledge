@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="1520" height="680" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Broker tidak bisa membedakan consumer yang mati dari ack yang hilang">
+  <defs>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="340" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Broker tidak bisa membedakan consumer yang mati dari ack yang hilang</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Di kedua kejadian, ack tidak pernah sampai ke broker, jadi pesannya diantar ulang.</text>
+  <rect x="200" y="100" width="176" height="194" rx="10" fill="#2f76d6" fill-opacity="0.08" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="24" y="98" font-weight="600" fill="#1f1f1f">Kejadian 1, consumer mati</text>
+  <rect x="24" y="108" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="104" y="135" text-anchor="middle" fill="#1f1f1f">Broker mengantar</text>
+  <text x="104" y="151" text-anchor="middle" fill="#1f1f1f">pesan ke consumer A</text>
+  <rect x="208" y="108" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="288" y="135" text-anchor="middle" fill="#1f1f1f">A mati sebelum</text>
+  <text x="288" y="151" text-anchor="middle" fill="#1f1f1f">mengirim email</text>
+  <rect x="392" y="108" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="472" y="135" text-anchor="middle" fill="#1f1f1f">Tanpa ack, broker</text>
+  <text x="472" y="151" text-anchor="middle" fill="#1f1f1f">mengantar ulang ke B</text>
+  <rect x="576" y="108" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="656" y="128" text-anchor="middle" fill="#1f1f1f">B mengirim email</text>
+  <text x="656" y="144" text-anchor="middle" fill="#1f1f1f">lalu ack</text>
+  <text x="656" y="160" text-anchor="middle" font-weight="600" fill="#1f1f1f">Email terkirim 1 kali</text>
+  <path d="M184 140H208" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M368 140H392" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M552 140H576" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="24" y="210" font-weight="600" fill="#1f1f1f">Kejadian 2, ack hilang</text>
+  <rect x="24" y="220" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="104" y="247" text-anchor="middle" fill="#1f1f1f">Broker mengantar</text>
+  <text x="104" y="263" text-anchor="middle" fill="#1f1f1f">pesan ke consumer A</text>
+  <rect x="208" y="220" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="288" y="240" text-anchor="middle" fill="#1f1f1f">A mengirim email,</text>
+  <text x="288" y="256" text-anchor="middle" fill="#1f1f1f">koneksi putus</text>
+  <text x="288" y="272" text-anchor="middle" fill="#1f1f1f">sebelum ack sampai</text>
+  <rect x="392" y="220" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="472" y="247" text-anchor="middle" fill="#1f1f1f">Tanpa ack, broker</text>
+  <text x="472" y="263" text-anchor="middle" fill="#1f1f1f">mengantar ulang ke B</text>
+  <rect x="576" y="220" width="160" height="64" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="656" y="240" text-anchor="middle" fill="#1f1f1f">B mengirim email</text>
+  <text x="656" y="256" text-anchor="middle" fill="#1f1f1f">lalu ack</text>
+  <text x="656" y="272" text-anchor="middle" font-weight="600" fill="#1f1f1f">Email terkirim 2 kali</text>
+  <path d="M184 252H208" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M368 252H392" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M552 252H576" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="24" y="318" font-size="11.5" fill="#5f5f5f">Di kolom berwarna, broker melihat hal yang sama. Koneksi putus, dan ack tidak pernah datang.</text>
+</svg>

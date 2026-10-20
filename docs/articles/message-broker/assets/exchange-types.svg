@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 426" width="1520" height="852" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Jenis exchange menentukan queue mana yang mendapat salinan">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="426" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Jenis exchange menentukan queue mana yang mendapat salinan</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Pesan pesanan.dibuat dikirim ke tiga exchange. Di bawah nama setiap queue tertulis binding-nya.</text>
+  <!-- Exchange direct -->
+  <rect x="24" y="76" width="224" height="306" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="100" font-weight="600" fill="#1f1f1f">Exchange direct</text>
+  <text x="40" y="118" font-size="11.5" fill="#5f5f5f">routing key sama persis</text>
+  <rect x="90" y="130" width="120" height="24" rx="12" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="150" y="146" font-size="11.5" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">pesanan.dibuat</text>
+  <rect x="68" y="172" width="164" height="32" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="150" y="192" font-weight="600" text-anchor="middle" fill="#1f1f1f">exchange</text>
+  <rect x="68" y="222" width="164" height="40" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="80" y="239" font-weight="600" fill="#1f1f1f">queue A</text>
+  <text x="222" y="239" font-size="11.5" text-anchor="end" fill="#2f76d6">dapat salinan</text>
+  <text x="80" y="255" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">pesanan.dibuat</text>
+  <rect x="68" y="274" width="164" height="40" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="80" y="291" font-weight="600" fill="#1f1f1f">queue B</text>
+  <text x="222" y="291" font-size="11.5" text-anchor="end" fill="#5f5f5f">tidak dapat</text>
+  <text x="80" y="307" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">pesanan.*</text>
+  <rect x="68" y="326" width="164" height="40" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="80" y="343" font-weight="600" fill="#1f1f1f">queue C</text>
+  <text x="222" y="343" font-size="11.5" text-anchor="end" fill="#5f5f5f">tidak dapat</text>
+  <text x="80" y="359" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">stok.habis</text>
+  <path d="M150 154V172" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M68 188H52V346" fill="none" stroke="#a8a69c" stroke-width="1.5"/>
+  <path d="M52 242H68" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M52 294H68" fill="none" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <path d="M52 346H68" fill="none" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <!-- Exchange fanout -->
+  <rect x="268" y="76" width="224" height="306" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="284" y="100" font-weight="600" fill="#1f1f1f">Exchange fanout</text>
+  <text x="284" y="118" font-size="11.5" fill="#5f5f5f">ke semua queue</text>
+  <rect x="334" y="130" width="120" height="24" rx="12" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="394" y="146" font-size="11.5" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">pesanan.dibuat</text>
+  <rect x="312" y="172" width="164" height="32" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="394" y="192" font-weight="600" text-anchor="middle" fill="#1f1f1f">exchange</text>
+  <rect x="312" y="222" width="164" height="40" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="324" y="239" font-weight="600" fill="#1f1f1f">queue A</text>
+  <text x="466" y="239" font-size="11.5" text-anchor="end" fill="#2f76d6">dapat salinan</text>
+  <text x="324" y="255" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">pesanan.dibuat</text>
+  <rect x="312" y="274" width="164" height="40" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="324" y="291" font-weight="600" fill="#1f1f1f">queue B</text>
+  <text x="466" y="291" font-size="11.5" text-anchor="end" fill="#2f76d6">dapat salinan</text>
+  <text x="324" y="307" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">pesanan.*</text>
+  <rect x="312" y="326" width="164" height="40" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="324" y="343" font-weight="600" fill="#1f1f1f">queue C</text>
+  <text x="466" y="343" font-size="11.5" text-anchor="end" fill="#2f76d6">dapat salinan</text>
+  <text x="324" y="359" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">stok.habis</text>
+  <path d="M394 154V172" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M312 188H296V346" fill="none" stroke="#a8a69c" stroke-width="1.5"/>
+  <path d="M296 242H312" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M296 294H312" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M296 346H312" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Exchange topic -->
+  <rect x="512" y="76" width="224" height="306" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="528" y="100" font-weight="600" fill="#1f1f1f">Exchange topic</text>
+  <text x="528" y="118" font-size="11.5" fill="#5f5f5f">cocok dengan pola * dan #</text>
+  <rect x="578" y="130" width="120" height="24" rx="12" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="638" y="146" font-size="11.5" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">pesanan.dibuat</text>
+  <rect x="556" y="172" width="164" height="32" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="638" y="192" font-weight="600" text-anchor="middle" fill="#1f1f1f">exchange</text>
+  <rect x="556" y="222" width="164" height="40" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="568" y="239" font-weight="600" fill="#1f1f1f">queue A</text>
+  <text x="710" y="239" font-size="11.5" text-anchor="end" fill="#2f76d6">dapat salinan</text>
+  <text x="568" y="255" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">pesanan.dibuat</text>
+  <rect x="556" y="274" width="164" height="40" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="568" y="291" font-weight="600" fill="#1f1f1f">queue B</text>
+  <text x="710" y="291" font-size="11.5" text-anchor="end" fill="#2f76d6">dapat salinan</text>
+  <text x="568" y="307" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">pesanan.*</text>
+  <rect x="556" y="326" width="164" height="40" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="568" y="343" font-weight="600" fill="#1f1f1f">queue C</text>
+  <text x="710" y="343" font-size="11.5" text-anchor="end" fill="#5f5f5f">tidak dapat</text>
+  <text x="568" y="359" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">stok.habis</text>
+  <path d="M638 154V172" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M556 188H540V346" fill="none" stroke="#a8a69c" stroke-width="1.5"/>
+  <path d="M540 242H556" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M540 294H556" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M540 346H556" fill="none" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="24" y="406" font-size="11.5" fill="#5f5f5f">Exchange headers tidak digambar, karena ia mencocokkan header pesan, bukan routing key.</text>
+</svg>

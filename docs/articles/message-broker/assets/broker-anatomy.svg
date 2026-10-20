@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="1520" height="680" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Producer mengirim ke exchange, binding memilih queue-nya">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="340" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Producer mengirim ke exchange, binding memilih queue-nya</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Producer tidak tahu queue mana saja yang ada. Consumer hanya membaca dari queue-nya sendiri.</text>
+
+  <!-- Broker container -->
+  <rect x="172" y="76" width="400" height="240" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="188" y="98" font-weight="600" fill="#1f1f1f">Message broker</text>
+
+  <!-- Producer, consumers, queues -->
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="24" y="172" width="120" height="56" rx="8"/>
+    <rect x="420" y="124" width="136" height="36" rx="6"/>
+    <rect x="420" y="182" width="136" height="36" rx="6"/>
+    <rect x="420" y="240" width="136" height="36" rx="6"/>
+    <rect x="612" y="120" width="124" height="44" rx="8"/>
+    <rect x="612" y="178" width="124" height="44" rx="8"/>
+    <rect x="612" y="236" width="124" height="44" rx="8"/>
+  </g>
+  <rect x="196" y="172" width="104" height="56" rx="8" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+
+  <!-- Messages waiting in each queue -->
+  <g fill="#a8a69c">
+    <rect x="536" y="133" width="10" height="18" rx="2"/>
+    <rect x="524" y="191" width="10" height="18" rx="2"/>
+    <rect x="538" y="191" width="10" height="18" rx="2"/>
+    <rect x="522" y="249" width="10" height="18" rx="2"/>
+    <rect x="536" y="249" width="10" height="18" rx="2"/>
+  </g>
+
+  <g text-anchor="middle">
+    <text x="84" y="196" font-weight="600" fill="#1f1f1f">Producer</text>
+    <text x="84" y="213" font-size="11.5" fill="#5f5f5f">program pesanan</text>
+    <text x="248" y="196" font-weight="600" fill="#1f1f1f">Exchange</text>
+    <text x="248" y="213" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">toko</text>
+    <text x="674" y="138" font-weight="600" fill="#1f1f1f">Consumer</text>
+    <text x="674" y="155" font-size="11.5" fill="#5f5f5f">program stok</text>
+    <text x="674" y="196" font-weight="600" fill="#1f1f1f">Consumer</text>
+    <text x="674" y="213" font-size="11.5" fill="#5f5f5f">program invoice</text>
+    <text x="674" y="254" font-weight="600" fill="#1f1f1f">Consumer</text>
+    <text x="674" y="271" font-size="11.5" fill="#5f5f5f">program email</text>
+    <text x="360" y="148" font-size="11.5" fill="#2f76d6">binding</text>
+  </g>
+  <g fill="#1f1f1f">
+    <text x="432" y="146">queue stok</text>
+    <text x="432" y="204">queue invoice</text>
+    <text x="432" y="262">queue email</text>
+  </g>
+  <text x="24" y="250" font-size="11.5" fill="#5f5f5f">routing key</text>
+  <text x="24" y="266" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">pesanan.dibuat</text>
+  <text x="188" y="302" font-size="11.5" fill="#5f5f5f">Ketiga binding mencocokkan routing key pesanan.dibuat.</text>
+
+  <!-- Flows -->
+  <g fill="none" stroke-width="1.5">
+    <path d="M144 200H196" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M300 190L420 142" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M300 200H420" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M300 210L420 258" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M556 142H612" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M556 200H612" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M556 258H612" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+  </g>
+</svg>

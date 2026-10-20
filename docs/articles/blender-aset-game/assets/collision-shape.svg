@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" width="1520" height="1120" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="760" height="560" fill="#ffffff"/>
+  <text x="24" y="44" font-size="15" font-weight="600" fill="#1f1f1f">Fisika hanya melihat collision shape, bukan model yang kamu lihat</text>
+  <text x="24" y="64" font-size="12" fill="#5f5f5f">Abu-abu adalah modelnya. Biru adalah bentuk yang dipakai fisika untuk menghitung tabrakan.</text>
+
+  <!-- panels -->
+  <rect x="24" y="88" width="344" height="210" rx="6" fill="#f1f0eb"/>
+  <rect x="392" y="88" width="344" height="210" rx="6" fill="#f1f0eb"/>
+  <rect x="24" y="318" width="344" height="210" rx="6" fill="#f1f0eb"/>
+  <rect x="392" y="318" width="344" height="210" rx="6" fill="#f1f0eb"/>
+
+  <!-- row 1: a stone, Box -->
+  <polygon points="118,219 134,170 176,144 196,167 228,151 271,183 277,222 235,240 163,242" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.5"/>
+  <rect x="114" y="140" width="167" height="106" fill="#2f76d6" fill-opacity="0.10" stroke="#2f76d6" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="40" y="112" font-size="13" font-weight="600" fill="#1f1f1f">Box</text>
+  <text x="40" y="272" font-size="11.5" fill="#5f5f5f">Kotak di sekeliling batu. Paling ringan dihitung,</text>
+  <text x="40" y="287" font-size="11.5" fill="#5f5f5f">tetapi ada ruang kosong di sudut-sudutnya.</text>
+
+  <!-- row 1: a stone, Convex Hull -->
+  <polygon points="486,219 502,170 544,144 564,167 596,151 639,183 645,222 603,240 531,242" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.5"/>
+  <polygon points="486,219 502,170 544,144 596,151 639,183 645,222 603,240 531,242" fill="#2f76d6" fill-opacity="0.10" stroke="#2f76d6" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="408" y="112" font-size="13" font-weight="600" fill="#1f1f1f">Convex Hull</text>
+  <text x="408" y="272" font-size="11.5" fill="#5f5f5f">Seperti plastik yang dibungkus rapat ke batu.</text>
+  <text x="408" y="287" font-size="11.5" fill="#5f5f5f">Hampir sama persis, dan tetap ringan.</text>
+
+  <!-- row 2: a cup, Convex Hull: the opening is closed, the ball stays on top -->
+  <path d="M136,378 L136,478 L256,478 L256,378 L244,378 L244,466 L148,466 L148,378 Z" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.5"/>
+  <rect x="136" y="378" width="120" height="100" fill="#2f76d6" fill-opacity="0.10" stroke="#2f76d6" stroke-width="2" stroke-dasharray="6 4"/>
+  <circle cx="196" cy="364" r="14" fill="#5f5f5f"/>
+  <text x="40" y="342" font-size="13" font-weight="600" fill="#1f1f1f">Convex Hull</text>
+  <text x="40" y="502" font-size="11.5" fill="#5f5f5f">Lekukan cangkir ikut tertutup.</text>
+  <text x="40" y="517" font-size="11.5" fill="#5f5f5f">Bola berhenti di atas dan tidak bisa masuk.</text>
+
+  <!-- row 2: a cup, Mesh: the surface is followed, the ball falls inside -->
+  <path d="M504,378 L504,478 L624,478 L624,378 L612,378 L612,466 L516,466 L516,378 Z" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.5"/>
+  <path d="M504,378 L504,478 L624,478 L624,378 L612,378 L612,466 L516,466 L516,378 Z" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="2" stroke-dasharray="6 4"/>
+  <circle cx="564" cy="451" r="14" fill="#5f5f5f"/>
+  <text x="408" y="342" font-size="13" font-weight="600" fill="#1f1f1f">Mesh</text>
+  <text x="408" y="502" font-size="11.5" fill="#5f5f5f">Mengikuti permukaan asli, termasuk lekukannya.</text>
+  <text x="408" y="517" font-size="11.5" fill="#5f5f5f">Bola masuk ke dalam, tetapi hitungannya paling berat.</text>
+</svg>

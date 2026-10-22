@@ -1,0 +1,5 @@
+# Build output (build.sh / build.ps1 write both platform binaries here)
+bin/
+
+# Data folder of a server run from this directory
+event_data/

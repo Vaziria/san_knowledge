@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package san.message.v1;
+
+option go_package = "github.com/wargasipil/san_message/gen/san/message/v1;messagev1";
+
+// MessageService is San Message over connect-rpc. Event data is opaque bytes:
+// the broker stores and delivers it without parsing it.
+service MessageService {
+  // Publish appends one event to a topic's log and returns its ID.
+  rpc Publish(PublishRequest) returns (PublishResponse);
+
+  // Subscribe delivers a pull subscriber's events one at a time. The first
+  // client message must be `hello`; every later one is an `ack` for the event
+  // just received, and the next event is sent only after it.
+  //
+  // Requires HTTP/2. One stream per subscriber key: a second one is refused
+  // with AlreadyExists while the first is open.
+  rpc Subscribe(stream SubscribeRequest) returns (stream SubscribeResponse);
+
+  rpc CreateTopic(CreateTopicRequest) returns (CreateTopicResponse);
+  // DeleteTopic removes a topic and its log files. It is refused while the
+  // topic still has subscribers.
+  rpc DeleteTopic(DeleteTopicRequest) returns (DeleteTopicResponse);
+  rpc ListTopics(ListTopicsRequest) returns (ListTopicsResponse);
+
+  // CreateSubscriber starts the subscriber at the end of the topic's log, so
+  // it gets only events published after it.
+  rpc CreateSubscriber(CreateSubscriberRequest) returns (CreateSubscriberResponse);
+  rpc DeleteSubscriber(DeleteSubscriberRequest) returns (DeleteSubscriberResponse);
+  rpc ListSubscribers(ListSubscribersRequest) returns (ListSubscribersResponse);
+}
+
+message PublishRequest {
+  string topic = 1;
+  bytes data = 2;
+}
+
+message PublishResponse {
+  uint64 event_id = 1;
+}
+
+message SubscribeRequest {
+  oneof payload {
+    Hello hello = 1;
+    Ack ack = 2;
+  }
+}
+
+message Hello {
+  string subscriber = 1;
+}
+
+message Ack {
+  uint64 event_id = 1;
+}
+
+message SubscribeResponse {
+  Event event = 1;
+}
+
+message Event {
+  uint64 id = 1;
+  string topic = 2;
+  int64 created_ms = 3;
+  bytes data = 4;
+}
+
+message CreateTopicRequest {
+  string topic = 1;
+}
+
+message CreateTopicResponse {}
+
+message DeleteTopicRequest {
+  string topic = 1;
+}
+
+message DeleteTopicResponse {}
+
+message ListTopicsRequest {}
+
+message ListTopicsResponse {
+  repeated Topic topics = 1;
+}
+
+message Topic {
+  string key = 1;
+  uint64 last_event_id = 2;
+  // Where the log ends: segment file number and byte offset in it.
+  uint32 segment = 3;
+  uint32 offset = 4;
+  uint32 subscribers = 5;
+}
+
+enum SubscriberType {
+  SUBSCRIBER_TYPE_UNSPECIFIED = 0;
+  SUBSCRIBER_TYPE_WEBHOOK = 1;
+  SUBSCRIBER_TYPE_PULL = 2;
+}
+
+message CreateSubscriberRequest {
+  string subscriber = 1;
+  string topic = 2;
+  SubscriberType type = 3;
+  // Required for SUBSCRIBER_TYPE_WEBHOOK, empty for SUBSCRIBER_TYPE_PULL.
+  string webhook_uri = 4;
+}
+
+message CreateSubscriberResponse {}
+
+message DeleteSubscriberRequest {
+  string subscriber = 1;
+}
+
+message DeleteSubscriberResponse {}
+
+message ListSubscribersRequest {
+  // Only this topic's subscribers; every subscriber when empty.
+  string topic = 1;
+}
+
+message ListSubscribersResponse {
+  repeated Subscriber subscribers = 1;
+}
+
+message Subscriber {
+  string key = 1;
+  string topic = 2;
+  SubscriberType type = 3;
+  string webhook_uri = 4;
+  // The subscriber's pointer: the next event it gets is here.
+  uint32 segment = 5;
+  uint32 offset = 6;
+  uint32 retry_count = 7;
+  // When the event at the pointer is tried again, unix ms; 0 when not waiting.
+  int64 retry_at_ms = 8;
+  // A pull subscriber with an open Subscribe stream.
+  bool connected = 9;
+}

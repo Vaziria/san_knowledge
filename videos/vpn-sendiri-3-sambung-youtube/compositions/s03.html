@@ -1,0 +1,140 @@
+<template id="s03-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 48px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 22px; letter-spacing: 0.14em;
+      text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 100px; }
+    .chrome.r { right: 100px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .rule { position: absolute; left: 100px; right: 100px; top: 96px; height: 1px; background: #282826; }
+    .orange .rule { background: rgba(17, 17, 17, 0.2); }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 28px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 100px; top: 130px; width: 1500px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start; }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .lead { display: block; margin-top: 40px; width: 1150px; font-family: "Barlow"; font-weight: 700; font-size: 44px; line-height: 1.25; }
+    .dark .lead { color: #c8c4bc; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; }
+    .dark .lead b { color: #f0ece5; }
+    .title { display: block; font-family: "Barlow"; font-weight: 800; font-size: 78px; line-height: 0.98; letter-spacing: -0.03em; }
+    /* split: notes on the left, the visual on the right */
+    .col { position: absolute; left: 100px; top: 150px; width: 700px; height: 820px; display: flex; flex-direction: column; justify-content: center; }
+    .notes { display: flex; flex-direction: column; gap: 22px; margin-top: 44px; }
+    .nt { display: flex; gap: 20px; font-family: "Barlow"; font-weight: 700; font-size: 40px; line-height: 1.25; color: #f0ece5; }
+    .nt b { flex: none; font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    .nt .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.85em; color: #e85d26; white-space: nowrap; }
+    .vis { position: absolute; left: 860px; top: 150px; width: 960px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; gap: 32px; }
+    .card { width: 960px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 60px; border-bottom: 2px solid #282826; padding: 0 36px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 58px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 24px 36px 28px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 54px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 54px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 34px; line-height: 54px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 20px; height: 38px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 32px; height: 28px; margin-left: 20px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    /* bullets */
+    .bul { display: flex; align-items: baseline; gap: 28px; font-family: "Barlow"; font-weight: 700; font-size: 56px; line-height: 1.15;
+      margin-top: 30px; white-space: nowrap; }
+    .bul b { font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    /* compare */
+    .cmp { position: absolute; top: 380px; width: 540px; height: 520px; padding: 44px 44px; border-top: 1px solid #282826; background: #1a1a18; }
+    .cmp.pay { background: #e85d26; color: #111111; border-top-color: #e85d26; }
+    .cmp .num { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em; color: #e85d26; }
+    .cmp.pay .num { color: rgba(17, 17, 17, 0.6); }
+    .cmp .nm { margin-top: 26px; font-family: "Barlow"; font-weight: 800; font-size: 60px; line-height: 1.0; letter-spacing: -0.02em; }
+    .cmp .tx { margin-top: 26px; font-family: "Barlow"; font-weight: 600; font-size: 36px; line-height: 1.3; color: #c8c4bc; }
+    .cmp.pay .tx { color: rgba(17, 17, 17, 0.82); }
+    .ctitle { position: absolute; left: 100px; top: 170px; }
+  </style>
+
+  <div data-hf-id="hf-9kkh" id="root" data-composition-id="s03" data-start="0" data-duration="17" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-3180" id="s03" class="clip beat dark" data-start="0" data-duration="17" data-track-index="0">
+      <div data-hf-id="hf-qpxd" class="chrome l">bikin vpn sendiri · bagian 3</div><div data-hf-id="hf-ox1l" class="chrome r">03 / 03</div><div data-hf-id="hf-a46i" class="rule"></div>
+      <div data-hf-id="hf-7s1i" class="col">
+        <span data-hf-id="hf-ssjt" id="s03k" class="kicker">langkah 1 / 6</span>
+        <span data-hf-id="hf-gx01" id="s03t" class="title">pasang aplikasinya</span>
+        <div data-hf-id="hf-a3lj" class="notes">
+          <div data-hf-id="hf-c3ce" id="s03n0" class="nt"><b data-hf-id="hf-x3pa">/</b><span data-hf-id="hf-nbl9">unduh di wireguard.com/install: Windows, Mac, Linux, Android, iPhone</span></div>
+          <div data-hf-id="hf-g1gf" id="s03n1" class="nt"><b data-hf-id="hf-q6zm">/</b><span data-hf-id="hf-2xwe">klik <span data-hf-id="hf-v1dx" class="m">Add Tunnel</span>, lalu <span data-hf-id="hf-g6ei" class="m">Add empty tunnel</span></span></div>
+          <div data-hf-id="hf-7dkk" id="s03n2" class="nt"><b data-hf-id="hf-qlan">/</b><span data-hf-id="hf-mvsg">kuncinya dibuat otomatis. salin public key-nya</span></div>
+          <div data-hf-id="hf-858d" id="s03n3" class="nt"><b data-hf-id="hf-qzlo">/</b><span data-hf-id="hf-5mtc">lakukan di PC kantor dan PC rumah</span></div>
+        </div>
+      </div>
+      <div data-hf-id="hf-bt2y" class="vis">
+        <div data-hf-id="hf-flvd" id="s03c0" class="card">
+          <div data-hf-id="hf-kiz2" class="head">aplikasi WireGuard</div>
+          <div data-hf-id="hf-qevj" class="code">
+            <div data-hf-id="hf-daud" id="s03c0b" class="band" style="opacity: 0"></div>
+            <div data-hf-id="hf-jxke" id="s03c0l0" class="ln">wireguard.com/install</div>
+            <div data-hf-id="hf-f95g" id="s03c0l1" class="ln"> </div>
+            <div data-hf-id="hf-8w9k" id="s03c0l2" class="ln">Add Tunnel</div>
+            <div data-hf-id="hf-7pwi" id="s03c0l3" class="ln">› Add empty tunnel...</div>
+            <div data-hf-id="hf-uuex" id="s03c0l4" class="ln"> </div>
+            <div data-hf-id="hf-zq6g" id="s03c0l5" class="ln">Public key: (salin ini)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/TextPlugin.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      gsap.registerPlugin(TextPlugin);
+      tl.fromTo($("s03k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "expo.out" }, 0.05);
+      tl.fromTo($("s03t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo($("s03c0"), { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power4.out" }, 0.3);
+      tl.fromTo($("s03n0"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1);
+      tl.fromTo($("s03n1"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 4.2);
+      tl.to($("s03n0"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 4.2);
+      tl.fromTo($("s03n2"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 7.8);
+      tl.to($("s03n1"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 7.8);
+      tl.fromTo($("s03n3"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 12.5);
+      tl.to($("s03n2"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 12.5);
+      tl.fromTo($("s03c0l0"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 0.9);
+      tl.fromTo($("s03c0l2"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 3.6);
+      tl.fromTo($("s03c0l3"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 3.8);
+      tl.fromTo($("s03c0l5"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 7.4);
+      tl.set($("s03c0b"), { y: 24, opacity: 1 }, 1);
+      tl.set($("s03c0l0"), { color: "#111111" }, 1);
+      tl.fromTo($("s03c0b"), { scaleY: 1.16 }, { scaleY: 1, duration: 0.22, ease: "power3.out" }, 1);
+      tl.set($("s03c0l0"), { color: "#f0ece5" }, 4.2);
+      tl.set($("s03c0b"), { opacity: 0.25 }, 4.2);
+      tl.to($("s03c0b"), { y: 186, duration: 0.22, ease: "power3.inOut" }, 4.2);
+      tl.set($("s03c0b"), { opacity: 1 }, 4.44);
+      tl.set($("s03c0l3"), { color: "#111111" }, 4.44);
+      tl.fromTo($("s03c0b"), { scaleY: 1.16 }, { scaleY: 1, duration: 0.22, ease: "power3.out" }, 4.44);
+      tl.set($("s03c0l3"), { color: "#f0ece5" }, 7.8);
+      tl.set($("s03c0b"), { opacity: 0.25 }, 7.8);
+      tl.to($("s03c0b"), { y: 294, duration: 0.22, ease: "power3.inOut" }, 7.8);
+      tl.set($("s03c0b"), { opacity: 1 }, 8.04);
+      tl.set($("s03c0l5"), { color: "#111111" }, 8.04);
+      tl.fromTo($("s03c0b"), { scaleY: 1.16 }, { scaleY: 1, duration: 0.22, ease: "power3.out" }, 8.04);
+      tl.set({}, {}, 17);
+      window.__timelines["s03"] = tl;
+    })();
+  </script>
+</template>

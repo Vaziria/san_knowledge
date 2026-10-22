@@ -1,0 +1,173 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 8
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 2,
+    "findings": [
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 11.782,
+        "selector": "#step2m0",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 59,
+          "top": 734,
+          "right": 780.2,
+          "bottom": 854,
+          "width": 721.2,
+          "height": 120
+        },
+        "containerSelector": "#step2m1",
+        "text": "server.key kunci rahasia, jangan dibagi",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step2.html",
+        "bbox": {
+          "x": 59,
+          "y": 734,
+          "width": 721.2,
+          "height": 120
+        },
+        "firstSeen": 11.782,
+        "lastSeen": 11.782,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          11.782
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 11.782,
+        "selector": "#step2m0 > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 59,
+          "top": 742,
+          "right": 305,
+          "bottom": 795,
+          "width": 246,
+          "height": 53
+        },
+        "containerSelector": "#step2m1 > span:nth-of-type(1)",
+        "text": "server.key",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step2.html",
+        "bbox": {
+          "x": 59,
+          "y": 742,
+          "width": 246,
+          "height": 53
+        },
+        "firstSeen": 11.782,
+        "lastSeen": 11.782,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          11.782
+        ]
+      }
+    ],
+    "duration": 37,
+    "samples": [
+      2.056,
+      6.167,
+      10.278,
+      14.389,
+      18.5,
+      22.611,
+      26.722,
+      30.833,
+      34.944
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 2,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 1,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 1.39:1; WCAG AA requires 3:1.",
+        "text": "PrivateKey = <isi server.key>",
+        "fg": "rgb(166,163,158)",
+        "bg": "rgb(232,93,38)",
+        "ratio": 1.39,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(64,63,61)",
+        "large": true,
+        "selector": "#step3c0l3",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step3.html",
+        "bbox": {
+          "x": 86,
+          "y": 706,
+          "width": 783,
+          "height": 48
+        },
+        "time": 18.5,
+        "times": [
+          18.5
+        ]
+      }
+    ],
+    "enabled": true,
+    "samples": [
+      2.056,
+      10.278,
+      18.5,
+      26.722,
+      34.944
+    ],
+    "checked": 44,
+    "passed": 43
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

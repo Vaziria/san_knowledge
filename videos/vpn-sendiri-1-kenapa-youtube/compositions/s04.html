@@ -1,0 +1,157 @@
+<template id="s04-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 48px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 22px; letter-spacing: 0.14em;
+      text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 100px; }
+    .chrome.r { right: 100px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .rule { position: absolute; left: 100px; right: 100px; top: 96px; height: 1px; background: #282826; }
+    .orange .rule { background: rgba(17, 17, 17, 0.2); }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 28px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 100px; top: 130px; width: 1500px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start; }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .lead { display: block; margin-top: 40px; width: 1150px; font-family: "Barlow"; font-weight: 700; font-size: 44px; line-height: 1.25; }
+    .dark .lead { color: #c8c4bc; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; }
+    .dark .lead b { color: #f0ece5; }
+    .title { display: block; font-family: "Barlow"; font-weight: 800; font-size: 78px; line-height: 0.98; letter-spacing: -0.03em; }
+    /* split: notes on the left, the visual on the right */
+    .col { position: absolute; left: 100px; top: 150px; width: 700px; height: 820px; display: flex; flex-direction: column; justify-content: center; }
+    .notes { display: flex; flex-direction: column; gap: 22px; margin-top: 44px; }
+    .nt { display: flex; gap: 20px; font-family: "Barlow"; font-weight: 700; font-size: 40px; line-height: 1.25; color: #f0ece5; }
+    .nt b { flex: none; font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    .nt .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.85em; color: #e85d26; white-space: nowrap; }
+    .vis { position: absolute; left: 860px; top: 150px; width: 960px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; gap: 32px; }
+    .card { width: 960px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 60px; border-bottom: 2px solid #282826; padding: 0 36px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 58px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 24px 36px 28px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 54px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 54px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 34px; line-height: 54px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 20px; height: 38px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 32px; height: 28px; margin-left: 20px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    /* bullets */
+    .bul { display: flex; align-items: baseline; gap: 28px; font-family: "Barlow"; font-weight: 700; font-size: 56px; line-height: 1.15;
+      margin-top: 30px; white-space: nowrap; }
+    .bul b { font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    /* compare */
+    .cmp { position: absolute; top: 380px; width: 540px; height: 520px; padding: 44px 44px; border-top: 1px solid #282826; background: #1a1a18; }
+    .cmp.pay { background: #e85d26; color: #111111; border-top-color: #e85d26; }
+    .cmp .num { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em; color: #e85d26; }
+    .cmp.pay .num { color: rgba(17, 17, 17, 0.6); }
+    .cmp .nm { margin-top: 26px; font-family: "Barlow"; font-weight: 800; font-size: 60px; line-height: 1.0; letter-spacing: -0.02em; }
+    .cmp .tx { margin-top: 26px; font-family: "Barlow"; font-weight: 600; font-size: 36px; line-height: 1.3; color: #c8c4bc; }
+    .cmp.pay .tx { color: rgba(17, 17, 17, 0.82); }
+    .ctitle { position: absolute; left: 100px; top: 170px; }
+    .dbox { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      border: 4px solid #f0ece5; background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 28px;
+      letter-spacing: 0.1em; text-transform: uppercase; color: #f0ece5; white-space: nowrap; }
+    .dbox.hot { border-color: #e85d26; }
+    .dbox .big { font-family: "Barlow"; font-weight: 900; font-size: 92px; line-height: 0.9; letter-spacing: -0.03em; color: #e85d26; text-transform: none; }
+    .dbox .ip { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.04em; text-transform: none; color: #e85d26; }
+    .dbox .tag { font-size: 20px; letter-spacing: 0.14em; color: #888880; }
+    svg.dg { position: absolute; left: 0; top: 0; width: 960px; height: 820px; overflow: visible; }
+    svg.dg path { fill: none; stroke: #e85d26; stroke-width: 8; stroke-linecap: square; stroke-linejoin: miter; }
+    svg.dg path.dim { stroke: #505048; stroke-dasharray: 14 12; }
+    .dlabel { position: absolute; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 26px; letter-spacing: 0.1em;
+      text-transform: uppercase; white-space: nowrap; color: #e85d26; }
+    .dlabel.cream { color: #f0ece5; }
+    .xmark { position: absolute; width: 90px; height: 90px; }
+    .xmark i { position: absolute; left: 50%; top: 50%; width: 90px; height: 12px; margin: -6px 0 0 -45px; background: #e85d26; }
+    .xmark i:first-child { transform: rotate(45deg); }
+    .xmark i:last-child { transform: rotate(-45deg); }
+    .pkt { position: absolute; left: 0; top: 0; width: 24px; height: 24px; margin: -12px 0 0 -12px; background: #e85d26; }
+    .strike { position: absolute; height: 6px; background: #e85d26; transform-origin: 0 50%; }
+  </style>
+
+  <div data-hf-id="hf-xodz" id="root" data-composition-id="s04" data-start="0" data-duration="18" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-ks8y" id="s04" class="clip beat dark" data-start="0" data-duration="18" data-track-index="0">
+      <div data-hf-id="hf-rijf" class="chrome l">bikin vpn sendiri · bagian 1</div><div data-hf-id="hf-tspb" class="chrome r">01 / 03</div><div data-hf-id="hf-a46i" class="rule"></div>
+      <div data-hf-id="hf-7s1i" class="col">
+        <span data-hf-id="hf-90eg" id="s04k" class="kicker">di rumah lebih parah</span>
+        <span data-hf-id="hf-bp8z" id="s04t" class="title">CGNAT</span>
+        <div data-hf-id="hf-a3lj" class="notes">
+          <div data-hf-id="hf-8yyd" id="s04n0" class="nt"><b data-hf-id="hf-x3pa">/</b><span data-hf-id="hf-qsxk">banyak ISP rumahan pakai CGNAT</span></div>
+          <div data-hf-id="hf-87ak" id="s04n1" class="nt"><b data-hf-id="hf-q6zm">/</b><span data-hf-id="hf-ppvt">satu IP publik dipakai bareng banyak pelanggan</span></div>
+          <div data-hf-id="hf-gv6f" id="s04n2" class="nt"><b data-hf-id="hf-qlan">/</b><span data-hf-id="hf-wi8j">router-mu gak punya IP publik sendiri</span></div>
+          <div data-hf-id="hf-cx2e" id="s04n3" class="nt"><b data-hf-id="hf-qzlo">/</b><span data-hf-id="hf-b8iu">jadi port forwarding di router rumah gak ada gunanya</span></div>
+        </div>
+      </div>
+      <div data-hf-id="hf-bt2y" class="vis">
+        <div data-hf-id="hf-269v" id="s04v" style="position: relative; width: 960px; height: 820px">
+          <div data-hf-id="hf-modm" id="s04net" class="dbox" style="left: 330px; top: 30px; width: 300px; height: 110px">internet</div>
+          <div data-hf-id="hf-vnc7" id="s04isp" class="dbox" style="left: 180px; top: 250px; width: 600px; height: 140px">ISP<span data-hf-id="hf-yewx" class="ip">1 IP publik, dipakai bersama</span></div>
+          <div data-hf-id="hf-5olp" id="s04r1" class="dbox" style="left: 40px; top: 560px; width: 260px; height: 120px">rumah A</div>
+          <div data-hf-id="hf-n9lg" id="s04r2" class="dbox hot" style="left: 350px; top: 560px; width: 260px; height: 120px">rumahmu</div>
+          <div data-hf-id="hf-zc0l" id="s04r3" class="dbox" style="left: 660px; top: 560px; width: 260px; height: 120px">rumah C</div>
+          <svg data-hf-id="hf-4cnh" class="dg" viewBox="0 0 960 820" aria-hidden="true">
+            <path data-hf-id="hf-3ps1" id="s04up" d="M480 250 L480 140" />
+            <path data-hf-id="hf-i8tb" id="s04l1" d="M170 560 L300 390" />
+            <path data-hf-id="hf-8so1" id="s04l2" d="M480 560 L480 390" />
+            <path data-hf-id="hf-d7qs" id="s04l3" d="M790 560 L660 390" />
+          </svg>
+          <div data-hf-id="hf-dgdo" id="s04pf" class="dlabel cream" style="left: 300px; top: 728px">port forwarding</div>
+          <div data-hf-id="hf-9h4n" id="s04st" class="strike" style="left: 290px; top: 744px; width: 380px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      tl.fromTo($("s04k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "expo.out" }, 0.05);
+      tl.fromTo($("s04t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo($("s04v"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.25);
+      tl.fromTo($("s04n0"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1);
+      tl.fromTo($("s04n1"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 4.5);
+      tl.to($("s04n0"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 4.5);
+      tl.fromTo($("s04n2"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 9);
+      tl.to($("s04n1"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 9);
+      tl.fromTo($("s04n3"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 13.5);
+      tl.to($("s04n2"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 13.5);
+      tl.fromTo($("s04net"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.4);
+      tl.fromTo($("s04isp"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.55);
+      tl.fromTo($("s04r1"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.7);
+      tl.fromTo($("s04r2"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.8);
+      tl.fromTo($("s04r3"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.9);
+      $("s04up").style.strokeDasharray = "120 120";
+      tl.fromTo($("s04up"), { strokeDashoffset: 120 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.inOut" }, 4.8);
+      $("s04l1").style.strokeDasharray = "240 240";
+      tl.fromTo($("s04l1"), { strokeDashoffset: 240 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 5);
+      $("s04l2").style.strokeDasharray = "180 180";
+      tl.fromTo($("s04l2"), { strokeDashoffset: 180 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 5.1);
+      $("s04l3").style.strokeDasharray = "240 240";
+      tl.fromTo($("s04l3"), { strokeDashoffset: 240 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 5.2);
+      tl.fromTo($("s04r2"), { scale: 1 }, { scale: 1.06, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 1 }, 9.3);
+      tl.fromTo($("s04pf"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 13.7);
+      tl.fromTo($("s04st"), { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.inOut" }, 14.3);
+      tl.set({}, {}, 18);
+      window.__timelines["s04"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,296 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 12
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 4,
+    "findings": [
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 48.889,
+        "selector": "#s04pf",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 1160,
+          "top": 878,
+          "right": 1433,
+          "bottom": 912,
+          "width": 273,
+          "height": 34
+        },
+        "containerSelector": "#s04st",
+        "text": "port forwarding",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 0.33,
+        "dataAttributes": {},
+        "sourceFile": "compositions/s04.html",
+        "bbox": {
+          "x": 1160,
+          "y": 878,
+          "width": 273,
+          "height": 34
+        },
+        "firstSeen": 48.889,
+        "lastSeen": 48.889,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          48.889
+        ]
+      },
+      {
+        "code": "text_box_overflow",
+        "severity": "info",
+        "time": 166.222,
+        "selector": "#s11w0",
+        "message": "Text extends outside its nearest visual/container box.",
+        "rect": {
+          "left": 100,
+          "top": 422.75,
+          "right": 1012.34,
+          "bottom": 661.95,
+          "width": 912.34,
+          "height": 239.2
+        },
+        "containerSelector": "#s11st > span:nth-of-type(2)",
+        "text": "VPN-mu",
+        "fixHint": "Text is 912px x 239px inside 912px x 240px and overflows by up to 138px; increase the container height to at least ~379px, or allow wrapping with max-width/fitTextFontSize.",
+        "containerRect": {
+          "left": 100,
+          "top": 283.05,
+          "right": 1012.34,
+          "bottom": 523.5,
+          "width": 912.34,
+          "height": 240.45
+        },
+        "overflow": {
+          "bottom": 138.45
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/s11.html",
+        "bbox": {
+          "x": 100,
+          "y": 422.75,
+          "width": 912.34,
+          "height": 239.2
+        },
+        "firstSeen": 166.222,
+        "lastSeen": 166.222,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          166.222
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 166.222,
+        "selector": "#s11w0",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 100,
+          "top": 423.35,
+          "right": 1012.34,
+          "bottom": 662.54,
+          "width": 912.34,
+          "height": 239.19
+        },
+        "containerSelector": "#s11st > span:nth-of-type(2)",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 100,
+          "top": 283.05,
+          "right": 1012.34,
+          "bottom": 523.5,
+          "width": 912.34,
+          "height": 240.45
+        },
+        "overflow": {
+          "bottom": 139.04
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/s11.html",
+        "bbox": {
+          "x": 100,
+          "y": 423.35,
+          "width": 912.34,
+          "height": 239.19
+        },
+        "firstSeen": 166.222,
+        "lastSeen": 166.222,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          166.222
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 166.222,
+        "selector": "#s11w1",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 100,
+          "top": 786.61,
+          "right": 843.61,
+          "bottom": 1025.79,
+          "width": 743.61,
+          "height": 239.19
+        },
+        "containerSelector": "#s11st > span:nth-of-type(3)",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 100,
+          "top": 523.5,
+          "right": 843.61,
+          "bottom": 763.95,
+          "width": 743.61,
+          "height": 240.45
+        },
+        "overflow": {
+          "bottom": 261.84
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/s11.html",
+        "bbox": {
+          "x": 100,
+          "y": 786.61,
+          "width": 743.61,
+          "height": 239.19
+        },
+        "firstSeen": 166.222,
+        "lastSeen": 166.222,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          166.222
+        ]
+      }
+    ],
+    "duration": 176,
+    "samples": [
+      9.778,
+      29.333,
+      48.889,
+      68.444,
+      88,
+      107.556,
+      127.111,
+      146.667,
+      166.222
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 4,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 3.02:1; WCAG AA requires 4.5:1.",
+        "text": "bikin vpn sendiri · bagian 1",
+        "fg": "rgb(103,47,25)",
+        "bg": "rgb(232,93,38)",
+        "ratio": 3.02,
+        "requiredRatio": 4.5,
+        "suggestedColor": "rgb(58,26,14)",
+        "large": false,
+        "selector": "div > div:nth-of-type(11) > div > div > div:nth-of-type(1)",
+        "dataAttributes": {},
+        "sourceFile": "compositions/s11.html",
+        "bbox": {
+          "x": 100,
+          "y": 48,
+          "width": 455.84375,
+          "height": 29
+        },
+        "time": 166.222,
+        "times": [
+          166.222
+        ]
+      },
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 3.02:1; WCAG AA requires 4.5:1.",
+        "text": "01 / 03",
+        "fg": "rgb(103,47,25)",
+        "bg": "rgb(232,93,38)",
+        "ratio": 3.02,
+        "requiredRatio": 4.5,
+        "suggestedColor": "rgb(58,26,14)",
+        "large": false,
+        "selector": "div > div:nth-of-type(11) > div > div > div:nth-of-type(2)",
+        "dataAttributes": {},
+        "sourceFile": "compositions/s11.html",
+        "bbox": {
+          "x": 1706.03125,
+          "y": 48,
+          "width": 113.96875,
+          "height": 29
+        },
+        "time": 166.222,
+        "times": [
+          166.222
+        ]
+      }
+    ],
+    "enabled": true,
+    "samples": [
+      9.778,
+      48.889,
+      88,
+      127.111,
+      166.222
+    ],
+    "checked": 40,
+    "passed": 38
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

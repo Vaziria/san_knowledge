@@ -1,0 +1,213 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 7
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 4,
+    "findings": [
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 11.488,
+        "selector": "#step2m0",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 59,
+          "top": 1070,
+          "right": 590.75,
+          "bottom": 1130,
+          "width": 531.75,
+          "height": 60
+        },
+        "containerSelector": "#step2m1",
+        "text": "alamat PC kantor di VPN",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step2.html",
+        "bbox": {
+          "x": 59,
+          "y": 1070,
+          "width": 531.75,
+          "height": 60
+        },
+        "firstSeen": 11.488,
+        "lastSeen": 11.488,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          11.488
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 21.893,
+        "selector": "#step3m0",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 59,
+          "top": 1182,
+          "right": 618.13,
+          "bottom": 1242,
+          "width": 559.13,
+          "height": 60
+        },
+        "containerSelector": "#step3m1",
+        "text": "satu [Peer] untuk tiap PC",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step3.html",
+        "bbox": {
+          "x": 59,
+          "y": 1182,
+          "width": 559.13,
+          "height": 60
+        },
+        "firstSeen": 21.893,
+        "lastSeen": 21.893,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          21.893
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 21.893,
+        "selector": "#step3m0 > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 166.2,
+          "top": 1190,
+          "right": 313.81,
+          "bottom": 1243,
+          "width": 147.61,
+          "height": 53
+        },
+        "containerSelector": "#step3m1",
+        "text": "[Peer]",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step3.html",
+        "bbox": {
+          "x": 166.2,
+          "y": 1190,
+          "width": 147.61,
+          "height": 53
+        },
+        "firstSeen": 21.893,
+        "lastSeen": 21.893,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          21.893
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 24.494,
+        "selector": "#step3m1",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 59,
+          "top": 1182,
+          "right": 524,
+          "bottom": 1242,
+          "width": 465,
+          "height": 60
+        },
+        "containerSelector": "#step3m2",
+        "text": "tambahkan di bawah [Interface]",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step3.html",
+        "bbox": {
+          "x": 59,
+          "y": 1182,
+          "width": 465,
+          "height": 60
+        },
+        "firstSeen": 24.494,
+        "lastSeen": 24.494,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          24.494
+        ]
+      }
+    ],
+    "duration": 38.8,
+    "samples": [
+      2.156,
+      6.467,
+      10.778,
+      15.089,
+      19.4,
+      23.711,
+      28.022,
+      32.333,
+      36.644
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 4,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      2.156,
+      10.778,
+      19.4,
+      28.022,
+      36.644
+    ],
+    "checked": 47,
+    "passed": 47
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

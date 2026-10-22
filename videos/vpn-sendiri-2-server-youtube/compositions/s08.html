@@ -1,0 +1,182 @@
+<template id="s08-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 48px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 22px; letter-spacing: 0.14em;
+      text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 100px; }
+    .chrome.r { right: 100px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .rule { position: absolute; left: 100px; right: 100px; top: 96px; height: 1px; background: #282826; }
+    .orange .rule { background: rgba(17, 17, 17, 0.2); }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 28px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 100px; top: 130px; width: 1500px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start; }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .lead { display: block; margin-top: 40px; width: 1150px; font-family: "Barlow"; font-weight: 700; font-size: 44px; line-height: 1.25; }
+    .dark .lead { color: #c8c4bc; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; }
+    .dark .lead b { color: #f0ece5; }
+    .title { display: block; font-family: "Barlow"; font-weight: 800; font-size: 78px; line-height: 0.98; letter-spacing: -0.03em; }
+    /* split: notes on the left, the visual on the right */
+    .col { position: absolute; left: 100px; top: 150px; width: 700px; height: 820px; display: flex; flex-direction: column; justify-content: center; }
+    .notes { display: flex; flex-direction: column; gap: 22px; margin-top: 44px; }
+    .nt { display: flex; gap: 20px; font-family: "Barlow"; font-weight: 700; font-size: 40px; line-height: 1.25; color: #f0ece5; }
+    .nt b { flex: none; font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    .nt .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.85em; color: #e85d26; white-space: nowrap; }
+    .vis { position: absolute; left: 860px; top: 150px; width: 960px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; gap: 32px; }
+    .card { width: 960px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 60px; border-bottom: 2px solid #282826; padding: 0 36px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 58px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 24px 36px 28px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 54px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 54px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 34px; line-height: 54px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 20px; height: 38px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 32px; height: 28px; margin-left: 20px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    /* bullets */
+    .bul { display: flex; align-items: baseline; gap: 28px; font-family: "Barlow"; font-weight: 700; font-size: 56px; line-height: 1.15;
+      margin-top: 30px; white-space: nowrap; }
+    .bul b { font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    /* compare */
+    .cmp { position: absolute; top: 380px; width: 540px; height: 520px; padding: 44px 44px; border-top: 1px solid #282826; background: #1a1a18; }
+    .cmp.pay { background: #e85d26; color: #111111; border-top-color: #e85d26; }
+    .cmp .num { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em; color: #e85d26; }
+    .cmp.pay .num { color: rgba(17, 17, 17, 0.6); }
+    .cmp .nm { margin-top: 26px; font-family: "Barlow"; font-weight: 800; font-size: 60px; line-height: 1.0; letter-spacing: -0.02em; }
+    .cmp .tx { margin-top: 26px; font-family: "Barlow"; font-weight: 600; font-size: 36px; line-height: 1.3; color: #c8c4bc; }
+    .cmp.pay .tx { color: rgba(17, 17, 17, 0.82); }
+    .ctitle { position: absolute; left: 100px; top: 170px; }
+  </style>
+
+  <div data-hf-id="hf-0r7v" id="root" data-composition-id="s08" data-start="0" data-duration="18" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-ej1q" id="s08" class="clip beat dark" data-start="0" data-duration="18" data-track-index="0">
+      <div data-hf-id="hf-r48e" class="chrome l">bikin vpn sendiri · bagian 2</div><div data-hf-id="hf-3pdc" class="chrome r">02 / 03</div><div data-hf-id="hf-a46i" class="rule"></div>
+      <div data-hf-id="hf-7s1i" class="col">
+        <span data-hf-id="hf-hjxb" id="s08k" class="kicker">langkah 6 / 6</span>
+        <span data-hf-id="hf-ic9a" id="s08t" class="title">nyalakan &amp; cek</span>
+        <div data-hf-id="hf-a3lj" class="notes">
+          <div data-hf-id="hf-y22x" id="s08n0" class="nt"><b data-hf-id="hf-x3pa">/</b><span data-hf-id="hf-eh0j"><span data-hf-id="hf-c43j" class="m">enable --now</span>: nyala sekarang, dan tiap VPS restart</span></div>
+          <div data-hf-id="hf-v2tc" id="s08n1" class="nt"><b data-hf-id="hf-q6zm">/</b><span data-hf-id="hf-tm33"><span data-hf-id="hf-5du4" class="m">listening port: 51820</span> artinya server siap</span></div>
+          <div data-hf-id="hf-5yaz" id="s08n2" class="nt"><b data-hf-id="hf-qlan">/</b><span data-hf-id="hf-zm2s">public key di sini sama dengan server.pub</span></div>
+        </div>
+      </div>
+      <div data-hf-id="hf-bt2y" class="vis">
+        <div data-hf-id="hf-3py6" id="s08c0" class="card">
+          <div data-hf-id="hf-tag0" class="head">terminal · VPS</div>
+          <div data-hf-id="hf-qevj" class="code">
+            <div data-hf-id="hf-xnmu" id="s08c0b" class="band" style="opacity: 0"></div>
+            <div data-hf-id="hf-1zmi" id="s08c0l0" class="ln"><span data-hf-id="hf-41jt" class="p">$ </span><span data-hf-id="hf-ixnc" id="s08c0l0t"></span><span data-hf-id="hf-w425" id="s08c0l0c" class="caret"></span></div>
+            <div data-hf-id="hf-5xqj" id="s08c0l1" class="ln"><span data-hf-id="hf-jvzh" class="p">$ </span><span data-hf-id="hf-2qqb" id="s08c0l1t"></span><span data-hf-id="hf-jvd6" id="s08c0l1c" class="caret"></span></div>
+            <div data-hf-id="hf-hcit" id="s08c0l2" class="ln out">interface: wg0</div>
+            <div data-hf-id="hf-fevz" id="s08c0l3" class="ln out">  public key: (isi server.pub)</div>
+            <div data-hf-id="hf-1p2j" id="s08c0l4" class="ln out">  private key: (hidden)</div>
+            <div data-hf-id="hf-j5t3" id="s08c0l5" class="ln out">  listening port: 51820<svg data-hf-id="hf-y2gc" class="chk" viewBox="0 0 32 28" aria-hidden="true"><path data-hf-id="hf-chng" id="s08c0l5k" d="M3 15 L12 24 L29 6" /></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/TextPlugin.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      gsap.registerPlugin(TextPlugin);
+      tl.fromTo($("s08k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "expo.out" }, 0.05);
+      tl.fromTo($("s08t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo($("s08c0"), { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power4.out" }, 0.3);
+      tl.fromTo($("s08n0"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1);
+      tl.fromTo($("s08n1"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 8);
+      tl.to($("s08n0"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 8);
+      tl.fromTo($("s08n2"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 13);
+      tl.to($("s08n1"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 13);
+      tl.fromTo($("s08c0l2"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 6.3);
+      tl.fromTo($("s08c0l3"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 6.5);
+      tl.fromTo($("s08c0l4"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 6.7);
+      tl.fromTo($("s08c0l5"), { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 6.9);
+      $("s08c0l5k").style.strokeDasharray = "36 36";
+      tl.fromTo($("s08c0l5k"), { strokeDashoffset: 36 }, { strokeDashoffset: 0, duration: 0.2, ease: "power3.out" }, 7);
+      tl.fromTo($("s08c0l0"), { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, 1.05);
+      tl.to($("s08c0l0t"), { text: { value: "sudo systemctl enable --now wg-quick@wg0" }, duration: 1.36, ease: "none" }, 1.5);
+      tl.set($("s08c0l0c"), { opacity: 0 }, 1.45);
+      tl.set($("s08c0l0c"), { opacity: 1 }, 1.5);
+      tl.set($("s08c0l0c"), { opacity: 0 }, 3.26);
+      tl.set($("s08c0l0c"), { opacity: 1 }, 3.66);
+      tl.set($("s08c0l0c"), { opacity: 0 }, 4.06);
+      tl.set($("s08c0l0c"), { opacity: 1 }, 4.46);
+      tl.set($("s08c0l0c"), { opacity: 0 }, 4.86);
+      tl.fromTo($("s08c0l1"), { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, 4.95);
+      tl.to($("s08c0l1t"), { text: { value: "sudo wg" }, duration: 0.5, ease: "none" }, 5.4);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 5.35);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 5.4);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 6.3);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 6.7);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 7.1);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 7.5);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 7.9);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 8.3);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 8.7);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 9.1);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 9.5);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 9.9);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 10.3);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 10.7);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 11.1);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 11.5);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 11.9);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 12.3);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 12.7);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 13.1);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 13.5);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 13.9);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 14.3);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 14.7);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 15.1);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 15.5);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 15.9);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 16.3);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 16.7);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 17.1);
+      tl.set($("s08c0l1c"), { opacity: 0 }, 17.5);
+      tl.set($("s08c0l1c"), { opacity: 1 }, 17.9);
+      tl.set($("s08c0b"), { y: 24, opacity: 1 }, 1);
+      tl.set($("s08c0l0"), { color: "#111111" }, 1);
+      tl.fromTo($("s08c0b"), { scaleY: 1.16 }, { scaleY: 1, duration: 0.22, ease: "power3.out" }, 1);
+      tl.set($("s08c0l0"), { color: "#f0ece5" }, 8);
+      tl.set($("s08c0b"), { opacity: 0.25 }, 8);
+      tl.to($("s08c0b"), { y: 294, duration: 0.22, ease: "power3.inOut" }, 8);
+      tl.set($("s08c0b"), { opacity: 1 }, 8.24);
+      tl.set($("s08c0l5"), { color: "#111111" }, 8.24);
+      tl.fromTo($("s08c0b"), { scaleY: 1.16 }, { scaleY: 1, duration: 0.22, ease: "power3.out" }, 8.24);
+      tl.set($("s08c0l5"), { color: "#f0ece5" }, 13);
+      tl.set($("s08c0b"), { opacity: 0.25 }, 13);
+      tl.to($("s08c0b"), { y: 186, duration: 0.22, ease: "power3.inOut" }, 13);
+      tl.set($("s08c0b"), { opacity: 1 }, 13.24);
+      tl.set($("s08c0l3"), { color: "#111111" }, 13.24);
+      tl.fromTo($("s08c0b"), { scaleY: 1.16 }, { scaleY: 1, duration: 0.22, ease: "power3.out" }, 13.24);
+      tl.set({}, {}, 18);
+      window.__timelines["s08"] = tl;
+    })();
+  </script>
+</template>

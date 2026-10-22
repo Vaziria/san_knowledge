@@ -1,0 +1,101 @@
+<template id="step2-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 170px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 24px;
+      letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 59px; }
+    .chrome.r { right: 59px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 59px; top: 300px; width: 842px; height: 1200px; display: flex;
+      flex-direction: column; justify-content: center; align-items: flex-start; }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 30px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 34px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .note { display: block; margin-top: 40px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 28px;
+      letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .orange .note { color: rgba(17, 17, 17, 0.7); }
+    .lead { display: block; margin-top: 44px; width: 842px; font-family: "Barlow"; font-weight: 700; font-size: 46px; line-height: 1.2; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; color: #111111; }
+    .kick { position: absolute; left: 59px; top: 400px; }
+    .title { position: absolute; left: 59px; top: 450px; width: 842px; font-family: "Barlow"; font-weight: 800; font-size: 84px;
+      line-height: 0.95; letter-spacing: -0.03em; white-space: nowrap; }
+    .card { position: absolute; left: 50px; width: 855px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 64px; border-bottom: 2px solid #282826; padding: 0 34px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 62px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 26px 34px 30px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 48px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 48px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 30px; line-height: 48px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 18px; height: 34px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 30px; height: 26px; margin-left: 18px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    .cap { position: absolute; left: 59px; width: 840px; font-family: "Barlow"; font-weight: 700; font-size: 50px; line-height: 1.2; color: #f0ece5; }
+    .cap .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.82em; color: #e85d26; }
+  </style>
+
+  <div id="root" data-composition-id="step2" data-start="0" data-duration="6.6" data-width="1080" data-height="1920">
+    <div id="step2" class="clip beat dark" data-start="0" data-duration="6.6" data-track-index="0">
+      <div class="chrome l">bikin vpn sendiri</div><div class="chrome r">02 / 03</div>
+      <span id="step2k" class="kicker kick">langkah 2 / 5</span>
+      <div id="step2t" class="title">bikin kunci</div>
+      <div id="step2c0" class="card" style="top: 590px">
+        <div class="head">terminal · VPS</div>
+        <div class="code">
+          <div id="step2c0b" class="band" style="opacity: 0"></div>
+          <div id="step2c0l0" class="ln"><span class="p">$ </span><span id="step2c0l0t"></span><span id="step2c0l0c" class="caret"></span></div>
+          <div id="step2c0l1" class="ln"><span class="p">  </span><span id="step2c0l1t"></span><span id="step2c0l1c" class="caret"></span></div>
+        </div>
+      </div>
+      <div id="step2m0" class="cap" style="top: 854px"><span class="m">server.key</span> kunci rahasia, jangan dibagi</div>
+      <div id="step2m1" class="cap" style="top: 854px"><span class="m">server.pub</span> kunci publik, buat PC lain</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/TextPlugin.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      gsap.registerPlugin(TextPlugin);
+      tl.fromTo($("step2k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 0.05);
+      tl.fromTo($("step2t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.12);
+      tl.fromTo($("step2c0"), { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power4.out" }, 0.3);
+      tl.fromTo($("step2c0l0"), { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, 0.5);
+      tl.to($("step2c0l0t"), { text: { value: "wg genkey | tee server.key \\" }, duration: 0.896, ease: "none" }, 0.9);
+      tl.set($("step2c0l0c"), { opacity: 0 }, 1.946);
+      tl.fromTo($("step2c0l1"), { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, 1.9);
+      tl.to($("step2c0l1t"), { text: { value: "| wg pubkey > server.pub" }, duration: 0.768, ease: "none" }, 1.95);
+      tl.set($("step2c0l1c"), { opacity: 0 }, 3.118);
+      tl.set($("step2c0l1c"), { opacity: 1 }, 3.518);
+      tl.set($("step2c0l1c"), { opacity: 0 }, 3.918);
+      tl.set($("step2c0l1c"), { opacity: 1 }, 4.318);
+      tl.set($("step2c0l1c"), { opacity: 0 }, 4.718);
+      tl.set($("step2c0l1c"), { opacity: 1 }, 5.118);
+      tl.set($("step2c0l1c"), { opacity: 0 }, 5.518);
+      tl.set($("step2c0l1c"), { opacity: 1 }, 5.918);
+      tl.set($("step2c0l1c"), { opacity: 0 }, 6.318);
+      tl.fromTo($("step2m0"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 3.12);
+      tl.to($("step2m0"), { opacity: 0, duration: 0.18, ease: "power2.in" }, 4.6);
+      tl.fromTo($("step2m1"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 4.72);
+      tl.set({}, {}, 6.6);
+      window.__timelines["step2"] = tl;
+    })();
+  </script>
+</template>

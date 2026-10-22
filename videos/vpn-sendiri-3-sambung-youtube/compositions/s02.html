@@ -1,0 +1,148 @@
+<template id="s02-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 48px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 22px; letter-spacing: 0.14em;
+      text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 100px; }
+    .chrome.r { right: 100px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .rule { position: absolute; left: 100px; right: 100px; top: 96px; height: 1px; background: #282826; }
+    .orange .rule { background: rgba(17, 17, 17, 0.2); }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 28px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 100px; top: 130px; width: 1500px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start; }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .lead { display: block; margin-top: 40px; width: 1150px; font-family: "Barlow"; font-weight: 700; font-size: 44px; line-height: 1.25; }
+    .dark .lead { color: #c8c4bc; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; }
+    .dark .lead b { color: #f0ece5; }
+    .title { display: block; font-family: "Barlow"; font-weight: 800; font-size: 78px; line-height: 0.98; letter-spacing: -0.03em; }
+    /* split: notes on the left, the visual on the right */
+    .col { position: absolute; left: 100px; top: 150px; width: 700px; height: 820px; display: flex; flex-direction: column; justify-content: center; }
+    .notes { display: flex; flex-direction: column; gap: 22px; margin-top: 44px; }
+    .nt { display: flex; gap: 20px; font-family: "Barlow"; font-weight: 700; font-size: 40px; line-height: 1.25; color: #f0ece5; }
+    .nt b { flex: none; font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    .nt .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.85em; color: #e85d26; white-space: nowrap; }
+    .vis { position: absolute; left: 860px; top: 150px; width: 960px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; gap: 32px; }
+    .card { width: 960px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 60px; border-bottom: 2px solid #282826; padding: 0 36px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 58px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 24px 36px 28px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 54px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 54px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 34px; line-height: 54px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 20px; height: 38px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 32px; height: 28px; margin-left: 20px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    /* bullets */
+    .bul { display: flex; align-items: baseline; gap: 28px; font-family: "Barlow"; font-weight: 700; font-size: 56px; line-height: 1.15;
+      margin-top: 30px; white-space: nowrap; }
+    .bul b { font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    /* compare */
+    .cmp { position: absolute; top: 380px; width: 540px; height: 520px; padding: 44px 44px; border-top: 1px solid #282826; background: #1a1a18; }
+    .cmp.pay { background: #e85d26; color: #111111; border-top-color: #e85d26; }
+    .cmp .num { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em; color: #e85d26; }
+    .cmp.pay .num { color: rgba(17, 17, 17, 0.6); }
+    .cmp .nm { margin-top: 26px; font-family: "Barlow"; font-weight: 800; font-size: 60px; line-height: 1.0; letter-spacing: -0.02em; }
+    .cmp .tx { margin-top: 26px; font-family: "Barlow"; font-weight: 600; font-size: 36px; line-height: 1.3; color: #c8c4bc; }
+    .cmp.pay .tx { color: rgba(17, 17, 17, 0.82); }
+    .ctitle { position: absolute; left: 100px; top: 170px; }
+    .dbox { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      border: 4px solid #f0ece5; background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 28px;
+      letter-spacing: 0.1em; text-transform: uppercase; color: #f0ece5; white-space: nowrap; }
+    .dbox.hot { border-color: #e85d26; }
+    .dbox .big { font-family: "Barlow"; font-weight: 900; font-size: 92px; line-height: 0.9; letter-spacing: -0.03em; color: #e85d26; text-transform: none; }
+    .dbox .ip { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.04em; text-transform: none; color: #e85d26; }
+    .dbox .tag { font-size: 20px; letter-spacing: 0.14em; color: #888880; }
+    svg.dg { position: absolute; left: 0; top: 0; width: 960px; height: 820px; overflow: visible; }
+    svg.dg path { fill: none; stroke: #e85d26; stroke-width: 8; stroke-linecap: square; stroke-linejoin: miter; }
+    svg.dg path.dim { stroke: #505048; stroke-dasharray: 14 12; }
+    .dlabel { position: absolute; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 26px; letter-spacing: 0.1em;
+      text-transform: uppercase; white-space: nowrap; color: #e85d26; }
+    .dlabel.cream { color: #f0ece5; }
+    .xmark { position: absolute; width: 90px; height: 90px; }
+    .xmark i { position: absolute; left: 50%; top: 50%; width: 90px; height: 12px; margin: -6px 0 0 -45px; background: #e85d26; }
+    .xmark i:first-child { transform: rotate(45deg); }
+    .xmark i:last-child { transform: rotate(-45deg); }
+    .pkt { position: absolute; left: 0; top: 0; width: 24px; height: 24px; margin: -12px 0 0 -12px; background: #e85d26; }
+    .strike { position: absolute; height: 6px; background: #e85d26; transform-origin: 0 50%; }
+  </style>
+
+  <div data-hf-id="hf-q5ie" id="root" data-composition-id="s02" data-start="0" data-duration="13" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-1lmt" id="s02" class="clip beat dark" data-start="0" data-duration="13" data-track-index="0">
+      <div data-hf-id="hf-qpxd" class="chrome l">bikin vpn sendiri · bagian 3</div><div data-hf-id="hf-ox1l" class="chrome r">03 / 03</div><div data-hf-id="hf-a46i" class="rule"></div>
+      <div data-hf-id="hf-7s1i" class="col">
+        <span data-hf-id="hf-eahg" id="s02k" class="kicker">hari ini</span>
+        <span data-hf-id="hf-g9zq" id="s02t" class="title">dua PC-nya</span>
+        <div data-hf-id="hf-a3lj" class="notes">
+          <div data-hf-id="hf-9wub" id="s02n0" class="nt"><b data-hf-id="hf-x3pa">/</b><span data-hf-id="hf-9iir">servernya sudah nyala (bagian 2)</span></div>
+          <div data-hf-id="hf-5yqa" id="s02n1" class="nt"><b data-hf-id="hf-q6zm">/</b><span data-hf-id="hf-2a1p">PC kantor <span data-hf-id="hf-pmj8" class="m">10.8.0.3</span>, PC rumah <span data-hf-id="hf-p887" class="m">10.8.0.2</span></span></div>
+          <div data-hf-id="hf-20m9" id="s02n2" class="nt"><b data-hf-id="hf-qlan">/</b><span data-hf-id="hf-arrb">tiap PC: pasang aplikasi, isi config, daftarkan di server</span></div>
+        </div>
+      </div>
+      <div data-hf-id="hf-bt2y" class="vis">
+        <div data-hf-id="hf-h1w1" id="s02v" style="position: relative; width: 960px; height: 820px">
+          <div data-hf-id="hf-dn6y" id="s02vps" class="dbox" style="left: 330px; top: 40px; width: 300px; height: 200px"><span data-hf-id="hf-hkdc" class="big">VPS</span><span data-hf-id="hf-sqxv" class="tag">IP publik</span><span data-hf-id="hf-0bpm" class="ip">10.8.0.1</span></div>
+          <svg data-hf-id="hf-4cnh" class="dg" viewBox="0 0 960 820" aria-hidden="true">
+            <path data-hf-id="hf-rtqi" id="s02a1" d="M205 560 L420 244 M420 244 L417 280 M420 244 L389 262" />
+            <path data-hf-id="hf-n5kx" id="s02a2" d="M755 560 L540 244 M540 244 L571 262 M540 244 L543 280" />
+          </svg>
+          <div data-hf-id="hf-4yg7" id="s02rumah" class="dbox hot" style="left: 40px; top: 560px; width: 330px; height: 170px">PC rumah<span data-hf-id="hf-0q0n" class="ip">10.8.0.2</span></div>
+          <div data-hf-id="hf-o9vl" id="s02kantor" class="dbox hot" style="left: 590px; top: 560px; width: 330px; height: 170px">PC kantor<span data-hf-id="hf-14bo" class="ip">10.8.0.3</span></div>
+          <div data-hf-id="hf-wk1k" id="s02pkt" class="pkt" style="opacity: 0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      tl.fromTo($("s02k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "expo.out" }, 0.05);
+      tl.fromTo($("s02t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo($("s02v"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.25);
+      tl.fromTo($("s02n0"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1);
+      tl.fromTo($("s02n1"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 4);
+      tl.to($("s02n0"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 4);
+      tl.fromTo($("s02n2"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 8.5);
+      tl.to($("s02n1"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 8.5);
+      tl.fromTo($("s02vps"), { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.4);
+      tl.fromTo($("s02rumah"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.6);
+      tl.fromTo($("s02kantor"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.7);
+      $("s02a1").style.strokeDasharray = "520 520";
+      tl.fromTo($("s02a1"), { strokeDashoffset: 520 }, { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut" }, 1.2);
+      $("s02a2").style.strokeDasharray = "520 520";
+      tl.fromTo($("s02a2"), { strokeDashoffset: 520 }, { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut" }, 1.4);
+      tl.set($("s02pkt"), { x: 205, y: 548, opacity: 1 }, 7.5);
+      tl.to($("s02pkt"), { x: 480, y: 252, duration: 0.9, ease: "power1.inOut" }, 7.5);
+      tl.to($("s02pkt"), { x: 755, y: 548, duration: 0.9, ease: "power1.inOut" }, 8.6);
+      tl.set($("s02pkt"), { opacity: 0 }, 9.7);
+      tl.set($("s02pkt"), { x: 205, y: 548, opacity: 1 }, 10.1);
+      tl.to($("s02pkt"), { x: 480, y: 252, duration: 0.9, ease: "power1.inOut" }, 10.1);
+      tl.to($("s02pkt"), { x: 755, y: 548, duration: 0.9, ease: "power1.inOut" }, 11.2);
+      tl.set($("s02pkt"), { opacity: 0 }, 12.3);
+      tl.set({}, {}, 13);
+      window.__timelines["s02"] = tl;
+    })();
+  </script>
+</template>

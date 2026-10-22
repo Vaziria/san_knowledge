@@ -15,6 +15,10 @@ and never public at once.
 - **Show the post first.** Title, caption, hashtags and the day go to the user for approval
   before any upload.
 - **Texts.** Indonesian, a catchy title (not a file name), hashtags first, no emoji or icons.
+- **YouTube is long-form only.** No Shorts: they hurt the channel's organic and continuity
+  traffic (the user, 2026-10-21: "for youtube, we dont use short ... we use long about 3
+  minute"). A YouTube video is about 3 minutes and **16:9**, because YouTube counts any vertical
+  or square video up to 3 minutes as a Short. The 9:16 cuts go to TikTok only.
 
 ## Checking the schedule
 

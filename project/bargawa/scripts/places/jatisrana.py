@@ -13,7 +13,8 @@ def main():
     root = mesh.coll("Jatisrana")
 
     step("ground"); g = mesh.coll("Ground", root)
-    terrain.terrain(g); terrain.lake(g); terrain.paths(g, M); terrain.mountains(g, M)
+    t = terrain.terrain(g); terrain.lake(g); terrain.paths(g, M); terrain.mountains(g, M)
+    terrain.bare_ground(g, M, t)                               # the user's soil (terrain.BARE): the yard and the far bank
 
     step("buildings"); b = mesh.coll("Buildings", root)
     px, py, pa = J.PENDAPA                                     # the pendopo is its own file, linked (blender/buildings/pendopo.blend)

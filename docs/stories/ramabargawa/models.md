@@ -22,7 +22,16 @@ All production work (code, Blender files and the rest) will live in `project/bar
 
 - **Cinematic look**: real-world scale, PBR materials (base colour, roughness, metallic, normal), enough detail for close-ups; no low-poly or folded-paper styling.
 - **Characters** come in an **A-pose** (arms angled down, legs slightly apart), so they can be rigged, with weapons and hand props made as **separate models**.
-- **Heights** (proposal): adult men 1.70–1.85 m, Ramabargawa the tallest of the mortals (about 1.90 m), women 1.55–1.65 m, Narada about 1.40 m.
+- **Heights** (decided 2026-10-20: "people nearer Javanese size", after the proportion check in [project/bargawa/blender/places/jatisrana.md](../../../project/bargawa/blender/places/jatisrana.md)):
+  - Indonesian adults average about 166 cm (men) and 154 cm (women), and the huts are true to that: doors 1.89 m, the porch beam 1.70 m over the porch floor.
+  - Ramabargawa, the tallest of the mortals: 1.80 m.
+  - His brothers: 1.68–1.74 m.
+  - Jamadagni: 1.66 m.
+  - Citrarata: 1.74 m.
+  - Renuka: 1.55 m.
+  - The other men 1.62–1.72 m, women 1.50–1.58 m, Narada about 1.40 m.
+  - The tallest bow under a hut's porch beam, a gesture of respect.
+  - (Before: men 1.70–1.85 m, Ramabargawa 1.90 m, women 1.55–1.65 m.)
 - **Faces** carry the story (grief, rage, obedience): main characters need a face clean enough for close-ups and, later, expression shapes.
 - **Long cloth** (kain, jarik, selendang, robes) will need extra bones or cloth simulation: note it per character.
 - **Jewellery and crowns** stay part of the character model unless noted, so they follow the rig.

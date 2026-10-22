@@ -10,7 +10,7 @@ RES = "1k"
 MAPS = ("Diffuse", "Rough", "Displacement")
 
 TEXTURES = {
-    "thatch":     ("reed_roof_04", 1.0, 0.25, 0.9),         # alang-alang (the user chose it as built); 1.6 m tiles looked smooth
+    # "thatch" was reed_roof_04 (1.0 m tiles); since 2026-10-20 it is the user's sasak photo (textures.thatch_material)
     "woven":      ("bamboo_wall_03", 1.0, 0.15, 0.3),       # gedhek
     "teak":       ("teak_veneer", 1.2, 0.25, 0.15),          # real teak, straight grain (wood_table_worn was a swirly
     "teak_dark":  ("teak_veneer", 1.2, 0.5, 0.15),           # polished tabletop that read as leather on the posts)

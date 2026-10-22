@@ -1,0 +1,14 @@
+# This is an Asset Catalog Definition file for Blender.
+#
+# Empty lines and lines starting with `#` will be ignored.
+# The first non-ignored line should be the version indicator.
+# Other lines are of the format "UUID:catalog/path/for/assets:simple catalog name"
+
+VERSION 1
+
+0fbe8958-b71d-5ce8-bad7-9ac8d29b2ef8:Bargawa/Wood:Bargawa-Wood
+2e06e82a-e4fc-5490-8f6a-40165667762f:Bargawa/Stone:Bargawa-Stone
+30e34904-1793-5bd7-82ad-25b601e16d31:Bargawa/Plants:Bargawa-Plants
+262b3478-6e88-5535-b68a-2fa3771082eb:Bargawa/Ground:Bargawa-Ground
+96055f2e-d973-53c9-bdf5-46d07a62fe71:Bargawa/Metal:Bargawa-Metal
+a1f19b3c-d618-5d61-b2d9-99ae60a387d7:Bargawa/Palette:Bargawa-Palette

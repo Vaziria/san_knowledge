@@ -41,11 +41,29 @@ def land(x, y):
     f = smooth(FLAT_R[0], FLAT_R[1], math.hypot(x - FLAT_C[0], y - FLAT_C[1]))
     return h + _bumps(x, y)*f*smooth(1.0, 1.4, lake_d(x, y))
 
-def height(x, y):
-    """Ground height, the lake bed included."""
+def _natural(x, y):
+    """The ground before the lake steps' cut, the lake bed included."""
     d = lake_d(x, y)
     bed = WATER_Z - 0.1 - LAKE_DEPTH*(1.0 - min(d, 1.0)**2)
     return bed + (land(x, y) - bed)*smooth(0.85, 1.25, d)
+
+def steps_frame(x, y):
+    """Where (x, y) is against the lake steps: t along them (0 at the top, 1 at the bottom) and s across them (m)."""
+    (x0, y0), (x1, y1) = STEPS_TOP, STEPS_BOTTOM
+    dx, dy = x1 - x0, y1 - y0; L = math.hypot(dx, dy)
+    return ((x - x0)*dx + (y - y0)*dy)/(L*L), ((x - x0)*dy - (y - y0)*dx)/L
+
+def height(x, y):
+    """Ground height, the lake bed included. Along the lake steps the ground is cut (or filled) to just under their line, so no
+    step is buried by the curved slope; 2.4 m beyond each side it blends back over 2.6 m (the terrain's grid is 2 m)."""
+    h = _natural(x, y)
+    t, s = steps_frame(x, y)
+    L = math.hypot(STEPS_BOTTOM[0] - STEPS_TOP[0], STEPS_BOTTOM[1] - STEPS_TOP[1])
+    keep = max(smooth(STEPS_W/2 + 2.4, STEPS_W/2 + 5.0, abs(s)), smooth(0.0, 2.0, -t*L), smooth(0.0, 1.5, (t - 1.0)*L))
+    if keep >= 1.0: return h
+    tc = min(1.0, max(0.0, t))
+    line = STEPS_Z0 + (STEPS_Z1 - STEPS_Z0)*tc - 0.2*smooth(0.0, 0.1, tc)    # flush with the top step, then 0.2 m under the steps
+    return line + (h - line)*keep
 
 TERRAIN = dict(x0=-200.0, x1=200.0, y0=-210.0, y1=190.0, step=2.0)
 
@@ -59,10 +77,15 @@ SANGGAR = (-17.0, 8.0, 0.0)          # the stone shrine, facing east
 GATE = (-13.5, -2.0, 0.0)
 KANDHANG = (17.0, 10.5, 0.2)         # the livestock pen
 
-# The stone steps down to the lake, and the flat bathing stone at the bottom.
+# The stone steps down to the lake, and the flat bathing stone at the bottom. STEPS_N equal steps: 25 rises of about 0.14 m on
+# treads of about 0.37 m (2R + T = 0.65 m, garden steps: riser at most 15 cm, tread at least 30 cm; blender/places/jatisrana.md).
 STEPS_TOP = (1.5, -12.8)
 STEPS_BOTTOM = (2.2, -22.4)
 BATHING_STONE = (2.6, -23.6)
+STEPS_W = 2.3
+STEPS_N = 26
+STEPS_Z0 = _natural(*STEPS_TOP) + 0.03       # the top step's top, a little over the terrace
+STEPS_Z1 = WATER_Z + 0.22                   # the bottom step's top, at the bathing stone's height
 
 # Paths (polylines of (x, y)), 1.2 m wide.
 PATHS = [
@@ -87,6 +110,37 @@ GLAGAH = dict(c=(-19.0, -29.0), r=3.5, count=34)      # white plumes on the west
 REEDS = dict(c=(19.0, -36.0), r=3.0, count=28)        # on the east shore
 LOTUS = [dict(c=(-9.0, -31.0), r=3.5, n=14), dict(c=(8.0, -39.0), r=3.0, n=11), dict(c=(-2.0, -43.0), r=2.0, n=6)]
 CITRARATA_SPOT = (-10.0, -47.5)      # where the stranger stands on the far bank
+
+# --- the bare ground ------------------------------------------------------------------------------------------------------
+# Bare ground in the user's photo look where it can be seen: the yard round the pendapa and the huts, where no grass grows, and
+# the far bank where Citrarata stands (the user chose both). The look is terrain.BARE: their soil (2026-10-21: "this is better
+# for jatisrana"), before that their spiky ground (Ground_2.blend, 2026-10-20: "no i like this spiky").
+YARD = [((0.0, -0.5), (8.0, 8.0)),        # rounded rectangles, centre (x, y) and half sizes: the pendapa with its stair,
+        ((-6.0, 10.5), (5.0, 5.0)),       # the elders' hut and its porch,
+        ((5.5, 11.0), (5.5, 5.2))]        # the sons' hut
+YARD_ROUND = 2.5                          # their corners' radius
+BARE_FADE = 1.0                           # the last metre fades into the ground round it
+FAR_BANK_R = 5.0                          # round Citrarata's spot, give or take 0.9 m
+
+def _wobble(x, y):
+    """A slow wave of up to 0.4 m, so the edges don't run straight."""
+    return 0.25*math.sin(0.9*x + 0.4*y + 1.0) + 0.15*math.sin(0.5*x - 1.1*y + 2.3)
+
+def _round_rect(x, y, c, h, r):
+    """Signed distance from (x, y) to a rectangle (centre c, half sizes h, corners rounded by r): below 0 inside."""
+    qx, qy = abs(x - c[0]) - h[0] + r, abs(y - c[1]) - h[1] + r
+    return math.hypot(max(qx, 0.0), max(qy, 0.0)) + min(max(qx, qy), 0.0) - r
+
+def yard(x, y):
+    """The bare yard: 1 inside, fading to 0 over BARE_FADE at its edge."""
+    d = min(_round_rect(x, y, c, h, YARD_ROUND) for c, h in YARD) + _wobble(x, y)
+    return smooth(0.0, -BARE_FADE, d)
+
+def far_bank(x, y):
+    """The bare ground round Citrarata's spot: 1 inside, fading to 0 over BARE_FADE (the water's edge is cut in terrain.py)."""
+    cx, cy = CITRARATA_SPOT; a = math.atan2(y - cy, x - cx)
+    r = FAR_BANK_R + 0.6*math.sin(3.0*a + 1.0) + 0.3*math.sin(5.0*a + 2.0)
+    return smooth(r, r - BARE_FADE, math.hypot(x - cx, y - cy))
 
 def in_clearing(x, y):
     """Open ground around the hermitage, where no forest tree stands."""

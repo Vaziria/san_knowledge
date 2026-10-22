@@ -26,6 +26,9 @@ VIEWS = {   # name: (camera position, look-at point, lens mm)
     "lake_edge":      ((-11.5, -23.5, -2.2), (-19.0, -30.0, -3.0), 24),
     "lotus":          ((-6.0, -27.2, -2.6), (-9.0, -31.0, -3.9), 30),
     "bamboo":         ((3.0, 17.5, 1.7), (1.0, 26.0, 6.5), 22),
+    "yard":           ((-9.5, -9.5, 1.3), (-3.5, -3.0, 0.1), 24),               # the bare yard by the pendapa's south-west corner
+    "roof_eave":      ((-9.0, -9.0, 2.0), (-5.0, -5.5, 3.4), 28),               # the thatch's relief at the pendapa's south-west eave
+    "far_bank":       ((-3.5, -54.0, J.height(-3.5, -54.0) + 1.5), (-10.0, -47.5, J.height(-10.0, -47.5) + 0.2), 24),
     "lamp":           ((0.75, -0.55, F + 0.85), (0.0, 1.3, F + 0.55), 32),       # the damar between the mats and the bale
     "lamp_night":     ((0.75, -0.55, F + 0.85), (0.0, 1.3, F + 0.55), 32, {"night": True}),
 }
@@ -51,6 +54,12 @@ STONE_VIEWS = {   # objects/stone.blend: padma umpak in a row at y 1.2, the stai
     "umpak":   ((1.45, -3.25, 0.55), (1.05, -2.3, 0.12), 55),
     "stair":   ((3.9, -4.2, 1.2), (1.35, -1.1, 0.15), 35),
     "top":     ((1.35, -0.5, 9.5), (1.35, -0.49, 0.0), 35),
+}
+SOKO_VIEWS = {   # objects/soko.blend: soko guru at x 0, 0.7, 1.4, 2.1 (y 0.6), soko penanggap in front of the gaps (y -0.6)
+    "all":       ((4.6, -6.4, 2.2), (1.2, 0.0, 1.4), 30),
+    "guru":      ((0.7, -1.4, 1.7), (0.7, 0.6, 1.6), 40),
+    "penanggap": ((1.05, -1.9, 1.1), (1.05, -0.6, 1.0), 45),
+    "top":       ((1.2, -0.01, 9.0), (1.2, 0.0, 0.0), 35),
 }
 NIGHT = {"night": True}   # a 4th value: the sun off and the sky nearly black, to see lamps and their light
 # a 4th value {"frame": n} renders that frame (flames move with the frame); the default is the file's current frame
@@ -78,7 +87,7 @@ FIRE_VIEWS = {   # objects/fire.blend: the samples along x (fuel.SAMPLES): lamp 
     "large_night":  ((8.0, -4.6, 1.5), (5.0, 0.0, 1.2), 30, NIGHT),
     "large_f12":    ((8.0, -4.6, 1.5), (5.0, 0.0, 1.2), 30, {"night": True, "frame": 12}),
 }
-VIEWS = {"building": BUILDING_VIEWS, "stone": STONE_VIEWS, "damar": DAMAR_VIEWS, "fire": FIRE_VIEWS}.get(os.environ.get("VIEWS_SET"), VIEWS)
+VIEWS = {"building": BUILDING_VIEWS, "stone": STONE_VIEWS, "soko": SOKO_VIEWS, "damar": DAMAR_VIEWS, "fire": FIRE_VIEWS}.get(os.environ.get("VIEWS_SET"), VIEWS)
 
 def night(on, saved=None):
     """Turn the sun off and the sky down for a night still (on=True; returns what to restore), or restore it (on=False)."""

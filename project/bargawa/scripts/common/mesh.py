@@ -105,16 +105,35 @@ def woven_material():
     p.inputs["Roughness"].default_value = 0.85; m.diffuse_color = (*lin(160, 134, 88), 1)
     return m
 
-def mats(textures=True):
-    """Every palette material by name, plus the woven bamboo; with the Poly Haven textures on those that have one."""
-    M = {k: material("M_" + k, rgb, rough) for k, (rgb, rough) in PALETTE.items()}
-    M["woven"] = woven_material()
-    if textures:
-        from . import textures as T
-        T.apply(M)
-    return M
+def mats():
+    """Every palette material by key (plus woven, ground and water), linked from the texture library in blender/textures/
+    (textures.link_all; build it first with run.ps1 texture all). The library's own files make them with textures.build_family."""
+    from . import textures as T
+    return T.link_all()
 
 GRAIN_MATS = {"M_teak", "M_teak_dark", "M_teak_turned"}   # timber: textured through UVs that follow each piece's length
+SLOPE_MATS = {"M_thatch"}                                  # thatch: UVs with the straw running down each roof slope
+SLOPE_PITCH = math.radians(40.0)                           # the roofs' usual pitch, for the slope UVs
+
+def _slope_uvs(verts, faces):
+    """UVs in metres for a roof: U along the eave (to the right, seen from outside), V up the slope, so a thatch photo (straw
+    downward, courses across) lies right on every side of a hip or gable roof. Each face is projected onto a plane of SLOPE_PITCH
+    facing the same way as the face, so faces of one side join without a seam even where the pitch changes (a 15 degree change
+    stretches V by 3 %); the seams fall on the hips. Flat faces get a plan projection, walls V up."""
+    out = []
+    c, s = math.cos(SLOPE_PITCH), math.sin(SLOPE_PITCH)
+    for fc in faces:
+        pts = [verts[i] for i in fc]
+        n = Vector((0.0, 0.0, 0.0))
+        for a, b in zip(pts, pts[1:] + pts[:1]):                                     # Newell's normal
+            n.x += (a[1] - b[1])*(a[2] + b[2]); n.y += (a[2] - b[2])*(a[0] + b[0]); n.z += (a[0] - b[0])*(a[1] + b[1])
+        if n.z < 0: n = -n                                                           # the side facing up and out
+        hl = math.hypot(n.x, n.y)
+        if hl < 1e-6*max(n.length, 1e-12):
+            out.append([(p[0], p[1]) for p in pts]); continue
+        hx, hy = n.x/hl, n.y/hl                                                      # downhill, in plan
+        out.append([(p[0]*-hy + p[1]*hx, p[2]*s - (p[0]*hx + p[1]*hy)*c) for p in pts])
+    return out
 
 def _components(n_verts, faces):
     """Groups of faces that share points: the separate pieces inside one vertex/face list (a merge of four beams is four)."""
@@ -175,7 +194,9 @@ class Parts:
         self.v, self.f, self.mi, self.mats, self.w = [], [], [], [], []
         self.uv, self.tone, self.edge = [], [], []
 
-    def add(self, vf, mat, wear=None, grain=None):
+    def add(self, vf, mat, wear=None, grain=None, seed=None):
+        """seed: the timber's grain offset and tone (by default from the piece's place in the mesh); give variants of one piece,
+        built alone at the same spot, different seeds, or they all get the same grain."""
         verts, faces = vf
         if mat not in self.mats: self.mats.append(mat)
         k = self.mats.index(mat); o = len(self.v)
@@ -184,8 +205,11 @@ class Parts:
         self.mi += [k]*len(faces)
         self.w += list(wear) if wear is not None else [0.0]*len(verts)
         if grain if grain is not None else mat.name in GRAIN_MATS:
-            uv, tone, edge = _grain_uvs(verts, faces, seed=len(self.f))
+            uv, tone, edge = _grain_uvs(verts, faces, seed=len(self.f) if seed is None else seed)
             self.uv += uv; self.tone += tone; self.edge += edge
+        elif mat.name in SLOPE_MATS:
+            self.uv += _slope_uvs(verts, faces); self.tone += [0.5]*len(verts)
+            self.edge += [[(0.5, 10.0)]*len(fc) for fc in faces]
         else:
             self.uv += [[(0.0, 0.0)]*len(fc) for fc in faces]; self.tone += [0.5]*len(verts)
             self.edge += [[(0.5, 10.0)]*len(fc) for fc in faces]

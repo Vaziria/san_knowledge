@@ -5,7 +5,8 @@ The file holds:
     Pendopo    the building at the origin, facing south (what places link)
     _Review    a ground disc, a sun and the sky, for looking at it here (not linked)
 Run headless: scripts\\run.ps1 building pendopo. The model itself is common/joglo.py. Its umpak and stair are linked from
-blender/objects/stone.blend: build that first (scripts\\run.ps1 object stone)."""
+blender/objects/stone.blend, its soko from blender/objects/soko.blend: build those first (scripts\\run.ps1 object stone,
+scripts\\run.ps1 object soko)."""
 import os, sys; sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # scripts/
 import common; common.reload()
 import bpy

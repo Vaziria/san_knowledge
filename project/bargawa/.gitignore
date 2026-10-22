@@ -7,3 +7,8 @@ renders/
 _logs/
 _work/
 __pycache__/
+# Godot: the editor is downloaded into tools/godot (README), its cache is rebuilt, and the place's game copy is exported
+# by scripts\run.ps1 game <place>
+tools/
+game/.godot/
+game/assets/export/

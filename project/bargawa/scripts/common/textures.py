@@ -1,9 +1,248 @@
-"""Poly Haven textures on the palette materials (common/polyhaven.py lists them). The meshes have no UV maps, so every texture is
-box-projected in object space and gets its relief from the height map through a Bump node (a normal map would need UV tangents).
+"""Poly Haven textures on the palette materials (common/polyhaven.py lists them). The meshes have no UV maps (but timber and
+thatch, see mesh.Parts), so every texture is box-projected in object space and gets its relief from the height map through a
+Bump node (a normal map would need UV tangents). The user's own photo materials (the thatch, the spiky ground, the soil) come after.
 Each texture is mixed a little with its palette colour, so the stylized palette keeps deciding the mood.
-A material whose files aren't downloaded keeps its plain palette colour (run scripts\\run.ps1 fetch)."""
-import bpy
-from . import mesh, polyhaven as PH
+A material whose files aren't downloaded keeps its plain palette colour (run scripts\\run.ps1 fetch).
+
+The texture library (the user, 2026-10-20: "lets focus on reusable texture place in blender/textures"): every material is built
+once, by family, into blender/textures/<family>.blend (scripts/textures/build.py, run.ps1 texture <family>|all), marked as an
+asset in a catalog of its family; every other file links its materials from there (mesh.mats -> link_all), so a texture changed
+once changes everywhere. Each family's summary is beside its file (blender/textures/<family>.md)."""
+import bpy, math, os, uuid
+from . import mesh, paths, polyhaven as PH
+
+# The families, one file each (the user chose "by family"). Every palette material is in one of them.
+FAMILIES = {
+    "wood":    ["teak", "teak_dark", "teak_turned", "firewood"],
+    "stone":   ["stone", "stone_kit", "stone_dark"],
+    "plants":  ["bark", "bark_dark", "thatch", "woven"],
+    "ground":  ["ground", "earth", "water", "ground_spiky", "ground_soil"],
+    "metal":   ["bronze"],
+    "palette": ["ridge", "bamboo", "bamboo_culm", "door", "clay", "clay_dark", "mat", "soot", "oil", "wick", "mountain",
+                "leaf", "leaf_dark", "leaf_light", "dry_leaf", "banana_stem", "grass", "grass_dark", "grass_dry", "plume",
+                "reed_plume", "lotus", "lotus_light", "lotus_pad", "flower", "flower_center", "figure"],
+}
+CATALOG_NS = uuid.UUID("6f1c2b1e-7a1d-4c55-9b3e-2a7d0c9e5b11")       # catalog ids are derived from this, so they never change
+
+def catalog_id(family):
+    return str(uuid.uuid5(CATALOG_NS, "bargawa/" + family))
+
+def write_catalogs():
+    """blender/textures/blender_assets.cats.txt: a catalog per family ("Bargawa/Wood" ...), for the Asset Browser."""
+    os.makedirs(paths.TEXTURES, exist_ok=True)
+    lines = ["# This is an Asset Catalog Definition file for Blender.", "#",
+             "# Empty lines and lines starting with `#` will be ignored.",
+             "# The first non-ignored line should be the version indicator.",
+             '# Other lines are of the format "UUID:catalog/path/for/assets:simple catalog name"', "", "VERSION 1", ""]
+    lines += [f"{catalog_id(f)}:Bargawa/{f.capitalize()}:Bargawa-{f.capitalize()}" for f in FAMILIES]
+    with open(os.path.join(paths.TEXTURES, "blender_assets.cats.txt"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("\n".join(lines) + "\n")
+
+def _describe(key, family):
+    tex = PH.TEXTURES.get(key)
+    if tex:
+        asset, tile, mix, bump = tex
+        d = (f"Poly Haven {asset} (CC0), {tile} m tiles, mixed with {round(mix*100)}% of its palette colour, bump {bump}. "
+             + ("Textured along each piece's grain (UVs from mesh.Parts). " if key in PH.UV_KEYS else "Box-projected in object space. "))
+        if key in PH.UV_KEYS and key not in PH.CARED_KEYS: d += "With the wood reference's weathering layers. "
+        if key == "stone_kit": d += "Worn edges lighter where the mesh's 'wear' attribute is high. "
+        return d.strip()
+    if key in METALS: return "Aged metal: patina in the hollows and patches, polished where the mesh's 'wear' attribute is high."
+    if key == "ground_spiky":
+        return ("The user's photo (blender/assets/photos/ground_spiky.jpg) on the mesh's UVMap, mirrored tiles, matte. Its spikes "
+                "are the Geometry Nodes group GN_ground_spiky in this file: put it on a fine grid as a modifier.")
+    if key == "ground_soil":
+        return ("The user's soil photo (blender/assets/photos/1cb0165c04eb35eb7bd78df3f83cc534.jpg, seamless) on the mesh's UVMap, "
+                "5.6 m tiles, matte, bump 1.0 from the photo. Its relief (only the brightest leaves and pebbles rise) is the "
+                "Geometry Nodes group GN_ground_soil in this file: put it on a fine grid as a modifier.")
+    if key == "thatch":
+        return ("The user's sasak photo (blender/assets/photos/sasak.jpg) on the mesh's UVMap in metres (tiles 0.686 x 1.2 m), the "
+                "straw down each slope (mesh._slope_uvs), matte, bump 1.0. Its relief is the Geometry Nodes group GN_thatch in "
+                "this file, after a Solidify that marks the inner shell 'thatch_inner' (textures.thatch_relief).")
+    return "A plain palette colour."
+
+def build_family(family):
+    """Make the family's materials in the open file (a texture library file) and mark them as assets. Returns {key: material}."""
+    from . import terrain
+    M = {}
+    for k in FAMILIES[family]:
+        if k == "woven": M[k] = mesh.woven_material()
+        elif k == "ground": M[k] = terrain.ground_material()                # textured by itself (terrain.ground_material)
+        elif k == "water": M[k] = terrain.water_material()
+        elif k in terrain.RELIEF_GROUNDS: M[k] = terrain.relief_ground_material(k)   # with its Geometry Nodes, GN_<key>
+        elif k == "thatch": M[k] = thatch_material()                       # with GN_thatch
+        else:
+            rgb, rough = mesh.PALETTE[k]; M[k] = mesh.material("M_" + k, rgb, rough)
+    apply(M)
+    for k, m in M.items():
+        m.asset_mark()
+        m.asset_data.catalog_id = catalog_id(family)
+        m.asset_data.description = _describe(k, family)
+        m.asset_data.author = "project/bargawa/scripts (common/textures.py)"
+        for tag in (family, PH.TEXTURES[k][0] if k in PH.TEXTURES else "photo" if k in ("ground_spiky", "ground_soil", "thatch") else "palette"):
+            m.asset_data.tags.new(tag, skip_if_exists=True)
+    return M
+
+def link_all():
+    """Every library material, linked from blender/textures/<family>.blend (read-only in the file that links it: change this
+    module and rebuild the family). Returns {key: material}. Call it after the file is saved, so the paths are relative."""
+    M = {}
+    for family, keys in FAMILIES.items():
+        path = paths.texture_file(family, built=True)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"{path} is missing: build the texture library first (scripts\\run.ps1 texture all)")
+        names = ["M_" + k for k in keys]
+        with bpy.data.libraries.load(bpy.path.relpath(path), link=True, relative=True) as (src, dst):
+            missing = [n for n in names if n not in src.materials]
+            if missing: raise KeyError(f"no material {', '.join(missing)} in {path}: rebuild it (run.ps1 texture {family})")
+            dst.materials = names
+        M.update(zip(keys, dst.materials))
+    return M
+
+# --- the user's photo materials, with real relief --------------------------------------------------------------------------
+# Made by hand in blender/textures/material_manual.blend (the user, 2026-10-20): a photo as Base Color, and its brightness
+# through a Color Ramp as displacement. Here the relief is a Geometry Nodes group (relief_nodes) on a fine mesh rather than shader
+# displacement, so it is real geometry in EEVEE, Cycles and the game's export. Realistic shading values (the user chose them).
+# The bare grounds (terrain.RELIEF_GROUNDS: the spiky ground, the soil) and the thatch.
+THATCH = dict(photo="sasak.jpg", tile=(0.686, 1.2),          # the photo's own shape (384 x 672 px), 7 courses of about 17 cm
+              ramp=(0.0, 1.0), height=0.1, mid=0.0,          # the user's sasak material: RGB to BW, ramp 0 -> 1, Scale 0.1
+              detail=3,                                      # the roofs' faces are about 0.3 m (ROOF_STEP): 3.75 cm after it
+              rough=0.85, bump=1.0, bump_dist=0.2)           # the user's bump: Strength 1, Distance 0.8 on the photo 4.5 m tall,
+                                                             # so 0.2 at this tile
+
+def photo(name):
+    """A photo in blender/assets/photos, loaded once."""
+    return bpy.data.images.load(os.path.join(paths.PHOTOS, name), check_existing=True)
+
+def photo_material(name, img, tile=(1.0, 1.0), extension="REPEAT", rough=0.85, bump=0.3, bump_dist=0.02, ramp=None, fade=None,
+                   depth=None):
+    """A matte material of one photo on the mesh's UVMap (scaled by 1/tile, metres -> tiles). Its bump comes from the photo, or
+    from the photo through `ramp` (black, white positions) when the relief uses one. With `fade` (an attribute name) the material
+    turns see-through (dithered) where that attribute is high. With depth (attribute, metres) V drops by attribute x metres, so
+    the photo runs on down a thickened shell's cut edge."""
+    m = bpy.data.materials.new(name); p = mesh._principled(m); K = _kit(m.node_tree)
+    uv = K.N("ShaderNodeUVMap"); uv.uv_map = "UVMap"; vec = uv.outputs["UV"]
+    if depth:
+        a = K.N("ShaderNodeAttribute"); a.attribute_name = depth[0]                       # missing: 0, no change
+        cmb = K.N("ShaderNodeCombineXYZ"); K.L(K.math("MULTIPLY", a.outputs["Fac"], depth[1]), cmb.inputs["Y"])
+        vm = K.N("ShaderNodeVectorMath"); vm.operation = "SUBTRACT"; K.L(vec, vm.inputs[0]); K.L(cmb.outputs[0], vm.inputs[1])
+        vec = vm.outputs["Vector"]
+    if tuple(tile) != (1.0, 1.0): vec = K.stretch(vec, 1.0/tile[0], 1.0/tile[1], 1.0)
+    im = K.N("ShaderNodeTexImage"); im.image = img; im.extension = extension; K.L(vec, im.inputs["Vector"])
+    K.L(im.outputs["Color"], p.inputs["Base Color"])
+    p.inputs["Roughness"].default_value = rough; p.inputs["Metallic"].default_value = 0.0; p.inputs["IOR"].default_value = 1.5
+    height = K.ramp(im.outputs["Color"], [(ramp[0], (0.0, 0.0, 0.0)), (ramp[1], (1.0, 1.0, 1.0))]).outputs["Color"] if ramp else im.outputs["Color"]
+    b = K.N("ShaderNodeBump"); b.inputs["Strength"].default_value = bump; b.inputs["Distance"].default_value = bump_dist
+    K.L(height, b.inputs["Height"]); K.L(b.outputs["Normal"], p.inputs["Normal"])
+    if fade:
+        at = K.N("ShaderNodeAttribute"); at.attribute_name = fade                           # missing on other meshes: 0, opaque
+        K.L(K.math("SUBTRACT", 1.0, at.outputs["Fac"]), p.inputs["Alpha"])
+        m.surface_render_method = "DITHERED"
+    return m
+
+def relief_nodes(name, img, ramp, height, mid, detail, tile=(1.0, 1.0), extension="REPEAT", weight=None, flat=None):
+    """A Geometry Nodes group of the user's node chain: the mesh subdivided `Detail` times, then every point raised along its
+    normal by (Color Ramp(photo at the UVMap / tile) - Midlevel) x Height x a weight. The weight is the point attribute `weight`
+    (a mesh without it gets 1), or 1 - the attribute `flat`; the faces wholly in `flat` (a roof's inner shell) are neither
+    subdivided nor raised. Inputs on the modifier: Height, Midlevel, Detail."""
+    g = bpy.data.node_groups.get(name)
+    if g: return g
+    g = bpy.data.node_groups.new(name, "GeometryNodeTree"); g.use_fake_user = True
+    I = g.interface
+    I.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    I.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+    for nm, typ, val, hi, desc in (("Height", "NodeSocketFloat", height, 1.0, "How high the brightest points rise (m)"),
+                                   ("Midlevel", "NodeSocketFloat", mid, 1.0, "The ramp's value that stays flat"),
+                                   ("Detail", "NodeSocketInt", detail, 5, "Times the faces are halved before the relief")):
+        s = I.new_socket(nm, in_out="INPUT", socket_type=typ); s.default_value = val; s.min_value = 0; s.max_value = hi
+        s.description = desc
+    N, L = g.nodes.new, g.links.new
+    def at(n, x, y): n.location = (x, y); return n
+    def attr(nm, x, y):
+        a = at(N("GeometryNodeInputNamedAttribute"), x, y); a.data_type = "FLOAT"; a.inputs["Name"].default_value = nm; return a
+    def math(op, a, b, x, y):
+        n = at(N("ShaderNodeMath"), x, y); n.operation = op
+        for i, v in enumerate((a, b)):
+            if isinstance(v, float): n.inputs[i].default_value = v
+            else: L(v, n.inputs[i])
+        return n.outputs[0]
+    gi = at(N("NodeGroupInput"), -1100, 0); go = at(N("NodeGroupOutput"), 700, 0)
+    geo_in, keep = gi.outputs["Geometry"], None
+    if flat:                                                                           # the inner shell passes untouched
+        sep = at(N("GeometryNodeSeparateGeometry"), -850, 250); sep.domain = "FACE"
+        cmp = at(N("FunctionNodeCompare"), -1100, 350); cmp.data_type = "FLOAT"; cmp.operation = "GREATER_THAN"
+        L(attr(flat, -1300, 350).outputs["Attribute"], cmp.inputs["A"]); cmp.inputs["B"].default_value = 0.99
+        L(geo_in, sep.inputs["Geometry"]); L(cmp.outputs["Result"], sep.inputs["Selection"])
+        geo_in, keep = sep.outputs["Inverted"], sep.outputs["Selection"]
+    sub = at(N("GeometryNodeSubdivideMesh"), -600, 200); L(geo_in, sub.inputs["Mesh"]); L(gi.outputs["Detail"], sub.inputs["Level"])
+    uv = at(N("GeometryNodeInputNamedAttribute"), -1100, -250); uv.data_type = "FLOAT_VECTOR"; uv.inputs["Name"].default_value = "UVMap"
+    vec = uv.outputs["Attribute"]
+    if tuple(tile) != (1.0, 1.0):
+        sc = at(N("ShaderNodeVectorMath"), -880, -250); sc.operation = "MULTIPLY"
+        L(vec, sc.inputs[0]); sc.inputs[1].default_value = (1.0/tile[0], 1.0/tile[1], 1.0); vec = sc.outputs["Vector"]
+    tex = at(N("GeometryNodeImageTexture"), -650, -250); tex.inputs["Image"].default_value = img; tex.extension = extension
+    L(vec, tex.inputs["Vector"])
+    rp = at(N("ShaderNodeValToRGB"), -400, -250); el = rp.color_ramp.elements
+    for e, pos, c in zip(el, ramp, (0.0, 1.0)): e.position = pos; e.color = (c, c, c, 1.0)
+    L(tex.outputs["Color"], rp.inputs["Fac"])
+    h = math("SUBTRACT", rp.outputs["Color"], gi.outputs["Midlevel"], -120, -250)
+    h = math("MULTIPLY", h, gi.outputs["Height"], 60, -250)
+    if flat: w = math("SUBTRACT", 1.0, attr(flat, -400, -550).outputs["Attribute"], -120, -500)
+    elif weight:
+        a = attr(weight, -400, -550)
+        sw = at(N("GeometryNodeSwitch"), -120, -500); sw.input_type = "FLOAT"
+        L(a.outputs["Exists"], sw.inputs["Switch"]); sw.inputs["False"].default_value = 1.0; L(a.outputs["Attribute"], sw.inputs["True"])
+        w = sw.outputs[0]
+    else: w = None
+    if w is not None: h = math("MULTIPLY", h, w, 60, -450)
+    nrm = at(N("GeometryNodeInputNormal"), 60, -650)
+    off = at(N("ShaderNodeVectorMath"), 240, -450); off.operation = "SCALE"; L(nrm.outputs["Normal"], off.inputs[0]); L(h, off.inputs["Scale"])
+    sp = at(N("GeometryNodeSetPosition"), 260, 150); L(sub.outputs["Mesh"], sp.inputs["Geometry"]); L(off.outputs["Vector"], sp.inputs["Offset"])
+    out = sp.outputs["Geometry"]
+    if keep is not None:
+        j = at(N("GeometryNodeJoinGeometry"), 480, 100); L(keep, j.inputs[0]); L(out, j.inputs[0]); out = j.outputs[0]
+        # `flat` + '_depth' for the material (a shader can't read vertex groups): 0 outside, 1 on the inner shell, in between down
+        # the cut edge (the rim), whose UVs the Solidify only copies, so the material moves them by it
+        st = at(N("GeometryNodeStoreNamedAttribute"), 600, 100); st.data_type = "FLOAT"; st.domain = "POINT"
+        st.inputs["Name"].default_value = flat + "_depth"; L(out, st.inputs["Geometry"])
+        L(attr(flat, 400, -100).outputs["Attribute"], st.inputs["Value"]); out = st.outputs["Geometry"]; go.location = (820, 0)
+    L(out, go.inputs["Geometry"])
+    return g
+
+def thatch_material():
+    """M_thatch: the user's sasak photo (blender/assets/photos/sasak.jpg), the straw down each roof slope (the UVs from
+    mesh._slope_uvs), with its relief GN_thatch."""
+    T = THATCH; img = photo(T["photo"])
+    m = photo_material("M_thatch", img, T["tile"], "REPEAT", T["rough"], T["bump"], T["bump_dist"],
+                       depth=("thatch_inner_depth", 0.25))                         # the roofs are 0.18-0.3 m thick
+    m.diffuse_color = (*mesh.PALETTE["thatch"][0], 1.0)
+    relief_nodes("GN_thatch", img, T["ramp"], T["height"], T["mid"], T["detail"], T["tile"], "REPEAT", flat="thatch_inner")
+    return m
+
+def thatch_relief(ob, nodes=None):
+    """Real relief on a thatch roof, a shell thickened by Parts.build's Solidify: the Solidify marks its new inner shell
+    'thatch_inner', and GN_thatch after it subdivides and raises only the outside. nodes: the group (linked from plants.blend
+    unless given)."""
+    ob.vertex_groups.new(name="thatch_inner")
+    sd = next(md for md in ob.modifiers if md.type == "SOLIDIFY"); sd.shell_vertex_group = "thatch_inner"
+    md = ob.modifiers.new("Relief", "NODES"); md.node_group = nodes or link_group("plants", "GN_thatch")
+    return ob
+
+def thatch_sample(col, m, x):
+    """A 1.5 m piece of roof at the usual pitch, its eave at the front, thickened, with its relief: the library's sample."""
+    k, t = 6, math.tan(mesh.SLOPE_PITCH)
+    pts = [(x - 0.75 + 1.5*i/(k - 1), -0.6 + 1.2*j/(k - 1), 0.25 + 1.2*j/(k - 1)*t) for j in range(k) for i in range(k)]
+    fs = [(j*k + i, j*k + i + 1, (j + 1)*k + i + 1, (j + 1)*k + i) for j in range(k - 1) for i in range(k - 1)]
+    ob = mesh.Parts().add((pts, fs), m).build("Sample_thatch", col, recalc=False, solidify=0.24)
+    return thatch_relief(ob, bpy.data.node_groups["GN_thatch"])
+
+def link_group(family, name):
+    """A node group of a library file (a bare ground's GN_ground_soil), linked like the materials."""
+    path = paths.texture_file(family, built=True)
+    with bpy.data.libraries.load(bpy.path.relpath(path), link=True, relative=True) as (src, dst):
+        if name not in src.node_groups: raise KeyError(f"no node group {name} in {path}: rebuild it (run.ps1 texture {family})")
+        dst.node_groups = [name]
+    return dst.node_groups[0]
 
 def textured(m, key, base_rgb):
     """Rebuild material m's nodes with the texture for `key`. Returns False (and leaves m alone) when its files are missing."""
@@ -194,5 +433,6 @@ def apply(M):
     for key, args in METALS.items():
         if key in M: aged_metal(M[key], *args)
     if "glass" in M: glass(M["glass"])
-    print("STEP textures:", ", ".join(done) or "none (run.ps1 fetch)", flush=True)
+    wanted = [k for k in PH.TEXTURES if k != "ground" and k in M]
+    print("STEP textures:", ", ".join(done) or ("none (run.ps1 fetch)" if wanted else "none in this set"), flush=True)
     return M

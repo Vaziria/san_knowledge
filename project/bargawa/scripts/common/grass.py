@@ -1,6 +1,6 @@
 """Grass over the hermitage's clearing: a hidden emitter mesh on the ground with a 'grass' density map (none on the paths, under
-the buildings, on the steps, in the water or at the banyan's foot), and a hair particle system that scatters three grass-clump
-shapes over it.
+the buildings, in the bare yard round them, on the steps, in the water or at the banyan's foot), and a hair particle system
+that scatters three grass-clump shapes over it.
 
 Particles with orientation Global Z and a random phase turn each instance so that its local +Y points up and spin it about the
 vertical (tested in Blender 5.2), so the clumps are modelled with +Y as up."""
@@ -47,7 +47,8 @@ def density(px, py):
     if math.hypot(px - J.GATE[0], py - J.GATE[1]) < 2.2: return 0.0
     if math.hypot(px - J.BANYAN[0], py - J.BANYAN[1]) < 3.2: return 0.15
     edge = math.hypot(px/30.0, (py - 4.0)/24.0)
-    return 1.0 if edge < 0.9 else max(0.0, 1.0 - (edge - 0.9)*2.5)
+    d = 1.0 if edge < 0.9 else max(0.0, 1.0 - (edge - 0.9)*2.5)
+    return d*(1.0 - J.yard(px, py))                          # none in the bare yard round the pendapa and the huts
 
 def grass(col, src_col, M, count=46000):
     gc = bpy.data.collections.new("_GrassClumps")               # kept out of the scene: the particles use it, nothing else shows it

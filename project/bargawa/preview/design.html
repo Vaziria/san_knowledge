@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bargawa Design Preview</title>
+<style>
+:root {
+  --bg: #f5f1e8; --panel: #fffdf8; --ink: #1f1c18; --muted: #6b645a; --line: #e2dacb;
+  --accent: #b5481b; --accent-soft: #f3e1d4; --ok: #3f6b3a; --ok-soft: #e1ecdc; --todo: #8a6d1f; --todo-soft: #f4ead0;
+  --off: #6d6a66; --off-soft: #ebe8e3;
+  --forest: #4f6b45; --ground: #b9a57f; --water: #3c5a6e; --path: #e9dcc0; --building: #6b4a33; --tree: #2f4a2c;
+  --shadow: 0 1px 2px rgba(40,30,20,.06), 0 4px 16px rgba(40,30,20,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14120f; --panel: #1d1a16; --ink: #ece6da; --muted: #a39b8d; --line: #332e27;
+    --accent: #f07a3a; --accent-soft: #3a2418; --ok: #9cc58f; --ok-soft: #1f2d1c; --todo: #e2c26a; --todo-soft: #352c14;
+    --off: #a8a39b; --off-soft: #29261f;
+    --forest: #2c3d27; --ground: #6e6249; --water: #1e3240; --path: #a99a7b; --building: #c49a72; --tree: #1b2a19;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14120f; --panel: #1d1a16; --ink: #ece6da; --muted: #a39b8d; --line: #332e27;
+  --accent: #f07a3a; --accent-soft: #3a2418; --ok: #9cc58f; --ok-soft: #1f2d1c; --todo: #e2c26a; --todo-soft: #352c14;
+  --off: #a8a39b; --off-soft: #29261f;
+  --forest: #2c3d27; --ground: #6e6249; --water: #1e3240; --path: #a99a7b; --building: #c49a72; --tree: #1b2a19;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.55 "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px 64px; }
+header.top { padding: 40px 0 20px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 600; font-size: clamp(30px, 5vw, 46px); line-height: 1.1; margin: 6px 0 10px; }
+h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 600; font-size: 26px; margin: 48px 0 6px; }
+h3 { font-size: 17px; margin: 0 0 6px; }
+p.lead { font-size: 18px; color: var(--muted); max-width: 760px; margin: 0; }
+.sub { color: var(--muted); margin: 0 0 18px; max-width: 760px; }
+nav.toc { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; gap: 4px 16px; flex-wrap: wrap; padding: 10px 0; font-size: 14px; }
+nav.toc a { color: var(--muted); text-decoration: none; }
+nav.toc a:hover { color: var(--accent); }
+a { color: var(--accent); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+code { font-family: Consolas, "Cascadia Mono", ui-monospace, monospace; font-size: .9em; background: var(--off-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+
+/* workflow state */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 14px; }
+.step { padding: 12px 12px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); font-size: 14px; }
+.step b { display: block; font-size: 14px; margin-bottom: 2px; }
+.step span { color: var(--muted); font-size: 13px; }
+.step.done { background: var(--ok-soft); border-color: transparent; }
+.step.done b::before { content: "✓ "; color: var(--ok); }
+.step.now { background: var(--accent-soft); border: 2px solid var(--accent); }
+.step.now b::before { content: "● "; color: var(--accent); }
+.answer { margin-top: 14px; padding: 14px 16px; font-size: 15px; }
+
+/* facts */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--line); border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.fact { background: var(--panel); padding: 14px 16px; }
+.fact .k { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.fact .v { font-weight: 600; margin-top: 2px; }
+.fact .n { font-size: 14px; color: var(--muted); }
+
+/* colour script */
+.script { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.state { min-height: 150px; padding: 10px; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
+.state .id { font-weight: 700; font-size: 15px; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.state .nm { font-size: 13px; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.state .fe { font-size: 12px; opacity: .9; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.sw { display: flex; gap: 3px; margin-bottom: 8px; }
+.sw i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,.5); display: block; }
+@media (max-width: 760px) {
+  .script { grid-template-columns: 1fr; }
+  .state { min-height: 64px; }
+}
+
+/* scenes */
+.scenes { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.scene { overflow: hidden; display: flex; flex-direction: column; }
+.scene .band { height: 10px; }
+.scene .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.scene .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.scene .hd h3 { font-family: Georgia, serif; font-size: 21px; margin: 0; }
+.scene .hd .min { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.scene .meta { font-size: 13px; color: var(--muted); }
+.scene ul { margin: 0; padding-left: 18px; font-size: 14.5px; }
+.scene ul li { margin: 2px 0; }
+.line { margin-top: auto; border-left: 3px solid var(--accent); padding: 6px 10px; background: var(--off-soft); border-radius: 0 6px 6px 0; }
+.line .jv { font-style: italic; }
+.line .id { font-size: 13.5px; color: var(--muted); }
+.line .who { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+
+/* map */
+.mapgrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .mapgrid { grid-template-columns: 1fr; } }
+.map { padding: 10px; }
+.map svg { width: 100%; height: auto; display: block; border-radius: 6px; }
+.legend { padding: 14px 16px; font-size: 14.5px; }
+.legend ol { margin: 0; padding-left: 0; list-style: none; }
+.legend li { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0; }
+.dot { flex: 0 0 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
+
+/* tables */
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--panel); }
+tr:last-child td { border-bottom: 0; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.todo { background: var(--todo-soft); color: var(--todo); }
+.chip.off { background: var(--off-soft); color: var(--off); }
+.chip.user { background: var(--ok-soft); color: var(--ok); }
+.chip.claude { background: var(--accent-soft); color: var(--accent); }
+
+.skins { display: flex; gap: 18px; flex-wrap: wrap; padding: 14px 16px; align-items: center; margin-top: 12px; font-size: 14.5px; }
+.skin { display: flex; gap: 10px; align-items: center; }
+.skin i { width: 44px; height: 44px; border-radius: 50%; display: block; border: 1px solid var(--line); }
+
+/* stills */
+.stills { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+figure { margin: 0; overflow: hidden; }
+figure img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: var(--off-soft); }
+figure figcaption { padding: 8px 12px 10px; font-size: 13.5px; color: var(--muted); }
+.missing { aspect-ratio: 16/9; display: grid; place-items: center; background: var(--off-soft); color: var(--muted); font-size: 13px; padding: 12px; text-align: center; }
+
+/* pipeline */
+.pipe { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.pipe .box { flex: 1 1 170px; padding: 12px 14px; font-size: 14px; }
+.pipe .box b { display: block; margin-bottom: 2px; }
+.pipe .box span { color: var(--muted); font-size: 13px; }
+.pipe .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+@media (max-width: 760px) { .pipe .arrow { display: none; } }
+.budgets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.budget { padding: 12px 14px; }
+.budget .v { font-size: 22px; font-weight: 700; font-family: Georgia, serif; }
+.budget .k { font-size: 13px; color: var(--muted); }
+
+ol.qs { padding-left: 22px; margin: 0; }
+ol.qs li { margin: 0 0 10px; }
+ol.qs .prop { color: var(--muted); font-size: 14.5px; }
+.miles { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.mile { padding: 12px 14px; font-size: 14.5px; }
+.mile b { color: var(--accent); }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">Design preview · v1 · 2026-10-20</div>
+  <h1>Ramabargawa, Bab 1: Jatisrana</h1>
+  <p class="lead">An Android narrative adventure about grief, from the Javanese wayang story of Ramabargawa. This page sums up Claude's design for Chapter 1: what it is, the decisions behind it, and where the work stands.</p>
+</header>
+
+<nav class="toc">
+  <a href="#state">State</a><a href="#game">The game</a><a href="#script">Colour script</a><a href="#scenes">Scenes</a>
+  <a href="#map">Map</a><a href="#models">Models</a><a href="#look">Current look</a><a href="#tech">Technical plan</a>
+  <a href="#decisions">Decisions</a><a href="#open">Open questions</a><a href="#next">After acceptance</a>
+</nav>
+
+<!-- STATE -->
+<section id="state">
+  <h2>State</h2>
+  <p class="sub">Where the work stands in the workflow (<code>project/bargawa/bargawa_game.md</code>).</p>
+  <div class="flow">
+    <div class="step done"><b>Requirements</b><span>general.md, accepted 2026-10-20</span></div>
+    <div class="step done"><b>Critique</b><span>none in this first round</span></div>
+    <div class="step done"><b>Story design</b><span>this page and the story; accepted 2026-10-20</span></div>
+    <div class="step now"><b>Model design</b><span>in Blender: proportion and size, texturing, lighting, then a summary</span></div>
+    <div class="step"><b>Your answer</b><span>accept the models, or critique</span></div>
+    <div class="step"><b>Game</b><span>built in Godot; milestone 1, the first walk, already done</span></div>
+    <div class="step"><b>Preview build</b><span>on Windows first</span></div>
+    <div class="step"><b>Android</b><span>the production build</span></div>
+  </div>
+  <div class="panel answer">
+    <b>The story design was accepted</b> on 2026-10-20 ("i have reviewed, i accept it"); the open questions stay on their proposals until you answer them. Milestone 1 is done: Jatisrana exported from Blender and walked in Godot 4.7.2 on this PC at about 110–130 fps (<code>make play</code>). <b>Next, by your updated workflow:</b> the model design in Blender (proportion and size, texturing, lighting, then a model summary), using the references in <code>docs/reference/general/</code> through San Knowledge, for you to accept or critique (<code>project/bargawa/docs/story.md</code>).
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="game">
+  <h2>The game</h2>
+  <p class="sub">A son who obeys his father at any cost loses everything he obeyed for, and his grief turns into the vow that drives the rest of his life.</p>
+  <div class="facts">
+    <div class="fact"><div class="k">Kind</div><div class="v">Narrative adventure</div><div class="n">walk, look, tap, hold; no fights, no score</div></div>
+    <div class="fact"><div class="k">Chapter 1</div><div class="v">Jatisrana, beats 1–3</div><div class="n">7 scenes, about 35 minutes</div></div>
+    <div class="fact"><div class="k">Player</div><div class="v">Ramabargawa throughout</div><div class="n">third person; the camera pulls wider in grief</div></div>
+    <div class="fact"><div class="k">Language</div><div class="v">Javanese, Indonesian subtitles</div><div class="n">on-screen text first, voices later</div></div>
+    <div class="fact"><div class="k">Engine</div><div class="v">Godot 4.7.2, Mobile renderer</div><div class="n">3D from our Blender files</div></div>
+    <div class="fact"><div class="k">Platform</div><div class="v">Windows preview → Android</div><div class="n">landscape, touch, plus keyboard and mouse</div></div>
+  </div>
+</section>
+
+<!-- COLOUR SCRIPT -->
+<section id="script">
+  <h2>Colour script</h2>
+  <p class="sub">One place in seven light states. Each warm light belongs to someone and goes out with their loss. The red at the end is not warmth coming back: it is rage. From <code>environment.md</code>.</p>
+  <div class="script">
+    <div class="state" style="background:linear-gradient(180deg,#d8e0cc 0%,#9caf88 55%,#5f7a4f 100%)">
+      <div class="sw"><i style="background:#9caf88"></i><i style="background:#efe6cf"></i><i style="background:#d9a441"></i></div>
+      <div class="id">S1</div><div class="nm">Embun pagi</div><div class="fe">home, safety, love</div></div>
+    <div class="state" style="background:linear-gradient(180deg,#f2c46b 0%,#c8741f 55%,#2f4a2c 100%)">
+      <div class="sw"><i style="background:#e0a526"></i><i style="background:#c8741f"></i><i style="background:#2f4a2c"></i></div>
+      <div class="id">S2</div><div class="nm">Sore keemasan</div><div class="fe">beauty with unease</div></div>
+    <div class="state" style="background:linear-gradient(180deg,#a9b2bc 0%,#7d8a99 55%,#56614f 100%)">
+      <div class="sw"><i style="background:#7d8a99"></i><i style="background:#8a9479"></i><i style="background:#b8bcc0"></i></div>
+      <div class="id">S3</div><div class="nm">Mendung</div><div class="fe">dread</div></div>
+    <div class="state" style="background:radial-gradient(circle at 70% 80%,#f2b25c 0 6px,transparent 7px),linear-gradient(180deg,#2c3a57 0%,#121a2b 70%)">
+      <div class="sw"><i style="background:#121a2b"></i><i style="background:#8fa3c4"></i><i style="background:#f2b25c"></i></div>
+      <div class="id">S4</div><div class="nm">Malam bulan</div><div class="fe">together but apart</div></div>
+    <div class="state" style="background:linear-gradient(180deg,#e3dca0 0%,#9a9790 50%,#3a3836 100%)">
+      <div class="sw"><i style="background:#9a9790"></i><i style="background:#3a3836"></i><i style="background:#e3dca0"></i></div>
+      <div class="id">S5</div><div class="nm">Abu</div><div class="fe">shock, silence</div></div>
+    <div class="state" style="background:radial-gradient(circle at 50% 85%,#ff7a1f 0 10px,rgba(255,122,31,.25) 22px,transparent 40px),linear-gradient(180deg,#2a3a52 0%,#0b1220 75%)">
+      <div class="sw"><i style="background:#0b1220"></i><i style="background:#2a3a52"></i><i style="background:#ff7a1f"></i></div>
+      <div class="id">S6</div><div class="nm">Hujan malam</div><div class="fe">grief at its peak</div></div>
+    <div class="state" style="background:linear-gradient(180deg,#f0652a 0%,#b3261e 45%,#120c0c 100%)">
+      <div class="sw"><i style="background:#b3261e"></i><i style="background:#120c0c"></i><i style="background:#f0652a"></i></div>
+      <div class="id">S7</div><div class="nm">Fajar merah</div><div class="fe">the vow; grief turned to rage</div></div>
+  </div>
+</section>
+
+<!-- SCENES -->
+<section id="scenes">
+  <h2>The seven scenes</h2>
+  <p class="sub">Every Javanese line is Claude's draft, for you to check. The full lines are in <code>docs/summaries/story.md</code>.</p>
+  <div class="scenes">
+
+    <article class="panel scene"><div class="band" style="background:linear-gradient(90deg,#9caf88,#d9a441)"></div><div class="body">
+      <div class="hd"><h3>1 · Esuk</h3><span class="min">S1 · beat 1 · 8 min</span></div>
+      <div class="meta">Morning. The whole hermitage. The family is whole.</div>
+      <ul><li>Split wood at the stump: the same lift as the kapak later.</li><li>Bring the wood to Renuka's hearth; light Jamadagni's incense and the damar's four flames.</li><li>Sit on his mat: the five mats are full.</li></ul>
+      <div class="line"><div class="who">Renuka</div><div class="jv">Le, wis tangi? Gawakna kayu menyang pawon, ya.</div><div class="id">Nak, sudah bangun? Bawakan kayu ke dapur, ya.</div></div>
+    </div></article>
+
+    <article class="panel scene"><div class="band" style="background:linear-gradient(90deg,#e0a526,#c8741f)"></div><div class="body">
+      <div class="hd"><h3>2 · Kendi</h3><span class="min">S2 · beat 1 · 5 min</span></div>
+      <div class="meta">Golden afternoon. The lake steps and the bathing stone.</div>
+      <ul><li>Fetch his mother from the lake: a man is singing across the water.</li><li>Renuka still on the stone; on the far bank, Citrarata against the low sun.</li><li>He calls her, she starts, the kendi spills. He carries it up for her.</li></ul>
+      <div class="line"><div class="who">Renuka</div><div class="jv">Ayo mulih, Le.</div><div class="id">Ayo pulang, Nak.</div></div>
+    </div></article>
+
+    <article class="panel scene"><div class="band" style="background:linear-gradient(90deg,#7d8a99,#b8bcc0)"></div><div class="body">
+      <div class="hd"><h3>3 · Dhawuh</h3><span class="min">S3 · beat 2 · 5 min</span></div>
+      <div class="meta">Overcast. The pendopo, the five mats.</div>
+      <ul><li>Four brothers refuse in turn and are cursed, still as stone.</li><li>The order comes to him. The wind stops; only the kapak answers.</li><li>The long walk to his mother. Black. The broken kendi, its water soaking in.</li></ul>
+      <div class="line"><div class="who">Bargawa</div><div class="jv">Sendika dhawuh, Rama.</div><div class="id">Saya laksanakan, Ayah.</div></div>
+    </div></article>
+
+    <article class="panel scene"><div class="band" style="background:linear-gradient(90deg,#121a2b,#8fa3c4 80%,#f2b25c)"></div><div class="body">
+      <div class="hd"><h3>4 · Anugrah</h3><span class="min">S4 · beat 2 · 4 min</span></div>
+      <div class="meta">Moonlit night. One flame of the damar.</div>
+      <ul><li>He asks for his mother and brothers back; the boons are granted.</li><li>They do not remember. Renuka offers him food; he can only put it down.</li><li>His mat stands apart from the others.</li></ul>
+      <div class="line"><div class="who">Bargawa</div><div class="jv">Rama, kula nyuwun Ibu gesang malih…</div><div class="id">Ayah, saya mohon Ibu hidup kembali…</div></div>
+    </div></article>
+
+    <article class="panel scene"><div class="band" style="background:linear-gradient(90deg,#e3dca0,#9a9790,#3a3836)"></div><div class="body">
+      <div class="hd"><h3>5 · Awu</h3><span class="min">S5 · beat 3 · 5 min</span></div>
+      <div class="meta">Ash. The gate, the burned pendopo, the shrine.</div>
+      <ul><li>Home from the forest: smoke. He drops the firewood; a broken tombak lies in the gate.</li><li>The pendopo burned, the lamp knocked over, the pen empty. No wind, no birds.</li><li>Scattered beads lead to his father on the shrine steps.</li></ul>
+      <div class="line"><div class="who">Bargawa</div><div class="jv">Rama…</div><div class="id">Ayah…</div></div>
+    </div></article>
+
+    <article class="panel scene"><div class="band" style="background:linear-gradient(90deg,#0b1220,#2a3a52 70%,#ff7a1f)"></div><div class="body">
+      <div class="hd"><h3>6 · Udan</h3><span class="min">S6 · beat 3 · 6 min</span></div>
+      <div class="meta">Night rain. The lakeside pyre, the banyan.</div>
+      <ul><li>Sets the kapak on the stump; carries four logs to the shore.</li><li>Carries the last flame from the luweng through the rain: walk too fast and it gutters.</li><li>Kneels among the banyan's roots. Only the rain is left.</li></ul>
+      <div class="line"><div class="who">Narration</div><div class="jv">Udan tumurun, kaya langit melu nangis.</div><div class="id">Hujan turun, seakan langit ikut menangis.</div></div>
+    </div></article>
+
+    <article class="panel scene"><div class="band" style="background:linear-gradient(90deg,#f0652a,#b3261e,#120c0c)"></div><div class="body">
+      <div class="hd"><h3>7 · Sumpah</h3><span class="min">S7 · beat 3 · 2 min</span></div>
+      <div class="meta">Red dawn. The stump, the lake's edge, the gate.</div>
+      <ul><li>Takes up the kapak where the ordinary axe stood in S1.</li><li>The vow, tiny at the edge of the dark lake.</li><li>Walks out through the gate, towards beat 4.</li></ul>
+      <div class="line"><div class="who">Bargawa</div><div class="jv">Kabeh satria ing jagad iki bakal tak tumpes.</div><div class="id">Semua satria di dunia ini akan kutumpas.</div></div>
+    </div></article>
+
+  </div>
+</section>
+
+<!-- MAP -->
+<section id="map">
+  <h2>Where the scenes happen</h2>
+  <p class="sub">Pertapan Jatisrana from above, drawn from the coordinates in <code>scripts/common/jatisrana.py</code>. North is up; one grid square is 10 m.</p>
+  <div class="mapgrid">
+    <div class="panel map">
+      <svg viewBox="0 0 70 86" role="img" aria-label="Map of Jatisrana with the seven scene locations">
+        <defs>
+          <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+            <path d="M10 0H0V10" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".15"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="70" height="86" fill="var(--forest)"/>
+        <rect x="3" y="2" width="64" height="9" fill="var(--tree)" opacity=".55"/>
+        <text x="35" y="7.6" font-size="2" fill="#e8e4d8" text-anchor="middle">bamboo grove</text>
+        <ellipse cx="35" cy="28" rx="30" ry="24" fill="var(--ground)"/>
+        <rect x="9" y="36" width="52" height="26" fill="var(--ground)"/>
+        <ellipse cx="35" cy="67" rx="20" ry="12.5" fill="var(--water)"/>
+        <text x="35.5" y="67.8" font-size="2.2" fill="#cfe0ea" text-anchor="middle">telaga (lake)</text>
+        <!-- lotus, glagah, reeds -->
+        <circle cx="26" cy="63" r="2.6" fill="#7f9c6a" opacity=".55"/><circle cx="43" cy="71" r="2.2" fill="#7f9c6a" opacity=".55"/><circle cx="33" cy="75" r="1.5" fill="#7f9c6a" opacity=".55"/>
+        <circle cx="16" cy="61" r="3" fill="#ece6d2" opacity=".55"/><text x="16" y="56.6" font-size="1.7" fill="#f3efe3" text-anchor="middle">glagah</text>
+        <circle cx="54" cy="68" r="2.6" fill="#a7b77f" opacity=".6"/><text x="58.5" y="64.2" font-size="1.7" fill="#f3efe3" text-anchor="middle">reeds</text>
+        <!-- paths -->
+        <g fill="none" stroke="var(--path)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17.5,34.4 21.5,34 26,33.2 29.4,32.8"/>
+          <polyline points="35,37.6 36,41 36.5,44.8"/>
+          <polyline points="35,26.7 35,23.5 29,23.2"/>
+          <polyline points="35,23.5 40.5,22.6"/>
+          <polyline points="29.4,30 25,26.5 20.4,24"/>
+          <polyline points="40.6,30 43.8,27.4"/>
+        </g>
+        <line x1="36.5" y1="44.8" x2="37.2" y2="54.4" stroke="#d8d2c4" stroke-width="1.6" stroke-dasharray=".5 .4"/>
+        <rect x="36.6" y="54.9" width="2.2" height="1.4" rx=".3" fill="#cfc8b8"/>
+        <!-- banyan crown -->
+        <circle cx="43.5" cy="45.5" r="7.5" fill="var(--tree)" opacity=".75"/>
+        <text x="47.5" y="48.5" font-size="1.9" fill="#e8e4d8" text-anchor="middle">beringin</text>
+        <!-- buildings -->
+        <g fill="var(--building)">
+          <rect x="30.5" y="27.5" width="9" height="9" rx=".4"/>
+          <rect x="26.5" y="18.5" width="5" height="4" rx=".3"/>
+          <rect x="38" y="18" width="5" height="4" rx=".3"/>
+          <rect x="43.5" y="24" width="4" height="3" rx=".3"/>
+          <rect x="16.5" y="22.5" width="3" height="3" rx=".2"/>
+          <rect x="50" y="19.5" width="4" height="4" rx=".2" opacity=".75"/>
+          <rect x="20.8" y="32.6" width="1.4" height="2.8"/>
+        </g>
+        <g font-size="1.7" fill="var(--ink)" text-anchor="middle">
+          <text x="35" y="39.6">pendopo</text>
+          <text x="29" y="17.4">elders' hut</text>
+          <text x="40.5" y="16.9">sons' hut</text>
+          <text x="45.5" y="29.4">pawon</text>
+          <text x="18" y="28.4">sanggar</text>
+          <text x="52" y="18.6">kandhang</text>
+          <text x="20.5" y="38.1">gate</text>
+        </g>
+        <!-- small symbols -->
+        <circle cx="15.2" cy="20.8" r=".9" fill="#f6f2e6"/><text x="12.2" y="18.4" font-size="1.6" fill="var(--ink)" text-anchor="middle">kamboja</text>
+        <circle cx="32" cy="23.6" r=".7" fill="#ffffff"/>
+        <rect x="42" y="36" width="1.3" height="1.3" fill="#7a5a3a"/><text x="45.6" y="37.3" font-size="1.6" fill="var(--ink)" text-anchor="middle">stump</text>
+        <!-- Citrarata -->
+        <path d="M25 78 l.9 1.6 h-1.8 z" fill="#f0c060"/>
+        <text x="25" y="83" font-size="1.8" fill="#f3efe3" text-anchor="middle">Citrarata (S2)</text>
+        <line x1="25" y1="78.5" x2="37" y2="56.6" stroke="#f0c060" stroke-width=".25" stroke-dasharray=".8 .6" opacity=".8"/>
+        <!-- pyre -->
+        <rect x="29" y="51.4" width="2.2" height="1.3" fill="#5a3a22"/><text x="25.6" y="50.4" font-size="1.6" fill="#f3efe3" text-anchor="middle">pyre</text>
+        <rect x="0" y="0" width="70" height="86" fill="url(#grid)"/>
+        <!-- scene markers -->
+        <g font-size="2" font-weight="700" text-anchor="middle" fill="#fff">
+          <circle cx="40.5" cy="13.2" r="2.2" fill="#c9922f" stroke="#fff" stroke-width=".3"/><text x="40.5" y="13.9">1</text>
+          <circle cx="40.6" cy="58.2" r="2.2" fill="#c8741f" stroke="#fff" stroke-width=".3"/><text x="40.6" y="58.9">2</text>
+          <circle cx="32.6" cy="31.8" r="2.2" fill="#6c7886" stroke="#fff" stroke-width=".3"/><text x="32.6" y="32.5">3</text>
+          <circle cx="37.4" cy="31.8" r="2.2" fill="#3c4f73" stroke="#fff" stroke-width=".3"/><text x="37.4" y="32.5">4</text>
+          <circle cx="13.6" cy="25" r="2.2" fill="#7f7c75" stroke="#fff" stroke-width=".3"/><text x="13.6" y="25.7">5</text>
+          <circle cx="30.1" cy="47.6" r="2.2" fill="#e0661a" stroke="#fff" stroke-width=".3"/><text x="30.1" y="48.3">6</text>
+          <circle cx="22.4" cy="64.8" r="2.2" fill="#b3261e" stroke="#fff" stroke-width=".3"/><text x="22.4" y="65.5">7</text>
+        </g>
+      </svg>
+    </div>
+    <div class="panel legend">
+      <ol>
+        <li><span class="dot" style="background:#c9922f">1</span><span><b>Esuk</b>: wakes in the sons' hut; the stump, the pawon, the sanggar, the pendopo.</span></li>
+        <li><span class="dot" style="background:#c8741f">2</span><span><b>Kendi</b>: down the steps past the banyan to the bathing stone; Citrarata on the far bank.</span></li>
+        <li><span class="dot" style="background:#6c7886">3</span><span><b>Dhawuh</b>: the five mats in the pendopo; Renuka below its steps.</span></li>
+        <li><span class="dot" style="background:#3c4f73">4</span><span><b>Anugrah</b>: the pendopo at night, one flame.</span></li>
+        <li><span class="dot" style="background:#7f7c75">5</span><span><b>Awu</b>: in through the gate; the beads lead to the sanggar.</span></li>
+        <li><span class="dot" style="background:#e0661a">6</span><span><b>Udan</b>: the woodpile, the pawon's embers, the pyre on the shore, the banyan.</span></li>
+        <li><span class="dot" style="background:#b3261e">7</span><span><b>Sumpah</b>: the stump, the lake's edge, then out through the gate.</span></li>
+      </ol>
+      <p class="sub" style="margin:12px 0 0;font-size:13.5px">The player walks the clearing, the paths, the steps and the shore. The forest edge and the water stop him, and the gate opens only in scene 7.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MODELS -->
+<section id="models">
+  <h2>Models</h2>
+  <p class="sub">Characters come from MakeHuman (MPFB) bodies, dressed by script in Blender. Everything is made by script and exported to the game. Details in <code>docs/summaries/models/</code>.</p>
+  <div class="panel tbl">
+    <table>
+      <thead><tr><th>Model</th><th>Scenes</th><th>Source</th><th>State</th><th>Budget</th></tr></thead>
+      <tbody>
+        <tr><td><b>C01 Ramabargawa</b>, the player</td><td>1–7</td><td>MPFB + Blender</td><td><span class="chip todo">to build</span></td><td>20k tris · 2K</td></tr>
+        <tr><td><b>C04 Resi Jamadagni</b></td><td>1–5</td><td>MPFB + Blender</td><td><span class="chip todo">to build</span></td><td>12k · 1K</td></tr>
+        <tr><td><b>C05 Dewi Renuka</b></td><td>1–4</td><td>MPFB + Blender</td><td><span class="chip todo">to build</span></td><td>16k · 2K</td></tr>
+        <tr><td><b>C06 The four brothers</b></td><td>1, 3, 4</td><td>one MPFB base, 4 variants</td><td><span class="chip todo">to build</span></td><td>10k each · shared 1K</td></tr>
+        <tr><td><b>C07 Prabu Citrarata</b>, a silhouette across the lake</td><td>2</td><td>MPFB + Blender</td><td><span class="chip todo">to build</span></td><td>6k · 512</td></tr>
+        <tr><td><b>Props</b>: kapak, kendi, japamala, mats, pyre, shroud and more</td><td>all</td><td>Blender, Poly Haven</td><td><span class="chip ok">damar built</span> <span class="chip todo">rest to build</span></td><td>see props.md</td></tr>
+        <tr><td><b>Jatisrana</b>: place, pendopo, plants</td><td>all</td><td>the built Blender place</td><td><span class="chip ok">built in Blender</span> <span class="chip todo">game export</span></td><td>250k tris · 200 draws</td></tr>
+        <tr><td><b>Story variants</b>: burned pendopo, scorched banyan, pyre, broken fence</td><td>3–7</td><td>Blender</td><td><span class="chip todo">to build</span></td><td>—</td></tr>
+        <tr><td>C08 Maespati soldiers, A01 goats, A03 birds</td><td>—</td><td>off-screen: a broken spear, sounds, an empty pen</td><td><span class="chip off">not needed</span></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel skins">
+    <b>Ramabargawa's skin (open):</b>
+    <span class="skin"><i style="background:radial-gradient(circle at 35% 30%,#b07a52,#7a4b2c)"></i>natural brown</span>
+    <span class="skin"><i style="background:radial-gradient(circle at 35% 30%,#8f8c86,#55534f)"></i>ash-grey, as the wayang puppet</span>
+  </div>
+</section>
+
+<!-- LOOK -->
+<section id="look">
+  <h2>Current look</h2>
+  <p class="sub">Blender review stills from 2026-10-18: the S1 setting, before the light states and before any character. These are the files the game is exported from. The stills are kept outside git, in <code>renders/checks/</code>, so they show only on this PC.</p>
+  <div class="stills">
+    <figure class="panel"><img src="../renders/checks/jatisrana/overview.png" alt="The hermitage from above" onerror="this.outerHTML='&lt;div class=missing&gt;renders/checks/jatisrana/overview.png not found&lt;/div&gt;'"><figcaption>The hermitage from above: the clearing, the pendopo and the banyan, the lake.</figcaption></figure>
+    <figure class="panel"><img src="../renders/checks/jatisrana/from_lake.png" alt="From the lake" onerror="this.outerHTML='&lt;div class=missing&gt;renders/checks/jatisrana/from_lake.png not found&lt;/div&gt;'"><figcaption>From the lake: the steps, the banyan, the pendopo (scene 2's view, reversed).</figcaption></figure>
+    <figure class="panel"><img src="../renders/checks/pendopo/front.png" alt="The pendopo" onerror="this.outerHTML='&lt;div class=missing&gt;renders/checks/pendopo/front.png not found&lt;/div&gt;'"><figcaption>The pendopo, a joglo: the stage of scenes 1, 3 and 4.</figcaption></figure>
+    <figure class="panel"><img src="../renders/checks/jatisrana/sanggar.png" alt="The sanggar pamujan" onerror="this.outerHTML='&lt;div class=missing&gt;renders/checks/jatisrana/sanggar.png not found&lt;/div&gt;'"><figcaption>The sanggar pamujan: Jamadagni's semedi (1), the beads and his body (5).</figcaption></figure>
+    <figure class="panel"><img src="../renders/checks/damar/lamp.png" alt="The damar, Jamadagni's lamp" onerror="this.outerHTML='&lt;div class=missing&gt;renders/checks/damar/lamp.png not found&lt;/div&gt;'"><figcaption>The damar, Jamadagni's lamp: four flames in S1, one in S4.</figcaption></figure>
+    <figure class="panel"><img src="../renders/checks/fire/large_night.png" alt="The large fire sample" onerror="this.outerHTML='&lt;div class=missing&gt;renders/checks/fire/large_night.png not found&lt;/div&gt;'"><figcaption>The large fire sample: the pyre in scene 6.</figcaption></figure>
+  </div>
+</section>
+
+<!-- TECH -->
+<section id="tech">
+  <h2>Technical plan</h2>
+  <p class="sub">One source: the Blender scripts. The game is exported from them, never edited by hand.</p>
+  <div class="pipe">
+    <div class="panel box"><b>Blender scripts</b><span>place, buildings, objects, characters (MPFB + costume)</span></div>
+    <div class="arrow">→</div>
+    <div class="panel box"><b><code>run.ps1 game …</code></b><span>GLB per model + JSON placements, game-sized textures</span></div>
+    <div class="arrow">→</div>
+    <div class="panel box"><b>Godot 4.7.2</b><span><code>project/bargawa/game/</code>: one scene per light state</span></div>
+    <div class="arrow">→</div>
+    <div class="panel box"><b>Windows preview</b><span>played on this PC</span></div>
+    <div class="arrow">→</div>
+    <div class="panel box"><b>Android</b><span>the production build</span></div>
+  </div>
+  <div class="budgets">
+    <div class="panel budget"><div class="v">30 fps</div><div class="k">at 0.75 × 720p on this PC's Radeon iGPU (512 MB): about a mid-range phone</div></div>
+    <div class="panel budget"><div class="v">≈350k tris</div><div class="k">in view: the place up to 250k, the characters up to 100k</div></div>
+    <div class="panel budget"><div class="v">≈300 draws</div><div class="k">plants as MultiMeshes in chunks, as in Endless Samurai</div></div>
+    <div class="panel budget"><div class="v">1K / 2K</div><div class="k">textures: 2K only for faces and close surfaces</div></div>
+    <div class="panel budget"><div class="v">&lt; 1.5 GB</div><div class="k">memory while running; one light state loaded at a time</div></div>
+  </div>
+  <p class="sub" style="margin-top:14px">The Mobile renderer runs on both targets. It has no volumetric fog, so mist is height fog plus soft cards. Indirect light is baked once per state; the sun or moon stays live for shadows. Cloth swings on short bone chains (<code>SpringBoneSimulator3D</code>), not real simulation.</p>
+</section>
+
+<!-- DECISIONS -->
+<section id="decisions">
+  <h2>Decisions</h2>
+  <div class="panel tbl">
+    <table>
+      <thead><tr><th>Decision</th><th>By</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td>A narrative adventure, with few or no fights</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>3D in Godot 4, from our Blender files</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>First release: Chapter 1, Jatisrana (beats 1–3)</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>Javanese dialogue, Indonesian subtitles</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>general.md accepted</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>The classic Renuka story</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>Characters from MakeHuman (MPFB) bases, dressed in Blender</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>No critique in the first round</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>Preview on Windows first; price later</td><td><span class="chip user">you</span></td><td>2026-10-20</td></tr>
+        <tr><td>Player is Ramabargawa throughout; pyre by the lake; text first; landscape</td><td><span class="chip user">general.md proposals</span></td><td>2026-10-20</td></tr>
+        <tr><td>Seven scenes, one per light state, about 35 minutes</td><td><span class="chip claude">Claude, proposal</span></td><td>2026-10-20</td></tr>
+        <tr><td>Soldiers, goats and birds kept off-screen, so not modelled</td><td><span class="chip claude">Claude, proposal</span></td><td>2026-10-20</td></tr>
+        <tr><td>Godot 4.7.2 (latest stable, 18 Aug 2026), Mobile renderer</td><td><span class="chip claude">Claude, proposal</span></td><td>2026-10-20</td></tr>
+        <tr><td>Game files exported from the Blender scripts; game in <code>project/bargawa/game/</code>, Godot in <code>tools/godot/</code> (git-ignored)</td><td><span class="chip claude">Claude, proposal</span></td><td>2026-10-20</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- OPEN -->
+<section id="open">
+  <h2>Open questions</h2>
+  <p class="sub">The design runs on the proposal in brackets until you say otherwise.</p>
+  <div class="panel" style="padding:16px 18px">
+    <ol class="qs">
+      <li><b>The curse</b>: what happens to the brothers in the Javanese telling you know? <span class="prop">[they go still as stone until scene 4]</span></li>
+      <li><b>Renuka brought back</b>: does she remember? <span class="prop">[no; only Bargawa remembers]</span></li>
+      <li><b>Beat 3</b>: where are Renuka and the brothers when Jamadagni is killed? <span class="prop">[away; Bargawa comes home to an empty hermitage]</span></li>
+      <li><b>Why Jamadagni is killed</b>: unexplained, or a line about the king's men and the livestock? <span class="prop">[only the broken kandhang shows it]</span></li>
+      <li><b>The Javanese lines</b>: please check every one in <code>docs/summaries/story.md</code>.</li>
+      <li><b>The title</b>: "Ramabargawa. Bab 1: Jatisrana", or another name?</li>
+      <li><b>Animation</b>: Mixamo for the common moves plus Blender for the Javanese gestures, or everything keyed in Blender?</li>
+      <li><b>Ramabargawa's skin</b>: natural brown or ash-grey?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- NEXT -->
+<section id="next">
+  <h2>After acceptance</h2>
+  <p class="sub">The game implementation, in this order. Each step ends with something you can see.</p>
+  <div class="miles">
+    <div class="panel mile"><b>1 · First walk ✓</b><br>Godot 4.7.2 in <code>tools/</code>, the <code>game/</code> project, <code>run.ps1 game jatisrana</code>. A stand-in figure walks the hermitage in S1 on this PC: 108–128 fps on average, 1% low 90–108, about 440k triangles and 340 draw calls in view.</div>
+    <div class="panel mile"><b>2 · First character</b><br>MPFB tested on Blender 5.2; Ramabargawa's body, costume and rig in Godot, walking. The face test: expressions as shape keys.</div>
+    <div class="panel mile"><b>3 · Scenes 1–2</b><br>Touch and keyboard controls, tap and hold, dialogue with subtitles from one table; the other people as grey stand-ins.</div>
+    <div class="panel mile"><b>4 · Light states</b><br>S1–S7 in Godot, and the story variants built in Blender: burned pendopo, scorched banyan, pyre.</div>
+    <div class="panel mile"><b>5 · The whole chapter</b><br>All seven scenes, the other characters, fire, rain, ash, and sound.</div>
+    <div class="panel mile"><b>6 · Preview build</b><br>A Windows build for you to play, then your critique or acceptance, then the Android build.</div>
+  </div>
+</section>
+
+<footer>
+  Design v1, written by Claude on 2026-10-20 from <code>docs/general.md</code> (accepted) and the story docs in <code>docs/stories/ramabargawa/</code>. Sources: Godot 4.7.2-stable, 18 Aug 2026 (godotengine.org download archive); MakeHuman core assets CC0 (static.makehumancommunity.org/about/license.html); story research: Rickyansyah 2019, ISI Yogyakarta.
+</footer>
+
+</div>
+</body>
+</html>

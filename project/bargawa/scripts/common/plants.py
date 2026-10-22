@@ -167,10 +167,12 @@ def kamboja(col, M, x, y):
     """The frangipani by the shrine: a short crooked trunk forking again and again into thick blunt branches, a rosette of long
     leaves at each tip with a cluster of white flowers, and fallen flowers on the ground around it."""
     rng = random.Random(21); z = J.height(x, y); P = mesh.Parts(); B = M["bark"]
-    P.add(geo.tube([(0, 0, -0.1), (0.15, 0.05, 0.7), (0.2, 0.1, 1.3)], [0.22, 0.19, 0.17], n=9, wobble=0.12), B)
+    # An old tree, about 5 m (Plumeria rubra grows to 2-8 m; blender/places/jatisrana.md): a taller, thicker trunk and longer
+    # limbs; the leaves and flowers keep their real size.
+    P.add(geo.tube([(0, 0, -0.1), (0.2, 0.07, 1.2), (0.3, 0.15, 2.3)], [0.3, 0.25, 0.21], n=9, wobble=0.12), B)
     tips = []
     def grow(p, d, r, depth):
-        L = rng.uniform(0.7, 1.0) - 0.12*depth
+        L = (rng.uniform(0.7, 1.0) - 0.12*depth)*1.45
         d = geo._norm((d[0], d[1], d[2] + 0.35))
         end = tuple(p[k] + d[k]*L for k in range(3)); mid = tuple(p[k] + d[k]*L*0.5 + (0, 0, 0.05)[k] for k in range(3))
         P.add(geo.tube([p, mid, end], [r, r*0.92, r*0.85], n=7, wobble=0.08, seed=depth + p[0]), B)
@@ -179,7 +181,7 @@ def kamboja(col, M, x, y):
             a = math.atan2(d[1], d[0]) + sgn*rng.uniform(0.4, 0.8)
             grow(end, (math.cos(a), math.sin(a), d[2]*0.5 + rng.uniform(0.0, 0.3)), r*0.82, depth + 1)
     for k in range(3):
-        a = 2*math.pi*k/3 + rng.uniform(-0.3, 0.3); grow((0.2, 0.1, 1.3), (math.cos(a), math.sin(a), 0.4), 0.14, 1)
+        a = 2*math.pi*k/3 + rng.uniform(-0.3, 0.3); grow((0.3, 0.15, 2.3), (math.cos(a), math.sin(a), 0.4), 0.18, 1)
     for end, d in tips:
         for k in range(13):                                                                      # leaf rosette
             a = 2*math.pi*k/13 + rng.uniform(-0.2, 0.2)
@@ -189,7 +191,7 @@ def kamboja(col, M, x, y):
             a = rng.uniform(0, 2*math.pi); c = (end[0] + 0.1*math.cos(a), end[1] + 0.1*math.sin(a), end[2] + rng.uniform(0.12, 0.22))
             _flower(P, M, c, (0.4*math.cos(a), 0.4*math.sin(a), 1.0), 0.05, rng)
     for k in range(14):                                                                          # fallen flowers
-        a, r = rng.uniform(0, 2*math.pi), rng.uniform(0.6, 2.8); fx, fy = r*math.cos(a), r*math.sin(a)
+        a, r = rng.uniform(0, 2*math.pi), rng.uniform(0.8, 3.6); fx, fy = r*math.cos(a), r*math.sin(a)
         _flower(P, M, (fx, fy, J.height(x + fx, y + fy) - z + 0.03), (rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), 1.0), 0.05, rng)
     return P.build("Kamboja", col, loc=(x, y, z), smooth=True)
 

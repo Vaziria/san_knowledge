@@ -9,13 +9,23 @@ Javanese names used here:
     luweng    the clay stove      gentong   a big water jar      siwur     a coconut-shell ladle
     pipi tangga  the side walls of a stair                       ratna     the stone finials on a shrine's roof"""
 import math
-from . import mesh, geo, jatisrana as J
+from . import mesh, geo, textures, jatisrana as J
 
 THATCH = 0.24                    # thatch thickness on the huts
+ROOF_STEP = 0.3                  # thatch faces at most this big: the thatch's relief subdivides them to 3.75 cm (textures.THATCH)
+
+def _dense(prof, step=ROOF_STEP):
+    """The profile with points added along each segment, at most `step` apart (the same shape)."""
+    out = [prof[0]]
+    for (ya, za), (yb, zb) in zip(prof, prof[1:]):
+        n = max(1, math.ceil(math.hypot(yb - ya, zb - za)/step - 1e-6))
+        out += [(ya + (yb - ya)*k/n, za + (zb - za)*k/n) for k in range(1, n + 1)]
+    return out
 
 def _roof_strip(x0, x1, prof, nseg=10, jitter=0.07, seed=0.0):
-    """One side of a thatched roof: prof is [(y, z), ...] from the eave up to the ridge (y rising), rows along x. Faces up."""
-    rows = []
+    """One side of a thatched roof: prof is [(y, z), ...] from the eave up to the ridge (y rising), rows along x. Faces up.
+    Rows and columns are at most ROOF_STEP apart, for the thatch's relief."""
+    rows = []; prof = _dense(prof); nseg = max(nseg, math.ceil((x1 - x0)/ROOF_STEP - 1e-6))
     for r, (y, z) in enumerate(prof):
         row = []
         for i in range(nseg + 1):
@@ -57,9 +67,13 @@ def _bars(P, mat, axis, at, u0, u1, z0, z1, n=5):
 
 def hut(col, M, name, x, y, ang=0.0, w=5.0, d=4.0, pd=1.6):
     """A hut on a low stone base: a timber frame with woven bamboo walls, a thatched gable roof whose south side drops into a
-    porch roof on three posts, the door in the middle of the south wall, barred windows east and west, a bench on the porch."""
-    z = J.height(x, y); FZ, WH = 0.3, 2.2; top = FZ + WH; ridge = top + 2.0
+    porch roof on four posts, the door in the middle of the south wall, barred windows east and west, a bench on the porch.
+    True to Javanese size (blender/places/jatisrana.md): the door 0.9 x 1.89 m, the porch beam 1.70 m over the porch floor, so
+    the tallest people bow under it."""
     main = 0.786                                           # main slopes fall 0.786 m per metre (38 deg)
+    # A deeper hut has a higher ridge at the same pitch, so the porch keeps its height (the sons' 4.5 m hut had 1.50 m under
+    # its porch beam against the elders' 1.70 m): the slope breaks 0.35 m above the wall top on every hut.
+    z = J.height(x, y); FZ, WH = 0.3, 2.2; top = FZ + WH; ridge = top + 0.35 + main*(d/2 + 0.1)
     emper = 0.325                                          # the porch roof, 18 deg
     brk = (-d/2 - 0.1, ridge - main*(d/2 + 0.1))           # where the south slope turns into the porch roof
     yp = -d/2 - pd + 0.15                                  # the porch posts' line
@@ -87,8 +101,8 @@ def hut(col, M, name, x, y, ang=0.0, w=5.0, d=4.0, pd=1.6):
     # rafters under both roof sides
     P.add(_rafters(-w/2 - 0.4, w/2 + 0.4, south), TD)
     P.add(geo.moved(_rafters(-w/2 - 0.4, w/2 + 0.4, north), ang=math.pi), TD)
-    # porch: three posts on stones and their beam
-    for px in (-w/2 + 0.1, 0.0, w/2 - 0.1):
+    # porch: four posts on stones and their beam; the middle two flank the door, so none stands in its way
+    for px in (-w/2 + 0.1, -0.95, 0.95, w/2 - 0.1):
         P.add(geo.box(px, yp, FZ, 0.26, 0.26, 0.12), M["stone_dark"]); P.add(geo.taper(px, yp, FZ + 0.12, 0.15, 0.13, beam_top - 0.14 - FZ - 0.12), T)
     P.add(geo.beam((-w/2 - 0.3, yp, beam_top - 0.07), (w/2 + 0.3, yp, beam_top - 0.07), 0.14, 0.14), T)
     # woven walls with a bamboo rail top and bottom; the door bay in the south wall; windows east and west
@@ -115,6 +129,7 @@ def hut(col, M, name, x, y, ang=0.0, w=5.0, d=4.0, pd=1.6):
     roof = mesh.Parts().add(geo.merge(_roof_strip(-w/2 - 0.5, w/2 + 0.5, south, seed=x + y),
                                       geo.moved(_roof_strip(-w/2 - 0.5, w/2 + 0.5, north, seed=x - y), ang=math.pi)), M["thatch"])
     roof = roof.build(name + "_Roof", col, loc=(x, y, z), rot_z=ang, recalc=False, weld=1e-4, solidify=THATCH)
+    textures.thatch_relief(roof)                                        # the sasak thatch's real relief
     R = mesh.Parts()
     R.add(geo.tube([(-w/2 - 0.55, 0, ridge + 0.05), (w/2 + 0.55, 0, ridge + 0.05)], 0.17, n=10), M["ridge"])
     for s in (-1, 1): R.add(geo.ellipsoid(s*(w/2 + 0.55), 0, ridge + 0.05, 0.12, 0.2, 0.2, nu=8, nv=6), M["ridge"])
@@ -160,7 +175,7 @@ def pawon(col, M, x, y, ang=0.0, w=4.4, d=3.4):
     R = mesh.Parts()
     R.add(geo.merge(_roof_strip(-w/2 - 0.5, w/2 + 0.5, side, seed=x), geo.moved(_roof_strip(-w/2 - 0.5, w/2 + 0.5, side, seed=y), ang=math.pi)), M["thatch"])
     R.add(geo.merge(_roof_strip(-1.3, 1.3, cap, nseg=4, seed=x + 1), geo.moved(_roof_strip(-1.3, 1.3, cap, nseg=4, seed=y + 1), ang=math.pi)), M["thatch"])
-    R.build("Pawon_Roof", col, loc=(x, y, z), rot_z=ang, recalc=False, weld=1e-4, solidify=0.2)
+    textures.thatch_relief(R.build("Pawon_Roof", col, loc=(x, y, z), rot_z=ang, recalc=False, weld=1e-4, solidify=0.2))
     F = mesh.Parts()
     for s in (-1, 1):
         for sx in (-1.1, 1.1): F.add(geo.cylinder(sx, s*0.3, ridge - slope*0.3 - 0.25, 0.04, 0.45, n=6), T)
@@ -202,13 +217,13 @@ def sanggar(col, M, x, y, ang=0.0):
     P.add(geo.ellipsoid(0, 0, 4.12, 0.22, 0.22, 0.2, nu=12, nv=8), S)
     P.add(geo.cylinder(0, 0, 4.28, 0.1, 0.08, n=10), S)
     P.add(geo.cylinder(0, 0, 4.36, 0.07, 0.42, n=8, r1=0.0), S)
-    P.add(geo.box(2.41, 0, -0.3, 0.32, 1.3, 0.45), S)                                           # the stair: 0.15,
-    P.add(geo.box(2.1, 0, -0.3, 0.32, 1.3, 0.6), S)                                             # 0.30, the first tier (0.45),
-    P.add(geo.box(1.66, 0, 0.45, 0.22, 1.3, 0.25), S)                                           # 0.70, the second tier (0.95)
+    for k in range(1, 5):                     # the stair: four equal steps of 0.19 m, treads 0.27 m, up to the second tier (0.95);
+        x0 = 1.62 + 0.27*(4 - k)              # 2R + T = 0.65 m, steep as a shrine's stair (blender/places/jatisrana.md)
+        P.add(geo.box(x0 + 0.125, 0, -0.3, 0.29, 1.3, 0.19*k + 0.3), S)
     for sy in (-1, 1):                                                                           # pipi tangga, ending in a scroll
         y0, y1 = sorted((sy*0.66, sy*0.84))
-        P.add(_prism_xz([(1.55, -0.3), (2.66, -0.3), (2.66, 0.3), (1.55, 1.08)], y0, y1), D)
-        P.add(geo.tube([(2.66, y0 - 0.02, 0.24), (2.66, y1 + 0.02, 0.24)], 0.13, n=10), D)
+        P.add(_prism_xz([(1.55, -0.3), (2.75, -0.3), (2.75, 0.3), (1.55, 1.08)], y0, y1), D)
+        P.add(geo.tube([(2.75, y0 - 0.02, 0.24), (2.75, y1 + 0.02, 0.24)], 0.13, n=10), D)
     P.add(geo.box(0.97, 0, 1.4, 0.3, 0.7, 0.3), S)                                              # the altar stone before the niche
     P.add(geo.ellipsoid(4.1, 0, 0.02, 0.75, 0.65, 0.16, nu=12, nv=6), S)                       # a flat stone to sit on, east of the stair
     return P.build("Sanggar", col, loc=(x, y, z), rot_z=ang)
@@ -246,18 +261,20 @@ def kandhang(col, M, x, y, ang=0.0, w=5.0, d=4.0):
         P.add(geo.cylinder(px, py, -0.1, 0.07, h + 0.1, n=6), M["teak"])
     body = P.build("Kandhang", col, loc=(x, y, z), rot_z=ang)
     slope = _roof_strip(-w/2 - 0.3, w/2 + 0.3, [(-0.35, 2.12), (d/2 + 0.35, 1.72)], nseg=5, seed=y)
-    mesh.Parts().add(slope, M["thatch"]).build("Kandhang_Roof", col, loc=(x, y, z), rot_z=ang, recalc=False, solidify=0.18)
+    textures.thatch_relief(mesh.Parts().add(slope, M["thatch"]).build("Kandhang_Roof", col, loc=(x, y, z), rot_z=ang, recalc=False,
+                                                                      solidify=0.18))
     return body
 
-def lake_steps(col, M, n=12):
-    """Stone steps from the terrace's edge down to the bathing stone, and the stone itself."""
-    (x0, y0), (x1, y1) = J.STEPS_TOP, J.STEPS_BOTTOM
-    z0, z1 = J.height(x0, y0) + 0.03, J.WATER_Z + 0.22
+def lake_steps(col, M):
+    """Stone steps from the terrace's edge down to the bathing stone, and the stone itself: J.STEPS_N equal steps on a straight
+    line; the ground is cut to that line (jatisrana.height), so none is buried."""
+    (x0, y0), (x1, y1) = J.STEPS_TOP, J.STEPS_BOTTOM; n = J.STEPS_N
+    z0, z1 = J.STEPS_Z0, J.STEPS_Z1
     th = math.atan2(y1 - y0, x1 - x0); tread = math.hypot(x1 - x0, y1 - y0)/n
     P = mesh.Parts()
     for k in range(n):
         t = (k + 0.5)/n; zt = z0 + (z1 - z0)*k/(n - 1)
-        P.add(geo.box(x0 + (x1 - x0)*t, y0 + (y1 - y0)*t, zt - 0.8, 2.3, tread + 0.12, 0.8, ang=th - math.pi/2), M["stone"])
+        P.add(geo.box(x0 + (x1 - x0)*t, y0 + (y1 - y0)*t, zt - 0.8, J.STEPS_W, tread + 0.04, 0.8, ang=th - math.pi/2), M["stone"])
     bx, by = J.BATHING_STONE
     P.add(geo.ellipsoid(bx, by, J.WATER_Z + 0.22 - 0.32, 1.35, 1.0, 0.32, nu=14, nv=6), M["stone_dark"])
     return P.build("Lake_Steps", col)

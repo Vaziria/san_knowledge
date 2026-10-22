@@ -30,10 +30,11 @@ def yard_dressing(col, M):
         ox, oy = geo.rot((-2.9, -0.4 + 0.16*(k % 5), 0), pa)[:2]; lz = pz + 0.07 + 0.14*(k // 5)
         a0 = geo.rot((-0.55, 0, 0), pa); a1 = geo.rot((0.55, 0, 0), pa)
         P.add(geo.beam((px + ox + a0[0], py + oy + a0[1], lz), (px + ox + a1[0], py + oy + a1[1], lz), 0.13, 0.13), M["bark"])
-    hx, hy, _ = J.HUT_ELDERS; kx, ky = hx + 1.3, hy - 2.7; kz = J.height(hx, hy) + 0.3         # Renuka's kendi on the elders' porch
-    P.add(geo.ellipsoid(kx, ky, kz + 0.2, 0.17, 0.17, 0.18, nu=12, nv=7), M["clay"])
-    P.add(geo.cylinder(kx, ky, kz + 0.34, 0.045, 0.16, n=8, r1=0.035), M["clay"])
-    P.add(geo.cylinder(kx + 0.13, ky, kz + 0.25, 0.022, 0.1, n=6, r1=0.012, lean=(0.06, 0)), M["clay"])
+    hx, hy, _ = J.HUT_ELDERS; kx, ky = hx + 1.3, hy - 2.7; kz = J.height(hx, hy) + 0.3         # Renuka's kendi on the elders' porch,
+    k = 0.54                                  # about 0.27 m tall, as an East Javanese kendi of c. 14th century (LACMA M.90.180.2:
+    P.add(geo.ellipsoid(kx, ky, kz + 0.2*k, 0.17*k, 0.17*k, 0.18*k, nu=12, nv=7), M["clay"])            # 27.9 x 12.7 x 15.9 cm)
+    P.add(geo.cylinder(kx, ky, kz + 0.34*k, 0.045*k, 0.16*k, n=8, r1=0.035*k), M["clay"])
+    P.add(geo.cylinder(kx + 0.13*k, ky, kz + 0.25*k, 0.022*k, 0.1*k, n=6, r1=0.012*k, lean=(0.06*k, 0)), M["clay"])
     gx, gy, _ = J.SANGGAR; gz = J.height(gx, gy)                                                 # the incense burner on the altar stone
     P.add(geo.cylinder(gx + 0.97, gy, gz + 1.7, 0.07, 0.07, n=10, r1=0.09), M["stone_dark"])
     return P.build("Yard_Dressing", col, smooth=True)

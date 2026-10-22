@@ -15,9 +15,9 @@ Parts of a joglo (names as used in Javanese building):
     padma          the lotus-carved umpak under the soko guru
 Research: docs/stories/ramabargawa/buildings/pendopo.md. Two roof tiers: a simple Joglo Lawakan, as suits a hermitage.
 Built at the origin (ground level), facing south; the place moves it into position. The stone pieces (umpak, stair) come from
-blender/objects/stone.blend, linked (see STONE_GURU)."""
+blender/objects/stone.blend and the soko from blender/objects/soko.blend, linked (see STONE_GURU, SOKO_GURU)."""
 import math
-from . import mesh, geo, paths
+from . import mesh, geo, paths, textures
 
 # Proportions after the pakem (docs/stories/ramabargawa/buildings/pendopo.md, "Pakem soko"; the user, 2026-10-18: "yes, fix
 # proportion"): the real Joglo Lawakan of the Pendopo Agung Tamansiswa scaled to our 3.2 m soko guru frame, and the Kawruh Kalang
@@ -37,7 +37,8 @@ ZE = PZ - (EA - PA)/(PEN - PA)*(PZ - (Z_PEN + 0.58))   # its eave height: the ro
 BA, BZ = 2.85, F + 4.70          # brunjung: eave half-size and height (it overhangs the penanggap)
 ZR, RH = F + 8.0, 1.0            # ridge height and half-length (east-west)
 THICK = 0.3                      # thatch thickness
-N_SIDE = 16                      # roof points per side
+N_SIDE = 40                      # roof points per side: 0.3 m apart along the eave, for the thatch's relief (was 16)
+ROOF_STEP = 0.3                  # and rings at most this far apart up the slope
 
 def _sides(vf):
     """A piece made for the south side, repeated on all four sides."""
@@ -47,7 +48,7 @@ def _base(P, M):
     P.add(geo.box(0, 0, -0.45, PLINTH + 0.4, PLINTH + 0.4, 0.6), M["stone_dark"])          # foot course, sunk in the ground
     P.add(geo.box(0, 0, 0.15, PLINTH, PLINTH, F - 0.15), M["stone"])
     P.add(geo.box(0, 0, F - 0.08, PLINTH + 0.16, PLINTH + 0.16, 0.08), M["stone_dark"])     # coping round the floor's edge
-    # the steps are the stone piece Stair_Pendopo from objects/stone.blend, linked as Pendopo_Stair (pendapa() -> _stones)
+    # the steps are the stone piece Stair_Pendopo from objects/stone.blend, linked as Pendopo_Stair (pendapa() -> _linked)
 
 GURU_POSTS = [(sx*GURU, sy*GURU) for sx in (-1, 1) for sy in (-1, 1)]                      # the 4 soko guru
 PEN_POSTS = [(x, y) for x in (-PEN, -PEN/3, PEN/3, PEN) for y in (-PEN, -PEN/3, PEN/3, PEN)
@@ -80,29 +81,40 @@ def stone_pieces(M):
     out.append((STONE_STAIR, stone.stair(M, y_back=0.0), stone.STAIR_BUILD))
     return out
 
-def _soko_guru(M):
-    """The 4 soko guru posts; they stand on the padma umpak linked from objects/stone.blend."""
-    P = mesh.Parts(); z0 = F + H_UMPAK_GURU
-    for x, y in GURU_POSTS: P.add(geo.taper(x, y, z0, SG_GURU, SG_GURU - 0.01, Z_GURU - z0), M["teak"])
-    return P
+# The soko live in their own file too, blender/objects/soko.blend (scripts/objects/soko.py; the user, 2026-10-21: "separate soko
+# in other file"), linked the same way, each post on its umpak:
+#   Soko_Guru_1..4         a soko guru on each padma umpak, each with its own grain
+#   Soko_Penanggap_1..4    each 3 soko penanggap, turned as their umpak are, so neighbours show different faces of the grain
+SOKO_GURU = [f"Soko_Guru_{k + 1}" for k in range(4)]
+SOKO_PEN = [f"Soko_Penanggap_{k + 1}" for k in range(4)]
 
-def _soko_penanggap(M):
-    """The 12 soko penanggap posts round them, on the plain umpak linked from objects/stone.blend."""
-    P = mesh.Parts(); z0 = F + H_UMPAK_PEN
-    for x, y in PEN_POSTS: P.add(geo.taper(x, y, z0, SG_PEN, SG_PEN - 0.01, Z_PEN - z0), M["teak"])
-    return P
+def soko_pieces(M):
+    """The pendopo's soko for objects/soko.blend, each post standing on z 0 (the top of its umpak) at its own origin:
+    [(collection name, Parts, build options)]."""
+    out = []
+    for k, name in enumerate(SOKO_GURU):
+        h = Z_GURU - (F + H_UMPAK_GURU)
+        out.append((name, mesh.Parts().add(geo.taper(0.0, 0.0, 0.0, SG_GURU, SG_GURU - 0.01, h), M["teak"], seed=500 + k), {}))
+    for k, name in enumerate(SOKO_PEN):
+        h = Z_PEN - (F + H_UMPAK_PEN)
+        out.append((name, mesh.Parts().add(geo.taper(0.0, 0.0, 0.0, SG_PEN, SG_PEN - 0.01, h), M["teak"], seed=600 + k), {}))
+    return out
 
-def _stones(stone_file, guru_col, pen_col, stair_col, x, y, z, ang):
-    """Collection instances of the stone pieces: an umpak under every post, and the stair against the plinth's south side."""
-    L = mesh.link_collections(stone_file, STONE_GURU + STONE_PEN + [STONE_STAIR])
+def _linked(stone_file, soko_file, guru_col, pen_col, stair_col, x, y, z, ang):
+    """Collection instances of the linked pieces: an umpak under every post and its soko on it, and the stair against the
+    plinth's south side."""
+    S = mesh.link_collections(stone_file, STONE_GURU + STONE_PEN + [STONE_STAIR])
+    W = mesh.link_collections(soko_file, SOKO_GURU + SOKO_PEN)
     c, s = math.cos(ang), math.sin(ang)
     at = lambda px, py, pz: (x + c*px - s*py, y + s*px + c*py, z + pz)
     for k, (px, py) in enumerate(GURU_POSTS):
-        mesh.place_collection(L[STONE_GURU[k]], f"Pendopo_UmpakGuru_{k + 1}", guru_col, at(px, py, F), ang)
+        mesh.place_collection(S[STONE_GURU[k]], f"Pendopo_UmpakGuru_{k + 1}", guru_col, at(px, py, F), ang)
+        mesh.place_collection(W[SOKO_GURU[k]], f"Pendopo_SokoGuru_{k + 1}", guru_col, at(px, py, F + H_UMPAK_GURU), ang)
     for k, (px, py) in enumerate(PEN_POSTS):
-        mesh.place_collection(L[STONE_PEN[k % 4]], f"Pendopo_UmpakPenanggap_{k + 1}", pen_col, at(px, py, F),
-                              ang + (k//4 + k % 2)*math.pi/2)
-    mesh.place_collection(L[STONE_STAIR], "Pendopo_Stair", stair_col, at(0.0, -PLINTH/2, 0.0), ang)
+        turn = ang + (k//4 + k % 2)*math.pi/2
+        mesh.place_collection(S[STONE_PEN[k % 4]], f"Pendopo_UmpakPenanggap_{k + 1}", pen_col, at(px, py, F), turn)
+        mesh.place_collection(W[SOKO_PEN[k % 4]], f"Pendopo_SokoPenanggap_{k + 1}", pen_col, at(px, py, F + H_UMPAK_PEN), turn)
+    mesh.place_collection(S[STONE_STAIR], "Pendopo_Stair", stair_col, at(0.0, -PLINTH/2, 0.0), ang)
 
 TS_TIERS, TS_H = 4, 0.15         # tumpang sari: tiers and the depth of each
 
@@ -209,42 +221,53 @@ def _battens(P, M, n, ns, ne, spacing=0.3):
     lf, ef = geo.merge(*lf), geo.merge(*ef)
     P.add(geo.merge(lf, geo.moved(lf, ang=math.pi), ef, geo.moved(ef, ang=math.pi)), mat)
 
+def _dense_rings(rings, step=ROOF_STEP):
+    """The rings with rings added between each pair, at most `step` apart (the same piecewise-straight shape)."""
+    out = [rings[0]]
+    for a, b in zip(rings, rings[1:]):
+        n = max(1, math.ceil(max(math.dist(p, q) for p, q in zip(a, b))/step - 1e-6))
+        out += [[tuple(p[i] + (q[i] - p[i])*k/n for i in range(3)) for p, q in zip(a, b)] for k in range(1, n + 1)]
+    return out
+
 def _roof_shell():
-    """The thatch as an open shell (thickness comes from a Solidify modifier). The eave edge is a little uneven, like real thatch."""
+    """The thatch as an open shell (thickness comes from a Solidify modifier). The eave edge is a little uneven, like real thatch.
+    Its faces are at most about ROOF_STEP across, for the thatch's relief (textures.thatch_relief)."""
     eave = []
     for (x, y, z) in geo.square_ring(EA, ZE, N_SIDE):
         j = geo.hash01(x, y); eave.append((x*(1 + 0.008*(j - 0.5)), y*(1 + 0.008*(geo.hash01(y, x) - 0.5)), z - 0.07*j))
     mid = geo.square_ring((EA + PA)/2, (ZE + PZ)/2, N_SIDE)
     top = geo.square_ring(PA, PZ, N_SIDE)
-    penanggap = geo.loft([eave, mid, top])
+    penanggap = geo.loft(_dense_rings([eave, mid, top]))
+    nb = math.ceil(2*BA/ROOF_STEP)                                      # the brunjung is smaller: fewer points per side
     b0 = []
-    for (x, y, z) in geo.square_ring(BA, BZ, N_SIDE):
+    for (x, y, z) in geo.square_ring(BA, BZ, nb):
         j = geo.hash01(y, x, 1); b0.append((x, y, z - 0.05*j))
-    ridge = [(x*RH/BA, 0.0, ZR) for (x, y, z) in geo.square_ring(BA, BZ, N_SIDE)]
+    ridge = [(x*RH/BA, 0.0, ZR) for (x, y, z) in geo.square_ring(BA, BZ, nb)]
     b1 = [tuple(a[i] + (b[i] - a[i])*0.5 for i in range(3)) for a, b in zip(b0, ridge)]
-    brunjung = geo.loft([b0, b1, ridge])
+    brunjung = geo.loft(_dense_rings([b0, b1, ridge]))
     return geo.merge(penanggap, brunjung)
 
-def pendapa(col, M, x=0.0, y=0.0, ang=0.0, z=0.0, stair_col=None, guru_col=None, pen_col=None, stone_file=None):
+def pendapa(col, M, x=0.0, y=0.0, ang=0.0, z=0.0, stair_col=None, guru_col=None, pen_col=None, stone_file=None, soko_file=None):
     """Builds the pendopo, each part the user may want to handle on its own:
         Pendopo                the plinth, beams, tumpang sari, rafters and battens
-        Pendopo_SokoGuru       the 4 soko guru posts, with Pendopo_UmpakGuru_1..4 under them         (in guru_col if given)
-        Pendopo_SokoPenanggap  the 12 soko penanggap posts, with Pendopo_UmpakPenanggap_1..12        (in pen_col if given)
+        Pendopo_SokoGuru_1..4  the soko guru posts, with Pendopo_UmpakGuru_1..4 under them           (in guru_col if given)
+        Pendopo_SokoPenanggap_1..12  the soko penanggap posts, with Pendopo_UmpakPenanggap_1..12     (in pen_col if given)
         Pendopo_Stair          the south steps                                                       (in stair_col if given)
         Pendopo_Roof           the thatch;  Pendopo_Ridge  the ridge cap
-    The umpak and the stair are instances of the stone pieces in objects/stone.blend (stone_file; build it first).
+    The umpak and the stair are instances of the stone pieces in objects/stone.blend (stone_file), the posts of the soko in
+    objects/soko.blend (soko_file); build those first.
     The user, 2026-10-18: "separate pendopo stair, and make it stone modelling like reference that extracted from video",
-    "so we have 2 soko ? separate it", "separate stone in objects/stone"."""
+    "so we have 2 soko ? separate it", "separate stone in objects/stone"; 2026-10-21: "separate soko in other file"."""
     place = dict(loc=(x, y, z), rot_z=ang)
     guru_col, pen_col, stair_col = guru_col or col, pen_col or col, stair_col or col
-    _stones(stone_file or paths.object_file("stone", built=True), guru_col, pen_col, stair_col, x, y, z, ang)
-    _soko_guru(M).build("Pendopo_SokoGuru", guru_col, **place)
-    _soko_penanggap(M).build("Pendopo_SokoPenanggap", pen_col, **place)
+    _linked(stone_file or paths.object_file("stone", built=True), soko_file or paths.object_file("soko", built=True),
+            guru_col, pen_col, stair_col, x, y, z, ang)
     P = mesh.Parts()
     _base(P, M); _beams(P, M); _rafters(P, M)
     body = P.build("Pendopo", col, **place)
     roof = mesh.Parts().add(_roof_shell(), M["thatch"]).build("Pendopo_Roof", col, recalc=False, weld=1e-4, solidify=THICK,
                                                               smooth=False, **place)
+    textures.thatch_relief(roof)                                        # the sasak thatch's real relief
     R = mesh.Parts()
     R.add(geo.beam((-RH - 0.4, 0, ZR + 0.06), (RH + 0.4, 0, ZR + 0.06), 0.44, 0.3), M["ridge"])
     for s in (-1, 1): R.add(geo.cylinder(s*(RH + 0.32), 0, ZR + 0.18, 0.12, 0.55, n=8, r1=0.0), M["ridge"])

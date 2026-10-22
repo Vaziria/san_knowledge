@@ -137,8 +137,10 @@ The stair, like the umpak, now lives in the **stone file**, `blender/objects/sto
 The pendopo is symmetric left-right and front-back. Model one quarter, and let the **Mirror** modifier make the other three. Each object's origin must stay at the world centre, so you move the *geometry* in Edit Mode, not the object.
 
 **In the script model** (since 2026-10-18) the two kinds of soko are separate, each in its own collection:
-- `Pendopo_SokoGuru`: the 4 posts, and 4 padma umpak under them.
-- `Pendopo_SokoPenanggap`: the 12 posts, and 12 plain umpak under them.
+- `Pendopo_SokoGuru`: the 4 posts (`Pendopo_SokoGuru_1` … `_4`), and 4 padma umpak under them.
+- `Pendopo_SokoPenanggap`: the 12 posts (`Pendopo_SokoPenanggap_1` … `_12`), and 12 plain umpak under them.
+
+Both the posts and the umpak are linked from their own files, the soko file and the stone file below.
 
 **The stone file.** The umpak and the stair are not modelled in the pendopo file. They are stone pieces in their own file, `blender/objects/stone.blend` (built by `scripts/objects/stone.py`; the user, 2026-10-18: "separate stone in objects/stone"), and the pendopo **links** them:
 
@@ -157,6 +159,18 @@ To do the same by hand:
    - *You should see*: an empty showing the umpak at the 3D cursor.
 3. Move that empty to the post's place: (1.6, 1.6, 0.6) for a soko guru. To place more, **Add › Collection Instance** › the umpak's collection, and move each one.
 4. *You should see*: the umpak under every post. To change all of them, open the stone file, edit and save it. Then in the pendopo file, reload it: in the **Outliner**, set **Display Mode** (the dropdown at its top) to **Blender File**, right-click the stone file under it, and choose **Reload**. Reopening the pendopo file does the same.
+
+**The soko file.** The teak posts are pieces too, in `blender/objects/soko.blend` (built by `scripts/objects/soko.py`; the user, 2026-10-21: "separate soko in other file"). The pendopo links them the same way, each post standing on the top of its umpak:
+
+| Piece in soko.blend | Size (m) | Used in the pendopo as |
+|---|---|---|
+| `Soko_Guru_1` … `_4` | 0.18 → 0.17 square, 3.28 tall | one on each padma umpak, at z 1.32 |
+| `Soko_Penanggap_1` … `_4` | 0.13 → 0.12 square, 2.19 tall | each 3 soko penanggap at z 0.86, turned like the umpak under them |
+
+- Each piece's origin is the middle of the post's foot, so its empty goes at the umpak's top: (1.6, 1.6, 1.32) for a soko guru.
+- Each of the 8 pieces has its own grain. A soko penanggap used three times is turned a quarter further each time, so neighbours show a different face of the wood.
+- To carve or change a post, edit it in the soko file (or change `joglo.soko_pieces` and run `run.ps1 object soko`), save, then reload the soko file in the pendopo as above. Every post that uses that piece follows.
+- By hand: model one post standing on z 0 at the world centre in its own collection, then link it as in steps 2–4 above, at the umpak's top instead of the floor.
 
 In the steps below, the umpak are modelled in the same object as the post, which is simpler while learning. Once they work, move them to their own file as above. The umpak are **chipped stone**, like the stair: make them plain first (below), then give them the stone look as in Part 1b (Bevel, a few chips, Shade Auto Smooth at 30°).
 - On the padma umpak, the lighter **petal tips** come from the same `wear` value as the stone's worn edges.
@@ -264,6 +278,10 @@ A hip roof made from one plane.
 4. Delete the inner face (X, Faces). The top is open; the brunjung covers it.
 5. **Thatch thickness**: Add Modifier › Generate › **Solidify**, Thickness **0.3**, Offset **−1**, so the thatch grows inward and downward from the outer surface. If it grows upward, flip the normals (Mesh › Normals › Flip) or use Offset +1.
 6. Name it `Roof_Penanggap`.
+7. **For the sasak thatch's real relief** ([guide 02](02-texturing-poly-haven.md), "The sasak thatch"):
+   - *Finer faces*: before the Solidify, Edit Mode, select all, **Edge › Subdivide** until the faces are about 0.3 m. The script uses 40 points along each eave and a ring every 0.3 m up the slope.
+   - *Mark the inner shell*: add an empty vertex group `thatch_inner` (Object Data tab › Vertex Groups › +), then in the Solidify's **Shell** field under Output Vertex Groups, pick `thatch_inner`.
+   - *Add the relief*: Add Modifier › Generate › **Geometry Nodes** › `GN_thatch`, below the Solidify.
 
 ### The brunjung (the steep top roof with the ridge)
 
@@ -299,7 +317,7 @@ A hip roof made from one plane.
 
 ## Check against the script model
 
-1. Bring the script's pendopo in: File › Append › `blender/buildings/pendopo.blend` › `Collection` › `Pendopo`. Its umpak and stair come with it, still linked from `blender/objects/stone.blend`.
+1. Bring the script's pendopo in: File › Append › `blender/buildings/pendopo.blend` › `Collection` › `Pendopo`. Its umpak and stair come with it, still linked from `blender/objects/stone.blend`, and its posts, linked from `blender/objects/soko.blend`.
 2. Toggle its eye icon in the Outliner to compare.
 
 Things that should line up:

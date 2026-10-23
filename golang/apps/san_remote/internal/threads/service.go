@@ -15,15 +15,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
+	"github.com/wargasipil/san_remote/internal/page"
 )
 
 const defaultBaseURL = "https://www.threads.com"
 
 // Service drives Threads in the browser. Its calls run one at a time, since
 // each one works in a tab the user sees. The CLI and the MCP server each
-// run one, in their own process, through Remote.
+// run one, in their own process, through page.Remote.
 type Service struct {
-	B Browser
+	B page.Browser
 	// BaseURL overrides https://www.threads.com, for tests.
 	BaseURL string
 	// Progress gets each step as it starts, such as "opening the composer".
@@ -64,10 +65,10 @@ func (s *Service) Status(ctx context.Context, browser string) (*threadsv1.Status
 	if err != nil {
 		return nil, err
 	}
-	defer t.close()
+	defer t.Close()
 	st, err := t.waitState(ctx, "Threads' home page", time.Minute, func(st state) bool { return st.SignedIn || st.SignedOut })
 	if err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
 	return &threadsv1.Status{SignedIn: st.SignedIn, Username: st.Username}, nil
 }
@@ -88,9 +89,9 @@ func (s *Service) Post(ctx context.Context, req *threadsv1.PostRequest) (*thread
 	if err != nil {
 		return nil, err
 	}
-	defer t.close()
+	defer t.Close()
 	resp, err := t.post(ctx, req)
-	return resp, t.fail(err)
+	return resp, t.Fail(err)
 }
 
 func (t *session) post(ctx context.Context, req *threadsv1.PostRequest) (*threadsv1.PostResult, error) {
@@ -102,8 +103,8 @@ func (t *session) post(ctx context.Context, req *threadsv1.PostRequest) (*thread
 	}
 	for i, p := range req.GetPosts() {
 		if i > 0 {
-			t.log(fmt.Sprintf("adding post %d to the thread", i+1))
-			if err := t.press(ctx, "the Add to thread button", "composerButton", "Add to thread"); err != nil {
+			t.Log(fmt.Sprintf("adding post %d to the thread", i+1))
+			if err := t.Press(ctx, "the Add to thread button", "composerButton", "Add to thread"); err != nil {
 				return nil, err
 			}
 			if _, err := t.waitState(ctx, "the next post's editor", 10*time.Second, func(st state) bool { return st.Posts > i }); err != nil {
@@ -119,8 +120,8 @@ func (t *session) post(ctx context.Context, req *threadsv1.PostRequest) (*thread
 	resp := &threadsv1.PostResult{}
 	if !req.GetNow() {
 		at := req.GetAt().AsTime().In(time.Local)
-		t.log("scheduling it for " + at.Format("Mon 2 Jan 2006 15:04"))
-		if err := t.press(ctx, "the composer's More button", "openMore"); err != nil {
+		t.Log("scheduling it for " + at.Format("Mon 2 Jan 2006 15:04"))
+		if err := t.Press(ctx, "the composer's More button", "openMore"); err != nil {
 			return nil, err
 		}
 		if err := t.menu(ctx, "Schedule..."); err != nil {
@@ -130,8 +131,8 @@ func (t *session) post(ctx context.Context, req *threadsv1.PostRequest) (*thread
 			return nil, err
 		}
 		var chip string
-		if err := t.until(ctx, "the schedule line", 10*time.Second, func() (bool, error) {
-			err := t.call(ctx, &chip, "chip")
+		if err := t.Until(ctx, "the schedule line", 10*time.Second, func() (bool, error) {
+			err := t.Call(ctx, &chip, "chip")
 			return chip != "", err
 		}); err != nil {
 			return nil, err
@@ -143,16 +144,16 @@ func (t *session) post(ctx context.Context, req *threadsv1.PostRequest) (*thread
 	}
 
 	// Media upload while the button waits; a video can take minutes.
-	t.log("waiting until the " + submit + " button can be pressed")
-	if err := t.until(ctx, "the "+submit+" button to be enabled", 5*time.Minute, func() (bool, error) {
+	t.Log("waiting until the " + submit + " button can be pressed")
+	if err := t.Until(ctx, "the "+submit+" button to be enabled", 5*time.Minute, func() (bool, error) {
 		var ok bool
-		err := t.call(ctx, &ok, "enabled", submit)
+		err := t.Call(ctx, &ok, "enabled", submit)
 		return ok, err
 	}); err != nil {
 		return nil, err
 	}
-	t.log("pressing " + submit)
-	if err := t.press(ctx, "the "+submit+" button", "composerButton", submit); err != nil {
+	t.Log("pressing " + submit)
+	if err := t.Press(ctx, "the "+submit+" button", "composerButton", submit); err != nil {
 		return nil, err
 	}
 	if _, err := t.waitState(ctx, "the composer to close", 2*time.Minute, func(st state) bool { return !st.Composer }); err != nil {
@@ -162,8 +163,8 @@ func (t *session) post(ctx context.Context, req *threadsv1.PostRequest) (*thread
 		return resp, nil
 	}
 
-	t.log("checking that Drafts lists it")
-	if err := sleep(ctx, 2*time.Second); err != nil {
+	t.Log("checking that Drafts lists it")
+	if err := page.Sleep(ctx, 2*time.Second); err != nil {
 		return nil, err
 	}
 	rows, err := t.scheduled(ctx)
@@ -179,8 +180,8 @@ func (t *session) post(ctx context.Context, req *threadsv1.PostRequest) (*thread
 
 // openComposer opens the New thread composer.
 func (t *session) openComposer(ctx context.Context) error {
-	t.log("opening the composer")
-	if err := t.press(ctx, "the New thread button", "newThread"); err != nil {
+	t.Log("opening the composer")
+	if err := t.Press(ctx, "the New thread button", "newThread"); err != nil {
 		return err
 	}
 	_, err := t.waitState(ctx, "the composer", 20*time.Second, func(st state) bool { return st.Composer })
@@ -190,13 +191,13 @@ func (t *session) openComposer(ctx context.Context) error {
 // fill puts post i's text, topic and media in.
 func (t *session) fill(ctx context.Context, i int, p *threadsv1.Post) error {
 	if p.GetText() != "" {
-		t.log(fmt.Sprintf("pasting the text of post %d", i+1))
-		if err := t.press(ctx, "the editor", "paste", i, p.GetText()); err != nil {
+		t.Log(fmt.Sprintf("pasting the text of post %d", i+1))
+		if err := t.Press(ctx, "the editor", "paste", i, p.GetText()); err != nil {
 			return err
 		}
 		var texts []string
-		if err := t.until(ctx, fmt.Sprintf("post %d's text", i+1), 10*time.Second, func() (bool, error) {
-			err := t.call(ctx, &texts, "texts")
+		if err := t.Until(ctx, fmt.Sprintf("post %d's text", i+1), 10*time.Second, func() (bool, error) {
+			err := t.Call(ctx, &texts, "texts")
 			return i < len(texts) && normalize(texts[i]) == normalize(p.GetText()), err
 		}); err != nil {
 			if i < len(texts) {
@@ -206,21 +207,21 @@ func (t *session) fill(ctx context.Context, i int, p *threadsv1.Post) error {
 		}
 	}
 	if topic := p.GetTopic(); topic != "" {
-		t.log(fmt.Sprintf("picking the topic %q for post %d", topic, i+1))
-		if err := t.press(ctx, "the editor", "focusPost", i); err != nil {
+		t.Log(fmt.Sprintf("picking the topic %q for post %d", topic, i+1))
+		if err := t.Press(ctx, "the editor", "focusPost", i); err != nil {
 			return err
 		}
 		var box *string
-		if err := t.until(ctx, "the topic box", 10*time.Second, func() (bool, error) {
-			err := t.call(ctx, &box, "topicBox")
+		if err := t.Until(ctx, "the topic box", 10*time.Second, func() (bool, error) {
+			err := t.Call(ctx, &box, "topicBox")
 			return box != nil, err
 		}); err != nil {
 			return err
 		}
-		if err := t.pause(ctx); err != nil {
+		if err := t.Pause(ctx); err != nil {
 			return err
 		}
-		if err := t.call(ctx, nil, "typeTopic", topic); err != nil {
+		if err := t.Call(ctx, nil, "typeTopic", topic); err != nil {
 			return err
 		}
 		// The list fills in as Threads looks the topic up, and can show the
@@ -228,11 +229,11 @@ func (t *session) fill(ctx context.Context, i int, p *threadsv1.Post) error {
 		// arrow keys walk it.
 		var options []string
 		last := ""
-		if err := t.until(ctx, "Threads' topic suggestions", 15*time.Second, func() (bool, error) {
-			if err := sleep(ctx, 400*time.Millisecond); err != nil {
+		if err := t.Until(ctx, "Threads' topic suggestions", 15*time.Second, func() (bool, error) {
+			if err := page.Sleep(ctx, 400*time.Millisecond); err != nil {
 				return false, err
 			}
-			if err := t.call(ctx, &options, "topicOptions"); err != nil {
+			if err := t.Call(ctx, &options, "topicOptions"); err != nil {
 				return false, err
 			}
 			now := strings.Join(options, "\n")
@@ -242,12 +243,12 @@ func (t *session) fill(ctx context.Context, i int, p *threadsv1.Post) error {
 		}); err != nil {
 			return fmt.Errorf("%w (Threads suggests %q)", err, options)
 		}
-		if err := t.pause(ctx); err != nil {
+		if err := t.Pause(ctx); err != nil {
 			return err
 		}
 		for k := 0; ; k++ {
 			var marked string
-			if err := t.call(ctx, &marked, "marked"); err != nil {
+			if err := t.Call(ctx, &marked, "marked"); err != nil {
 				return err
 			}
 			if sameTopic(marked, topic) {
@@ -256,50 +257,50 @@ func (t *session) fill(ctx context.Context, i int, p *threadsv1.Post) error {
 			if k == len(options)+1 {
 				return fmt.Errorf("%w: the arrow keys never reached the suggestion %q (Threads suggests %q)", ErrPage, topic, options)
 			}
-			if err := t.do(ctx, "the topic box", "topicKey", "ArrowDown"); err != nil {
+			if err := t.Do(ctx, "the topic box", "topicKey", "ArrowDown"); err != nil {
 				return err
 			}
-			if err := sleep(ctx, 250*time.Millisecond+rand.N(200*time.Millisecond)); err != nil {
+			if err := page.Sleep(ctx, 250*time.Millisecond+rand.N(200*time.Millisecond)); err != nil {
 				return err
 			}
 		}
-		if err := t.do(ctx, "the topic box", "topicKey", "Enter"); err != nil {
+		if err := t.Do(ctx, "the topic box", "topicKey", "Enter"); err != nil {
 			return err
 		}
-		if err := t.until(ctx, "the topic suggestions to close", 10*time.Second, func() (bool, error) {
-			err := t.call(ctx, &options, "topicOptions")
+		if err := t.Until(ctx, "the topic suggestions to close", 10*time.Second, func() (bool, error) {
+			err := t.Call(ctx, &options, "topicOptions")
 			return len(options) == 0, err
 		}); err != nil {
 			return err
 		}
 	}
 	if len(p.GetMedia()) > 0 {
-		t.log(fmt.Sprintf("attaching %d media to post %d", len(p.GetMedia()), i+1))
+		t.Log(fmt.Sprintf("attaching %d media to post %d", len(p.GetMedia()), i+1))
 		var files []mediaFile
 		for j, m := range p.GetMedia() {
 			f := mediaFile{ID: fmt.Sprintf("p%dm%d", i, j), Name: m.GetName(), Type: mediaType(m.GetName())}
 			b64 := base64.StdEncoding.EncodeToString(m.GetData())
 			// Pieces of 1 MB keep each command small.
 			for k := 0; k < len(b64); k += 1 << 20 {
-				if err := t.call(ctx, nil, "stage", f.ID, b64[k:min(k+1<<20, len(b64))]); err != nil {
+				if err := t.Call(ctx, nil, "stage", f.ID, b64[k:min(k+1<<20, len(b64))]); err != nil {
 					return err
 				}
 			}
 			files = append(files, f)
 		}
-		if err := t.pause(ctx); err != nil {
+		if err := t.Pause(ctx); err != nil {
 			return err
 		}
 		var msg string
-		if err := t.call(ctx, &msg, "attach", i, files); err != nil {
+		if err := t.Call(ctx, &msg, "attach", i, files); err != nil {
 			return err
 		}
 		if msg != "" {
 			return fmt.Errorf("%w: %s", ErrPage, msg)
 		}
-		if err := t.until(ctx, fmt.Sprintf("post %d's media to show", i+1), 2*time.Minute, func() (bool, error) {
+		if err := t.Until(ctx, fmt.Sprintf("post %d's media to show", i+1), 2*time.Minute, func() (bool, error) {
 			var n int
-			err := t.call(ctx, &n, "media", i)
+			err := t.Call(ctx, &n, "media", i)
 			return n >= len(files), err
 		}); err != nil {
 			return err
@@ -315,24 +316,12 @@ type mediaFile struct {
 	Type string `json:"type"`
 }
 
-// press brings the window to the front if it has to, waits a moment as a
-// person does, and calls a helper that presses something.
-func (t *session) press(ctx context.Context, what, fn string, args ...any) error {
-	if err := t.front(ctx); err != nil {
-		return err
-	}
-	if err := t.pause(ctx); err != nil {
-		return err
-	}
-	return t.do(ctx, what, fn, args...)
-}
-
 // menu waits for an open menu to show item, and presses it.
 func (t *session) menu(ctx context.Context, item string) error {
 	if _, err := t.waitState(ctx, "the menu item "+item, 10*time.Second, func(st state) bool { return slices.Contains(st.Menu, item) }); err != nil {
 		return err
 	}
-	return t.press(ctx, "the menu item "+item, "menu", item)
+	return t.Press(ctx, "the menu item "+item, "menu", item)
 }
 
 // pick sets the open schedule picker to at and closes it with button (Done,
@@ -345,7 +334,7 @@ func (t *session) pick(ctx context.Context, at time.Time, button string) error {
 	want := time.Date(at.Year(), at.Month(), 1, 0, 0, 0, 0, time.Local)
 	for k := 0; ; k++ {
 		var label string
-		if err := t.call(ctx, &label, "month"); err != nil {
+		if err := t.Call(ctx, &label, "month"); err != nil {
 			return err
 		}
 		shown, err := time.ParseInLocation("January 2006", label, time.Local)
@@ -362,43 +351,43 @@ func (t *session) pick(ctx context.Context, at time.Time, button string) error {
 		if shown.After(want) {
 			step = "prevMonth"
 		}
-		if err := t.press(ctx, "the picker's month arrow", step); err != nil {
+		if err := t.Press(ctx, "the picker's month arrow", step); err != nil {
 			return err
 		}
-		if err := sleep(ctx, 400*time.Millisecond); err != nil {
+		if err := page.Sleep(ctx, 400*time.Millisecond); err != nil {
 			return err
 		}
 	}
 	day := at.Format("Monday 2 January 2006")
-	if err := t.pause(ctx); err != nil {
+	if err := t.Pause(ctx); err != nil {
 		return err
 	}
 	var msg string
-	if err := t.call(ctx, &msg, "pickDay", day); err != nil {
+	if err := t.Call(ctx, &msg, "pickDay", day); err != nil {
 		return err
 	}
 	if msg != "" {
 		return fmt.Errorf("%w: %s: %s", ErrPage, day, msg)
 	}
-	if err := t.until(ctx, day+" to be selected", 5*time.Second, func() (bool, error) {
+	if err := t.Until(ctx, day+" to be selected", 5*time.Second, func() (bool, error) {
 		var sel string
-		err := t.call(ctx, &sel, "selectedDay")
+		err := t.Call(ctx, &sel, "selectedDay")
 		return sel == day, err
 	}); err != nil {
 		return err
 	}
-	if err := t.pause(ctx); err != nil {
+	if err := t.Pause(ctx); err != nil {
 		return err
 	}
 	hh, mm := at.Format("15"), at.Format("04")
 	var got []string
-	if err := t.call(ctx, &got, "setTime", hh, mm); err != nil {
+	if err := t.Call(ctx, &got, "setTime", hh, mm); err != nil {
 		return err
 	}
 	if !slices.Equal(got, []string{hh, mm}) {
 		return fmt.Errorf("%w: the picker's time reads %q, not %s:%s", ErrPage, got, hh, mm)
 	}
-	if err := t.press(ctx, "the picker's "+button+" button", "pickerButton", button); err != nil {
+	if err := t.Press(ctx, "the picker's "+button+" button", "pickerButton", button); err != nil {
 		return err
 	}
 	_, err := t.waitState(ctx, "the picker to close", 10*time.Second, func(st state) bool { return !st.Picker })
@@ -416,8 +405,8 @@ func (t *session) scheduled(ctx context.Context) ([]row, error) {
 	if err := t.openComposer(ctx); err != nil {
 		return nil, err
 	}
-	t.log("opening Drafts")
-	if err := t.press(ctx, "the composer's Drafts button", "openDrafts"); err != nil {
+	t.Log("opening Drafts")
+	if err := t.Press(ctx, "the composer's Drafts button", "openDrafts"); err != nil {
 		return nil, err
 	}
 	if _, err := t.waitState(ctx, "Drafts", 15*time.Second, func(st state) bool { return st.Drafts }); err != nil {
@@ -430,11 +419,11 @@ func (t *session) scheduled(ctx context.Context) ([]row, error) {
 func (t *session) rows(ctx context.Context) ([]row, error) {
 	var rows []row
 	last := -1
-	err := t.until(ctx, "Drafts to finish loading", 15*time.Second, func() (bool, error) {
-		if err := sleep(ctx, 750*time.Millisecond); err != nil {
+	err := t.Until(ctx, "Drafts to finish loading", 15*time.Second, func() (bool, error) {
+		if err := page.Sleep(ctx, 750*time.Millisecond); err != nil {
 			return false, err
 		}
-		if err := t.call(ctx, &rows, "rows"); err != nil {
+		if err := t.Call(ctx, &rows, "rows"); err != nil {
 			return false, err
 		}
 		same := len(rows) == last
@@ -455,13 +444,13 @@ func (s *Service) ListScheduled(ctx context.Context, browser string) ([]*threads
 	if err != nil {
 		return nil, err
 	}
-	defer t.close()
+	defer t.Close()
 	if _, err := t.home(ctx, 3*time.Second); err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
 	rows, err := t.scheduled(ctx)
 	if err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
 	out := make([]*threadsv1.ScheduledPost, len(rows))
 	for i, r := range rows {
@@ -525,16 +514,16 @@ func describe(text string, at time.Time) string {
 // asks nothing first, so it must be exactly one.
 func (s *Service) Unschedule(ctx context.Context, browser, text string, at time.Time) (*threadsv1.ScheduledPost, error) {
 	return s.change(ctx, browser, text, at, func(t *session, i int, rows []row) error {
-		t.log("deleting " + rows[i].Shown)
-		if err := t.press(ctx, "the row's More button", "rowMenu", i); err != nil {
+		t.Log("deleting " + rows[i].Shown)
+		if err := t.Press(ctx, "the row's More button", "rowMenu", i); err != nil {
 			return err
 		}
 		if err := t.menu(ctx, "Delete draft"); err != nil {
 			return err
 		}
-		return t.until(ctx, "the thread to leave Drafts", 15*time.Second, func() (bool, error) {
+		return t.Until(ctx, "the thread to leave Drafts", 15*time.Second, func() (bool, error) {
 			var now []row
-			err := t.call(ctx, &now, "rows")
+			err := t.Call(ctx, &now, "rows")
 			return err == nil && !slices.Contains(now, rows[i]), err
 		})
 	})
@@ -548,8 +537,8 @@ func (s *Service) Reschedule(ctx context.Context, browser, text string, at, newA
 	newAt = newAt.In(time.Local)
 	var moved row
 	_, err := s.change(ctx, browser, text, at, func(t *session, i int, rows []row) error {
-		t.log("moving " + rows[i].Shown + " to " + newAt.Format("Mon 2 Jan 2006 15:04"))
-		if err := t.press(ctx, "the row's More button", "rowMenu", i); err != nil {
+		t.Log("moving " + rows[i].Shown + " to " + newAt.Format("Mon 2 Jan 2006 15:04"))
+		if err := t.Press(ctx, "the row's More button", "rowMenu", i); err != nil {
 			return err
 		}
 		if err := t.menu(ctx, "Edit schedule"); err != nil {
@@ -558,9 +547,9 @@ func (s *Service) Reschedule(ctx context.Context, browser, text string, at, newA
 		if err := t.pick(ctx, newAt, "Update"); err != nil {
 			return err
 		}
-		return t.until(ctx, "Drafts to show the new time", 15*time.Second, func() (bool, error) {
+		return t.Until(ctx, "Drafts to show the new time", 15*time.Second, func() (bool, error) {
 			var now []row
-			if err := t.call(ctx, &now, "rows"); err != nil {
+			if err := t.Call(ctx, &now, "rows"); err != nil {
 				return false, err
 			}
 			for _, r := range now {
@@ -594,20 +583,20 @@ func (s *Service) change(ctx context.Context, browser, text string, at time.Time
 	if err != nil {
 		return nil, err
 	}
-	defer t.close()
+	defer t.Close()
 	if _, err := t.home(ctx, 3*time.Second); err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
 	rows, err := t.scheduled(ctx)
 	if err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
 	i, err := find(rows, text, at)
 	if err != nil {
 		return nil, err
 	}
 	if err := act(t, i, rows); err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
 	return rows[i].proto(), nil
 }
@@ -627,13 +616,13 @@ func (s *Service) ListPosts(ctx context.Context, browser string, limit int) ([]*
 	if err != nil {
 		return nil, err
 	}
-	defer t.close()
+	defer t.Close()
 	if _, err := t.home(ctx, 2*time.Second); err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
-	t.log("opening the profile")
-	if err := t.press(ctx, "the Profile link", "openProfile"); err != nil {
-		return nil, t.fail(err)
+	t.Log("opening the profile")
+	if err := t.Press(ctx, "the Profile link", "openProfile"); err != nil {
+		return nil, t.Fail(err)
 	}
 	type post struct {
 		URL  string `json:"url"`
@@ -642,16 +631,16 @@ func (s *Service) ListPosts(ctx context.Context, browser string, limit int) ([]*
 	}
 	var posts []post
 	start := time.Now()
-	err = t.until(ctx, "the profile's posts", 30*time.Second, func() (bool, error) {
+	err = t.Until(ctx, "the profile's posts", 30*time.Second, func() (bool, error) {
 		posts = nil
-		if err := t.call(ctx, &posts, "posts", limit); err != nil {
+		if err := t.Call(ctx, &posts, "posts", limit); err != nil {
 			return false, err
 		}
 		// A profile with no posts shows none; give it a few seconds.
 		return len(posts) > 0 || (posts != nil && time.Since(start) > 8*time.Second), nil
 	})
 	if err != nil {
-		return nil, t.fail(err)
+		return nil, t.Fail(err)
 	}
 	out := make([]*threadsv1.PublishedPost, len(posts))
 	for i, p := range posts {

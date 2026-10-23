@@ -24,12 +24,15 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/v1/remotev1connect"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/threads"
+	"github.com/wargasipil/san_remote/internal/vidara"
 )
 
 type Server struct {
 	Client remotev1connect.RemoteServiceClient
 	// Threads runs the threads_* tools in this process, through Client.
 	Threads *threads.Service
+	// Vidara runs the vidara_* tools in this process, through Client.
+	Vidara *vidara.Service
 	// Server is the URL Client talks to, for error messages.
 	Server  string
 	Version string
@@ -41,7 +44,8 @@ const instructions = `san_remote runs JavaScript in the user's own browser (Chro
 remote_tabs lists the tabs; remote_exec runs code in one (tab_id 0 is the active tab of the focused window). The code is the body of an async function: use return and await; what it returns comes back as JSON. world isolated (the default) sees the page's DOM but not its JavaScript globals, and the page cannot see it; world main runs in the page's own JavaScript.
 remote_open and remote_navigate load a page and wait until it has loaded. A script that navigates away loses its result, so navigate with remote_navigate, then exec. remote_screenshot shows what a tab shows. Chrome throttles a page that is not shown, so for anything more than reading, keep its window in front (remote_open with focus, remote_focus).
 This is the user's real browser: read what the task needs, and ask the user before submitting forms, posting, buying or deleting anything. Clicks and key events made from JavaScript have isTrusted false, and some sites ignore them.
-threads_* post to the user's Threads account through that browser, as a person does in Threads' composer: threads_post schedules a thread (a markdown file, or one post's text), threads_scheduled lists what is scheduled, threads_reschedule and threads_unschedule change one, threads_status and threads_posts read. Schedule or post only what the user asked for; never use now unless the user asked to publish at once. A threads call that clicks through Threads brings Chrome to the front with a tab of its own for a minute or two.`
+threads_* post to the user's Threads account through that browser, as a person does in Threads' composer: threads_post schedules a thread (a markdown file, or one post's text), threads_scheduled lists what is scheduled, threads_reschedule and threads_unschedule change one, threads_status and threads_posts read. Schedule or post only what the user asked for; never use now unless the user asked to publish at once. A threads call that clicks through Threads brings Chrome to the front with a tab of its own for a minute or two.
+vidara_* work on the user's Vidara account (vidara.to, a video host) through that browser, as a person does on its pages: vidara_upload uploads a video on the Upload page (only what the user asked to upload), vidara_videos lists the account's videos, vidara_delete deletes one (Vidara says it cannot be undone: ask the user first), vidara_status reads. vidara_download saves a video from its link to a file on this computer, through Vidara's player. A video page's "Download file" button is an ad; never press it.`
 
 type request struct {
 	JSONRPC string          `json:"jsonrpc"`
@@ -252,6 +256,37 @@ func toolDefs() []any {
 		tool("threads_posts", "Threads: my posts",
 			"The account's own published posts, newest first: link, time and text. Reads the profile in a background tab.",
 			schema(map[string]any{"limit": intg("How many (default 10)"), "browser": browserProp}), true, false),
+
+		tool("vidara_status", "Vidara: signed in?",
+			"Whether the browser is signed in to Vidara, as whom, and the storage used. Reads in a background tab.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("vidara_upload", "Vidara: upload a video",
+			"Upload a video file (10 MB to 10 GB: mp4, mkv, avi, mov, webm, ts, mpg, mpeg, vob, flv, wmv, 3gp) to the user's Vidara account on its Upload page, and return its link. Vidara names the video after the file; title gives the page the file under another name. Brings Chrome to the front with a tab of its own; it takes as long as the user's upload speed needs.",
+			schema(map[string]any{
+				"file":    str("Path of the video file"),
+				"title":   str("The video's title (default: the file's name without its extension)"),
+				"browser": browserProp,
+			}, "file"), false, false),
+		tool("vidara_videos", "Vidara: my videos",
+			"The account's videos from My videos (its first page): code, title, size, views, upload date, status, link. Reads in a background tab.",
+			schema(map[string]any{
+				"search":  str("Only titles or codes holding this"),
+				"limit":   intg("At most this many"),
+				"browser": browserProp,
+			}), true, false),
+		tool("vidara_delete", "Vidara: delete a video",
+			"Delete one of the account's videos, named by its code, its link or its whole title, which must name exactly one. Vidara says it cannot be undone; ask the user first.",
+			schema(map[string]any{
+				"match":   str("The video's code, link, or whole title"),
+				"browser": browserProp,
+			}, "match"), false, true),
+		tool("vidara_download", "Vidara: download a video",
+			"Save a video from its Vidara link (https://vidara.to/v/CODE, /e/CODE, or the code) to a file on this computer, through Vidara's player: Vidara's own stream of it, put in an .mp4 with ffmpeg. Reads in a background tab.",
+			schema(map[string]any{
+				"link":    str("The video's link or code"),
+				"out":     str("The file to write, or a folder (default: the title, in the MCP server's folder)"),
+				"browser": browserProp,
+			}, "link"), false, false),
 	}
 }
 
@@ -274,6 +309,10 @@ type args struct {
 	Match      string   `json:"match"`
 	To         string   `json:"to"`
 	Limit      int32    `json:"limit"`
+	Title      string   `json:"title"`
+	Search     string   `json:"search"`
+	Link       string   `json:"link"`
+	Out        string   `json:"out"`
 }
 
 // Call runs one tool and returns its content: text, or for
@@ -294,9 +333,12 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 	}
 	var text string
 	var err error
-	if strings.HasPrefix(name, "threads_") {
+	switch {
+	case strings.HasPrefix(name, "threads_"):
 		text, err = s.threads(ctx, name, a)
-	} else {
+	case strings.HasPrefix(name, "vidara_"):
+		text, err = s.vidara(ctx, name, a)
+	default:
 		text, err = s.call(ctx, name, a)
 	}
 	if err != nil {
@@ -454,6 +496,64 @@ func (s *Server) threads(ctx context.Context, name string, a args) (string, erro
 	}
 	return "", fmt.Errorf("unknown tool %q", name)
 }
+
+func (s *Server) vidara(ctx context.Context, name string, a args) (string, error) {
+	v := s.Vidara
+	switch name {
+	case "vidara_status":
+		st, err := v.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to Vidara.", nil
+		}
+		return fmt.Sprintf("Signed in to Vidara as %s, %s.", st.Username, st.Storage), nil
+	case "vidara_upload":
+		if a.File == "" {
+			return "", errors.New("file is required")
+		}
+		r, err := v.Upload(ctx, vidara.Upload{File: a.File, Title: a.Title, Browser: a.Browser})
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Uploaded: %s\n%s", r.URL, formatVideo(*r)), nil
+	case "vidara_videos":
+		vs, total, err := v.Videos(ctx, a.Browser, a.Search, int(a.Limit))
+		if err != nil {
+			return "", err
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "%d shown, %d in all.\n", len(vs), total)
+		for _, r := range vs {
+			fmt.Fprintln(&b, formatVideo(r))
+		}
+		return b.String(), nil
+	case "vidara_delete":
+		r, err := v.Delete(ctx, a.Browser, a.Match)
+		if err != nil {
+			return "", err
+		}
+		return "Deleted: " + formatVideo(*r), nil
+	case "vidara_download":
+		if a.Link == "" {
+			return "", errors.New("link is required")
+		}
+		d, err := v.Download(ctx, a.Browser, a.Link, a.Out)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Saved %q (%s, %s) to %s.", d.Title, d.Stream, formatBytes(d.Bytes), d.Path), nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+// formatVideo is one video on one line: `KZ4JLnq7XNR2f "Title" 11.67 MB, 0 views, 2026-10-23, Active https://...`.
+func formatVideo(v vidara.Video) string {
+	return fmt.Sprintf("%s %q %s, %s views, %s, %s %s", v.Code, v.Title, v.Size, v.Views, v.Uploaded, v.Status, v.URL)
+}
+
+func formatBytes(n int64) string { return fmt.Sprintf("%.1f MB", float64(n)/(1<<20)) }
 
 // postRequest makes threads_post's request: from the file, or from text and
 // media, with at overriding the file's time.

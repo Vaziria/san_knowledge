@@ -75,7 +75,7 @@ func root(in io.Reader, out io.Writer) *cli.Command {
 		Commands: []*cli.Command{
 			serveCommand(), browsersCommand(), tabsCommand(), execCommand(),
 			openCommand(), navigateCommand(), closeCommand(), focusCommand(), screenshotCommand(),
-			threadsCommand(), mcpCommand(),
+			threadsCommand(), vidaraCommand(), mcpCommand(),
 		},
 	}
 }
@@ -369,9 +369,9 @@ func mcpCommand() *cli.Command {
 		Name:  "mcp",
 		Usage: "serve the browser to Claude over MCP (stdio); needs a running `san_remote serve`",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// Threads' steps go to stderr, which Claude Code keeps in its MCP log;
+			// Threads' and Vidara's steps go to stderr, which Claude Code keeps in its MCP log;
 			// stdout carries only JSON-RPC.
-			s := &mcp.Server{Client: client(cmd), Threads: threadsService(cmd), Server: cmd.String("server"), Version: version}
+			s := &mcp.Server{Client: client(cmd), Threads: threadsService(cmd), Vidara: vidaraService(cmd), Server: cmd.String("server"), Version: version}
 			return s.Serve(ctx, cmd.Root().Reader, cmd.Root().Writer)
 		},
 	}

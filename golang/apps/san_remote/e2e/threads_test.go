@@ -17,6 +17,7 @@ import (
 
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	"github.com/wargasipil/san_remote/internal/hub"
+	"github.com/wargasipil/san_remote/internal/page"
 	"github.com/wargasipil/san_remote/internal/threads"
 )
 
@@ -34,7 +35,7 @@ func TestThreadsSchedule(t *testing.T) {
 	if server == "" {
 		server = hub.DefaultServer
 	}
-	s := &threads.Service{B: threads.Remote{C: hub.NewClient(server)}, Progress: func(step string) { t.Log("== " + step) }}
+	s := &threads.Service{B: page.Remote{C: hub.NewClient(server)}, Progress: func(step string) { t.Log("== " + step) }}
 	ctx := context.Background()
 
 	st, err := s.Status(ctx, browser)

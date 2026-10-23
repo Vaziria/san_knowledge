@@ -14,6 +14,7 @@ import (
 	"github.com/urfave/cli/v3"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/wargasipil/san_remote/internal/page"
 	"github.com/wargasipil/san_remote/internal/threads"
 )
 
@@ -21,7 +22,7 @@ import (
 // server's RemoteService, and prints each step to stderr.
 func threadsService(cmd *cli.Command) *threads.Service {
 	return &threads.Service{
-		B:        threads.Remote{C: client(cmd)},
+		B:        page.Remote{C: client(cmd)},
 		Progress: func(step string) { fmt.Fprintln(os.Stderr, "== "+step) },
 	}
 }

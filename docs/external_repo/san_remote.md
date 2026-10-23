@@ -32,10 +32,15 @@ This document is the design and the reasons behind it.
 7. It is local only for now: the server listens on `127.0.0.1:7476`.
 8. The CLI uses urfave/cli v3. The MCP server is hand-written (JSON-RPC 2.0
    on stdio), like autotrade's.
-9. Site services sit on top of the generic commands. The first is Threads
-   (`internal/threads`, the user, 2026-10-23: "add service for threads that
-   handle post scheduling and other like san_medium"). It replaces the
-   chromedp start `golang/packages/san_threads`, which was removed.
+9. Site services sit on top of the generic commands.
+   - **Threads** came first (`internal/threads`; the user, 2026-10-23: "add
+     service for threads that handle post scheduling and other like
+     san_medium"). It replaces the chromedp start
+     `golang/packages/san_threads`, which was removed.
+   - **Vidara** followed (`internal/vidara`; the user, 2026-10-24: "build
+     ability to post video on that", then "add ability to download video
+     from vidara link to").
+   - Both work in a tab through `internal/page`.
 
 ## Layout.
 
@@ -48,11 +53,16 @@ golang/apps/san_remote/
                    service.go         the generated handlers, pass-through to the hub
                    client.go          RemoteService client, "not running" error
   internal/hubtest/                   fake browsers that attach over Connect, for tests
+  internal/page/   page.go            a site service's tab: call into the site's script, waits,
+                                      pace, front, screenshot; the browser through RemoteService
   internal/threads/ thread.go         the thread markdown, its checks, the request
                    threads.js         what is known of Threads' pages (isolated world)
-                   session.go         one tab: call into threads.js, waits, pace, front, screenshot
+                   session.go         Threads' page state, its waits, the home page
                    service.go         status, post, scheduled, reschedule, unschedule, posts
-                   remote.go          the browser, through RemoteService
+  internal/vidara/ vidara.go          the upload's checks, links and codes, the types
+                   vidara.js          what is known of Vidara's pages and its player (isolated world)
+                   service.go         status, upload, videos, delete
+                   download.go        download: the player's HLS stream, saved and remuxed
   internal/mcp/                       MCP server: remote_* and threads_* tools
   cmd/san_remote/                     urfave/cli v3 tree: serve, browsers, tabs, exec, open,
                                       navigate, close, focus, screenshot, threads, mcp
@@ -263,7 +273,7 @@ thread by itself.
 
 **Where it runs.** `threads.Service` runs in the process of the CLI or the
 MCP server. It reaches the browser through `serve`'s RemoteService
-(`threads.Remote`).
+(`page.Remote`).
 - **First design.** It started as a Connect `ThreadsService` inside `serve`.
 - **Why it moved.** Every fix during the first live runs then needed the
   user to restart `serve`, three times in one evening (2026-10-24).
@@ -276,7 +286,8 @@ MCP server. It reaches the browser through `serve`'s RemoteService
 **Page knowledge and pace.**
 - **The split.** `threads.js` holds everything known of Threads' pages. It
   runs in the extension's isolated world, where the page cannot see it, and
-  is set up once per page. The steps, waits and pace are in Go (`session.go`).
+  is set up once per page. The steps, waits and pace are in Go (`service.go`,
+  on the tab of `internal/page`).
 - **Finding controls.** Threads' class names are generated, so controls are
   found by role and by the names Threads gives them: an aria-label, an SVG
   `<title>` ("Attach media", "More"), or the text.
@@ -347,6 +358,94 @@ account @archetipe__):
   test thread scheduled, deleted by hand. The cleanup now runs before the
   post.
 
+## One tab, shared.
+
+`internal/page` is what a site service needs of a tab. When Vidara came,
+it was moved out of `internal/threads` (2026-10-24) rather than copied.
+- **What it does:**
+  - open and close the tab
+  - call the site's script with its global and its `ErrPage`
+  - `Until`, `Pause`, `Look`, `Press` and `Front`
+  - `Fail`'s screenshot, named after the site
+- **What each site keeps:** its page state, the waits on that state, and
+  its home page.
+- **`Front`** asks the page's visibility itself, so a site's script does not
+  have to report it.
+
+## Vidara.
+
+**The web uploader, not the API.** Vidara has an API with an `api_key`
+(Settings → API): one multipart POST from disk, plus rename, move, list and
+delete. The user chose the web uploader instead (2026-10-24), in the same
+way as Threads' composer. The file therefore goes through the browser.
+
+**Found on vidara.to, 2026-10-24** (the interface in English, the account
+getresolved):
+- **The site.** Pages are rendered on the server with Tailwind; every
+  sidebar link loads a new page.
+  - The dashboard is `/index`; `/` is the public landing page, even when
+    signed in.
+  - Signed in means a Logout link in the header.
+  - The user's name is only on Settings: "Hello, getresolved!".
+- **Exec during a page load.** In a quick test, `exec` kept answering while
+  a click loaded the next page: first from the old page, then from the new
+  one while it was still loading. One of five e2e runs still failed right
+  after an upload, at a step the log did not show. So Vidara's waits treat a
+  call the browser refuses (`Aborted`) as "not yet", and name it if the wait
+  runs out. `Fail` also says why it has no screenshot.
+- **Upload.**
+  - The Upload page is Dropzone. Its hidden `input.dz-hidden-input` is what
+    Browse files opens; files set on it go through the page's own flow.
+  - That flow fetches an upload server (`/ajax/media`), then sends the file
+    in 16 MB chunks (`resumable-upload.js`).
+  - The page remembers an unfinished upload by the file's name, size and
+    `lastModified`. The staged `File` gets the real file's time, so a stalled
+    upload continues when it is run again.
+  - The page takes 10 MB to 10 GB. It has no title box: the video is named
+    after the file, without its extension. So `--title` names the staged
+    `File`.
+  - A finished upload submits a form to `/export`. That page holds the
+    link (`#textarea_download`) and the title (in `#textarea_html`'s `<a>`).
+  - The proof is the row in My videos, found by searching its code.
+- **Moving the bytes.** The file goes into the tab in 4 MB base64 pieces,
+  about 190 ms each (about 20 MB/s). Each piece becomes a `Blob` at once,
+  so the bytes wait in Chrome's blob store, not in the page's memory. The
+  page's own uploader then sends them at the user's upload speed (about
+  1 MB/s that day).
+- **My videos.**
+  - A row's checkbox carries `data-filecode`. Its columns are read by the
+    table's own names: Filename, Size, Views, Uploaded, Status.
+  - The search box (`?search=`) finds titles and filecodes.
+  - The row's Delete button opens `#modal-delete-confirm`, which names the
+    video. "Delete Permanently" then posts and reloads the page.
+  - With two-factor login on, Vidara asks for a code in a `prompt()`. The
+    tool cannot answer that; 2FA was off.
+- **Timers in a background tab.** Chrome runs them once a second there. A
+  search typed key by key in a background tab took 19 s, so only a shown
+  session waits between keys. The box has no key handlers, and the form
+  sends only its final text.
+- **A video's page and its player.**
+  - `/v/<code>` embeds a JW Player from another host:
+    `gaqghe.com/e/<code>?vt=…`.
+  - Its "Download file" button is an ad: it sits in a box marked "Ad" and
+    links to another site. There is no real download link.
+  - Frames do not run code, so the tool loads the player's address in the
+    tab itself.
+  - The player gets an HLS stream (`/api/stream`, then `master.m3u8` on
+    `virelios.live`). The stream is one variant: Vidara's encoding (720p at
+    3 Mbps for a 720p upload at 6 Mbps). Its MPEG-TS segments are named
+    `.css`, and there is no encryption.
+  - The segments load from the player's page but answered 404 from a
+    vidara.to tab. So the player tab fetches them, and the tool reads them
+    back in 4 MB base64 pieces.
+  - The stream's address is read from the page's resource timing, in the
+    isolated world. JW Player's `getPlaylistItem()` has it too, but only in
+    the page's own world.
+  - ffmpeg remuxes the segments into an .mp4 (`-c copy`). The 16 s test
+    clip came back as 16.02 s, h264 1280x720 with aac.
+- **The dashboard's count.** It showed "Videos 161" while My videos listed
+  none. That number is not used.
+
 ## Verified.
 
 - **2026-10-23, `go test ./...`.** The hub, CLI and MCP server against fake
@@ -399,6 +498,29 @@ account @archetipe__):
     at 19:00 GMT+7"; after the fix it was scheduled and found in Drafts.
     `threads scheduled` then listed both threads, a day apart.
   - Not run yet: `threads posts` and `--now`.
+- **2026-10-24, Vidara, on getresolved, in the user's Chrome.**
+  - **A first upload, by hand,** with `san_remote exec`. It found what the
+    page does after an upload: the Export page, the title from the file
+    name, and the row in My videos.
+  - **`vidara status`:** "signed in as getresolved, 0.01 GB used" (4 s).
+  - **`vidara videos`**, also with `--search`, listed that video.
+  - **`vidara download`** saved it as an .mp4 of 16.02 s. The first run
+    took 57 s, the second 10 s.
+  - **`vidara delete`**, given its link, deleted it (18 s). `videos` then
+    listed none.
+  - **`e2e.TestVidaraUpload` passed (94 s):**
+    1. It made a 12 MB clip and uploaded it as "Uji vidara san_remote
+       023019 (hapus saja)" at about 1 MB/s.
+    2. It found the clip by its code, deleted it, and checked that it was
+       gone.
+    3. The cleanup found nothing left.
+  - **Five runs in all, four passed.** The second failed after the upload,
+    with the error line filtered out of the log. Its cleanup deleted the
+    video, and no screenshot was saved. The two runs after the change to the
+    waits passed (93 s, 97 s), and My videos was empty at the end.
+  - **Threads on `internal/page`:** `threads status` read "signed in as
+    @getresolvedid". The browser's Threads session is on another account
+    than the day before.
 
 ## Open questions.
 
@@ -414,4 +536,8 @@ account @archetipe__):
   music and reply settings. "Add AI label" stays off for the user's own
   articles (the user, 2026-10-24).
 - **One Threads command at a time across processes.** It could become a
-  lock file, if the CLI and Claude ever post at the same time.
+  lock file, if the CLI and Claude ever post at the same time. The same
+  holds for Vidara.
+- **More of Vidara.** Folders, URL upload, clone, thumbnails, subtitles and
+  renaming. A download of the uploaded file itself, if Vidara ever offers
+  one; the player only streams its own encoding.

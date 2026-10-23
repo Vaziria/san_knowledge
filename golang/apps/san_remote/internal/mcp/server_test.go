@@ -10,13 +10,14 @@ import (
 
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/hubtest"
+	"github.com/wargasipil/san_remote/internal/page"
 	"github.com/wargasipil/san_remote/internal/threads"
 )
 
 func TestServe(t *testing.T) {
 	_, url := hubtest.Start(t)
 	hubtest.Attach(t, url, "b1", "Chrome", nil)
-	s := &Server{Client: hub.NewClient(url), Threads: &threads.Service{B: threads.Remote{C: hub.NewClient(url)}}, Server: url, Version: "test"}
+	s := &Server{Client: hub.NewClient(url), Threads: &threads.Service{B: page.Remote{C: hub.NewClient(url)}}, Server: url, Version: "test"}
 
 	in := strings.Join([]string{
 		`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26"}}`,
@@ -50,7 +51,7 @@ func TestServe(t *testing.T) {
 	if init["protocolVersion"] != "2025-03-26" || !strings.Contains(init["instructions"].(string), "remote_exec") {
 		t.Errorf("initialize %v", init)
 	}
-	if n := len(replies[1]["result"].(map[string]any)["tools"].([]any)); n != 14 {
+	if n := len(replies[1]["result"].(map[string]any)["tools"].([]any)); n != 19 {
 		t.Errorf("%d tools", n)
 	}
 	text := func(i int) (string, bool) {

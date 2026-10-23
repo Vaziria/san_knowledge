@@ -81,6 +81,7 @@ bin\san_remote.exe close --tab 123
 bin\san_remote.exe focus --tab 123                # make it the active tab, window to the front
 bin\san_remote.exe screenshot --tab 123 -o shot.png
 bin\san_remote.exe threads ...                    # Threads: see "Threads" below
+bin\san_remote.exe vidara ...                     # Vidara: see "Vidara" below
 bin\san_remote.exe mcp                            # MCP on stdio, for Claude
 ```
 
@@ -139,10 +140,18 @@ rebuilding, reconnect with `/mcp`.
 | `threads_reschedule` | match, at, to, browser |
 | `threads_unschedule` | match, at, browser |
 | `threads_posts` | limit, browser |
+| `vidara_status` | browser |
+| `vidara_upload` | file, title, browser |
+| `vidara_videos` | search, limit, browser |
+| `vidara_delete` | match, browser |
+| `vidara_download` | link, out, browser |
 
 The server's instructions tell Claude it is your real browser, and to ask
 you before it submits forms, posts, buys or deletes anything. They also say
 to schedule only what you asked for, and never to post now unless you asked.
+For Vidara they say to upload only what you asked for, to ask before a
+delete, and never to press a video page's "Download file" button, which is
+an ad.
 
 ## Threads
 
@@ -221,6 +230,90 @@ commands. A change to them needs only a rebuild (and `/mcp` for the MCP
 server), never a `serve` restart or an extension reload. Two processes do not
 wait for each other, so run one Threads command at a time.
 
+## Vidara
+
+`san_remote vidara` works on your Vidara account (vidara.to, a video host
+that pays for views) through your browser's Vidara session, the way you
+would on its pages:
+- **upload** gives the Upload page's uploader the video, as if you chose it
+  in **Browse files**. The page sends it in chunks, the tool waits, then
+  finds the video in My videos.
+- **videos** reads My videos, and **delete** deletes a video there.
+- **download** saves a video from its link through Vidara's own player.
+- **status** says who is signed in.
+
+Vidara's API (Settings → API) is not used: you chose the web uploader.
+
+```powershell
+bin\san_remote.exe vidara status                                # signed in as getresolved, 0.01 GB used
+bin\san_remote.exe vidara upload "VPN Sendiri - Bagian 1.mp4"   # https://vidara.to/v/qrQHbMCtwQw5r  VPN Sendiri - Bagian 1  Active
+bin\san_remote.exe vidara upload --title "VPN Sendiri, Bagian 1" video.mp4
+bin\san_remote.exe vidara videos                                # CODE, TITLE, SIZE, VIEWS, UPLOADED, STATUS
+bin\san_remote.exe vidara videos --search VPN --limit 10
+bin\san_remote.exe vidara delete qrQHbMCtwQw5r                  # or its link, or its whole title
+bin\san_remote.exe vidara download https://vidara.to/v/qrQHbMCtwQw5r
+bin\san_remote.exe vidara download --out D:\videos qrQHbMCtwQw5r
+```
+
+**upload.**
+- **The file:** mp4, mkv, avi, mov, webm, ts, mpg, mpeg, vob, flv, wmv or
+  3gp, from 10 MB to 10 GB. These are the Upload page's own limits, so a
+  short clip under 10 MB is refused before anything is sent.
+- **The title:** Vidara names a video after its file, without the
+  extension, and its Upload page has no title box. `--title` hands the page
+  the file under another name, as if you had renamed it first. A title
+  cannot hold `/`, `\` or line breaks.
+- **What you get:** the video's link (`https://vidara.to/v/<code>`), once
+  My videos lists it. Its embed link is `/e/<code>`.
+- **How it goes:**
+  1. The file goes into the tab in 4 MB pieces, about 20 MB/s.
+  2. Vidara's own uploader sends it at your upload speed (about 1 MB/s on
+     2026-10-24).
+  3. Progress is printed every 10%.
+- **When it stops:** if Vidara refuses the file, the tool stops with
+  Vidara's message. It also stops if the bar does not move for 3 minutes.
+
+**videos** lists what My videos' first page shows (100 rows, by its
+"entries" setting), with how many there are in all. `--search` goes
+through My videos' search box, which finds titles and codes.
+
+**delete** names the video by its code, its link, or its whole title (case
+ignored). That must name exactly one video. Several videos with the same
+title fail with a list of their codes. Vidara asks first, and the tool
+answers only once the question names that video. Vidara says the delete
+cannot be undone.
+
+**download.**
+- **The link** can be `https://vidara.to/v/<code>`, `/e/<code>`, on
+  vidara.so or a custom domain, or just the code. Any public video works,
+  not only yours.
+- **How it gets the video:** the video's page embeds Vidara's player from
+  another host, which streams HLS. The tool opens that player in the tab and
+  fetches the stream's segments there, as the player does. The segments only
+  load from the player's host.
+- **What you get:** Vidara's own encoding of the video (720p at 3 Mbps for
+  a 720p upload), not the file that was uploaded.
+- **The file:** ffmpeg puts the segments in an `.mp4` without re-encoding.
+  Without ffmpeg on PATH they are kept as `.ts`.
+- **Where it goes:**
+  - `--out` is a file or a folder.
+  - By default the file is named after the title, in the current folder.
+  - An existing file is never overwritten.
+- **Never press "Download file".** The video page's "Download file" button
+  is an ad (it links to another site), and the tool never presses it.
+- **A video that is still being encoded** has no stream yet. Download it
+  later.
+
+**While it runs:**
+- `upload` and `delete` open a tab of their own in your current Chrome
+  window and bring Chrome to the front. Leave it alone while they click.
+- During the upload itself the tab may go behind other windows, but it must
+  stay open.
+- `status`, `videos` and `download` read in a background tab.
+- Each step is printed to stderr as `== …`.
+- A failed step stops with a screenshot in the temp folder:
+  `san_remote-vidara-150405.png`.
+
 ## Debug panel
 
 The extension keeps a log of every command the server sends and the reply
@@ -294,6 +387,13 @@ need a token and TLS first.
 | threads: `the arrow keys never reached the suggestion` | Threads does not suggest that topic. The error lists what it does suggest; pick one of those. |
 | threads: `the browser is not signed in to Threads` | Sign in to Threads (with Instagram) in that browser. |
 | threads: `several scheduled threads match` | Make `--match` longer, or add `--at`. |
+| vidara: `the browser is not signed in to Vidara` | Sign in to vidara.to in that browser. |
+| vidara: `Vidara takes 10 MB to 10 GB` | The Upload page's own limit. A short clip has to be longer, or encoded at a higher bitrate. |
+| vidara: `Vidara refused the upload: …` | Vidara's own message, with its reference code. Usually storage, or a file it cannot read. |
+| vidara: `the upload stalled at …%` | The connection stopped. Run the same upload again: Vidara's uploader remembers the file by its name, size and time, and continues from where it stopped. |
+| vidara: `several videos match the title` | Name the video by one of the codes listed. |
+| vidara download: `waited … for the player's stream` | The video may still be encoding, or the player changed. Try later, and look at the screenshot. |
+| vidara delete waits, then `the code did not finish` | With two-factor login on, Vidara asks for a code before a delete, in a prompt the tool cannot answer. Delete it on the page. |
 
 ## Development
 
@@ -331,6 +431,12 @@ not been reloaded yet.
 
   Its cleanup deletes the test thread even when a step fails. Nothing is ever
   posted now.
+- `TestVidaraUpload` needs `SAN_REMOTE_E2E_VIDARA=1` too, and ffmpeg. It
+  makes a 16 s test clip of about 12 MB, uploads it under a test title,
+  finds it in My videos, deletes it, and checks that it is gone. Its cleanup
+  deletes the test video even when a step fails.
+- `TestVidaraDownload` downloads the video `SAN_REMOTE_E2E_VIDARA_LINK`
+  names into a temp folder.
 
 **A throwaway browser.** To test the extension without your own browser,
 start a headless Chrome on a temp profile with `--remote-debugging-pipe
@@ -364,6 +470,13 @@ The layout of the code is in the design doc.
   - Not done: GIFs, stickers, polls, quote posts, attached text, location,
     music, the AI label, reply settings, and editing a scheduled thread's
     text.
+- **Vidara:**
+  - Its interface must be in English, as for Threads.
+  - One video per upload. Not done: folders, URL upload, clone, thumbnails,
+    subtitles, intros, and renaming.
+  - `videos` reads only My videos' first page.
+  - A download is Vidara's stream of the video, not the uploaded file, and
+    an encrypted stream is refused.
 
 ## See also
 

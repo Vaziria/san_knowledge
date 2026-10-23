@@ -36,7 +36,7 @@ A tick has three phases, in this order ([docs/readme.md](docs/readme.md)): **Doi
 1. Take the snapshot: `autotrade_snapshot` (CLI: `snapshot`). Without a `pair` it gives one snapshot per pair, each with that pair's position and last decisions. If a pair's notes say a position closed since the last tick, its lesson is written in the last phase.
 2. Form a view of each pair, top-down, and write it out before you decide:
    - **Context.** Direction and strength on the context timeframes (now 15m, 1h and 4h), from the EMAs, the momentum, and where price sits in its range. What did your last decisions say you were waiting for?
-   - **Location.** Where is price against the key levels, the EMAs and the bands? Is there room to the next level in the direction you'd trade? Buying just under a level, or selling just above one, needs a reason.
+   - **Location.** Where is price against the key levels, the EMAs and the bands? Is there room to the next major level (step 3, open, 4) in the direction you'd trade? Buying just under a level, or selling just above one, needs a reason.
    - **Positioning.**
      - Open interest rising with price means new money is behind the move. Falling means positions are closing.
      - Taker flow shows who is pushing.
@@ -52,7 +52,17 @@ A tick has three phases, in this order ([docs/readme.md](docs/readme.md)): **Doi
      1. a thesis
      2. a trigger
      3. an invalidation level, with the stop just beyond it, and **at least one ATR of the first context timeframe from the entry, and never closer than 0.3% of price** (now 15m; read each pair's own ATR). A stop sized on the trading interval gets taken out by ordinary noise, and the fees eat a larger share of a small stop. In a quiet market the 15m ATR is only about 0.1% on BTC, so the 0.3% floor decides; that is near one 1h ATR. Time the entry on the trading interval, but place the stop by the structure of the timeframes above it.
-     4. a target at a level, in front of the next major level (one that already stopped price, or a higher-timeframe EMA), at least 1.5x the risk after the round-trip fees
+     4. a target at a level, in front of the next major level, at least 1.5x the risk after the round-trip fees
+
+     **Major levels** come from 1h and above:
+     - the swing highs and lows of the last context timeframe (now 4h)
+     - the prior candle's high and low of the second context timeframe (now 1h)
+     - the 24h high and low
+     - the EMAs of the second and last context timeframes (now 1h and 4h)
+
+     The swings of the trading interval and the first context timeframe (now 5m and 15m), and the first context timeframe's EMAs, are minor. They time the entry and place the stop, but a target may run through them. On 5m the minor levels sit every 0.15–0.2%, while a 0.3% stop needs about 0.6% of room for 1.5R after fees, so counting them as major blocked every trade.
+
+     The 1h and 4h EMAs and the 24h range have their own lines in the snapshot. The 4h swings and the prior 1h high and low appear only under Key levels, which lists the nearest four each way and, of levels within 0.15% of each other, keeps the one nearer the price. So one of them can hide up to 0.15% behind a listed minor level, and a target that runs past a minor level takes that risk.
 
      **Fees.** The snapshot's portfolio shows them per fill (this testnet account: maker 0.02%, taker 0.04%). A market entry pays taker twice, about 0.08% per round trip; a limit entry pays maker in and taker out (the stop and target are market orders), about 0.06%. Count them in the check: net R = (distance to target − round-trip fees) / (distance to stop + round-trip fees), all from the entry price you will actually get.
 

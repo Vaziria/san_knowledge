@@ -110,6 +110,9 @@ Current series:
     - "anggota" became "client" everywhere: prose, titles and file names of Bagian 4, 6 and 7, diagrams, and code (`cmd/client`, `client.json`, "vpnku client", "bukan client terdaftar", test names). The relay stays "relay", introduced as the server its clients connect to. Go identifiers were already English (`Member`) and were kept.
     - The modules `vpnku2` … `vpnku9` were renamed the same way and passed `go vet` (Windows and Linux), builds for linux amd64, arm64 and arm, `go test -count=20` and `-race` on Windows. The `go test -v` output in the articles was rerun.
     - The real-TUN transcripts in Bagian 4 to 6 (Docker and WSL) were edited for the rename only, not rerun: the binary name, the "client A" labels and the refusal message.
+  - Published on Medium as `@archetipe`: all nine parts are in its Published tab (read 2026-10-24). Bagian 1 is https://medium.com/@archetipe/seri-membuat-vpn-sendiri-bagian-1-apa-itu-vpn-virtual-private-network-d83936f629a5, and the others follow the same pattern, `medium.com/@archetipe/<slug of the full title>-<id>` (the id is Medium's, so read it from that tab).
+  - On Threads, Bagian 1 became an eight-post thread, [threads/bagian-1-apa-itu-vpn.md](create-own-vpn/threads/bagian-1-apa-itu-vpn.md). It has the topic VPN, the two diagrams "without and with VPN" and "packet inside a packet", and the Medium link in its last post. It was scheduled on 2026-10-24 with `san_remote threads post` for 2026-10-25 19:00 WIB (see "Publishing to Threads").
+  - The series recap, [threads/rekap-seri.md](create-own-vpn/threads/rekap-seri.md), is eight posts mostly in Bagian 9's own words. It covers the problem and the relay answer with the overview diagram, the nine parts in three posts, the weaknesses, and when to choose WireGuard, Tailscale, Headscale or ZeroTier, then links to Bagian 1 and the Medium profile. It was scheduled for 2026-10-26 19:00 WIB.
   - Drafted and scheduled on LinkedIn on 2026-10-14 with `san_linkedin -profile basic`, one part a day: Oct 15–23 at 09:00 WIB, ids `7515830836538040320`, `7515832029804945409`, `7515832943517540352`, `7515834013509455872`, `7515834958448377856`, `7515835921230139392`, `7515836864059215872`, `7515837747853451264`, `7515838601587232768`. Each has its first image as cover and its subtitle as the post's text (see "Publishing to LinkedIn").
 - **Membuat Radio Live 24 Jam** (`create-live-radio/`), five parts written on 2026-10-13. It is based on our 24/7 music stream on a Raspberry Pi, which the articles never name; the program in the articles is `radioku`.
   - The code was written fresh in scratch modules `radioku2` … `radioku5` (Go 1.25, standard library only), each a copy of the one before. The article code blocks were filled from the tested files by script and checked: 13 full files, 25 excerpts.
@@ -136,6 +139,10 @@ Standalone articles:
   - Drafted and scheduled on 2026-10-15 on profile `basic`, each on the first free day after the radio series, at 09:00 WIB:
     - Medium on Oct 26, id `e028fda38dd6`, topics Programming, Software Architecture, RabbitMQ and Kafka.
     - LinkedIn on Oct 29, id `7516530380879855616`, with the first image as cover and the subtitle as the post's text. "Write article" opened nothing twice, so the tool opened its address, as its README describes.
+  - On Threads, as an eight-post thread, [threads/apa-itu-message-broker.md](message-broker/threads/apa-itu-message-broker.md), topic Programming.
+    - It covers the online-shop problem, the broker as a go-between, the anatomy, acks and delivery guarantees, RabbitMQ, Kafka and NATS, and the weaknesses with the simpler options.
+    - It has three of the article's diagrams, and the Medium link in its last post. The story was checked as still scheduled for Oct 26 09:00 before linking.
+    - Scheduled on 2026-10-24 for 2026-10-27 19:00 WIB.
 - **"Belajar Blender untuk aset game, dari kubus yang jatuh sampai gerbang yang simetris"** (`blender-aset-game/`), written 2026-10-17 from the user's first day of Blender lessons for game assets (summary in [chat_summary/blender_game_asset_basics.md](../chat_summary/blender_game_asset_basics.md)).
   - It covers why game assets must be light, the origin, rigid body (Active, Passive, the Animated tick), which objects need one, collision shapes, physics in a game engine (Godot's body types and import suffixes), a low-poly stone from an Ico Sphere, and the Mirror modifier, ending with "Kelemahan …".
   - No code. Blender facts were checked in Blender 5.2.2 on 2026-10-17: gravity 9.81, the eight Shape options, Convex Hull chosen when Rigid Body is added from the Physics tab, 80 faces for a default Ico Sphere, Merge on and Clipping off by default, the glTF exporter's Apply Modifiers off by default. Quotes on Mesh and Convex Hull come from the Blender 5.2 manual's Collisions page; Godot names from the Godot 4.7 docs (physics introduction, node type customization using name suffixes).
@@ -232,6 +239,24 @@ How the article changes on LinkedIn:
 - Inline code becomes plain text when LinkedIn saves, and code blocks lose their language.
 - The cover is up to us; both series use each article's first image. The post that shares the article carries the subtitle as its text.
 - Times are on the quarter hour, in the zone LinkedIn takes from the profile's location (Western Indonesia Time).
+
+## Publishing to Threads
+
+An article goes to Threads as a thread that leads to it, not as the article itself: a post holds at most 500 characters. `golang/apps/san_remote` schedules the thread through the user's own Chrome (`san_remote threads`; its [docs/readme.md](../../golang/apps/san_remote/docs/readme.md#threads) has the details).
+
+- **The thread file** sits next to its article in `<topic>/threads/`, named after the part: `create-own-vpn/threads/bagian-1-apa-itu-vpn.md`.
+  - Its frontmatter holds `at:` and `topic:`, the first post's topic, which Threads must suggest.
+  - Posts are separated by lines holding only `---`. Diagrams come from the article's `assets/` as `![](../assets/<name>.png)`.
+- **The content:**
+  - About 6–8 posts: a hook, the article's main points in the article's own words and facts, one or two of its diagrams, then a last post that names the series and links to the article on Medium.
+  - Indonesian, foreign terms as in the wordlist, no emoji, no hashtags in the text (the topic is the tag), and educational only, as the article is.
+- **No AI label.** The articles are the user's own ideas (the user, 2026-10-24).
+- **The steps:**
+  1. `threads post --dry-run <file>` shows each post and its length.
+  2. The user approves the text and the time.
+  3. `threads post <file>` schedules it.
+  4. `threads scheduled` lists what is waiting.
+- **Code** is not posted: Threads has no code formatting. The code-heavy parts of a series become a link, or one recap thread.
 
 ## Knowledge graph
 

@@ -1,0 +1,17 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/wargasipil/san_tower/gen
+plugins:
+  - local: protoc-gen-go
+    out: gen
+    opt: paths=source_relative
+  - local: protoc-gen-connect-go
+    out: gen
+    opt: paths=source_relative
+  # The UI's client (typescripts/san_tower_frontend).
+  - local: protoc-gen-es
+    out: ../../../typescripts/san_tower_frontend/src/gen
+    opt: target=ts

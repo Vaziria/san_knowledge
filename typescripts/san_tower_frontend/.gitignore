@@ -1,0 +1,2 @@
+node_modules/
+# The build goes to golang/apps/san_tower/internal/web/dist (see vite.config.ts).

@@ -1,0 +1,8 @@
+# Build output (build.sh / build.ps1 write both platform binaries here)
+bin/
+# The tower's data (--data): the San Message broker's topics and logs
+data/
+# The UI build (typescripts/san_tower_frontend), embedded with go:embed.
+# .gitkeep lets it compile before the first UI build.
+internal/web/dist/*
+!internal/web/dist/.gitkeep

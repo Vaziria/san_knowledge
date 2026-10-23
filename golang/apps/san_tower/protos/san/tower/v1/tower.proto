@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// TowerService is called by the tower's UI (typescripts/san_tower_frontend)
+// and its CLI. For now it only says the tower is up; what the tower watches
+// comes later.
+service TowerService {
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+}
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+  // version is the build stamp of the running san_tower.
+  string version = 1;
+  string hostname = 2;
+  google.protobuf.Timestamp started_at = 3;
+}

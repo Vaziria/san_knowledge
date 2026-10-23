@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>San Tower logo candidates</title>
+<style>
+  body { margin: 0; padding: 20px; font: 14px/1.4 system-ui, sans-serif; background: #fff; color: #111; }
+  h1 { font-size: 18px; margin: 0 0 14px; }
+  .row { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 12px; align-items: stretch; margin-bottom: 12px; }
+  .info b { display: block; font-size: 15px; }
+  .info span { color: #555; }
+  .strip { display: flex; align-items: center; gap: 18px; padding: 10px 16px; border-radius: 10px; }
+  .light { background: #f4f4f5; }
+  .dark { background: #18181b; }
+</style>
+</head>
+<body>
+<h1>San Tower logo candidates (16, 32, 64, 128 px on light and dark)</h1>
+<div id="rows"></div>
+<script>
+  const candidates = [
+    ['candidate-1-watchtower.svg', '1. Watchtower', 'A lookout cabin on legs: the tower that watches.'],
+    ['candidate-2-eye.svg', '2. Eye', 'An open eye: sees everything in the project.'],
+    ['candidate-3-radar.svg', '3. Radar', 'A radar sweep with a blip: scans and spots activity.'],
+    ['candidate-4-lighthouse.svg', '4. Lighthouse', 'A lighthouse beaming both ways: watches and signals.'],
+    ['candidate-5-signal-stack.svg', '5. Signal stack', 'Stacked log bars broadcasting: tower plus message broker.'],
+  ];
+  const sizes = [16, 32, 64, 128];
+  const strip = (cls, file) =>
+    `<div class="strip ${cls}">${sizes.map((s) => `<img src="${file}" width="${s}" height="${s}" alt="">`).join('')}</div>`;
+  document.getElementById('rows').innerHTML = candidates
+    .map(([file, name, idea]) => `<div class="row"><div class="info"><b>${name}</b><span>${idea}</span></div>${strip('light', file)}${strip('dark', file)}</div>`)
+    .join('');
+</script>
+</body>
+</html>

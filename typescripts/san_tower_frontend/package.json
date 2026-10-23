@@ -1,0 +1,29 @@
+{
+  "name": "san-tower-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck": "tsc",
+    "gen": "cd ../../golang/apps/san_tower && buf generate && buf generate --template buf.gen.san_message.yaml"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.16.0",
+    "@chakra-ui/react": "^3.37.0",
+    "@connectrpc/connect": "^2.2.0",
+    "@connectrpc/connect-web": "^2.2.0",
+    "@emotion/react": "^11.14.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router": "^8.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  }
+}

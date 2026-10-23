@@ -1,0 +1,10 @@
+# The UI's client for San Message's MessageService, which the tower mounts.
+# The Go side uses san_message's own generated code, so this is TS only.
+#   buf generate --template buf.gen.san_message.yaml
+version: v2
+inputs:
+  - directory: ../../packages/san_message/protos
+plugins:
+  - local: protoc-gen-es
+    out: ../../../typescripts/san_tower_frontend/src/gen
+    opt: target=ts

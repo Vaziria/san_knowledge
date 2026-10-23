@@ -1,0 +1,3 @@
+node_modules/
+# Build output: load this folder unpacked in chrome://extensions
+dist/

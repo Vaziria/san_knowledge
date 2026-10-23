@@ -1,0 +1,20 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/wargasipil/san_remote/gen
+plugins:
+  - local: protoc-gen-go
+    out: gen
+    opt: paths=source_relative
+  - local: protoc-gen-connect-go
+    out: gen
+    opt: paths=source_relative
+  # The extension's client (typescripts/san_remote_extension). It only talks
+  # BrowserService; site services such as Threads stay on the Go side.
+  - local: protoc-gen-es
+    out: ../../../typescripts/san_remote_extension/src/gen
+    opt: target=ts
+    exclude_types:
+      - san.remote.threads.v1

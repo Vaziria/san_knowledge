@@ -1,0 +1,202 @@
+syntax = "proto3";
+
+package san.remote.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// BrowserService is called by the San Remote extension in the user's browser.
+// A browser can only make unary and server-streaming calls, so the server's
+// commands travel down the Attach stream, and the browser answers each one
+// with Reply.
+service BrowserService {
+  // Attach registers the browser and streams commands to it until it goes
+  // away. A ping comes first, then every 20s, which keeps the extension's
+  // service worker alive.
+  rpc Attach(AttachRequest) returns (stream AttachResponse);
+  // Reply answers one command.
+  rpc Reply(ReplyRequest) returns (ReplyResponse);
+}
+
+// RemoteService is called by the CLI and the MCP server. Each call is passed
+// to one attached browser and waits for its answer.
+service RemoteService {
+  rpc ListBrowsers(ListBrowsersRequest) returns (ListBrowsersResponse);
+  rpc ListTabs(ListTabsRequest) returns (ListTabsResponse);
+  rpc OpenTab(OpenTabRequest) returns (OpenTabResponse);
+  rpc Navigate(NavigateRequest) returns (NavigateResponse);
+  rpc CloseTab(CloseTabRequest) returns (CloseTabResponse);
+  rpc FocusTab(FocusTabRequest) returns (FocusTabResponse);
+  rpc Screenshot(ScreenshotRequest) returns (ScreenshotResponse);
+  rpc Exec(ExecRequest) returns (ExecResponse);
+}
+
+message AttachRequest {
+  // Random, made by the extension once and kept.
+  string browser_id = 1;
+  // Shown in lists and used to pick a browser: "Chrome", "Edge", or what the
+  // user set in the extension.
+  string name = 2;
+  string user_agent = 3;
+  string extension_version = 4;
+}
+
+// AttachResponse is one command for the browser, or a ping.
+message AttachResponse {
+  // Sent back in the ReplyRequest. Empty on a ping.
+  string command_id = 1;
+  oneof command {
+    Ping ping = 2;
+    ListTabsRequest list_tabs = 3;
+    OpenTabRequest open_tab = 4;
+    NavigateRequest navigate = 5;
+    CloseTabRequest close_tab = 6;
+    ExecRequest exec = 7;
+    FocusTabRequest focus_tab = 8;
+    ScreenshotRequest screenshot = 9;
+  }
+}
+
+message Ping {}
+
+message ReplyRequest {
+  string command_id = 1;
+  oneof result {
+    // The command failed: a message, with the JavaScript stack when there is one.
+    string error = 2;
+    ListTabsResponse list_tabs = 3;
+    OpenTabResponse open_tab = 4;
+    NavigateResponse navigate = 5;
+    CloseTabResponse close_tab = 6;
+    ExecResponse exec = 7;
+    FocusTabResponse focus_tab = 8;
+    ScreenshotResponse screenshot = 9;
+  }
+}
+
+message ReplyResponse {}
+
+message Browser {
+  string id = 1;
+  string name = 2;
+  string user_agent = 3;
+  string extension_version = 4;
+  google.protobuf.Timestamp attached_at = 5;
+}
+
+message Tab {
+  int32 id = 1;
+  int32 window_id = 2;
+  int32 index = 3;
+  bool active = 4;
+  string url = 5;
+  string title = 6;
+  // "loading" or "complete".
+  string status = 7;
+}
+
+message ListBrowsersRequest {}
+
+message ListBrowsersResponse {
+  repeated Browser browsers = 1;
+}
+
+// In every request below, browser is the id or name of the browser to use,
+// and may be empty when only one is attached. A tab_id of 0 is the active tab
+// of the focused window.
+
+message ListTabsRequest {
+  string browser = 1;
+}
+
+message ListTabsResponse {
+  repeated Tab tabs = 1;
+}
+
+message OpenTabRequest {
+  string browser = 1;
+  string url = 2;
+  // Open it without switching to it.
+  bool background = 3;
+  // How long to wait for the page to load; 0 is 30s.
+  int32 timeout_ms = 4;
+  // Also bring the browser window to the front, so the tab is seen.
+  bool focus = 5;
+  // Open it in a new window of its own, the size of the current one, instead
+  // of a tab of the current one.
+  bool new_window = 6;
+}
+
+message OpenTabResponse {
+  Tab tab = 1;
+}
+
+message NavigateRequest {
+  string browser = 1;
+  int32 tab_id = 2;
+  string url = 3;
+  // How long to wait for the page to load; 0 is 30s.
+  int32 timeout_ms = 4;
+}
+
+message NavigateResponse {
+  Tab tab = 1;
+}
+
+message CloseTabRequest {
+  string browser = 1;
+  // Required: closing does not default to the active tab.
+  int32 tab_id = 2;
+}
+
+message CloseTabResponse {}
+
+// FocusTabRequest makes a tab the active one of its window and brings the
+// window to the front, restoring it when minimized. A page that is not shown
+// is throttled hard by Chrome, so a site the tool works in must stay shown.
+message FocusTabRequest {
+  string browser = 1;
+  int32 tab_id = 2;
+}
+
+message FocusTabResponse {
+  Tab tab = 1;
+}
+
+// ScreenshotRequest captures what a tab shows. The tab is made the active one
+// of its window first.
+message ScreenshotRequest {
+  string browser = 1;
+  int32 tab_id = 2;
+}
+
+message ScreenshotResponse {
+  bytes png = 1;
+}
+
+enum World {
+  // The isolated world.
+  WORLD_UNSPECIFIED = 0;
+  // The extension's own world: it sees the page's DOM but not its JavaScript,
+  // and the page cannot see it.
+  WORLD_ISOLATED = 1;
+  // The page's own world: it sees the page's JavaScript globals, and the page
+  // can see it.
+  WORLD_MAIN = 2;
+}
+
+message ExecRequest {
+  string browser = 1;
+  int32 tab_id = 2;
+  // The body of an async function: `return document.title`, `await ...`.
+  string code = 3;
+  World world = 4;
+  // 0 is 30s.
+  int32 timeout_ms = 5;
+}
+
+message ExecResponse {
+  // What the code returned, as JSON ("null" when it returned nothing).
+  string result_json = 1;
+  // The tab it ran in.
+  Tab tab = 2;
+}

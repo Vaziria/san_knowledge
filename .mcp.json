@@ -10,6 +10,11 @@
       "command": "golang/apps/autotrade/bin/autotrade",
       "args": ["mcp", "run"]
     },
+    "san_remote": {
+      "type": "stdio",
+      "command": "golang/apps/san_remote/bin/san_remote",
+      "args": ["mcp"]
+    },
     "blender": {
       "type": "stdio",
       "command": "uvx",

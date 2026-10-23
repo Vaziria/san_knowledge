@@ -1,0 +1,375 @@
+# san_remote
+
+Runs JavaScript in your own browser, the one you use every day and are
+signed in to. The San Remote extension
+([typescripts/san_remote_extension](../../../../typescripts/san_remote_extension))
+sits in Chrome or Edge and attaches to `san_remote serve` on this computer.
+The CLI and the MCP server send the server JavaScript to run in a tab, plus
+tab commands, and the extension runs them and sends back the result.
+
+```
+san_remote exec / MCP ──RemoteService──▶ san_remote serve ◀──BrowserService── extension ──▶ tab
+                                          127.0.0.1:7476      (Connect RPC)      userScripts.execute
+```
+
+Unlike the chromedp tools (`san_tiktok`, `san_medium`, …), there is no
+separate Chrome, no debugging port and no `browser_profiles/` profile: it is
+your real browser with your real sign-ins.
+
+Why it is built this way is in the design doc,
+[docs/external_repo/san_remote.md](../../../../docs/external_repo/san_remote.md).
+
+Module `github.com/wargasipil/san_remote`, Go 1.26.
+
+## Install
+
+You need:
+- Go 1.26
+- Node 24 with npm
+- Chrome or Edge 135 or newer
+- buf, `protoc-gen-go`, `protoc-gen-connect-go` and `protoc-gen-es`, only to
+  regenerate code from the proto
+
+1. Build the server: `pwsh build.ps1` (or `bash build.sh`) in
+   `golang/apps/san_remote`. It vets, tests, and writes `bin/san_remote.exe`
+   and `bin/san_remote`.
+2. Build the extension: in `typescripts/san_remote_extension`, run
+   `npm install`, then `npm run build`. It writes `dist/`.
+3. Load it:
+   1. Open `chrome://extensions` (Edge: `edge://extensions`).
+   2. Turn on **Developer mode**.
+   3. Choose **Load unpacked** and pick `typescripts/san_remote_extension/dist`.
+4. On the San Remote card, open **Details** and turn on **Allow User
+   Scripts**. Without it the extension attaches but cannot run JavaScript,
+   and its popup says so.
+
+## Quickstart
+
+```powershell
+cd golang/apps/san_remote
+bin\san_remote.exe serve            # leave it running in its own terminal
+```
+
+The extension attaches within 30s, or at once when you open its popup. The
+popup shows **Connected**. Then:
+
+```powershell
+bin\san_remote.exe browsers                       # Chrome, attached
+bin\san_remote.exe tabs                           # its tabs
+bin\san_remote.exe exec 'return document.title'   # the active tab's title
+```
+
+To see it end to end, `$env:SAN_REMOTE_E2E=1; go test ./e2e -v` searches
+Google for "cute cat" in your browser (see Development).
+
+## CLI
+
+```powershell
+bin\san_remote.exe serve                          # the server; 127.0.0.1:7476
+bin\san_remote.exe browsers                       # attached browsers
+bin\san_remote.exe tabs                           # id, window, active, title, url
+bin\san_remote.exe exec 'return document.title'   # in the active tab
+bin\san_remote.exe exec --tab 123 --world main --timeout 10s 'return window.ytInitialData?.responseContext'
+Get-Content script.js | bin\san_remote.exe exec -
+bin\san_remote.exe exec --file script.js
+bin\san_remote.exe open https://example.com       # new tab, waits for the load
+bin\san_remote.exe open --focus https://example.com   # and brings the window to the front
+bin\san_remote.exe open --background https://example.com
+bin\san_remote.exe open --new-window https://example.com   # a window of its own, the size of the current one
+bin\san_remote.exe navigate --tab 123 https://example.com
+bin\san_remote.exe close --tab 123
+bin\san_remote.exe focus --tab 123                # make it the active tab, window to the front
+bin\san_remote.exe screenshot --tab 123 -o shot.png
+bin\san_remote.exe threads ...                    # Threads: see "Threads" below
+bin\san_remote.exe mcp                            # MCP on stdio, for Claude
+```
+
+**exec.** The code is the body of an async function, so `return` gives the
+result and `await` works. The result is printed as JSON. DOM nodes don't
+survive JSON, so return their text or attributes.
+- An exception comes back as an error with its stack.
+- A syntax error comes back as the `SyntaxError`.
+- Without `--tab` the code runs in the active tab of the window you used
+  last.
+
+`--world`:
+- `isolated` (default): the extension's own world. It sees the page's DOM
+  but not its JavaScript globals, and the page cannot see it.
+- `main`: the page's own world, with its globals (`window.ytInitialData`,
+  the app's state). The page can see what you do there.
+
+Both work on pages with a strict CSP or Trusted Types: the browser injects
+the code, not `eval`.
+
+**open, navigate.** These wait until the tab has finished loading.
+JavaScript that navigates away loses its result, so navigate with
+`navigate`, then `exec`.
+
+A new tab becomes the active tab of its window, but the window stays behind
+whatever you are working in. `--focus` brings it to the front, for when you
+want to watch. Windows can refuse and only flash its taskbar button.
+
+**A page that is not shown stalls.** Chrome throttles a hidden page hard:
+- Animation frames stop, so menus that wait for one never open.
+- After about 5 minutes hidden, timers fire at most once a minute.
+
+Reading a page works in a background tab. Anything that clicks through a
+site's interface needs its tab in front, which `focus` restores.
+
+**close** always needs `--tab`: it never defaults to the active tab.
+
+## MCP
+
+`.mcp.json` registers `san_remote mcp` as the `san_remote` server. It is a
+client of `san_remote serve` like the CLI, so start `serve` first. After
+rebuilding, reconnect with `/mcp`.
+
+| Tool | Arguments |
+|---|---|
+| `remote_browsers` | |
+| `remote_tabs` | browser |
+| `remote_open` | url, background, focus, browser, timeout_ms |
+| `remote_navigate` | url, tab_id, browser, timeout_ms |
+| `remote_close` | tab_id, browser |
+| `remote_focus` | tab_id, browser |
+| `remote_screenshot` | tab_id, browser; returns the image |
+| `remote_exec` | code, tab_id, world (`isolated`/`main`), browser, timeout_ms |
+| `threads_status`, `threads_scheduled` | browser |
+| `threads_post` | file, or text with media; topic, at, now, browser |
+| `threads_reschedule` | match, at, to, browser |
+| `threads_unschedule` | match, at, browser |
+| `threads_posts` | limit, browser |
+
+The server's instructions tell Claude it is your real browser, and to ask
+you before it submits forms, posts, buys or deletes anything. They also say
+to schedule only what you asked for, and never to post now unless you asked.
+
+## Threads
+
+`san_remote threads` posts to Threads through your browser's Threads
+session, the way you would in the composer:
+- It pastes each post, picks the topic from Threads' suggestions, attaches
+  the images or videos, and schedules the thread.
+- Threads then publishes it by itself, even when this computer is off.
+- Scheduled threads live in the composer's Drafts, where they are listed,
+  moved and deleted.
+
+Threads' API is not used: it needs a registered Meta app, takes media only
+from a public URL, and cannot schedule.
+
+```powershell
+bin\san_remote.exe threads status                               # signed in as @archetipe__
+bin\san_remote.exe threads post --dry-run thread.md             # the posts and their lengths; opens nothing
+bin\san_remote.exe threads post thread.md                       # Posting on Sun 25 Oct at 19:00 GMT+7
+bin\san_remote.exe threads post --at "2026-11-22 09:00" --text "Satu post" --media pic.png
+bin\san_remote.exe threads scheduled                            # AT, TEXT: soonest first
+bin\san_remote.exe threads reschedule --match "Uji jadwal" "2026-11-23 10:00"
+bin\san_remote.exe threads unschedule --match "Uji jadwal" --at "2026-11-23 10:00"
+bin\san_remote.exe threads posts --limit 10                     # your published posts: time, link, text
+```
+
+**The thread file:**
+
+```markdown
+---
+at: 2026-10-25 19:00
+topic: VPN
+---
+
+The first post. Line breaks are kept.
+
+![](../assets/diagram.png)
+
+---
+
+The second post, under the first one.
+```
+
+- **`at`** is local time, `"2006-01-02 15:04"`, or RFC 3339. It must be a
+  whole minute, 15 minutes to 90 days ahead. `--at` overrides it.
+- **`topic`** is the first post's topic. It must be one of Threads'
+  suggestions for it; `--topic` overrides it.
+- **`---`** on a line of its own starts the next post.
+- **`![](file)`** puts an image or video in the post it is in, relative to
+  the file. Threads takes jpg, png, webp, avif, mp4, mov and webm, but not
+  gif.
+- **Limits:** 500 characters and 20 media per post.
+- **Write it in Indonesian,** like the articles. Thread files sit next to
+  their article, in `docs/articles/<topic>/threads/`.
+
+`--now` publishes at once, publicly, instead of scheduling. No AI label is
+ever added: the articles are your own ideas.
+
+**Naming a scheduled thread.** `reschedule` and `unschedule` name one by
+`--match` (part of its first post's text), `--at` (its time), or both. Those
+must name exactly one, or nothing is done. Threads deletes without asking,
+so check the name with `scheduled` first.
+
+**While it runs:**
+- `post`, `scheduled`, `reschedule` and `unschedule` open a tab of their own
+  in your current Chrome window and bring Chrome to the front. Leave it alone
+  until the command is done: a click or a key there lands in Threads.
+- If you switch away anyway, the tool brings the window back.
+- `status` and `posts` only read, in a background tab.
+- Each step is printed to stderr as `== …`.
+- A failed step stops with a screenshot of the tab in the temp folder: `,
+  screenshot C:\…\san_remote-threads-150405.png`.
+
+**How it runs.** The Threads steps run in the process of the CLI or the MCP
+server, and drive the browser through `serve`'s ordinary tab and exec
+commands. A change to them needs only a rebuild (and `/mcp` for the MCP
+server), never a `serve` restart or an extension reload. Two processes do not
+wait for each other, so run one Threads command at a time.
+
+## Debug panel
+
+The extension keeps a log of every command the server sends and the reply
+it gives. Open it with **Open debug panel** in the popup, or from Chrome's
+side panel menu (San Remote). It stays to the right of the page while you
+browse.
+
+Each entry shows:
+- the kind (`exec`, `openTab`, `navigate`, `closeTab`, `listTabs`)
+- running, ok or error, and how long it took
+- the time and a one-line summary: tab, world, url
+- the code, or the command as JSON
+- the result as JSON, or the error with its stack
+
+New entries arrive live at the top. The header shows the server and the
+time of its last ping, which arrives every 20s while connected. **Clear**
+empties the log.
+
+The log keeps the last 200 commands, with each code or result cut at 20,000
+characters, in `chrome.storage.session`. That storage survives the service
+worker stopping and is emptied when the browser closes. Pings are not
+logged.
+
+## Configuration
+
+| Where | Setting | Default |
+|---|---|---|
+| `serve --listen` | address to listen on, loopback only | `127.0.0.1:7476` |
+| `serve --extension-id` | extension ids allowed to attach (repeatable) | `kmlmiiljeiakjbilabmpdiegmoagkmkg` |
+| `serve --log-level` | debug, info, warn, error | `info` |
+| `--server`, `$SAN_REMOTE_SERVER` | where the CLI and MCP find `serve` | `http://127.0.0.1:7476` |
+| `--browser`, `$SAN_REMOTE_BROWSER` | browser id or name, when several are attached | |
+| `--timeout` (exec, open, navigate) | how long to wait for the browser | `30s` |
+| extension popup: Server | where the extension finds `serve` | `http://127.0.0.1:7476` |
+| extension popup: Browser name | name shown in `browsers`, used by `--browser` | `Chrome` or `Edge` |
+
+Changing the server or the name in the popup reconnects at once.
+
+## Security
+
+Anything that can send commands can act as you on every site you are signed
+in to, so the server is kept to this computer:
+
+- `serve` refuses a non-loopback `--listen` address.
+- Requests must have a loopback `Host`, against DNS rebinding.
+- Only the San Remote extension may attach. Its id is fixed by the `key` in
+  its `manifest.json` and checked against the `Origin` header. Other
+  extensions and web pages can neither attach nor read the commands.
+- The CLI and MCP side refuses any request with an `Origin`, so web pages
+  cannot send commands.
+
+There is no token, because a local process running as you could read the
+browser's cookies anyway. Reaching the server from another machine would
+need a token and TLS first.
+
+## Troubleshooting
+
+| What you see | What to do |
+|---|---|
+| `san_remote is not running at http://127.0.0.1:7476` | Start `san_remote serve`. |
+| `no browser is attached` | Open the extension's popup. It retries at once and shows why it can't connect: a wrong server URL, or `serve` not running. |
+| popup: **Allow User Scripts is off** | Use its button to open the details page and turn the toggle on. |
+| `several browsers are attached, pick one` | Add `--browser <name or id>`; `san_remote browsers` lists them. |
+| `Frame with ID 0 is showing error page`, or cannot access a page | Chrome won't let extensions run code on its error pages, `chrome://` pages or the Web Store. Load a normal page first. |
+| `the code did not finish in 30000ms` | Raise `--timeout`. The code may still be running in the page. |
+| `the page did not finish loading` | The page kept loading past the timeout. Raise `--timeout`, or `exec` anyway: the tab is there. |
+| it ran, but nothing showed up | The tab opened in a window behind your other apps. Use `open --focus`, or look at the debug panel. |
+| the extension still acts the old way after `npm run build` | Press reload on its card in `chrome://extensions`. |
+| the CLI or MCP still acts the old way after `build.ps1` | A running `serve` or `mcp` keeps the old binary; restart it (`/mcp` for MCP). Windows won't overwrite a running exe, so move it to `bin/san_remote.exe~` first. |
+| threads: `waited … for …`, with a screenshot | A Threads step did not see what it expected. Look at the screenshot: a dialog in the way, a change in Threads' page, or the tab hidden. |
+| threads: `the arrow keys never reached the suggestion` | Threads does not suggest that topic. The error lists what it does suggest; pick one of those. |
+| threads: `the browser is not signed in to Threads` | Sign in to Threads (with Instagram) in that browser. |
+| threads: `several scheduled threads match` | Make `--match` longer, or add `--at`. |
+
+## Development
+
+```powershell
+pwsh build.ps1                                  # vet, test, build both binaries
+cd ../../../typescripts/san_remote_extension
+npm run build                                   # typecheck + build dist/
+npm run dev                                     # rebuild on change; reload the extension
+npm run gen                                     # buf generate: Go in gen/, TS in src/gen/
+```
+
+After a proto change, run `npm run gen`, rebuild both sides, and reload the
+extension. The extension talks binary protobuf, which skips fields it
+doesn't know, so a newer server keeps working with an extension that has
+not been reloaded yet.
+
+**Tests.**
+- `go test ./...` runs the hub, the CLI and the MCP server against fake
+  browsers (`internal/hubtest`) that attach over Connect as the extension
+  does.
+- `e2e/` drives your real browser through a running `serve`. It is skipped
+  unless `SAN_REMOTE_E2E=1`:
+  ```powershell
+  $env:SAN_REMOTE_E2E=1; go test ./e2e -v
+  ```
+  `TestGoogleSearch` opens google.com with the window brought to the front.
+  It types "cute cat" into the search box key by key, submits it, checks the
+  results page's query and titles, and leaves the tab open.
+- `TestThreadsSchedule` needs `SAN_REMOTE_E2E_THREADS=1` too, since it
+  touches your Threads account:
+  1. It schedules a two-post test thread 30 days ahead, with a topic and an
+     image.
+  2. It finds the thread among the scheduled ones, moves it a day later, and
+     deletes it.
+
+  Its cleanup deletes the test thread even when a step fails. Nothing is ever
+  posted now.
+
+**A throwaway browser.** To test the extension without your own browser,
+start a headless Chrome on a temp profile with `--remote-debugging-pipe
+--enable-unsafe-extension-debugging`. Then:
+1. Load `dist/` with the CDP command `Extensions.loadUnpacked`.
+2. On `chrome://extensions`, turn on user scripts with
+   `chrome.developerPrivate.updateExtensionConfiguration({extensionId,
+   userScriptsAccess: true})`.
+
+Give it its own server (`serve --listen 127.0.0.1:7499`, with the
+extension's default server changed to match in a copy of `dist/`).
+Otherwise it attaches to your `serve` as a second browser.
+
+The layout of the code is in the design doc.
+
+## Limitations
+
+- Clicks and key events made from JavaScript (`el.click()`,
+  `dispatchEvent`) have `isTrusted: false`. Most sites accept them; some
+  upload or anti-bot flows don't.
+- Chrome's error pages, `chrome://` pages and the Web Store can't run code.
+- Only the top frame of a tab runs code.
+- The extension is loaded unpacked. The Web Store does not allow extensions
+  that run remote code.
+- It is local only.
+- **Threads:**
+  - Threads' interface must be in English: the tool finds its controls by
+    their English names ("New thread", "Schedule...", "Done").
+  - A redesign of the composer breaks a step, and the tool stops there with
+    a screenshot.
+  - Not done: GIFs, stickers, polls, quote posts, attached text, location,
+    music, the AI label, reply settings, and editing a scheduled thread's
+    text.
+
+## See also
+
+- [docs/external_repo/san_remote.md](../../../../docs/external_repo/san_remote.md):
+  the design and the reasons for it
+- [typescripts/san_remote_extension/README.md](../../../../typescripts/san_remote_extension/README.md):
+  the extension's files
+- [docs/external_repo/san_gpt.md](../../../../docs/external_repo/san_gpt.md):
+  the CDP approach this is the alternative to

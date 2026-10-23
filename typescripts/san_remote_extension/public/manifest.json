@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "San Remote",
+  "version": "0.1.0",
+  "description": "Runs JavaScript sent by a san_remote server on this computer in this browser's tabs.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmyHsrHOmDnku+ULZXxokkNE3uXfA/cSOjJA95B8NZpP4dKQF03NAw2KqLlao4ICINES0u8WrfDFCS0way5lhqHiirUxu3KPyiEcZCvHE4ctbNTpVsy389k61XSXTGrBQ1thsvv6UBKEpRZ0YykU7RcI2qLdmdxDVwzGHosyvbYXa+0CSATYsUOSLc3iO39t9Ehuk4MhLO3IiSxO0pDJadUcDf6aS+ZVP7H5DoFlPeRLMsYxCmhxrJcQ1ENpXNzfVg+KDZwO0XyTlWwm3RnNPtj4hcXfVJCOyVPY3W/nQNuA5CMpyw9mGZB6Y8LE8mzss0zx7mv08upACgp4uJCcofwIDAQAB",
+  "minimum_chrome_version": "135",
+  "background": { "service_worker": "background.js", "type": "module" },
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
+  "action": {
+    "default_title": "San Remote",
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png" }
+  },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "permissions": ["userScripts", "tabs", "alarms", "storage", "sidePanel"],
+  "host_permissions": ["<all_urls>"]
+}

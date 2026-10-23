@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package san.remote.threads.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// The data of the Threads service (internal/threads), which posts to Threads
+// through the user's own browser the way a person does it in the composer.
+// The service runs in the process of the CLI or the MCP server and reaches
+// the browser through RemoteService, so these are its arguments and results,
+// not the messages of an RPC service.
+
+// Status says whether the browser is signed in to Threads, and as whom.
+message Status {
+  bool signed_in = 1;
+  // The handle, without the @.
+  string username = 2;
+}
+
+// Post is one post of a thread.
+message Post {
+  // Plain text, newlines kept; at most 500 characters.
+  string text = 1;
+  // The post's topic, picked from Threads' suggestions.
+  string topic = 2;
+  // Images or videos, in this order; at most 20.
+  repeated Media media = 3;
+}
+
+message Media {
+  // The file name; its extension gives the type (jpg, png, webp, avif, mp4,
+  // mov, webm).
+  string name = 1;
+  bytes data = 2;
+}
+
+message PostRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+  // The first post, and each next one under it.
+  repeated Post posts = 2;
+  // When Threads publishes it: a whole minute, 15 minutes to 90 days ahead.
+  google.protobuf.Timestamp at = 3;
+  // Publish at once instead, publicly. at must then be unset.
+  bool now = 4;
+}
+
+message PostResult {
+  // The time Threads showed for it, as Threads wrote it:
+  // "Posting on Sun 22 Nov at 09:00 GMT+7". Empty when posted now.
+  string shown = 1;
+  google.protobuf.Timestamp at = 2;
+}
+
+// ScheduledPost is a thread waiting in Drafts to be published.
+message ScheduledPost {
+  google.protobuf.Timestamp at = 1;
+  string shown = 2;
+  // The first post's text.
+  string text = 3;
+}
+
+// PublishedPost is one of the account's own posts, from its profile.
+message PublishedPost {
+  string url = 1;
+  google.protobuf.Timestamp at = 2;
+  string text = 3;
+}

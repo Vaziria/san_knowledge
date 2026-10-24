@@ -32,12 +32,14 @@ to compare them at 16 to 128 px). None is used in the app yet.
     creates them, and deletes those without subscribers. The Subscribers tab
     lists subscribers (type, webhook URI or whether a pull subscriber is
     connected, where it is in the log, failed attempts and the next retry),
-    filtered by topic, and creates and deletes them. The tab and the topic
+    filtered by topic, and creates and deletes them. The Settings tab sets
+    the broker's data directory (BrokerService); saving a new one asks
+    first, then switches the broker to that folder. The tab and the topic
     are in the URL (`?tab=subscribers&topic=orders`). It reloads after each
     change and on Refresh.
   - `NotFound.tsx`.
 - `src/ui.tsx`: the toaster, and `FormDialog`, a form in a modal that shows
   the server's error and closes when it succeeds.
-- `src/api.ts`: the TowerService and MessageService clients, same origin as
-  the page, and `errorText`.
+- `src/api.ts`: the TowerService, BrokerService and MessageService clients,
+  same origin as the page, and `errorText`.
 - `src/gen/`: generated from the protos; do not edit.

@@ -1,14 +1,15 @@
-import { Badge, Button, HStack, Heading, Input, NativeSelect, Stack, Table, Tabs, Text } from '@chakra-ui/react';
+import { Badge, Button, Code, HStack, Heading, Input, NativeSelect, Stack, Table, Tabs, Text } from '@chakra-ui/react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
-import { broker, errorText } from '../api';
+import { broker, brokerSettings, errorText } from '../api';
 import { SubscriberType, type Subscriber, type Topic } from '../gen/san/message/v1/message_pb';
+import type { BrokerState } from '../gen/san/tower/v1/broker_pb';
 import { FormDialog, FormField, toast } from '../ui';
 
 // MessageBroker manages the San Message broker the tower runs
-// (golang/packages/san_message): its topics and their subscribers. The tab is
-// in the URL (?tab=subscribers), and so is the subscriber list's topic
-// (?topic=orders), so a view can be linked to.
+// (golang/packages/san_message): its topics and their subscribers, and its
+// settings. The tab is in the URL (?tab=subscribers), and so is the
+// subscriber list's topic (?topic=orders), so a view can be linked to.
 export function MessageBroker() {
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') ?? 'topics';
@@ -50,12 +51,16 @@ export function MessageBroker() {
           <Tabs.Trigger value="subscribers">
             Subscribers <Badge size="sm">{subscribers?.length ?? 0}</Badge>
           </Tabs.Trigger>
+          <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="topics">
           <Topics topics={topics} reload={load} onShowSubscribers={showSubscribers} />
         </Tabs.Content>
         <Tabs.Content value="subscribers">
           <Subscribers topics={topics} subscribers={subscribers} topic={topic} onTopic={showSubscribers} reload={load} />
+        </Tabs.Content>
+        <Tabs.Content value="settings">
+          <Settings reload={load} />
         </Tabs.Content>
       </Tabs.Root>
     </Stack>
@@ -371,5 +376,88 @@ function CreateSubscriber({
         It starts at the end of the topic's log, so it gets only events published from now on.
       </Text>
     </FormDialog>
+  );
+}
+
+// ----------------------------------------------------------- settings ---
+
+// Settings sets the broker's data folder. Saving a new one switches the
+// broker to it (BrokerService.UpdateBrokerSettings); nothing is moved.
+function Settings({ reload }: { reload: () => Promise<void> }) {
+  const [state, setState] = useState<BrokerState>();
+  const [dataDir, setDataDir] = useState('');
+  const [error, setError] = useState('');
+  const [confirming, setConfirming] = useState(false);
+
+  const show = (s?: BrokerState) => {
+    setState(s);
+    setDataDir(s?.settings?.dataDir ?? '');
+  };
+  useEffect(() => {
+    brokerSettings.getBrokerSettings({}).then(
+      (r) => show(r.state),
+      (err: unknown) => setError(errorText(err)),
+    );
+  }, []);
+
+  if (error) return <Text color="fg.error">{error}</Text>;
+  if (!state) return <Text color="fg.muted">Loading...</Text>;
+  const changed = dataDir.trim() !== (state.settings?.dataDir ?? '');
+  return (
+    <Stack gap="4" maxW="2xl">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (changed) setConfirming(true);
+        }}
+      >
+        <Stack gap="4">
+          <FormField
+            label="Data directory"
+            help={`Where the broker keeps its topics, subscribers and event logs. Empty for the default, ${state.defaultDataPath}. A relative path is inside the tower's data folder, and the folder above it must exist.`}
+          >
+            <Input
+              fontFamily="mono"
+              value={dataDir}
+              onChange={(e) => setDataDir(e.currentTarget.value)}
+              placeholder={state.defaultDataPath}
+            />
+          </FormField>
+          <Text fontSize="sm" color="fg.muted">
+            In use: <Code>{state.dataPath}</Code>
+          </Text>
+          <HStack>
+            <Button type="submit" size="sm" colorPalette="blue" disabled={!changed}>
+              Save
+            </Button>
+            <Button size="sm" variant="outline" disabled={dataDir === ''} onClick={() => setDataDir('')}>
+              Use the default
+            </Button>
+          </HStack>
+        </Stack>
+      </form>
+      {confirming && (
+        <FormDialog
+          title="Switch the broker's data directory?"
+          submitText="Switch"
+          onClose={() => setConfirming(false)}
+          onSubmit={async () => {
+            const r = await brokerSettings.updateBrokerSettings({ settings: { dataDir: dataDir.trim() } });
+            show(r.state);
+            toast(`The broker now uses ${r.state?.dataPath}`);
+            await reload();
+          }}
+        >
+          <Text>
+            The broker in <Code>{state.dataPath}</Code> closes, and its pull subscribers are disconnected. It opens in{' '}
+            <Code>{dataDir.trim() || state.defaultDataPath}</Code>.
+          </Text>
+          <Text>
+            Nothing is moved or deleted: the topics and subscribers become the ones in that folder, none if it is new.
+            Do not point two towers at one folder.
+          </Text>
+        </FormDialog>
+      )}
+    </Stack>
   );
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"log/slog"
 	"net/http/httptest"
 	"os"
 	"os/exec"
@@ -11,13 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wargasipil/san_message"
-
+	"github.com/wargasipil/san_tower/internal/broker"
 	"github.com/wargasipil/san_tower/internal/server"
 )
 
 func TestStatus(t *testing.T) {
-	b, err := san_message.Open(san_message.Options{Dir: t.TempDir()})
+	b, err := broker.Open(t.TempDir(), slog.New(slog.DiscardHandler))
 	if err != nil {
 		t.Fatal(err)
 	}

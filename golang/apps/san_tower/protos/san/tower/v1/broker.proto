@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+// BrokerService is the tower's setup of the San Message broker it runs. The
+// broker's topics and subscribers are on san_message's own MessageService.
+service BrokerService {
+  rpc GetBrokerSettings(GetBrokerSettingsRequest) returns (GetBrokerSettingsResponse);
+  // UpdateBrokerSettings saves new settings in the tower's data folder and
+  // applies them. A new data folder opens a broker there and closes the old
+  // one, whose pull streams end; nothing is moved or deleted. When the broker
+  // cannot open in the new folder, nothing changes.
+  rpc UpdateBrokerSettings(UpdateBrokerSettingsRequest) returns (UpdateBrokerSettingsResponse);
+}
+
+message BrokerSettings {
+  // data_dir is the broker's data folder: empty for the default, a relative
+  // path is inside the tower's data folder. Its parent folder must exist.
+  string data_dir = 1;
+}
+
+// BrokerState is the broker's settings and what they resolve to.
+message BrokerState {
+  BrokerSettings settings = 1;
+  // data_path is the folder in use, absolute.
+  string data_path = 2;
+  // default_data_path is the folder an empty data_dir means.
+  string default_data_path = 3;
+}
+
+message GetBrokerSettingsRequest {}
+
+message GetBrokerSettingsResponse {
+  BrokerState state = 1;
+}
+
+message UpdateBrokerSettingsRequest {
+  BrokerSettings settings = 1;
+}
+
+message UpdateBrokerSettingsResponse {
+  BrokerState state = 1;
+}

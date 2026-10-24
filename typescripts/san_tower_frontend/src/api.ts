@@ -1,6 +1,7 @@
 import { ConnectError, createClient } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-web';
 import { MessageService } from './gen/san/message/v1/message_pb';
+import { BrokerService } from './gen/san/tower/v1/broker_pb';
 import { TowerService } from './gen/san/tower/v1/tower_pb';
 
 // The tower serves this UI, so its services are on the same origin. In
@@ -9,8 +10,10 @@ const transport = createConnectTransport({ baseUrl: window.location.origin });
 
 export const tower = createClient(TowerService, transport);
 
-// broker is the San Message broker the tower runs.
+// broker is the San Message broker the tower runs, and brokerSettings the
+// tower's setup of it (its data folder).
 export const broker = createClient(MessageService, transport);
+export const brokerSettings = createClient(BrokerService, transport);
 
 // errorText is an error as a sentence: the server's own message, without
 // Connect's "[code]" prefix.

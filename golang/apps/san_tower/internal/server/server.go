@@ -1,10 +1,11 @@
 // Package server is the tower's HTTP server: TowerService, which the UI and
-// the CLI call, San Message's MessageService for the broker the tower runs,
-// and the UI itself (internal/web).
+// the CLI call, BrokerService and San Message's MessageService for the broker
+// the tower runs, and the UI itself (internal/web).
 package server
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
 	"net/url"
@@ -18,6 +19,7 @@ import (
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/gen/san/tower/v1/towerv1connect"
+	"github.com/wargasipil/san_tower/internal/broker"
 	"github.com/wargasipil/san_tower/internal/web"
 )
 
@@ -28,28 +30,32 @@ const (
 	DefaultURL  = "http://" + DefaultAddr
 )
 
-// Server answers TowerService, and serves the broker's MessageService next to
-// it.
+// Server answers TowerService and BrokerService, and serves the broker's
+// MessageService next to them.
 type Server struct {
 	version  string
 	hostname string
 	started  time.Time
-	broker   *san_message.Broker
+	broker   *broker.Broker
 }
 
-var _ towerv1connect.TowerServiceHandler = (*Server)(nil)
+var (
+	_ towerv1connect.TowerServiceHandler  = (*Server)(nil)
+	_ towerv1connect.BrokerServiceHandler = (*Server)(nil)
+)
 
-func New(version string, broker *san_message.Broker) *Server {
+func New(version string, broker *broker.Broker) *Server {
 	host, _ := os.Hostname()
 	return &Server{version: version, hostname: host, started: time.Now(), broker: broker}
 }
 
-// Handler serves TowerService, MessageService and the UI, behind Guard. The
-// http.Server needs san_message.ConfigureServer for MessageService's
-// Subscribe stream.
+// Handler serves TowerService, BrokerService, MessageService and the UI,
+// behind Guard. The http.Server needs san_message.ConfigureServer for
+// MessageService's Subscribe stream.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle(towerv1connect.NewTowerServiceHandler(s))
+	mux.Handle(towerv1connect.NewBrokerServiceHandler(s))
 	mux.Handle(s.broker.Handler())
 	mux.Handle("/", web.Handler(web.Dist()))
 	return Guard(mux)
@@ -61,6 +67,30 @@ func (s *Server) GetStatus(context.Context, *connect.Request[v1.GetStatusRequest
 		Hostname:  s.hostname,
 		StartedAt: timestamppb.New(s.started),
 	}), nil
+}
+
+func (s *Server) GetBrokerSettings(context.Context, *connect.Request[v1.GetBrokerSettingsRequest]) (*connect.Response[v1.GetBrokerSettingsResponse], error) {
+	return connect.NewResponse(&v1.GetBrokerSettingsResponse{State: s.brokerState()}), nil
+}
+
+func (s *Server) UpdateBrokerSettings(ctx context.Context, req *connect.Request[v1.UpdateBrokerSettingsRequest]) (*connect.Response[v1.UpdateBrokerSettingsResponse], error) {
+	if err := s.broker.SetDataDir(req.Msg.GetSettings().GetDataDir()); err != nil {
+		code := connect.CodeInternal
+		if errors.Is(err, san_message.ErrInvalid) {
+			code = connect.CodeInvalidArgument
+		}
+		return nil, connect.NewError(code, err)
+	}
+	return connect.NewResponse(&v1.UpdateBrokerSettingsResponse{State: s.brokerState()}), nil
+}
+
+func (s *Server) brokerState() *v1.BrokerState {
+	st := s.broker.State()
+	return &v1.BrokerState{
+		Settings:        &v1.BrokerSettings{DataDir: st.DataDir},
+		DataPath:        st.DataPath,
+		DefaultDataPath: st.DefaultPath,
+	}
 }
 
 // Guard keeps the tower to this machine.

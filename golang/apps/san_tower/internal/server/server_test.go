@@ -2,23 +2,54 @@ package server
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"connectrpc.com/connect"
-	"github.com/wargasipil/san_message"
 	messagev1 "github.com/wargasipil/san_message/gen/san/message/v1"
 	"github.com/wargasipil/san_message/gen/san/message/v1/messagev1connect"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/gen/san/tower/v1/towerv1connect"
+	"github.com/wargasipil/san_tower/internal/broker"
 )
 
-// tower serves a tower with a broker in a temporary folder.
+func TestBrokerSettings(t *testing.T) {
+	ts := tower(t)
+	ctx := context.Background()
+	c := towerv1connect.NewBrokerServiceClient(ts.Client(), ts.URL)
+
+	got, err := c.GetBrokerSettings(ctx, connect.NewRequest(&v1.GetBrokerSettingsRequest{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	st := got.Msg.State
+	if st.Settings.DataDir != "" || st.DataPath == "" || st.DataPath != st.DefaultDataPath {
+		t.Errorf("state = %v", st)
+	}
+
+	dir := filepath.Join(t.TempDir(), "broker")
+	upd, err := c.UpdateBrokerSettings(ctx, connect.NewRequest(&v1.UpdateBrokerSettingsRequest{Settings: &v1.BrokerSettings{DataDir: dir}}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if upd.Msg.State.DataPath != dir {
+		t.Errorf("data_path = %s, want %s", upd.Msg.State.DataPath, dir)
+	}
+
+	_, err = c.UpdateBrokerSettings(ctx, connect.NewRequest(&v1.UpdateBrokerSettingsRequest{Settings: &v1.BrokerSettings{DataDir: filepath.Join(dir, "no", "parent")}}))
+	if connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Errorf("a folder without a parent: %v", err)
+	}
+}
+
+// tower serves a tower with its data in a temporary folder.
 func tower(t *testing.T) *httptest.Server {
 	t.Helper()
-	b, err := san_message.Open(san_message.Options{Dir: t.TempDir()})
+	b, err := broker.Open(t.TempDir(), slog.New(slog.DiscardHandler))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -82,6 +82,7 @@ bin\san_remote.exe focus --tab 123                # make it the active tab, wind
 bin\san_remote.exe screenshot --tab 123 -o shot.png
 bin\san_remote.exe threads ...                    # Threads: see "Threads" below
 bin\san_remote.exe vidara ...                     # Vidara: see "Vidara" below
+bin\san_remote.exe facebook ...                   # Facebook: see "Facebook" below
 bin\san_remote.exe mcp                            # MCP on stdio, for Claude
 ```
 
@@ -145,13 +146,18 @@ rebuilding, reconnect with `/mcp`.
 | `vidara_videos` | search, limit, browser |
 | `vidara_delete` | match, browser |
 | `vidara_download` | link, out, browser |
+| `facebook_status` | browser |
+| `facebook_post` | file, or text with media; to, audience, at, now, browser |
+| `facebook_posts` | tab, browser |
+| `facebook_delete` | match, tab, browser |
 
 The server's instructions tell Claude it is your real browser, and to ask
 you before it submits forms, posts, buys or deletes anything. They also say
 to schedule only what you asked for, and never to post now unless you asked.
 For Vidara they say to upload only what you asked for, to ask before a
 delete, and never to press a video page's "Download file" button, which is
-an ad.
+an ad. For Facebook they say to post only what you asked for, where you
+asked, and to ask before a delete.
 
 ## Threads
 
@@ -314,6 +320,95 @@ cannot be undone.
 - A failed step stops with a screenshot in the temp folder:
   `san_remote-vidara-150405.png`.
 
+## Facebook
+
+`san_remote facebook` posts to Facebook through your browser's Facebook
+session, the way you would in its composers:
+- **post** writes to your profile (with its audience), a Page you manage or a
+  group you are in, now or scheduled. Facebook then publishes a scheduled
+  post by itself, even when this computer is off.
+- **posts** lists your profile's posts in its Content Library, and
+  **delete** deletes one there.
+- **status** says who is signed in, and lists your Pages and groups.
+
+Facebook's Graph API is not used: it needs a registered Meta app, and it
+cannot post to a personal profile at all.
+
+```powershell
+bin\san_remote.exe facebook status                              # signed in as Santoso Heri, then Pages and groups
+bin\san_remote.exe facebook post --dry-run post.md              # where, when, the audience and the text; opens nothing
+bin\san_remote.exe facebook post post.md                        # scheduled: 20 Nov pada 09.00
+bin\san_remote.exe facebook post --audience only_me --at "2026-11-20 09:00" --text "Satu post" --media pic.png
+bin\san_remote.exe facebook post --to "page: Uni_Q" --at "2026-11-20 09:00" post.md
+bin\san_remote.exe facebook post --to "group: FREELANCER INDONESIA" --now post.md
+bin\san_remote.exe facebook posts                               # STATUS, WHEN, TEXT: the Terjadwal tab
+bin\san_remote.exe facebook posts --tab published               # or draft
+bin\san_remote.exe facebook delete --tab scheduled --match "Satu post"
+```
+
+**The post file:**
+
+```markdown
+---
+to: profile
+audience: friends
+at: 2026-11-20 09:00
+---
+
+The post. Line breaks are kept.
+
+![](../assets/diagram.png)
+```
+
+- **`to`** is `profile` (the default), `"page: <name>"` or
+  `"group: <name or link>"`. A Page or group is named by its name (case
+  ignored), its link or its id, as `status` lists them. `--to` overrides it.
+- **`audience`** is `public`, `friends` or `only_me`, for the profile only.
+  Without it the post gets the audience Facebook picks (your last one).
+  `--audience` overrides it.
+- **`at`** is local time, `"2006-01-02 15:04"`, or RFC 3339. It must be on a
+  5-minute mark, at least 20 minutes ahead, and no later than 29 days ahead,
+  because Facebook's pickers offer nothing else. `--at` overrides it.
+- **`![](file)`** attaches an image or video, relative to the file: jpg,
+  png, gif, webp, heic, mp4, m4v, mov, mkv or webm.
+- A post needs text, media or both. **Write it in Indonesian,** like the
+  articles.
+
+`--now` posts at once instead of scheduling. A group post can only go now:
+Facebook lets only a group's admins schedule.
+
+**Where each kind goes:**
+- **Profile:** the home page's composer. The audience is chosen in "Pilih
+  audiens". A time is set in "Opsi penjadwalan" with its date picker and
+  time list, and the post is sent with "Jadwalkan Postingan" or "Posting". A
+  scheduled post is then looked up in the Content Library, to check its
+  time.
+- **Page:** Meta Business Suite's composer for that Page. Posting from the
+  Page itself would switch your whole Facebook session to the Page ("Beralih
+  profil"). The composer is checked to name that Page before anything is
+  written, and the post is sent with "Jadwalkan" or "Terbitkan".
+- **Group:** the group's composer ("Tulis sesuatu..."), sent with "Posting".
+  A group that holds posts for approval shows yours only once an admin
+  accepts it.
+
+**posts and delete** work on your profile's Content Library (your profile,
+then "Kelola postingan"), on its Diterbitkan, Terjadwal or Draf tab
+(`--tab published`, `scheduled` or `draft`). `delete` names the post by part
+of its text (`--match`), which must name exactly one post in that tab.
+Facebook asks "Hapus postingan secara permanen?" and the tool answers Hapus,
+then reloads the tab until the post is gone. It cannot be undone. A Page's
+posts are not listed or deleted here; use Business Suite.
+
+**While it runs:**
+- `post` and `delete` open a tab of their own in your current Chrome window
+  and bring Chrome to the front. Leave it alone until the command is done:
+  Facebook's date picker and time list only work in a shown page, and a
+  click or a key there lands in Facebook.
+- `status` and `posts` read in a background tab.
+- Each step is printed to stderr as `== …`.
+- A failed step stops with a screenshot in the temp folder:
+  `san_remote-facebook-150405.png`.
+
 ## Debug panel
 
 The extension keeps a log of every command the server sends and the reply
@@ -393,6 +488,11 @@ need a token and TLS first.
 | vidara: `the upload stalled at …%` | The connection stopped. Run the same upload again: Vidara's uploader remembers the file by its name, size and time, and continues from where it stopped. |
 | vidara: `several videos match the title` | Name the video by one of the codes listed. |
 | vidara download: `waited … for the player's stream` | The video may still be encoding, or the player changed. Try later, and look at the screenshot. |
+| facebook: `the browser is not signed in to Facebook` | Sign in to facebook.com in that browser. |
+| facebook: `Facebook's interface is not in Indonesian` | The tool finds Facebook's controls by their Indonesian names. Set Facebook's language to Bahasa Indonesia. |
+| facebook: `nothing matches: no Page "…" (yours: …)` | The error lists your Pages or groups, as `status` finds them; name one of those. |
+| facebook: `the post is still in … after Hapus` | Facebook was slow to drop it. Run `posts` again: it is usually gone a minute later. |
+| `aborted: No current window` | Chrome is running with no window open. Open a Chrome window. |
 | vidara delete waits, then `the code did not finish` | With two-factor login on, Vidara asks for a code before a delete, in a prompt the tool cannot answer. Delete it on the page. |
 
 ## Development
@@ -437,6 +537,11 @@ not been reloaded yet.
   deletes the test video even when a step fails.
 - `TestVidaraDownload` downloads the video `SAN_REMOTE_E2E_VIDARA_LINK`
   names into a temp folder.
+- `TestFacebookSchedule` needs `SAN_REMOTE_E2E_FACEBOOK=1` too. It schedules
+  an Only-me test post with an image 25 days ahead on your profile, finds it
+  in the Content Library's Terjadwal, deletes it, and checks that it is
+  gone. Its cleanup deletes the test post even when a step fails. Nothing is
+  posted now.
 
 **A throwaway browser.** To test the extension without your own browser,
 start a headless Chrome on a temp profile with `--remote-debugging-pipe
@@ -477,6 +582,14 @@ The layout of the code is in the design doc.
   - `videos` reads only My videos' first page.
   - A download is Vidara's stream of the video, not the uploaded file, and
     an encrypted stream is refused.
+- **Facebook:**
+  - Its interface must be in Indonesian: the tool finds its controls by
+    their Indonesian names ("Buat postingan", "Jadwalkan Postingan",
+    "Hapus").
+  - Scheduling reaches only 29 days ahead, the limit of the profile's date
+    picker.
+  - Not done: Reels, Stories, feelings, tagging people, location, editing or
+    rescheduling a post, and listing or deleting a Page's posts.
 
 ## See also
 

@@ -22,6 +22,7 @@ import (
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	v1 "github.com/wargasipil/san_remote/gen/san/remote/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/v1/remotev1connect"
+	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/vidara"
@@ -33,6 +34,8 @@ type Server struct {
 	Threads *threads.Service
 	// Vidara runs the vidara_* tools in this process, through Client.
 	Vidara *vidara.Service
+	// Facebook runs the facebook_* tools in this process, through Client.
+	Facebook *facebook.Service
 	// Server is the URL Client talks to, for error messages.
 	Server  string
 	Version string
@@ -45,7 +48,8 @@ remote_tabs lists the tabs; remote_exec runs code in one (tab_id 0 is the active
 remote_open and remote_navigate load a page and wait until it has loaded. A script that navigates away loses its result, so navigate with remote_navigate, then exec. remote_screenshot shows what a tab shows. Chrome throttles a page that is not shown, so for anything more than reading, keep its window in front (remote_open with focus, remote_focus).
 This is the user's real browser: read what the task needs, and ask the user before submitting forms, posting, buying or deleting anything. Clicks and key events made from JavaScript have isTrusted false, and some sites ignore them.
 threads_* post to the user's Threads account through that browser, as a person does in Threads' composer: threads_post schedules a thread (a markdown file, or one post's text), threads_scheduled lists what is scheduled, threads_reschedule and threads_unschedule change one, threads_status and threads_posts read. Schedule or post only what the user asked for; never use now unless the user asked to publish at once. A threads call that clicks through Threads brings Chrome to the front with a tab of its own for a minute or two.
-vidara_* work on the user's Vidara account (vidara.to, a video host) through that browser, as a person does on its pages: vidara_upload uploads a video on the Upload page (only what the user asked to upload), vidara_videos lists the account's videos, vidara_delete deletes one (Vidara says it cannot be undone: ask the user first), vidara_status reads. vidara_download saves a video from its link to a file on this computer, through Vidara's player. A video page's "Download file" button is an ad; never press it.`
+vidara_* work on the user's Vidara account (vidara.to, a video host) through that browser, as a person does on its pages: vidara_upload uploads a video on the Upload page (only what the user asked to upload), vidara_videos lists the account's videos, vidara_delete deletes one (Vidara says it cannot be undone: ask the user first), vidara_status reads. vidara_download saves a video from its link to a file on this computer, through Vidara's player. A video page's "Download file" button is an ad; never press it.
+facebook_* post to the user's Facebook (interface in Indonesian) through that browser, as a person does in its composers: facebook_post posts to the profile (with an audience), to a Page the user manages (from Meta Business Suite) or to a group, now or scheduled up to 29 days ahead (a group only now). Post only what the user asked for, where they asked. facebook_posts lists the profile's posts (published, scheduled, draft); facebook_delete deletes one (it cannot be undone: ask the user first); facebook_status reads the user's name, Pages and groups.`
 
 type request struct {
 	JSONRPC string          `json:"jsonrpc"`
@@ -287,6 +291,32 @@ func toolDefs() []any {
 				"out":     str("The file to write, or a folder (default: the title, in the MCP server's folder)"),
 				"browser": browserProp,
 			}, "link"), false, false),
+
+		tool("facebook_status", "Facebook: signed in?",
+			"Whether the browser is signed in to Facebook, as whom (name and profile link), and the Pages and groups the user can post to. Reads in a background tab.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("facebook_post", "Facebook: post",
+			"Post to the user's Facebook profile, a Page they manage, or a group, through Facebook's composers: from a markdown file (frontmatter to:, audience:, at:; media as ![](file)) or text with media. Scheduled up to 29 days ahead on a 5-minute mark; a group post only now. Brings Chrome to the front with a tab of its own for a minute or two.",
+			schema(map[string]any{
+				"file":     str("Path of the post's markdown file"),
+				"text":     str("The post's text, instead of a file"),
+				"media":    strs("Image or video files (jpg, png, gif, webp, heic, mp4, mov, mkv, webm)"),
+				"to":       str(`Where: "profile" (default), "page: <name>" or "group: <name or link>"`),
+				"audience": enum("Profile only: who sees it (default: Facebook's default)", "public", "friends", "only_me"),
+				"at":       timeProp("When Facebook publishes it"),
+				"now":      flag("Post it at once instead of scheduling it. Only when the user asked for that"),
+				"browser":  browserProp,
+			}), false, false),
+		tool("facebook_posts", "Facebook: my posts",
+			"The profile's posts in one tab of its Content Library: published (the last 28 days), scheduled or draft. Reads in a background tab.",
+			schema(map[string]any{"tab": enum("Which tab (default scheduled)", "published", "scheduled", "draft"), "browser": browserProp}), true, false),
+		tool("facebook_delete", "Facebook: delete a post",
+			"Delete one profile post, named by part of its text in one tab of the Content Library. Facebook asks first and the tool answers Hapus; it cannot be undone, so ask the user first.",
+			schema(map[string]any{
+				"match":   str("Part of the post's text; it must name exactly one post"),
+				"tab":     enum("Which tab (default scheduled)", "published", "scheduled", "draft"),
+				"browser": browserProp,
+			}, "match"), false, true),
 	}
 }
 
@@ -313,6 +343,8 @@ type args struct {
 	Search     string   `json:"search"`
 	Link       string   `json:"link"`
 	Out        string   `json:"out"`
+	Audience   string   `json:"audience"`
+	Tab        string   `json:"tab"`
 }
 
 // Call runs one tool and returns its content: text, or for
@@ -338,6 +370,8 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.threads(ctx, name, a)
 	case strings.HasPrefix(name, "vidara_"):
 		text, err = s.vidara(ctx, name, a)
+	case strings.HasPrefix(name, "facebook_"):
+		text, err = s.facebook(ctx, name, a)
 	default:
 		text, err = s.call(ctx, name, a)
 	}
@@ -634,4 +668,106 @@ func ParseWorld(s string) (v1.World, error) {
 		return v1.World_WORLD_MAIN, nil
 	}
 	return 0, fmt.Errorf("world %q: want isolated or main", s)
+}
+
+func (s *Server) facebook(ctx context.Context, name string, a args) (string, error) {
+	f := s.Facebook
+	tab := a.Tab
+	if tab == "" {
+		tab = "scheduled"
+	}
+	switch name {
+	case "facebook_status":
+		st, err := f.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to Facebook.", nil
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "Signed in to Facebook as %s (%s).\n\nPages:\n", st.Name, st.Profile)
+		for _, p := range st.Pages {
+			fmt.Fprintf(&b, "- %s %s\n", p.Name, p.URL)
+		}
+		b.WriteString("\nGroups:\n")
+		for _, g := range st.Groups {
+			fmt.Fprintf(&b, "- %s %s\n", g.Name, g.URL)
+		}
+		return b.String(), nil
+	case "facebook_post":
+		p, err := facebookPost(a)
+		if err != nil {
+			return "", err
+		}
+		r, err := f.Post(ctx, *p)
+		if err != nil {
+			return "", err
+		}
+		if p.Now {
+			return "Posted.", nil
+		}
+		return "Scheduled: " + r.Shown, nil
+	case "facebook_posts":
+		rows, err := f.Posts(ctx, a.Browser, tab)
+		if err != nil {
+			return "", err
+		}
+		if len(rows) == 0 {
+			return "No " + tab + " posts.", nil
+		}
+		var b strings.Builder
+		for _, r := range rows {
+			fmt.Fprintf(&b, "%s, %s\n%s\n\n", r.Status, r.When, r.Text)
+		}
+		return b.String(), nil
+	case "facebook_delete":
+		r, err := f.Delete(ctx, a.Browser, tab, a.Match)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted the %s post (%s):\n%s", r.Status, r.When, r.Text), nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+// facebookPost makes facebook_post's post: from the file, or from text and
+// media, with to, audience and at overriding the file's.
+func facebookPost(a args) (*facebook.Post, error) {
+	var p *facebook.Post
+	switch {
+	case a.File != "" && a.Text != "":
+		return nil, errors.New("give file or text, not both")
+	case a.File != "":
+		var err error
+		if p, err = facebook.ParseFile(a.File); err != nil {
+			return nil, err
+		}
+		p.Media = append(p.Media, a.Media...)
+	case a.Text != "" || len(a.Media) > 0:
+		p = &facebook.Post{Target: facebook.Profile, Text: a.Text, Media: a.Media}
+	default:
+		return nil, errors.New("file or text is required")
+	}
+	p.Browser = a.Browser
+	if a.To != "" {
+		if err := p.SetTarget(a.To); err != nil {
+			return nil, err
+		}
+	}
+	if a.Audience != "" {
+		p.Audience = facebook.Audience(a.Audience)
+	}
+	if a.At != "" {
+		at, err := facebook.ParseTime(a.At)
+		if err != nil {
+			return nil, err
+		}
+		p.At = at
+	}
+	p.Now = a.Now
+	if err := p.Check(time.Now()); err != nil {
+		return nil, err
+	}
+	return p, nil
 }

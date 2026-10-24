@@ -40,7 +40,9 @@ This document is the design and the reasons behind it.
    - **Vidara** followed (`internal/vidara`; the user, 2026-10-24: "build
      ability to post video on that", then "add ability to download video
      from vidara link to").
-   - Both work in a tab through `internal/page`.
+   - **Facebook** came next (`internal/facebook`; the user, 2026-10-24:
+     "add ability to remote facebook").
+   - All three work in a tab through `internal/page`.
 
 ## Layout.
 
@@ -63,9 +65,12 @@ golang/apps/san_remote/
                    vidara.js          what is known of Vidara's pages and its player (isolated world)
                    service.go         status, upload, videos, delete
                    download.go        download: the player's HLS stream, saved and remuxed
-  internal/mcp/                       MCP server: remote_* and threads_* tools
+  internal/facebook/ facebook.go      the post markdown, its checks, Facebook's date and time labels
+                   facebook.js        what is known of Facebook's and Business Suite's pages (isolated world)
+                   service.go         status, post (profile, Page, group), posts, delete
+  internal/mcp/                       MCP server: remote_*, threads_*, vidara_* and facebook_* tools
   cmd/san_remote/                     urfave/cli v3 tree: serve, browsers, tabs, exec, open,
-                                      navigate, close, focus, screenshot, threads, mcp
+                                      navigate, close, focus, screenshot, threads, vidara, facebook, mcp
   e2e/                                tests against the real browser (SAN_REMOTE_E2E=1)
   build.sh / build.ps1                vet, test, build both binaries
 
@@ -446,6 +451,71 @@ getresolved):
 - **The dashboard's count.** It showed "Videos 161" while My videos listed
   none. That number is not used.
 
+## Facebook.
+
+**The composers, not the Graph API.** The Graph API needs a registered
+Meta app with reviewed permissions, and it cannot post to a personal profile
+at all. The user wanted all four (2026-10-24): post to the profile,
+post or schedule on a Page, post to groups, and read and manage. So
+`internal/facebook` goes through Facebook's own composers, as Threads does.
+
+**Indonesian, not English.** The account's interface is Indonesian
+(`lang="id"`), and controls are found by their names. Threads and Vidara
+are read in English. Here the tool checks `lang` and stops with
+`ErrLanguage` rather than look for English names.
+
+**A Page through Business Suite.** "Buat postingan" on the Page asks to
+switch the whole Facebook session to the Page ("Beralih profil"). That
+would change what the user sees in every tab. Meta Business Suite's
+composer posts as the Page without switching, so the tool opens
+`business.facebook.com/latest/home?asset_id=<id>` and presses "Buat
+postingan". The id is the first `"delegate_page_id"` in the Page's own
+HTML, read after opening the Page as a person would. The composer's Page
+box must name that Page before any text goes in.
+
+**Found on facebook.com, 2026-10-24** (the account Santoso Heri, two Pages,
+26 groups):
+- **The profile composer.** "Apa yang Anda pikirkan?" opens a dialog with a
+  contenteditable editor. Paste works as for Threads (a `ClipboardEvent`
+  with a `DataTransfer`), and so does setting files on its file input.
+- **Audience.** "Audiens postingan …" opens "Pilih audiens": radio inputs
+  whose label is in an ancestor ("Publik", "Teman", "Hanya saya"), then
+  "Selesai".
+- **Scheduling.** "Opsi penjadwalan" is a panel, not a dialog, so its
+  controls are found page-wide.
+  - "Buka Pemilih Tanggal" opens a grid "Pilih Tanggal" with "Bulan
+    Berikutnya" / "Bulan Sebelumnya". Its days are named "Senin, 16 November
+    2026". Days past 29 ahead are disabled, which is where `MaxDays` comes
+    from.
+  - The date box then reads "16 Nov 2026". The time list is in 5-minute
+    steps; today's starts about 20 minutes ahead (`MinLead`).
+  - Text typed into either box does not stick, so the picker and the list
+    are used. The date goes first: changing it resets the time.
+  - A click on a day does nothing while the time list is open.
+  - "Jadwalkan untuk nanti" confirms. The composer's button then reads "16
+    Nov pada 09.00", and its submit button turns from "Posting" into
+    "Jadwalkan Postingan".
+- **The Content Library.** The profile's "Kelola postingan" link (an
+  `<a role=link>`) opens `/professional_dashboard/content/content_library/`.
+  - Tabs Diterbitkan, Terjadwal, Draf. A row is `[role=row]`: the text, then
+    "Terjadwal •", then "16 Nov pukul 09.00" or "Hari ini pukul 12.18".
+  - "Tindakan untuk postingan ini" opens a menu with "Hapus postingan".
+    Facebook asks "Hapus postingan secara permanen?" (Hapus / Batalkan).
+  - After Hapus, the first reload of the library still listed a deleted
+    post; a minute later it was gone. So `delete` reloads up to four times.
+- **Business Suite's composer.** The editor is named "Tulis ke dalam kotak
+  dialog…" and takes a paste. The switch "Atur tanggal dan waktu" shows a
+  date box (dd/mm/yyyy), where typing works, and spinbuttons "jam" and
+  "menit". The buttons are "Jadwalkan" or "Terbitkan". Leaving asks "Keluar
+  dari halaman?".
+- **Groups.** "Tulis sesuatu..." opens "Buat postingan" with an editor
+  "Buat postingan publik...". A member cannot schedule. Joined groups are
+  the ones with "Lihat Grup" on `/groups/joins/`.
+- **The pickers need a shown page,** like Threads' menus. While the user
+  typed elsewhere, Windows kept Chrome from coming to the front, and a day
+  click went nowhere. So the exploration and the live runs waited until the
+  user had left the PC.
+
 ## Verified.
 
 - **2026-10-23, `go test ./...`.** The hub, CLI and MCP server against fake
@@ -522,6 +592,30 @@ getresolved):
     @getresolvedid". The browser's Threads session is on another account
     than the day before.
 
+- **2026-10-24, Facebook, on Santoso Heri, in the user's Chrome.** Only
+  Only-me posts on the profile, each deleted again (the user's choice:
+  "Explore + Only-me test").
+  - **`facebook status`** (20 s) listed the profile, two Pages and 26 groups.
+  - **A scheduled post,** for 20 Nov 09:00 (45 s): composer, "Hanya saya",
+    paste, picker, time list, "Jadwalkan Postingan", then found in
+    Terjadwal at that time. `posts` listed it.
+  - **Its delete** worked, but the tool said it had failed: the reloaded
+    Terjadwal still listed it. `posts` a minute later showed it gone. That
+    led to the reloads in `delete`.
+  - **A post now** (28 s), found in Diterbitkan as "Hari ini pukul 12.40"
+    and deleted from there (28 s).
+  - **A scheduled post with an image,** for 21 Nov 10:30 (45 s). Its row in
+    Terjadwal had the 128x128 image, and it was deleted with the new reloads.
+  - **`e2e.TestFacebookSchedule`.** The first run was cut off when the
+    Claude Code session ended. It left its post scheduled for 18 Nov, and
+    `posts` and `delete` found and removed it. The second run passed (175 s)
+    and left nothing scheduled.
+  - **Not run:** a Page post and a group post. The Page test was refused
+    twice by Claude Code's permission check (a write to an outside system),
+    even after the user said to do it. The user skipped the group test,
+    since its members would see the post. Business Suite's media upload is
+    not tried yet either.
+
 ## Open questions.
 
 - **From another machine** (the Pi, heri-office-2 over VPN): this needs a
@@ -541,3 +635,5 @@ getresolved):
 - **More of Vidara.** Folders, URL upload, clone, thumbnails, subtitles and
   renaming. A download of the uploaded file itself, if Vidara ever offers
   one; the player only streams its own encoding.
+- **More of Facebook.** A Page's own posts (Business Suite's Diterbitkan,
+  Dijadwalkan and Draf), rescheduling and editing, Reels and Stories.

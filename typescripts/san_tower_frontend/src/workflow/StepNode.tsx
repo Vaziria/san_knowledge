@@ -140,12 +140,18 @@ function SocketRow({ socket, side, children }: { socket: Socket; side: 'in' | 'o
   );
 }
 
-// holds says whether an input's when ("Source=File") holds: the setting's
-// value, or its first option while it has none, is that value.
+// holds says whether an input's when ("Source=File", "Media!=None",
+// "Format=Plain,Source=Text") holds: for each condition, the setting's
+// value, or its first option while it has none, is that value (or, with !=,
+// is not).
 function holds(when: string, settings: Setting[], values: Record<string, string>) {
   if (!when) return true;
-  const [name, want] = when.split('=');
-  return (values[name] || settings.find((s) => s.name === name)?.options[0] || '') === want;
+  return when.split(',').every((cond) => {
+    const not = cond.includes('!=');
+    const [name, want] = cond.split(not ? '!=' : '=');
+    const value = values[name] || settings.find((s) => s.name === name)?.options[0] || '';
+    return not ? value !== want : value === want;
+  });
 }
 
 // InputRow is an input socket. A field input that nothing is linked to shows

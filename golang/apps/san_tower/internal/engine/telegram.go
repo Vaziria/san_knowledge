@@ -5,6 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
+	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +32,10 @@ const TelegramMessage = "telegram-message"
 // message before it asks again. Tests make it shorter.
 var pollTimeout = 50
 
+// telegramRetry are the waits between a send's tries, telegram.DefaultRetry
+// when nil. Tests make them shorter.
+var telegramRetry []time.Duration
+
 // telegramKinds are the Telegram steps, through a Telegram Bot connection.
 var telegramKinds = []*kind{
 	{
@@ -40,11 +50,12 @@ var telegramKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "telegram-send", Title: "Telegram Send", Category: "Social", Group: "Telegram",
-			Description: "Sends a text message to a Telegram chat as a bot, formatted or not, maybe as a reply.",
+			Description: "Sends a message to a Telegram chat, group or channel as a bot: Text, or by Media a photo, video, audio, voice, document or animation from File (a file on this computer, an http(s) link or a Telegram file_id) with Text its caption; formatted or not, maybe as a reply.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Message", Object)},
-			Settings:    []*v1.Setting{telegramSetting(), {Name: "Format", Options: []string{"Plain", "HTML", "Markdown"}}},
+			Settings: []*v1.Setting{telegramSetting(), {Name: "Format", Options: []string{"Plain", "HTML", "Markdown"}},
+				{Name: "Media", Options: mediaOptions}},
 			Inputs: []*v1.Socket{sock("Event", Event), {Name: "Chat", Type: Text, Field: true}, {Name: "Text", Type: Text, Field: true},
-				{Name: "Reply To", Type: Text, Field: true}},
+				only("Media!=None", field("File")), {Name: "Reply To", Type: Text, Field: true}},
 		},
 		run: telegramSend,
 	},
@@ -108,10 +119,14 @@ func (c *call) telegram() (*telegram.Client, uint32, error) {
 	if conn.Type != store.TelegramBot {
 		return nil, 0, fmt.Errorf("connection %s is not a Telegram Bot connection", conn.Name)
 	}
-	return &telegram.Client{Token: conn.Settings.GetTelegramBot().GetToken(), Base: c.env.TelegramAPI}, uint32(n), nil
+	return &telegram.Client{Token: conn.Settings.GetTelegramBot().GetToken(), Base: c.env.TelegramAPI, Retry: telegramRetry}, uint32(n), nil
 }
 
 var parseModes = map[string]string{"": "", "Plain": "", "HTML": "HTML", "Markdown": "Markdown"}
+
+// mediaOptions are Telegram Send's Media: None sends Text alone, the others
+// a file of that type (the user's ask, 2026-10-25).
+var mediaOptions = []string{"None", "Photo", "Video", "Audio", "Voice", "Document", "Animation"}
 
 func telegramSend(c *call) error {
 	cl, _, err := c.telegram()
@@ -122,8 +137,17 @@ func telegramSend(c *call) error {
 	if m.Chat == "" {
 		return fmt.Errorf("Chat %w: give a chat's id (link the trigger's Chat to reply) or a channel's @username", errEmpty)
 	}
-	if strings.TrimSpace(m.Text) == "" {
-		return fmt.Errorf("Text %w", errEmpty)
+	switch media := c.setting("Media"); {
+	case media == "" || media == "None":
+		if strings.TrimSpace(m.Text) == "" {
+			return fmt.Errorf("Text %w", errEmpty)
+		}
+	case slices.Contains(mediaOptions, media):
+		if m.Media, err = telegramMedia(c, strings.ToLower(media)); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("Media %q: %s", media, strings.Join(mediaOptions, ", "))
 	}
 	mode, ok := parseModes[c.setting("Format")]
 	if !ok {
@@ -135,13 +159,74 @@ func telegramSend(c *call) error {
 			return fmt.Errorf("Reply To %q: give the id of the message it answers", r)
 		}
 	}
-	sent, err := cl.SendMessage(c.ctx, m)
+	// Each new try is a warning line in the run (the user's ask, 2026-10-25).
+	cl.OnRetry = func(try int, wait time.Duration, ipv4 bool, err error) {
+		line := fmt.Sprintf("try %d in %s, after: %v", try, wait, err)
+		if ipv4 {
+			line += " (now over IPv4)"
+		}
+		c.logs = append(c.logs, line)
+		c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_WARNING)
+	}
+	var sent json.RawMessage
+	if m.Media.Type != "" {
+		sent, err = cl.SendMedia(c.ctx, m)
+	} else {
+		sent, err = cl.SendMessage(c.ctx, m)
+	}
 	if err != nil {
 		return err
 	}
 	c.outputs["Message"] = payload(sent)
 	c.fire("Done")
 	return nil
+}
+
+// The Bot API takes uploads up to 10 MB for a photo, 50 MB for other files.
+const maxTelegramPhoto, maxTelegramFile = 10 << 20, 50 << 20
+
+// fileID is what a Telegram file_id looks like: long, in base64url.
+var fileID = regexp.MustCompile(`^[A-Za-z0-9_-]{20,}$`)
+
+// telegramMedia is Telegram Send's File as media of type typ: an http(s)
+// link, which Telegram downloads; a file on this computer, placed as File
+// Path places a name, which is uploaded; or, when no such file is there, a
+// file_id of a file Telegram has (a received photo's, say).
+func telegramMedia(c *call, typ string) (telegram.Media, error) {
+	m := telegram.Media{Type: typ}
+	raw := strings.TrimSpace(c.text("File"))
+	if raw == "" {
+		return m, fmt.Errorf("File %w: give a file on this computer, an http(s) link or a Telegram file_id", errEmpty)
+	}
+	if u, err := url.Parse(raw); err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
+		m.Ref = raw
+		return m, nil
+	}
+	full, err := place(c, "File", raw)
+	if err != nil {
+		return m, err
+	}
+	fi, err := os.Stat(filepath.FromSlash(full))
+	switch {
+	case errors.Is(err, fs.ErrNotExist) && fileID.MatchString(raw):
+		m.Ref = raw
+		return m, nil
+	case errors.Is(err, fs.ErrNotExist):
+		return m, fmt.Errorf("File %s is not there", full)
+	case err != nil:
+		return m, err
+	case fi.IsDir():
+		return m, fmt.Errorf("File %s is a folder: give a file", full)
+	}
+	limit := int64(maxTelegramFile)
+	if typ == "photo" {
+		limit = maxTelegramPhoto
+	}
+	if fi.Size() > limit {
+		return m, fmt.Errorf("File %s is %.1f MB: Telegram takes a bot's %s up to %d MB", full, float64(fi.Size())/(1<<20), typ, limit>>20)
+	}
+	m.Path = filepath.FromSlash(full)
+	return m, nil
 }
 
 func telegramMessages(c *call) error {

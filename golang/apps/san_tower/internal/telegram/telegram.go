@@ -9,10 +9,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // API is where the Bot API answers.
@@ -23,6 +29,95 @@ type Client struct {
 	Token string
 	Base  string       // API when empty; tests give a fake's
 	HTTP  *http.Client // http.DefaultClient when nil; calls end with their context
+	// Retry are the waits before each new try of a send that failed for a
+	// reason that may pass (send): nil is DefaultRetry, empty none.
+	Retry []time.Duration
+	// OnRetry, when set, hears each new try of a send before its wait: the
+	// try it will be (2, 3...), the wait, whether it goes over IPv4, and why.
+	OnRetry func(try int, wait time.Duration, ipv4 bool, err error)
+}
+
+// DefaultRetry tries a send three times, 2 s and then 5 s apart (the
+// user's ask, 2026-10-25, after a send over IPv6 got no answer).
+var DefaultRetry = []time.Duration{2 * time.Second, 5 * time.Second}
+
+// maxRetryAfter is the longest a 429's retry_after is waited out; a send
+// told to wait longer fails.
+const maxRetryAfter = 30 * time.Second
+
+// unanswered is a call the Bot API did not answer: the network failed
+// (network), or something else, such as a proxy, answered. Another try may
+// get through.
+type unanswered struct {
+	msg     string
+	err     error
+	network bool
+}
+
+func (u *unanswered) Error() string { return u.msg }
+func (u *unanswered) Unwrap() error { return u.err }
+
+// ipv4 reaches the Bot API over IPv4 only: a send's tries after the network
+// failed take it, since a path that breaks in the middle of a call is often
+// IPv6's (a send stalled until the read timed out, 2026-10-25), and a
+// client left to itself would pick IPv6 again.
+var ipv4 = &http.Client{Transport: func() http.RoundTripper {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	d := &net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second}
+	t.DialContext = func(ctx context.Context, _, addr string) (net.Conn, error) {
+		return d.DialContext(ctx, "tcp4", addr)
+	}
+	return t
+}()}
+
+// send makes a send call with try, again after each of Retry's waits when
+// it failed for a reason that may pass: no answer (the next tries go over
+// IPv4 when the client is the default one), Telegram failing itself (5xx),
+// or 429 Too Many Requests (after its retry_after, if longer). A mistake,
+// such as a chat not found, is not tried again. A send whose answer was
+// lost after Telegram took it is sent twice: the Bot API cannot tell.
+func (c *Client) send(ctx context.Context, try func(*Client) error) error {
+	waits := c.Retry
+	if waits == nil {
+		waits = DefaultRetry
+	}
+	cl := c
+	for n := 0; ; n++ {
+		err := try(cl)
+		if err == nil || n >= len(waits) || ctx.Err() != nil {
+			return err
+		}
+		wait := waits[n]
+		var te *Error
+		var un *unanswered
+		switch {
+		case errors.As(err, &te) && te.Code == http.StatusTooManyRequests:
+			ra := time.Duration(te.RetryAfter) * time.Second
+			if ra > maxRetryAfter {
+				return err
+			}
+			wait = max(wait, ra)
+		case errors.As(err, &te) && te.Code >= 500:
+		case errors.As(err, &un):
+			if un.network && cl.HTTP == nil {
+				v4 := *c
+				v4.HTTP = ipv4
+				cl = &v4
+			}
+		default:
+			return err
+		}
+		if c.OnRetry != nil {
+			c.OnRetry(n+2, wait, cl.HTTP == ipv4, err)
+		}
+		t := time.NewTimer(wait)
+		select {
+		case <-ctx.Done():
+			t.Stop()
+			return err
+		case <-t.C:
+		}
+	}
 }
 
 // Error is the Bot API refusing a call, e.g. 401 Unauthorized for a bad
@@ -36,21 +131,67 @@ type Error struct {
 func (e *Error) Error() string { return "Telegram: " + e.Description }
 
 // call calls method with params as JSON, and reads its result into result
-// (when not nil). Errors never hold the token, which is in the URL.
+// (when not nil).
 func (c *Client) call(ctx context.Context, method string, params, result any) error {
 	body, err := json.Marshal(params)
 	if err != nil {
 		return err
 	}
+	return c.post(ctx, method, "application/json", bytes.NewReader(body), int64(len(body)), result)
+}
+
+// upload calls method with params and the file at path as field, as
+// multipart/form-data, and reads its result into result. The file is
+// streamed, not read into memory.
+func (c *Client) upload(ctx context.Context, method string, params map[string]any, field, path string, result any) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	for k, v := range params {
+		s, ok := v.(string)
+		if !ok {
+			j, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			s = string(j)
+		}
+		if err := w.WriteField(k, s); err != nil {
+			return err
+		}
+	}
+	if _, err := w.CreateFormFile(field, filepath.Base(path)); err != nil {
+		return err
+	}
+	head := b.Len()
+	if err := w.Close(); err != nil { // the closing boundary, which goes after the file
+		return err
+	}
+	body := io.MultiReader(bytes.NewReader(b.Bytes()[:head]), f, bytes.NewReader(b.Bytes()[head:]))
+	return c.post(ctx, method, w.FormDataContentType(), body, int64(b.Len())+fi.Size(), result)
+}
+
+// post sends a call's body, of size bytes, and reads its result into result
+// (when not nil). Errors never hold the token, which is in the URL.
+func (c *Client) post(ctx context.Context, method, contentType string, body io.Reader, size int64, result any) error {
 	base := c.Base
 	if base == "" {
 		base = API
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(base, "/")+"/bot"+c.Token+"/"+method, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(base, "/")+"/bot"+c.Token+"/"+method, body)
 	if err != nil {
 		return errors.New("Telegram: bad token")
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.ContentLength = size
+	req.Header.Set("Content-Type", contentType)
 	hc := c.HTTP
 	if hc == nil {
 		hc = http.DefaultClient
@@ -61,7 +202,7 @@ func (c *Client) call(ctx context.Context, method string, params, result any) er
 		if errors.As(err, &ue) {
 			err = ue.Err
 		}
-		return fmt.Errorf("Telegram does not answer: %w", err)
+		return &unanswered{msg: "Telegram does not answer: " + err.Error(), err: err, network: true}
 	}
 	defer res.Body.Close()
 	var r struct {
@@ -74,7 +215,7 @@ func (c *Client) call(ctx context.Context, method string, params, result any) er
 		} `json:"parameters"`
 	}
 	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		return fmt.Errorf("Telegram answered %s, not the Bot API", res.Status)
+		return &unanswered{msg: fmt.Sprintf("Telegram answered %s, not the Bot API", res.Status)}
 	}
 	if !r.OK {
 		if r.Description == "" {
@@ -154,16 +295,36 @@ type Send struct {
 	// Chat is a chat's id ("123456", "-1001234567890") or a channel's
 	// @username.
 	Chat string
+	// Text is the message, or the caption of its Media.
 	Text string
 	// ParseMode is "", "HTML" or "Markdown".
 	ParseMode string
 	// ReplyTo is the id of the message it answers, 0 for none.
 	ReplyTo int64
+	// Media is what SendMedia sends.
+	Media Media
 }
 
-// SendMessage sends a text message and returns it as Telegram sent it back.
-func (c *Client) SendMessage(ctx context.Context, m Send) (json.RawMessage, error) {
-	p := map[string]any{"chat_id": m.Chat, "text": m.Text}
+// Media is a photo, video or other file to send.
+type Media struct {
+	// Type is how Telegram shows it: "photo", "video", "audio", "voice",
+	// "document" or "animation".
+	Type string
+	// Path is a file on this computer, which is uploaded: up to 50 MB, 10 MB
+	// for a photo. Without one, Ref is an http(s) link or the file_id of a
+	// file Telegram has, which Telegram fetches itself.
+	Path, Ref string
+}
+
+// mediaMethods are the methods that send each type of media.
+var mediaMethods = map[string]string{
+	"photo": "sendPhoto", "video": "sendVideo", "audio": "sendAudio",
+	"voice": "sendVoice", "document": "sendDocument", "animation": "sendAnimation",
+}
+
+// params are a send's parameters but its text and media.
+func (m Send) params() map[string]any {
+	p := map[string]any{"chat_id": m.Chat}
 	if id, err := strconv.ParseInt(m.Chat, 10, 64); err == nil {
 		p["chat_id"] = id
 	}
@@ -173,6 +334,38 @@ func (c *Client) SendMessage(ctx context.Context, m Send) (json.RawMessage, erro
 	if m.ReplyTo != 0 {
 		p["reply_parameters"] = map[string]any{"message_id": m.ReplyTo, "allow_sending_without_reply": true}
 	}
+	return p
+}
+
+// SendMessage sends a text message and returns it as Telegram sent it back.
+// It is tried again as send says.
+func (c *Client) SendMessage(ctx context.Context, m Send) (json.RawMessage, error) {
+	p := m.params()
+	p["text"] = m.Text
 	var sent json.RawMessage
-	return sent, c.call(ctx, "sendMessage", p, &sent)
+	return sent, c.send(ctx, func(cl *Client) error { return cl.call(ctx, "sendMessage", p, &sent) })
+}
+
+// SendMedia sends m's Media, with its Text as the caption, and returns the
+// message as Telegram sent it back. It is tried again as send says, a file
+// uploaded afresh each time.
+func (c *Client) SendMedia(ctx context.Context, m Send) (json.RawMessage, error) {
+	method, ok := mediaMethods[m.Media.Type]
+	if !ok {
+		return nil, fmt.Errorf("Telegram: no media type %q", m.Media.Type)
+	}
+	p := m.params()
+	if strings.TrimSpace(m.Text) != "" {
+		p["caption"] = m.Text
+	}
+	var sent json.RawMessage
+	if m.Media.Path == "" {
+		p[m.Media.Type] = m.Media.Ref
+	}
+	return sent, c.send(ctx, func(cl *Client) error {
+		if m.Media.Path != "" {
+			return cl.upload(ctx, method, p, m.Media.Type, m.Media.Path, &sent)
+		}
+		return cl.call(ctx, method, p, &sent)
+	})
 }

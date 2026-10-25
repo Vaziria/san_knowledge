@@ -59,9 +59,10 @@ func (k *kind) pure() bool {
 func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ} }
 
 // kinds are the kinds of step, in the order the editor's Add menu shows them:
-// the core ones, the datetime ones (datetime.go), the san_remote ones
-// (social.go, then sites.go), then the Telegram ones (telegram.go).
-var kinds = slices.Concat(coreKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, telegramKinds)
+// the core ones, Log Event (logevent.go), the datetime ones (datetime.go),
+// the san_remote ones (social.go, then sites.go), then the Telegram ones
+// (telegram.go).
+var kinds = slices.Concat(coreKinds, logKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, telegramKinds)
 
 var coreKinds = []*kind{
 	{
@@ -243,6 +244,29 @@ var coreKinds = []*kind{
 			Inputs:      []*v1.Socket{sock("Event", Event), field("URL"), field("Save To")},
 		},
 		run: downloadFile,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "cut-video", Title: "Cut Video", Category: "Action",
+			Description: "Cuts the part of the video File from Start to End, in seconds (no End: to its end), with ffmpeg, exact to the frame; saved at Save To (a file or a folder) or beside File. File is the cut video.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("File", Text)},
+			Settings:    []*v1.Setting{{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"}},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("File"), field("Start"), field("End"), field("Save To")},
+		},
+		run: cutVideo,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "crop-video", Title: "Crop Video", Category: "Action",
+			Description: "Crops the picture of the video File with ffmpeg: to the largest middle part of Aspect 9:16, 1:1, 4:5 or 16:9, or, with Custom, to Width x Height pixels at X, Y (empty: the middle); saved at Save To (a file or a folder) or beside File. File is the cropped video.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("File", Text)},
+			Settings: []*v1.Setting{{Name: "Aspect", Options: cropAspects},
+				{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"}},
+			Inputs: []*v1.Socket{sock("Event", Event), field("File"),
+				only("Aspect=Custom", field("Width")), only("Aspect=Custom", field("Height")),
+				only("Aspect=Custom", field("X")), only("Aspect=Custom", field("Y")), field("Save To")},
+		},
+		run: cropVideo,
 	},
 	{
 		StepKind: &v1.StepKind{

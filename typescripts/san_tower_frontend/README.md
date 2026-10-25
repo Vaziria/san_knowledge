@@ -105,7 +105,9 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     right-clicking a step (or the selection) offers Duplicate, Disconnect
     links and Delete, and right-clicking a link Delete link. Dragging on empty
     space pans, with any button (the user's ask, 2026-10-25); Shift+drag
-    box-selects. Undo and Redo (the arrows in the header, Ctrl+Z, and
+    box-selects. While steps are selected, their links are bolder and
+    glow a little, and the other links fade (the user's ask, 2026-10-25;
+    a class on the edges drawn, not saved). Undo and Redo (the arrows in the header, Ctrl+Z, and
     Ctrl+Shift+Z or Ctrl+Y; the user's ask, 2026-10-25) step through the
     changes to steps and links: adding, deleting, moving (a whole drag is
     one step), linking and the values typed in a step (a burst of typing is
@@ -137,14 +139,17 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     triggers on, and the line under the header says whether each listens,
     or for a Schedule step when it runs next (asked again once that time
     has come). Both save first, since the tower runs the saved steps. The
-    editor has two tabs under its header (the user, 2026-10-25, in place
-    of a Runs button and panel): Workflow, the canvas, and Runs
-    (`?tab=runs`): the runs, newest first (checked every 3 s), and beside
+    editor has three tabs under its header (the user, 2026-10-25, in place
+    of a Runs button and panel; Logs added the same day): Workflow, the
+    canvas, Runs (`?tab=runs`): the runs, newest first (checked every 3 s), and beside
     them the picked one step by step (error, fired outputs, log lines, data
     outputs). The picked run, or the one Run just made, is also marked on
     the canvas (a badge on each step that ran), with a chip whose ✕ stops
-    it. The canvas stays mounted while Runs shows, so nothing typed or
-    undoable is lost; there Undo, Redo, Add and the canvas's keys are off.
+    it. Logs (`?tab=logs`) is the Workflow page's Logs (`RunLog`) for this
+    workflow alone: its runs as they come, switched on or not, with their
+    log lines, without the workflow's name on each. The canvas stays
+    mounted while Runs or Logs shows, so nothing typed or undoable is
+    lost; there Undo, Redo, Add and the canvas's keys are off.
   - `NotFound.tsx`.
 - `src/workflow/`: `catalog.ts`, the step kinds (loaded once from the
   tower), the connections a step can pick (asked once per type, forgotten
@@ -163,7 +168,9 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   `RunDetail` (what each step of a run did), which the Logs share;
   `RunLog.tsx`, the Workflow page's Logs: the runs of every workflow as
   they come, newest first, asked for every 2 s (ListRuns with no workflow,
-  which gives each run its workflow's name and the lines its steps logged).
+  which gives each run its workflow's name and the lines its steps logged;
+  with a `workflowId`, the editor's Logs, ListRuns with that workflow and
+  `logs`, and no "Active workflows only").
   "Active workflows only" (on by default) keeps to the workflows switched
   on; All / Succeeded / Failed keeps to runs of that status (the tower
   filters; Failed takes in interrupted runs). A run shows its time, status, workflow (a link to its editor),

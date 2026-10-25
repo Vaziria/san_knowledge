@@ -77,6 +77,8 @@ type Engine struct {
 	// Message steps of active workflows, by workflow id.
 	pollers map[uint32]*poller
 	tgSteps map[uint32][]tgStep
+	// The Log Event steps of active workflows, by workflow id.
+	logSteps map[uint32][]logStep
 
 	// TelegramAPI is where the Bot API answers, telegram.API when empty;
 	// tests set a fake's before Start.
@@ -98,6 +100,7 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		states: make(map[uint32][]*v1.TriggerState), listeners: make(map[string]*listener),
 		timers: make(map[string]*timer), timerStates: make(map[uint32][]*v1.TriggerState),
 		pollers: make(map[uint32]*poller), tgSteps: make(map[uint32][]tgStep),
+		logSteps: make(map[uint32][]logStep),
 	}
 }
 
@@ -183,11 +186,17 @@ func (e *Engine) SyncAll() error {
 		known[w.ID] = true
 		e.syncTimers(w)
 		e.syncTelegram(w)
+		e.syncLogs(w)
 	}
 	e.dropTimers(known)
 	for id := range e.tgSteps {
 		if !known[id] {
 			delete(e.tgSteps, id)
+		}
+	}
+	for id := range e.logSteps {
+		if !known[id] {
+			delete(e.logSteps, id)
 		}
 	}
 	for key, l := range e.listeners {
@@ -232,6 +241,7 @@ func (e *Engine) Sync(id uint32) {
 	}
 	e.syncTimers(w)
 	e.syncTelegram(w)
+	e.syncLogs(w)
 	url := e.brokerURL()
 	subs, err := e.subscribers(url)
 	if err != nil {
@@ -487,7 +497,7 @@ func (e *Engine) Triggers(id uint32) []*v1.TriggerState {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var out []*v1.TriggerState
-	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id)) {
+	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id), e.logStates(id)) {
 		out = append(out, proto.Clone(s).(*v1.TriggerState))
 	}
 	return out
@@ -556,9 +566,12 @@ func (e *Engine) begin(w store.Workflow, stepID, trigger string) (store.Run, err
 }
 
 // finish runs a begun run's steps under the engine's context, and records
-// how it ended.
+// how it ended. The lines its steps log, and its error when it fails, go to
+// the other workflows' Log Event steps (logevent.go).
 func (e *Engine) finish(w store.Workflow, r store.Run, stepID string, data []byte) (store.Run, error) {
-	steps, runErr := Execute(e.ctx, w.Graph, stepID, data, e.env())
+	env := e.env()
+	env.Logged = e.logLines(w, r, stepID)
+	steps, runErr := Execute(e.ctx, w.Graph, stepID, data, env)
 	status, errText := v1.RunStatus_RUN_STATUS_SUCCEEDED, ""
 	switch {
 	case runErr != nil && e.ctx.Err() != nil:
@@ -569,6 +582,9 @@ func (e *Engine) finish(w store.Workflow, r store.Run, stepID string, data []byt
 	fr, err := e.store.FinishRun(r, status, errText, steps)
 	if err != nil {
 		e.log.Error("record a workflow run", "workflow", w.ID, "run", r.ID, "err", err)
+	}
+	if status == v1.RunStatus_RUN_STATUS_FAILED && env.Logged != nil {
+		e.logged(w, logLine{Message: errText, Type: "failed", RunID: r.ID})
 	}
 	return fr, err
 }

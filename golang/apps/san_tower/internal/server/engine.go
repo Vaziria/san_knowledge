@@ -48,8 +48,8 @@ func (s *Server) ListRuns(_ context.Context, req *connect.Request[v1.ListRunsReq
 		limit = 50
 	}
 	limit = min(limit, MaxRunsListed)
-	if req.Msg.GetWorkflowId() == 0 {
-		return s.listAllRuns(req.Msg.GetActiveOnly(), req.Msg.GetStatuses(), limit)
+	if req.Msg.GetWorkflowId() == 0 || req.Msg.GetLogs() {
+		return s.listAllRuns(req.Msg.GetWorkflowId(), req.Msg.GetActiveOnly(), req.Msg.GetStatuses(), limit)
 	}
 	list, err := s.store.ListRuns(req.Msg.GetWorkflowId(), limit)
 	if err != nil {
@@ -71,10 +71,10 @@ func (s *Server) GetRun(_ context.Context, req *connect.Request[v1.GetRunRequest
 }
 
 // listAllRuns lists the runs of every workflow (the Workflow page's Logs),
-// each with its workflow's name and the lines its steps logged instead of
-// its steps.
-func (s *Server) listAllRuns(activeOnly bool, statuses []v1.RunStatus, limit int) (*connect.Response[v1.ListRunsResponse], error) {
-	list, err := s.store.ListAllRuns(activeOnly, statuses, limit)
+// or of one (the editor's Logs), each with its workflow's name and the lines
+// its steps logged instead of its steps.
+func (s *Server) listAllRuns(workflowID uint32, activeOnly bool, statuses []v1.RunStatus, limit int) (*connect.Response[v1.ListRunsResponse], error) {
+	list, err := s.store.ListAllRuns(workflowID, activeOnly, statuses, limit)
 	if err != nil {
 		return nil, storeError(err)
 	}

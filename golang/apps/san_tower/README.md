@@ -75,10 +75,10 @@ defines the kinds of step, each with a one-sentence description for the
 editor's Add menu (a test checks every kind has one) and, for a step of one
 site or service, a group, its sub-menu in its category (Social › Threads,
 Social › Telegram); the UI asks for them
-(ListStepKinds). All of them run: Topic Event, Schedule and Telegram
+(ListStepKinds). All of them run: Topic Event, Schedule, Log Event and Telegram
 Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
 Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Now, Datetime,
-Datetime Operation, String to Datetime, HTTP Request, Publish to Topic, Download File, Delete File, Delete Folder and Log,
+Datetime Operation, String to Datetime, HTTP Request, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
 and
 the San Remote and Telegram steps (Social, below).
 
@@ -90,6 +90,23 @@ the San Remote and Telegram steps (Social, below).
   Template) run then, or the value typed in the step for an unlinked field
   input. The first step that fails ends the run; a run stops after 1000
   steps, against a loop.
+- Log Event (Trigger; `logevent.go`; the user's ask, 2026-10-25) starts a
+  run for each line another workflow's run logs: a Log step's, with its
+  Type, or any other step's (Download File's, Cut Video's...), as info. A
+  run that fails is a failed line too, with its error, so "tell me when
+  anything fails" needs no Log steps. Type is Any (the default), info,
+  success, warning, failed or debug; Workflow is empty for every workflow,
+  or one's name (case aside) or id. The lines are those the editor's Logs
+  show. Message is the line, Type and Workflow its, and Log all of it
+  (`message`, `type`, `workflow`, `workflow_id`, `run_id`, `step_id`,
+  `step_kind`, `at`); a run by hand with text is an info line of it. A
+  run's trigger reads "log, Backup run 12". Lines go out as each step is
+  recorded (`Env.Logged`, from `execution.record`), so a long run's early
+  lines start their runs before it ends. Against loops: a workflow never
+  hears its own lines, and a run that Log Event started hands on none, so
+  lines never start runs in a chain (two workflows listening to each other
+  would otherwise run forever). It listens while its workflow is on and
+  needs no broker; an unknown Type shows as its trigger's error.
 - A loop (Glob's Each, 2026-10-25) fires one event output once per item:
   each time, the steps it links to run to the end of their branch before
   the next item, reading the item from the step's outputs (Item). Pure
@@ -169,6 +186,32 @@ the San Remote and Telegram steps (Social, below).
   so a failed download leaves nothing. A 4xx or 5xx fails the step. File
   is where it went; it waits a minute at most for the answer to start, and
   as long as the file takes.
+- Cut Video (Action; `video.go`; the user's ask, 2026-10-25) cuts the part
+  of the video File from Start to End, in seconds (`12.5`, or `12,5`),
+  with this computer's ffmpeg (on PATH; `winget install Gyan.FFmpeg`). An
+  empty Start is 0, an empty End the video's end. File is taken as it is
+  when absolute (a Download File's File links in), else placed as File
+  Path places a name. The part is encoded again (`ffmpeg -ss Start -i File
+  -t End-Start`), so it starts and ends at those seconds, not at the
+  nearest keyframes, with the codecs ffmpeg picks for the extension (H.264
+  and AAC for .mp4). Save To is a file or a folder, placed the same way;
+  empty, the cut goes beside File as `clip_10s-25s.mp4` (`clip_10s-end.mp4`
+  with no End). It is written to a `.part` file beside its place first and
+  moved there once whole. A Start past the video's end fails the step; an
+  End past it cuts to the end, which the log says. File is the cut
+  video, e.g. for Telegram Send's File.
+- Crop Video (Action; `video.go`; the user's ask, 2026-10-25) crops the
+  picture of the video File with ffmpeg's crop filter, the whole length.
+  Aspect 9:16 (the default), 1:1, 4:5 or 16:9 keeps the largest middle
+  part of that shape (`crop=w='trunc(min(iw,ih*9/16)/2)*2':h=...`: a
+  1920x1080 video at 9:16 keeps 606x1080 from its middle); Custom shows
+  Width, Height, X and Y and keeps Width x Height pixels at X, Y from the
+  top left, centred on an axis whose X or Y is empty. Sizes are made even,
+  as H.264 needs (a Width of 33 is 32); a crop larger than the picture
+  fails with ffmpeg's message. File, Save To, the codecs and the `.part`
+  file are as Cut Video's (shared in `video.go`: `videoIn`, `videoOut`,
+  `ffmpegTo`); beside File it is `clip_9x16.mp4` or `clip_crop_32x20.mp4`.
+  The log says the sizes ("from 1920x1080 to 606x1080").
 - The datetime steps (category Datetime, their own group in the Add
   menu; pure; `datetime.go`; the user's ask,
   2026-10-25) give a time three ways, in the tower's local time: Datetime
@@ -263,7 +306,26 @@ the San Remote and Telegram steps (Social, below).
     markdown Answer can be posted as it is. With Markdown, At (and TikTok's
     Video) may be left empty for the frontmatter's; what the step gives
     wins.
-  - Vidara Upload uploads File (a path on this computer) with its Title.
+  - X Post with Plain (the user's ask, 2026-10-25) takes Caption (instead of
+    Text, or a File), Image and Video, shown while Format is Plain (a
+    Socket's when can join conditions with commas, "Format=Plain,Source=Text"):
+    Image is up to 4 files, one per line, Video one video or GIF, since X
+    takes one or the other in a post; they go on the first post (in San
+    Remote's API, `Post.media`, absolute paths). A relative path is in the
+    tower's data folder; a file not there fails the step before anything is
+    sent, as do 5 images or both. The Caption may be empty when there is
+    media. A step saved before Caption, whose Text is linked (Underground
+    Flow's Gemini Answer), still posts its Text: Caption wins when it has
+    any. With Markdown, Text is shown as before and Image and Video are not
+    used: its `![](file)` images go on their posts.
+  - Vidara Upload uploads File (a path on this computer) with its Title,
+    into Folder (the user's ask, 2026-10-25): one of the account's folders
+    by name, or `Promo/2026` for one in a folder, picked in the Upload
+    page's Folder list; a top-level folder that is not there is made
+    (-Create new-), one in a folder must be there; empty is the root.
+    Link is the uploaded video's link (the user's ask, 2026-10-25), as
+    My videos shows it, or https://vidara.to/v/<code> when its row has
+    none; Video is all My videos lists of it.
   - X Post Download (Social › X; `xdownload.go`; the user's ask,
     2026-10-25) reads anyone's post from its Link (or id) through San
     Remote, in a background tab, and saves its images and videos (each
@@ -330,7 +392,9 @@ the San Remote and Telegram steps (Social, below).
     user's ask, 2026-10-25). Facebook's list has no times, so there it is
     the first listed and the three are empty. For a post the day after:
     Datetime Operation (Add 1 Days) on Datetime, into the post step's At.
-  - A post or an upload brings Chrome to the front for a minute or two.
+  - A post brings Chrome to the front for a minute or two. A Vidara
+    upload opens its tab but does not wait for Chrome to be in front: it
+    goes on behind other windows, as long as the file takes.
 - Telegram steps work as a bot, through the Telegram Bot connection their
   Connection setting names (the Bot API, over plain net/http,
   `internal/telegram`):
@@ -340,10 +404,30 @@ the San Remote and Telegram steps (Social, below).
     `payload.chat.id`, `payload.from.username`), Text its text (or a
     photo's caption), Chat its chat's id, which a Telegram Send can take to
     reply. A run's trigger reads "telegram, chat @heri, message 1010".
-  - Telegram Send (Social › Telegram) sends Text to Chat (a chat's id, or a
-    channel's @username), Plain, HTML or Markdown (Telegram's legacy
-    Markdown), as a reply when Reply To has a message id. Message is the
-    message sent.
+  - Telegram Send (Social › Telegram) sends Text to Chat (a chat's id, a
+    group's such as -1001234567890, or a channel's @username), Plain, HTML
+    or Markdown (Telegram's legacy Markdown), as a reply when Reply To has
+    a message id. Message is the message sent.
+  - Its Media (the user's ask, 2026-10-25) sends a Photo, Video, Audio,
+    Voice, Document or Animation instead, with Text as its caption
+    (optional, up to 1024 characters). The File input, shown once Media is
+    not None, is one of: an http(s) link, which Telegram downloads (up to
+    5 MB for a photo, 20 MB otherwise); a file on this computer, absolute
+    or in the tower's data folder, uploaded as multipart/form-data and
+    streamed (up to 10 MB for a photo, 50 MB otherwise, checked before
+    the upload); or, when no such file is there, the file_id of a file
+    Telegram has, such as a received photo's (`payload.photo`).
+  - A send is tried up to three times (the user's ask, 2026-10-25, after
+    one over IPv6 got no answer: `wsarecv ... did not properly respond`),
+    2 s and then 5 s apart (`telegram.DefaultRetry`), when another try may
+    get through: no answer (the next tries reach Telegram over IPv4, since
+    a path that breaks mid-call is often IPv6's), Telegram failing itself
+    (5xx), or 429 Too Many Requests (after its `retry_after`, up to 30 s).
+    A mistake (chat not found, bad request) is not tried again, and a
+    media file is uploaded afresh each try. Each new try is a warning line
+    in the run ("try 2 in 2s, after: ... (now over IPv4)"). A send whose
+    answer was lost after Telegram took it is sent twice: the Bot API has
+    no way to tell.
   - Telegram Messages (Social › Telegram) lists the newest messages the bot
     got, in every chat or in Chat; Last is the newest. The Bot API cannot
     read a chat's history, so these are the messages the tower kept: what
@@ -511,7 +595,8 @@ second fails to listen before it opens the broker.
   those behind and those retrying) and `workflow.proto`
   (WorkflowService: the step kinds; list, create, get, update, switch on,
   delete; run, and list and get runs, one workflow's or, for the Workflow
-  page's Logs, every workflow's or the active ones', and of any status or
+  page's Logs, every workflow's or the active ones' (or, with `logs`, for
+  the editor's Logs, one workflow's), and of any status or
   some, each then with its workflow's name and its log lines and their
   types (LogLevel, the Log step's Type: info, success, warning, failed,
   debug); a workflow's steps and links, and the

@@ -3,6 +3,8 @@ package engine
 import (
 	"context"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -134,6 +136,123 @@ func TestTelegramEcho(t *testing.T) {
 	}, Links: []*v1.Link{{Source: "go", SourceSocket: "Event", Target: "out", TargetSocket: "Event"}}}, "go", nil, e.env()); err == nil ||
 		!strings.Contains(err.Error(), "connection 99 is gone") {
 		t.Errorf("gone connection: %v", err)
+	}
+}
+
+// Telegram Send with Media sends File, with Text its caption: a file is
+// uploaded (a relative one from the data folder), a link or a file_id goes
+// as it is.
+func TestTelegramSendMedia(t *testing.T) {
+	f := telegramtest.New(t)
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, "img"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "img", "a.png"), []byte("png"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	big := filepath.Join(dir, "big.jpg")
+	if err := os.WriteFile(big, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Truncate(big, maxTelegramPhoto+1); err != nil {
+		t.Fatal(err)
+	}
+	env := Env{
+		TelegramAPI: f.URL,
+		DataDir:     filepath.ToSlash(dir),
+		Connection: func(id uint32) (store.Connection, error) {
+			return store.Connection{ID: id, Name: "Bot", Type: store.TelegramBot, Settings: &v1.ConnectionSettings{
+				Type: &v1.ConnectionSettings_TelegramBot{TelegramBot: &v1.TelegramBotSettings{Token: telegramtest.Token}},
+			}}, nil
+		},
+	}
+	send := func(values map[string]string) ([]*v1.StepRun, error) {
+		values["Connection"] = "1"
+		return Execute(context.Background(), &v1.Graph{
+			Steps: []*v1.Step{{Id: "go", Kind: "schedule"}, {Id: "out", Kind: "telegram-send", Values: values}},
+			Links: []*v1.Link{{Source: "go", SourceSocket: "Event", Target: "out", TargetSocket: "Event"}},
+		}, "go", nil, env)
+	}
+
+	for _, c := range []struct {
+		values map[string]string
+		method string
+		field  string
+		want   any
+	}{
+		{map[string]string{"Chat": "-100123", "Media": "Photo", "File": "img/a.png", "Text": "lihat"}, "sendPhoto", "photo",
+			telegramtest.File{Name: "a.png", Data: "png"}},
+		{map[string]string{"Chat": "-100123", "Media": "Document", "File": filepath.Join(dir, "img", "a.png")}, "sendDocument", "document",
+			telegramtest.File{Name: "a.png", Data: "png"}},
+		{map[string]string{"Chat": "42", "Media": "Video", "File": "https://example.com/v.mp4"}, "sendVideo", "video", "https://example.com/v.mp4"},
+		{map[string]string{"Chat": "42", "Media": "Animation", "File": "CgACAgQAAxkBAAIBfakeFileId"}, "sendAnimation", "animation", "CgACAgQAAxkBAAIBfakeFileId"},
+	} {
+		n := len(f.Sent())
+		steps, err := send(c.values)
+		if err != nil {
+			t.Errorf("%v: %v", c.values, err)
+			continue
+		}
+		sent := f.Sent()
+		if len(sent) != n+1 || sent[n]["method"] != c.method || sent[n][c.field] != c.want || sent[n]["caption"] != nilIfEmpty(c.values["Text"]) {
+			t.Errorf("%v: sent %v", c.values, sent[n:])
+		}
+		var msg structpb.Value
+		if err := steps[1].Outputs["Message"].UnmarshalTo(&msg); err != nil || msg.GetStructValue().GetFields()[c.field] == nil {
+			t.Errorf("%v: message %v, %v", c.values, &msg, err)
+		}
+	}
+
+	n := len(f.Sent())
+	for _, c := range []struct {
+		values map[string]string
+		want   string
+	}{
+		{map[string]string{"Chat": "42", "Media": "Photo"}, "File is empty"},
+		{map[string]string{"Chat": "42", "Media": "Photo", "File": "img/b.png"}, "img/b.png is not there"},
+		{map[string]string{"Chat": "42", "Media": "Photo", "File": "img"}, "is a folder"},
+		{map[string]string{"Chat": "42", "Media": "Photo", "File": "big.jpg"}, "up to 10 MB"},
+		{map[string]string{"Chat": "42", "Media": "Sticker", "File": "img/a.png"}, `Media "Sticker"`},
+		{map[string]string{"Chat": "42", "Media": "None", "File": "img/a.png"}, "Text is empty"},
+	} {
+		if _, err := send(c.values); err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%v: %v, want %q", c.values, err, c.want)
+		}
+	}
+	if len(f.Sent()) != n {
+		t.Errorf("refused sends reached Telegram: %v", f.Sent()[n:])
+	}
+}
+
+func nilIfEmpty(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
+// A send that gets no answer is tried again, each try a warning line.
+func TestTelegramSendRetry(t *testing.T) {
+	defer func(w []time.Duration) { telegramRetry = w }(telegramRetry)
+	telegramRetry = []time.Duration{10 * time.Millisecond}
+	f := telegramtest.New(t)
+	env := Env{TelegramAPI: f.URL, Connection: func(id uint32) (store.Connection, error) {
+		return store.Connection{ID: id, Name: "Bot", Type: store.TelegramBot, Settings: &v1.ConnectionSettings{
+			Type: &v1.ConnectionSettings_TelegramBot{TelegramBot: &v1.TelegramBotSettings{Token: telegramtest.Token}},
+		}}, nil
+	}}
+	f.FailSends(502)
+	steps, err := Execute(context.Background(), &v1.Graph{
+		Steps: []*v1.Step{{Id: "go", Kind: "schedule"}, {Id: "out", Kind: "telegram-send", Values: map[string]string{"Connection": "1", "Chat": "42", "Text": "halo"}}},
+		Links: []*v1.Link{{Source: "go", SourceSocket: "Event", Target: "out", TargetSocket: "Event"}},
+	}, "go", nil, env)
+	if err != nil || len(f.Sent()) != 1 {
+		t.Fatalf("send: %v, sent %v", err, f.Sent())
+	}
+	if r := steps[1]; len(r.Logs) != 1 || !strings.HasPrefix(r.Logs[0], "try 2 in 10ms, after: Telegram: Bad Gateway") ||
+		len(r.LogLevels) != 1 || r.LogLevels[0] != v1.LogLevel_LOG_LEVEL_WARNING {
+		t.Errorf("logs: %q %v", r.Logs, r.LogLevels)
 	}
 }
 

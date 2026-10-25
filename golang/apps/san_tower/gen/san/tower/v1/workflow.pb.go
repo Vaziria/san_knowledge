@@ -270,8 +270,10 @@ type Socket struct {
 	// The socket is still text, so it links to and from any text.
 	Picker string `protobuf:"bytes,4,opt,name=picker,proto3" json:"picker,omitempty"`
 	// when: an input that matters only when a setting has one value, as
-	// "Source=File"; the editor shows it then, or while it is linked. The
-	// engine reads the inputs the settings say, whatever is shown.
+	// "Source=File", or any but one, as "Media!=None", or when several such
+	// hold, joined by commas, as "Format=Plain,Source=Text"; the editor shows
+	// it then, or while it is linked. The engine reads the inputs the
+	// settings say, whatever is shown.
 	When          string `protobuf:"bytes,5,opt,name=when,proto3" json:"when,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1931,9 +1933,12 @@ type ListRunsRequest struct {
 	// active_only: with workflow_id 0, only the runs of the workflows switched
 	// on now.
 	ActiveOnly bool `protobuf:"varint,3,opt,name=active_only,json=activeOnly,proto3" json:"active_only,omitempty"`
-	// statuses: with workflow_id 0, only the runs with one of these statuses;
-	// any status when empty.
-	Statuses      []RunStatus `protobuf:"varint,4,rep,packed,name=statuses,proto3,enum=san.tower.v1.RunStatus" json:"statuses,omitempty"`
+	// statuses: with workflow_id 0 or logs, only the runs with one of these
+	// statuses; any status when empty.
+	Statuses []RunStatus `protobuf:"varint,4,rep,packed,name=statuses,proto3,enum=san.tower.v1.RunStatus" json:"statuses,omitempty"`
+	// logs: one workflow's runs as workflow_id 0 gives them, with its name and
+	// the lines its steps logged instead of its steps (the editor's Logs).
+	Logs          bool `protobuf:"varint,5,opt,name=logs,proto3" json:"logs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1994,6 +1999,13 @@ func (x *ListRunsRequest) GetStatuses() []RunStatus {
 		return x.Statuses
 	}
 	return nil
+}
+
+func (x *ListRunsRequest) GetLogs() bool {
+	if x != nil {
+		return x.Logs
+	}
+	return false
 }
 
 type ListRunsResponse struct {
@@ -2267,14 +2279,15 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\astep_id\x18\x02 \x01(\tR\x06stepId\x12\x12\n" +
 	"\x04data\x18\x03 \x01(\fR\x04data\":\n" +
 	"\x13RunWorkflowResponse\x12#\n" +
-	"\x03run\x18\x01 \x01(\v2\x11.san.tower.v1.RunR\x03run\"\x9e\x01\n" +
+	"\x03run\x18\x01 \x01(\v2\x11.san.tower.v1.RunR\x03run\"\xb2\x01\n" +
 	"\x0fListRunsRequest\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\rR\n" +
 	"workflowId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\rR\x05limit\x12\x1f\n" +
 	"\vactive_only\x18\x03 \x01(\bR\n" +
 	"activeOnly\x123\n" +
-	"\bstatuses\x18\x04 \x03(\x0e2\x17.san.tower.v1.RunStatusR\bstatuses\"9\n" +
+	"\bstatuses\x18\x04 \x03(\x0e2\x17.san.tower.v1.RunStatusR\bstatuses\x12\x12\n" +
+	"\x04logs\x18\x05 \x01(\bR\x04logs\"9\n" +
 	"\x10ListRunsResponse\x12%\n" +
 	"\x04runs\x18\x01 \x03(\v2\x11.san.tower.v1.RunR\x04runs\"\x1f\n" +
 	"\rGetRunRequest\x12\x0e\n" +

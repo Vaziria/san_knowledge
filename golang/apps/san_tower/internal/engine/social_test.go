@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -44,7 +45,9 @@ type fakeRemote struct {
 	threads  *threadsv1.SchedulePostRequest
 	facebook *facebookv1.SchedulePostRequest
 	download *vidarav1.DownloadVideoRequest
+	upload   *vidarav1.UploadVideoRequest
 	xget     *xv1.DownloadPostRequest
+	xpost    *xv1.SchedulePostRequest
 	// sites_test.go's
 	medium   *mediumv1.CreateDraftRequest
 	linkedin *linkedinv1.CreateDraftRequest
@@ -88,6 +91,11 @@ type fakeX struct {
 	*fakeRemote
 }
 
+func (f fakeX) SchedulePost(_ context.Context, req *connect.Request[xv1.SchedulePostRequest]) (*connect.Response[xv1.SchedulePostResponse], error) {
+	f.xpost = req.Msg
+	return connect.NewResponse(&xv1.SchedulePostResponse{Shown: "Will send on Fri, Nov 20, 2026 at 9:00 AM", At: req.Msg.At}), nil
+}
+
 // An X Article with its cover, saved where it was asked.
 func (f fakeX) DownloadPost(_ context.Context, req *connect.Request[xv1.DownloadPostRequest]) (*connect.Response[xv1.DownloadPostResponse], error) {
 	f.xget = req.Msg
@@ -116,6 +124,17 @@ type fakeVidara struct {
 func (f fakeVidara) DownloadVideo(_ context.Context, req *connect.Request[vidarav1.DownloadVideoRequest]) (*connect.Response[vidarav1.DownloadVideoResponse], error) {
 	f.download = req.Msg
 	return connect.NewResponse(&vidarav1.DownloadVideoResponse{Path: req.Msg.Out + "/Holiday.mp4", Title: "Holiday", Code: "abcdef123", Stream: "1280x720, 3.0 Mbps", Bytes: 12345678}), nil
+}
+
+// The uploaded video as My videos lists it; titled "bare", its row has no
+// link.
+func (f fakeVidara) UploadVideo(_ context.Context, req *connect.Request[vidarav1.UploadVideoRequest]) (*connect.Response[vidarav1.UploadVideoResponse], error) {
+	f.upload = req.Msg
+	v := &vidarav1.Video{Code: "KZ4JLnq7XNR2f", Title: req.Msg.Title, Status: "Processing"}
+	if req.Msg.Title != "bare" {
+		v.Url = "https://vidara.so/v/KZ4JLnq7XNR2f"
+	}
+	return connect.NewResponse(&vidarav1.UploadVideoResponse{Video: v}), nil
 }
 
 func (fakeVidara) ListVideos(context.Context, *connect.Request[vidarav1.ListVideosRequest]) (*connect.Response[vidarav1.ListVideosResponse], error) {
@@ -344,6 +363,44 @@ func TestVidaraDownload(t *testing.T) {
 	}
 }
 
+// Vidara Upload uploads a file; Link is the video's link, from My videos or,
+// when its row has none, from its code.
+func TestVidaraUpload(t *testing.T) {
+	f, env := remote(t)
+	g := func(values ...string) *v1.Graph {
+		return &v1.Graph{
+			Steps: []*v1.Step{step("ev", TopicEvent), step("up", "vidara-upload", append([]string{"Connection", "1"}, values...)...)},
+			Links: []*v1.Link{link("ev", "Event", "up", "Event")},
+		}
+	}
+	for title, want := range map[string]string{"Holiday": "https://vidara.so/v/KZ4JLnq7XNR2f", "bare": "https://vidara.to/v/KZ4JLnq7XNR2f"} {
+		steps, err := Execute(context.Background(), g("File", " D:/videos/Holiday.mp4 ", "Title", title), "ev", nil, env)
+		if err != nil || len(steps) != 2 || steps[1].Fired[0] != "Done" {
+			t.Fatalf("%s: %s, %v", title, ran(steps), err)
+		}
+		if f.upload.File != "D:/videos/Holiday.mp4" || f.upload.Title != title {
+			t.Errorf("request: %v", f.upload)
+		}
+		var link wrapperspb.StringValue
+		if err := steps[1].Outputs["Link"].UnmarshalTo(&link); err != nil || link.Value != want {
+			t.Errorf("%s: Link = %v, %v; want %s", title, &link, err, want)
+		}
+		var video structpb.Value
+		if err := steps[1].Outputs["Video"].UnmarshalTo(&video); err != nil || video.GetStructValue().Fields["code"].GetStringValue() != "KZ4JLnq7XNR2f" {
+			t.Errorf("%s: Video = %v, %v", title, &video, err)
+		}
+	}
+	if f.upload.Folder != "" {
+		t.Errorf("no Folder sent %q", f.upload.Folder)
+	}
+	if _, err := Execute(context.Background(), g("File", "D:/videos/Holiday.mp4", "Folder", " Promo/2026 "), "ev", nil, env); err != nil || f.upload.Folder != "Promo/2026" {
+		t.Errorf("Folder: %v, %v", f.upload, err)
+	}
+	if _, err := Execute(context.Background(), g("File", " "), "ev", nil, env); err == nil || !strings.Contains(err.Error(), "File is empty") {
+		t.Errorf("no file: %v", err)
+	}
+}
+
 // Last Scheduled Post: the latest time, wherever it is listed; None when
 // nothing is scheduled.
 func TestLastScheduledPost(t *testing.T) {
@@ -392,13 +449,74 @@ func TestSocialFails(t *testing.T) {
 		"other type":      {[]string{"Connection", "2", "Text", "hi", "At", "+1h"}, "not a san_remote connection"},
 		"no time":         {[]string{"Connection", "1", "Text", "hi"}, "only scheduled"},
 		"bad time":        {[]string{"Connection", "1", "Text", "hi", "At", "tomorrow"}, "give"},
-		"no text":         {[]string{"Connection", "1", "At", "+1h"}, "Text is empty"},
+		"no text":         {[]string{"Connection", "1", "At", "+1h"}, "Caption is empty: give a caption, an Image or a Video"},
+		"no markdown":     {[]string{"Connection", "1", "Format", "Markdown", "At", "+1h"}, "Text is empty"},
 	} {
 		g := &v1.Graph{
 			Steps: []*v1.Step{step("ev", TopicEvent), step("post", "x-post", c.values...)},
 			Links: []*v1.Link{link("ev", "Event", "post", "Event")},
 		}
 		if _, err := Execute(context.Background(), g, "ev", nil, env); err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%s: %v, want %q", name, err, c.want)
+		}
+	}
+}
+
+// X Post as Plain text: Caption (or Text, in a step saved before Caption),
+// with up to 4 Images or a Video on the first post; relative paths are in
+// the data folder.
+func TestXPostMedia(t *testing.T) {
+	f, env := remote(t)
+	dir := t.TempDir()
+	env.DataDir = filepath.ToSlash(dir)
+	for _, name := range []string{"a.jpg", "b.png", "c.webp", "d.jpg", "e.jpg", "v.mp4"} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(name), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	post := func(values ...string) error {
+		f.xpost = nil
+		g := &v1.Graph{
+			Steps: []*v1.Step{step("ev", TopicEvent), step("post", "x-post", append([]string{"Connection", "1", "At", "+1h"}, values...)...)},
+			Links: []*v1.Link{link("ev", "Event", "post", "Event")},
+		}
+		_, err := Execute(context.Background(), g, "ev", nil, env)
+		return err
+	}
+	media := func() []string {
+		if f.xpost == nil || len(f.xpost.Posts) == 0 {
+			return nil
+		}
+		return f.xpost.Posts[0].Media
+	}
+	abs := func(name string) string { return filepath.Join(dir, name) }
+
+	if err := post("Caption", "Satu\n---\nDua", "Image", "a.jpg\n "+abs("b.png")+"\n"); err != nil {
+		t.Fatal(err)
+	}
+	if p := f.xpost.Posts; len(p) != 2 || p[0].Text != "Satu" || p[1].Text != "Dua" || len(p[1].Media) != 0 ||
+		strings.Join(media(), "|") != abs("a.jpg")+"|"+abs("b.png") {
+		t.Errorf("caption and images: %v", f.xpost)
+	}
+	if err := post("Video", "v.mp4"); err != nil || len(f.xpost.Posts) != 1 || f.xpost.Posts[0].Text != "" || strings.Join(media(), "") != abs("v.mp4") {
+		t.Errorf("a video alone: %v, %v", f.xpost, err)
+	}
+	if err := post("Text", "dari Gemini", "Image", "c.webp"); err != nil || f.xpost.Posts[0].Text != "dari Gemini" || len(media()) != 1 {
+		t.Errorf("Text, as saved before Caption: %v, %v", f.xpost, err)
+	}
+	if err := post("Format", "Markdown", "Text", "*Halo*", "Image", "a.jpg"); err != nil || f.xpost.Markdown != "*Halo*" || len(f.xpost.Posts) != 0 {
+		t.Errorf("Markdown leaves Image to its ![](file): %v, %v", f.xpost, err)
+	}
+	for name, c := range map[string]struct {
+		values []string
+		want   string
+	}{
+		"5 images":        {[]string{"Image", "a.jpg\nb.png\nc.webp\nd.jpg\ne.jpg"}, "Image has 5 files"},
+		"image and video": {[]string{"Image", "a.jpg", "Video", "v.mp4"}, "not both"},
+		"missing":         {[]string{"Caption", "x", "Image", "nope.jpg"}, "nope.jpg is not there"},
+		"a folder":        {[]string{"Video", "."}, "is a folder"},
+	} {
+		if err := post(c.values...); err == nil || !strings.Contains(err.Error(), c.want) {
 			t.Errorf("%s: %v, want %q", name, err, c.want)
 		}
 	}

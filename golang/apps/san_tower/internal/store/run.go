@@ -74,12 +74,14 @@ func (s *Store) InterruptRuns() (int64, error) {
 	return r.RowsAffected, r.Error
 }
 
-// ListAllRuns lists the newest runs of every workflow, or only of those
-// switched on (activeOnly), newest first, with their steps. With statuses,
-// only the runs with one of them.
-func (s *Store) ListAllRuns(activeOnly bool, statuses []v1.RunStatus, limit int) ([]Run, error) {
+// ListAllRuns lists the newest runs of one workflow (workflowID), or of
+// every workflow (0) or only of those switched on (activeOnly), newest
+// first, with their steps. With statuses, only the runs with one of them.
+func (s *Store) ListAllRuns(workflowID uint32, activeOnly bool, statuses []v1.RunStatus, limit int) ([]Run, error) {
 	q := s.db.Order("id DESC").Limit(limit)
-	if activeOnly {
+	if workflowID != 0 {
+		q = q.Where("workflow_id = ?", workflowID)
+	} else if activeOnly {
 		q = q.Where("workflow_id IN (?)", s.db.Model(&Workflow{}).Select("id").Where("active = ?", true))
 	}
 	if len(statuses) > 0 {

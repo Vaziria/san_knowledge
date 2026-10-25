@@ -89,4 +89,21 @@ func TestListAllRuns(t *testing.T) {
 	if r := one.Msg.Runs; len(r) != 1 || r[0].WorkflowName != "" || len(r[0].Logs) != 0 {
 		t.Errorf("one workflow's runs = %v", r)
 	}
+
+	// With logs, as every workflow's: for the editor's Logs.
+	logs, err := c.ListRuns(ctx, connect.NewRequest(&v1.ListRunsRequest{WorkflowId: on.Id, Logs: true}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := logs.Msg.Runs; len(r) != 1 || r[0].WorkflowName != "watched" || len(r[0].Logs) != 1 || len(r[0].Steps) != 0 {
+		t.Errorf("one workflow's logs = %v", r)
+	}
+	failed, err := c.ListRuns(ctx, connect.NewRequest(&v1.ListRunsRequest{
+		WorkflowId: on.Id,
+		Logs:       true,
+		Statuses:   []v1.RunStatus{v1.RunStatus_RUN_STATUS_FAILED},
+	}))
+	if err != nil || len(failed.Msg.Runs) != 0 {
+		t.Errorf("one workflow's failed runs = %v, %v", failed, err)
+	}
 }

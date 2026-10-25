@@ -32,9 +32,12 @@ type StatusFilter = keyof typeof statusFilters;
 // its time, workflow, status, trigger and duration,
 // and under it the lines its steps logged and why it failed; a run that just
 // came in is marked for a moment. Clicking a run shows what each of its steps
-// did. Pause stops asking, so the list stands still to read.
-export function RunLog() {
-  const [activeOnly, setActiveOnly] = useState(true);
+// did. Pause stops asking, so the list stands still to read. With a
+// workflowId it is the editor's Logs: that workflow's runs (ListRuns with
+// logs), switched on or not, without the workflow's name on each.
+export function RunLog({ workflowId = 0 }: { workflowId?: number }) {
+  const [activeSwitch, setActiveOnly] = useState(true);
+  const activeOnly = !workflowId && activeSwitch;
   const [status, setStatus] = useState<StatusFilter>('all');
   const [paused, setPaused] = useState(false);
   const [runs, setRuns] = useState<Run[]>();
@@ -55,12 +58,13 @@ export function RunLog() {
 
   useEffect(() => {
     seen.current = null; // a new filter marks nothing as new
-  }, [activeOnly, status]);
+  }, [workflowId, activeOnly, status]);
   useEffect(() => {
     if (paused) return;
     let stale = false;
+    const statuses = statusFilters[status].statuses;
     const load = () =>
-      workflows.listRuns({ workflowId: 0, activeOnly, statuses: statusFilters[status].statuses, limit: shown }).then(
+      workflows.listRuns({ workflowId, logs: true, activeOnly, statuses, limit: shown }).then(
         (r) => {
           if (stale) return;
           const now = Date.now();
@@ -83,7 +87,7 @@ export function RunLog() {
       stale = true;
       clearInterval(t);
     };
-  }, [activeOnly, status, paused]);
+  }, [workflowId, activeOnly, status, paused]);
 
   // The open run's steps, again when its status changes (it finished).
   const openStatus = runs?.find((r) => r.id === open?.id)?.status;
@@ -99,18 +103,20 @@ export function RunLog() {
     <Stack gap="3">
       <HStack justify="space-between" wrap="wrap" gap="3">
         <HStack gap="4">
-          <Switch.Root
-            size="sm"
-            colorPalette="green"
-            checked={activeOnly}
-            onCheckedChange={(e) => setActiveOnly(e.checked)}
-          >
-            <Switch.HiddenInput />
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            <Switch.Label>Active workflows only</Switch.Label>
-          </Switch.Root>
+          {!workflowId && (
+            <Switch.Root
+              size="sm"
+              colorPalette="green"
+              checked={activeSwitch}
+              onCheckedChange={(e) => setActiveOnly(e.checked)}
+            >
+              <Switch.HiddenInput />
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Label>Active workflows only</Switch.Label>
+            </Switch.Root>
+          )}
           <ButtonGroup size="xs" variant="outline" attached>
             {Object.entries(statusFilters).map(([key, f]) => (
               <Button
@@ -144,7 +150,9 @@ export function RunLog() {
             ? `No ${statusFilters[status].label.toLowerCase()} runs${activeOnly ? ' of active workflows' : ''}.`
             : activeOnly
               ? 'No runs of active workflows yet. Switch a workflow on (Workflows tab), and its runs show here as they happen.'
-              : 'No runs yet.'}
+              : workflowId
+                ? 'No runs yet: run it by hand, or switch it on, and its runs show here as they happen.'
+                : 'No runs yet.'}
         </Text>
       )}
       {runs && runs.length > 0 && (
@@ -153,6 +161,7 @@ export function RunLog() {
             <RunRow
               key={r.id}
               run={r}
+              named={!workflowId}
               isNew={arrived.has(r.id)}
               open={open?.id === r.id ? open : undefined}
               onToggle={() => setOpen(open?.id === r.id ? undefined : r)}
@@ -164,7 +173,20 @@ export function RunLog() {
   );
 }
 
-function RunRow({ run, isNew, open, onToggle }: { run: Run; isNew: boolean; open?: Run; onToggle: () => void }) {
+// RunRow is one run of the log; named shows its workflow's name.
+function RunRow({
+  run,
+  named,
+  isNew,
+  open,
+  onToggle,
+}: {
+  run: Run;
+  named: boolean;
+  isNew: boolean;
+  open?: Run;
+  onToggle: () => void;
+}) {
   const status = runStatus[run.status];
   const failed = run.status === RunStatus.FAILED || run.status === RunStatus.INTERRUPTED;
   const Chevron = open ? ChevronDownIcon : ChevronRightIcon;
@@ -183,9 +205,11 @@ function RunRow({ run, isNew, open, onToggle }: { run: Run; isNew: boolean; open
         <Badge size="sm" colorPalette={status.palette} flexShrink={0} w="20" justifyContent="center">
           {status.label}
         </Badge>
-        <Link asChild fontWeight="semibold" textStyle="sm" flexShrink={0} onClick={(e) => e.stopPropagation()}>
-          <RouterLink to={`/workflow/${run.workflowId}`}>{run.workflowName || `Workflow ${run.workflowId}`}</RouterLink>
-        </Link>
+        {named && (
+          <Link asChild fontWeight="semibold" textStyle="sm" flexShrink={0} onClick={(e) => e.stopPropagation()}>
+            <RouterLink to={`/workflow/${run.workflowId}`}>{run.workflowName || `Workflow ${run.workflowId}`}</RouterLink>
+          </Link>
+        )}
         <Text textStyle="sm" color="fg.muted" truncate flex="1">
           {run.trigger}
         </Text>

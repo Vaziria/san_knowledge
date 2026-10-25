@@ -67,8 +67,10 @@ message Socket {
   // The socket is still text, so it links to and from any text.
   string picker = 4;
   // when: an input that matters only when a setting has one value, as
-  // "Source=File"; the editor shows it then, or while it is linked. The
-  // engine reads the inputs the settings say, whatever is shown.
+  // "Source=File", or any but one, as "Media!=None", or when several such
+  // hold, joined by commas, as "Format=Plain,Source=Text"; the editor shows
+  // it then, or while it is linked. The engine reads the inputs the
+  // settings say, whatever is shown.
   string when = 5;
 }
 
@@ -295,9 +297,12 @@ message ListRunsRequest {
   // active_only: with workflow_id 0, only the runs of the workflows switched
   // on now.
   bool active_only = 3;
-  // statuses: with workflow_id 0, only the runs with one of these statuses;
-  // any status when empty.
+  // statuses: with workflow_id 0 or logs, only the runs with one of these
+  // statuses; any status when empty.
   repeated RunStatus statuses = 4;
+  // logs: one workflow's runs as workflow_id 0 gives them, with its name and
+  // the lines its steps logged instead of its steps (the editor's Logs).
+  bool logs = 5;
 }
 
 message ListRunsResponse {

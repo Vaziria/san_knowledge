@@ -39,6 +39,9 @@ type Env struct {
 	// DataDir is the tower's data folder, absolute, with /: where File
 	// Path's relative names are when no storage is picked.
 	DataDir string
+	// Logged gets the lines each step logged, with their types, as the
+	// step is recorded: for the Log Event steps of other workflows.
+	Logged func(step *v1.Step, lines []string, levels []v1.LogLevel)
 }
 
 // Execute runs a graph from its trigger step trigger, as if the trigger got
@@ -304,5 +307,8 @@ func (x *execution) record(st *v1.Step, c *call, start time.Time, err error) *v1
 		r.Outputs[name] = a
 	}
 	x.runs = append(x.runs, r)
+	if x.env.Logged != nil && len(c.logs) > 0 {
+		x.env.Logged(st, c.logs, c.levels)
+	}
 	return r
 }

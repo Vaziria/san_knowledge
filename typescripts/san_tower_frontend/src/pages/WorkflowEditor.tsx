@@ -39,6 +39,7 @@ import {
   PlayIcon,
   PlusIcon,
   Redo2Icon,
+  ScrollTextIcon,
   Undo2Icon,
   WorkflowIcon,
 } from 'lucide-react';
@@ -66,6 +67,7 @@ import {
 } from '../workflow/catalog';
 import { useHistory } from '../workflow/history';
 import { runStatus, StepRunContext } from '../workflow/runs';
+import { RunLog } from '../workflow/RunLog';
 import { RunsPanel } from '../workflow/RunsPanel';
 import { AddPalette } from '../workflow/AddPalette';
 import { RenameDialog } from '../workflow/RenameDialog';
@@ -81,8 +83,9 @@ export const savesDone = () => saves;
 // WorkflowEditor edits one workflow (WorkflowService, in the tower's
 // database), whose id is in the path (/workflow/3), and runs it: by hand
 // (Run), or by its triggers once it is switched on (Active). Edits save by
-// themselves. It has two tabs (the user, 2026-10-25): Workflow, the canvas,
-// and Runs (?tab=runs), its runs.
+// themselves. It has three tabs (the user, 2026-10-25): Workflow, the canvas,
+// Runs (?tab=runs), its runs, and Logs (?tab=logs), its runs as they come
+// with the lines they logged.
 export function WorkflowEditor() {
   const id = Number(useParams().id) || 0;
   const navigate = useNavigate();
@@ -133,8 +136,8 @@ type MenuTarget = { type: 'steps'; ids: string[] } | { type: 'link'; id: string 
 // Ctrl+Shift+Z or Ctrl+Y redoes it. A change is saved once the editing
 // pauses, and when the editor closes. Run, and
 // switching it on, first save what is not saved: the tower runs the saved
-// steps. The canvas stays mounted while the Runs tab shows, so nothing typed
-// or undoable is lost, and the run picked there marks its steps on it.
+// steps. The canvas stays mounted while the other tabs show, so nothing typed
+// or undoable is lost, and the run picked in Runs marks its steps on it.
 function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: () => void }) {
   const [start] = useState(() => toFlow(workflow));
   const [nodes, setNodes, onNodesChange] = useNodesState<Step>(start.nodes);
@@ -151,10 +154,22 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
   const [triggers, setTriggers] = useState(workflow.triggers);
   const [running, setRunning] = useState(false);
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'runs' ? 'runs' : 'workflow';
+  const tab = (['runs', 'logs'] as const).find((t) => t === params.get('tab')) ?? 'workflow';
   const [picked, setPicked] = useState<Run>();
   const [runsReload, setRunsReload] = useState(0);
   const pickedSteps = useMemo(() => new Map(picked?.steps.map((s) => [s.stepId, s])), [picked]);
+  // While steps are selected, their links stand out and the others fade
+  // (the user, 2026-10-25). The class is set on what is drawn, not saved,
+  // and only when the selection or the links change, not on every drag.
+  const selectedSteps = nodes
+    .filter((n) => n.selected)
+    .map((n) => n.id)
+    .join(' ');
+  const shownEdges = useMemo(() => {
+    const ids = new Set(selectedSteps.split(' ').filter(Boolean));
+    if (ids.size === 0) return edges.map((e) => ({ ...e, className: undefined }));
+    return edges.map((e) => ({ ...e, className: ids.has(e.source) || ids.has(e.target) ? 'linked' : 'faded' }));
+  }, [edges, selectedSteps]);
 
   // Saving: the graph as JSON is compared with the last one saved. Saves run
   // one at a time, in order (saves), and each sends the latest graph.
@@ -365,7 +380,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // A field being typed in keeps its own keys, and its own undo; the
-      // Runs tab has none of the canvas's.
+      // other tabs have none of the canvas's.
       if (isTyping(e.target) || tab !== 'workflow') return;
       const key = e.key.toLowerCase();
       if (e.ctrlKey || e.metaKey) {
@@ -472,7 +487,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
         </HStack>
       </HStack>
       {active && <TriggerStatus triggers={triggers} kindOf={(id) => nodes.find((n) => n.id === id)?.data.kind} />}
-      <Tabs.Root value={tab} onValueChange={(e) => setParams(e.value === 'runs' ? { tab: 'runs' } : {})} size="sm">
+      <Tabs.Root value={tab} onValueChange={(e) => setParams(e.value === 'workflow' ? {} : { tab: e.value })} size="sm">
         <Tabs.List>
           <Tabs.Trigger value="workflow">
             <WorkflowIcon size="16" />
@@ -481,6 +496,10 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
           <Tabs.Trigger value="runs">
             <HistoryIcon size="16" />
             Runs
+          </Tabs.Trigger>
+          <Tabs.Trigger value="logs">
+            <ScrollTextIcon size="16" />
+            Logs
           </Tabs.Trigger>
         </Tabs.List>
       </Tabs.Root>
@@ -500,6 +519,13 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
           _dark: { '--xy-background-color': 'var(--chakra-colors-bg)' },
           '& .react-flow__edge-path': { strokeWidth: 2 },
           '& .react-flow__edge:hover .react-flow__edge-path': { strokeWidth: 3.5 },
+          // The links of the selected steps are bolder and glow a little; the
+          // others fade.
+          '& .react-flow__edge.linked .react-flow__edge-path': {
+            strokeWidth: 3.5,
+            filter: 'drop-shadow(0 0 1.5px currentColor)',
+          },
+          '& .react-flow__edge.faded:not(.selected)': { opacity: 0.3 },
           // A selected link is bolder than a hovered one and glows in its own colour.
           '& .react-flow__edge.selected .react-flow__edge-path': {
             strokeWidth: 6,
@@ -510,7 +536,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
         <StepRunContext.Provider value={pickedSteps}>
           <ReactFlow
             nodes={nodes}
-            edges={edges}
+            edges={shownEdges}
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -566,6 +592,11 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
         </StepRunContext.Provider>
       </Box>
       {tab === 'runs' && <RunsPanel workflowId={workflow.id} picked={picked} onPick={setPicked} reload={runsReload} />}
+      {tab === 'logs' && (
+        <Box flex="1" minH="0" overflowY="auto">
+          <RunLog workflowId={workflow.id} />
+        </Box>
+      )}
       <Text fontSize="xs" color="fg.muted" display={tab === 'workflow' ? undefined : 'none'}>
         Shift+A add a step · drag from a socket to link · right-click a step or link for its menu · Delete removes ·
         Ctrl+Z undo · Ctrl+Shift+Z redo · drag on empty space to pan · Shift+drag to select · wheel to zoom

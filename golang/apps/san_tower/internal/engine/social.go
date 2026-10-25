@@ -3,8 +3,10 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -75,7 +77,7 @@ var socialKinds = []*kind{
 			Inputs:      postInputs("Text"),
 		},
 		run: func(c *call) error {
-			r, at, p, err := c.postArgs(minuteGrid, "Text")
+			r, at, p, err := c.postArgs(minuteGrid, "Text", true)
 			if err != nil {
 				return err
 			}
@@ -103,28 +105,12 @@ var socialKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "x-post", Title: "X Post", Category: "Social",
 			Group:       "X",
-			Description: "Schedules a post or thread on X through San Remote at At: Text or a File, posts split by ---, as Plain text or Markdown (" + markdownNote + ").",
+			Description: "Schedules a post or thread on X through San Remote at At, posts split by ---: as Plain text, a Caption (or a File) with up to 4 Images or a Video on its first post, or as Markdown, Text or a File (" + markdownNote + ").",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Result", Object)},
 			Settings:    append([]*v1.Setting{connectionSetting()}, formatSettings()...),
-			Inputs:      postInputs("Text"),
+			Inputs:      xPostInputs(),
 		},
-		run: func(c *call) error {
-			r, at, p, err := c.postArgs(minuteGrid, "Text")
-			if err != nil {
-				return err
-			}
-			req := &xv1.SchedulePostRequest{At: at, File: p.file, Markdown: p.markdown}
-			for _, t := range posts(p.plain) {
-				req.Posts = append(req.Posts, &xv1.Post{Text: t})
-			}
-			res, err := r.x.SchedulePost(c.ctx, connect.NewRequest(req))
-			if err != nil {
-				return remoteErr(err)
-			}
-			c.outputs["Result"] = toValue(res.Msg)
-			c.fire("Done")
-			return nil
-		},
+		run: xPost,
 	},
 	{
 		StepKind: &v1.StepKind{
@@ -152,7 +138,7 @@ var socialKinds = []*kind{
 			Inputs: postInputs("Text"),
 		},
 		run: func(c *call) error {
-			r, at, p, err := c.postArgs(fiveMinutes, "Text")
+			r, at, p, err := c.postArgs(fiveMinutes, "Text", true)
 			if err != nil {
 				return err
 			}
@@ -175,10 +161,10 @@ var socialKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "vidara-upload", Title: "Vidara Upload", Category: "Social",
 			Group:       "Vidara",
-			Description: "Uploads a video file to Vidara through San Remote; Video has its link.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Video", Object)},
+			Description: "Uploads a video file to Vidara through San Remote, into Folder (a folder's name, or Promo/2026 for one in a folder; a top-level one that is not there is made) or the root; Link is the uploaded video's link (https://vidara.to/v/<code>), Video what My videos lists of it.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Link", Text), sock("Video", Object)},
 			Settings:    []*v1.Setting{connectionSetting()},
-			Inputs:      []*v1.Socket{sock("Event", Event), field("File"), field("Title")},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("File"), field("Title"), field("Folder")},
 		},
 		run: func(c *call) error {
 			r, err := c.sanRemote()
@@ -189,11 +175,21 @@ var socialKinds = []*kind{
 			if file == "" {
 				return fmt.Errorf("File %w: give the video's path on this computer", errEmpty)
 			}
-			res, err := r.vidara.UploadVideo(c.ctx, connect.NewRequest(&vidarav1.UploadVideoRequest{File: file, Title: strings.TrimSpace(c.text("Title"))}))
+			res, err := r.vidara.UploadVideo(c.ctx, connect.NewRequest(&vidarav1.UploadVideoRequest{
+				File: file, Title: strings.TrimSpace(c.text("Title")), Folder: strings.TrimSpace(c.text("Folder")),
+			}))
 			if err != nil {
 				return remoteErr(err)
 			}
-			c.outputs["Video"] = toValue(res.Msg.Video)
+			// The link is the one My videos shows; a row without one has
+			// the video's code.
+			v := res.Msg.Video
+			link := v.GetUrl()
+			if link == "" {
+				link = "https://vidara.to/v/" + v.GetCode()
+			}
+			c.outputs["Link"] = stringValue(link)
+			c.outputs["Video"] = toValue(v)
 			c.fire("Done")
 			return nil
 		},
@@ -487,6 +483,105 @@ func postInputs(text string) []*v1.Socket {
 	return []*v1.Socket{sock("Event", Event), only("Source=Text", field(text)), only("Source=File", field("File")), atPicker()}
 }
 
+// xPostInputs are X Post's inputs (the user, 2026-10-25: a plain post takes
+// a caption, images and a video): with Plain, Caption (or File) and Image or
+// Video; with Markdown, Text (or File). Text was a plain post's text too
+// before then, and a step saved so that links it still works.
+func xPostInputs() []*v1.Socket {
+	return []*v1.Socket{sock("Event", Event),
+		only("Format=Plain,Source=Text", field("Caption")),
+		only("Format=Markdown,Source=Text", field("Text")),
+		only("Source=File", field("File")),
+		only("Format=Plain", field("Image")),
+		only("Format=Plain", field("Video")),
+		atPicker()}
+}
+
+// xPost runs X Post. A plain post's text is Caption, or Text in a step saved
+// before Caption was there, and may be empty when Image or Video is given;
+// they go on its first post.
+func xPost(c *call) error {
+	plain := c.setting("Format") != "Markdown"
+	text, media := "Text", []string(nil)
+	if plain {
+		var err error
+		if media, err = c.xMedia(); err != nil {
+			return err
+		}
+		if strings.TrimSpace(c.text("Caption")) != "" || strings.TrimSpace(c.text("Text")) == "" {
+			text = "Caption"
+		}
+	}
+	r, at, p, err := c.postArgs(minuteGrid, text, !plain)
+	if err != nil {
+		return err
+	}
+	req := &xv1.SchedulePostRequest{At: at, File: p.file, Markdown: p.markdown}
+	for _, t := range posts(p.plain) {
+		req.Posts = append(req.Posts, &xv1.Post{Text: t})
+	}
+	switch {
+	case len(media) > 0:
+		if len(req.Posts) == 0 {
+			req.Posts = append(req.Posts, &xv1.Post{})
+		}
+		req.Posts[0].Media = media
+	case plain && len(req.Posts) == 0 && c.setting("Source") == "File":
+		return fmt.Errorf("File %w: give a caption in it, an Image or a Video", errEmpty)
+	case plain && len(req.Posts) == 0:
+		return fmt.Errorf("%s %w: give a caption, an Image or a Video", text, errEmpty)
+	}
+	res, err := r.x.SchedulePost(c.ctx, connect.NewRequest(req))
+	if err != nil {
+		return remoteErr(err)
+	}
+	c.outputs["Result"] = toValue(res.Msg)
+	c.fire("Done")
+	return nil
+}
+
+// xMedia is X Post's Image, up to 4 files one per line, or its Video, one
+// video or GIF: X takes one or the other in a post. A relative path is in
+// the tower's data folder; the files must be there.
+func (c *call) xMedia() ([]string, error) {
+	var media []string
+	add := func(input, raw string) error {
+		full, err := place(c, input, raw)
+		if err != nil {
+			return err
+		}
+		switch fi, err := os.Stat(filepath.FromSlash(full)); {
+		case errors.Is(err, fs.ErrNotExist):
+			return fmt.Errorf("%s %s is not there", input, full)
+		case err != nil:
+			return err
+		case fi.IsDir():
+			return fmt.Errorf("%s %s is a folder: give a file", input, full)
+		}
+		media = append(media, filepath.FromSlash(full))
+		return nil
+	}
+	for _, l := range strings.Split(c.text("Image"), "\n") {
+		if l = strings.TrimSpace(l); l != "" {
+			if err := add("Image", l); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if len(media) > 4 {
+		return nil, fmt.Errorf("Image has %d files: X takes up to 4 images in a post", len(media))
+	}
+	if v := strings.TrimSpace(c.text("Video")); v != "" {
+		if len(media) > 0 {
+			return nil, errors.New("Image and Video: X takes up to 4 images or one video in a post, not both")
+		}
+		if err := add("Video", v); err != nil {
+			return nil, err
+		}
+	}
+	return media, nil
+}
+
 // markdownNote is what Markdown is, in a post step's description.
 const markdownNote = "a post file: frontmatter such as at:, ![](image) attached, the markup written as plain text"
 
@@ -589,12 +684,12 @@ func (c *call) sanRemote() (remoteClients, error) {
 // postArgs reads what every post step needs: its connection, its time on
 // the site's grid and its words (postOf), from the input named text. A
 // Text is required; a TikTok Caption may be empty.
-func (c *call) postArgs(grid time.Duration, text string) (remoteClients, *timestamppb.Timestamp, post, error) {
+func (c *call) postArgs(grid time.Duration, text string, required bool) (remoteClients, *timestamppb.Timestamp, post, error) {
 	r, err := c.sanRemote()
 	if err != nil {
 		return r, nil, post{}, err
 	}
-	p, err := c.postOf(text, text != "Caption")
+	p, err := c.postOf(text, required)
 	if err != nil {
 		return r, nil, p, err
 	}

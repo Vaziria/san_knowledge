@@ -111,7 +111,7 @@ var siteKinds = []*kind{
 			Inputs:      slices.Insert(postInputs("Caption"), 1, field("Video")),
 		},
 		run: func(c *call) error {
-			r, at, p, err := c.postArgs(fiveMinutes, "Caption")
+			r, at, p, err := c.postArgs(fiveMinutes, "Caption", false)
 			if err != nil {
 				return err
 			}

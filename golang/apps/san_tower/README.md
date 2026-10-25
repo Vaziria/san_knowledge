@@ -115,7 +115,30 @@ network (10/8, 172.16/12, 192.168/16, fc00::/7, link-local, 100.64/10 as
 VPNs give out) or this machine's name (`raspi`, `raspi.local`, `raspi.lan`),
 and a browser call must come from the tower's own page (its Origin's host
 is the Host) or a loopback one. The Browser Remote Server's addresses stay
-on loopback.
+on loopback. Listening on every address, the tower reaches itself (its
+triggers' broker streams) at 127.0.0.1 (`selfURL`), never at `[::]`.
+
+## Raspberry Pi
+
+The user's Pi (`ssh raspi`, 192.168.1.5, 64-bit Debian, no sudo) runs the
+linux-arm64 release in `~/san_tower`, open on the LAN at
+http://192.168.1.5:7477 (2026-10-26). `deploy/raspi/run.sh` keeps it
+running as san_radio's run.sh does: crontab `@reboot`, one copy (`flock`),
+started again 10 s after it stops, `serve --listen 0.0.0.0:7477 --lan --data
+data`, the log in `san_tower.log` (under 5 MB), and san_radio's unpacked
+ffmpeg on the PATH for the video steps. Installed with:
+
+```sh
+curl -fsSL -o /tmp/st.tgz https://github.com/Vaziria/san_knowledge/releases/download/<tag>/san_tower-<tag>-linux-arm64.tar.gz
+tar -xzf /tmp/st.tgz -C ~                         # ~/san_tower/...
+cp run.sh ~/san_tower/; (crontab -l; echo "@reboot /home/pi/san_tower/run.sh") | crontab -
+setsid -f ~/san_tower/run.sh                     # start it now
+```
+
+Then `~/san_tower/san_tower update` there brings it to each new release.
+Steps that drive a browser need the San Remote extension in a browser on
+the Pi, which has none: there it runs the other steps (Telegram, schedules,
+HTTP, files, video).
 
 ## Workflows
 

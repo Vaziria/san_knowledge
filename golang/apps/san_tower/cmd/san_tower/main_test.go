@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"log/slog"
+	"net"
 	"net/http/httptest"
 	"os"
 	"os/exec"
@@ -118,5 +119,24 @@ func TestStatusNoTower(t *testing.T) {
 	err := root(&bytes.Buffer{}).Run(context.Background(), []string{"san_tower", "--server", url, "status"})
 	if err == nil || !strings.Contains(err.Error(), "san_tower serve") {
 		t.Errorf("err = %v, want a hint to start the tower", err)
+	}
+}
+
+// A tower on every address reaches itself at 127.0.0.1 (the Pi's, 2026-10-26:
+// its triggers got 403 from [::]).
+func TestSelfURL(t *testing.T) {
+	for addr, want := range map[string]string{
+		"127.0.0.1:7477": "http://127.0.0.1:7477",
+		"0.0.0.0:7477":   "http://127.0.0.1:7477",
+		"[::]:7477":      "http://127.0.0.1:7477",
+		"[::1]:7477":     "http://[::1]:7477",
+	} {
+		a, err := net.ResolveTCPAddr("tcp", addr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := selfURL(a); got != want {
+			t.Errorf("selfURL(%s) = %s, want %s", addr, got, want)
+		}
 	}
 }

@@ -31,6 +31,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -156,13 +157,13 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	san_message.ConfigureServer(srv)
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(ln) }()
-	log.Info("san_tower listening", "url", "http://"+ln.Addr().String(), "data", dataDir, "broker", brokerWhere(b), "version", version)
+	log.Info("san_tower listening", "url", "http://"+ln.Addr().String(), "self", selfURL(ln.Addr()), "data", dataDir, "broker", brokerWhere(b), "version", version)
 	if lan {
 		log.Warn("listening on the network (--lan): the tower has no login, so anyone on the local network can open it and run workflows")
 	}
 	// The triggers stream from the broker inside the tower at its own address,
 	// or from the separate server.
-	if err := eng.Start("http://" + ln.Addr().String()); err != nil {
+	if err := eng.Start(selfURL(ln.Addr())); err != nil {
 		log.Error("switch on the workflows' triggers", "err", err)
 	}
 
@@ -178,6 +179,17 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	sctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return srv.Shutdown(sctx)
+}
+
+// selfURL is where the tower reaches itself (the engine's triggers stream
+// from the broker inside it): its address, or 127.0.0.1 at its port when it
+// listens on every address (--listen 0.0.0.0:7477 --lan), since [::] is no
+// address to call, and GuardLAN refuses it as a Host.
+func selfURL(addr net.Addr) string {
+	if a, ok := addr.(*net.TCPAddr); ok && a.IP.IsUnspecified() {
+		return "http://" + net.JoinHostPort("127.0.0.1", strconv.Itoa(a.Port))
+	}
+	return "http://" + addr.String()
 }
 
 // ---------------------------------------------------------------- serve ---

@@ -1,8 +1,9 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import {
+  Badge,
   Box,
   Button,
-  Flex,
+  CloseButton,
   HStack,
   Heading,
   IconButton,
@@ -11,6 +12,7 @@ import {
   Portal,
   Stack,
   Switch,
+  Tabs,
   Text,
   Textarea,
 } from '@chakra-ui/react';
@@ -30,9 +32,18 @@ import {
   type XYPosition,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ArrowLeftIcon, HistoryIcon, PencilIcon, PlayIcon, PlusIcon, Redo2Icon, Undo2Icon } from 'lucide-react';
+import {
+  ArrowLeftIcon,
+  HistoryIcon,
+  PencilIcon,
+  PlayIcon,
+  PlusIcon,
+  Redo2Icon,
+  Undo2Icon,
+  WorkflowIcon,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { errorText, workflows } from '../api';
 import {
   RunStatus,
@@ -54,7 +65,7 @@ import {
   type Step,
 } from '../workflow/catalog';
 import { useHistory } from '../workflow/history';
-import { StepRunContext } from '../workflow/runs';
+import { runStatus, StepRunContext } from '../workflow/runs';
 import { RunsPanel } from '../workflow/RunsPanel';
 import { AddPalette } from '../workflow/AddPalette';
 import { RenameDialog } from '../workflow/RenameDialog';
@@ -70,7 +81,8 @@ export const savesDone = () => saves;
 // WorkflowEditor edits one workflow (WorkflowService, in the tower's
 // database), whose id is in the path (/workflow/3), and runs it: by hand
 // (Run), or by its triggers once it is switched on (Active). Edits save by
-// themselves. The Runs panel shows its runs.
+// themselves. It has two tabs (the user, 2026-10-25): Workflow, the canvas,
+// and Runs (?tab=runs), its runs.
 export function WorkflowEditor() {
   const id = Number(useParams().id) || 0;
   const navigate = useNavigate();
@@ -121,7 +133,8 @@ type MenuTarget = { type: 'steps'; ids: string[] } | { type: 'link'; id: string 
 // Ctrl+Shift+Z or Ctrl+Y redoes it. A change is saved once the editing
 // pauses, and when the editor closes. Run, and
 // switching it on, first save what is not saved: the tower runs the saved
-// steps.
+// steps. The canvas stays mounted while the Runs tab shows, so nothing typed
+// or undoable is lost, and the run picked there marks its steps on it.
 function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: () => void }) {
   const [start] = useState(() => toFlow(workflow));
   const [nodes, setNodes, onNodesChange] = useNodesState<Step>(start.nodes);
@@ -137,7 +150,8 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
   const [active, setActive] = useState(workflow.active);
   const [triggers, setTriggers] = useState(workflow.triggers);
   const [running, setRunning] = useState(false);
-  const [showRuns, setShowRuns] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'runs' ? 'runs' : 'workflow';
   const [picked, setPicked] = useState<Run>();
   const [runsReload, setRunsReload] = useState(0);
   const pickedSteps = useMemo(() => new Map(picked?.steps.map((s) => [s.stepId, s])), [picked]);
@@ -267,7 +281,6 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
       stepId,
       data: new TextEncoder().encode(data),
     });
-    setShowRuns(true);
     setPicked(run);
     setRunsReload((n) => n + 1);
     if (run!.status === RunStatus.SUCCEEDED) toast('The run succeeded');
@@ -351,8 +364,9 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // A field being typed in keeps its own keys, and its own undo.
-      if (isTyping(e.target)) return;
+      // A field being typed in keeps its own keys, and its own undo; the
+      // Runs tab has none of the canvas's.
+      if (isTyping(e.target) || tab !== 'workflow') return;
       const key = e.key.toLowerCase();
       if (e.ctrlKey || e.metaKey) {
         if (key === 'z' || key === 'y') {
@@ -368,7 +382,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [undo, redo]);
+  }, [undo, redo, tab]);
 
   const dark = document.documentElement.classList.contains('dark');
 
@@ -394,7 +408,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
           <SaveStatus save={save} />
         </HStack>
         <HStack gap="2">
-          <HStack gap="0" me="2">
+          <HStack gap="0" me="2" display={tab === 'workflow' ? undefined : 'none'}>
             <IconButton
               aria-label="Undo"
               title="Undo (Ctrl+Z)"
@@ -439,13 +453,10 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
             <PlayIcon />
             Run
           </Button>
-          <Button size="sm" variant={showRuns ? 'subtle' : 'outline'} onClick={() => setShowRuns((v) => !v)}>
-            <HistoryIcon />
-            Runs
-          </Button>
           <Button
             size="sm"
             variant="outline"
+            display={tab === 'workflow' ? undefined : 'none'}
             title="Add a step (Shift+A over the canvas adds it at the pointer)"
             onClick={(e) => {
               const r = e.currentTarget.getBoundingClientRect();
@@ -461,90 +472,101 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
         </HStack>
       </HStack>
       {active && <TriggerStatus triggers={triggers} kindOf={(id) => nodes.find((n) => n.id === id)?.data.kind} />}
-      <Flex flex="1" minH="0" gap="3">
-        <Box
-          ref={canvas}
-          flex="1"
-          minW="0"
-          borderWidth="1px"
-          rounded="md"
-          overflow="hidden"
-          onMouseMove={(e) => (pointer.current = { x: e.clientX, y: e.clientY })}
-          onMouseLeave={() => (pointer.current = null)}
-          css={{
-            // Steps stand out from the canvas: lighter than it, as in Blender.
-            '--xy-background-color': 'var(--chakra-colors-bg-muted)',
-            _dark: { '--xy-background-color': 'var(--chakra-colors-bg)' },
-            '& .react-flow__edge-path': { strokeWidth: 2 },
-            '& .react-flow__edge:hover .react-flow__edge-path': { strokeWidth: 3.5 },
-            // A selected link is bolder than a hovered one and glows in its own colour.
-            '& .react-flow__edge.selected .react-flow__edge-path': {
-              strokeWidth: 6,
-              filter: 'drop-shadow(0 0 2px currentColor)',
-            },
-          }}
-        >
-          <StepRunContext.Provider value={pickedSteps}>
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              isValidConnection={canLink}
-              onNodeContextMenu={onStepMenu}
-              onSelectionContextMenu={(e, steps) => {
-                e.preventDefault();
-                setMenu({ at: { x: e.clientX, y: e.clientY }, target: { type: 'steps', ids: steps.map((s) => s.id) } });
-              }}
-              onEdgeContextMenu={(e, edge) => {
-                e.preventDefault();
-                setNodes((ns) => ns.map((n) => ({ ...n, selected: false })));
-                setEdges((es) => es.map((x) => ({ ...x, selected: x.id === edge.id })));
-                setMenu({ at: { x: e.clientX, y: e.clientY }, target: { type: 'link', id: edge.id } });
-              }}
-              colorMode={dark ? 'dark' : 'light'}
-              deleteKeyCode={['Backspace', 'Delete']}
-              // Dragging empty space pans, with any button; Shift+drag
-              // (selectionKeyCode) box-selects.
-              selectionMode={SelectionMode.Partial}
-              panOnDrag={[0, 1, 2]}
-              onPaneContextMenu={(e) => e.preventDefault()}
-              minZoom={0.2}
-              maxZoom={1.5}
-              // Only a workflow with steps is fitted: on an empty one React Flow
-              // would wait and fit the first step added, moving it from the pointer.
-              fitView={start.nodes.length > 0}
-              fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
-            >
-              <Background variant={BackgroundVariant.Dots} gap={20} />
-              <Controls />
-              <MiniMap pannable zoomable style={{ width: 150, height: 100 }} />
-              {nodes.length === 0 && (
-                <Panel position="top-center">
-                  <Text color="fg.muted" textStyle="sm" mt="6">
-                    Empty workflow: press Shift+A over the canvas, or Add, to add a step.
-                  </Text>
-                </Panel>
-              )}
-            </ReactFlow>
-          </StepRunContext.Provider>
-        </Box>
-        {showRuns && (
-          <RunsPanel
-            workflowId={workflow.id}
-            picked={picked}
-            onPick={setPicked}
-            reload={runsReload}
-            onClose={() => {
-              setShowRuns(false);
-              setPicked(undefined);
+      <Tabs.Root value={tab} onValueChange={(e) => setParams(e.value === 'runs' ? { tab: 'runs' } : {})} size="sm">
+        <Tabs.List>
+          <Tabs.Trigger value="workflow">
+            <WorkflowIcon size="16" />
+            Workflow
+          </Tabs.Trigger>
+          <Tabs.Trigger value="runs">
+            <HistoryIcon size="16" />
+            Runs
+          </Tabs.Trigger>
+        </Tabs.List>
+      </Tabs.Root>
+      <Box
+        ref={canvas}
+        flex="1"
+        minH="0"
+        display={tab === 'workflow' ? undefined : 'none'}
+        borderWidth="1px"
+        rounded="md"
+        overflow="hidden"
+        onMouseMove={(e) => (pointer.current = { x: e.clientX, y: e.clientY })}
+        onMouseLeave={() => (pointer.current = null)}
+        css={{
+          // Steps stand out from the canvas: lighter than it, as in Blender.
+          '--xy-background-color': 'var(--chakra-colors-bg-muted)',
+          _dark: { '--xy-background-color': 'var(--chakra-colors-bg)' },
+          '& .react-flow__edge-path': { strokeWidth: 2 },
+          '& .react-flow__edge:hover .react-flow__edge-path': { strokeWidth: 3.5 },
+          // A selected link is bolder than a hovered one and glows in its own colour.
+          '& .react-flow__edge.selected .react-flow__edge-path': {
+            strokeWidth: 6,
+            filter: 'drop-shadow(0 0 2px currentColor)',
+          },
+        }}
+      >
+        <StepRunContext.Provider value={pickedSteps}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            isValidConnection={canLink}
+            onNodeContextMenu={onStepMenu}
+            onSelectionContextMenu={(e, steps) => {
+              e.preventDefault();
+              setMenu({ at: { x: e.clientX, y: e.clientY }, target: { type: 'steps', ids: steps.map((s) => s.id) } });
             }}
-          />
-        )}
-      </Flex>
-      <Text fontSize="xs" color="fg.muted">
+            onEdgeContextMenu={(e, edge) => {
+              e.preventDefault();
+              setNodes((ns) => ns.map((n) => ({ ...n, selected: false })));
+              setEdges((es) => es.map((x) => ({ ...x, selected: x.id === edge.id })));
+              setMenu({ at: { x: e.clientX, y: e.clientY }, target: { type: 'link', id: edge.id } });
+            }}
+            colorMode={dark ? 'dark' : 'light'}
+            deleteKeyCode={['Backspace', 'Delete']}
+            // Dragging empty space pans, with any button; Shift+drag
+            // (selectionKeyCode) box-selects.
+            selectionMode={SelectionMode.Partial}
+            panOnDrag={[0, 1, 2]}
+            onPaneContextMenu={(e) => e.preventDefault()}
+            minZoom={0.2}
+            maxZoom={1.5}
+            // Only a workflow with steps is fitted: on an empty one React Flow
+            // would wait and fit the first step added, moving it from the pointer.
+            fitView={start.nodes.length > 0}
+            fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
+          >
+            <Background variant={BackgroundVariant.Dots} gap={20} />
+            <Controls />
+            <MiniMap pannable zoomable style={{ width: 150, height: 100 }} />
+            {picked && (
+              <Panel position="top-left">
+                <HStack bg="bg.panel" borderWidth="1px" rounded="md" shadow="sm" ps="2" pe="1" py="1" gap="2">
+                  <Badge size="sm" colorPalette={runStatus[picked.status].palette}>
+                    {runStatus[picked.status].label}
+                  </Badge>
+                  <Text textStyle="xs">Run {picked.id}: each step shows what it did</Text>
+                  <CloseButton size="2xs" aria-label="Stop showing the run" onClick={() => setPicked(undefined)} />
+                </HStack>
+              </Panel>
+            )}
+            {nodes.length === 0 && (
+              <Panel position="top-center">
+                <Text color="fg.muted" textStyle="sm" mt="6">
+                  Empty workflow: press Shift+A over the canvas, or Add, to add a step.
+                </Text>
+              </Panel>
+            )}
+          </ReactFlow>
+        </StepRunContext.Provider>
+      </Box>
+      {tab === 'runs' && <RunsPanel workflowId={workflow.id} picked={picked} onPick={setPicked} reload={runsReload} />}
+      <Text fontSize="xs" color="fg.muted" display={tab === 'workflow' ? undefined : 'none'}>
         Shift+A add a step · drag from a socket to link · right-click a step or link for its menu · Delete removes ·
         Ctrl+Z undo · Ctrl+Shift+Z redo · drag on empty space to pan · Shift+drag to select · wheel to zoom
       </Text>

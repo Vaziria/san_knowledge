@@ -137,7 +137,7 @@ var siteKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "chatgpt-ask", Title: "ChatGPT Ask", Category: "AI",
 			Group:       "ChatGPT",
-			Description: "Asks ChatGPT the Prompt through San Remote, in a Temporary chat that ChatGPT does not keep; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
+			Description: "Asks ChatGPT the Prompt through San Remote, in a Temporary chat that ChatGPT does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text)},
 			Settings:    askSettings(),
 			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt")},
@@ -151,7 +151,7 @@ var siteKinds = []*kind{
 			if err != nil {
 				return err
 			}
-			res, err := r.chatgpt.Ask(c.ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Stay: c.setting("Chat") == "Stay"}))
+			res, err := r.chatgpt.Ask(c.ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Keep: c.setting("Temporary") == "No", Stay: c.setting("Chat") == "Stay"}))
 			if err != nil {
 				return remoteErr(err)
 			}
@@ -164,7 +164,7 @@ var siteKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "gemini-ask", Title: "Gemini Ask", Category: "AI",
 			Group:       "Gemini",
-			Description: "Asks Gemini the Prompt through San Remote, in a Temporary chat that Gemini does not keep; Answer is its reply. Brings Chrome to the front while it asks. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
+			Description: "Asks Gemini the Prompt through San Remote, in a Temporary chat that Gemini does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply. Brings Chrome to the front while it asks. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text)},
 			Settings:    askSettings(),
 			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt")},
@@ -178,7 +178,7 @@ var siteKinds = []*kind{
 			if err != nil {
 				return err
 			}
-			res, err := r.gemini.Ask(c.ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Stay: c.setting("Chat") == "Stay"}))
+			res, err := r.gemini.Ask(c.ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Keep: c.setting("Temporary") == "No", Stay: c.setting("Chat") == "Stay"}))
 			if err != nil {
 				return remoteErr(err)
 			}
@@ -191,7 +191,7 @@ var siteKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "claude-ask-browser", Title: "Claude Ask (Browser)", Category: "AI",
 			Group:       "Claude",
-			Description: "Asks Claude on claude.ai the Prompt through San Remote, in an incognito chat kept out of the history; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
+			Description: "Asks Claude on claude.ai the Prompt through San Remote, in an incognito chat kept out of the history, or with Temporary No a normal chat kept in it; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text)},
 			Settings:    askSettings(),
 			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt")},
@@ -205,7 +205,7 @@ var siteKinds = []*kind{
 			if err != nil {
 				return err
 			}
-			res, err := r.claude.Ask(c.ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Stay: c.setting("Chat") == "Stay"}))
+			res, err := r.claude.Ask(c.ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Keep: c.setting("Temporary") == "No", Stay: c.setting("Chat") == "Stay"}))
 			if err != nil {
 				return remoteErr(err)
 			}
@@ -221,12 +221,15 @@ var siteKinds = []*kind{
 var statusSites = append(slices.Clone(sites), "ChatGPT", "Gemini", "Claude")
 
 // askSettings are a browser ask step's: its San Remote connection, Wait,
+// Temporary, whether the chat is a Temporary (incognito on claude.ai) one
+// the site does not keep (Yes) or a normal one kept in the history (No),
 // and Chat, whether the tab is closed when the ask is over (Leave) or left
 // open on the chat, to read on or go on in it (Stay; the user, 2026-10-25).
 func askSettings() []*v1.Setting {
 	return []*v1.Setting{
 		connectionSetting(),
 		{Name: "Wait", Placeholder: "10m: how long the answer may take"},
+		{Name: "Temporary", Options: []string{"Yes", "No"}},
 		{Name: "Chat", Options: []string{"Leave", "Stay"}},
 	}
 }

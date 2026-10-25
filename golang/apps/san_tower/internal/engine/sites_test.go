@@ -197,6 +197,19 @@ func TestChatGPTAsk(t *testing.T) {
 	if r := f.chatgpt; r.GetPrompt() != "Dua kota besar?" || r.GetWaitSeconds() != 120 || r.GetKeep() || r.GetStay() {
 		t.Errorf("request = %v", r)
 	}
+	// Temporary No keeps the chat in the history, on each browser ask.
+	for kind, req := range map[string]func() interface{ GetKeep() bool }{
+		"chatgpt-ask":        func() interface{ GetKeep() bool } { return f.chatgpt },
+		"gemini-ask":         func() interface{ GetKeep() bool } { return f.gemini },
+		"claude-ask-browser": func() interface{ GetKeep() bool } { return f.claude },
+	} {
+		if _, err := run(t, env, kind, "Connection", "1", "Prompt", "x", "Temporary", "No"); err != nil || !req().GetKeep() {
+			t.Errorf("%s with Temporary No: %v, %v", kind, req(), err)
+		}
+		if _, err := run(t, env, kind, "Connection", "1", "Prompt", "x", "Temporary", "Yes"); err != nil || req().GetKeep() {
+			t.Errorf("%s with Temporary Yes: %v, %v", kind, req(), err)
+		}
+	}
 	// Chat Stay leaves the tab open on the chat, on each browser ask.
 	for kind, req := range map[string]func() interface{ GetStay() bool }{
 		"chatgpt-ask":        func() interface{ GetStay() bool } { return f.chatgpt },

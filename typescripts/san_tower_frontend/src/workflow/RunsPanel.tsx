@@ -1,26 +1,25 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
-import { Badge, Box, Button, Code, CloseButton, HStack, Heading, Stack, Text } from '@chakra-ui/react';
+import { Badge, Box, Button, Code, Flex, HStack, Stack, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { errorText, workflows } from '../api';
 import type { Run } from '../gen/san/tower/v1/workflow_pb';
 import { stepKind } from './catalog';
 import { LogLine, outputText, runDuration, runStatus, stepDuration } from './runs';
 
-// RunsPanel lists a workflow's runs, newest first, checking for new ones every
-// few seconds (an active workflow runs on its own). Picking one shows what
-// each step did, here and on the canvas (onPick).
+// RunsPanel is the editor's Runs tab: a workflow's runs, newest first,
+// checking for new ones every few seconds (an active workflow runs on its
+// own), and beside them the picked one. Picking one shows what each step did,
+// here and on the canvas (onPick).
 export function RunsPanel({
   workflowId,
   picked,
   onPick,
   reload,
-  onClose,
 }: {
   workflowId: number;
   picked?: Run;
   onPick: (run: Run) => void;
   reload: number;
-  onClose: () => void;
 }) {
   const [runs, setRuns] = useState<Run[]>();
   const [error, setError] = useState('');
@@ -54,14 +53,11 @@ export function RunsPanel({
   };
 
   return (
-    <Stack w="80" flexShrink={0} borderWidth="1px" rounded="md" p="3" gap="3" overflowY="auto">
-      <HStack justify="space-between">
-        <Heading size="sm">Runs</Heading>
-        <CloseButton size="xs" onClick={onClose} />
-      </HStack>
-      {error && <Text color="fg.error">{error}</Text>}
-      {runs?.length === 0 && <Text color="fg.muted">No runs yet: run it by hand, or switch it on.</Text>}
-      <Stack gap="1">
+    <Flex flex="1" minH="0" gap="3">
+      <Stack w="80" flexShrink={0} borderWidth="1px" rounded="md" p="3" gap="1" overflowY="auto">
+        {error && <Text color="fg.error">{error}</Text>}
+        {runs === undefined && !error && <Text color="fg.muted">Loading...</Text>}
+        {runs?.length === 0 && <Text color="fg.muted">No runs yet: run it by hand, or switch it on.</Text>}
         {runs?.map((r) => (
           <Button
             key={r.id}
@@ -90,16 +86,23 @@ export function RunsPanel({
           </Button>
         ))}
       </Stack>
-      {picked && <RunDetail run={picked} />}
-    </Stack>
+      <Box flex="1" minW="0" borderWidth="1px" rounded="md" p="3" overflowY="auto">
+        {picked ? (
+          <RunDetail run={picked} divided={false} />
+        ) : (
+          <Text color="fg.muted">Pick a run to see what each step did; the Workflow tab marks its steps too.</Text>
+        )}
+      </Box>
+    </Flex>
   );
 }
 
 // RunDetail is what each step of a run did: its error, the event outputs it
-// fired, the lines it logged and its data outputs.
-export function RunDetail({ run }: { run: Run }) {
+// fired, the lines it logged and its data outputs. divided puts a line above
+// it, for when it follows a list.
+export function RunDetail({ run, divided = true }: { run: Run; divided?: boolean }) {
   return (
-    <Stack gap="2" borderTopWidth="1px" pt="3">
+    <Stack gap="2" borderTopWidth={divided ? '1px' : undefined} pt={divided ? '3' : undefined}>
       <HStack>
         <Badge colorPalette={runStatus[run.status].palette}>{runStatus[run.status].label}</Badge>
         <Text textStyle="sm" truncate>

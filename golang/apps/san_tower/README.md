@@ -289,6 +289,9 @@ the San Remote and Telegram steps (Social, below).
     closes the tab when the ask is over; Stay leaves it open on the chat,
     to read on or go on in it. A Temporary or incognito chat is gone once
     that tab is closed.
+  - Temporary, on those three (the user's ask, 2026-10-25): Yes, the
+    default, asks in a Temporary chat (incognito on claude.ai) that the site
+    does not keep; No asks in a normal chat, kept in the history.
   - Social Status says who is signed in on a Site (ChatGPT too). Social Posts
     lists a Site's Scheduled or Published posts, or Drafts (Facebook, Medium,
     LinkedIn); Vidara lists its videos, and TikTok's scheduled posts are the

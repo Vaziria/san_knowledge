@@ -136,10 +136,15 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     time came now) and runs the workflow; the Active switch turns its
     triggers on, and the line under the header says whether each listens,
     or for a Schedule step when it runs next (asked again once that time
-    has come). Both save first, since the tower runs the saved steps. Runs
-    opens the Runs panel: the runs, newest first (checked every 3 s), and
-    the picked one step by step (error, fired outputs, log lines, data
-    outputs), also marked on the canvas (a badge on each step that ran).
+    has come). Both save first, since the tower runs the saved steps. The
+    editor has two tabs under its header (the user, 2026-10-25, in place
+    of a Runs button and panel): Workflow, the canvas, and Runs
+    (`?tab=runs`): the runs, newest first (checked every 3 s), and beside
+    them the picked one step by step (error, fired outputs, log lines, data
+    outputs). The picked run, or the one Run just made, is also marked on
+    the canvas (a badge on each step that ran), with a chip whose ✕ stops
+    it. The canvas stays mounted while Runs shows, so nothing typed or
+    undoable is lost; there Undo, Redo, Add and the canvas's keys are off.
   - `NotFound.tsx`.
 - `src/workflow/`: `catalog.ts`, the step kinds (loaded once from the
   tower), the connections a step can pick (asked once per type, forgotten
@@ -154,7 +159,7 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   during a drag, up to 200 back; `runs.tsx`,
   run statuses, durations and output values, log lines in their type's
   colour (`LogLine`), and the context that marks the picked run on the
-  canvas; `RunsPanel.tsx`, the Runs panel and
+  canvas; `RunsPanel.tsx`, the editor's Runs tab and
   `RunDetail` (what each step of a run did), which the Logs share;
   `RunLog.tsx`, the Workflow page's Logs: the runs of every workflow as
   they come, newest first, asked for every 2 s (ListRuns with no workflow,

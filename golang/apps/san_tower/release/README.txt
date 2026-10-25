@@ -1,8 +1,8 @@
 San Tower
 =========
 
-A workflow tower with a node editor: triggers (schedule, Telegram, events),
-steps for data, files and HTTP, and steps that post or ask through your own
+A workflow tower with a node editor: triggers (schedule, Telegram, events,
+log lines), steps for data, files, video and HTTP, and steps that post or ask through your own
 browser (Threads, X, Facebook, Medium, LinkedIn, TikTok, Vidara, ChatGPT,
 Gemini, Claude). Everything runs on this computer only.
 
@@ -49,5 +49,8 @@ What is in this folder
 Notes
 - Posting steps only schedule posts; they bring the browser to the front
   for a minute or two. If its taskbar button only flashes, click it.
+  A Vidara upload goes on behind other windows; leave its tab open.
+- Cut Video and Crop Video need ffmpeg on the PATH
+  (Windows: winget install Gyan.FFmpeg).
 - Claude Ask (CLI) needs Claude Code installed and signed in.
 - Telegram steps need a bot token from @BotFather (Connections > Telegram Bot).

@@ -92,3 +92,34 @@ func TestPullSubscribe(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestCreateSubscriberStart(t *testing.T) {
+	b := openBroker(t, testOptions(t))
+	client := serve(t, b)
+	ctx := t.Context()
+
+	must(t, b.CreateTopic("orders"))
+	publish(t, b, "orders", "one")
+	create := func(key string, start v1.SubscriberStart) error {
+		_, err := client.CreateSubscriber(ctx, connect.NewRequest(&v1.CreateSubscriberRequest{
+			Subscriber: key, Topic: "orders", Type: v1.SubscriberType_SUBSCRIBER_TYPE_PULL, Start: start,
+		}))
+		return err
+	}
+	must(t, create("default", v1.SubscriberStart_SUBSCRIBER_START_UNSPECIFIED))
+	must(t, create("early", v1.SubscriberStart_SUBSCRIBER_START_EARLIEST))
+	if err := create("odd", v1.SubscriberStart(9)); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Fatalf("unknown start: %v, want InvalidArgument", err)
+	}
+
+	topics, err := b.Topics()
+	must(t, err)
+	subs, err := b.Subscribers("orders")
+	must(t, err)
+	if s := subs[0]; s.Key != "default" || s.Segment != topics[0].Segment || s.Offset != topics[0].Offset {
+		t.Errorf("default = %+v, want at the end of the log", s)
+	}
+	if s := subs[1]; s.Key != "early" || s.Segment != 1 || s.Offset != 0 {
+		t.Errorf("early = %+v, want at segment 1 offset 0", s)
+	}
+}

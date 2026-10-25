@@ -53,12 +53,43 @@ type SubscriberInfo struct {
 	Connected  bool  // a pull subscriber with an open Subscribe stream
 }
 
+// Start says where a new subscriber's pointer starts.
+type Start uint8
+
+const (
+	Latest   Start = iota // the end of the topic's log: only events published after it
+	Earliest              // the start of the log: every event in it first
+)
+
+func (s Start) String() string {
+	switch s {
+	case Latest:
+		return "latest"
+	case Earliest:
+		return "earliest"
+	}
+	return "start(" + strconv.Itoa(int(s)) + ")"
+}
+
+// logStart is where every topic's log starts: segments are numbered from 1,
+// and none is ever removed.
+var logStart = pos{1, 0}
+
 // CreateSubscriber adds a subscriber to a topic. It starts at the end of the
 // topic's log, so it gets only events published after it. uri is the webhook
 // URI of a Webhook subscriber, and empty for Pull.
 func (b *Broker) CreateSubscriber(key, topicKey string, typ SubscriberType, uri string) error {
+	return b.CreateSubscriberFrom(key, topicKey, typ, uri, Latest)
+}
+
+// CreateSubscriberFrom is CreateSubscriber with a choice of where it starts:
+// Latest, or Earliest to get every event already in the log first.
+func (b *Broker) CreateSubscriberFrom(key, topicKey string, typ SubscriberType, uri string, from Start) error {
 	if err := checkSubscriber(key, typ, uri); err != nil {
 		return err
+	}
+	if from != Latest && from != Earliest {
+		return fmt.Errorf("%w: unknown subscriber start %d", ErrInvalid, from)
 	}
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -76,14 +107,17 @@ func (b *Broker) CreateSubscriber(key, topicKey string, typ SubscriberType, uri 
 	if i < 0 {
 		return fmt.Errorf("%w: all %d subscriber slots are used", ErrFull, b.subMeta.slots())
 	}
-	end, ok := b.topicEnd(t)
+	at, ok := b.topicEnd(t)
 	if !ok {
 		return fmt.Errorf("%w: topic %q", ErrNotFound, topicKey)
 	}
+	if from == Earliest {
+		at = logStart
+	}
 	s := b.subMeta.slot(i)
 	clear(s)
-	le.PutUint32(s[sSegment:], end.seg)
-	le.PutUint32(s[sOffset:], end.off)
+	le.PutUint32(s[sSegment:], at.seg)
+	le.PutUint32(s[sOffset:], at.off)
 	le.PutUint32(s[sHash:], keyHash(key))
 	le.PutUint16(s[sType:], uint16(typ))
 	putKey(s, sTopicLen, sTopic, topicKey)

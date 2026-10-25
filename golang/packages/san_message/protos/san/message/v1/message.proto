@@ -25,7 +25,8 @@ service MessageService {
   rpc ListTopics(ListTopicsRequest) returns (ListTopicsResponse);
 
   // CreateSubscriber starts the subscriber at the end of the topic's log, so
-  // it gets only events published after it.
+  // it gets only events published after it, or with start EARLIEST at its
+  // start, so it gets every event in the log first.
   rpc CreateSubscriber(CreateSubscriberRequest) returns (CreateSubscriberResponse);
   rpc DeleteSubscriber(DeleteSubscriberRequest) returns (DeleteSubscriberResponse);
   rpc ListSubscribers(ListSubscribersRequest) returns (ListSubscribersResponse);
@@ -99,12 +100,23 @@ enum SubscriberType {
   SUBSCRIBER_TYPE_PULL = 2;
 }
 
+// SubscriberStart is where a new subscriber's pointer starts.
+enum SubscriberStart {
+  // The same as SUBSCRIBER_START_LATEST.
+  SUBSCRIBER_START_UNSPECIFIED = 0;
+  // The end of the topic's log: it gets only events published after it.
+  SUBSCRIBER_START_LATEST = 1;
+  // The start of the topic's log: it gets every event in the log first.
+  SUBSCRIBER_START_EARLIEST = 2;
+}
+
 message CreateSubscriberRequest {
   string subscriber = 1;
   string topic = 2;
   SubscriberType type = 3;
   // Required for SUBSCRIBER_TYPE_WEBHOOK, empty for SUBSCRIBER_TYPE_PULL.
   string webhook_uri = 4;
+  SubscriberStart start = 5;
 }
 
 message CreateSubscriberResponse {}

@@ -75,7 +75,8 @@ type MessageServiceClient interface {
 	DeleteTopic(context.Context, *connect.Request[v1.DeleteTopicRequest]) (*connect.Response[v1.DeleteTopicResponse], error)
 	ListTopics(context.Context, *connect.Request[v1.ListTopicsRequest]) (*connect.Response[v1.ListTopicsResponse], error)
 	// CreateSubscriber starts the subscriber at the end of the topic's log, so
-	// it gets only events published after it.
+	// it gets only events published after it, or with start EARLIEST at its
+	// start, so it gets every event in the log first.
 	CreateSubscriber(context.Context, *connect.Request[v1.CreateSubscriberRequest]) (*connect.Response[v1.CreateSubscriberResponse], error)
 	DeleteSubscriber(context.Context, *connect.Request[v1.DeleteSubscriberRequest]) (*connect.Response[v1.DeleteSubscriberResponse], error)
 	ListSubscribers(context.Context, *connect.Request[v1.ListSubscribersRequest]) (*connect.Response[v1.ListSubscribersResponse], error)
@@ -212,7 +213,8 @@ type MessageServiceHandler interface {
 	DeleteTopic(context.Context, *connect.Request[v1.DeleteTopicRequest]) (*connect.Response[v1.DeleteTopicResponse], error)
 	ListTopics(context.Context, *connect.Request[v1.ListTopicsRequest]) (*connect.Response[v1.ListTopicsResponse], error)
 	// CreateSubscriber starts the subscriber at the end of the topic's log, so
-	// it gets only events published after it.
+	// it gets only events published after it, or with start EARLIEST at its
+	// start, so it gets every event in the log first.
 	CreateSubscriber(context.Context, *connect.Request[v1.CreateSubscriberRequest]) (*connect.Response[v1.CreateSubscriberResponse], error)
 	DeleteSubscriber(context.Context, *connect.Request[v1.DeleteSubscriberRequest]) (*connect.Response[v1.DeleteSubscriberResponse], error)
 	ListSubscribers(context.Context, *connect.Request[v1.ListSubscribersRequest]) (*connect.Response[v1.ListSubscribersResponse], error)

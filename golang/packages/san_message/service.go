@@ -3,6 +3,7 @@ package san_message
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -141,7 +142,16 @@ func (s service) ListTopics(ctx context.Context, req *connect.Request[v1.ListTop
 
 func (s service) CreateSubscriber(ctx context.Context, req *connect.Request[v1.CreateSubscriberRequest]) (*connect.Response[v1.CreateSubscriberResponse], error) {
 	m := req.Msg
-	if err := s.b.CreateSubscriber(m.GetSubscriber(), m.GetTopic(), SubscriberType(m.GetType()), m.GetWebhookUri()); err != nil {
+	var from Start
+	switch m.GetStart() {
+	case v1.SubscriberStart_SUBSCRIBER_START_UNSPECIFIED, v1.SubscriberStart_SUBSCRIBER_START_LATEST:
+		from = Latest
+	case v1.SubscriberStart_SUBSCRIBER_START_EARLIEST:
+		from = Earliest
+	default:
+		return nil, connectError(fmt.Errorf("%w: unknown subscriber start %d", ErrInvalid, m.GetStart()))
+	}
+	if err := s.b.CreateSubscriberFrom(m.GetSubscriber(), m.GetTopic(), SubscriberType(m.GetType()), m.GetWebhookUri(), from); err != nil {
 		return nil, connectError(err)
 	}
 	return connect.NewResponse(&v1.CreateSubscriberResponse{}), nil

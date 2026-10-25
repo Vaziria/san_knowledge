@@ -187,12 +187,13 @@ func subscriberCommand() *cli.Command {
 		Commands: []*cli.Command{
 			{
 				Name:      "create",
-				Usage:     "create a subscriber; it gets only events published after it",
+				Usage:     "create a subscriber; it gets only events published after it, unless --from earliest",
 				ArgsUsage: "<subscriber>",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "topic", Required: true, Usage: "topic it reads"},
 					&cli.StringFlag{Name: "type", Required: true, Usage: "webhook or pull"},
 					&cli.StringFlag{Name: "webhook-uri", Usage: "http or https URL events are POSTed to (webhook type)"},
+					&cli.StringFlag{Name: "from", Value: "latest", Usage: "where it starts: latest (only events published after it) or earliest (every event in the log first)"},
 				},
 				Action: createSubscriber,
 			},
@@ -238,11 +239,21 @@ func createSubscriber(ctx context.Context, cmd *cli.Command) error {
 	default:
 		return fmt.Errorf("--type must be webhook or pull, got %q", t)
 	}
+	var start v1.SubscriberStart
+	switch f := cmd.String("from"); f {
+	case "latest":
+		start = v1.SubscriberStart_SUBSCRIBER_START_LATEST
+	case "earliest":
+		start = v1.SubscriberStart_SUBSCRIBER_START_EARLIEST
+	default:
+		return fmt.Errorf("--from must be latest or earliest, got %q", f)
+	}
 	req := &v1.CreateSubscriberRequest{
 		Subscriber: key,
 		Topic:      cmd.String("topic"),
 		Type:       typ,
 		WebhookUri: cmd.String("webhook-uri"),
+		Start:      start,
 	}
 	if _, err := client(cmd).CreateSubscriber(ctx, connect.NewRequest(req)); err != nil {
 		return rpcError(err)

@@ -42,7 +42,7 @@ func TestManageTopicsAndSubscribers(t *testing.T) {
 
 	ok("topic", "create", "orders")
 	ok("subscriber", "create", "billing", "--topic", "orders", "--type", "webhook", "--webhook-uri", "http://127.0.0.1:1/hook")
-	ok("subscriber", "create", "app", "--topic", "orders", "--type", "pull")
+	ok("subscriber", "create", "app", "--topic", "orders", "--type", "pull", "--from", "earliest")
 
 	if out := ok("topic", "list"); !strings.Contains(out, "orders") || !strings.Contains(out, "SUBSCRIBERS") {
 		t.Fatalf("topic list:\n%s", out)
@@ -59,6 +59,9 @@ func TestManageTopicsAndSubscribers(t *testing.T) {
 	}
 	if _, err := run("subscriber", "create", "x", "--topic", "orders", "--type", "queue"); err == nil {
 		t.Fatal("--type queue worked, want an error")
+	}
+	if _, err := run("subscriber", "create", "x", "--topic", "orders", "--type", "pull", "--from", "middle"); err == nil {
+		t.Fatal("--from middle worked, want an error")
 	}
 
 	ok("subscriber", "delete", "billing")

@@ -70,6 +70,59 @@ func (SubscriberType) EnumDescriptor() ([]byte, []int) {
 	return file_san_message_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
+// SubscriberStart is where a new subscriber's pointer starts.
+type SubscriberStart int32
+
+const (
+	// The same as SUBSCRIBER_START_LATEST.
+	SubscriberStart_SUBSCRIBER_START_UNSPECIFIED SubscriberStart = 0
+	// The end of the topic's log: it gets only events published after it.
+	SubscriberStart_SUBSCRIBER_START_LATEST SubscriberStart = 1
+	// The start of the topic's log: it gets every event in the log first.
+	SubscriberStart_SUBSCRIBER_START_EARLIEST SubscriberStart = 2
+)
+
+// Enum value maps for SubscriberStart.
+var (
+	SubscriberStart_name = map[int32]string{
+		0: "SUBSCRIBER_START_UNSPECIFIED",
+		1: "SUBSCRIBER_START_LATEST",
+		2: "SUBSCRIBER_START_EARLIEST",
+	}
+	SubscriberStart_value = map[string]int32{
+		"SUBSCRIBER_START_UNSPECIFIED": 0,
+		"SUBSCRIBER_START_LATEST":      1,
+		"SUBSCRIBER_START_EARLIEST":    2,
+	}
+)
+
+func (x SubscriberStart) Enum() *SubscriberStart {
+	p := new(SubscriberStart)
+	*p = x
+	return p
+}
+
+func (x SubscriberStart) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SubscriberStart) Descriptor() protoreflect.EnumDescriptor {
+	return file_san_message_v1_message_proto_enumTypes[1].Descriptor()
+}
+
+func (SubscriberStart) Type() protoreflect.EnumType {
+	return &file_san_message_v1_message_proto_enumTypes[1]
+}
+
+func (x SubscriberStart) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SubscriberStart.Descriptor instead.
+func (SubscriberStart) EnumDescriptor() ([]byte, []int) {
+	return file_san_message_v1_message_proto_rawDescGZIP(), []int{1}
+}
+
 type PublishRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Topic         string                 `protobuf:"bytes,1,opt,name=topic,proto3" json:"topic,omitempty"`
@@ -771,7 +824,8 @@ type CreateSubscriberRequest struct {
 	Topic      string                 `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`
 	Type       SubscriberType         `protobuf:"varint,3,opt,name=type,proto3,enum=san.message.v1.SubscriberType" json:"type,omitempty"`
 	// Required for SUBSCRIBER_TYPE_WEBHOOK, empty for SUBSCRIBER_TYPE_PULL.
-	WebhookUri    string `protobuf:"bytes,4,opt,name=webhook_uri,json=webhookUri,proto3" json:"webhook_uri,omitempty"`
+	WebhookUri    string          `protobuf:"bytes,4,opt,name=webhook_uri,json=webhookUri,proto3" json:"webhook_uri,omitempty"`
+	Start         SubscriberStart `protobuf:"varint,5,opt,name=start,proto3,enum=san.message.v1.SubscriberStart" json:"start,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -832,6 +886,13 @@ func (x *CreateSubscriberRequest) GetWebhookUri() string {
 		return x.WebhookUri
 	}
 	return ""
+}
+
+func (x *CreateSubscriberRequest) GetStart() SubscriberStart {
+	if x != nil {
+		return x.Start
+	}
+	return SubscriberStart_SUBSCRIBER_START_UNSPECIFIED
 }
 
 type CreateSubscriberResponse struct {
@@ -1192,7 +1253,7 @@ const file_san_message_v1_message_proto_rawDesc = "" +
 	"\rlast_event_id\x18\x02 \x01(\x04R\vlastEventId\x12\x18\n" +
 	"\asegment\x18\x03 \x01(\rR\asegment\x12\x16\n" +
 	"\x06offset\x18\x04 \x01(\rR\x06offset\x12 \n" +
-	"\vsubscribers\x18\x05 \x01(\rR\vsubscribers\"\xa4\x01\n" +
+	"\vsubscribers\x18\x05 \x01(\rR\vsubscribers\"\xdb\x01\n" +
 	"\x17CreateSubscriberRequest\x12\x1e\n" +
 	"\n" +
 	"subscriber\x18\x01 \x01(\tR\n" +
@@ -1200,7 +1261,8 @@ const file_san_message_v1_message_proto_rawDesc = "" +
 	"\x05topic\x18\x02 \x01(\tR\x05topic\x122\n" +
 	"\x04type\x18\x03 \x01(\x0e2\x1e.san.message.v1.SubscriberTypeR\x04type\x12\x1f\n" +
 	"\vwebhook_uri\x18\x04 \x01(\tR\n" +
-	"webhookUri\"\x1a\n" +
+	"webhookUri\x125\n" +
+	"\x05start\x18\x05 \x01(\x0e2\x1f.san.message.v1.SubscriberStartR\x05start\"\x1a\n" +
 	"\x18CreateSubscriberResponse\"9\n" +
 	"\x17DeleteSubscriberRequest\x12\x1e\n" +
 	"\n" +
@@ -1227,7 +1289,11 @@ const file_san_message_v1_message_proto_rawDesc = "" +
 	"\x0eSubscriberType\x12\x1f\n" +
 	"\x1bSUBSCRIBER_TYPE_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17SUBSCRIBER_TYPE_WEBHOOK\x10\x01\x12\x18\n" +
-	"\x14SUBSCRIBER_TYPE_PULL\x10\x022\xe9\x05\n" +
+	"\x14SUBSCRIBER_TYPE_PULL\x10\x02*o\n" +
+	"\x0fSubscriberStart\x12 \n" +
+	"\x1cSUBSCRIBER_START_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17SUBSCRIBER_START_LATEST\x10\x01\x12\x1d\n" +
+	"\x19SUBSCRIBER_START_EARLIEST\x10\x022\xe9\x05\n" +
 	"\x0eMessageService\x12J\n" +
 	"\aPublish\x12\x1e.san.message.v1.PublishRequest\x1a\x1f.san.message.v1.PublishResponse\x12T\n" +
 	"\tSubscribe\x12 .san.message.v1.SubscribeRequest\x1a!.san.message.v1.SubscribeResponse(\x010\x01\x12V\n" +
@@ -1252,61 +1318,63 @@ func file_san_message_v1_message_proto_rawDescGZIP() []byte {
 	return file_san_message_v1_message_proto_rawDescData
 }
 
-var file_san_message_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_san_message_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_san_message_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_san_message_v1_message_proto_goTypes = []any{
 	(SubscriberType)(0),              // 0: san.message.v1.SubscriberType
-	(*PublishRequest)(nil),           // 1: san.message.v1.PublishRequest
-	(*PublishResponse)(nil),          // 2: san.message.v1.PublishResponse
-	(*SubscribeRequest)(nil),         // 3: san.message.v1.SubscribeRequest
-	(*Hello)(nil),                    // 4: san.message.v1.Hello
-	(*Ack)(nil),                      // 5: san.message.v1.Ack
-	(*SubscribeResponse)(nil),        // 6: san.message.v1.SubscribeResponse
-	(*Event)(nil),                    // 7: san.message.v1.Event
-	(*CreateTopicRequest)(nil),       // 8: san.message.v1.CreateTopicRequest
-	(*CreateTopicResponse)(nil),      // 9: san.message.v1.CreateTopicResponse
-	(*DeleteTopicRequest)(nil),       // 10: san.message.v1.DeleteTopicRequest
-	(*DeleteTopicResponse)(nil),      // 11: san.message.v1.DeleteTopicResponse
-	(*ListTopicsRequest)(nil),        // 12: san.message.v1.ListTopicsRequest
-	(*ListTopicsResponse)(nil),       // 13: san.message.v1.ListTopicsResponse
-	(*Topic)(nil),                    // 14: san.message.v1.Topic
-	(*CreateSubscriberRequest)(nil),  // 15: san.message.v1.CreateSubscriberRequest
-	(*CreateSubscriberResponse)(nil), // 16: san.message.v1.CreateSubscriberResponse
-	(*DeleteSubscriberRequest)(nil),  // 17: san.message.v1.DeleteSubscriberRequest
-	(*DeleteSubscriberResponse)(nil), // 18: san.message.v1.DeleteSubscriberResponse
-	(*ListSubscribersRequest)(nil),   // 19: san.message.v1.ListSubscribersRequest
-	(*ListSubscribersResponse)(nil),  // 20: san.message.v1.ListSubscribersResponse
-	(*Subscriber)(nil),               // 21: san.message.v1.Subscriber
+	(SubscriberStart)(0),             // 1: san.message.v1.SubscriberStart
+	(*PublishRequest)(nil),           // 2: san.message.v1.PublishRequest
+	(*PublishResponse)(nil),          // 3: san.message.v1.PublishResponse
+	(*SubscribeRequest)(nil),         // 4: san.message.v1.SubscribeRequest
+	(*Hello)(nil),                    // 5: san.message.v1.Hello
+	(*Ack)(nil),                      // 6: san.message.v1.Ack
+	(*SubscribeResponse)(nil),        // 7: san.message.v1.SubscribeResponse
+	(*Event)(nil),                    // 8: san.message.v1.Event
+	(*CreateTopicRequest)(nil),       // 9: san.message.v1.CreateTopicRequest
+	(*CreateTopicResponse)(nil),      // 10: san.message.v1.CreateTopicResponse
+	(*DeleteTopicRequest)(nil),       // 11: san.message.v1.DeleteTopicRequest
+	(*DeleteTopicResponse)(nil),      // 12: san.message.v1.DeleteTopicResponse
+	(*ListTopicsRequest)(nil),        // 13: san.message.v1.ListTopicsRequest
+	(*ListTopicsResponse)(nil),       // 14: san.message.v1.ListTopicsResponse
+	(*Topic)(nil),                    // 15: san.message.v1.Topic
+	(*CreateSubscriberRequest)(nil),  // 16: san.message.v1.CreateSubscriberRequest
+	(*CreateSubscriberResponse)(nil), // 17: san.message.v1.CreateSubscriberResponse
+	(*DeleteSubscriberRequest)(nil),  // 18: san.message.v1.DeleteSubscriberRequest
+	(*DeleteSubscriberResponse)(nil), // 19: san.message.v1.DeleteSubscriberResponse
+	(*ListSubscribersRequest)(nil),   // 20: san.message.v1.ListSubscribersRequest
+	(*ListSubscribersResponse)(nil),  // 21: san.message.v1.ListSubscribersResponse
+	(*Subscriber)(nil),               // 22: san.message.v1.Subscriber
 }
 var file_san_message_v1_message_proto_depIdxs = []int32{
-	4,  // 0: san.message.v1.SubscribeRequest.hello:type_name -> san.message.v1.Hello
-	5,  // 1: san.message.v1.SubscribeRequest.ack:type_name -> san.message.v1.Ack
-	7,  // 2: san.message.v1.SubscribeResponse.event:type_name -> san.message.v1.Event
-	14, // 3: san.message.v1.ListTopicsResponse.topics:type_name -> san.message.v1.Topic
+	5,  // 0: san.message.v1.SubscribeRequest.hello:type_name -> san.message.v1.Hello
+	6,  // 1: san.message.v1.SubscribeRequest.ack:type_name -> san.message.v1.Ack
+	8,  // 2: san.message.v1.SubscribeResponse.event:type_name -> san.message.v1.Event
+	15, // 3: san.message.v1.ListTopicsResponse.topics:type_name -> san.message.v1.Topic
 	0,  // 4: san.message.v1.CreateSubscriberRequest.type:type_name -> san.message.v1.SubscriberType
-	21, // 5: san.message.v1.ListSubscribersResponse.subscribers:type_name -> san.message.v1.Subscriber
-	0,  // 6: san.message.v1.Subscriber.type:type_name -> san.message.v1.SubscriberType
-	1,  // 7: san.message.v1.MessageService.Publish:input_type -> san.message.v1.PublishRequest
-	3,  // 8: san.message.v1.MessageService.Subscribe:input_type -> san.message.v1.SubscribeRequest
-	8,  // 9: san.message.v1.MessageService.CreateTopic:input_type -> san.message.v1.CreateTopicRequest
-	10, // 10: san.message.v1.MessageService.DeleteTopic:input_type -> san.message.v1.DeleteTopicRequest
-	12, // 11: san.message.v1.MessageService.ListTopics:input_type -> san.message.v1.ListTopicsRequest
-	15, // 12: san.message.v1.MessageService.CreateSubscriber:input_type -> san.message.v1.CreateSubscriberRequest
-	17, // 13: san.message.v1.MessageService.DeleteSubscriber:input_type -> san.message.v1.DeleteSubscriberRequest
-	19, // 14: san.message.v1.MessageService.ListSubscribers:input_type -> san.message.v1.ListSubscribersRequest
-	2,  // 15: san.message.v1.MessageService.Publish:output_type -> san.message.v1.PublishResponse
-	6,  // 16: san.message.v1.MessageService.Subscribe:output_type -> san.message.v1.SubscribeResponse
-	9,  // 17: san.message.v1.MessageService.CreateTopic:output_type -> san.message.v1.CreateTopicResponse
-	11, // 18: san.message.v1.MessageService.DeleteTopic:output_type -> san.message.v1.DeleteTopicResponse
-	13, // 19: san.message.v1.MessageService.ListTopics:output_type -> san.message.v1.ListTopicsResponse
-	16, // 20: san.message.v1.MessageService.CreateSubscriber:output_type -> san.message.v1.CreateSubscriberResponse
-	18, // 21: san.message.v1.MessageService.DeleteSubscriber:output_type -> san.message.v1.DeleteSubscriberResponse
-	20, // 22: san.message.v1.MessageService.ListSubscribers:output_type -> san.message.v1.ListSubscribersResponse
-	15, // [15:23] is the sub-list for method output_type
-	7,  // [7:15] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	1,  // 5: san.message.v1.CreateSubscriberRequest.start:type_name -> san.message.v1.SubscriberStart
+	22, // 6: san.message.v1.ListSubscribersResponse.subscribers:type_name -> san.message.v1.Subscriber
+	0,  // 7: san.message.v1.Subscriber.type:type_name -> san.message.v1.SubscriberType
+	2,  // 8: san.message.v1.MessageService.Publish:input_type -> san.message.v1.PublishRequest
+	4,  // 9: san.message.v1.MessageService.Subscribe:input_type -> san.message.v1.SubscribeRequest
+	9,  // 10: san.message.v1.MessageService.CreateTopic:input_type -> san.message.v1.CreateTopicRequest
+	11, // 11: san.message.v1.MessageService.DeleteTopic:input_type -> san.message.v1.DeleteTopicRequest
+	13, // 12: san.message.v1.MessageService.ListTopics:input_type -> san.message.v1.ListTopicsRequest
+	16, // 13: san.message.v1.MessageService.CreateSubscriber:input_type -> san.message.v1.CreateSubscriberRequest
+	18, // 14: san.message.v1.MessageService.DeleteSubscriber:input_type -> san.message.v1.DeleteSubscriberRequest
+	20, // 15: san.message.v1.MessageService.ListSubscribers:input_type -> san.message.v1.ListSubscribersRequest
+	3,  // 16: san.message.v1.MessageService.Publish:output_type -> san.message.v1.PublishResponse
+	7,  // 17: san.message.v1.MessageService.Subscribe:output_type -> san.message.v1.SubscribeResponse
+	10, // 18: san.message.v1.MessageService.CreateTopic:output_type -> san.message.v1.CreateTopicResponse
+	12, // 19: san.message.v1.MessageService.DeleteTopic:output_type -> san.message.v1.DeleteTopicResponse
+	14, // 20: san.message.v1.MessageService.ListTopics:output_type -> san.message.v1.ListTopicsResponse
+	17, // 21: san.message.v1.MessageService.CreateSubscriber:output_type -> san.message.v1.CreateSubscriberResponse
+	19, // 22: san.message.v1.MessageService.DeleteSubscriber:output_type -> san.message.v1.DeleteSubscriberResponse
+	21, // 23: san.message.v1.MessageService.ListSubscribers:output_type -> san.message.v1.ListSubscribersResponse
+	16, // [16:24] is the sub-list for method output_type
+	8,  // [8:16] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_san_message_v1_message_proto_init() }
@@ -1323,7 +1391,7 @@ func file_san_message_v1_message_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_message_v1_message_proto_rawDesc), len(file_san_message_v1_message_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,

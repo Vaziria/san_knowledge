@@ -130,6 +130,25 @@ func TestWebhookDelivery(t *testing.T) {
 	}
 }
 
+func TestSubscriberFromEarliest(t *testing.T) {
+	o := testOptions(t)
+	o.SegmentSize = 100 // one event per segment, so it reads across segments
+	o.MaxEventSize = 40
+	b := openBroker(t, o)
+	h := newHook(t)
+	must(t, b.CreateTopic("orders"))
+	publish(t, b, "orders", "a", "b", "c")
+	must(t, b.CreateSubscriberFrom("billing", "orders", Webhook, h.url, Earliest))
+	publish(t, b, "orders", "d")
+
+	if got := ids(h.wait(t, 4)); got != "1,2,3,4" {
+		t.Fatalf("event IDs = %s, want 1,2,3,4", got)
+	}
+	if err := b.CreateSubscriberFrom("app", "orders", Pull, "", Start(9)); !errors.Is(err, ErrInvalid) {
+		t.Errorf("unknown start = %v, want ErrInvalid", err)
+	}
+}
+
 func TestWebhookRetryAndGiveUp(t *testing.T) {
 	o := testOptions(t)
 	o.MaxAttempts = 3

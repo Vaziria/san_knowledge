@@ -62,6 +62,12 @@ const (
 	WorkflowServiceListRunsProcedure = "/san.tower.v1.WorkflowService/ListRuns"
 	// WorkflowServiceGetRunProcedure is the fully-qualified name of the WorkflowService's GetRun RPC.
 	WorkflowServiceGetRunProcedure = "/san.tower.v1.WorkflowService/GetRun"
+	// WorkflowServiceExportWorkflowsProcedure is the fully-qualified name of the WorkflowService's
+	// ExportWorkflows RPC.
+	WorkflowServiceExportWorkflowsProcedure = "/san.tower.v1.WorkflowService/ExportWorkflows"
+	// WorkflowServiceImportWorkflowsProcedure is the fully-qualified name of the WorkflowService's
+	// ImportWorkflows RPC.
+	WorkflowServiceImportWorkflowsProcedure = "/san.tower.v1.WorkflowService/ImportWorkflows"
 )
 
 // WorkflowServiceClient is a client for the san.tower.v1.WorkflowService service.
@@ -86,6 +92,18 @@ type WorkflowServiceClient interface {
 	// ListRuns lists a workflow's runs, newest first, without their steps.
 	ListRuns(context.Context, *connect.Request[v1.ListRunsRequest]) (*connect.Response[v1.ListRunsResponse], error)
 	GetRun(context.Context, *connect.Request[v1.GetRunRequest]) (*connect.Response[v1.GetRunResponse], error)
+	// ExportWorkflows writes workflows to a file (WorkflowFile, as JSON) that
+	// ImportWorkflows reads, here or in another tower: their names, steps and
+	// links, not their runs or whether they are on. The connections and
+	// storages their steps pick go with only their names and types, never
+	// their settings, so a bot's token stays in this tower.
+	ExportWorkflows(context.Context, *connect.Request[v1.ExportWorkflowsRequest]) (*connect.Response[v1.ExportWorkflowsResponse], error)
+	// ImportWorkflows creates the workflows of such a file, switched off; a
+	// name in use gets " (2)", " (3)"... A step's connection or storage is
+	// the one of the same name and type here; with none, the only connection
+	// of that type, else nothing, for the user to pick. notes say what did not
+	// carry over as it was.
+	ImportWorkflows(context.Context, *connect.Request[v1.ImportWorkflowsRequest]) (*connect.Response[v1.ImportWorkflowsResponse], error)
 }
 
 // NewWorkflowServiceClient constructs a client for the san.tower.v1.WorkflowService service. By
@@ -159,6 +177,18 @@ func NewWorkflowServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(workflowServiceMethods.ByName("GetRun")),
 			connect.WithClientOptions(opts...),
 		),
+		exportWorkflows: connect.NewClient[v1.ExportWorkflowsRequest, v1.ExportWorkflowsResponse](
+			httpClient,
+			baseURL+WorkflowServiceExportWorkflowsProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("ExportWorkflows")),
+			connect.WithClientOptions(opts...),
+		),
+		importWorkflows: connect.NewClient[v1.ImportWorkflowsRequest, v1.ImportWorkflowsResponse](
+			httpClient,
+			baseURL+WorkflowServiceImportWorkflowsProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("ImportWorkflows")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -174,6 +204,8 @@ type workflowServiceClient struct {
 	runWorkflow       *connect.Client[v1.RunWorkflowRequest, v1.RunWorkflowResponse]
 	listRuns          *connect.Client[v1.ListRunsRequest, v1.ListRunsResponse]
 	getRun            *connect.Client[v1.GetRunRequest, v1.GetRunResponse]
+	exportWorkflows   *connect.Client[v1.ExportWorkflowsRequest, v1.ExportWorkflowsResponse]
+	importWorkflows   *connect.Client[v1.ImportWorkflowsRequest, v1.ImportWorkflowsResponse]
 }
 
 // ListStepKinds calls san.tower.v1.WorkflowService.ListStepKinds.
@@ -226,6 +258,16 @@ func (c *workflowServiceClient) GetRun(ctx context.Context, req *connect.Request
 	return c.getRun.CallUnary(ctx, req)
 }
 
+// ExportWorkflows calls san.tower.v1.WorkflowService.ExportWorkflows.
+func (c *workflowServiceClient) ExportWorkflows(ctx context.Context, req *connect.Request[v1.ExportWorkflowsRequest]) (*connect.Response[v1.ExportWorkflowsResponse], error) {
+	return c.exportWorkflows.CallUnary(ctx, req)
+}
+
+// ImportWorkflows calls san.tower.v1.WorkflowService.ImportWorkflows.
+func (c *workflowServiceClient) ImportWorkflows(ctx context.Context, req *connect.Request[v1.ImportWorkflowsRequest]) (*connect.Response[v1.ImportWorkflowsResponse], error) {
+	return c.importWorkflows.CallUnary(ctx, req)
+}
+
 // WorkflowServiceHandler is an implementation of the san.tower.v1.WorkflowService service.
 type WorkflowServiceHandler interface {
 	// ListStepKinds lists the kinds of step the editor can add.
@@ -248,6 +290,18 @@ type WorkflowServiceHandler interface {
 	// ListRuns lists a workflow's runs, newest first, without their steps.
 	ListRuns(context.Context, *connect.Request[v1.ListRunsRequest]) (*connect.Response[v1.ListRunsResponse], error)
 	GetRun(context.Context, *connect.Request[v1.GetRunRequest]) (*connect.Response[v1.GetRunResponse], error)
+	// ExportWorkflows writes workflows to a file (WorkflowFile, as JSON) that
+	// ImportWorkflows reads, here or in another tower: their names, steps and
+	// links, not their runs or whether they are on. The connections and
+	// storages their steps pick go with only their names and types, never
+	// their settings, so a bot's token stays in this tower.
+	ExportWorkflows(context.Context, *connect.Request[v1.ExportWorkflowsRequest]) (*connect.Response[v1.ExportWorkflowsResponse], error)
+	// ImportWorkflows creates the workflows of such a file, switched off; a
+	// name in use gets " (2)", " (3)"... A step's connection or storage is
+	// the one of the same name and type here; with none, the only connection
+	// of that type, else nothing, for the user to pick. notes say what did not
+	// carry over as it was.
+	ImportWorkflows(context.Context, *connect.Request[v1.ImportWorkflowsRequest]) (*connect.Response[v1.ImportWorkflowsResponse], error)
 }
 
 // NewWorkflowServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -317,6 +371,18 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 		connect.WithSchema(workflowServiceMethods.ByName("GetRun")),
 		connect.WithHandlerOptions(opts...),
 	)
+	workflowServiceExportWorkflowsHandler := connect.NewUnaryHandler(
+		WorkflowServiceExportWorkflowsProcedure,
+		svc.ExportWorkflows,
+		connect.WithSchema(workflowServiceMethods.ByName("ExportWorkflows")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceImportWorkflowsHandler := connect.NewUnaryHandler(
+		WorkflowServiceImportWorkflowsProcedure,
+		svc.ImportWorkflows,
+		connect.WithSchema(workflowServiceMethods.ByName("ImportWorkflows")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.WorkflowService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case WorkflowServiceListStepKindsProcedure:
@@ -339,6 +405,10 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 			workflowServiceListRunsHandler.ServeHTTP(w, r)
 		case WorkflowServiceGetRunProcedure:
 			workflowServiceGetRunHandler.ServeHTTP(w, r)
+		case WorkflowServiceExportWorkflowsProcedure:
+			workflowServiceExportWorkflowsHandler.ServeHTTP(w, r)
+		case WorkflowServiceImportWorkflowsProcedure:
+			workflowServiceImportWorkflowsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -386,4 +456,12 @@ func (UnimplementedWorkflowServiceHandler) ListRuns(context.Context, *connect.Re
 
 func (UnimplementedWorkflowServiceHandler) GetRun(context.Context, *connect.Request[v1.GetRunRequest]) (*connect.Response[v1.GetRunResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.GetRun is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) ExportWorkflows(context.Context, *connect.Request[v1.ExportWorkflowsRequest]) (*connect.Response[v1.ExportWorkflowsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.ExportWorkflows is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) ImportWorkflows(context.Context, *connect.Request[v1.ImportWorkflowsRequest]) (*connect.Response[v1.ImportWorkflowsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.ImportWorkflows is not implemented"))
 }

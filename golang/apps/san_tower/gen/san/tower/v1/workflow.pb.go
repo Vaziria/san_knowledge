@@ -2140,6 +2140,420 @@ func (x *GetRunResponse) GetRun() *Run {
 	return nil
 }
 
+type ExportWorkflowsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ids are the workflows to export, in this order; empty: every workflow.
+	Ids           []uint32 `protobuf:"varint,1,rep,packed,name=ids,proto3" json:"ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportWorkflowsRequest) Reset() {
+	*x = ExportWorkflowsRequest{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportWorkflowsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportWorkflowsRequest) ProtoMessage() {}
+
+func (x *ExportWorkflowsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportWorkflowsRequest.ProtoReflect.Descriptor instead.
+func (*ExportWorkflowsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ExportWorkflowsRequest) GetIds() []uint32 {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+type ExportWorkflowsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// json is the file: a WorkflowFile as JSON.
+	Json string `protobuf:"bytes,1,opt,name=json,proto3" json:"json,omitempty"`
+	// file_name is a name to save it as: the workflow's
+	// ("Big order alert.workflow.json"), or, for several,
+	// san_tower-workflows-2026-10-26.json.
+	FileName      string `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportWorkflowsResponse) Reset() {
+	*x = ExportWorkflowsResponse{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportWorkflowsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportWorkflowsResponse) ProtoMessage() {}
+
+func (x *ExportWorkflowsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportWorkflowsResponse.ProtoReflect.Descriptor instead.
+func (*ExportWorkflowsResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ExportWorkflowsResponse) GetJson() string {
+	if x != nil {
+		return x.Json
+	}
+	return ""
+}
+
+func (x *ExportWorkflowsResponse) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+type ImportWorkflowsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// json is a file ExportWorkflows wrote.
+	Json          string `protobuf:"bytes,1,opt,name=json,proto3" json:"json,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportWorkflowsRequest) Reset() {
+	*x = ImportWorkflowsRequest{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportWorkflowsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportWorkflowsRequest) ProtoMessage() {}
+
+func (x *ImportWorkflowsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportWorkflowsRequest.ProtoReflect.Descriptor instead.
+func (*ImportWorkflowsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ImportWorkflowsRequest) GetJson() string {
+	if x != nil {
+		return x.Json
+	}
+	return ""
+}
+
+type ImportWorkflowsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// workflows are the workflows made, switched off, in the file's order.
+	Workflows []*WorkflowSummary `protobuf:"bytes,1,rep,name=workflows,proto3" json:"workflows,omitempty"`
+	// notes say what did not carry over as it was: a name taken, a connection
+	// or storage matched otherwise or left to pick, a kind of step this tower
+	// does not have.
+	Notes         []string `protobuf:"bytes,2,rep,name=notes,proto3" json:"notes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportWorkflowsResponse) Reset() {
+	*x = ImportWorkflowsResponse{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportWorkflowsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportWorkflowsResponse) ProtoMessage() {}
+
+func (x *ImportWorkflowsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportWorkflowsResponse.ProtoReflect.Descriptor instead.
+func (*ImportWorkflowsResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *ImportWorkflowsResponse) GetWorkflows() []*WorkflowSummary {
+	if x != nil {
+		return x.Workflows
+	}
+	return nil
+}
+
+func (x *ImportWorkflowsResponse) GetNotes() []string {
+	if x != nil {
+		return x.Notes
+	}
+	return nil
+}
+
+// WorkflowFile is the file ExportWorkflows writes and ImportWorkflows reads.
+type WorkflowFile struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// format is "san_tower.workflows"; version is 1.
+	Format     string                 `protobuf:"bytes,1,opt,name=format,proto3" json:"format,omitempty"`
+	Version    uint32                 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	ExportedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=exported_at,json=exportedAt,proto3" json:"exported_at,omitempty"`
+	// tower is the version of the tower that wrote it.
+	Tower     string              `protobuf:"bytes,4,opt,name=tower,proto3" json:"tower,omitempty"`
+	Workflows []*ExportedWorkflow `protobuf:"bytes,5,rep,name=workflows,proto3" json:"workflows,omitempty"`
+	// connections and storages are those the steps' Connection and Storage
+	// settings pick, by their id in the tower that wrote the file.
+	Connections   map[string]*ExportedRef `protobuf:"bytes,6,rep,name=connections,proto3" json:"connections,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Storages      map[string]*ExportedRef `protobuf:"bytes,7,rep,name=storages,proto3" json:"storages,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkflowFile) Reset() {
+	*x = WorkflowFile{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowFile) ProtoMessage() {}
+
+func (x *WorkflowFile) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowFile.ProtoReflect.Descriptor instead.
+func (*WorkflowFile) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *WorkflowFile) GetFormat() string {
+	if x != nil {
+		return x.Format
+	}
+	return ""
+}
+
+func (x *WorkflowFile) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *WorkflowFile) GetExportedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExportedAt
+	}
+	return nil
+}
+
+func (x *WorkflowFile) GetTower() string {
+	if x != nil {
+		return x.Tower
+	}
+	return ""
+}
+
+func (x *WorkflowFile) GetWorkflows() []*ExportedWorkflow {
+	if x != nil {
+		return x.Workflows
+	}
+	return nil
+}
+
+func (x *WorkflowFile) GetConnections() map[string]*ExportedRef {
+	if x != nil {
+		return x.Connections
+	}
+	return nil
+}
+
+func (x *WorkflowFile) GetStorages() map[string]*ExportedRef {
+	if x != nil {
+		return x.Storages
+	}
+	return nil
+}
+
+// ExportedWorkflow is a workflow in a WorkflowFile.
+type ExportedWorkflow struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Steps         []*Step                `protobuf:"bytes,2,rep,name=steps,proto3" json:"steps,omitempty"`
+	Links         []*Link                `protobuf:"bytes,3,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportedWorkflow) Reset() {
+	*x = ExportedWorkflow{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportedWorkflow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportedWorkflow) ProtoMessage() {}
+
+func (x *ExportedWorkflow) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportedWorkflow.ProtoReflect.Descriptor instead.
+func (*ExportedWorkflow) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ExportedWorkflow) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ExportedWorkflow) GetSteps() []*Step {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
+func (x *ExportedWorkflow) GetLinks() []*Link {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+// ExportedRef is a connection or a storage a step picks, as a file names
+// it: its name, and a connection's type (san_remote, telegram_bot).
+type ExportedRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportedRef) Reset() {
+	*x = ExportedRef{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportedRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportedRef) ProtoMessage() {}
+
+func (x *ExportedRef) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportedRef.ProtoReflect.Descriptor instead.
+func (*ExportedRef) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ExportedRef) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ExportedRef) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
 var File_san_tower_v1_workflow_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_workflow_proto_rawDesc = "" +
@@ -2293,7 +2707,39 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\rGetRunRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\"5\n" +
 	"\x0eGetRunResponse\x12#\n" +
-	"\x03run\x18\x01 \x01(\v2\x11.san.tower.v1.RunR\x03run*\x8c\x01\n" +
+	"\x03run\x18\x01 \x01(\v2\x11.san.tower.v1.RunR\x03run\"*\n" +
+	"\x16ExportWorkflowsRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\rR\x03ids\"J\n" +
+	"\x17ExportWorkflowsResponse\x12\x12\n" +
+	"\x04json\x18\x01 \x01(\tR\x04json\x12\x1b\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\",\n" +
+	"\x16ImportWorkflowsRequest\x12\x12\n" +
+	"\x04json\x18\x01 \x01(\tR\x04json\"l\n" +
+	"\x17ImportWorkflowsResponse\x12;\n" +
+	"\tworkflows\x18\x01 \x03(\v2\x1d.san.tower.v1.WorkflowSummaryR\tworkflows\x12\x14\n" +
+	"\x05notes\x18\x02 \x03(\tR\x05notes\"\x99\x04\n" +
+	"\fWorkflowFile\x12\x16\n" +
+	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\rR\aversion\x12;\n" +
+	"\vexported_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"exportedAt\x12\x14\n" +
+	"\x05tower\x18\x04 \x01(\tR\x05tower\x12<\n" +
+	"\tworkflows\x18\x05 \x03(\v2\x1e.san.tower.v1.ExportedWorkflowR\tworkflows\x12M\n" +
+	"\vconnections\x18\x06 \x03(\v2+.san.tower.v1.WorkflowFile.ConnectionsEntryR\vconnections\x12D\n" +
+	"\bstorages\x18\a \x03(\v2(.san.tower.v1.WorkflowFile.StoragesEntryR\bstorages\x1aY\n" +
+	"\x10ConnectionsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.san.tower.v1.ExportedRefR\x05value:\x028\x01\x1aV\n" +
+	"\rStoragesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.san.tower.v1.ExportedRefR\x05value:\x028\x01\"z\n" +
+	"\x10ExportedWorkflow\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12(\n" +
+	"\x05steps\x18\x02 \x03(\v2\x12.san.tower.v1.StepR\x05steps\x12(\n" +
+	"\x05links\x18\x03 \x03(\v2\x12.san.tower.v1.LinkR\x05links\"5\n" +
+	"\vExportedRef\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type*\x8c\x01\n" +
 	"\tRunStatus\x12\x1a\n" +
 	"\x16RUN_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12RUN_STATUS_RUNNING\x10\x01\x12\x18\n" +
@@ -2306,7 +2752,7 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\x11LOG_LEVEL_SUCCESS\x10\x02\x12\x15\n" +
 	"\x11LOG_LEVEL_WARNING\x10\x03\x12\x14\n" +
 	"\x10LOG_LEVEL_FAILED\x10\x04\x12\x13\n" +
-	"\x0fLOG_LEVEL_DEBUG\x10\x052\xfa\x06\n" +
+	"\x0fLOG_LEVEL_DEBUG\x10\x052\xba\b\n" +
 	"\x0fWorkflowService\x12X\n" +
 	"\rListStepKinds\x12\".san.tower.v1.ListStepKindsRequest\x1a#.san.tower.v1.ListStepKindsResponse\x12X\n" +
 	"\rListWorkflows\x12\".san.tower.v1.ListWorkflowsRequest\x1a#.san.tower.v1.ListWorkflowsResponse\x12[\n" +
@@ -2317,7 +2763,9 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\x0eDeleteWorkflow\x12#.san.tower.v1.DeleteWorkflowRequest\x1a$.san.tower.v1.DeleteWorkflowResponse\x12R\n" +
 	"\vRunWorkflow\x12 .san.tower.v1.RunWorkflowRequest\x1a!.san.tower.v1.RunWorkflowResponse\x12I\n" +
 	"\bListRuns\x12\x1d.san.tower.v1.ListRunsRequest\x1a\x1e.san.tower.v1.ListRunsResponse\x12C\n" +
-	"\x06GetRun\x12\x1b.san.tower.v1.GetRunRequest\x1a\x1c.san.tower.v1.GetRunResponseB\xad\x01\n" +
+	"\x06GetRun\x12\x1b.san.tower.v1.GetRunRequest\x1a\x1c.san.tower.v1.GetRunResponse\x12^\n" +
+	"\x0fExportWorkflows\x12$.san.tower.v1.ExportWorkflowsRequest\x1a%.san.tower.v1.ExportWorkflowsResponse\x12^\n" +
+	"\x0fImportWorkflows\x12$.san.tower.v1.ImportWorkflowsRequest\x1a%.san.tower.v1.ImportWorkflowsResponseB\xad\x01\n" +
 	"\x10com.san.tower.v1B\rWorkflowProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -2333,7 +2781,7 @@ func file_san_tower_v1_workflow_proto_rawDescGZIP() []byte {
 }
 
 var file_san_tower_v1_workflow_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_san_tower_v1_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_san_tower_v1_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
 var file_san_tower_v1_workflow_proto_goTypes = []any{
 	(RunStatus)(0),                    // 0: san.tower.v1.RunStatus
 	(LogLevel)(0),                     // 1: san.tower.v1.LogLevel
@@ -2369,11 +2817,20 @@ var file_san_tower_v1_workflow_proto_goTypes = []any{
 	(*ListRunsResponse)(nil),          // 31: san.tower.v1.ListRunsResponse
 	(*GetRunRequest)(nil),             // 32: san.tower.v1.GetRunRequest
 	(*GetRunResponse)(nil),            // 33: san.tower.v1.GetRunResponse
-	nil,                               // 34: san.tower.v1.Step.ValuesEntry
-	nil,                               // 35: san.tower.v1.StepRun.OutputsEntry
-	(*timestamppb.Timestamp)(nil),     // 36: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),       // 37: google.protobuf.Duration
-	(*anypb.Any)(nil),                 // 38: google.protobuf.Any
+	(*ExportWorkflowsRequest)(nil),    // 34: san.tower.v1.ExportWorkflowsRequest
+	(*ExportWorkflowsResponse)(nil),   // 35: san.tower.v1.ExportWorkflowsResponse
+	(*ImportWorkflowsRequest)(nil),    // 36: san.tower.v1.ImportWorkflowsRequest
+	(*ImportWorkflowsResponse)(nil),   // 37: san.tower.v1.ImportWorkflowsResponse
+	(*WorkflowFile)(nil),              // 38: san.tower.v1.WorkflowFile
+	(*ExportedWorkflow)(nil),          // 39: san.tower.v1.ExportedWorkflow
+	(*ExportedRef)(nil),               // 40: san.tower.v1.ExportedRef
+	nil,                               // 41: san.tower.v1.Step.ValuesEntry
+	nil,                               // 42: san.tower.v1.StepRun.OutputsEntry
+	nil,                               // 43: san.tower.v1.WorkflowFile.ConnectionsEntry
+	nil,                               // 44: san.tower.v1.WorkflowFile.StoragesEntry
+	(*timestamppb.Timestamp)(nil),     // 45: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),       // 46: google.protobuf.Duration
+	(*anypb.Any)(nil),                 // 47: google.protobuf.Any
 }
 var file_san_tower_v1_workflow_proto_depIdxs = []int32{
 	3,  // 0: san.tower.v1.StepKind.outputs:type_name -> san.tower.v1.Socket
@@ -2381,22 +2838,22 @@ var file_san_tower_v1_workflow_proto_depIdxs = []int32{
 	3,  // 2: san.tower.v1.StepKind.inputs:type_name -> san.tower.v1.Socket
 	6,  // 3: san.tower.v1.Workflow.steps:type_name -> san.tower.v1.Step
 	7,  // 4: san.tower.v1.Workflow.links:type_name -> san.tower.v1.Link
-	36, // 5: san.tower.v1.Workflow.created_at:type_name -> google.protobuf.Timestamp
-	36, // 6: san.tower.v1.Workflow.updated_at:type_name -> google.protobuf.Timestamp
+	45, // 5: san.tower.v1.Workflow.created_at:type_name -> google.protobuf.Timestamp
+	45, // 6: san.tower.v1.Workflow.updated_at:type_name -> google.protobuf.Timestamp
 	9,  // 7: san.tower.v1.Workflow.triggers:type_name -> san.tower.v1.TriggerState
-	34, // 8: san.tower.v1.Step.values:type_name -> san.tower.v1.Step.ValuesEntry
+	41, // 8: san.tower.v1.Step.values:type_name -> san.tower.v1.Step.ValuesEntry
 	6,  // 9: san.tower.v1.Graph.steps:type_name -> san.tower.v1.Step
 	7,  // 10: san.tower.v1.Graph.links:type_name -> san.tower.v1.Link
-	36, // 11: san.tower.v1.TriggerState.next:type_name -> google.protobuf.Timestamp
-	36, // 12: san.tower.v1.WorkflowSummary.created_at:type_name -> google.protobuf.Timestamp
-	36, // 13: san.tower.v1.WorkflowSummary.updated_at:type_name -> google.protobuf.Timestamp
+	45, // 11: san.tower.v1.TriggerState.next:type_name -> google.protobuf.Timestamp
+	45, // 12: san.tower.v1.WorkflowSummary.created_at:type_name -> google.protobuf.Timestamp
+	45, // 13: san.tower.v1.WorkflowSummary.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 14: san.tower.v1.Run.status:type_name -> san.tower.v1.RunStatus
-	36, // 15: san.tower.v1.Run.started_at:type_name -> google.protobuf.Timestamp
-	36, // 16: san.tower.v1.Run.finished_at:type_name -> google.protobuf.Timestamp
+	45, // 15: san.tower.v1.Run.started_at:type_name -> google.protobuf.Timestamp
+	45, // 16: san.tower.v1.Run.finished_at:type_name -> google.protobuf.Timestamp
 	12, // 17: san.tower.v1.Run.steps:type_name -> san.tower.v1.StepRun
 	1,  // 18: san.tower.v1.Run.log_levels:type_name -> san.tower.v1.LogLevel
-	35, // 19: san.tower.v1.StepRun.outputs:type_name -> san.tower.v1.StepRun.OutputsEntry
-	37, // 20: san.tower.v1.StepRun.duration:type_name -> google.protobuf.Duration
+	42, // 19: san.tower.v1.StepRun.outputs:type_name -> san.tower.v1.StepRun.OutputsEntry
+	46, // 20: san.tower.v1.StepRun.duration:type_name -> google.protobuf.Duration
 	1,  // 21: san.tower.v1.StepRun.log_levels:type_name -> san.tower.v1.LogLevel
 	12, // 22: san.tower.v1.RunSteps.steps:type_name -> san.tower.v1.StepRun
 	2,  // 23: san.tower.v1.ListStepKindsResponse.kinds:type_name -> san.tower.v1.StepKind
@@ -2410,32 +2867,45 @@ var file_san_tower_v1_workflow_proto_depIdxs = []int32{
 	0,  // 31: san.tower.v1.ListRunsRequest.statuses:type_name -> san.tower.v1.RunStatus
 	11, // 32: san.tower.v1.ListRunsResponse.runs:type_name -> san.tower.v1.Run
 	11, // 33: san.tower.v1.GetRunResponse.run:type_name -> san.tower.v1.Run
-	38, // 34: san.tower.v1.StepRun.OutputsEntry.value:type_name -> google.protobuf.Any
-	14, // 35: san.tower.v1.WorkflowService.ListStepKinds:input_type -> san.tower.v1.ListStepKindsRequest
-	16, // 36: san.tower.v1.WorkflowService.ListWorkflows:input_type -> san.tower.v1.ListWorkflowsRequest
-	18, // 37: san.tower.v1.WorkflowService.CreateWorkflow:input_type -> san.tower.v1.CreateWorkflowRequest
-	20, // 38: san.tower.v1.WorkflowService.GetWorkflow:input_type -> san.tower.v1.GetWorkflowRequest
-	22, // 39: san.tower.v1.WorkflowService.UpdateWorkflow:input_type -> san.tower.v1.UpdateWorkflowRequest
-	24, // 40: san.tower.v1.WorkflowService.SetWorkflowActive:input_type -> san.tower.v1.SetWorkflowActiveRequest
-	26, // 41: san.tower.v1.WorkflowService.DeleteWorkflow:input_type -> san.tower.v1.DeleteWorkflowRequest
-	28, // 42: san.tower.v1.WorkflowService.RunWorkflow:input_type -> san.tower.v1.RunWorkflowRequest
-	30, // 43: san.tower.v1.WorkflowService.ListRuns:input_type -> san.tower.v1.ListRunsRequest
-	32, // 44: san.tower.v1.WorkflowService.GetRun:input_type -> san.tower.v1.GetRunRequest
-	15, // 45: san.tower.v1.WorkflowService.ListStepKinds:output_type -> san.tower.v1.ListStepKindsResponse
-	17, // 46: san.tower.v1.WorkflowService.ListWorkflows:output_type -> san.tower.v1.ListWorkflowsResponse
-	19, // 47: san.tower.v1.WorkflowService.CreateWorkflow:output_type -> san.tower.v1.CreateWorkflowResponse
-	21, // 48: san.tower.v1.WorkflowService.GetWorkflow:output_type -> san.tower.v1.GetWorkflowResponse
-	23, // 49: san.tower.v1.WorkflowService.UpdateWorkflow:output_type -> san.tower.v1.UpdateWorkflowResponse
-	25, // 50: san.tower.v1.WorkflowService.SetWorkflowActive:output_type -> san.tower.v1.SetWorkflowActiveResponse
-	27, // 51: san.tower.v1.WorkflowService.DeleteWorkflow:output_type -> san.tower.v1.DeleteWorkflowResponse
-	29, // 52: san.tower.v1.WorkflowService.RunWorkflow:output_type -> san.tower.v1.RunWorkflowResponse
-	31, // 53: san.tower.v1.WorkflowService.ListRuns:output_type -> san.tower.v1.ListRunsResponse
-	33, // 54: san.tower.v1.WorkflowService.GetRun:output_type -> san.tower.v1.GetRunResponse
-	45, // [45:55] is the sub-list for method output_type
-	35, // [35:45] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	10, // 34: san.tower.v1.ImportWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
+	45, // 35: san.tower.v1.WorkflowFile.exported_at:type_name -> google.protobuf.Timestamp
+	39, // 36: san.tower.v1.WorkflowFile.workflows:type_name -> san.tower.v1.ExportedWorkflow
+	43, // 37: san.tower.v1.WorkflowFile.connections:type_name -> san.tower.v1.WorkflowFile.ConnectionsEntry
+	44, // 38: san.tower.v1.WorkflowFile.storages:type_name -> san.tower.v1.WorkflowFile.StoragesEntry
+	6,  // 39: san.tower.v1.ExportedWorkflow.steps:type_name -> san.tower.v1.Step
+	7,  // 40: san.tower.v1.ExportedWorkflow.links:type_name -> san.tower.v1.Link
+	47, // 41: san.tower.v1.StepRun.OutputsEntry.value:type_name -> google.protobuf.Any
+	40, // 42: san.tower.v1.WorkflowFile.ConnectionsEntry.value:type_name -> san.tower.v1.ExportedRef
+	40, // 43: san.tower.v1.WorkflowFile.StoragesEntry.value:type_name -> san.tower.v1.ExportedRef
+	14, // 44: san.tower.v1.WorkflowService.ListStepKinds:input_type -> san.tower.v1.ListStepKindsRequest
+	16, // 45: san.tower.v1.WorkflowService.ListWorkflows:input_type -> san.tower.v1.ListWorkflowsRequest
+	18, // 46: san.tower.v1.WorkflowService.CreateWorkflow:input_type -> san.tower.v1.CreateWorkflowRequest
+	20, // 47: san.tower.v1.WorkflowService.GetWorkflow:input_type -> san.tower.v1.GetWorkflowRequest
+	22, // 48: san.tower.v1.WorkflowService.UpdateWorkflow:input_type -> san.tower.v1.UpdateWorkflowRequest
+	24, // 49: san.tower.v1.WorkflowService.SetWorkflowActive:input_type -> san.tower.v1.SetWorkflowActiveRequest
+	26, // 50: san.tower.v1.WorkflowService.DeleteWorkflow:input_type -> san.tower.v1.DeleteWorkflowRequest
+	28, // 51: san.tower.v1.WorkflowService.RunWorkflow:input_type -> san.tower.v1.RunWorkflowRequest
+	30, // 52: san.tower.v1.WorkflowService.ListRuns:input_type -> san.tower.v1.ListRunsRequest
+	32, // 53: san.tower.v1.WorkflowService.GetRun:input_type -> san.tower.v1.GetRunRequest
+	34, // 54: san.tower.v1.WorkflowService.ExportWorkflows:input_type -> san.tower.v1.ExportWorkflowsRequest
+	36, // 55: san.tower.v1.WorkflowService.ImportWorkflows:input_type -> san.tower.v1.ImportWorkflowsRequest
+	15, // 56: san.tower.v1.WorkflowService.ListStepKinds:output_type -> san.tower.v1.ListStepKindsResponse
+	17, // 57: san.tower.v1.WorkflowService.ListWorkflows:output_type -> san.tower.v1.ListWorkflowsResponse
+	19, // 58: san.tower.v1.WorkflowService.CreateWorkflow:output_type -> san.tower.v1.CreateWorkflowResponse
+	21, // 59: san.tower.v1.WorkflowService.GetWorkflow:output_type -> san.tower.v1.GetWorkflowResponse
+	23, // 60: san.tower.v1.WorkflowService.UpdateWorkflow:output_type -> san.tower.v1.UpdateWorkflowResponse
+	25, // 61: san.tower.v1.WorkflowService.SetWorkflowActive:output_type -> san.tower.v1.SetWorkflowActiveResponse
+	27, // 62: san.tower.v1.WorkflowService.DeleteWorkflow:output_type -> san.tower.v1.DeleteWorkflowResponse
+	29, // 63: san.tower.v1.WorkflowService.RunWorkflow:output_type -> san.tower.v1.RunWorkflowResponse
+	31, // 64: san.tower.v1.WorkflowService.ListRuns:output_type -> san.tower.v1.ListRunsResponse
+	33, // 65: san.tower.v1.WorkflowService.GetRun:output_type -> san.tower.v1.GetRunResponse
+	35, // 66: san.tower.v1.WorkflowService.ExportWorkflows:output_type -> san.tower.v1.ExportWorkflowsResponse
+	37, // 67: san.tower.v1.WorkflowService.ImportWorkflows:output_type -> san.tower.v1.ImportWorkflowsResponse
+	56, // [56:68] is the sub-list for method output_type
+	44, // [44:56] is the sub-list for method input_type
+	44, // [44:44] is the sub-list for extension type_name
+	44, // [44:44] is the sub-list for extension extendee
+	0,  // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_workflow_proto_init() }
@@ -2449,7 +2919,7 @@ func file_san_tower_v1_workflow_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_workflow_proto_rawDesc), len(file_san_tower_v1_workflow_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   34,
+			NumMessages:   43,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

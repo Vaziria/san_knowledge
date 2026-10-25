@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/tower.proto.
  */
 export const file_san_tower_v1_tower: GenFile = /*@__PURE__*/
-  fileDesc("ChhzYW4vdG93ZXIvdjEvdG93ZXIucHJvdG8SDHNhbi50b3dlci52MSISChBHZXRTdGF0dXNSZXF1ZXN0ImYKEUdldFN0YXR1c1Jlc3BvbnNlEg8KB3ZlcnNpb24YASABKAkSEAoIaG9zdG5hbWUYAiABKAkSLgoKc3RhcnRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAyXAoMVG93ZXJTZXJ2aWNlEkwKCUdldFN0YXR1cxIeLnNhbi50b3dlci52MS5HZXRTdGF0dXNSZXF1ZXN0Gh8uc2FuLnRvd2VyLnYxLkdldFN0YXR1c1Jlc3BvbnNlQqoBChBjb20uc2FuLnRvd2VyLnYxQgpUb3dlclByb3RvUAFaOGdpdGh1Yi5jb20vd2FyZ2FzaXBpbC9zYW5fdG93ZXIvZ2VuL3Nhbi90b3dlci92MTt0b3dlcnYxogIDU1RYqgIMU2FuLlRvd2VyLlYxygIMU2FuXFRvd2VyXFYx4gIYU2FuXFRvd2VyXFYxXEdQQk1ldGFkYXRh6gIOU2FuOjpUb3dlcjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("ChhzYW4vdG93ZXIvdjEvdG93ZXIucHJvdG8SDHNhbi50b3dlci52MSISChBHZXRTdGF0dXNSZXF1ZXN0InoKEUdldFN0YXR1c1Jlc3BvbnNlEg8KB3ZlcnNpb24YASABKAkSEAoIaG9zdG5hbWUYAiABKAkSLgoKc3RhcnRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEgoKZXhlY3V0YWJsZRgEIAEoCSIfCg5SZXN0YXJ0UmVxdWVzdBINCgVmb3JjZRgBIAEoCCIRCg9SZXN0YXJ0UmVzcG9uc2UypAEKDFRvd2VyU2VydmljZRJMCglHZXRTdGF0dXMSHi5zYW4udG93ZXIudjEuR2V0U3RhdHVzUmVxdWVzdBofLnNhbi50b3dlci52MS5HZXRTdGF0dXNSZXNwb25zZRJGCgdSZXN0YXJ0Ehwuc2FuLnRvd2VyLnYxLlJlc3RhcnRSZXF1ZXN0Gh0uc2FuLnRvd2VyLnYxLlJlc3RhcnRSZXNwb25zZUKqAQoQY29tLnNhbi50b3dlci52MUIKVG93ZXJQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message san.tower.v1.GetStatusRequest
@@ -47,6 +47,13 @@ export type GetStatusResponse = Message<"san.tower.v1.GetStatusResponse"> & {
    * @generated from field: google.protobuf.Timestamp started_at = 3;
    */
   startedAt?: Timestamp;
+
+  /**
+   * executable is the file the tower runs from, as it started.
+   *
+   * @generated from field: string executable = 4;
+   */
+  executable: string;
 };
 
 /**
@@ -57,9 +64,39 @@ export const GetStatusResponseSchema: GenMessage<GetStatusResponse> = /*@__PURE_
   messageDesc(file_san_tower_v1_tower, 1);
 
 /**
+ * @generated from message san.tower.v1.RestartRequest
+ */
+export type RestartRequest = Message<"san.tower.v1.RestartRequest"> & {
+  /**
+   * @generated from field: bool force = 1;
+   */
+  force: boolean;
+};
+
+/**
+ * Describes the message san.tower.v1.RestartRequest.
+ * Use `create(RestartRequestSchema)` to create a new message.
+ */
+export const RestartRequestSchema: GenMessage<RestartRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_tower, 2);
+
+/**
+ * @generated from message san.tower.v1.RestartResponse
+ */
+export type RestartResponse = Message<"san.tower.v1.RestartResponse"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.RestartResponse.
+ * Use `create(RestartResponseSchema)` to create a new message.
+ */
+export const RestartResponseSchema: GenMessage<RestartResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_tower, 3);
+
+/**
  * TowerService is called by the tower's UI (typescripts/san_tower_frontend)
- * and its CLI. For now it only says the tower is up; what the tower watches
- * comes later.
+ * and its CLI: whether the tower is up, and restarting it (after `san_tower
+ * update`).
  *
  * @generated from service san.tower.v1.TowerService
  */
@@ -71,6 +108,19 @@ export const TowerService: GenService<{
     methodKind: "unary";
     input: typeof GetStatusRequestSchema;
     output: typeof GetStatusResponseSchema;
+  },
+  /**
+   * Restart stops the tower and starts it again from its executable, in the
+   * same process on Linux (a supervisor such as a run.sh loop sees no
+   * exit), as a new one on Windows. With runs in progress it is refused
+   * (FailedPrecondition) unless force, which cuts them short.
+   *
+   * @generated from rpc san.tower.v1.TowerService.Restart
+   */
+  restart: {
+    methodKind: "unary";
+    input: typeof RestartRequestSchema;
+    output: typeof RestartResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_san_tower_v1_tower, 0);

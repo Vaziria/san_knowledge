@@ -1,7 +1,8 @@
 #!/usr/bin/env pwsh
 # Build the UI (typescripts/san_tower_frontend, into internal/web/dist, which
-# the binary embeds), vet, test, then build bin/san_tower.exe (Windows) and
-# bin/san_tower (Linux). Needs Node.js.
+# the binary embeds), vet, test, then build bin/san_tower.exe (Windows),
+# bin/san_tower (Linux) and bin/san_tower-linux-arm64 (Raspberry Pi). Needs
+# Node.js.
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -42,7 +43,13 @@ try {
     go build -ldflags $ldflags -o bin/san_tower ./cmd/san_tower
     if ($LASTEXITCODE -ne 0) { throw "linux build failed" }
 
-    Write-Host "built bin/san_tower.exe and bin/san_tower ($version)"
+    # 64-bit ARM Linux: the Raspberry Pi (the user's, 2026-10-26).
+    Write-Host "build linux/arm64..."
+    $env:GOOS = "linux"; $env:GOARCH = "arm64"
+    go build -ldflags $ldflags -o bin/san_tower-linux-arm64 ./cmd/san_tower
+    if ($LASTEXITCODE -ne 0) { throw "linux/arm64 build failed" }
+
+    Write-Host "built bin/san_tower.exe, bin/san_tower and bin/san_tower-linux-arm64 ($version)"
 }
 finally {
     Remove-Item Env:GOOS -ErrorAction SilentlyContinue

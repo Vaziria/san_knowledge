@@ -34,6 +34,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import {
   ArrowLeftIcon,
+  DownloadIcon,
   HistoryIcon,
   PencilIcon,
   PlayIcon,
@@ -71,6 +72,7 @@ import { RunLog } from '../workflow/RunLog';
 import { RunsPanel } from '../workflow/RunsPanel';
 import { AddPalette } from '../workflow/AddPalette';
 import { RenameDialog } from '../workflow/RenameDialog';
+import { exportWorkflows } from '../workflow/transfer';
 import { StepNode } from '../workflow/StepNode';
 
 const nodeTypes = { step: StepNode };
@@ -257,6 +259,17 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
     flush();
     await savesDone();
     return latest.current === saved.current;
+  };
+
+  // exportThis downloads the workflow as a file, saved first: the tower
+  // writes it from what is stored.
+  const exportThis = async () => {
+    try {
+      if (!(await saveNow())) throw new Error('the last change is not saved');
+      toast(`Exported to ${await exportWorkflows([workflow.id])}`);
+    } catch (err) {
+      toast(`Not exported: ${errorText(err)}`, true);
+    }
   };
 
   const switchActive = async (on: boolean) => {
@@ -480,6 +493,15 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
           >
             <PlusIcon />
             Add
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            title="Download it as a file this tower, or another, can import"
+            onClick={() => void exportThis()}
+          >
+            <DownloadIcon />
+            Export
           </Button>
           <Button size="sm" variant="ghost" colorPalette="red" onClick={() => setDeleting(true)}>
             Delete

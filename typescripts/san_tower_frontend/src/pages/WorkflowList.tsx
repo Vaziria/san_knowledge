@@ -19,20 +19,23 @@ import {
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  DownloadIcon,
   EllipsisVerticalIcon,
   PencilIcon,
   ScrollTextIcon,
   SearchIcon,
   Trash2Icon,
+  UploadIcon,
   WorkflowIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { errorText, workflows } from '../api';
 import type { Workflow, WorkflowSummary } from '../gen/san/tower/v1/workflow_pb';
 import { FormDialog, FormField, toast } from '../ui';
 import { RenameDialog } from '../workflow/RenameDialog';
 import { RunLog } from '../workflow/RunLog';
+import { exportWorkflows, ImportResult, importFiles, type Imported } from '../workflow/transfer';
 import { savesDone } from './WorkflowEditor';
 
 const pageSize = 20;
@@ -40,7 +43,8 @@ const pageSize = 20;
 // WorkflowList is the Workflow page. Its Workflows tab lists the tower's
 // workflows (WorkflowService, in its database) a page at a time, searches
 // them by name, creates them, switches their triggers on and off, renames and
-// deletes them; the search and the page are in the URL (?q=order&page=2). A
+// deletes them, and exports and imports them as files (transfer.tsx); the
+// search and the page are in the URL (?q=order&page=2). A
 // workflow opens in its editor, /workflow/<id>. Its Logs tab (?tab=logs,
 // RunLog) watches the runs of the active workflows as they come.
 export function WorkflowList() {
@@ -56,6 +60,9 @@ export function WorkflowList() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<WorkflowSummary>();
   const [renaming, setRenaming] = useState<WorkflowSummary>();
+  const [importing, setImporting] = useState(false);
+  const [imported, setImported] = useState<Imported>();
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const setPage = (n: number) =>
     setParams((p) => {
@@ -110,13 +117,67 @@ export function WorkflowList() {
     }
   };
 
+  // Export saves what an editor just closed has not saved yet first: the
+  // file is the workflows as stored.
+  const exportSome = async (ids: number[]) => {
+    try {
+      await savesDone();
+      toast(`Exported to ${await exportWorkflows(ids)}`);
+    } catch (err) {
+      toast(`Not exported: ${errorText(err)}`, true);
+    }
+  };
+
+  const importPicked = async (files: File[]) => {
+    if (files.length === 0) return;
+    setImporting(true);
+    const result = await importFiles(files);
+    setImporting(false);
+    setImported(result);
+    setReload((n) => n + 1);
+  };
+
   return (
     <Stack gap="4">
       <HStack justify="space-between">
         <Heading size="lg">Workflow</Heading>
-        <Button size="sm" colorPalette="blue" onClick={() => setCreating(true)}>
-          New workflow
-        </Button>
+        <HStack gap="2">
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".json,application/json"
+            multiple
+            hidden
+            onChange={(e) => {
+              const files = [...(e.currentTarget.files ?? [])];
+              e.currentTarget.value = ''; // the same file can be picked again
+              void importPicked(files);
+            }}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            loading={importing}
+            title="Make workflows from files another tower, or this one, exported"
+            onClick={() => fileInput.current?.click()}
+          >
+            <UploadIcon />
+            Import
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!result?.total}
+            title="Download every workflow as one file"
+            onClick={() => void exportSome([])}
+          >
+            <DownloadIcon />
+            Export all
+          </Button>
+          <Button size="sm" colorPalette="blue" onClick={() => setCreating(true)}>
+            New workflow
+          </Button>
+        </HStack>
       </HStack>
       <Tabs.Root
         value={tab}
@@ -193,7 +254,12 @@ export function WorkflowList() {
                         in a portal, but React events still bubble here) does
                         not open the workflow. */}
                           <Table.Cell textAlign="end" py="0" onClick={(e) => e.stopPropagation()}>
-                            <RowMenu name={w.name} onRename={() => setRenaming(w)} onDelete={() => setDeleting(w)} />
+                            <RowMenu
+                              name={w.name}
+                              onRename={() => setRenaming(w)}
+                              onExport={() => void exportSome([w.id])}
+                              onDelete={() => setDeleting(w)}
+                            />
                           </Table.Cell>
                         </Table.Row>
                       ))}
@@ -235,6 +301,7 @@ export function WorkflowList() {
         </Tabs.Content>
       </Tabs.Root>
       {creating && <CreateWorkflow onClose={() => setCreating(false)} onCreated={(w) => open(w.id)} />}
+      {imported && <ImportResult result={imported} onOpen={open} onClose={() => setImported(undefined)} />}
       {renaming && (
         <RenameDialog
           name={renaming.name}
@@ -271,12 +338,20 @@ export function WorkflowList() {
 
 // RowMenu is a workflow's actions, behind the three dots at the end of its
 // row.
-function RowMenu({ name, onRename, onDelete }: { name: string; onRename: () => void; onDelete: () => void }) {
+function RowMenu({
+  name,
+  onRename,
+  onExport,
+  onDelete,
+}: {
+  name: string;
+  onRename: () => void;
+  onExport: () => void;
+  onDelete: () => void;
+}) {
+  const actions: Record<string, () => void> = { rename: onRename, export: onExport, delete: onDelete };
   return (
-    <Menu.Root
-      positioning={{ placement: 'bottom-end' }}
-      onSelect={(e) => (e.value === 'rename' ? onRename() : e.value === 'delete' && onDelete())}
-    >
+    <Menu.Root positioning={{ placement: 'bottom-end' }} onSelect={(e) => actions[e.value]?.()}>
       <Menu.Trigger asChild>
         <IconButton aria-label={`Actions for ${name}`} title="Actions" size="xs" variant="ghost" color="fg.muted">
           <EllipsisVerticalIcon />
@@ -288,6 +363,10 @@ function RowMenu({ name, onRename, onDelete }: { name: string; onRename: () => v
             <Menu.Item value="rename">
               <PencilIcon />
               Rename
+            </Menu.Item>
+            <Menu.Item value="export">
+              <DownloadIcon />
+              Export
             </Menu.Item>
             <Menu.Separator />
             <Menu.Item value="delete" color="fg.error" _hover={{ bg: 'bg.error', color: 'fg.error' }}>

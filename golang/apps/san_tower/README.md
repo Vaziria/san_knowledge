@@ -32,10 +32,13 @@ Module `github.com/wargasipil/san_tower`, Go 1.26. It uses san_message, and
 san_remote's generated clients, from this repository (`replace` in go.mod).
 
 ```powershell
-pwsh build.ps1                          # UI build + vet + test + bin/san_tower.exe and bin/san_tower
+pwsh build.ps1                          # UI build + vet + test + bin/san_tower.exe, bin/san_tower, bin/san_tower-linux-arm64
 bin\san_tower.exe serve                 # then open http://127.0.0.1:7477
+bin\san_tower.exe serve --listen 0.0.0.0:7477 --lan   # on the network too (no login: see Network)
 go run .\cmd\san_tower dev              # tower + the UI's Vite dev server; open Vite's address (http://localhost:5173)
 bin\san_tower.exe status                # asks the running tower (--server, $env:SAN_TOWER_SERVER)
+bin\san_tower.exe update                # install the newest release and restart the tower into it (see Updating)
+bin\san_tower.exe restart               # restart the running tower, once no run is in progress
 # after editing a proto: Go and TS for TowerService, then TS for san_message's MessageService
 buf generate; buf generate --template buf.gen.san_message.yaml
 ```
@@ -61,10 +64,58 @@ GitHub release of the tag, with:
   extension and `README.txt`, the setup for whoever gets it
   (`release/` holds both files);
 - `san_tower-<tag>-linux-amd64.tar.gz`: the same with the Linux binary;
+- `san_tower-<tag>-linux-arm64.tar.gz`: the same for 64-bit ARM Linux, the
+  Raspberry Pi (2026-10-26);
 - `san_remote_extension-<tag>.zip`: the extension alone.
 
 The extension's manifest gets the tag's version (v1.2.3-rc1 is 1.2.3, its
-`version_name` the whole tag).
+`version_name` the whole tag). Since 2026-10-25 the workflow's jobs do not
+start (the GitHub account is locked over billing), so a release is built
+the same way on this computer (`SAN_TOWER_VERSION=<tag>` build.ps1, the
+extension's `npm run build`), packaged as the workflow does, and published
+with `gh release create`.
+
+## Updating
+
+`san_tower update` (the user's ask, 2026-10-26: a command run by hand, not
+a background updater; `internal/update`, `cmd/san_tower/update.go`) asks
+GitHub for the latest release of Vaziria/san_knowledge (public: no token),
+and when it is newer than this binary's version downloads its bundle for
+this system and processor (`san_tower-<tag>-<os>-<arch>`, .zip on Windows,
+else .tar.gz). It unpacks it beside the running binary, checks that the new
+san_tower runs here and says it is that tag (`--version`), then puts the
+files in place: README.txt, start.bat and the extension's folder (whole,
+through a `.old`), then the binary last (Linux: renamed over it; Windows,
+where a running file can be renamed but not overwritten: the old one to
+`san_tower.exe.old`, removed when the tower next starts). A local build
+(stamped with the date, not a version) is not updated without `--force`,
+which also installs the same version again. `--check` only says whether a
+newer release is out.
+
+Then, when the tower at `--server` runs from the file just replaced
+(GetStatus's `executable`), the update asks it to restart (TowerService's
+Restart) and waits until it answers as the new version. A tower with runs
+in progress refuses (`san_tower restart` once they end, or `--force`, which
+cuts them short; they are marked interrupted). Restart answers, closes the
+tower as a stop does, then starts it again from its executable: on Linux in
+the same process (`syscall.Exec`), so a supervisor (the Pi's `run.sh` loop,
+systemd) sees no exit; on Windows as a new process in the same console
+(start.bat's window stays: it pauses after the first one ends). The new one
+retries its address for 10 s (`SAN_TOWER_RESTARTED`), while the old one
+lets go of it. `dev` cannot restart itself.
+
+## Network
+
+The tower has no login, so `serve` listens on loopback only. `--lan` (the
+user's choice, 2026-10-26, for the Raspberry Pi opened from the PC) lets
+`--listen` take any address (`0.0.0.0:7477`), and the log warns that anyone
+on the network can use it. Behind it, `GuardLAN` still keeps out other
+sites and DNS rebinding: Host must be loopback, an address of a private
+network (10/8, 172.16/12, 192.168/16, fc00::/7, link-local, 100.64/10 as
+VPNs give out) or this machine's name (`raspi`, `raspi.local`, `raspi.lan`),
+and a browser call must come from the tower's own page (its Origin's host
+is the Host) or a loopback one. The Browser Remote Server's addresses stay
+on loopback.
 
 ## Workflows
 
@@ -484,6 +535,28 @@ the San Remote and Telegram steps (Social, below).
   it fired, its log lines, its data outputs as google.protobuf.Any): the
   newest 100 per workflow. A run still going when the tower stops is
   marked interrupted on the next start.
+- Export and import (the user's ask, 2026-10-26; `internal/server/transfer.go`):
+  ExportWorkflows writes some workflows, or all, to a file for
+  ImportWorkflows, here or in another tower: a `WorkflowFile` as JSON
+  (`format` "san_tower.workflows", `version` 1, `exported_at`, `tower`,
+  and each workflow's name, steps with their places and values, and
+  links), indented two spaces (protojson varies its spacing, so it is
+  indented again). Runs and whether a workflow is on stay behind. A step's
+  Connection and Storage (the settings whose kind says `connection_type`
+  or `storage`) go into the file's `connections` and `storages` with only
+  a name and a connection's type, by their id here: never their settings,
+  so a bot's token never leaves the tower. One workflow is
+  `<name>.workflow.json`, several `san_tower-workflows-2026-10-26.json`.
+  ImportWorkflows creates the file's workflows switched off, a name in use
+  getting " (2)", " (3)"...; each Connection becomes this tower's of the
+  same name (case aside) and type, else the only one of that type, else
+  nothing to pick; each Storage the one of the same name, else nothing
+  (a storage is a folder: never guessed). The notes say what did not carry
+  over as it was (a name taken, a connection matched otherwise or missing,
+  a storage missing, a kind of step this tower does not have). A file of
+  another format, a newer version or no workflows is refused, and a
+  workflow that cannot be saved (e.g. two steps with one id) takes back
+  the ones made before it, so a refused file leaves nothing.
 
 ## Connections
 

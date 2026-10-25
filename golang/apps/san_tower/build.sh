@@ -34,4 +34,7 @@ GOOS=windows GOARCH=amd64 go build -ldflags "${ldflags}" -o bin/san_tower.exe ./
 echo "build linux/amd64..."
 GOOS=linux GOARCH=amd64 go build -ldflags "${ldflags}" -o bin/san_tower ./cmd/san_tower
 
-echo "built bin/san_tower.exe and bin/san_tower (${version})"
+echo "build linux/arm64..."
+GOOS=linux GOARCH=arm64 go build -ldflags "${ldflags}" -o bin/san_tower-linux-arm64 ./cmd/san_tower
+
+echo "built bin/san_tower.exe, bin/san_tower and bin/san_tower-linux-arm64 (${version})"

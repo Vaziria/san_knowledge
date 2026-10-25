@@ -35,11 +35,18 @@ const (
 const (
 	// TowerServiceGetStatusProcedure is the fully-qualified name of the TowerService's GetStatus RPC.
 	TowerServiceGetStatusProcedure = "/san.tower.v1.TowerService/GetStatus"
+	// TowerServiceRestartProcedure is the fully-qualified name of the TowerService's Restart RPC.
+	TowerServiceRestartProcedure = "/san.tower.v1.TowerService/Restart"
 )
 
 // TowerServiceClient is a client for the san.tower.v1.TowerService service.
 type TowerServiceClient interface {
 	GetStatus(context.Context, *connect.Request[v1.GetStatusRequest]) (*connect.Response[v1.GetStatusResponse], error)
+	// Restart stops the tower and starts it again from its executable, in the
+	// same process on Linux (a supervisor such as a run.sh loop sees no
+	// exit), as a new one on Windows. With runs in progress it is refused
+	// (FailedPrecondition) unless force, which cuts them short.
+	Restart(context.Context, *connect.Request[v1.RestartRequest]) (*connect.Response[v1.RestartResponse], error)
 }
 
 // NewTowerServiceClient constructs a client for the san.tower.v1.TowerService service. By default,
@@ -59,12 +66,19 @@ func NewTowerServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(towerServiceMethods.ByName("GetStatus")),
 			connect.WithClientOptions(opts...),
 		),
+		restart: connect.NewClient[v1.RestartRequest, v1.RestartResponse](
+			httpClient,
+			baseURL+TowerServiceRestartProcedure,
+			connect.WithSchema(towerServiceMethods.ByName("Restart")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // towerServiceClient implements TowerServiceClient.
 type towerServiceClient struct {
 	getStatus *connect.Client[v1.GetStatusRequest, v1.GetStatusResponse]
+	restart   *connect.Client[v1.RestartRequest, v1.RestartResponse]
 }
 
 // GetStatus calls san.tower.v1.TowerService.GetStatus.
@@ -72,9 +86,19 @@ func (c *towerServiceClient) GetStatus(ctx context.Context, req *connect.Request
 	return c.getStatus.CallUnary(ctx, req)
 }
 
+// Restart calls san.tower.v1.TowerService.Restart.
+func (c *towerServiceClient) Restart(ctx context.Context, req *connect.Request[v1.RestartRequest]) (*connect.Response[v1.RestartResponse], error) {
+	return c.restart.CallUnary(ctx, req)
+}
+
 // TowerServiceHandler is an implementation of the san.tower.v1.TowerService service.
 type TowerServiceHandler interface {
 	GetStatus(context.Context, *connect.Request[v1.GetStatusRequest]) (*connect.Response[v1.GetStatusResponse], error)
+	// Restart stops the tower and starts it again from its executable, in the
+	// same process on Linux (a supervisor such as a run.sh loop sees no
+	// exit), as a new one on Windows. With runs in progress it is refused
+	// (FailedPrecondition) unless force, which cuts them short.
+	Restart(context.Context, *connect.Request[v1.RestartRequest]) (*connect.Response[v1.RestartResponse], error)
 }
 
 // NewTowerServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -90,10 +114,18 @@ func NewTowerServiceHandler(svc TowerServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(towerServiceMethods.ByName("GetStatus")),
 		connect.WithHandlerOptions(opts...),
 	)
+	towerServiceRestartHandler := connect.NewUnaryHandler(
+		TowerServiceRestartProcedure,
+		svc.Restart,
+		connect.WithSchema(towerServiceMethods.ByName("Restart")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.TowerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TowerServiceGetStatusProcedure:
 			towerServiceGetStatusHandler.ServeHTTP(w, r)
+		case TowerServiceRestartProcedure:
+			towerServiceRestartHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -105,4 +137,8 @@ type UnimplementedTowerServiceHandler struct{}
 
 func (UnimplementedTowerServiceHandler) GetStatus(context.Context, *connect.Request[v1.GetStatusRequest]) (*connect.Response[v1.GetStatusResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.TowerService.GetStatus is not implemented"))
+}
+
+func (UnimplementedTowerServiceHandler) Restart(context.Context, *connect.Request[v1.RestartRequest]) (*connect.Response[v1.RestartResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.TowerService.Restart is not implemented"))
 }

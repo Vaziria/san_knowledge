@@ -61,9 +61,11 @@ func (*GetStatusRequest) Descriptor() ([]byte, []int) {
 type GetStatusResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// version is the build stamp of the running san_tower.
-	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
-	Hostname      string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
-	StartedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	Version   string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	Hostname  string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	StartedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	// executable is the file the tower runs from, as it started.
+	Executable    string `protobuf:"bytes,4,opt,name=executable,proto3" json:"executable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -119,19 +121,113 @@ func (x *GetStatusResponse) GetStartedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *GetStatusResponse) GetExecutable() string {
+	if x != nil {
+		return x.Executable
+	}
+	return ""
+}
+
+type RestartRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Force         bool                   `protobuf:"varint,1,opt,name=force,proto3" json:"force,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestartRequest) Reset() {
+	*x = RestartRequest{}
+	mi := &file_san_tower_v1_tower_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestartRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestartRequest) ProtoMessage() {}
+
+func (x *RestartRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_tower_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestartRequest.ProtoReflect.Descriptor instead.
+func (*RestartRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_tower_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RestartRequest) GetForce() bool {
+	if x != nil {
+		return x.Force
+	}
+	return false
+}
+
+type RestartResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestartResponse) Reset() {
+	*x = RestartResponse{}
+	mi := &file_san_tower_v1_tower_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestartResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestartResponse) ProtoMessage() {}
+
+func (x *RestartResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_tower_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestartResponse.ProtoReflect.Descriptor instead.
+func (*RestartResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_tower_proto_rawDescGZIP(), []int{3}
+}
+
 var File_san_tower_v1_tower_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_tower_proto_rawDesc = "" +
 	"\n" +
 	"\x18san/tower/v1/tower.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x12\n" +
-	"\x10GetStatusRequest\"\x84\x01\n" +
+	"\x10GetStatusRequest\"\xa4\x01\n" +
 	"\x11GetStatusResponse\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x12\x1a\n" +
 	"\bhostname\x18\x02 \x01(\tR\bhostname\x129\n" +
 	"\n" +
-	"started_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt2\\\n" +
+	"started_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12\x1e\n" +
+	"\n" +
+	"executable\x18\x04 \x01(\tR\n" +
+	"executable\"&\n" +
+	"\x0eRestartRequest\x12\x14\n" +
+	"\x05force\x18\x01 \x01(\bR\x05force\"\x11\n" +
+	"\x0fRestartResponse2\xa4\x01\n" +
 	"\fTowerService\x12L\n" +
-	"\tGetStatus\x12\x1e.san.tower.v1.GetStatusRequest\x1a\x1f.san.tower.v1.GetStatusResponseB\xaa\x01\n" +
+	"\tGetStatus\x12\x1e.san.tower.v1.GetStatusRequest\x1a\x1f.san.tower.v1.GetStatusResponse\x12F\n" +
+	"\aRestart\x12\x1c.san.tower.v1.RestartRequest\x1a\x1d.san.tower.v1.RestartResponseB\xaa\x01\n" +
 	"\x10com.san.tower.v1B\n" +
 	"TowerProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
@@ -147,18 +243,22 @@ func file_san_tower_v1_tower_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_tower_proto_rawDescData
 }
 
-var file_san_tower_v1_tower_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_san_tower_v1_tower_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_san_tower_v1_tower_proto_goTypes = []any{
 	(*GetStatusRequest)(nil),      // 0: san.tower.v1.GetStatusRequest
 	(*GetStatusResponse)(nil),     // 1: san.tower.v1.GetStatusResponse
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(*RestartRequest)(nil),        // 2: san.tower.v1.RestartRequest
+	(*RestartResponse)(nil),       // 3: san.tower.v1.RestartResponse
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_san_tower_v1_tower_proto_depIdxs = []int32{
-	2, // 0: san.tower.v1.GetStatusResponse.started_at:type_name -> google.protobuf.Timestamp
+	4, // 0: san.tower.v1.GetStatusResponse.started_at:type_name -> google.protobuf.Timestamp
 	0, // 1: san.tower.v1.TowerService.GetStatus:input_type -> san.tower.v1.GetStatusRequest
-	1, // 2: san.tower.v1.TowerService.GetStatus:output_type -> san.tower.v1.GetStatusResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
+	2, // 2: san.tower.v1.TowerService.Restart:input_type -> san.tower.v1.RestartRequest
+	1, // 3: san.tower.v1.TowerService.GetStatus:output_type -> san.tower.v1.GetStatusResponse
+	3, // 4: san.tower.v1.TowerService.Restart:output_type -> san.tower.v1.RestartResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -175,7 +275,7 @@ func file_san_tower_v1_tower_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_tower_proto_rawDesc), len(file_san_tower_v1_tower_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

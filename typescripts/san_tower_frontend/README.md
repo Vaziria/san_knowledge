@@ -88,9 +88,16 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     20 a page. The search box (by name, ignoring case) and the page are in
     the URL (`?q=order&page=2`); both run on the server (ListWorkflows'
     query, offset and limit). A row, or a new workflow, opens its editor;
-    the three dots at a row's end open its menu, with Rename and Delete
-    (asks first). Rename waits for an editor's last save, then sends the
-    stored graph with the new name (UpdateWorkflow replaces both). Logs
+    the three dots at a row's end open its menu, with Rename, Export and
+    Delete (asks first). Rename waits for an editor's last save, then sends the
+    stored graph with the new name (UpdateWorkflow replaces both). Import
+    and Export all sit by New workflow (the user's ask, 2026-10-26;
+    `src/workflow/transfer.tsx`): Export, here, in a row's menu or in the
+    editor's header (which saves first), has the tower write the file
+    (ExportWorkflows) and saves it as a download; Import reads the .json
+    files picked, one ImportWorkflows each (one refused does not stop the
+    others), and a dialog lists the workflows made, as links to their
+    editors, the notes to check, and the files refused. Logs
     (`?tab=logs`, the user's ask, 2026-10-25): `src/workflow/RunLog.tsx`.
   - `WorkflowEditor.tsx` (`/workflow/<id>`, a page of its own; the nav keeps
     Workflow marked): one workflow, with a link back to the list, the pencil

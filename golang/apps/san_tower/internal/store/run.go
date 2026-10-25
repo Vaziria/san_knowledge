@@ -63,6 +63,13 @@ func (s *Store) GetRun(id uint32) (Run, error) {
 	return r, err
 }
 
+// CountRunning is how many runs are still going.
+func (s *Store) CountRunning() (int64, error) {
+	var n int64
+	err := s.db.Model(&Run{}).Where("status = ?", v1.RunStatus_RUN_STATUS_RUNNING).Count(&n).Error
+	return n, err
+}
+
 // InterruptRuns marks the runs still running as interrupted: the tower
 // stopped during them. It returns how many there were.
 func (s *Store) InterruptRuns() (int64, error) {

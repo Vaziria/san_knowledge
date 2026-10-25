@@ -7,6 +7,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -39,13 +40,21 @@ const (
 // ConnectionService, BrowserRemoteService and StorageService, and serves the
 // broker's MessageService next to them.
 type Server struct {
-	version  string
-	hostname string
-	started  time.Time
-	broker   *broker.Broker
-	store    *store.Store
-	engine   *engine.Engine
-	remote   *browserremote.Remote
+	version    string
+	hostname   string
+	executable string
+	started    time.Time
+	broker     *broker.Broker
+	store      *store.Store
+	engine     *engine.Engine
+	remote     *browserremote.Remote
+
+	// LAN answers on the network too, behind GuardLAN, not only on
+	// loopback (serve --lan; the user's choice, 2026-10-26).
+	LAN bool
+	// OnRestart, when set, stops the tower and starts it again; the Restart
+	// RPC calls it once it has answered.
+	OnRestart func()
 }
 
 var (
@@ -59,7 +68,8 @@ var (
 
 func New(version string, broker *broker.Broker, store *store.Store, engine *engine.Engine, remote *browserremote.Remote) *Server {
 	host, _ := os.Hostname()
-	return &Server{version: version, hostname: host, started: time.Now(), broker: broker, store: store, engine: engine, remote: remote}
+	exe, _ := os.Executable()
+	return &Server{version: version, hostname: host, executable: exe, started: time.Now(), broker: broker, store: store, engine: engine, remote: remote}
 }
 
 // Handler serves TowerService, BrokerService, WorkflowService,
@@ -77,15 +87,38 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle(towerv1connect.NewStorageServiceHandler(s))
 	mux.Handle(s.broker.Handler())
 	mux.Handle("/", web.Handler(web.Dist()))
+	if s.LAN {
+		return GuardLAN(mux)
+	}
 	return Guard(mux)
 }
 
 func (s *Server) GetStatus(context.Context, *connect.Request[v1.GetStatusRequest]) (*connect.Response[v1.GetStatusResponse], error) {
 	return connect.NewResponse(&v1.GetStatusResponse{
-		Version:   s.version,
-		Hostname:  s.hostname,
-		StartedAt: timestamppb.New(s.started),
+		Version:    s.version,
+		Hostname:   s.hostname,
+		StartedAt:  timestamppb.New(s.started),
+		Executable: s.executable,
 	}), nil
+}
+
+// Restart answers, then restarts the tower a moment later, so the answer
+// gets out first.
+func (s *Server) Restart(_ context.Context, req *connect.Request[v1.RestartRequest]) (*connect.Response[v1.RestartResponse], error) {
+	if s.OnRestart == nil {
+		return nil, connect.NewError(connect.CodeUnimplemented, errors.New("this tower cannot restart itself"))
+	}
+	if !req.Msg.GetForce() {
+		n, err := s.store.CountRunning()
+		if err != nil {
+			return nil, storeError(err)
+		}
+		if n > 0 {
+			return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("%d runs are in progress: restart once they end, or force it to cut them short", n))
+		}
+	}
+	time.AfterFunc(200*time.Millisecond, s.OnRestart)
+	return connect.NewResponse(&v1.RestartResponse{}), nil
 }
 
 func (s *Server) GetBrokerSettings(context.Context, *connect.Request[v1.GetBrokerSettingsRequest]) (*connect.Response[v1.GetBrokerSettingsResponse], error) {
@@ -157,6 +190,50 @@ func Guard(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// GuardLAN keeps a tower that listens on the network (serve --lan) to the
+// local network, still against DNS rebinding and other sites' pages:
+//   - Host must be loopback, an address of a private network (192.168.x.x,
+//     10.x, 172.16-31.x, fc00::/7, link-local, 100.64/10 as VPNs use), or
+//     this machine's name (raspi, raspi.local): never another name, which a
+//     rebinding attack would bring.
+//   - A browser call must come from the tower's own page (its Origin's host
+//     is the Host) or a loopback one. The CLI sends no Origin.
+func GuardLAN(next http.Handler) http.Handler {
+	host, _ := os.Hostname()
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !IsLoopback(r.Host) && !isLocalNetwork(r.Host, host) {
+			http.Error(w, "san_tower only answers on this machine's name or a local network address", http.StatusForbidden)
+			return
+		}
+		if origin := r.Header.Get("Origin"); origin != "" {
+			if u, err := url.Parse(origin); err != nil || (!strings.EqualFold(u.Host, r.Host) && !IsLoopback(u.Host)) {
+				http.Error(w, "san_tower only takes calls from its own pages", http.StatusForbidden)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// cgnat is 100.64.0.0/10, which VPNs such as Tailscale give out.
+var cgnat = &net.IPNet{IP: net.IPv4(100, 64, 0, 0), Mask: net.CIDRMask(10, 32)}
+
+// isLocalNetwork says whether a host or host:port is an address of a
+// private network or the machine called name.
+func isLocalNetwork(hostport, name string) bool {
+	host := hostport
+	if h, _, err := net.SplitHostPort(hostport); err == nil {
+		host = h
+	}
+	host = strings.Trim(host, "[]")
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.IsPrivate() || ip.IsLinkLocalUnicast() || cgnat.Contains(ip)
+	}
+	host = strings.TrimSuffix(strings.ToLower(host), ".")
+	name = strings.ToLower(name)
+	return name != "" && (host == name || host == name+".local" || host == name+".lan")
 }
 
 // IsLoopback says whether a host or host:port is localhost or a loopback IP.

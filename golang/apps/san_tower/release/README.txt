@@ -54,3 +54,18 @@ Notes
   (Windows: winget install Gyan.FFmpeg).
 - Claude Ask (CLI) needs Claude Code installed and signed in.
 - Telegram steps need a bot token from @BotFather (Connections > Telegram Bot).
+
+Updating
+- In a terminal in this folder: san_tower update (Linux: ./san_tower update).
+  It downloads the newest release for this computer, puts it and the files
+  beside it in this folder, and restarts the running tower into it once no
+  workflow run is in progress (san_tower restart later, or --force).
+  san_tower update --check only says whether a newer one is out.
+  After an update, reload the extension on chrome://extensions.
+
+On another computer (a Raspberry Pi)
+- The linux-arm64 bundle runs on 64-bit ARM Linux.
+- The tower has no login, so it only listens on this computer unless told:
+      ./san_tower serve --listen 0.0.0.0:7477 --lan
+  Then open http://<its address>:7477 from any computer on your network;
+  anyone on that network can use it.

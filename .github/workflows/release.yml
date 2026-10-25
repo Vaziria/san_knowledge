@@ -47,6 +47,7 @@ jobs:
           path: |
             golang/apps/san_tower/bin/san_tower.exe
             golang/apps/san_tower/bin/san_tower
+            golang/apps/san_tower/bin/san_tower-linux-arm64
             typescripts/san_remote_extension/dist/
 
   release:
@@ -85,6 +86,11 @@ jobs:
           install -m 755 "$tower/san_tower" dist/san_tower/san_tower
           tar -C dist -czf "out/san_tower-$TAG-linux-amd64.tar.gz" san_tower
 
+          # The Raspberry Pi's: `san_tower update` looks for this name.
+          stage san_tower
+          install -m 755 "$tower/san_tower-linux-arm64" dist/san_tower/san_tower
+          tar -C dist -czf "out/san_tower-$TAG-linux-arm64.tar.gz" san_tower
+
           (cd "$ext" && zip -qr "$GITHUB_WORKSPACE/out/san_remote_extension-$TAG.zip" .)
           ls -l out
       - name: Release
@@ -97,8 +103,9 @@ jobs:
 
           - **san_tower-$TAG-windows-amd64.zip**: the tower for Windows, start.bat, the extension and a README with the setup.
           - **san_tower-$TAG-linux-amd64.tar.gz**: the same for Linux.
+          - **san_tower-$TAG-linux-arm64.tar.gz**: the same for 64-bit ARM Linux, such as a Raspberry Pi.
           - **san_remote_extension-$TAG.zip**: the extension alone (Chrome or Edge 135+: Load unpacked, then turn on Allow User Scripts).
 
-          Start the tower (\`san_tower serve\`), open http://127.0.0.1:7477, switch on the Browser Remote Server page, install the extension and add a San Remote connection to http://127.0.0.1:7478. The README in the bundle has each step.
+          Start the tower (\`san_tower serve\`), open http://127.0.0.1:7477, switch on the Browser Remote Server page, install the extension and add a San Remote connection to http://127.0.0.1:7478. The README in the bundle has each step. An installed tower updates itself to a newer release with \`san_tower update\`.
           EOF
           gh release create "$TAG" out/* --title "San Tower $TAG" --notes-file notes.md --verify-tag

@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/workflow.proto.
  */
 export const file_san_tower_v1_workflow: GenFile = /*@__PURE__*/
-  fileDesc("ChtzYW4vdG93ZXIvdjEvd29ya2Zsb3cucHJvdG8SDHNhbi50b3dlci52MSLlAQoIU3RlcEtpbmQSDAoEa2luZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIlCgdvdXRwdXRzGAQgAygLMhQuc2FuLnRvd2VyLnYxLlNvY2tldBInCghzZXR0aW5ncxgFIAMoCzIVLnNhbi50b3dlci52MS5TZXR0aW5nEiQKBmlucHV0cxgGIAMoCzIULnNhbi50b3dlci52MS5Tb2NrZXQSEAoIcnVubmFibGUYByABKAgSEwoLZGVzY3JpcHRpb24YCCABKAkSDQoFZ3JvdXAYCSABKAkiUQoGU29ja2V0EgwKBG5hbWUYASABKAkSDAoEdHlwZRgCIAEoCRINCgVmaWVsZBgDIAEoCBIOCgZwaWNrZXIYBCABKAkSDAoEd2hlbhgFIAEoCSJnCgdTZXR0aW5nEgwKBG5hbWUYASABKAkSDwoHb3B0aW9ucxgCIAMoCRITCgtwbGFjZWhvbGRlchgDIAEoCRIXCg9jb25uZWN0aW9uX3R5cGUYBCABKAkSDwoHc3RvcmFnZRgFIAEoCCKIAgoIV29ya2Zsb3cSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIhCgVzdGVwcxgDIAMoCzISLnNhbi50b3dlci52MS5TdGVwEiEKBWxpbmtzGAQgAygLMhIuc2FuLnRvd2VyLnYxLkxpbmsSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGYWN0aXZlGAcgASgIEiwKCHRyaWdnZXJzGAggAygLMhouc2FuLnRvd2VyLnYxLlRyaWdnZXJTdGF0ZSKVAQoEU3RlcBIKCgJpZBgBIAEoCRIMCgRraW5kGAIgASgJEgkKAXgYAyABKAESCQoBeRgEIAEoARIuCgZ2YWx1ZXMYBSADKAsyHi5zYW4udG93ZXIudjEuU3RlcC5WYWx1ZXNFbnRyeRotCgtWYWx1ZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlQKBExpbmsSDgoGc291cmNlGAEgASgJEhUKDXNvdXJjZV9zb2NrZXQYAiABKAkSDgoGdGFyZ2V0GAMgASgJEhUKDXRhcmdldF9zb2NrZXQYBCABKAkiTQoFR3JhcGgSIQoFc3RlcHMYASADKAsyEi5zYW4udG93ZXIudjEuU3RlcBIhCgVsaW5rcxgCIAMoCzISLnNhbi50b3dlci52MS5MaW5rInsKDFRyaWdnZXJTdGF0ZRIPCgdzdGVwX2lkGAEgASgJEg4KBnNvdXJjZRgCIAEoCRIRCglsaXN0ZW5pbmcYAyABKAgSDQoFZXJyb3IYBCABKAkSKAoEbmV4dBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAirwEKD1dvcmtmbG93U3VtbWFyeRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhIKCnN0ZXBfY291bnQYAyABKA0SLgoKY3JlYXRlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGYWN0aXZlGAYgASgIIscCCgNSdW4SCgoCaWQYASABKA0SEwoLd29ya2Zsb3dfaWQYAiABKA0SJwoGc3RhdHVzGAMgASgOMhcuc2FuLnRvd2VyLnYxLlJ1blN0YXR1cxIPCgd0cmlnZ2VyGAQgASgJEi4KCnN0YXJ0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC2ZpbmlzaGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVlcnJvchgHIAEoCRIkCgVzdGVwcxgIIAMoCzIVLnNhbi50b3dlci52MS5TdGVwUnVuEhUKDXdvcmtmbG93X25hbWUYCSABKAkSDAoEbG9ncxgKIAMoCRIqCgpsb2dfbGV2ZWxzGAsgAygOMhYuc2FuLnRvd2VyLnYxLkxvZ0xldmVsIqgCCgdTdGVwUnVuEg8KB3N0ZXBfaWQYASABKAkSDAoEa2luZBgCIAEoCRINCgVlcnJvchgDIAEoCRIzCgdvdXRwdXRzGAQgAygLMiIuc2FuLnRvd2VyLnYxLlN0ZXBSdW4uT3V0cHV0c0VudHJ5Eg0KBWZpcmVkGAUgAygJEgwKBGxvZ3MYBiADKAkSKwoIZHVyYXRpb24YByABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SKgoKbG9nX2xldmVscxgIIAMoDjIWLnNhbi50b3dlci52MS5Mb2dMZXZlbBpECgxPdXRwdXRzRW50cnkSCwoDa2V5GAEgASgJEiMKBXZhbHVlGAIgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueToCOAEiMAoIUnVuU3RlcHMSJAoFc3RlcHMYASADKAsyFS5zYW4udG93ZXIudjEuU3RlcFJ1biIWChRMaXN0U3RlcEtpbmRzUmVxdWVzdCI+ChVMaXN0U3RlcEtpbmRzUmVzcG9uc2USJQoFa2luZHMYASADKAsyFi5zYW4udG93ZXIudjEuU3RlcEtpbmQiRAoUTGlzdFdvcmtmbG93c1JlcXVlc3QSDQoFcXVlcnkYASABKAkSDgoGb2Zmc2V0GAIgASgNEg0KBWxpbWl0GAMgASgNIlgKFUxpc3RXb3JrZmxvd3NSZXNwb25zZRIwCgl3b3JrZmxvd3MYASADKAsyHS5zYW4udG93ZXIudjEuV29ya2Zsb3dTdW1tYXJ5Eg0KBXRvdGFsGAIgASgNIiUKFUNyZWF0ZVdvcmtmbG93UmVxdWVzdBIMCgRuYW1lGAEgASgJIkIKFkNyZWF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciIAoSR2V0V29ya2Zsb3dSZXF1ZXN0EgoKAmlkGAEgASgNIj8KE0dldFdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciQQoVVXBkYXRlV29ya2Zsb3dSZXF1ZXN0EigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IkIKFlVwZGF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciNgoYU2V0V29ya2Zsb3dBY3RpdmVSZXF1ZXN0EgoKAmlkGAEgASgNEg4KBmFjdGl2ZRgCIAEoCCJFChlTZXRXb3JrZmxvd0FjdGl2ZVJlc3BvbnNlEigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IiMKFURlbGV0ZVdvcmtmbG93UmVxdWVzdBIKCgJpZBgBIAEoDSIYChZEZWxldGVXb3JrZmxvd1Jlc3BvbnNlIkgKElJ1bldvcmtmbG93UmVxdWVzdBITCgt3b3JrZmxvd19pZBgBIAEoDRIPCgdzdGVwX2lkGAIgASgJEgwKBGRhdGEYAyABKAwiNQoTUnVuV29ya2Zsb3dSZXNwb25zZRIeCgNydW4YASABKAsyES5zYW4udG93ZXIudjEuUnVuIoMBCg9MaXN0UnVuc1JlcXVlc3QSEwoLd29ya2Zsb3dfaWQYASABKA0SDQoFbGltaXQYAiABKA0SEwoLYWN0aXZlX29ubHkYAyABKAgSKQoIc3RhdHVzZXMYBCADKA4yFy5zYW4udG93ZXIudjEuUnVuU3RhdHVzEgwKBGxvZ3MYBSABKAgiMwoQTGlzdFJ1bnNSZXNwb25zZRIfCgRydW5zGAEgAygLMhEuc2FuLnRvd2VyLnYxLlJ1biIbCg1HZXRSdW5SZXF1ZXN0EgoKAmlkGAEgASgNIjAKDkdldFJ1blJlc3BvbnNlEh4KA3J1bhgBIAEoCzIRLnNhbi50b3dlci52MS5SdW4qjAEKCVJ1blN0YXR1cxIaChZSVU5fU1RBVFVTX1VOU1BFQ0lGSUVEEAASFgoSUlVOX1NUQVRVU19SVU5OSU5HEAESGAoUUlVOX1NUQVRVU19TVUNDRUVERUQQAhIVChFSVU5fU1RBVFVTX0ZBSUxFRBADEhoKFlJVTl9TVEFUVVNfSU5URVJSVVBURUQQBCqSAQoITG9nTGV2ZWwSGQoVTE9HX0xFVkVMX1VOU1BFQ0lGSUVEEAASEgoOTE9HX0xFVkVMX0lORk8QARIVChFMT0dfTEVWRUxfU1VDQ0VTUxACEhUKEUxPR19MRVZFTF9XQVJOSU5HEAMSFAoQTE9HX0xFVkVMX0ZBSUxFRBAEEhMKD0xPR19MRVZFTF9ERUJVRxAFMvoGCg9Xb3JrZmxvd1NlcnZpY2USWAoNTGlzdFN0ZXBLaW5kcxIiLnNhbi50b3dlci52MS5MaXN0U3RlcEtpbmRzUmVxdWVzdBojLnNhbi50b3dlci52MS5MaXN0U3RlcEtpbmRzUmVzcG9uc2USWAoNTGlzdFdvcmtmbG93cxIiLnNhbi50b3dlci52MS5MaXN0V29ya2Zsb3dzUmVxdWVzdBojLnNhbi50b3dlci52MS5MaXN0V29ya2Zsb3dzUmVzcG9uc2USWwoOQ3JlYXRlV29ya2Zsb3cSIy5zYW4udG93ZXIudjEuQ3JlYXRlV29ya2Zsb3dSZXF1ZXN0GiQuc2FuLnRvd2VyLnYxLkNyZWF0ZVdvcmtmbG93UmVzcG9uc2USUgoLR2V0V29ya2Zsb3cSIC5zYW4udG93ZXIudjEuR2V0V29ya2Zsb3dSZXF1ZXN0GiEuc2FuLnRvd2VyLnYxLkdldFdvcmtmbG93UmVzcG9uc2USWwoOVXBkYXRlV29ya2Zsb3cSIy5zYW4udG93ZXIudjEuVXBkYXRlV29ya2Zsb3dSZXF1ZXN0GiQuc2FuLnRvd2VyLnYxLlVwZGF0ZVdvcmtmbG93UmVzcG9uc2USZAoRU2V0V29ya2Zsb3dBY3RpdmUSJi5zYW4udG93ZXIudjEuU2V0V29ya2Zsb3dBY3RpdmVSZXF1ZXN0Gicuc2FuLnRvd2VyLnYxLlNldFdvcmtmbG93QWN0aXZlUmVzcG9uc2USWwoORGVsZXRlV29ya2Zsb3cSIy5zYW4udG93ZXIudjEuRGVsZXRlV29ya2Zsb3dSZXF1ZXN0GiQuc2FuLnRvd2VyLnYxLkRlbGV0ZVdvcmtmbG93UmVzcG9uc2USUgoLUnVuV29ya2Zsb3cSIC5zYW4udG93ZXIudjEuUnVuV29ya2Zsb3dSZXF1ZXN0GiEuc2FuLnRvd2VyLnYxLlJ1bldvcmtmbG93UmVzcG9uc2USSQoITGlzdFJ1bnMSHS5zYW4udG93ZXIudjEuTGlzdFJ1bnNSZXF1ZXN0Gh4uc2FuLnRvd2VyLnYxLkxpc3RSdW5zUmVzcG9uc2USQwoGR2V0UnVuEhsuc2FuLnRvd2VyLnYxLkdldFJ1blJlcXVlc3QaHC5zYW4udG93ZXIudjEuR2V0UnVuUmVzcG9uc2VCrQEKEGNvbS5zYW4udG93ZXIudjFCDVdvcmtmbG93UHJvdG9QAVo4Z2l0aHViLmNvbS93YXJnYXNpcGlsL3Nhbl90b3dlci9nZW4vc2FuL3Rvd2VyL3YxO3Rvd2VydjGiAgNTVFiqAgxTYW4uVG93ZXIuVjHKAgxTYW5cVG93ZXJcVjHiAhhTYW5cVG93ZXJcVjFcR1BCTWV0YWRhdGHqAg5TYW46OlRvd2VyOjpWMWIGcHJvdG8z", [file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp]);
+  fileDesc("ChtzYW4vdG93ZXIvdjEvd29ya2Zsb3cucHJvdG8SDHNhbi50b3dlci52MSLlAQoIU3RlcEtpbmQSDAoEa2luZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIlCgdvdXRwdXRzGAQgAygLMhQuc2FuLnRvd2VyLnYxLlNvY2tldBInCghzZXR0aW5ncxgFIAMoCzIVLnNhbi50b3dlci52MS5TZXR0aW5nEiQKBmlucHV0cxgGIAMoCzIULnNhbi50b3dlci52MS5Tb2NrZXQSEAoIcnVubmFibGUYByABKAgSEwoLZGVzY3JpcHRpb24YCCABKAkSDQoFZ3JvdXAYCSABKAkiUQoGU29ja2V0EgwKBG5hbWUYASABKAkSDAoEdHlwZRgCIAEoCRINCgVmaWVsZBgDIAEoCBIOCgZwaWNrZXIYBCABKAkSDAoEd2hlbhgFIAEoCSJnCgdTZXR0aW5nEgwKBG5hbWUYASABKAkSDwoHb3B0aW9ucxgCIAMoCRITCgtwbGFjZWhvbGRlchgDIAEoCRIXCg9jb25uZWN0aW9uX3R5cGUYBCABKAkSDwoHc3RvcmFnZRgFIAEoCCKIAgoIV29ya2Zsb3cSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIhCgVzdGVwcxgDIAMoCzISLnNhbi50b3dlci52MS5TdGVwEiEKBWxpbmtzGAQgAygLMhIuc2FuLnRvd2VyLnYxLkxpbmsSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGYWN0aXZlGAcgASgIEiwKCHRyaWdnZXJzGAggAygLMhouc2FuLnRvd2VyLnYxLlRyaWdnZXJTdGF0ZSKVAQoEU3RlcBIKCgJpZBgBIAEoCRIMCgRraW5kGAIgASgJEgkKAXgYAyABKAESCQoBeRgEIAEoARIuCgZ2YWx1ZXMYBSADKAsyHi5zYW4udG93ZXIudjEuU3RlcC5WYWx1ZXNFbnRyeRotCgtWYWx1ZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlQKBExpbmsSDgoGc291cmNlGAEgASgJEhUKDXNvdXJjZV9zb2NrZXQYAiABKAkSDgoGdGFyZ2V0GAMgASgJEhUKDXRhcmdldF9zb2NrZXQYBCABKAkiTQoFR3JhcGgSIQoFc3RlcHMYASADKAsyEi5zYW4udG93ZXIudjEuU3RlcBIhCgVsaW5rcxgCIAMoCzISLnNhbi50b3dlci52MS5MaW5rInsKDFRyaWdnZXJTdGF0ZRIPCgdzdGVwX2lkGAEgASgJEg4KBnNvdXJjZRgCIAEoCRIRCglsaXN0ZW5pbmcYAyABKAgSDQoFZXJyb3IYBCABKAkSKAoEbmV4dBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAirwEKD1dvcmtmbG93U3VtbWFyeRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhIKCnN0ZXBfY291bnQYAyABKA0SLgoKY3JlYXRlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGYWN0aXZlGAYgASgIIscCCgNSdW4SCgoCaWQYASABKA0SEwoLd29ya2Zsb3dfaWQYAiABKA0SJwoGc3RhdHVzGAMgASgOMhcuc2FuLnRvd2VyLnYxLlJ1blN0YXR1cxIPCgd0cmlnZ2VyGAQgASgJEi4KCnN0YXJ0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC2ZpbmlzaGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVlcnJvchgHIAEoCRIkCgVzdGVwcxgIIAMoCzIVLnNhbi50b3dlci52MS5TdGVwUnVuEhUKDXdvcmtmbG93X25hbWUYCSABKAkSDAoEbG9ncxgKIAMoCRIqCgpsb2dfbGV2ZWxzGAsgAygOMhYuc2FuLnRvd2VyLnYxLkxvZ0xldmVsIqgCCgdTdGVwUnVuEg8KB3N0ZXBfaWQYASABKAkSDAoEa2luZBgCIAEoCRINCgVlcnJvchgDIAEoCRIzCgdvdXRwdXRzGAQgAygLMiIuc2FuLnRvd2VyLnYxLlN0ZXBSdW4uT3V0cHV0c0VudHJ5Eg0KBWZpcmVkGAUgAygJEgwKBGxvZ3MYBiADKAkSKwoIZHVyYXRpb24YByABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SKgoKbG9nX2xldmVscxgIIAMoDjIWLnNhbi50b3dlci52MS5Mb2dMZXZlbBpECgxPdXRwdXRzRW50cnkSCwoDa2V5GAEgASgJEiMKBXZhbHVlGAIgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueToCOAEiMAoIUnVuU3RlcHMSJAoFc3RlcHMYASADKAsyFS5zYW4udG93ZXIudjEuU3RlcFJ1biIWChRMaXN0U3RlcEtpbmRzUmVxdWVzdCI+ChVMaXN0U3RlcEtpbmRzUmVzcG9uc2USJQoFa2luZHMYASADKAsyFi5zYW4udG93ZXIudjEuU3RlcEtpbmQiRAoUTGlzdFdvcmtmbG93c1JlcXVlc3QSDQoFcXVlcnkYASABKAkSDgoGb2Zmc2V0GAIgASgNEg0KBWxpbWl0GAMgASgNIlgKFUxpc3RXb3JrZmxvd3NSZXNwb25zZRIwCgl3b3JrZmxvd3MYASADKAsyHS5zYW4udG93ZXIudjEuV29ya2Zsb3dTdW1tYXJ5Eg0KBXRvdGFsGAIgASgNIiUKFUNyZWF0ZVdvcmtmbG93UmVxdWVzdBIMCgRuYW1lGAEgASgJIkIKFkNyZWF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciIAoSR2V0V29ya2Zsb3dSZXF1ZXN0EgoKAmlkGAEgASgNIj8KE0dldFdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciQQoVVXBkYXRlV29ya2Zsb3dSZXF1ZXN0EigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IkIKFlVwZGF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciNgoYU2V0V29ya2Zsb3dBY3RpdmVSZXF1ZXN0EgoKAmlkGAEgASgNEg4KBmFjdGl2ZRgCIAEoCCJFChlTZXRXb3JrZmxvd0FjdGl2ZVJlc3BvbnNlEigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IiMKFURlbGV0ZVdvcmtmbG93UmVxdWVzdBIKCgJpZBgBIAEoDSIYChZEZWxldGVXb3JrZmxvd1Jlc3BvbnNlIkgKElJ1bldvcmtmbG93UmVxdWVzdBITCgt3b3JrZmxvd19pZBgBIAEoDRIPCgdzdGVwX2lkGAIgASgJEgwKBGRhdGEYAyABKAwiNQoTUnVuV29ya2Zsb3dSZXNwb25zZRIeCgNydW4YASABKAsyES5zYW4udG93ZXIudjEuUnVuIoMBCg9MaXN0UnVuc1JlcXVlc3QSEwoLd29ya2Zsb3dfaWQYASABKA0SDQoFbGltaXQYAiABKA0SEwoLYWN0aXZlX29ubHkYAyABKAgSKQoIc3RhdHVzZXMYBCADKA4yFy5zYW4udG93ZXIudjEuUnVuU3RhdHVzEgwKBGxvZ3MYBSABKAgiMwoQTGlzdFJ1bnNSZXNwb25zZRIfCgRydW5zGAEgAygLMhEuc2FuLnRvd2VyLnYxLlJ1biIbCg1HZXRSdW5SZXF1ZXN0EgoKAmlkGAEgASgNIjAKDkdldFJ1blJlc3BvbnNlEh4KA3J1bhgBIAEoCzIRLnNhbi50b3dlci52MS5SdW4iJQoWRXhwb3J0V29ya2Zsb3dzUmVxdWVzdBILCgNpZHMYASADKA0iOgoXRXhwb3J0V29ya2Zsb3dzUmVzcG9uc2USDAoEanNvbhgBIAEoCRIRCglmaWxlX25hbWUYAiABKAkiJgoWSW1wb3J0V29ya2Zsb3dzUmVxdWVzdBIMCgRqc29uGAEgASgJIloKF0ltcG9ydFdvcmtmbG93c1Jlc3BvbnNlEjAKCXdvcmtmbG93cxgBIAMoCzIdLnNhbi50b3dlci52MS5Xb3JrZmxvd1N1bW1hcnkSDQoFbm90ZXMYAiADKAkiuwMKDFdvcmtmbG93RmlsZRIOCgZmb3JtYXQYASABKAkSDwoHdmVyc2lvbhgCIAEoDRIvCgtleHBvcnRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDQoFdG93ZXIYBCABKAkSMQoJd29ya2Zsb3dzGAUgAygLMh4uc2FuLnRvd2VyLnYxLkV4cG9ydGVkV29ya2Zsb3cSQAoLY29ubmVjdGlvbnMYBiADKAsyKy5zYW4udG93ZXIudjEuV29ya2Zsb3dGaWxlLkNvbm5lY3Rpb25zRW50cnkSOgoIc3RvcmFnZXMYByADKAsyKC5zYW4udG93ZXIudjEuV29ya2Zsb3dGaWxlLlN0b3JhZ2VzRW50cnkaTQoQQ29ubmVjdGlvbnNFbnRyeRILCgNrZXkYASABKAkSKAoFdmFsdWUYAiABKAsyGS5zYW4udG93ZXIudjEuRXhwb3J0ZWRSZWY6AjgBGkoKDVN0b3JhZ2VzRW50cnkSCwoDa2V5GAEgASgJEigKBXZhbHVlGAIgASgLMhkuc2FuLnRvd2VyLnYxLkV4cG9ydGVkUmVmOgI4ASJmChBFeHBvcnRlZFdvcmtmbG93EgwKBG5hbWUYASABKAkSIQoFc3RlcHMYAiADKAsyEi5zYW4udG93ZXIudjEuU3RlcBIhCgVsaW5rcxgDIAMoCzISLnNhbi50b3dlci52MS5MaW5rIikKC0V4cG9ydGVkUmVmEgwKBG5hbWUYASABKAkSDAoEdHlwZRgCIAEoCSqMAQoJUnVuU3RhdHVzEhoKFlJVTl9TVEFUVVNfVU5TUEVDSUZJRUQQABIWChJSVU5fU1RBVFVTX1JVTk5JTkcQARIYChRSVU5fU1RBVFVTX1NVQ0NFRURFRBACEhUKEVJVTl9TVEFUVVNfRkFJTEVEEAMSGgoWUlVOX1NUQVRVU19JTlRFUlJVUFRFRBAEKpIBCghMb2dMZXZlbBIZChVMT0dfTEVWRUxfVU5TUEVDSUZJRUQQABISCg5MT0dfTEVWRUxfSU5GTxABEhUKEUxPR19MRVZFTF9TVUNDRVNTEAISFQoRTE9HX0xFVkVMX1dBUk5JTkcQAxIUChBMT0dfTEVWRUxfRkFJTEVEEAQSEwoPTE9HX0xFVkVMX0RFQlVHEAUyuggKD1dvcmtmbG93U2VydmljZRJYCg1MaXN0U3RlcEtpbmRzEiIuc2FuLnRvd2VyLnYxLkxpc3RTdGVwS2luZHNSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLkxpc3RTdGVwS2luZHNSZXNwb25zZRJYCg1MaXN0V29ya2Zsb3dzEiIuc2FuLnRvd2VyLnYxLkxpc3RXb3JrZmxvd3NSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLkxpc3RXb3JrZmxvd3NSZXNwb25zZRJbCg5DcmVhdGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5DcmVhdGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuQ3JlYXRlV29ya2Zsb3dSZXNwb25zZRJSCgtHZXRXb3JrZmxvdxIgLnNhbi50b3dlci52MS5HZXRXb3JrZmxvd1JlcXVlc3QaIS5zYW4udG93ZXIudjEuR2V0V29ya2Zsb3dSZXNwb25zZRJbCg5VcGRhdGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5VcGRhdGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuVXBkYXRlV29ya2Zsb3dSZXNwb25zZRJkChFTZXRXb3JrZmxvd0FjdGl2ZRImLnNhbi50b3dlci52MS5TZXRXb3JrZmxvd0FjdGl2ZVJlcXVlc3QaJy5zYW4udG93ZXIudjEuU2V0V29ya2Zsb3dBY3RpdmVSZXNwb25zZRJbCg5EZWxldGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5EZWxldGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuRGVsZXRlV29ya2Zsb3dSZXNwb25zZRJSCgtSdW5Xb3JrZmxvdxIgLnNhbi50b3dlci52MS5SdW5Xb3JrZmxvd1JlcXVlc3QaIS5zYW4udG93ZXIudjEuUnVuV29ya2Zsb3dSZXNwb25zZRJJCghMaXN0UnVucxIdLnNhbi50b3dlci52MS5MaXN0UnVuc1JlcXVlc3QaHi5zYW4udG93ZXIudjEuTGlzdFJ1bnNSZXNwb25zZRJDCgZHZXRSdW4SGy5zYW4udG93ZXIudjEuR2V0UnVuUmVxdWVzdBocLnNhbi50b3dlci52MS5HZXRSdW5SZXNwb25zZRJeCg9FeHBvcnRXb3JrZmxvd3MSJC5zYW4udG93ZXIudjEuRXhwb3J0V29ya2Zsb3dzUmVxdWVzdBolLnNhbi50b3dlci52MS5FeHBvcnRXb3JrZmxvd3NSZXNwb25zZRJeCg9JbXBvcnRXb3JrZmxvd3MSJC5zYW4udG93ZXIudjEuSW1wb3J0V29ya2Zsb3dzUmVxdWVzdBolLnNhbi50b3dlci52MS5JbXBvcnRXb3JrZmxvd3NSZXNwb25zZUKtAQoQY29tLnNhbi50b3dlci52MUINV29ya2Zsb3dQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp]);
 
 /**
  * StepKind is a kind of step: its sockets and settings.
@@ -1001,6 +1001,210 @@ export const GetRunResponseSchema: GenMessage<GetRunResponse> = /*@__PURE__*/
   messageDesc(file_san_tower_v1_workflow, 31);
 
 /**
+ * @generated from message san.tower.v1.ExportWorkflowsRequest
+ */
+export type ExportWorkflowsRequest = Message<"san.tower.v1.ExportWorkflowsRequest"> & {
+  /**
+   * ids are the workflows to export, in this order; empty: every workflow.
+   *
+   * @generated from field: repeated uint32 ids = 1;
+   */
+  ids: number[];
+};
+
+/**
+ * Describes the message san.tower.v1.ExportWorkflowsRequest.
+ * Use `create(ExportWorkflowsRequestSchema)` to create a new message.
+ */
+export const ExportWorkflowsRequestSchema: GenMessage<ExportWorkflowsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 32);
+
+/**
+ * @generated from message san.tower.v1.ExportWorkflowsResponse
+ */
+export type ExportWorkflowsResponse = Message<"san.tower.v1.ExportWorkflowsResponse"> & {
+  /**
+   * json is the file: a WorkflowFile as JSON.
+   *
+   * @generated from field: string json = 1;
+   */
+  json: string;
+
+  /**
+   * file_name is a name to save it as: the workflow's
+   * ("Big order alert.workflow.json"), or, for several,
+   * san_tower-workflows-2026-10-26.json.
+   *
+   * @generated from field: string file_name = 2;
+   */
+  fileName: string;
+};
+
+/**
+ * Describes the message san.tower.v1.ExportWorkflowsResponse.
+ * Use `create(ExportWorkflowsResponseSchema)` to create a new message.
+ */
+export const ExportWorkflowsResponseSchema: GenMessage<ExportWorkflowsResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 33);
+
+/**
+ * @generated from message san.tower.v1.ImportWorkflowsRequest
+ */
+export type ImportWorkflowsRequest = Message<"san.tower.v1.ImportWorkflowsRequest"> & {
+  /**
+   * json is a file ExportWorkflows wrote.
+   *
+   * @generated from field: string json = 1;
+   */
+  json: string;
+};
+
+/**
+ * Describes the message san.tower.v1.ImportWorkflowsRequest.
+ * Use `create(ImportWorkflowsRequestSchema)` to create a new message.
+ */
+export const ImportWorkflowsRequestSchema: GenMessage<ImportWorkflowsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 34);
+
+/**
+ * @generated from message san.tower.v1.ImportWorkflowsResponse
+ */
+export type ImportWorkflowsResponse = Message<"san.tower.v1.ImportWorkflowsResponse"> & {
+  /**
+   * workflows are the workflows made, switched off, in the file's order.
+   *
+   * @generated from field: repeated san.tower.v1.WorkflowSummary workflows = 1;
+   */
+  workflows: WorkflowSummary[];
+
+  /**
+   * notes say what did not carry over as it was: a name taken, a connection
+   * or storage matched otherwise or left to pick, a kind of step this tower
+   * does not have.
+   *
+   * @generated from field: repeated string notes = 2;
+   */
+  notes: string[];
+};
+
+/**
+ * Describes the message san.tower.v1.ImportWorkflowsResponse.
+ * Use `create(ImportWorkflowsResponseSchema)` to create a new message.
+ */
+export const ImportWorkflowsResponseSchema: GenMessage<ImportWorkflowsResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 35);
+
+/**
+ * WorkflowFile is the file ExportWorkflows writes and ImportWorkflows reads.
+ *
+ * @generated from message san.tower.v1.WorkflowFile
+ */
+export type WorkflowFile = Message<"san.tower.v1.WorkflowFile"> & {
+  /**
+   * format is "san_tower.workflows"; version is 1.
+   *
+   * @generated from field: string format = 1;
+   */
+  format: string;
+
+  /**
+   * @generated from field: uint32 version = 2;
+   */
+  version: number;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp exported_at = 3;
+   */
+  exportedAt?: Timestamp;
+
+  /**
+   * tower is the version of the tower that wrote it.
+   *
+   * @generated from field: string tower = 4;
+   */
+  tower: string;
+
+  /**
+   * @generated from field: repeated san.tower.v1.ExportedWorkflow workflows = 5;
+   */
+  workflows: ExportedWorkflow[];
+
+  /**
+   * connections and storages are those the steps' Connection and Storage
+   * settings pick, by their id in the tower that wrote the file.
+   *
+   * @generated from field: map<string, san.tower.v1.ExportedRef> connections = 6;
+   */
+  connections: { [key: string]: ExportedRef };
+
+  /**
+   * @generated from field: map<string, san.tower.v1.ExportedRef> storages = 7;
+   */
+  storages: { [key: string]: ExportedRef };
+};
+
+/**
+ * Describes the message san.tower.v1.WorkflowFile.
+ * Use `create(WorkflowFileSchema)` to create a new message.
+ */
+export const WorkflowFileSchema: GenMessage<WorkflowFile> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 36);
+
+/**
+ * ExportedWorkflow is a workflow in a WorkflowFile.
+ *
+ * @generated from message san.tower.v1.ExportedWorkflow
+ */
+export type ExportedWorkflow = Message<"san.tower.v1.ExportedWorkflow"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: repeated san.tower.v1.Step steps = 2;
+   */
+  steps: Step[];
+
+  /**
+   * @generated from field: repeated san.tower.v1.Link links = 3;
+   */
+  links: Link[];
+};
+
+/**
+ * Describes the message san.tower.v1.ExportedWorkflow.
+ * Use `create(ExportedWorkflowSchema)` to create a new message.
+ */
+export const ExportedWorkflowSchema: GenMessage<ExportedWorkflow> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 37);
+
+/**
+ * ExportedRef is a connection or a storage a step picks, as a file names
+ * it: its name, and a connection's type (san_remote, telegram_bot).
+ *
+ * @generated from message san.tower.v1.ExportedRef
+ */
+export type ExportedRef = Message<"san.tower.v1.ExportedRef"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string type = 2;
+   */
+  type: string;
+};
+
+/**
+ * Describes the message san.tower.v1.ExportedRef.
+ * Use `create(ExportedRefSchema)` to create a new message.
+ */
+export const ExportedRefSchema: GenMessage<ExportedRef> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 38);
+
+/**
  * @generated from enum san.tower.v1.RunStatus
  */
 export enum RunStatus {
@@ -1190,6 +1394,34 @@ export const WorkflowService: GenService<{
     methodKind: "unary";
     input: typeof GetRunRequestSchema;
     output: typeof GetRunResponseSchema;
+  },
+  /**
+   * ExportWorkflows writes workflows to a file (WorkflowFile, as JSON) that
+   * ImportWorkflows reads, here or in another tower: their names, steps and
+   * links, not their runs or whether they are on. The connections and
+   * storages their steps pick go with only their names and types, never
+   * their settings, so a bot's token stays in this tower.
+   *
+   * @generated from rpc san.tower.v1.WorkflowService.ExportWorkflows
+   */
+  exportWorkflows: {
+    methodKind: "unary";
+    input: typeof ExportWorkflowsRequestSchema;
+    output: typeof ExportWorkflowsResponseSchema;
+  },
+  /**
+   * ImportWorkflows creates the workflows of such a file, switched off; a
+   * name in use gets " (2)", " (3)"... A step's connection or storage is
+   * the one of the same name and type here; with none, the only connection
+   * of that type, else nothing, for the user to pick. notes say what did not
+   * carry over as it was.
+   *
+   * @generated from rpc san.tower.v1.WorkflowService.ImportWorkflows
+   */
+  importWorkflows: {
+    methodKind: "unary";
+    input: typeof ImportWorkflowsRequestSchema;
+    output: typeof ImportWorkflowsResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_san_tower_v1_workflow, 0);

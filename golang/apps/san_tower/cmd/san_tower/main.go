@@ -8,11 +8,14 @@
 // The Browser Remote Server page switches on the San Remote server
 // (golang/apps/san_remote) inside the tower, on san_remote's own addresses.
 // `san_tower dev` runs the tower with the UI's Vite dev server instead, for
-// hot reload.
+// hot reload. `san_tower update` installs the newest release and restarts
+// the running tower into it (update.go).
 //
-//	san_tower serve
+//	san_tower serve [--listen 0.0.0.0:7477 --lan]
 //	san_tower dev
 //	san_tower status
+//	san_tower update [--check]
+//	san_tower restart
 package main
 
 import (
@@ -42,6 +45,7 @@ import (
 	"github.com/wargasipil/san_tower/internal/engine"
 	"github.com/wargasipil/san_tower/internal/server"
 	"github.com/wargasipil/san_tower/internal/store"
+	"github.com/wargasipil/san_tower/internal/update"
 )
 
 // version is stamped at build time.
@@ -71,12 +75,13 @@ func root(out io.Writer) *cli.Command {
 				Sources: cli.EnvVars("SAN_TOWER_SERVER"),
 			},
 		},
-		Commands: []*cli.Command{serveCommand(), devCommand(), statusCommand()},
+		Commands: []*cli.Command{serveCommand(), devCommand(), statusCommand(), updateCommand(), restartCommand()},
 	}
 }
 
 var (
-	listenFlag   = &cli.StringFlag{Name: "listen", Value: server.DefaultAddr, Usage: "address to listen on (loopback only)"}
+	listenFlag   = &cli.StringFlag{Name: "listen", Value: server.DefaultAddr, Usage: "address to listen on (loopback only, unless --lan)"}
+	lanFlag      = &cli.BoolFlag{Name: "lan", Usage: "allow a network address in --listen (0.0.0.0:7477): the tower has no login, so anyone on the local network can use it"}
 	logLevelFlag = &cli.StringFlag{Name: "log-level", Value: "info", Usage: "debug, info, warn or error"}
 	// San Message does not lock its folder, so one tower per data folder.
 	// Two towers on the same --listen cannot both start: the second fails to
@@ -97,18 +102,31 @@ func logger(cmd *cli.Command) (*slog.Logger, error) {
 	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})), nil
 }
 
-// listen opens the tower's address, which must be a loopback one.
-func listen(addr string) (net.Listener, error) {
-	if !server.IsLoopback(addr) {
-		return nil, fmt.Errorf("--listen %s: san_tower only listens on a loopback address", addr)
+// restartEnv marks a tower that a restart started, whose address the one
+// before may still be letting go of.
+const restartEnv = "SAN_TOWER_RESTARTED"
+
+// listen opens the tower's address: a loopback one, or with lan any (the
+// user's choice, 2026-10-26: the tower on the Raspberry Pi, opened from the
+// PC). After a restart it tries for 10 s.
+func listen(addr string, lan bool) (net.Listener, error) {
+	if !lan && !server.IsLoopback(addr) {
+		return nil, fmt.Errorf("--listen %s: san_tower only listens on a loopback address, unless --lan (it has no login: anyone who reaches it can use it)", addr)
 	}
-	return net.Listen("tcp", addr)
+	ln, err := net.Listen("tcp", addr)
+	for deadline := time.Now().Add(10 * time.Second); err != nil && os.Getenv(restartEnv) != "" && time.Now().Before(deadline); {
+		time.Sleep(250 * time.Millisecond)
+		ln, err = net.Listen("tcp", addr)
+	}
+	return ln, err
 }
 
 // serveTower opens the database and the broker (in the data folder its
 // setting names, in dataDir), serves the tower on ln until ctx ends, and
-// switches on the active workflows' triggers once it is listening.
-func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir string) error {
+// switches on the active workflows' triggers once it is listening. lan
+// answers on the network too; restart, when set, is how TowerService's
+// Restart stops it to start again.
+func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir string, lan bool, restart func()) error {
 	st, err := store.Open(dataDir, log)
 	if err != nil {
 		return err
@@ -130,13 +148,18 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	eng := engine.New(st, b, log)
 	// Runs still going are cut short and recorded before the database closes.
 	defer eng.Close()
-	srv := &http.Server{Handler: server.New(version, b, st, eng, rm).Handler(), ReadHeaderTimeout: 10 * time.Second}
+	s := server.New(version, b, st, eng, rm)
+	s.LAN, s.OnRestart = lan, restart
+	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
 	// HTTP/2 without TLS for the broker's Subscribe stream, and pings that
 	// drop dead connections.
 	san_message.ConfigureServer(srv)
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(ln) }()
 	log.Info("san_tower listening", "url", "http://"+ln.Addr().String(), "data", dataDir, "broker", brokerWhere(b), "version", version)
+	if lan {
+		log.Warn("listening on the network (--lan): the tower has no login, so anyone on the local network can open it and run workflows")
+	}
 	// The triggers stream from the broker inside the tower at its own address,
 	// or from the separate server.
 	if err := eng.Start("http://" + ln.Addr().String()); err != nil {
@@ -163,21 +186,42 @@ func serveCommand() *cli.Command {
 	return &cli.Command{
 		Name:   "serve",
 		Usage:  "run the tower: TowerService, the San Message broker and the UI",
-		Flags:  []cli.Flag{listenFlag, dataFlag, logLevelFlag},
+		Flags:  []cli.Flag{listenFlag, lanFlag, dataFlag, logLevelFlag},
 		Action: runServe,
 	}
 }
 
+// runServe serves until the tower is stopped, or until TowerService's
+// Restart (after `san_tower update`): then it closes everything and starts
+// again from its executable (reexec), the new one if an update replaced it.
 func runServe(ctx context.Context, cmd *cli.Command) error {
 	log, err := logger(cmd)
 	if err != nil {
 		return err
 	}
-	ln, err := listen(cmd.String("listen"))
+	// The path as it starts: an update renames the file it runs from.
+	exe, err := os.Executable()
 	if err != nil {
 		return err
 	}
-	return serveTower(ctx, log, ln, cmd.String("data"))
+	update.Clean(exe)
+	ln, err := listen(cmd.String("listen"), cmd.Bool("lan"))
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	restarting := false
+	err = serveTower(ctx, log, ln, cmd.String("data"), cmd.Bool("lan"), func() {
+		restarting = true
+		cancel()
+	})
+	if !restarting {
+		return err
+	}
+	log.Info("restarting", "executable", exe)
+	os.Setenv(restartEnv, "1")
+	return reexec(exe)
 }
 
 // ------------------------------------------------------------------ dev ---
@@ -214,7 +258,7 @@ func runDev(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 	// Listen first, so a busy port fails before Vite starts.
-	ln, err := listen(cmd.String("listen"))
+	ln, err := listen(cmd.String("listen"), false)
 	if err != nil {
 		return err
 	}
@@ -223,7 +267,7 @@ func runDev(ctx context.Context, cmd *cli.Command) error {
 	defer cancel()
 	log.Info("open the UI at Vite's address below; a Go change needs a restart, a UI change reloads by itself")
 	errc := make(chan error, 2)
-	go func() { errc <- serveTower(ctx, log, ln, cmd.String("data")) }()
+	go func() { errc <- serveTower(ctx, log, ln, cmd.String("data"), false, nil) }()
 	go func() { errc <- runVite(ctx, dir, "http://"+ln.Addr().String()) }()
 	// When either stops, stop the other.
 	err = <-errc

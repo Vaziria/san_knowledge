@@ -32,6 +32,18 @@ service WorkflowService {
   // ListRuns lists a workflow's runs, newest first, without their steps.
   rpc ListRuns(ListRunsRequest) returns (ListRunsResponse);
   rpc GetRun(GetRunRequest) returns (GetRunResponse);
+  // ExportWorkflows writes workflows to a file (WorkflowFile, as JSON) that
+  // ImportWorkflows reads, here or in another tower: their names, steps and
+  // links, not their runs or whether they are on. The connections and
+  // storages their steps pick go with only their names and types, never
+  // their settings, so a bot's token stays in this tower.
+  rpc ExportWorkflows(ExportWorkflowsRequest) returns (ExportWorkflowsResponse);
+  // ImportWorkflows creates the workflows of such a file, switched off; a
+  // name in use gets " (2)", " (3)"... A step's connection or storage is
+  // the one of the same name and type here; with none, the only connection
+  // of that type, else nothing, for the user to pick. notes say what did not
+  // carry over as it was.
+  rpc ImportWorkflows(ImportWorkflowsRequest) returns (ImportWorkflowsResponse);
 }
 
 // StepKind is a kind of step: its sockets and settings.
@@ -315,4 +327,61 @@ message GetRunRequest {
 
 message GetRunResponse {
   Run run = 1;
+}
+
+message ExportWorkflowsRequest {
+  // ids are the workflows to export, in this order; empty: every workflow.
+  repeated uint32 ids = 1;
+}
+
+message ExportWorkflowsResponse {
+  // json is the file: a WorkflowFile as JSON.
+  string json = 1;
+  // file_name is a name to save it as: the workflow's
+  // ("Big order alert.workflow.json"), or, for several,
+  // san_tower-workflows-2026-10-26.json.
+  string file_name = 2;
+}
+
+message ImportWorkflowsRequest {
+  // json is a file ExportWorkflows wrote.
+  string json = 1;
+}
+
+message ImportWorkflowsResponse {
+  // workflows are the workflows made, switched off, in the file's order.
+  repeated WorkflowSummary workflows = 1;
+  // notes say what did not carry over as it was: a name taken, a connection
+  // or storage matched otherwise or left to pick, a kind of step this tower
+  // does not have.
+  repeated string notes = 2;
+}
+
+// WorkflowFile is the file ExportWorkflows writes and ImportWorkflows reads.
+message WorkflowFile {
+  // format is "san_tower.workflows"; version is 1.
+  string format = 1;
+  uint32 version = 2;
+  google.protobuf.Timestamp exported_at = 3;
+  // tower is the version of the tower that wrote it.
+  string tower = 4;
+  repeated ExportedWorkflow workflows = 5;
+  // connections and storages are those the steps' Connection and Storage
+  // settings pick, by their id in the tower that wrote the file.
+  map<string, ExportedRef> connections = 6;
+  map<string, ExportedRef> storages = 7;
+}
+
+// ExportedWorkflow is a workflow in a WorkflowFile.
+message ExportedWorkflow {
+  string name = 1;
+  repeated Step steps = 2;
+  repeated Link links = 3;
+}
+
+// ExportedRef is a connection or a storage a step picks, as a file names
+// it: its name, and a connection's type (san_remote, telegram_bot).
+message ExportedRef {
+  string name = 1;
+  string type = 2;
 }

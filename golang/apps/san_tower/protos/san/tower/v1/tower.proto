@@ -5,10 +5,15 @@ package san.tower.v1;
 import "google/protobuf/timestamp.proto";
 
 // TowerService is called by the tower's UI (typescripts/san_tower_frontend)
-// and its CLI. For now it only says the tower is up; what the tower watches
-// comes later.
+// and its CLI: whether the tower is up, and restarting it (after `san_tower
+// update`).
 service TowerService {
   rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // Restart stops the tower and starts it again from its executable, in the
+  // same process on Linux (a supervisor such as a run.sh loop sees no
+  // exit), as a new one on Windows. With runs in progress it is refused
+  // (FailedPrecondition) unless force, which cuts them short.
+  rpc Restart(RestartRequest) returns (RestartResponse);
 }
 
 message GetStatusRequest {}
@@ -18,4 +23,12 @@ message GetStatusResponse {
   string version = 1;
   string hostname = 2;
   google.protobuf.Timestamp started_at = 3;
+  // executable is the file the tower runs from, as it started.
+  string executable = 4;
 }
+
+message RestartRequest {
+  bool force = 1;
+}
+
+message RestartResponse {}

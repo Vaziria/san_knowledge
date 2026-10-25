@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/wargasipil/san_remote/internal/plaintext"
 	"gopkg.in/yaml.v3"
 )
 
@@ -140,7 +141,8 @@ type Listed struct {
 //	![](images/one.png)
 //
 // A markdown image puts that file in the post instead of in its text; files
-// are relative to the markdown file.
+// are relative to the markdown file. Other markdown is written as plain text
+// (plaintext.From): **bold** is bold, [text](url) is "text (url)".
 func ParseFile(path string) (*Post, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -159,7 +161,6 @@ func ParseFile(path string) (*Post, error) {
 }
 
 var image = regexp.MustCompile(`!\[[^\]]*\]\(\s*<?([^)<>]+?)>?\s*\)`)
-var blankLines = regexp.MustCompile(`\n[ \t]*\n(?:[ \t]*\n)+`)
 
 // Parse reads a post from markdown, as ParseFile does, leaving media paths
 // as the markdown gives them.
@@ -194,12 +195,7 @@ func Parse(md []byte) (*Post, error) {
 	for _, m := range image.FindAllStringSubmatch(text, -1) {
 		p.Media = append(p.Media, strings.TrimSpace(m[1]))
 	}
-	text = image.ReplaceAllString(text, "")
-	lines := strings.Split(text, "\n")
-	for i, l := range lines {
-		lines[i] = strings.TrimRight(l, " \t")
-	}
-	p.Text = strings.TrimSpace(blankLines.ReplaceAllString(strings.Join(lines, "\n"), "\n\n"))
+	p.Text = plaintext.From(image.ReplaceAllString(text, ""))
 	if front.At != "" {
 		at, err := ParseTime(front.At)
 		if err != nil {

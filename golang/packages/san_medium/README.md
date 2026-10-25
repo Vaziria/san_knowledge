@@ -10,6 +10,11 @@ the editor's own image button. Then it fills in the image's alt text and
 caption. Medium saves the draft itself. The tool then reloads the draft and
 checks it against the article. Publishing stays a manual step.
 
+The same steps run in your own everyday browser through San Remote's
+extension, with no Chrome of their own: `san_remote medium` (and the
+tower's Medium Article step), see
+[san_remote's docs](../../apps/san_remote/docs/readme.md#medium).
+
 Module `github.com/wargasipil/san_medium`, Go 1.26. It needs
 [chromedp](https://github.com/chromedp/chromedp),
 [goldmark](https://github.com/yuin/goldmark) and

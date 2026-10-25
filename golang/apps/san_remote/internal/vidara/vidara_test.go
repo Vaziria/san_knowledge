@@ -189,4 +189,24 @@ func TestOutPath(t *testing.T) {
 	if _, err := outPath(f, "Uji", "X"); err == nil {
 		t.Error("an existing file would be overwritten")
 	}
+
+	// Missing folders are made: those a file is in (with / in a Windows
+	// path too), and a folder given with a separator at its end.
+	file := filepath.Join(dir, "tmp", "videos") + "/test.mp4"
+	if got, err := outPath(file, "Uji", "X"); err != nil || got != file {
+		t.Errorf("a file in missing folders: %q, %v", got, err)
+	}
+	if fi, err := os.Stat(filepath.Join(dir, "tmp", "videos")); err != nil || !fi.IsDir() {
+		t.Errorf("its folders were not made: %v", err)
+	}
+	folder := filepath.Join(dir, "new") + string(filepath.Separator)
+	if got, err := outPath(folder, "Uji", "X"); err != nil || got != filepath.Join(dir, "new", "Uji.mp4") {
+		t.Errorf("a missing folder: %q, %v", got, err)
+	}
+	if fi, err := os.Stat(filepath.Join(dir, "new")); err != nil || !fi.IsDir() {
+		t.Errorf("the folder was not made: %v", err)
+	}
+	if _, err := outPath(filepath.Join(f, "under-a-file.mp4"), "Uji", "X"); err == nil {
+		t.Error("a folder under a file was made")
+	}
 }

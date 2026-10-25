@@ -279,12 +279,8 @@ func (t *session) fill(ctx context.Context, i int, p *threadsv1.Post) error {
 		var files []mediaFile
 		for j, m := range p.GetMedia() {
 			f := mediaFile{ID: fmt.Sprintf("p%dm%d", i, j), Name: m.GetName(), Type: mediaType(m.GetName())}
-			b64 := base64.StdEncoding.EncodeToString(m.GetData())
-			// Pieces of 1 MB keep each command small.
-			for k := 0; k < len(b64); k += 1 << 20 {
-				if err := t.Call(ctx, nil, "stage", f.ID, b64[k:min(k+1<<20, len(b64))]); err != nil {
-					return err
-				}
+			if err := t.stage(ctx, f.ID, m.GetData()); err != nil {
+				return err
 			}
 			files = append(files, f)
 		}
@@ -314,6 +310,19 @@ type mediaFile struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"`
+}
+
+// stage puts a file in the page: its base64, in pieces of 1 MB of text,
+// which keep each command small. threads.js joins them before decoding; the
+// whole file is encoded first, so the joint is whole.
+func (t *session) stage(ctx context.Context, id string, data []byte) error {
+	b64 := base64.StdEncoding.EncodeToString(data)
+	for k := 0; k < len(b64); k += 1 << 20 {
+		if err := t.Call(ctx, nil, "stage", id, b64[k:min(k+1<<20, len(b64))]); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // menu waits for an open menu to show item, and presses it.
@@ -723,8 +732,12 @@ func sameTime(line string, at time.Time) error {
 // spaces and trailing blanks.
 func normalize(s string) string {
 	s = strings.ReplaceAll(strings.ReplaceAll(s, "\r", ""), " ", " ")
-	return strings.TrimSpace(s)
+	// Each run of line breaks counts as one, as editors read blank lines
+	// back their own way (X's as three, 2026-10-25).
+	return strings.TrimSpace(lineBreaks.ReplaceAllString(s, "\n"))
 }
+
+var lineBreaks = regexp.MustCompile(`[ \t]*\n\s*`)
 
 // sameStart says whether a row's text, which Drafts may cut short, starts
 // the way the thread does.

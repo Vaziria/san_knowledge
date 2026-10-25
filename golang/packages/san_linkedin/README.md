@@ -13,6 +13,11 @@ text and caption. LinkedIn saves the draft itself. The tool then reloads the
 draft and checks it against the article. Publishing at once is never done:
 an article goes out only at a time set with `schedule`.
 
+The same steps run in your own everyday browser through San Remote's
+extension, with no Chrome of their own: `san_remote linkedin` (and the
+tower's LinkedIn Article step), see
+[san_remote's docs](../../apps/san_remote/docs/readme.md#linkedin).
+
 Module `github.com/wargasipil/san_linkedin`, Go 1.26. It needs
 [chromedp](https://github.com/chromedp/chromedp),
 [goldmark](https://github.com/yuin/goldmark) and

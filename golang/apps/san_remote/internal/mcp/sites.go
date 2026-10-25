@@ -1,0 +1,516 @@
+package mcp
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/wargasipil/san_remote/internal/chatgpt"
+	"github.com/wargasipil/san_remote/internal/claude"
+	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/linkedin"
+	"github.com/wargasipil/san_remote/internal/medium"
+	"github.com/wargasipil/san_remote/internal/tiktok"
+)
+
+// The tools of the sites added on 2026-10-25: medium_*, linkedin_*, tiktok_*,
+// chatgpt_*, gemini_* and claude_*.
+
+const sitesInstructions = `
+medium_* write the user's markdown articles into Medium (interface in English) through that browser, as a person does in Medium's editor: medium_draft makes a draft from an article file (title, subtitle, text, images with alt text and captions) and, with at, schedules it; medium_schedule schedules a draft, medium_unschedule cancels its time; medium_drafts, medium_scheduled, medium_get and medium_status read. Nothing is published at once. medium_delete deletes a draft (it cannot be undone: ask the user first).
+linkedin_* do the same for the user's LinkedIn articles (interface in English), in LinkedIn's article editor: linkedin_draft (with a cover, and with at a schedule on a quarter hour, shared with text), linkedin_schedule, linkedin_unschedule (by title), linkedin_drafts, linkedin_scheduled, linkedin_get, linkedin_status; linkedin_delete deletes a draft (ask the user first). Each brings Chrome to the front for a minute or more.
+tiktok_* post the user's videos to TikTok (interface in English) through TikTok Studio in that browser: tiktok_post schedules a video for Everyone (15 minutes to 30 days ahead, on a 5-minute step) or, with now, posts it for Only you; tiktok_posts lists Studio's posts; tiktok_delete deletes one (it cannot be undone: ask the user first); tiktok_status reads. Post only what the user asked for.
+chatgpt_* ask ChatGPT (interface in English) through that browser: chatgpt_ask sends a prompt and returns the answer as markdown, in a Temporary chat unless keep is set; chat continues a kept chat by its link. chatgpt_status reads the account and plan.
+gemini_* ask Gemini (gemini.google.com, interface in English) through that browser: gemini_ask sends a prompt and returns the answer, in a Temporary chat unless keep is set; it brings Chrome to the front while it asks, since Gemini sends only from a shown page. gemini_status reads the Google account's name.
+claude_* ask Claude on claude.ai (interface in English) through that browser: claude_ask sends a prompt and returns the answer as markdown, in an incognito chat (kept out of the history) unless keep is set; claude_status reads the account and plan.`
+
+func siteToolDefs() []any {
+	storyProp := str("The story's id or its link (https://medium.com/p/<id>/edit)")
+	return []any{
+		tool("medium_status", "Medium: who is signed in",
+			"Whether the browser is signed in to Medium, and as whom.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("medium_draft", "Medium: write a draft",
+			"Write a markdown article file into a new Medium draft: the first # heading is the title, an italic paragraph under it the subtitle, each image on a paragraph of its own is uploaded with its alt text, and an italic paragraph under an image is its caption. With at, the draft is then scheduled (with topics). Brings Chrome to the front for a few minutes.",
+			schema(map[string]any{
+				"file":    str("The article's markdown file"),
+				"at":      timeProp("Schedule it for this time (at least 10 minutes ahead); leave out to keep it a draft"),
+				"topics":  strs("Topics, as Medium suggests them (up to 5); only with at"),
+				"browser": browserProp,
+			}, "file"), false, false),
+		tool("medium_drafts", "Medium: drafts",
+			"The drafts on the stories page: id, title, when updated, words.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("medium_scheduled", "Medium: scheduled stories",
+			"The stories in the Scheduled tab, with when Medium publishes each.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("medium_get", "Medium: read a draft",
+			"A draft as the editor holds it: status, title, subtitle, images, and the text.",
+			schema(map[string]any{"story": storyProp, "browser": browserProp}, "story"), true, false),
+		tool("medium_schedule", "Medium: schedule a draft",
+			"Have Medium publish a draft at a time, set on its publish page, with topics added (and remove_topics taken off first). Brings Chrome to the front.",
+			schema(map[string]any{
+				"story":         storyProp,
+				"at":            timeProp("When Medium publishes it (at least 10 minutes ahead)"),
+				"topics":        strs("Topics to add, as Medium suggests them (up to 5)"),
+				"remove_topics": strs("Topics to take off first"),
+				"browser":       browserProp,
+			}, "story", "at"), false, false),
+		tool("medium_unschedule", "Medium: cancel a schedule",
+			"Cancel a scheduled story's time; it stays a draft. Brings Chrome to the front.",
+			schema(map[string]any{"story": storyProp, "browser": browserProp}, "story"), false, false),
+		tool("medium_delete", "Medium: delete a draft",
+			"Delete a draft (only drafts). Medium asks first and the tool answers Delete. It cannot be undone: ask the user first.",
+			schema(map[string]any{"story": storyProp, "browser": browserProp}, "story"), false, true),
+
+		tool("linkedin_status", "LinkedIn: who is signed in",
+			"Whether the browser is signed in to LinkedIn, and as whom.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("linkedin_draft", "LinkedIn: write an article draft",
+			"Write a markdown article file into a new LinkedIn article draft, read as for medium_draft, with an optional cover image. With at (a quarter hour, at least 15 minutes ahead) the draft is then scheduled, shared with text. Brings Chrome to the front for a few minutes.",
+			schema(map[string]any{
+				"file":    str("The article's markdown file"),
+				"cover":   str("The cover image file"),
+				"at":      timeProp("Schedule it for this time, on a quarter hour; leave out to keep it a draft"),
+				"text":    str("The post that shares the article when it goes out; only with at"),
+				"browser": browserProp,
+			}, "file"), false, false),
+		tool("linkedin_drafts", "LinkedIn: article drafts",
+			"The article drafts, from the editor's Articles dialog: id, title, when modified. Brings Chrome to the front.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("linkedin_scheduled", "LinkedIn: scheduled articles",
+			"The scheduled articles, with when LinkedIn publishes each. The Scheduled tab shows no ids. Brings Chrome to the front.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("linkedin_get", "LinkedIn: read a draft",
+			"A draft as the editor holds it: status, title, cover, images, and the text. Brings Chrome to the front.",
+			schema(map[string]any{"story": str("The draft's id or edit link"), "browser": browserProp}, "story"), true, false),
+		tool("linkedin_schedule", "LinkedIn: schedule a draft",
+			"Have LinkedIn publish a draft at a time (a quarter hour, at least 15 minutes ahead), shared with text, through the editor's Next. Brings Chrome to the front.",
+			schema(map[string]any{
+				"story":   str("The draft's id or edit link"),
+				"at":      timeProp("When LinkedIn publishes it"),
+				"text":    str("The post that shares the article"),
+				"browser": browserProp,
+			}, "story", "at"), false, false),
+		tool("linkedin_unschedule", "LinkedIn: move a scheduled article to the drafts",
+			"Move a scheduled article back to the drafts (it keeps its id), named by its title; when picks one of two with the same title.",
+			schema(map[string]any{
+				"match":   str("The article's title"),
+				"when":    str(`Its time as linkedin_scheduled shows it, "Fri, Nov 20 at 9:00 AM"`),
+				"browser": browserProp,
+			}, "match"), false, false),
+		tool("linkedin_delete", "LinkedIn: delete a draft",
+			"Delete an article draft (only drafts). LinkedIn asks first and the tool answers Delete. It cannot be undone: ask the user first.",
+			schema(map[string]any{"story": str("The draft's id or edit link"), "browser": browserProp}, "story"), false, true),
+
+		tool("tiktok_status", "TikTok: who is signed in",
+			"Whether the browser is signed in to TikTok, and as whom.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("tiktok_post", "TikTok: schedule a video",
+			"Upload a video through TikTok Studio, write its caption (#hashtags picked from TikTok's suggestions), and schedule it for Everyone at at; or with now, post it now for Only you. Give a post file (frontmatter video: and at:, then the caption) or video and caption. Brings Chrome to the front for a few minutes.",
+			schema(map[string]any{
+				"file":    str("A post markdown file: frontmatter video: and at:, then the caption"),
+				"video":   str("The video file, instead of a post file"),
+				"caption": str("The caption, with video"),
+				"at":      timeProp("When TikTok publishes it, for Everyone: 15 minutes to 30 days ahead, on a 5-minute step"),
+				"now":     flag("Post it now, seen by Only you, instead of scheduling it"),
+				"browser": browserProp,
+			}), false, false),
+		tool("tiktok_posts", "TikTok: Studio's posts",
+			"Studio's Posts list, newest first: when (a scheduled post's publish time), length, who can see it, caption.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("tiktok_delete", "TikTok: delete a post",
+			"Delete the one post of Studio's Posts list whose caption starts with caption and whose date is when, as tiktok_posts shows it. It cannot be undone: ask the user first.",
+			schema(map[string]any{
+				"caption": str("The post's caption, or its start"),
+				"when":    str(`Its date as tiktok_posts shows it, "Nov 3, 7:00 PM"`),
+				"browser": browserProp,
+			}, "caption", "when"), false, true),
+
+		tool("chatgpt_status", "ChatGPT: who is signed in",
+			"Whether the browser is signed in to ChatGPT, as whom, and on which plan.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("chatgpt_ask", "ChatGPT: ask",
+			"Send a prompt to ChatGPT and return its answer as markdown. A new chat is a Temporary chat (not kept in the user's history) unless keep is set; chat continues a kept chat by its link. Works in a background tab.",
+			schema(map[string]any{
+				"prompt":       str("The prompt"),
+				"keep":         flag("A normal chat, kept in the history, instead of a Temporary chat; its link comes back"),
+				"chat":         str("Continue the kept chat at this link (https://chatgpt.com/c/<id>)"),
+				"wait_seconds": intg("How long to wait for the answer (default 600)"),
+				"browser":      browserProp,
+			}, "prompt"), false, false),
+
+		tool("claude_status", "Claude: who is signed in",
+			"Whether the browser is signed in to claude.ai, as whom, and on which plan.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("claude_ask", "Claude: ask",
+			"Send a prompt to Claude on claude.ai and return its answer as markdown. The chat is an incognito chat (kept out of the user's history) unless keep is set. Works in a background tab.",
+			schema(map[string]any{
+				"prompt":       str("The prompt"),
+				"keep":         flag("A normal chat, kept in the history, instead of an incognito chat; its link comes back"),
+				"wait_seconds": intg("How long to wait for the answer (default 600)"),
+				"browser":      browserProp,
+			}, "prompt"), false, false),
+
+		tool("gemini_status", "Gemini: who is signed in",
+			"Whether the browser is signed in to Gemini, and as whom (the Google account's name).",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("gemini_ask", "Gemini: ask",
+			"Send a prompt to Gemini and return its answer. The chat is a Temporary chat (not kept in the user's history) unless keep is set. Brings Chrome to the front while it asks.",
+			schema(map[string]any{
+				"prompt":       str("The prompt"),
+				"keep":         flag("A normal chat, kept in the history, instead of a Temporary chat; its link comes back"),
+				"wait_seconds": intg("How long to wait for the answer (default 600)"),
+				"browser":      browserProp,
+			}, "prompt"), false, false),
+	}
+}
+
+func (s *Server) medium(ctx context.Context, name string, a args) (string, error) {
+	m := s.Medium
+	switch name {
+	case "medium_status":
+		st, err := m.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to Medium.", nil
+		}
+		return fmt.Sprintf("Signed in to Medium as %s (@%s).", st.Name, st.Handle), nil
+	case "medium_draft":
+		if a.File == "" {
+			return "", errors.New("file is required")
+		}
+		art, err := medium.ParseFile(a.File)
+		if err != nil {
+			return "", err
+		}
+		at, err := optionalTime(a.At)
+		if err != nil {
+			return "", err
+		}
+		st, err := m.Draft(ctx, medium.Draft{Browser: a.Browser, Article: art, At: at, Topics: a.Topics})
+		if err != nil {
+			if st != nil {
+				return "", fmt.Errorf("%w (the draft so far: %s)", err, st.URL)
+			}
+			return "", err
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "Draft: %s %q", st.URL, st.Title)
+		if !st.At.IsZero() {
+			fmt.Fprintf(&b, ", scheduled for %s", st.At.Format("2006-01-02 15:04"))
+		}
+		for _, w := range art.Warnings {
+			fmt.Fprintf(&b, "\nwarning: %s", w)
+		}
+		return b.String(), nil
+	case "medium_drafts", "medium_scheduled":
+		var list []medium.Story
+		var err error
+		if name == "medium_drafts" {
+			list, err = m.Drafts(ctx, a.Browser)
+		} else {
+			list, err = m.Scheduled(ctx, a.Browser)
+		}
+		if err != nil {
+			return "", err
+		}
+		if len(list) == 0 {
+			return "None.", nil
+		}
+		var b strings.Builder
+		for _, st := range list {
+			when := st.Updated
+			if !st.At.IsZero() {
+				when = "scheduled " + st.At.Format("2006-01-02 15:04")
+			}
+			fmt.Fprintf(&b, "%s %q, %s, %d words, %s\n", st.ID, st.Title, when, st.Words, st.URL)
+		}
+		return b.String(), nil
+	case "medium_get":
+		c, err := m.Get(ctx, a.Browser, a.Story)
+		if err != nil {
+			return "", err
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "status: %s\ntitle: %s\nsubtitle: %s\nlink: %s\n", c.Status, c.Title, c.Subtitle, c.URL)
+		for i, im := range c.Images {
+			fmt.Fprintf(&b, "image %d: %s alt=%q caption=%q\n", i+1, im.URL, im.Alt, im.Caption)
+		}
+		fmt.Fprintf(&b, "\n%s", c.Text)
+		return b.String(), nil
+	case "medium_schedule":
+		at, err := medium.ParseTime(a.At)
+		if err != nil {
+			return "", err
+		}
+		st, err := m.Schedule(ctx, a.Browser, a.Story, at, a.Topics, a.RemoveTopics)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Scheduled %s %q for %s.", st.ID, st.Title, st.At.Format("2006-01-02 15:04")), nil
+	case "medium_unschedule":
+		st, err := m.Unschedule(ctx, a.Browser, a.Story)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Unscheduled %s %q; it is a draft again.", st.ID, st.Title), nil
+	case "medium_delete":
+		st, err := m.Delete(ctx, a.Browser, a.Story)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted the draft %s %q.", st.ID, st.Title), nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) linkedin(ctx context.Context, name string, a args) (string, error) {
+	li := s.LinkedIn
+	switch name {
+	case "linkedin_status":
+		st, err := li.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to LinkedIn.", nil
+		}
+		return "Signed in to LinkedIn as " + st.Name + ".", nil
+	case "linkedin_draft":
+		if a.File == "" {
+			return "", errors.New("file is required")
+		}
+		art, err := linkedin.ParseFile(a.File)
+		if err != nil {
+			return "", err
+		}
+		if a.Cover != "" {
+			if err := art.SetCover(a.Cover); err != nil {
+				return "", err
+			}
+		}
+		at, err := optionalTime(a.At)
+		if err != nil {
+			return "", err
+		}
+		st, err := li.Draft(ctx, linkedin.Draft{Browser: a.Browser, Article: art, At: at, Text: a.Text})
+		if err != nil {
+			if st != nil {
+				return "", fmt.Errorf("%w (the draft so far: %s)", err, st.URL)
+			}
+			return "", err
+		}
+		out := fmt.Sprintf("Draft: %s %q", st.URL, st.Title)
+		if st.Shown != "" {
+			out += ", scheduled: " + st.Shown
+		}
+		return out, nil
+	case "linkedin_drafts", "linkedin_scheduled":
+		var list []linkedin.Story
+		var err error
+		if name == "linkedin_drafts" {
+			list, err = li.Drafts(ctx, a.Browser)
+		} else {
+			list, err = li.Scheduled(ctx, a.Browser)
+		}
+		if err != nil {
+			return "", err
+		}
+		if len(list) == 0 {
+			return "None.", nil
+		}
+		var b strings.Builder
+		for _, st := range list {
+			if st.ID != "" {
+				fmt.Fprintf(&b, "%s %q, %s, %s\n", st.ID, st.Title, st.Modified, st.URL)
+			} else {
+				fmt.Fprintf(&b, "%q, %s\n", st.Title, st.Shown)
+			}
+		}
+		return b.String(), nil
+	case "linkedin_get":
+		c, err := li.Get(ctx, a.Browser, a.Story)
+		if err != nil {
+			return "", err
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "status: %s\ntitle: %s\ncover: %s\nlink: %s\n", c.Status, c.Title, c.Cover, c.URL)
+		for i, im := range c.Images {
+			fmt.Fprintf(&b, "image %d: %s alt=%q caption=%q\n", i+1, im.URL, im.Alt, im.Caption)
+		}
+		fmt.Fprintf(&b, "\n%s", c.Text)
+		return b.String(), nil
+	case "linkedin_schedule":
+		at, err := linkedin.ParseTime(a.At)
+		if err != nil {
+			return "", err
+		}
+		st, err := li.Schedule(ctx, a.Browser, a.Story, at, a.Text)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Scheduled %q: %s.", st.Title, st.Shown), nil
+	case "linkedin_unschedule":
+		st, err := li.Unschedule(ctx, a.Browser, a.Match, a.When)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("A draft again: %s %q.", st.ID, st.Title), nil
+	case "linkedin_delete":
+		st, err := li.Delete(ctx, a.Browser, a.Story)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted the draft %s %q.", st.ID, st.Title), nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) tiktok(ctx context.Context, name string, a args) (string, error) {
+	tt := s.TikTok
+	switch name {
+	case "tiktok_status":
+		st, err := tt.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to TikTok.", nil
+		}
+		return "Signed in to TikTok as @" + st.Handle + ".", nil
+	case "tiktok_post":
+		var p *tiktok.Post
+		switch {
+		case a.File != "" && a.Video != "":
+			return "", errors.New("give file or video, not both")
+		case a.File != "":
+			var err error
+			if p, err = tiktok.ParseFile(a.File); err != nil {
+				return "", err
+			}
+		case a.Video != "":
+			p = &tiktok.Post{Video: a.Video, Caption: a.Caption}
+		default:
+			return "", errors.New("file or video is required")
+		}
+		if a.At != "" {
+			at, err := tiktok.ParseTime(a.At)
+			if err != nil {
+				return "", err
+			}
+			p.At = at
+		}
+		p.Now, p.Browser = a.Now, a.Browser
+		r, err := tt.Post(ctx, *p)
+		if err != nil {
+			return "", err
+		}
+		if r.Listed != "" {
+			return "Taken by TikTok Studio: " + r.Listed, nil
+		}
+		return "Taken by TikTok Studio, for " + r.Visibility + ".", nil
+	case "tiktok_posts":
+		list, err := tt.Posts(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if len(list) == 0 {
+			return "No posts.", nil
+		}
+		var b strings.Builder
+		for _, l := range list {
+			fmt.Fprintf(&b, "%s | %s | %s | %s\n", l.When, l.Duration, l.Privacy, l.Caption)
+		}
+		return b.String(), nil
+	case "tiktok_delete":
+		l, err := tt.Delete(ctx, a.Browser, a.Caption, a.When)
+		if err != nil {
+			return "", err
+		}
+		return "Deleted: " + l.Row, nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) chatgpt(ctx context.Context, name string, a args) (string, error) {
+	switch name {
+	case "chatgpt_status":
+		st, err := s.ChatGPT.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to ChatGPT.", nil
+		}
+		return fmt.Sprintf("Signed in to ChatGPT as %s (%s).", st.Name, st.Plan), nil
+	case "chatgpt_ask":
+		ans, err := s.ChatGPT.Ask(ctx, chatgpt.Ask{
+			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+		})
+		if err != nil {
+			return "", err
+		}
+		if ans.Chat != "" {
+			return ans.Text + "\n\n(chat: " + ans.Chat + ")", nil
+		}
+		return ans.Text, nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) claude(ctx context.Context, name string, a args) (string, error) {
+	switch name {
+	case "claude_status":
+		st, err := s.Claude.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to claude.ai.", nil
+		}
+		return fmt.Sprintf("Signed in to claude.ai as %s (%s).", st.Name, st.Plan), nil
+	case "claude_ask":
+		ans, err := s.Claude.Ask(ctx, claude.Ask{
+			Browser: a.Browser, Prompt: a.Prompt, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+		})
+		if err != nil {
+			return "", err
+		}
+		if ans.Chat != "" {
+			return ans.Text + "\n\n(chat: " + ans.Chat + ")", nil
+		}
+		return ans.Text, nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) gemini(ctx context.Context, name string, a args) (string, error) {
+	switch name {
+	case "gemini_status":
+		st, err := s.Gemini.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to Gemini.", nil
+		}
+		return "Signed in to Gemini as " + st.Name + ".", nil
+	case "gemini_ask":
+		ans, err := s.Gemini.Ask(ctx, gemini.Ask{
+			Browser: a.Browser, Prompt: a.Prompt, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+		})
+		if err != nil {
+			return "", err
+		}
+		if ans.Chat != "" {
+			return ans.Text + "\n\n(chat: " + ans.Chat + ")", nil
+		}
+		return ans.Text, nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}

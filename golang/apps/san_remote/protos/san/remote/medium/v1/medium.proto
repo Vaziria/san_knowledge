@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package san.remote.medium.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// MediumService is the Medium service (internal/medium) over Connect, served
+// by `san_remote api` for other programs (the tower's workflows). Like the
+// CLI, it works in a tab of the user's browser, the way a person does in
+// Medium's editor. Nothing is published at once: a story goes out only at a
+// time it is scheduled for.
+service MediumService {
+  // GetStatus says whether the browser is signed in to Medium, and as whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // CreateDraft writes a markdown article file of this computer into a new
+  // draft, and with at schedules it: the editor opens in a tab brought to the
+  // front, for a few minutes.
+  rpc CreateDraft(CreateDraftRequest) returns (CreateDraftResponse);
+  // ScheduleDraft schedules a draft on its publish page.
+  rpc ScheduleDraft(ScheduleDraftRequest) returns (ScheduleDraftResponse);
+  // ListDrafts lists the drafts, newest first.
+  rpc ListDrafts(ListDraftsRequest) returns (ListDraftsResponse);
+  // ListScheduled lists the scheduled stories.
+  rpc ListScheduled(ListScheduledRequest) returns (ListScheduledResponse);
+}
+
+// Status is the browser's Medium session.
+message Status {
+  bool signed_in = 1;
+  string name = 2;
+  // The @handle, without the @.
+  string handle = 3;
+}
+
+// Story is a draft or a scheduled story.
+message Story {
+  string id = 1;
+  // Where to edit it: https://medium.com/p/<id>/edit.
+  string url = 2;
+  string title = 3;
+  // For a draft, as the Drafts tab says it: "Updated just now".
+  string updated = 4;
+  uint32 words = 5;
+  // For a scheduled story, when Medium publishes it, and how the stories
+  // page says it: "Nov 24, 9:00 AM".
+  google.protobuf.Timestamp at = 6;
+  string shown = 7;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message CreateDraftRequest {
+  string browser = 1;
+  // The article: an absolute path of a markdown file on this computer. The
+  // first `# ` heading is the title, an italic paragraph under it the
+  // subtitle; images on a paragraph of their own are uploaded, relative to
+  // the file, with an italic paragraph under one as its caption.
+  string file = 2;
+  // Instead of file: the article as markdown text, read as a file is; its
+  // images need absolute paths.
+  string markdown = 5;
+  // When Medium publishes it, at least 10 minutes ahead; unset leaves it a
+  // draft.
+  google.protobuf.Timestamp at = 3;
+  // Topics added when it is scheduled, as Medium suggests them; up to 5.
+  repeated string topics = 4;
+}
+
+message CreateDraftResponse {
+  Story story = 1;
+  // What will not survive the trip, such as a link to a local file.
+  repeated string warnings = 2;
+}
+
+message ScheduleDraftRequest {
+  string browser = 1;
+  // The draft's id or its link.
+  string story = 2;
+  google.protobuf.Timestamp at = 3;
+  repeated string topics = 4;
+  // Topics taken off first.
+  repeated string remove_topics = 5;
+}
+
+message ScheduleDraftResponse {
+  Story story = 1;
+}
+
+message ListDraftsRequest {
+  string browser = 1;
+}
+
+message ListDraftsResponse {
+  repeated Story stories = 1;
+}
+
+message ListScheduledRequest {
+  string browser = 1;
+}
+
+message ListScheduledResponse {
+  repeated Story stories = 1;
+}

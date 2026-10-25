@@ -195,15 +195,21 @@ func (t *session) fetch(ctx context.Context, id, u string) ([]byte, error) {
 }
 
 // outPath is where Download writes: out as a file, or, when out is a folder
-// or "", the video's title in it. It must not exist yet.
+// (one that is there, or a path ending in a separator) or "", the video's
+// title in it. It must not exist yet. The folders it is in are made when
+// they are missing.
 func outPath(out, title, code string) (string, error) {
 	name := FileName(title, code) + ".mp4"
 	path := out
-	if fi, err := os.Stat(out); out == "" || (err == nil && fi.IsDir()) {
+	fi, err := os.Stat(out)
+	if out == "" || (err == nil && fi.IsDir()) || os.IsPathSeparator(out[len(out)-1]) {
 		path = filepath.Join(out, name)
 	}
 	if _, err := os.Stat(path); err == nil {
 		return "", fmt.Errorf("vidara: %s exists already; give another out", path)
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return "", fmt.Errorf("vidara: cannot make the folder for %s: %w", path, err)
 	}
 	return path, nil
 }

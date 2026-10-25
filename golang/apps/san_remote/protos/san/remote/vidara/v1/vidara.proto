@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package san.remote.vidara.v1;
+
+// VidaraService is the Vidara service (internal/vidara) over Connect, served
+// by `san_remote api` for other programs (the tower's workflows). Like the
+// CLI, it works in a tab of the user's browser on vidara.to, the way a
+// person does.
+service VidaraService {
+  // GetStatus says whether the browser is signed in to Vidara, as whom, and
+  // how much storage it uses.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // UploadVideo uploads a video file of this computer on the Upload page,
+  // in a tab brought to the front.
+  rpc UploadVideo(UploadVideoRequest) returns (UploadVideoResponse);
+  // ListVideos lists the account's videos, newest first.
+  rpc ListVideos(ListVideosRequest) returns (ListVideosResponse);
+  // DownloadVideo saves a video to a file of this computer through Vidara's
+  // own player, in a background tab: Vidara's own encoding of it (720p for
+  // a 720p upload), not the uploaded file. It takes as long as the video's
+  // stream does.
+  rpc DownloadVideo(DownloadVideoRequest) returns (DownloadVideoResponse);
+}
+
+// Status is the browser's Vidara session.
+message Status {
+  bool signed_in = 1;
+  string username = 2;
+  // As the sidebar writes it: "0.01 GB used".
+  string storage = 3;
+}
+
+// Video is one video of the account, as My videos lists it.
+message Video {
+  // The video's filecode: https://vidara.to/v/<code>.
+  string code = 1;
+  string title = 2;
+  string url = 3;
+  // As Vidara writes them: "11.67 MB", "0", "2026-10-23".
+  string size = 4;
+  string views = 5;
+  string uploaded = 6;
+  // Active, Processing, Error, Blocked or Inactivity.
+  string status = 7;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message UploadVideoRequest {
+  string browser = 1;
+  // The video file on this computer: 10 MB to 10 GB, mp4, mkv, mov, webm,
+  // and the other kinds Vidara takes.
+  string file = 2;
+  // Its title on Vidara; empty means the file's name without its extension.
+  string title = 3;
+}
+
+message UploadVideoResponse {
+  Video video = 1;
+}
+
+message ListVideosRequest {
+  string browser = 1;
+  // Only videos whose title contains it; empty for all.
+  string search = 2;
+  // The most videos to list; 0 means the service's default.
+  uint32 limit = 3;
+}
+
+message ListVideosResponse {
+  repeated Video videos = 1;
+  // How many match in all.
+  uint32 total = 2;
+}
+
+message DownloadVideoRequest {
+  string browser = 1;
+  // The video's link (https://vidara.to/v/<code>, or its embed link) or its
+  // code.
+  string link = 2;
+  // Where to save it, an absolute path: a folder, where the file is named
+  // after the video's title, or a file. An existing file is not
+  // overwritten.
+  string out = 3;
+}
+
+message DownloadVideoResponse {
+  // The file written: an .mp4 when ffmpeg is on PATH, else a .ts.
+  string path = 1;
+  string title = 2;
+  string code = 3;
+  // The stream saved: "1280x720, 3.0 Mbps".
+  string stream = 4;
+  int64 bytes = 5;
+}

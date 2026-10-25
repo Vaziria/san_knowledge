@@ -47,7 +47,7 @@ func TestParseVariants(t *testing.T) {
 		{"media only", "![](a.png)", []Post{{Media: []string{"a.png"}}}, false},
 		{"an image inside a line", "lihat ![](a.png) ini", []Post{{Text: "lihat  ini", Media: []string{"a.png"}}}, false},
 		{"blank lines an image leaves", "satu\n\n![](a.png)\n\n![](b.png)\n\ndua", []Post{{Text: "satu\n\ndua", Media: []string{"a.png", "b.png"}}}, false},
-		{"a # heading stays text", "# judul\n\nisi", []Post{{Text: "# judul\n\nisi"}}, false},
+		{"markdown is written as plain text", "# judul\n\n**isi** di [sini](https://a.id)\n#hashtag", []Post{{Text: "judul\n\nisi di sini (https://a.id)\n#hashtag"}}, false},
 		{"three posts", "a\n---\nb\n  ---  \nc", []Post{{Text: "a"}, {Text: "b"}, {Text: "c"}}, false},
 		{"topic goes on the first post", "---\ntopic: Golang\n---\na\n---\nb", []Post{{Text: "a", Topic: "Golang"}, {Text: "b"}}, false},
 	}

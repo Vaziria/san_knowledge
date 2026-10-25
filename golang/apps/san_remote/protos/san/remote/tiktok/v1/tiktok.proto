@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package san.remote.tiktok.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// TikTokService is the TikTok service (internal/tiktok) over Connect, served
+// by `san_remote api` for other programs (the tower's workflows). Like the
+// CLI, it works in a tab of the user's browser, the way a person does in
+// TikTok Studio. It only schedules: TikTok publishes a video at its time.
+service TikTokService {
+  // GetStatus says whether the browser is signed in to TikTok, and as whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // SchedulePost uploads a video file of this computer and schedules it for
+  // Everyone: Studio opens in a tab brought to the front, for a minute or
+  // more.
+  rpc SchedulePost(SchedulePostRequest) returns (SchedulePostResponse);
+  // ListPosts lists Studio's posts, newest first, scheduled ones included.
+  rpc ListPosts(ListPostsRequest) returns (ListPostsResponse);
+}
+
+// Status is the browser's TikTok session.
+message Status {
+  bool signed_in = 1;
+  // The @name, without the @.
+  string handle = 2;
+}
+
+// Post is a row of Studio's Posts list.
+message Post {
+  string caption = 1;
+  // As the list shows it, "Nov 3, 7:00 PM": a scheduled post's publish
+  // time, a published one's.
+  string when = 2;
+  google.protobuf.Timestamp at = 3;
+  // Everyone, Friends or Only you.
+  string privacy = 4;
+  // The video's length, "00:06".
+  string duration = 5;
+  // The row as it reads.
+  string row = 6;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message SchedulePostRequest {
+  string browser = 1;
+  // The video: an absolute path of a file on this computer. With file or
+  // markdown it may be empty, for the frontmatter's video.
+  string video = 2;
+  // Plain text, newlines kept; a #hashtag becomes one of TikTok's when it
+  // suggests it. Up to 4000 characters.
+  string caption = 3;
+  // When TikTok publishes it, for Everyone: 15 minutes to 30 days ahead, on
+  // a 5-minute step. With file or markdown it may be unset, for the
+  // frontmatter's at.
+  google.protobuf.Timestamp at = 4;
+  // Instead of caption: the post's markdown file, an absolute path on this
+  // computer, read as `san_remote tiktok post` reads one (frontmatter video,
+  // relative to it, and at; the caption's markdown written as plain text).
+  string file = 5;
+  // Instead of caption: the post as markdown text, read as a file is; a
+  // video named in it needs an absolute path.
+  string markdown = 6;
+}
+
+message SchedulePostResponse {
+  google.protobuf.Timestamp at = 1;
+  // The post's row in Studio's Posts list, when the list showed it.
+  string listed = 2;
+}
+
+message ListPostsRequest {
+  string browser = 1;
+}
+
+message ListPostsResponse {
+  repeated Post posts = 1;
+}

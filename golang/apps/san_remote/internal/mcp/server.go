@@ -22,10 +22,17 @@ import (
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	v1 "github.com/wargasipil/san_remote/gen/san/remote/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/v1/remotev1connect"
+	"github.com/wargasipil/san_remote/internal/chatgpt"
+	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/facebook"
+	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/hub"
+	"github.com/wargasipil/san_remote/internal/linkedin"
+	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/threads"
+	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/vidara"
+	"github.com/wargasipil/san_remote/internal/x"
 )
 
 type Server struct {
@@ -36,6 +43,17 @@ type Server struct {
 	Vidara *vidara.Service
 	// Facebook runs the facebook_* tools in this process, through Client.
 	Facebook *facebook.Service
+	// X runs the x_* tools in this process, through Client.
+	X *x.Service
+	// Medium, LinkedIn, TikTok and ChatGPT run the medium_*, linkedin_*,
+	// tiktok_*, chatgpt_*, gemini_* and claude_* tools in this process, through
+	// Client.
+	Medium   *medium.Service
+	LinkedIn *linkedin.Service
+	TikTok   *tiktok.Service
+	ChatGPT  *chatgpt.Service
+	Gemini   *gemini.Service
+	Claude   *claude.Service
 	// Server is the URL Client talks to, for error messages.
 	Server  string
 	Version string
@@ -49,7 +67,8 @@ remote_open and remote_navigate load a page and wait until it has loaded. A scri
 This is the user's real browser: read what the task needs, and ask the user before submitting forms, posting, buying or deleting anything. Clicks and key events made from JavaScript have isTrusted false, and some sites ignore them.
 threads_* post to the user's Threads account through that browser, as a person does in Threads' composer: threads_post schedules a thread (a markdown file, or one post's text), threads_scheduled lists what is scheduled, threads_reschedule and threads_unschedule change one, threads_status and threads_posts read. Schedule or post only what the user asked for; never use now unless the user asked to publish at once. A threads call that clicks through Threads brings Chrome to the front with a tab of its own for a minute or two.
 vidara_* work on the user's Vidara account (vidara.to, a video host) through that browser, as a person does on its pages: vidara_upload uploads a video on the Upload page (only what the user asked to upload), vidara_videos lists the account's videos, vidara_delete deletes one (Vidara says it cannot be undone: ask the user first), vidara_status reads. vidara_download saves a video from its link to a file on this computer, through Vidara's player. A video page's "Download file" button is an ad; never press it.
-facebook_* post to the user's Facebook (interface in Indonesian) through that browser, as a person does in its composers: facebook_post posts to the profile (with an audience), to a Page the user manages (from Meta Business Suite) or to a group, now or scheduled up to 29 days ahead (a group only now). Post only what the user asked for, where they asked. facebook_posts lists the profile's posts (published, scheduled, draft); facebook_delete deletes one (it cannot be undone: ask the user first); facebook_status reads the user's name, Pages and groups.`
+facebook_* post to the user's Facebook (interface in Indonesian) through that browser, as a person does in its composers: facebook_post posts to the profile (with an audience), to a Page the user manages (from Meta Business Suite) or to a group, now or scheduled up to 29 days ahead (a group only now). Post only what the user asked for, where they asked. facebook_posts lists the profile's posts (published, scheduled, draft); facebook_delete deletes one (it cannot be undone: ask the user first); facebook_status reads the user's name, Pages and groups.
+x_* post to the user's X account (interface in English) through that browser, as a person does in X's composer: x_post posts a thread (a markdown file, or one post's text), now or scheduled up to 18 months ahead; x_scheduled lists the scheduled threads, x_reschedule and x_unschedule change one; x_status reads who is signed in; x_posts lists the account's published posts and x_delete deletes one; x_download reads any post from its link and saves its images and videos (and an X Article's). Schedule or post only what the user asked for; never use now unless the user asked to publish at once. Deletes cannot be undone: ask the user first.`
 
 type request struct {
 	JSONRPC string          `json:"jsonrpc"`
@@ -112,12 +131,12 @@ func (s *Server) dispatch(ctx context.Context, req request) (any, *rpcError) {
 			"protocolVersion": version,
 			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}},
 			"serverInfo":      map[string]any{"name": "san_remote", "title": "San Remote", "version": s.Version},
-			"instructions":    instructions,
+			"instructions":    instructions + sitesInstructions,
 		}, nil
 	case "ping":
 		return map[string]any{}, nil
 	case "tools/list":
-		return map[string]any{"tools": toolDefs()}, nil
+		return map[string]any{"tools": append(toolDefs(), siteToolDefs()...)}, nil
 	case "tools/call":
 		var p struct {
 			Name      string          `json:"name"`
@@ -317,6 +336,54 @@ func toolDefs() []any {
 				"tab":     enum("Which tab (default scheduled)", "published", "scheduled", "draft"),
 				"browser": browserProp,
 			}, "match"), false, true),
+
+		tool("x_status", "X: signed in?",
+			"Whether the browser is signed in to X, and as whom (name and @handle). Reads in a background tab.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("x_post", "X: post a thread",
+			"Post a thread to the user's X account through X's composer: from a markdown file (frontmatter at:; posts split by a line holding only ---; media as ![](file)) or one post's text with media. A post counts up to 280 in X's count (a link counts 23), with up to 4 images or one video or GIF. Scheduled 10 minutes to 18 months ahead. Brings Chrome to the front with a tab of its own for a minute or two.",
+			schema(map[string]any{
+				"file":    str("Path of the thread's markdown file"),
+				"text":    str("One post's text, instead of a file"),
+				"media":   strs("Image or video files for that post (jpg, png, webp, gif, mp4, mov)"),
+				"at":      timeProp("When X publishes it"),
+				"now":     flag("Post it at once instead of scheduling it. Only when the user asked for that"),
+				"browser": browserProp,
+			}), false, false),
+		tool("x_posts", "X: my posts",
+			"The account's latest published posts, newest first: time, link and text. Reads its profile in a background tab.",
+			schema(map[string]any{"limit": intg("How many (default 10)"), "browser": browserProp}), true, false),
+		tool("x_scheduled", "X: scheduled threads",
+			"The scheduled threads, from Drafts' Scheduled tab: time, first post's text, and whether more posts follow. Brings Chrome to the front briefly.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("x_reschedule", "X: move a scheduled thread",
+			"Move one scheduled thread to a new time (10 minutes to 18 months ahead). match and at name it; together they must name exactly one.",
+			schema(map[string]any{
+				"match":   str("Part of the thread's first post"),
+				"at":      timeProp("Its current time"),
+				"to":      timeProp("The new time"),
+				"browser": browserProp,
+			}, "to"), false, false),
+		tool("x_unschedule", "X: delete a scheduled thread",
+			"Delete one scheduled thread; X asks first and the tool answers Delete. It cannot be undone: ask the user first. match and at name it; together they must name exactly one.",
+			schema(map[string]any{
+				"match":   str("Part of the thread's first post"),
+				"at":      timeProp("Its time"),
+				"browser": browserProp,
+			}), false, true),
+		tool("x_delete", "X: delete a published post",
+			"Delete one of the account's published posts, named by its link, its id, or part of its text (exactly one of the latest 50). X asks first and the tool answers Delete. It cannot be undone: ask the user first.",
+			schema(map[string]any{
+				"match":   str("The post's link, its id, or part of its text"),
+				"browser": browserProp,
+			}, "match"), false, true),
+		tool("x_download", "X: download a post",
+			"Read any X post by its link, in a background tab, and save its images and videos (each video's best mp4), and for an X Article its cover and images, in a folder on this computer. Returns the author, time, caption, hashtags, the saved files, and an X Article's title and markdown.",
+			schema(map[string]any{
+				"link":    str("The post's link (https://x.com/<user>/status/<id>) or its id"),
+				"out":     str("The folder for the files (default: the current folder); made when missing"),
+				"browser": browserProp,
+			}, "link"), false, false),
 	}
 }
 
@@ -345,6 +412,18 @@ type args struct {
 	Out        string   `json:"out"`
 	Audience   string   `json:"audience"`
 	Tab        string   `json:"tab"`
+	// medium_*, linkedin_*, tiktok_*, chatgpt_*
+	Story        string   `json:"story"`
+	Cover        string   `json:"cover"`
+	Topics       []string `json:"topics"`
+	RemoveTopics []string `json:"remove_topics"`
+	Video        string   `json:"video"`
+	Caption      string   `json:"caption"`
+	When         string   `json:"when"`
+	Prompt       string   `json:"prompt"`
+	Keep         bool     `json:"keep"`
+	Chat         string   `json:"chat"`
+	WaitSeconds  int32    `json:"wait_seconds"`
 }
 
 // Call runs one tool and returns its content: text, or for
@@ -372,6 +451,20 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.vidara(ctx, name, a)
 	case strings.HasPrefix(name, "facebook_"):
 		text, err = s.facebook(ctx, name, a)
+	case strings.HasPrefix(name, "x_"):
+		text, err = s.x(ctx, name, a)
+	case strings.HasPrefix(name, "medium_"):
+		text, err = s.medium(ctx, name, a)
+	case strings.HasPrefix(name, "linkedin_"):
+		text, err = s.linkedin(ctx, name, a)
+	case strings.HasPrefix(name, "tiktok_"):
+		text, err = s.tiktok(ctx, name, a)
+	case strings.HasPrefix(name, "chatgpt_"):
+		text, err = s.chatgpt(ctx, name, a)
+	case strings.HasPrefix(name, "gemini_"):
+		text, err = s.gemini(ctx, name, a)
+	case strings.HasPrefix(name, "claude_"):
+		text, err = s.claude(ctx, name, a)
 	default:
 		text, err = s.call(ctx, name, a)
 	}
@@ -770,4 +863,142 @@ func facebookPost(a args) (*facebook.Post, error) {
 		return nil, err
 	}
 	return p, nil
+}
+
+func (s *Server) x(ctx context.Context, name string, a args) (string, error) {
+	switch name {
+	case "x_status":
+		st, err := s.X.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to X.", nil
+		}
+		return fmt.Sprintf("Signed in to X as %s (@%s).", st.Name, st.Handle), nil
+	case "x_post":
+		th, err := xThread(a)
+		if err != nil {
+			return "", err
+		}
+		r, err := s.X.Post(ctx, *th)
+		if err != nil {
+			return "", err
+		}
+		if th.Now {
+			return "Posted.", nil
+		}
+		return "Scheduled: " + r.Shown, nil
+	case "x_posts":
+		limit := int(a.Limit)
+		if limit <= 0 {
+			limit = 10
+		}
+		rows, err := s.X.Posts(ctx, a.Browser, limit)
+		if err != nil {
+			return "", err
+		}
+		if len(rows) == 0 {
+			return "No published posts.", nil
+		}
+		var b strings.Builder
+		for _, r := range rows {
+			fmt.Fprintf(&b, "%s %s\n%s\n\n", r.At.Format("2006-01-02 15:04"), r.Link, r.Text)
+		}
+		return b.String(), nil
+	case "x_scheduled":
+		list, err := s.X.ListScheduled(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if len(list) == 0 {
+			return "Nothing is scheduled.", nil
+		}
+		var b strings.Builder
+		for _, p := range list {
+			fmt.Fprintf(&b, "%s %s\n%s\n\n", p.At.Format("2006-01-02 15:04"), p.More, p.Text)
+		}
+		return b.String(), nil
+	case "x_reschedule", "x_unschedule":
+		var at time.Time
+		if a.At != "" {
+			var err error
+			if at, err = x.ParseTime(a.At); err != nil {
+				return "", err
+			}
+		}
+		if name == "x_unschedule" {
+			p, err := s.X.Unschedule(ctx, a.Browser, a.Match, at)
+			if err != nil {
+				return "", err
+			}
+			return fmt.Sprintf("Deleted the thread scheduled for %s:\n%s", p.At.Format("2006-01-02 15:04"), p.Text), nil
+		}
+		to, err := x.ParseTime(a.To)
+		if err != nil {
+			return "", err
+		}
+		p, err := s.X.Reschedule(ctx, a.Browser, a.Match, at, to)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Moved to %s:\n%s", p.At.Format("2006-01-02 15:04"), p.Text), nil
+	case "x_delete":
+		p, err := s.X.DeletePost(ctx, a.Browser, a.Match)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted the post of %s (%s):\n%s", p.At.Format("2006-01-02 15:04"), p.Link, p.Text), nil
+	case "x_download":
+		d, err := s.X.Download(ctx, a.Browser, a.Link, a.Out)
+		if err != nil {
+			return "", err
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "%s by %s (@%s), %s\n", d.URL, d.Author, d.Handle, d.Created.Local().Format("2006-01-02 15:04"))
+		if len(d.Tags) > 0 {
+			fmt.Fprintf(&b, "Tags: #%s\n", strings.Join(d.Tags, " #"))
+		}
+		for _, m := range d.Media {
+			fmt.Fprintf(&b, "Saved %s: %s\n", m.Type, m.File)
+		}
+		fmt.Fprintf(&b, "\nCaption:\n%s\n", d.Caption)
+		if d.Title != "" {
+			fmt.Fprintf(&b, "\nX Article, as markdown:\n%s\n", d.Text)
+		}
+		return b.String(), nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+// xThread makes x_post's thread: from the file, or from one post's text and
+// media, with at overriding the file's.
+func xThread(a args) (*x.Thread, error) {
+	var th *x.Thread
+	switch {
+	case a.File != "" && (a.Text != "" || len(a.Media) > 0):
+		return nil, errors.New("give file, or text and media, not both")
+	case a.File != "":
+		var err error
+		if th, err = x.ParseFile(a.File); err != nil {
+			return nil, err
+		}
+	case a.Text != "" || len(a.Media) > 0:
+		th = &x.Thread{Posts: []x.Post{{Text: a.Text, Media: a.Media}}}
+	default:
+		return nil, errors.New("file or text is required")
+	}
+	th.Browser = a.Browser
+	if a.At != "" {
+		at, err := x.ParseTime(a.At)
+		if err != nil {
+			return nil, err
+		}
+		th.At = at
+	}
+	th.Now = a.Now
+	if err := th.Check(time.Now()); err != nil {
+		return nil, err
+	}
+	return th, nil
 }

@@ -262,6 +262,12 @@ CDP is the faster way to prove the idea. The extension is the stronger choice
 if this ends up running unattended for a long time, or if detection ever
 becomes the binding problem.
 
+That extension exists now (2026-10-25): `san_remote chatgpt ask` in
+[San Remote](san_remote.md#chatgpt), and the tower's ChatGPT Ask step. It
+keeps this document's rule (the page sends every request) and reads the
+answer from the page, as markdown from the answer's own Copy button, instead
+of teeing the stream.
+
 ## Risk.
 
 This is against OpenAI's terms of use, which prohibit programmatic access to

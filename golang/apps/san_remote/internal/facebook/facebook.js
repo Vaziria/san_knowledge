@@ -86,7 +86,9 @@ globalThis.__sanFacebook = (() => {
         lang: document.documentElement.lang,
         visible: document.visibilityState === 'visible',
         signedOut: loginForm(),
-        signedIn: !loginForm() && !!document.querySelector('[role=navigation], [role=main]'),
+        // Business Suite has no navigation or main landmark; its home shows
+        // "Buat postingan" once loaded.
+        signedIn: !loginForm() && (!!document.querySelector('[role=navigation], [role=main]') || (location.host.startsWith('business.') && !!button(document, 'Buat postingan'))),
         composer: !!composer(),
         audience: !!audienceDialog(),
         panel: !!button(document, /^Buka Pemilih Tanggal/),

@@ -31,8 +31,10 @@ const (
 	groupsURL   = "https://www.facebook.com/groups/joins/"
 	bsHomeURL   = "https://business.facebook.com/latest/home?asset_id="
 	libraryPath = "/professional_dashboard/content/content_library/"
-	// piece is how many bytes of a file go into the page in one call.
-	piece = 4 << 20
+	// piece is how many bytes of a file go into the page in one call: a
+	// multiple of 3, as facebook.js joins the pieces' base64 before decoding
+	// (see x's piece).
+	piece = 3 << 20
 )
 
 // Service drives Facebook in the browser. Its calls run one at a time, since
@@ -935,8 +937,12 @@ func whenTime(s string, now time.Time) (time.Time, error) {
 // normalize makes editor text comparable.
 func normalize(s string) string {
 	s = strings.ReplaceAll(strings.ReplaceAll(s, "\r", ""), " ", " ")
-	return strings.TrimSpace(s)
+	// Each run of line breaks counts as one, as editors read blank lines
+	// back their own way (X's as three, 2026-10-25).
+	return strings.TrimSpace(lineBreaks.ReplaceAllString(s, "\n"))
 }
+
+var lineBreaks = regexp.MustCompile(`[ \t]*\n\s*`)
 
 // sameStart says whether a listed text, which the library may cut short,
 // starts the way the post does.

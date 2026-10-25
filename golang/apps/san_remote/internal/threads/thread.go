@@ -27,6 +27,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
+	"github.com/wargasipil/san_remote/internal/plaintext"
 )
 
 var (
@@ -102,8 +103,10 @@ type Post struct {
 // Everything after the frontmatter is the thread; a line holding only ---
 // starts the next post. A markdown image, ![](file), puts that image or video
 // in the post it is in, instead of in its text; files are relative to the
-// markdown file. In the frontmatter, at is the publish time, local, as
-// "2006-01-02 15:04" or RFC 3339, and topic is the first post's topic.
+// markdown file. Other markdown is written as plain text, which is all a
+// post has (plaintext.From): **bold** is bold, [text](url) is "text (url)".
+// In the frontmatter, at is the publish time, local, as "2006-01-02 15:04"
+// or RFC 3339, and topic is the first post's topic.
 func ParseFile(path string) (*Thread, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -192,22 +195,12 @@ func splitPosts(text string) []string {
 // image is a markdown image, ![alt](file); its file is group 1.
 var image = regexp.MustCompile(`!\[[^\]]*\]\(\s*<?([^)<>]+?)>?\s*\)`)
 
-// blankLines are two or more empty lines, which taking an image out of the
-// text can leave.
-var blankLines = regexp.MustCompile(`\n[ \t]*\n(?:[ \t]*\n)+`)
-
 func parsePost(part string) Post {
 	var p Post
 	for _, m := range image.FindAllStringSubmatch(part, -1) {
 		p.Media = append(p.Media, strings.TrimSpace(m[1]))
 	}
-	text := image.ReplaceAllString(part, "")
-	lines := strings.Split(text, "\n")
-	for i, l := range lines {
-		lines[i] = strings.TrimRight(l, " \t")
-	}
-	text = blankLines.ReplaceAllString(strings.Join(lines, "\n"), "\n\n")
-	p.Text = strings.TrimSpace(text)
+	p.Text = plaintext.From(image.ReplaceAllString(part, ""))
 	return p
 }
 

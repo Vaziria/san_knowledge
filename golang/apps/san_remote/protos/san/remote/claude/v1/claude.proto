@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package san.remote.claude.v1;
+
+// ClaudeService is the Claude service (internal/claude) over Connect, served
+// by `san_remote api` for other programs (the tower's workflows). Like the
+// CLI, it works in a background tab of the user's browser on claude.ai, the
+// way a person asks in its prompt box.
+service ClaudeService {
+  // GetStatus says whether the browser is signed in to claude.ai, as whom,
+  // and on which plan.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // Ask sends a prompt and returns the answer, once Claude has written it.
+  rpc Ask(AskRequest) returns (AskResponse);
+}
+
+// Status is the browser's claude.ai session.
+message Status {
+  bool signed_in = 1;
+  string name = 2;
+  // As the account button shows it: "Free", "Pro".
+  string plan = 3;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message AskRequest {
+  string browser = 1;
+  string prompt = 2;
+  // A normal chat, kept in the history, instead of an incognito chat.
+  bool keep = 3;
+  // How long to wait for the answer; 0 is 10 minutes.
+  uint32 wait_seconds = 4;
+  // Leave the tab open on the chat once the ask is over, for the user to
+  // read on or go on in it; otherwise it is closed.
+  bool stay = 5;
+}
+
+message AskResponse {
+  // The answer as its Copy button gives it: markdown.
+  string text = 1;
+  // The chat's link, for a kept chat.
+  string chat = 2;
+  bool incognito = 3;
+}

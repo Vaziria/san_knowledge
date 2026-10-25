@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package san.remote.linkedin.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// LinkedInService is the LinkedIn service (internal/linkedin) over Connect,
+// served by `san_remote api` for other programs (the tower's workflows). Like
+// the CLI, it works in a tab of the user's browser, the way a person does in
+// LinkedIn's article editor. Nothing is published at once: an article goes
+// out only at a time it is scheduled for.
+service LinkedInService {
+  // GetStatus says whether the browser is signed in to LinkedIn, and as
+  // whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // CreateDraft writes a markdown article file of this computer into a new
+  // article draft, and with at schedules it: the editor opens in a tab
+  // brought to the front, for a few minutes.
+  rpc CreateDraft(CreateDraftRequest) returns (CreateDraftResponse);
+  // ScheduleDraft schedules a draft through the editor's Next.
+  rpc ScheduleDraft(ScheduleDraftRequest) returns (ScheduleDraftResponse);
+  // ListDrafts lists the article drafts.
+  rpc ListDrafts(ListDraftsRequest) returns (ListDraftsResponse);
+  // ListScheduled lists the scheduled articles.
+  rpc ListScheduled(ListScheduledRequest) returns (ListScheduledResponse);
+}
+
+// Status is the browser's LinkedIn session.
+message Status {
+  bool signed_in = 1;
+  string name = 2;
+}
+
+// Article is a draft or a scheduled article.
+message Article {
+  // A draft's id, as in its edit link; the Scheduled tab shows none.
+  string id = 1;
+  // Where to edit a draft: https://www.linkedin.com/article/edit/<id>/.
+  string url = 2;
+  string title = 3;
+  // For a draft, as the Drafts tab says it: "Last modified on Oct 13, 2026".
+  string modified = 4;
+  // For a scheduled article, when LinkedIn publishes it, and how the
+  // Scheduled tab says it: "Fri, Nov 20 at 9:00 AM".
+  google.protobuf.Timestamp at = 5;
+  string shown = 6;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message CreateDraftRequest {
+  string browser = 1;
+  // The article: an absolute path of a markdown file on this computer, read
+  // as Medium's (title, subtitle, images with alt text and captions).
+  string file = 2;
+  // Instead of file: the article as markdown text, read as a file is; its
+  // images need absolute paths.
+  string markdown = 6;
+  // The cover image: an absolute path; empty for none.
+  string cover = 3;
+  // When LinkedIn publishes it, on a quarter hour at least 15 minutes ahead;
+  // unset leaves it a draft.
+  google.protobuf.Timestamp at = 4;
+  // The post that shares the article when it goes out; empty for the
+  // article alone.
+  string text = 5;
+}
+
+message CreateDraftResponse {
+  Article article = 1;
+  repeated string warnings = 2;
+}
+
+message ScheduleDraftRequest {
+  string browser = 1;
+  // The draft's id or its edit link.
+  string story = 2;
+  google.protobuf.Timestamp at = 3;
+  string text = 4;
+}
+
+message ScheduleDraftResponse {
+  Article article = 1;
+}
+
+message ListDraftsRequest {
+  string browser = 1;
+}
+
+message ListDraftsResponse {
+  repeated Article articles = 1;
+}
+
+message ListScheduledRequest {
+  string browser = 1;
+}
+
+message ListScheduledResponse {
+  repeated Article articles = 1;
+}

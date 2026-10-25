@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package san.remote.x.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// XService is the X service (internal/x) over Connect, served by `san_remote
+// api` for other programs (the tower's workflows). Like the CLI, it works in
+// a tab of the user's browser, the way a person does in X's composer. It
+// only schedules: X publishes a thread at its time.
+service XService {
+  // GetStatus says whether the browser is signed in to X, and as whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // SchedulePost schedules a thread: the composer opens in a tab brought to
+  // the front, for a minute or two.
+  rpc SchedulePost(SchedulePostRequest) returns (SchedulePostResponse);
+  // ListScheduled lists the scheduled threads, soonest first.
+  rpc ListScheduled(ListScheduledRequest) returns (ListScheduledResponse);
+  // ListPosts lists the account's published posts, newest first.
+  rpc ListPosts(ListPostsRequest) returns (ListPostsResponse);
+  // DownloadPost reads any post by its link, in a background tab, and saves
+  // its images and videos (an X Article's cover and images too) in a folder.
+  rpc DownloadPost(DownloadPostRequest) returns (DownloadPostResponse);
+}
+
+// DownloadedPost is a post read and its media saved by DownloadPost.
+message DownloadedPost {
+  string id = 1;
+  string link = 2;
+  // The name shown, and the handle without the @.
+  string author = 3;
+  string handle = 4;
+  google.protobuf.Timestamp created = 5;
+  // The post's text, its links written out.
+  string caption = 6;
+  // An X Article's title; empty for a post.
+  string title = 7;
+  // An X Article as markdown, its images the saved files' absolute paths;
+  // for a post, the caption.
+  string text = 8;
+  // The hashtags, without the #.
+  repeated string tags = 9;
+  repeated DownloadedMedia media = 10;
+}
+
+// DownloadedMedia is one saved image or video.
+message DownloadedMedia {
+  // photo, video or animated_gif, as X names them.
+  string type = 1;
+  // Where it came from on X's media servers.
+  string url = 2;
+  // The saved file's absolute path.
+  string file = 3;
+  string alt = 4;
+}
+
+// Status is the browser's X session.
+message Status {
+  bool signed_in = 1;
+  string name = 2;
+  // The handle, without the @.
+  string handle = 3;
+}
+
+// Post is one post of a thread.
+message Post {
+  // Plain text, newlines kept.
+  string text = 1;
+}
+
+// ScheduledThread is a thread in Drafts' Scheduled tab.
+message ScheduledThread {
+  google.protobuf.Timestamp at = 1;
+  // The line X shows for it: "Will send on Fri, Nov 20, 2026 at 9:00 AM".
+  string shown = 2;
+  // The first post's text.
+  string text = 3;
+  // "1 more post" when the thread has more.
+  string more = 4;
+}
+
+// PublishedPost is a post as the profile shows it.
+message PublishedPost {
+  string text = 1;
+  google.protobuf.Timestamp at = 2;
+  string link = 3;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message SchedulePostRequest {
+  string browser = 1;
+  // The first post, and each next one under it, as plain text.
+  repeated Post posts = 2;
+  // When X publishes it. With file or markdown it may be unset, for the
+  // frontmatter's at.
+  google.protobuf.Timestamp at = 3;
+  // Instead of posts: the thread's markdown file, an absolute path on this
+  // computer, read as `san_remote x post` reads one (frontmatter at, posts
+  // cut at ---, ![](file) images relative to it, the rest of the markdown
+  // written as plain text).
+  string file = 4;
+  // Instead of posts: the thread as markdown text, read as a file is; its
+  // images need absolute paths.
+  string markdown = 5;
+}
+
+message SchedulePostResponse {
+  // The line X showed for it.
+  string shown = 1;
+  google.protobuf.Timestamp at = 2;
+}
+
+message ListScheduledRequest {
+  string browser = 1;
+}
+
+message ListScheduledResponse {
+  repeated ScheduledThread threads = 1;
+}
+
+message ListPostsRequest {
+  string browser = 1;
+  // The most posts to list; 0 means the service's default.
+  uint32 limit = 2;
+}
+
+message ListPostsResponse {
+  repeated PublishedPost posts = 1;
+}
+
+message DownloadPostRequest {
+  string browser = 1;
+  // The post's link (https://x.com/<user>/status/<id>) or its id.
+  string link = 2;
+  // The folder for the files, an absolute path on this computer; it is made
+  // when it is not there. Files are named <id>-1.mp4, <id>-cover.jpg,
+  // <id>-article-1.jpg, and replace ones of the same name.
+  string out = 3;
+}
+
+message DownloadPostResponse {
+  DownloadedPost post = 1;
+}

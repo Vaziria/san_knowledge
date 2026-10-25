@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package san.remote.facebook.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// FacebookService is the Facebook service (internal/facebook) over Connect,
+// served by `san_remote api` for other programs (the tower's workflows).
+// Like the CLI, it works in a tab of the user's browser, the way a person
+// does in Facebook's composers (in Indonesian). It only schedules: Facebook
+// publishes a post at its time, so a group, which cannot be scheduled, is
+// refused.
+service FacebookService {
+  // GetStatus says who is signed in, and the Pages and groups they can post
+  // to.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // SchedulePost schedules a post: the composer opens in a tab brought to
+  // the front, for a minute or two.
+  rpc SchedulePost(SchedulePostRequest) returns (SchedulePostResponse);
+  // ListPosts lists the profile's posts in one tab of its Content Library.
+  rpc ListPosts(ListPostsRequest) returns (ListPostsResponse);
+}
+
+// Status is the browser's Facebook session.
+message Status {
+  bool signed_in = 1;
+  string name = 2;
+  // The profile's link.
+  string profile = 3;
+  repeated Place pages = 4;
+  repeated Place groups = 5;
+}
+
+// Place is a Page or a group the user can post to.
+message Place {
+  string name = 1;
+  string url = 2;
+}
+
+// ListedPost is a profile post as the Content Library lists it.
+message ListedPost {
+  string text = 1;
+  // As Facebook writes them, such as "Terjadwal" and "20 Nov pada 09.00".
+  string status = 2;
+  string when = 3;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message SchedulePostRequest {
+  string browser = 1;
+  // Where it goes: "profile" (or empty), "page: <name>". A group cannot be
+  // scheduled.
+  string to = 2;
+  // Who sees a profile post: public, friends or only_me; empty keeps the
+  // composer's default.
+  string audience = 3;
+  // The post's text, as plain text.
+  string text = 4;
+  // When Facebook publishes it. With file or markdown it may be unset, for
+  // the frontmatter's at.
+  google.protobuf.Timestamp at = 5;
+  // Instead of text: the post's markdown file, an absolute path on this
+  // computer, read as `san_remote facebook post` reads one (frontmatter to,
+  // audience and at, ![](file) images relative to it, the rest of the
+  // markdown written as plain text). to and audience given here win.
+  string file = 6;
+  // Instead of text: the post as markdown text, read as a file is; its
+  // images need absolute paths.
+  string markdown = 7;
+}
+
+message SchedulePostResponse {
+  // The time Facebook showed for it, as Facebook wrote it.
+  string shown = 1;
+  google.protobuf.Timestamp at = 2;
+}
+
+message ListPostsRequest {
+  string browser = 1;
+  // The Content Library's tab: scheduled (or empty), published or draft.
+  string tab = 2;
+}
+
+message ListPostsResponse {
+  repeated ListedPost posts = 1;
+}

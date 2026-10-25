@@ -161,6 +161,22 @@ func (s *Session) CallFor(ctx context.Context, timeout time.Duration, out any, f
 	return json.Unmarshal([]byte(r.GetResultJson()), out)
 }
 
+// CallMain runs code, the body of an async function, in the page's own
+// world, and decodes what it returns into out (which may be nil). It is for
+// the few steps that must reach the page's JavaScript, such as catching what
+// a Copy button writes to the clipboard; the page can see it, so it is kept
+// short and undone before it returns.
+func (s *Session) CallMain(ctx context.Context, timeout time.Duration, out any, code string) error {
+	r, err := s.B.Exec(ctx, &v1.ExecRequest{Browser: s.Browser, TabId: s.Tab, Code: code, World: v1.World_WORLD_MAIN, TimeoutMs: int32(timeout.Milliseconds())})
+	if err != nil {
+		return err
+	}
+	if out == nil {
+		return nil
+	}
+	return json.Unmarshal([]byte(r.GetResultJson()), out)
+}
+
 // Do calls a helper that presses something, and fails with the site's
 // ErrPage when it found nothing to press.
 func (s *Session) Do(ctx context.Context, what, fn string, args ...any) error {
@@ -217,8 +233,21 @@ func (s *Session) Look(ctx context.Context, look time.Duration) error {
 	return Sleep(ctx, look+rand.N(look))
 }
 
+// FrontWait is how long Front keeps asking for the window, and FrontRetry
+// how often it asks.
+var (
+	FrontWait  = 3 * time.Minute
+	FrontRetry = 5 * time.Second
+)
+
 // Front keeps a shown session's page in view: when the user has switched
-// away, the window is brought back to the front.
+// away, the window is brought back to the front. Windows lets a window come
+// to the front only when the user is not busy in another one, and flashes
+// its taskbar button instead, so Front asks again every FrontRetry for up to
+// FrontWait: the page goes on once the user clicks Chrome, or once Windows
+// allows it, as it does when the user has been away a while. It never
+// forces the window over the user's work (the user's choice, 2026-10-25),
+// which would also send what they type into the page.
 func (s *Session) Front(ctx context.Context) error {
 	if !s.Shown {
 		return nil
@@ -230,11 +259,20 @@ func (s *Session) Front(ctx context.Context) error {
 	if ok, err := visible(); err != nil || ok {
 		return err
 	}
-	s.Log("bringing the window back to the front; leave it there until the tool is done")
-	if _, err := s.B.FocusTab(ctx, &v1.FocusTabRequest{Browser: s.Browser, TabId: s.Tab}); err != nil {
-		return err
+	s.Log("bringing the window back to the front; if Chrome only flashes on the taskbar, click it, and leave it there until the tool is done")
+	deadline := time.Now().Add(FrontWait)
+	for {
+		if _, err := s.B.FocusTab(ctx, &v1.FocusTabRequest{Browser: s.Browser, TabId: s.Tab}); err != nil {
+			return err
+		}
+		err := s.Until(ctx, "the window to be shown", FrontRetry, visible)
+		if err == nil || !errors.Is(err, s.site.ErrPage) {
+			return err
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("%w: waited %s for the window to be shown: Windows keeps the window you are using in front; click Chrome's flashing taskbar button when it asks", s.site.ErrPage, FrontWait)
+		}
 	}
-	return s.Until(ctx, "the window to be shown", 10*time.Second, visible)
 }
 
 // Fail adds a screenshot of the tab to a page error, for a person to look

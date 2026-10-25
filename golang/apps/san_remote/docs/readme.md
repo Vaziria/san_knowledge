@@ -14,7 +14,10 @@ san_remote exec / MCP ──RemoteService──▶ san_remote serve ◀──Bro
 
 Unlike the chromedp tools (`san_tiktok`, `san_medium`, …), there is no
 separate Chrome, no debugging port and no `browser_profiles/` profile: it is
-your real browser with your real sign-ins.
+your real browser with your real sign-ins. Medium, LinkedIn, TikTok and
+ChatGPT have services of their own here too (2026-10-25), the chromedp
+tools' steps on your own browser, and so do Gemini and Claude (claude.ai,
+the same day).
 
 Why it is built this way is in the design doc,
 [docs/external_repo/san_remote.md](../../../../docs/external_repo/san_remote.md).
@@ -83,7 +86,15 @@ bin\san_remote.exe screenshot --tab 123 -o shot.png
 bin\san_remote.exe threads ...                    # Threads: see "Threads" below
 bin\san_remote.exe vidara ...                     # Vidara: see "Vidara" below
 bin\san_remote.exe facebook ...                   # Facebook: see "Facebook" below
+bin\san_remote.exe x ...                          # X: see "X" below
+bin\san_remote.exe medium ...                     # Medium: see "Medium" below
+bin\san_remote.exe linkedin ...                   # LinkedIn: see "LinkedIn" below
+bin\san_remote.exe tiktok ...                     # TikTok: see "TikTok" below
+bin\san_remote.exe chatgpt ...                    # ChatGPT: see "ChatGPT" below
+bin\san_remote.exe gemini ...                     # Gemini: see "Gemini" below
+bin\san_remote.exe claude ...                     # claude.ai: see "Claude" below
 bin\san_remote.exe mcp                            # MCP on stdio, for Claude
+bin\san_remote.exe api                            # the site services over Connect (gRPC), on 127.0.0.1:7478
 ```
 
 **exec.** The code is the body of an async function, so `return` gives the
@@ -150,6 +161,32 @@ rebuilding, reconnect with `/mcp`.
 | `facebook_post` | file, or text with media; to, audience, at, now, browser |
 | `facebook_posts` | tab, browser |
 | `facebook_delete` | match, tab, browser |
+| `x_status` | browser |
+| `x_post` | file, or text with media; at, now, browser |
+| `x_posts` | limit, browser |
+| `x_scheduled` | browser |
+| `x_reschedule` | match, at, to, browser |
+| `x_unschedule` | match, at, browser |
+| `x_delete` | match (link, id or text), browser |
+| `x_download` | link (any post's, or its id); out, browser |
+| `medium_status`, `medium_drafts`, `medium_scheduled` | browser |
+| `medium_draft` | file; at, topics, browser |
+| `medium_get`, `medium_unschedule`, `medium_delete` | story (id or link), browser |
+| `medium_schedule` | story, at; topics, remove_topics, browser |
+| `linkedin_status`, `linkedin_drafts`, `linkedin_scheduled` | browser |
+| `linkedin_draft` | file; cover, at, text, browser |
+| `linkedin_get`, `linkedin_delete` | story (id or edit link), browser |
+| `linkedin_schedule` | story, at; text, browser |
+| `linkedin_unschedule` | match (the title); when, browser |
+| `tiktok_status`, `tiktok_posts` | browser |
+| `tiktok_post` | file, or video with caption; at or now, browser |
+| `tiktok_delete` | caption, when, browser |
+| `chatgpt_status` | browser |
+| `chatgpt_ask` | prompt; keep, chat, wait_seconds, browser |
+| `gemini_status` | browser |
+| `gemini_ask` | prompt; keep, wait_seconds, browser |
+| `claude_status` | browser |
+| `claude_ask` | prompt; keep, wait_seconds, browser |
 
 The server's instructions tell Claude it is your real browser, and to ask
 you before it submits forms, posts, buys or deletes anything. They also say
@@ -157,7 +194,70 @@ to schedule only what you asked for, and never to post now unless you asked.
 For Vidara they say to upload only what you asked for, to ask before a
 delete, and never to press a video page's "Download file" button, which is
 an ad. For Facebook they say to post only what you asked for, where you
-asked, and to ask before a delete.
+asked, and to ask before a delete. For X, as for Threads, they say to
+schedule or post only what you asked for, and never now unless you asked.
+For Medium, LinkedIn and TikTok they say that nothing is published at once,
+to post only what you asked for, and to ask before a delete. For ChatGPT
+and Gemini they say a new chat is a Temporary chat unless `keep` is set, and
+for Claude an incognito chat.
+
+## API
+
+`san_remote api` serves the Threads, X, Facebook and Vidara services over
+Connect, which also speaks gRPC, for other programs. The first one is the
+tower: its San Remote connection points at it, and its workflow steps post
+and read through it. Like the MCP server, it is a client of `serve`, so
+start `serve` first.
+
+```powershell
+bin\san_remote.exe api                            # 127.0.0.1:7478, serve at --server
+bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site step in the log
+```
+
+| Service | RPCs |
+|---|---|
+| `san.remote.v1.RemoteService` | everything `serve` has, passed through to it |
+| `san.remote.threads.v1.ThreadsService` | GetStatus, SchedulePost (posts with a topic on the first, or a markdown file or text), ListScheduled, ListPosts |
+| `san.remote.x.v1.XService` | GetStatus, SchedulePost (a thread, or a markdown file or text), ListScheduled, ListPosts, DownloadPost (any post's media and text, into an absolute folder) |
+| `san.remote.facebook.v1.FacebookService` | GetStatus, SchedulePost (to the profile or a Page, with an audience; text, or a markdown file or text), ListPosts (a Content Library tab) |
+| `san.remote.vidara.v1.VidaraService` | GetStatus, UploadVideo, ListVideos, DownloadVideo (by link or code, to an absolute folder or file) |
+| `san.remote.medium.v1.MediumService` | GetStatus, CreateDraft (an absolute article file, or its markdown; with `at`, scheduled too, with topics), ScheduleDraft, ListDrafts, ListScheduled |
+| `san.remote.linkedin.v1.LinkedInService` | GetStatus, CreateDraft (an absolute article file, or its markdown, and cover; with `at`, scheduled too, shared with `text`), ScheduleDraft, ListDrafts, ListScheduled |
+| `san.remote.tiktok.v1.TikTokService` | GetStatus, SchedulePost (an absolute video file, for Everyone; the caption, or a markdown file or text), ListPosts |
+| `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat) |
+| `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat) |
+| `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat) |
+
+- **Only scheduling.** A post's `at` is required, and there is no "now"
+  (the user's choice, 2026-10-24): the site publishes it at its time, and
+  until then it can be deleted from the site's scheduled list. So a group
+  post on Facebook, which cannot be scheduled, is refused. A Medium or
+  LinkedIn article without `at` stays a draft, which nobody else sees.
+- **Files are absolute paths** (articles, covers, videos): a relative one
+  would be inside wherever the api was started.
+- **Markdown posts** (the user, 2026-10-25, for the tower's post steps'
+  Format Markdown). SchedulePost of Threads, X, Facebook and TikTok takes,
+  instead of plain text (`posts`, `text`, `caption`), `file`, a post file as
+  the CLI reads it (images relative to it), or `markdown`, the same as text
+  (images and a video by absolute paths). What the request gives wins over
+  the frontmatter: `at`, Threads' `topic`, Facebook's `to` and `audience`,
+  TikTok's `video`; `at` may be left out for the file's. CreateDraft of
+  Medium and LinkedIn takes `markdown` instead of `file` the same way.
+- **Checked first.** What the site would refuse (no post, a time too soon or
+  too far, a missing video file, a download's bad link or relative path) is
+  refused before a tab opens, as InvalidArgument. A browser that is not signed in, or not in the language
+  the steps expect, is FailedPrecondition. `serve` not running is
+  Unavailable: "san_remote is not running at …".
+- **One address.** RemoteService goes through to `serve`, so a program needs
+  only the api's address; the tower's connection Test lists the attached
+  browsers through it.
+- **How it runs.** Like the CLI and the MCP server, the site steps run in
+  the api's own process and reach the browser through `serve`. A fix to a
+  site needs only an api restart. A post works in a tab brought to the
+  front for a minute or two, and only one runs at a time per process, as
+  with the CLI.
+- **Security.** It only listens on loopback and takes no calls from web
+  pages (`hub.Guard`), like `serve`: whatever reaches it can post as you.
 
 ## Threads
 
@@ -208,6 +308,11 @@ The second post, under the first one.
 - **`![](file)`** puts an image or video in the post it is in, relative to
   the file. Threads takes jpg, png, webp, avif, mp4, mov and webm, but not
   gif.
+- **Markdown** in a post is written as plain text, since a post has none:
+  `**bold**` is bold, `# Title` is Title, `[text](url)` is "text (url)",
+  `` `code` `` is code; lists keep their markers, line breaks stay, and
+  `#hashtags` are not headings. Text without markup is left as it is
+  (2026-10-25), so an AI's markdown answer can be posted as it is.
 - **Limits:** 500 characters and 20 media per post.
 - **Write it in Indonesian,** like the articles. Thread files sit next to
   their article, in `docs/articles/<topic>/threads/`.
@@ -302,8 +407,10 @@ cannot be undone.
 - **The file:** ffmpeg puts the segments in an `.mp4` without re-encoding.
   Without ffmpeg on PATH they are kept as `.ts`.
 - **Where it goes:**
-  - `--out` is a file or a folder.
+  - `--out` is a file or a folder. A folder that is not there yet is one
+    when the path ends in `\` or `/`.
   - By default the file is named after the title, in the current folder.
+  - Missing folders are made.
   - An existing file is never overwritten.
 - **Never press "Download file".** The video page's "Download file" button
   is an ad (it links to another site), and the tool never presses it.
@@ -371,6 +478,7 @@ The post. Line breaks are kept.
   because Facebook's pickers offer nothing else. `--at` overrides it.
 - **`![](file)`** attaches an image or video, relative to the file: jpg,
   png, gif, webp, heic, mp4, m4v, mov, mkv or webm.
+- **Markdown** is written as plain text, as in a thread file.
 - A post needs text, media or both. **Write it in Indonesian,** like the
   articles.
 
@@ -409,6 +517,355 @@ posts are not listed or deleted here; use Business Suite.
 - A failed step stops with a screenshot in the temp folder:
   `san_remote-facebook-150405.png`.
 
+## X
+
+`san_remote x` posts to X through your browser's X session, the way you
+would in its composer:
+- **post** pastes each post of a thread, attaches its images or videos,
+  and schedules the thread, or posts it now. X then publishes a scheduled
+  thread by itself.
+- **scheduled**, **reschedule** and **unschedule** list, move and delete
+  scheduled threads, in the composer's Drafts → Scheduled.
+- **posts** lists your latest published posts from your profile, and
+  **delete** deletes one.
+- **download** reads anyone's post from its link and saves its images and
+  videos, with its caption, hashtags and, for an X Article, the article
+  as markdown (below).
+- **status** says who is signed in.
+
+X's API is not used: posting through it needs a paid developer plan.
+
+```powershell
+bin\san_remote.exe x status                                # signed in as Warga Sipil (@archetipe_)
+bin\san_remote.exe x post --dry-run thread.md              # each post with its length in X's count; opens nothing
+bin\san_remote.exe x post thread.md                        # scheduled: Will send on Fri, Nov 20, 2026 at 9:00 AM
+bin\san_remote.exe x post --at "2026-11-20 09:00" --text "Satu post" --media pic.png
+bin\san_remote.exe x scheduled                             # AT, TEXT, MORE ("1 more post")
+bin\san_remote.exe x reschedule --match "Uji jadwal" "2026-11-22 10:30"
+bin\san_remote.exe x unschedule --match "Uji jadwal" --at "2026-11-22 10:30"
+bin\san_remote.exe x posts --limit 10                      # AT, LINK, TEXT: newest first
+bin\san_remote.exe x delete https://x.com/getresolvedid/status/2096950313257484398
+bin\san_remote.exe x download --out D:\x --md https://x.com/IntEngineering/status/2113210739255070922
+```
+
+**The thread file** is the Threads format without the topic:
+
+```markdown
+---
+at: 2026-11-20 09:00
+---
+
+The first post. Line breaks are kept.
+
+![](../assets/diagram.png)
+
+---
+
+The second post, under the first one.
+```
+
+- **`at`** is local time, `"2006-01-02 15:04"`, or RFC 3339, on a whole
+  minute, 10 minutes to 18 months ahead. `--at` overrides it.
+- **`---`** on a line of its own starts the next post.
+- **`![](file)`** puts an image or video in the post it is in: jpg, png,
+  webp, gif, mp4 or mov. A post holds up to 4 images, or one video or GIF.
+- **Markdown** is written as plain text, as in a Threads file; a link's
+  address stays in the post, in brackets after its text.
+- **Length:** 280 per post in X's count, for an account without Premium. A
+  link counts 23 whatever its length; CJK characters and emoji count 2.
+  `--dry-run` shows each post's count.
+
+`--now` posts at once, publicly, instead of scheduling.
+
+**When X says no**, the tool stops with X's own words and discards the
+draft, so nothing is left in Drafts. For example `x: X refused the post:
+Your account is suspended and is not permitted to send posts.`, or `Some
+of your media failed to upload.`
+
+**Scheduled threads** are named by `--match` (part of the first post's
+text), `--at` (their time), or both, which must name exactly one.
+- `reschedule` opens the thread from the Scheduled tab, sets the new time,
+  and presses Schedule. X keeps one thread at the new time, and the tool
+  checks the tab lists it there and not at the old time.
+- `unschedule` ticks that one thread in the tab's Edit mode and presses
+  Delete. X asks "Discard unsent posts?" and the tool answers Delete. It
+  cannot be undone.
+
+**Downloading a post** (`x download LINK`, 2026-10-25) opens the link in a
+background tab and reads the post from X's own app, the data its page is
+drawn from, so nothing is clicked and nothing changes on the account.
+- **Files** go to `--out` (default: the current folder), made when
+  missing: `<id>-1.mp4`, `<id>-2.jpg`, in the post's order. A photo is its
+  original size, a video or GIF its best mp4 (the 1080p one where there is
+  one). They come from X's media servers, which need no sign-in. A file of
+  the same name is replaced.
+- **Caption** is the post's text: a long post's whole text, links written
+  out, the link to its own media dropped. **Tags** are its hashtags (X's
+  own, else the `#words` in the caption).
+- **An X Article** (a post that is only a link to x.com/i/article/…) is
+  drawn whole on its post's page. Its cover is saved as `<id>-cover.jpg`
+  and its images as `<id>-article-1.jpg`; its text becomes markdown: `#`
+  the title, the cover, then the body (headings one level down, bold,
+  italic, links, lists, quotes, code, its tables as markdown tables, its
+  images pointing at the saved files by absolute path).
+- `--md` also writes that text (the article, or the caption) to `<id>.md`.
+
+Checked on 2026-10-25 with a video post (one 1080×1920 mp4, 113 s, and its
+long caption) and an X Article post (its cover, 1983×793, and its markdown
+with two tables).
+
+**delete** names a published post by its link, its id, or part of its
+text, which must name exactly one of your latest 50 posts. From your
+profile it opens the post's "…" menu and presses Delete, and answers Delete
+when X asks. It cannot be undone.
+
+**While it runs:**
+- `post`, `scheduled`, `reschedule`, `unschedule` and `delete` open a tab
+  of their own in your current Chrome window and bring Chrome to the front:
+  X draws its composer, its dialogs and its menus only in a shown page.
+  Leave Chrome alone until the command is done. If you work in another
+  window, Windows may keep Chrome behind it, and the step waits.
+- `status` and `posts` read in a background tab.
+- Each step is printed to stderr as `== …`.
+- A failed step stops with a screenshot in the temp folder:
+  `san_remote-x-150405.png`.
+
+## Medium
+
+`san_remote medium` writes your markdown articles into Medium through your
+browser's Medium session, the way you would in Medium's editor. It is
+[san_medium](../../../packages/san_medium/README.md) on your own browser
+instead of a Chrome of its own:
+- **draft** opens a new story with Write, types the title, pastes the text,
+  and puts each image in its place with the editor's + menu, with its alt
+  text and caption. Medium saves the draft itself; the tool then checks it
+  against the article. With `--at` it then schedules it, with `--topic`s.
+- **schedule** sets a draft's time on Medium's publish page (topics, "Schedule
+  for later", the date picker). Medium publishes it by itself, within 5
+  minutes of that time. **unschedule** presses "Cancel scheduling"; the story
+  stays a draft.
+- **drafts**, **scheduled** and **get** read, **delete** deletes a draft.
+- **status** says who is signed in.
+
+Nothing is ever published at once. Medium issues no API tokens any more.
+
+```powershell
+bin\san_remote.exe medium status                       # signed in as Getresolvedid (@getresolvedid)
+bin\san_remote.exe medium draft --dry-run article.md   # how the article will be cut; opens nothing
+bin\san_remote.exe medium draft article.md             # https://medium.com/p/f08623feda65/edit
+bin\san_remote.exe medium draft --at "2026-11-24 09:00" --topic Programming article.md
+bin\san_remote.exe medium schedule --at "2026-11-24 09:00" --topic Golang f08623feda65
+bin\san_remote.exe medium scheduled                    # ID, AT, TITLE
+bin\san_remote.exe medium unschedule f08623feda65
+bin\san_remote.exe medium drafts                       # ID, UPDATED, WORDS, TITLE
+bin\san_remote.exe medium get f08623feda65             # status, title, subtitle, images, then the text
+bin\san_remote.exe medium delete f08623feda65
+```
+
+**The article** is read as the
+[article guideline](../../../../docs/articles/guideline.md) writes it:
+- the first `# ` heading is the title, and an italic paragraph right under it
+  the subtitle
+- `##` becomes Medium's large heading, `###` and deeper the small one
+- text, lists, quotes, links, inline code and code blocks are pasted
+- an image on a paragraph of its own (`![alt](assets/x.png)`) is uploaded,
+  with its alt text; an italic paragraph right under it is its caption
+- frontmatter is skipped
+
+A missing image file or a remote image (`https://…`) is refused before a tab
+opens; warnings name links to local files and images inside a line of text.
+
+A story is named by its id or any link to it (`/p/<id>/edit`, or a story
+link ending in `-<id>`). **`--at`** is local time, on a whole minute, at least
+10 minutes ahead; up to 5 topics, each one Medium suggests. `schedule
+--remove-topic` takes a topic off first.
+
+**While it runs:**
+- `draft`, `schedule`, `unschedule` and `delete` open a tab of their own in
+  your current Chrome window and bring Chrome to the front: the editor's +
+  button glides into place only in a shown page. Leave it alone until the
+  command is done.
+- `status`, `drafts`, `scheduled` and `get` read in a background tab.
+- Every command starts at Medium's home page and clicks through (Write,
+  Stories, a row's menu), as a person does; only the Scheduled tab's table
+  and `get` open a link of their own.
+- A failed step stops with a screenshot: `san_remote-medium-150405.png`.
+
+## LinkedIn
+
+`san_remote linkedin` writes your markdown articles into LinkedIn articles
+through your browser's LinkedIn session, the way you would in the article
+editor. It is [san_linkedin](../../../packages/san_linkedin/README.md) on your
+own browser:
+- **draft** opens "Write article" from the feed, types the title, uploads the
+  cover (`--cover`), pastes the text, and puts each image in its place with
+  the editor's image button, with its alt text and caption. With `--at` it
+  then schedules it, shared with `--text`.
+- **schedule** goes through the editor's Next: the post's text, the clock,
+  the date and time. LinkedIn publishes it by itself. **unschedule** moves a
+  scheduled article back to the drafts, named by its title (the Scheduled tab
+  shows no ids).
+- **drafts**, **scheduled** and **get** read the editor's Articles dialog,
+  **delete** deletes a draft.
+- **status** says who is signed in.
+
+```powershell
+bin\san_remote.exe linkedin status
+bin\san_remote.exe linkedin draft --cover assets\cover.png article.md
+bin\san_remote.exe linkedin draft --at "2026-11-20 09:00" --text "Bagian 1 dari seri VPN." article.md
+bin\san_remote.exe linkedin schedule --at "2026-11-20 09:00" 7515804761766535168
+bin\san_remote.exe linkedin scheduled                  # WHEN, TITLE
+bin\san_remote.exe linkedin unschedule "Judul artikel" # --when "Fri, Nov 20 at 9:00 AM" picks one of two
+bin\san_remote.exe linkedin drafts                     # ID, MODIFIED, TITLE
+bin\san_remote.exe linkedin get 7515804761766535168
+bin\san_remote.exe linkedin delete 7515804761766535168
+```
+
+The article is read as for Medium; LinkedIn has no subtitle field, so the
+subtitle opens the body as an italic paragraph. LinkedIn keeps 150 characters
+of a title, 1,000 of alt text and 250 of a caption. **`--at`** is on a quarter
+hour, at least 15 minutes ahead. The time LinkedIn states, and its zone
+("based on your location"), are read back before Schedule is pressed.
+
+Every command but `status` brings Chrome to the front: the Articles dialog
+is reached through the editor's Manage menu.
+
+Its interface must be in English. Every command but `get` was run live on
+2026-10-25 (status, draft with a cover and images, schedule, scheduled,
+unschedule, drafts, delete), and `TestLinkedInDraft` passes. Keep Chrome on screen while it
+works (see "Chrome to the front" under Troubleshooting).
+
+## TikTok
+
+`san_remote tiktok` posts your videos through TikTok Studio, in your
+browser's TikTok session. It is
+[san_tiktok](../../../packages/san_tiktok/README.md) on your own browser:
+- **post** gives Studio's upload page the video, writes the caption, picking
+  each `#hashtag` from TikTok's suggestions, and schedules it for Everyone,
+  or with `--now` posts it at once for Only you. A video is never public at
+  once.
+- **posts** lists Studio's Posts, and **delete** deletes one there.
+- **status** says who is signed in.
+
+```powershell
+bin\san_remote.exe tiktok status                       # signed in as @getresolved.id
+bin\san_remote.exe tiktok post --dry-run post.md       # the video, when, and the caption; opens nothing
+bin\san_remote.exe tiktok post post.md                 # 00:06 Uji … Nov 3, 7:00 PM Everyone 0 0 0
+bin\san_remote.exe tiktok post --video clip.mp4 --caption "Uji #gamedev" --at "2026-11-03 19:00"
+bin\san_remote.exe tiktok posts                        # WHEN, LENGTH, PRIVACY, CAPTION
+bin\san_remote.exe tiktok delete --caption "Uji" --when "Nov 3, 7:00 PM"
+```
+
+**The post file** is san_tiktok's: frontmatter `video:` (relative to the
+file) and `at:`, then the caption.
+
+```markdown
+---
+video: renders/clip.mp4
+at: 2026-11-03 19:00
+---
+
+Baris pertama.
+Baris kedua #gamedev
+```
+
+- **`at`** is local time on a 5-minute step, 15 minutes to 30 days ahead:
+  Studio's calendar offers the next 30 days (10 when san_tiktok was built).
+- **Who can see it:** Everyone for a scheduled post; Studio refuses to
+  schedule a private one ("Private videos can't be scheduled"). `--now` is
+  Only you.
+- **Hashtags** TikTok does not suggest stay text.
+- **Markdown** in the caption is written as plain text, as in a Threads
+  file; an image is dropped.
+- The time zone box must show this computer's offset ("(GMT+7) Local Time").
+- Studio's checks (content check lite, about 10 minutes) are waited for
+  before Schedule, since pressing it earlier makes Studio ask "Continue to
+  post?".
+
+`post` and `delete` bring Chrome to the front; `status` and `posts` read in
+a background tab. A failed step stops with a screenshot:
+`san_remote-tiktok-150405.png`.
+
+## ChatGPT
+
+`san_remote chatgpt` asks ChatGPT through your browser's ChatGPT session, the
+way you would in the composer. It is the extension way
+[san_gpt](../../../../docs/external_repo/san_gpt.md#alternative-a-chrome-extension)
+weighed:
+- **ask** starts a **Temporary chat** (not kept in your history), writes the
+  prompt, presses Send, waits for the answer, and prints it as **markdown**:
+  the answer's own Copy button gives it, caught in the page before it reaches
+  your clipboard.
+- `--keep` asks in a normal chat instead, and prints its link to stderr;
+  `--chat <link>` continues a kept chat.
+- **status** says who is signed in, and on which plan.
+
+```powershell
+bin\san_remote.exe chatgpt status                      # signed in as Get Resolved (Free)
+bin\san_remote.exe chatgpt ask "Dua kota besar di Indonesia, sebagai daftar"
+Get-Content prompt.md | bin\san_remote.exe chatgpt ask -
+bin\san_remote.exe chatgpt ask --file prompt.md --wait 20m
+bin\san_remote.exe chatgpt ask --keep "Mulai topik baru"            # == chat https://chatgpt.com/c/...
+bin\san_remote.exe chatgpt ask --chat https://chatgpt.com/c/... "Lanjutkan"
+```
+
+- The page's own code sends every request; the tool only writes in the
+  composer and reads what the page shows.
+- Both commands work in a background tab, which is closed afterwards.
+- `--wait` (default 10 minutes) bounds a long answer, such as a reasoning
+  model's.
+- ChatGPT's interface must be in English.
+
+## Gemini
+
+`san_remote gemini` asks Gemini (gemini.google.com) through your browser's
+Google session, as `chatgpt` does ChatGPT:
+- **ask** starts a **Temporary chat** (not kept in your history), writes the
+  prompt, presses Send message, waits for the answer, and prints it: the
+  answer's own Copy button gives it, caught in the page before it reaches
+  your clipboard.
+- `--keep` asks in a normal chat instead, and prints its link to stderr.
+- **status** says which Google account is signed in.
+
+```powershell
+bin\san_remote.exe gemini status                       # signed in as <your name>
+bin\san_remote.exe gemini ask "Dua kota besar di Indonesia, sebagai daftar"
+Get-Content prompt.md | bin\san_remote.exe gemini ask -
+bin\san_remote.exe gemini ask --file prompt.md --wait 20m
+bin\san_remote.exe gemini ask --keep "Mulai topik baru"             # == chat https://gemini.google.com/app/...
+```
+
+- **ask brings Chrome to the front** for as long as it asks: Gemini sends a
+  prompt only while its page is shown (a Send pressed in a background tab
+  waits until the tab comes to the front). status reads in a background tab.
+- `--wait` (default 10 minutes) bounds a long answer.
+- Gemini's interface must be in English.
+
+## Claude
+
+`san_remote claude` asks Claude on claude.ai through your browser's
+claude.ai session, as `chatgpt` does ChatGPT:
+- **ask** starts an **incognito chat** (kept out of your history and search),
+  writes the prompt, presses Send message, waits for the answer, and prints
+  it as **markdown**: the answer's own Copy button gives it, caught in the
+  page before it reaches your clipboard.
+- `--keep` asks in a normal chat instead, and prints its link to stderr.
+- **status** says who is signed in, and on which plan.
+
+```powershell
+bin\san_remote.exe claude status                       # signed in as sease (Free)
+bin\san_remote.exe claude ask "Dua kota besar di Indonesia, sebagai daftar"
+Get-Content prompt.md | bin\san_remote.exe claude ask -
+bin\san_remote.exe claude ask --keep "Mulai topik baru"             # == chat https://claude.ai/chat/...
+```
+
+- Both commands work in a background tab, which is closed afterwards.
+- A lapsed claude.ai session sends the tab to the sign-in page: `not signed
+  in`; sign in to claude.ai in that browser.
+- claude.ai's interface must be in English.
+- Claude Code on this computer is another way to ask Claude: the tower's
+  Claude Ask (CLI) step runs `claude -p`; this is claude.ai in the browser.
+
 ## Debug panel
 
 The extension keeps a log of every command the server sends and the reply
@@ -439,6 +896,8 @@ logged.
 | `serve --listen` | address to listen on, loopback only | `127.0.0.1:7476` |
 | `serve --extension-id` | extension ids allowed to attach (repeatable) | `kmlmiiljeiakjbilabmpdiegmoagkmkg` |
 | `serve --log-level` | debug, info, warn, error | `info` |
+| `api --listen` | address the API listens on, loopback only | `127.0.0.1:7478` |
+| `api --log-level` | debug (each site step), info, warn, error | `info` |
 | `--server`, `$SAN_REMOTE_SERVER` | where the CLI and MCP find `serve` | `http://127.0.0.1:7476` |
 | `--browser`, `$SAN_REMOTE_BROWSER` | browser id or name, when several are attached | |
 | `--timeout` (exec, open, navigate) | how long to wait for the browser | `30s` |
@@ -476,6 +935,7 @@ need a token and TLS first.
 | `the code did not finish in 30000ms` | Raise `--timeout`. The code may still be running in the page. |
 | `the page did not finish loading` | The page kept loading past the timeout. Raise `--timeout`, or `exec` anyway: the tab is there. |
 | it ran, but nothing showed up | The tab opened in a window behind your other apps. Use `open --focus`, or look at the debug panel. |
+| Chrome's taskbar button flashes: `bringing the window back to the front` | A step that needs its page on screen (posting, X's and Threads' scheduled lists, Gemini) asks for Chrome, and Windows won't hand it over while you use another window. Click Chrome: the step asks again every 5 s for up to 3 minutes (the user's choice, 2026-10-25: wait, never force the window over your work, where your typing would land in the page), and Windows lets it through on its own once you have been away a while. After that it stops with `waited 3m0s for the window to be shown`. |
 | the extension still acts the old way after `npm run build` | Press reload on its card in `chrome://extensions`. |
 | the CLI or MCP still acts the old way after `build.ps1` | A running `serve` or `mcp` keeps the old binary; restart it (`/mcp` for MCP). Windows won't overwrite a running exe, so move it to `bin/san_remote.exe~` first. |
 | threads: `waited … for …`, with a screenshot | A Threads step did not see what it expected. Look at the screenshot: a dialog in the way, a change in Threads' page, or the tab hidden. |
@@ -492,7 +952,20 @@ need a token and TLS first.
 | facebook: `Facebook's interface is not in Indonesian` | The tool finds Facebook's controls by their Indonesian names. Set Facebook's language to Bahasa Indonesia. |
 | facebook: `nothing matches: no Page "…" (yours: …)` | The error lists your Pages or groups, as `status` finds them; name one of those. |
 | facebook: `the post is still in … after Hapus` | Facebook was slow to drop it. Run `posts` again: it is usually gone a minute later. |
+| x: `X refused the post: …` | X's own reason. "Your account is suspended" and "Some of your media failed to upload" come from the account, not the tool: check it on x.com. |
+| x: `X's interface is not in English` | Set X's language to English (Settings → Accessibility, display and languages → Languages). |
+| x: `waited … for the composer to take the thread; X may count a post as too long` | X keeps its Post button off. Run `--dry-run` to see each post's count. |
 | `aborted: No current window` | Chrome is running with no window open. Open a Chrome window. |
+| medium: `the browser is not signed in to Medium` | Sign in to medium.com in that browser. |
+| medium: `Medium does not suggest the topic …` | The error lists what Medium suggests; give one of those. |
+| medium: `the page shows "…", not …; nothing was scheduled` | The picker's time differs from the one asked for, such as Chrome in another time zone. |
+| linkedin: `the browser is not signed in to LinkedIn` | Sign in to linkedin.com in that browser. |
+| tiktok: `Studio shows "Something went wrong"` | Studio's page broke; press Retry in that tab, and run the post again. |
+| tiktok: `after Schedule Studio asks: …` | Studio's question is left to you; answer it in the tab. |
+| chatgpt: `ChatGPT gave no answer: …` | ChatGPT's own words, such as a usage limit. |
+| gemini: `Gemini gave no answer: …` | Gemini's own words, such as a usage limit. |
+| claude: `the browser is not signed in to claude.ai` | Sign in to claude.ai in that browser (a lapsed session lands on the sign-in page). |
+| claude: `Claude gave no answer: …` | claude.ai's own words, such as a usage limit. |
 | vidara delete waits, then `the code did not finish` | With two-factor login on, Vidara asks for a code before a delete, in a prompt the tool cannot answer. Delete it on the page. |
 
 ## Development
@@ -511,9 +984,10 @@ doesn't know, so a newer server keeps working with an extension that has
 not been reloaded yet.
 
 **Tests.**
-- `go test ./...` runs the hub, the CLI and the MCP server against fake
-  browsers (`internal/hubtest`) that attach over Connect as the extension
-  does.
+- `go test ./...` runs the hub, the CLI, the MCP server and the API
+  against fake browsers (`internal/hubtest`) that attach over Connect as the
+  extension does. The API's tests check the pass-through and that what a
+  site would refuse never reaches a browser.
 - `e2e/` drives your real browser through a running `serve`. It is skipped
   unless `SAN_REMOTE_E2E=1`:
   ```powershell
@@ -537,11 +1011,31 @@ not been reloaded yet.
   deletes the test video even when a step fails.
 - `TestVidaraDownload` downloads the video `SAN_REMOTE_E2E_VIDARA_LINK`
   names into a temp folder.
+- `TestXSchedule` needs `SAN_REMOTE_E2E_X=1` too. It schedules a
+  two-post test thread 30 days ahead with an image on the second post,
+  finds it in the Scheduled tab, moves it a day later, deletes it, and
+  checks that it is gone. Its cleanup deletes the test thread even when a
+  step fails. Nothing is posted now.
 - `TestFacebookSchedule` needs `SAN_REMOTE_E2E_FACEBOOK=1` too. It schedules
   an Only-me test post with an image 25 days ahead on your profile, finds it
   in the Content Library's Terjadwal, deletes it, and checks that it is
   gone. Its cleanup deletes the test post even when a step fails. Nothing is
   posted now.
+- `TestMediumDraft` (`SAN_REMOTE_E2E_MEDIUM=1`) writes a test article with
+  two captioned images into a draft, schedules it 30 days ahead with a topic,
+  finds it in the Scheduled tab, unschedules it and deletes it.
+- `TestLinkedInDraft` (`SAN_REMOTE_E2E_LINKEDIN=1`) does the same on
+  LinkedIn, with a cover and a two-line post text, then moves the article back
+  to the drafts and deletes it.
+- `TestTikTokSchedule` (`SAN_REMOTE_E2E_TIKTOK=1`, ffmpeg) schedules a 6 s test
+  video 9 days ahead for Everyone, checks Studio's Posts, and deletes it.
+- `TestChatGPTAsk` (`SAN_REMOTE_E2E_CHATGPT=1`) asks a short question in a
+  Temporary chat.
+- `TestGeminiAsk` (`SAN_REMOTE_E2E_GEMINI=1`) does the same on Gemini.
+- `TestClaudeAsk` (`SAN_REMOTE_E2E_CLAUDE=1`) does the same on claude.ai, in
+  an incognito chat.
+
+  Each cleanup removes what its test made, even when a step fails.
 
 **A throwaway browser.** To test the extension without your own browser,
 start a headless Chrome on a temp profile with `--remote-debugging-pipe
@@ -590,6 +1084,28 @@ The layout of the code is in the design doc.
     picker.
   - Not done: Reels, Stories, feelings, tagging people, location, editing or
     rescheduling a post, and listing or deleting a Page's posts.
+- **X:**
+  - Its interface must be in English, for the composer's "Will send on"
+    line and its Schedule button. Most controls are found by X's
+    `data-testid` attributes.
+  - `delete` of a published post has not been run on a real post yet.
+  - Not done: Drafts (unsent posts), polls, GIF search, location, reply
+    settings, alt text, and Premium's longer posts.
+- **Medium:** its classic editor's markup (`.postArticle-content`,
+  `graf--*`); a redesign stops the tool with a screenshot. Not done:
+  publishing at once, publications, the preview's title and image, the
+  canonical link, and changing an existing draft's text.
+- **LinkedIn:** `get` has not been run live. Not done: publishing at once,
+  newsletters, posting as a company page, changing who the post is for.
+- **TikTok:** not done: Studio's other settings (sound, cover, comments,
+  duet), drafts, photos, and editing a scheduled post. `--now` (Only you) has
+  not been run live.
+- **ChatGPT:** text prompts only; no files, images, model choice or
+  regenerate. `--keep` and `--chat` have not been run live.
+- **Gemini:** text prompts only; no files, images, mode choice, continuing a
+  chat or regenerate. `--keep` has not been run live.
+- **Claude (claude.ai):** text prompts only; no files, model choice,
+  projects, continuing a chat or retry. `--keep` has not been run live.
 
 ## See also
 

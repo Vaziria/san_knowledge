@@ -11,6 +11,7 @@
 //	san_remote navigate --tab 123 https://example.com
 //	san_remote close --tab 123
 //	san_remote mcp
+//	san_remote api
 package main
 
 import (
@@ -75,7 +76,8 @@ func root(in io.Reader, out io.Writer) *cli.Command {
 		Commands: []*cli.Command{
 			serveCommand(), browsersCommand(), tabsCommand(), execCommand(),
 			openCommand(), navigateCommand(), closeCommand(), focusCommand(), screenshotCommand(),
-			threadsCommand(), vidaraCommand(), facebookCommand(), mcpCommand(),
+			threadsCommand(), vidaraCommand(), facebookCommand(), xCommand(),
+			mediumCommand(), linkedinCommand(), tiktokCommand(), chatgptCommand(), geminiCommand(), claudeCommand(), mcpCommand(), apiCommand(),
 		},
 	}
 }
@@ -371,7 +373,12 @@ func mcpCommand() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			// Threads' and Vidara's steps go to stderr, which Claude Code keeps in its MCP log;
 			// stdout carries only JSON-RPC.
-			s := &mcp.Server{Client: client(cmd), Threads: threadsService(cmd), Vidara: vidaraService(cmd), Facebook: facebookService(cmd), Server: cmd.String("server"), Version: version}
+			s := &mcp.Server{
+				Client: client(cmd), Threads: threadsService(cmd), Vidara: vidaraService(cmd), Facebook: facebookService(cmd), X: xService(cmd),
+				Medium: mediumService(cmd), LinkedIn: linkedinService(cmd), TikTok: tiktokService(cmd), ChatGPT: chatgptService(cmd),
+				Gemini: geminiService(cmd), Claude: claudeService(cmd),
+				Server: cmd.String("server"), Version: version,
+			}
 			return s.Serve(ctx, cmd.Root().Reader, cmd.Root().Writer)
 		},
 	}

@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package san.remote.chatgpt.v1;
+
+// ChatGPTService is the ChatGPT service (internal/chatgpt) over Connect,
+// served by `san_remote api` for other programs (the tower's workflows). Like
+// the CLI, it works in a background tab of the user's browser, the way a
+// person asks in ChatGPT's composer.
+service ChatGPTService {
+  // GetStatus says whether the browser is signed in to ChatGPT, as whom, and
+  // on which plan.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // Ask sends a prompt and returns the answer, once ChatGPT has written it.
+  rpc Ask(AskRequest) returns (AskResponse);
+}
+
+// Status is the browser's ChatGPT session.
+message Status {
+  bool signed_in = 1;
+  string name = 2;
+  // As the profile button shows it: "Free", "Plus".
+  string plan = 3;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message AskRequest {
+  string browser = 1;
+  string prompt = 2;
+  // A normal chat, kept in the history, instead of a Temporary chat.
+  bool keep = 3;
+  // Continue the kept chat at this link (https://chatgpt.com/c/<id>).
+  string chat = 4;
+  // How long to wait for the answer; 0 is 10 minutes.
+  uint32 wait_seconds = 5;
+  // Leave the tab open on the chat once the ask is over, for the user to
+  // read on or go on in it; otherwise it is closed.
+  bool stay = 6;
+}
+
+message AskResponse {
+  // The answer as ChatGPT's Copy button gives it: markdown.
+  string text = 1;
+  // The chat's link, for a kept chat.
+  string chat = 2;
+  bool temporary = 3;
+}

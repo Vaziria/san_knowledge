@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package san.remote.threads.v1;
+
+import "google/protobuf/timestamp.proto";
+import "san/remote/threads/v1/threads.proto";
+
+// ThreadsService is the Threads service over Connect, served by `san_remote
+// api` for other programs (the tower's workflows). Like the CLI, it works in
+// a tab of the user's browser, the way a person does. It only schedules:
+// Threads publishes a thread at its time.
+service ThreadsService {
+  // GetStatus says whether the browser is signed in to Threads, and as whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // SchedulePost schedules a thread: the composer opens in a tab brought to
+  // the front, for a minute or two.
+  rpc SchedulePost(SchedulePostRequest) returns (SchedulePostResponse);
+  // ListScheduled lists the scheduled threads, soonest first.
+  rpc ListScheduled(ListScheduledRequest) returns (ListScheduledResponse);
+  // ListPosts lists the account's published posts, newest first.
+  rpc ListPosts(ListPostsRequest) returns (ListPostsResponse);
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message SchedulePostRequest {
+  string browser = 1;
+  // The first post, and each next one under it, as plain text.
+  repeated Post posts = 2;
+  // When Threads publishes it: a whole minute, 15 minutes to 90 days ahead.
+  // With file or markdown it may be unset, for the frontmatter's at.
+  google.protobuf.Timestamp at = 3;
+  // Instead of posts: the thread's markdown file, an absolute path on this
+  // computer, read as `san_remote threads post` reads one (frontmatter at
+  // and topic, posts cut at ---, ![](file) images relative to it, the rest
+  // of the markdown written as plain text).
+  string file = 4;
+  // Instead of posts: the thread as markdown text, read as a file is; its
+  // images need absolute paths.
+  string markdown = 5;
+  // With file or markdown: the first post's topic, over the frontmatter's.
+  string topic = 6;
+}
+
+message SchedulePostResponse {
+  PostResult result = 1;
+}
+
+message ListScheduledRequest {
+  string browser = 1;
+}
+
+message ListScheduledResponse {
+  repeated ScheduledPost posts = 1;
+}
+
+message ListPostsRequest {
+  string browser = 1;
+  // The most posts to list; 0 means the service's default.
+  uint32 limit = 2;
+}
+
+message ListPostsResponse {
+  repeated PublishedPost posts = 1;
+}

@@ -275,7 +275,12 @@ type UploadVideoRequest struct {
 	// and the other kinds Vidara takes.
 	File string `protobuf:"bytes,2,opt,name=file,proto3" json:"file,omitempty"`
 	// Its title on Vidara; empty means the file's name without its extension.
-	Title         string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// The account's folder it goes in: its name, or its path for a folder in
+	// a folder ("Promo/2026"); empty means the root. A top-level folder that
+	// is not there is made, as -Create new- in the Upload page's Folder list
+	// makes one; a folder in a folder must be there already.
+	Folder        string `protobuf:"bytes,4,opt,name=folder,proto3" json:"folder,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -327,6 +332,13 @@ func (x *UploadVideoRequest) GetFile() string {
 func (x *UploadVideoRequest) GetTitle() string {
 	if x != nil {
 		return x.Title
+	}
+	return ""
+}
+
+func (x *UploadVideoRequest) GetFolder() string {
+	if x != nil {
+		return x.Folder
 	}
 	return ""
 }
@@ -653,11 +665,12 @@ const file_san_remote_vidara_v1_vidara_proto_rawDesc = "" +
 	"\x10GetStatusRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\"I\n" +
 	"\x11GetStatusResponse\x124\n" +
-	"\x06status\x18\x01 \x01(\v2\x1c.san.remote.vidara.v1.StatusR\x06status\"X\n" +
+	"\x06status\x18\x01 \x01(\v2\x1c.san.remote.vidara.v1.StatusR\x06status\"p\n" +
 	"\x12UploadVideoRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x12\n" +
 	"\x04file\x18\x02 \x01(\tR\x04file\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\"H\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06folder\x18\x04 \x01(\tR\x06folder\"H\n" +
 	"\x13UploadVideoResponse\x121\n" +
 	"\x05video\x18\x01 \x01(\v2\x1b.san.remote.vidara.v1.VideoR\x05video\"[\n" +
 	"\x11ListVideosRequest\x12\x18\n" +

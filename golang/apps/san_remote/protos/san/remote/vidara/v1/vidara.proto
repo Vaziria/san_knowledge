@@ -60,6 +60,11 @@ message UploadVideoRequest {
   string file = 2;
   // Its title on Vidara; empty means the file's name without its extension.
   string title = 3;
+  // The account's folder it goes in: its name, or its path for a folder in
+  // a folder ("Promo/2026"); empty means the root. A top-level folder that
+  // is not there is made, as -Create new- in the Upload page's Folder list
+  // makes one; a folder in a folder must be there already.
+  string folder = 4;
 }
 
 message UploadVideoResponse {

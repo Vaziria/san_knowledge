@@ -56,7 +56,9 @@ func TestVidaraUpload(t *testing.T) {
 			t.Errorf("cleanup: the test video %q may still be there: %v", title, err)
 		}
 	})
-	v, err := s.Upload(ctx, vidara.Upload{File: clip, Title: title, Browser: browser})
+	// SAN_REMOTE_E2E_VIDARA_FOLDER puts it in that folder of the account,
+	// made when it is a top-level one that is not there (and left there).
+	v, err := s.Upload(ctx, vidara.Upload{File: clip, Title: title, Folder: os.Getenv("SAN_REMOTE_E2E_VIDARA_FOLDER"), Browser: browser})
 	if err != nil {
 		t.Fatal(err)
 	}

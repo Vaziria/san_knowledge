@@ -153,7 +153,7 @@ rebuilding, reconnect with `/mcp`.
 | `threads_unschedule` | match, at, browser |
 | `threads_posts` | limit, browser |
 | `vidara_status` | browser |
-| `vidara_upload` | file, title, browser |
+| `vidara_upload` | file, title, folder, browser |
 | `vidara_videos` | search, limit, browser |
 | `vidara_delete` | match, browser |
 | `vidara_download` | link, out, browser |
@@ -218,7 +218,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 |---|---|
 | `san.remote.v1.RemoteService` | everything `serve` has, passed through to it |
 | `san.remote.threads.v1.ThreadsService` | GetStatus, SchedulePost (posts with a topic on the first, or a markdown file or text), ListScheduled, ListPosts |
-| `san.remote.x.v1.XService` | GetStatus, SchedulePost (a thread, or a markdown file or text), ListScheduled, ListPosts, DownloadPost (any post's media and text, into an absolute folder) |
+| `san.remote.x.v1.XService` | GetStatus, SchedulePost (a thread, each post with its images or video by absolute path, or a markdown file or text), ListScheduled, ListPosts, DownloadPost (any post's media and text, into an absolute folder) |
 | `san.remote.facebook.v1.FacebookService` | GetStatus, SchedulePost (to the profile or a Page, with an audience; text, or a markdown file or text), ListPosts (a Content Library tab) |
 | `san.remote.vidara.v1.VidaraService` | GetStatus, UploadVideo, ListVideos, DownloadVideo (by link or code, to an absolute folder or file) |
 | `san.remote.medium.v1.MediumService` | GetStatus, CreateDraft (an absolute article file, or its markdown; with `at`, scheduled too, with topics), ScheduleDraft, ListDrafts, ListScheduled |
@@ -359,6 +359,7 @@ Vidara's API (Settings → API) is not used: you chose the web uploader.
 bin\san_remote.exe vidara status                                # signed in as getresolved, 0.01 GB used
 bin\san_remote.exe vidara upload "VPN Sendiri - Bagian 1.mp4"   # https://vidara.to/v/qrQHbMCtwQw5r  VPN Sendiri - Bagian 1  Active
 bin\san_remote.exe vidara upload --title "VPN Sendiri, Bagian 1" video.mp4
+bin\san_remote.exe vidara upload --folder Promo video.mp4          # into the folder Promo (made if it is not there)
 bin\san_remote.exe vidara videos                                # CODE, TITLE, SIZE, VIEWS, UPLOADED, STATUS
 bin\san_remote.exe vidara videos --search VPN --limit 10
 bin\san_remote.exe vidara delete qrQHbMCtwQw5r                  # or its link, or its whole title
@@ -374,6 +375,15 @@ bin\san_remote.exe vidara download --out D:\videos qrQHbMCtwQw5r
   extension, and its Upload page has no title box. `--title` hands the page
   the file under another name, as if you had renamed it first. A title
   cannot hold `/`, `\` or line breaks.
+- **The folder:** `--folder` puts the video in one of your folders, picked
+  in the Upload page's **Folder** list before the file is chosen, as you
+  would. Give its name, or its path for a folder in a folder
+  (`Promo/2026`); case does not matter when nothing matches exactly.
+  - A top-level folder that is not there is made, as **-Create new-**
+    makes one: the tool answers its "Enter folder name" prompt.
+  - A folder in a folder must be there already (make it in My videos with
+    **New folder**), since -Create new- makes only top-level folders.
+  - Without `--folder` the video goes in the root (/), as before.
 - **What you get:** the video's link (`https://vidara.to/v/<code>`), once
   My videos lists it. Its embed link is `/e/<code>`.
 - **How it goes:**
@@ -419,9 +429,15 @@ cannot be undone.
 
 **While it runs:**
 - `upload` and `delete` open a tab of their own in your current Chrome
-  window and bring Chrome to the front. Leave it alone while they click.
-- During the upload itself the tab may go behind other windows, but it must
-  stay open.
+  window and ask for Chrome's window. Leave the tab alone while they click.
+- `upload` never waits for the window (2026-10-25): putting a big file in
+  the page takes a while, and by then you are in another window, which
+  Windows keeps in front. Vidara's uploader sends the file the same way
+  behind other windows, so you can keep working; the tab must stay open.
+  The check in My videos afterwards also runs behind other windows.
+- `delete` waits for the window before it searches and presses Delete, as
+  the other sites' posting steps do (see "Chrome's taskbar button flashes"
+  under Troubleshooting).
 - `status`, `videos` and `download` read in a background tab.
 - Each step is printed to stderr as `== …`.
 - A failed step stops with a screenshot in the temp folder:
@@ -947,6 +963,7 @@ need a token and TLS first.
 | vidara: `Vidara refused the upload: …` | Vidara's own message, with its reference code. Usually storage, or a file it cannot read. |
 | vidara: `the upload stalled at …%` | The connection stopped. Run the same upload again: Vidara's uploader remembers the file by its name, size and time, and continues from where it stopped. |
 | vidara: `several videos match the title` | Name the video by one of the codes listed. |
+| vidara: `no such folder: "Promo/2026"` | A folder in a folder is not made on the Upload page. Make it in My videos (New folder), or give a top-level folder. |
 | vidara download: `waited … for the player's stream` | The video may still be encoding, or the player changed. Try later, and look at the screenshot. |
 | facebook: `the browser is not signed in to Facebook` | Sign in to facebook.com in that browser. |
 | facebook: `Facebook's interface is not in Indonesian` | The tool finds Facebook's controls by their Indonesian names. Set Facebook's language to Bahasa Indonesia. |
@@ -1071,7 +1088,7 @@ The layout of the code is in the design doc.
     text.
 - **Vidara:**
   - Its interface must be in English, as for Threads.
-  - One video per upload. Not done: folders, URL upload, clone, thumbnails,
+  - One video per upload. Not done: URL upload, clone, thumbnails,
     subtitles, intros, and renaming.
   - `videos` reads only My videos' first page.
   - A download is Vidara's stream of the video, not the uploaded file, and

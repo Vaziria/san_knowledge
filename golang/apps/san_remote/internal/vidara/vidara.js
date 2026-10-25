@@ -1,5 +1,6 @@
 // What san_remote knows of Vidara's pages, as found on 2026-10-24 with the
-// interface in English: the dashboard (/index), Upload (/upload), the Export
+// interface in English (the Upload page's Folder list on 2026-10-25): the
+// dashboard (/index), Upload (/upload), the Export
 // page an upload ends on, My videos (/files), Settings, a video's page
 // (/v/<code>), and the player that page embeds from another host. Like
 // threads.js, it runs in the extension's isolated world, where the page
@@ -128,6 +129,36 @@ globalThis.__sanVidara = (() => {
       const html = document.getElementById('textarea_html')?.value ?? '';
       const a = new DOMParser().parseFromString(html, 'text/html').querySelector('a');
       return url ? { url, title: a?.textContent.trim() ?? '' } : null;
+    },
+    // folders reads the Folder list, which the page fills with the account's
+    // folders as it opens (/upload?action=get_folders): each as its path,
+    // "Promo" or "Promo/2026", since the list indents a folder two spaces a
+    // level under its parent. Root (0) and -Create new- (000) are not
+    // folders. With none, the list stays as it was, so loaded also says the
+    // page's answer came. chosen is the list's value.
+    folders() {
+      const sel = document.getElementById('fld_id');
+      if (!sel) return null;
+      const got = performance.getEntriesByType('resource').find((e) => e.name.includes('action=get_folders') && e.responseEnd > 0);
+      const path = [];
+      const folders = [];
+      for (const o of sel.options) {
+        if (o.value === '0' || o.value === '000') continue;
+        const [, pad, name] = o.textContent.match(/^( *)(.*)$/s);
+        path.length = Math.min(path.length, Math.floor(pad.length / 2));
+        path.push(name.trim());
+        folders.push({ id: o.value, path: path.join('/') });
+      }
+      return { loaded: folders.length > 0 || (!!got && performance.now() - got.responseEnd > 500), folders, chosen: sel.value };
+    },
+    // pickFolder chooses a folder in the Folder list by its id, as a person
+    // picks it there.
+    pickFolder(id) {
+      const sel = document.getElementById('fld_id');
+      if (!sel || ![...sel.options].some((o) => o.value === id)) return false;
+      sel.value = id;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
     },
 
     // ---- My videos ----

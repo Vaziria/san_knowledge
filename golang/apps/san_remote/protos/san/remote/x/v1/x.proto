@@ -66,6 +66,9 @@ message Status {
 message Post {
   // Plain text, newlines kept.
   string text = 1;
+  // Image or video files for this post, absolute paths, shown in this
+  // order: up to 4 images (jpg, png, webp), or one video (mp4, mov) or GIF.
+  repeated string media = 2;
 }
 
 // ScheduledThread is a thread in Drafts' Scheduled tab.

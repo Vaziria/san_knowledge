@@ -39,6 +39,9 @@ var (
 	ErrAmbiguous = errors.New("vidara: several videos match")
 	// ErrBadLink is a link that names no Vidara video.
 	ErrBadLink = errors.New("vidara: not a Vidara video link")
+	// ErrNoFolder is a folder in a folder that the account does not have:
+	// only a top-level folder is made on the Upload page.
+	ErrNoFolder = errors.New("vidara: no such folder")
 )
 
 // The upload page's limits: "(mp4, mkv, avi, mov, webm — 10MB to 10GB)".
@@ -63,13 +66,19 @@ type Upload struct {
 	// without its extension. Vidara takes the title from the uploaded file's
 	// name, so the page is given the file under this name.
 	Title string
+	// Folder is the account's folder the video goes in, by its name, or by
+	// its path for a folder in a folder ("Promo/2026"); empty means the root.
+	// A top-level folder that is not there is made, as -Create new- in the
+	// Upload page's Folder list makes one.
+	Folder string
 	// Browser is the browser's id or name; may be empty when only one is
 	// attached.
 	Browser string
 }
 
 // Check reports what the upload page would refuse before anything is sent,
-// and fills in the title when it is empty.
+// fills in the title when it is empty, and writes the folder's path as the
+// Folder list does ("Promo/2026", without spaces around the slashes).
 func (u *Upload) Check() error {
 	fi, err := os.Stat(u.File)
 	switch {
@@ -90,6 +99,16 @@ func (u *Upload) Check() error {
 	u.Title = strings.TrimSpace(u.Title)
 	if strings.ContainsAny(u.Title, `/\`) || strings.ContainsFunc(u.Title, unicode.IsControl) {
 		return fmt.Errorf("%w: the title %q has a slash or a control character; it becomes the file's name", ErrInvalidUpload, u.Title)
+	}
+	var parts []string
+	for _, p := range strings.Split(u.Folder, "/") {
+		if p = strings.TrimSpace(p); p != "" {
+			parts = append(parts, p)
+		}
+	}
+	u.Folder = strings.Join(parts, "/")
+	if strings.ContainsFunc(u.Folder, unicode.IsControl) {
+		return fmt.Errorf("%w: the folder %q has a control character", ErrInvalidUpload, u.Folder)
 	}
 	return nil
 }

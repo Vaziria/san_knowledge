@@ -26,8 +26,9 @@ func vidaraCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "vidara",
 		Usage: "upload videos to Vidara, list and delete them, and download one from its link, through the browser's Vidara session",
-		Description: "upload and delete bring Chrome to the front with a tab of their own; leave it alone until\n" +
-			"the command is done. status, videos and download read in a background tab.\n" +
+		Description: "upload and delete open a tab of their own and ask for Chrome's window; leave the tab alone until\n" +
+			"the command is done. upload goes on behind other windows; delete waits for the window.\n" +
+			"status, videos and download read in a background tab.\n" +
 			"Steps are printed to stderr as \"== ...\".",
 		Commands: []*cli.Command{
 			{
@@ -51,15 +52,18 @@ func vidaraCommand() *cli.Command {
 				Usage:     "upload a video on the Upload page, and print its link",
 				ArgsUsage: "FILE",
 				Description: "FILE is a video of 10 MB to 10 GB: mp4, mkv, avi, mov, webm, ts, mpg, mpeg, vob, flv, wmv or 3gp.\n" +
-					"Vidara names the video after the file; --title gives the page the file under another name.",
+					"Vidara names the video after the file; --title gives the page the file under another name.\n" +
+					"--folder picks one of the account's folders in the page's Folder list; a top-level folder\n" +
+					"that is not there is made with -Create new-, a folder in a folder (Promo/2026) must be there.",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "title", Usage: "the video's title (default: the file's name without its extension)"},
+					&cli.StringFlag{Name: "folder", Usage: "the account's folder to put it in: a name, or a path such as Promo/2026 (default: the root)"},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					if cmd.Args().First() == "" {
 						return errors.New("upload needs a FILE")
 					}
-					v, err := vidaraService(cmd).Upload(ctx, vidara.Upload{File: cmd.Args().First(), Title: cmd.String("title"), Browser: cmd.String("browser")})
+					v, err := vidaraService(cmd).Upload(ctx, vidara.Upload{File: cmd.Args().First(), Title: cmd.String("title"), Folder: cmd.String("folder"), Browser: cmd.String("browser")})
 					if err != nil {
 						return clientError(cmd, err)
 					}

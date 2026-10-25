@@ -283,7 +283,10 @@ func (x *Status) GetHandle() string {
 type Post struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Plain text, newlines kept.
-	Text          string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	Text string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	// Image or video files for this post, absolute paths, shown in this
+	// order: up to 4 images (jpg, png, webp), or one video (mp4, mov) or GIF.
+	Media         []string `protobuf:"bytes,2,rep,name=media,proto3" json:"media,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -323,6 +326,13 @@ func (x *Post) GetText() string {
 		return x.Text
 	}
 	return ""
+}
+
+func (x *Post) GetMedia() []string {
+	if x != nil {
+		return x.Media
+	}
+	return nil
 }
 
 // ScheduledThread is a thread in Drafts' Scheduled tab.
@@ -1003,9 +1013,10 @@ const file_san_remote_x_v1_x_proto_rawDesc = "" +
 	"\x06Status\x12\x1b\n" +
 	"\tsigned_in\x18\x01 \x01(\bR\bsignedIn\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
-	"\x06handle\x18\x03 \x01(\tR\x06handle\"\x1a\n" +
+	"\x06handle\x18\x03 \x01(\tR\x06handle\"0\n" +
 	"\x04Post\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"{\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\x12\x14\n" +
+	"\x05media\x18\x02 \x03(\tR\x05media\"{\n" +
 	"\x0fScheduledThread\x12*\n" +
 	"\x02at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12\x14\n" +
 	"\x05shown\x18\x02 \x01(\tR\x05shown\x12\x12\n" +

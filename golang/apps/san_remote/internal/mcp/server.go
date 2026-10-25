@@ -284,10 +284,11 @@ func toolDefs() []any {
 			"Whether the browser is signed in to Vidara, as whom, and the storage used. Reads in a background tab.",
 			schema(map[string]any{"browser": browserProp}), true, false),
 		tool("vidara_upload", "Vidara: upload a video",
-			"Upload a video file (10 MB to 10 GB: mp4, mkv, avi, mov, webm, ts, mpg, mpeg, vob, flv, wmv, 3gp) to the user's Vidara account on its Upload page, and return its link. Vidara names the video after the file; title gives the page the file under another name. Brings Chrome to the front with a tab of its own; it takes as long as the user's upload speed needs.",
+			"Upload a video file (10 MB to 10 GB: mp4, mkv, avi, mov, webm, ts, mpg, mpeg, vob, flv, wmv, 3gp) to the user's Vidara account on its Upload page, and return its link. Vidara names the video after the file; title gives the page the file under another name. folder puts it in one of the account's folders, picked in the page's Folder list (a top-level folder that is not there is made). Opens a tab of its own and goes on behind other windows (it does not wait for Chrome to be in front); it takes as long as the user's upload speed needs.",
 			schema(map[string]any{
 				"file":    str("Path of the video file"),
 				"title":   str("The video's title (default: the file's name without its extension)"),
+				"folder":  str("The account's folder to put it in: a name, or a path such as Promo/2026 for a folder in a folder (default: the root)"),
 				"browser": browserProp,
 			}, "file"), false, false),
 		tool("vidara_videos", "Vidara: my videos",
@@ -407,6 +408,7 @@ type args struct {
 	To         string   `json:"to"`
 	Limit      int32    `json:"limit"`
 	Title      string   `json:"title"`
+	Folder     string   `json:"folder"`
 	Search     string   `json:"search"`
 	Link       string   `json:"link"`
 	Out        string   `json:"out"`
@@ -640,7 +642,7 @@ func (s *Server) vidara(ctx context.Context, name string, a args) (string, error
 		if a.File == "" {
 			return "", errors.New("file is required")
 		}
-		r, err := v.Upload(ctx, vidara.Upload{File: a.File, Title: a.Title, Browser: a.Browser})
+		r, err := v.Upload(ctx, vidara.Upload{File: a.File, Title: a.Title, Folder: a.Folder, Browser: a.Browser})
 		if err != nil {
 			return "", err
 		}

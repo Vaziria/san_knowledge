@@ -121,7 +121,12 @@ func xThreadOf(m *xv1.SchedulePostRequest) (*x.Thread, error) {
 	switch {
 	case !md:
 		for _, p := range m.Posts {
-			th.Posts = append(th.Posts, x.Post{Text: p.Text})
+			for _, f := range p.Media {
+				if !filepath.IsAbs(strings.TrimSpace(f)) {
+					return nil, invalid("media %q: give an absolute path", f)
+				}
+			}
+			th.Posts = append(th.Posts, x.Post{Text: p.Text, Media: p.Media})
 		}
 	case strings.TrimSpace(m.File) != "":
 		if th, err = x.ParseFile(strings.TrimSpace(m.File)); err != nil {

@@ -107,7 +107,7 @@ func (a *API) fail(err error) error {
 	case errors.Is(err, threads.ErrNotSignedIn), errors.Is(err, x.ErrNotSignedIn), errors.Is(err, x.ErrLanguage),
 		errors.Is(err, facebook.ErrNotSignedIn), errors.Is(err, facebook.ErrLanguage), errors.Is(err, vidara.ErrNotSignedIn):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
-	case errors.Is(err, x.ErrNotFound):
+	case errors.Is(err, x.ErrNotFound), errors.Is(err, vidara.ErrNoFolder):
 		return connect.NewError(connect.CodeNotFound, err)
 	}
 	if code, ok := siteCode(err); ok {
@@ -371,7 +371,7 @@ func (s vidaraAPI) GetStatus(ctx context.Context, req *connect.Request[vidarav1.
 }
 
 func (s vidaraAPI) UploadVideo(ctx context.Context, req *connect.Request[vidarav1.UploadVideoRequest]) (*connect.Response[vidarav1.UploadVideoResponse], error) {
-	u := vidara.Upload{File: req.Msg.File, Title: req.Msg.Title, Browser: req.Msg.Browser}
+	u := vidara.Upload{File: req.Msg.File, Title: req.Msg.Title, Folder: req.Msg.Folder, Browser: req.Msg.Browser}
 	if err := u.Check(); err != nil {
 		return nil, s.a.fail(err)
 	}

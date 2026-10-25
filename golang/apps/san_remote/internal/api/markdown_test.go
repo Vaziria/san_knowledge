@@ -67,6 +67,7 @@ func TestMarkdownRefused(t *testing.T) {
 		"no at anywhere":          second(threadOf(&threadsv1.SchedulePostRequest{Markdown: "Halo"})),
 		"relative image in text":  second(threadOf(&threadsv1.SchedulePostRequest{Markdown: "Halo ![](a.png)", At: later})),
 		"x relative image":        second(xThreadOf(&xv1.SchedulePostRequest{Markdown: "Halo\n\n![](a.png)", At: later})),
+		"x relative media":        second(xThreadOf(&xv1.SchedulePostRequest{Posts: []*xv1.Post{{Text: "a", Media: []string{"a.png"}}}, At: later})),
 		"facebook text and file":  second(facebookPostOf(&facebookv1.SchedulePostRequest{Text: "a", File: file, At: later})),
 		"facebook relative image": second(facebookPostOf(&facebookv1.SchedulePostRequest{Markdown: "![](a.png)", At: later})),
 		"tiktok relative video":   second(tiktokPostOf(&tiktokv1.SchedulePostRequest{Markdown: "---\nvideo: v.mp4\n---\nHalo", At: later})),
@@ -91,6 +92,11 @@ func TestPostsOfMarkdown(t *testing.T) {
 	th, err := xThreadOf(&xv1.SchedulePostRequest{Markdown: "*Satu*\n\n---\n\n- dua\n- tiga\n\n![](" + img + ")", At: at, Browser: "b"})
 	if err != nil || th.Browser != "b" || len(th.Posts) != 2 || th.Posts[0].Text != "Satu" || th.Posts[1].Text != "- dua\n- tiga" || len(th.Posts[1].Media) != 1 {
 		t.Errorf("x: %+v, %v", th, err)
+	}
+	// Plain posts carry their media as given.
+	th, err = xThreadOf(&xv1.SchedulePostRequest{Posts: []*xv1.Post{{Text: "Satu", Media: []string{video}}, {Text: "dua"}}, At: at})
+	if err != nil || len(th.Posts) != 2 || len(th.Posts[0].Media) != 1 || th.Posts[0].Media[0] != video || len(th.Posts[1].Media) != 0 {
+		t.Errorf("x plain media: %+v, %v", th, err)
 	}
 
 	p, err := facebookPostOf(&facebookv1.SchedulePostRequest{Markdown: "---\naudience: friends\nat: 2026-12-01 09:00\n---\n**Halo** semua", Audience: "only_me"})

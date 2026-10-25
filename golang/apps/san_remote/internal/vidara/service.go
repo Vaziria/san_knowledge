@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -191,9 +192,9 @@ func (t *session) status(ctx context.Context) (*Status, error) {
 
 // Upload uploads one video on the Upload page, as a person does with Browse
 // files, and finds it in My videos. The title is the name the page is given
-// the file under. It brings Chrome to the front with a tab of its own; the
-// tab may go behind other windows while the file is sent, but must stay
-// open.
+// the file under. It opens a tab of its own as Chrome's active one, which
+// asks Windows for Chrome's window, but it does not wait for the window:
+// the upload goes on behind other windows too. The tab must stay open.
 func (s *Service) Upload(ctx context.Context, u Upload) (*Video, error) {
 	if err := u.Check(); err != nil {
 		return nil, err
@@ -223,11 +224,25 @@ func (t *session) upload(ctx context.Context, u Upload) (*Video, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := t.Front(ctx); err != nil {
+	// No waiting for the window (the user, 2026-10-25: a big file takes long
+	// to put in the page, and by then they work in another window, which
+	// Windows keeps in front): the uploader starts on the file it is given
+	// and sends it with XHR, which Chrome does not throttle in a hidden tab.
+	if shown, err := t.Visible(ctx); err != nil {
 		return nil, err
+	} else if !shown {
+		t.Log("Chrome is behind another window: the upload goes on in its tab; leave the tab open")
 	}
 	if err := t.Pause(ctx); err != nil {
 		return nil, err
+	}
+	if u.Folder != "" {
+		if err := t.folder(ctx, u.Folder); err != nil {
+			return nil, err
+		}
+		if err := t.Pause(ctx); err != nil {
+			return nil, err
+		}
 	}
 	t.Log(fmt.Sprintf("choosing %q in Browse files", f.Name))
 	var msg string
@@ -259,7 +274,7 @@ func (t *session) upload(ctx context.Context, u Upload) (*Video, error) {
 	if err := t.nav(ctx, "/files", "My videos", listed); err != nil {
 		return nil, err
 	}
-	rows, err := t.find(ctx, code)
+	rows, err := t.find(ctx, code, false)
 	if err != nil {
 		return nil, err
 	}
@@ -269,6 +284,114 @@ func (t *session) upload(ctx context.Context, u Upload) (*Video, error) {
 		}
 	}
 	return nil, fmt.Errorf("%w: Vidara took the video (%s), but My videos does not list it", ErrPage, ex.URL)
+}
+
+// folders is what vidara.js folders() reports: the Folder list's folders,
+// whether the page has loaded them, and the one chosen.
+type folders struct {
+	Loaded  bool `json:"loaded"`
+	Folders []struct {
+		ID   string `json:"id"`
+		Path string `json:"path"`
+	} `json:"folders"`
+	Chosen string `json:"chosen"`
+}
+
+// find is the id of the folder at path, as written, else ignoring case; ""
+// when there is none.
+func (fs folders) find(path string) string {
+	for _, f := range fs.Folders {
+		if f.Path == path {
+			return f.ID
+		}
+	}
+	for _, f := range fs.Folders {
+		if strings.EqualFold(f.Path, path) {
+			return f.ID
+		}
+	}
+	return ""
+}
+
+// createFolderJS picks -Create new- in the Folder list and answers the
+// prompt it opens with the folder's name (%s, as JSON), as a person types it
+// there; the page then makes the folder and sets the list to it. It runs in
+// the page's own world, where that prompt is, and waits on the page itself
+// rather than on timers, which Chrome slows to once a minute in a tab hidden
+// for five minutes: the list's value setter says when the page sets it, and
+// alert, which the page uses to say it failed, says that. All three are put
+// back before it returns; it gives up after 30 s.
+const createFolderJS = `const sel = document.getElementById('fld_id');
+if (!sel) return { id: '', refused: 'the page has no Folder list' };
+const value = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+const ask = window.prompt, warn = window.alert;
+const r = await new Promise((done) => {
+  const timer = setTimeout(() => done({ id: value.get.call(sel), refused: '' }), 30000);
+  const finish = (x) => { clearTimeout(timer); done(x); };
+  Object.defineProperty(sel, 'value', {
+    configurable: true,
+    get() { return value.get.call(this); },
+    set(v) { value.set.call(this, v); if (String(v) !== '000') finish({ id: String(v), refused: '' }); },
+  });
+  window.alert = (m) => finish({ id: '', refused: String(m) });
+  window.prompt = () => %s;
+  try {
+    sel.value = '000';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  } finally {
+    window.prompt = ask;
+  }
+});
+delete sel.value;
+window.alert = warn;
+return r;`
+
+// folder chooses the video's folder in the Upload page's Folder list, as a
+// person does before choosing the file, once the page has loaded the
+// account's folders. A top-level folder that is not there is made with
+// -Create new-; a folder in a folder must be there already.
+func (t *session) folder(ctx context.Context, path string) error {
+	var fs folders
+	if err := t.Until(ctx, "the Upload page's folders", 30*time.Second, func() (bool, error) {
+		err := t.Call(ctx, &fs, "folders")
+		return fs.Loaded, err
+	}); err != nil {
+		return err
+	}
+	id := fs.find(path)
+	switch {
+	case id != "":
+		t.Log(fmt.Sprintf("choosing the folder %q", path))
+		if err := t.Do(ctx, "the folder "+path, "pickFolder", id); err != nil {
+			return err
+		}
+	case strings.Contains(path, "/"):
+		return fmt.Errorf("%w: %q; make it in My videos (New folder) first, since only a top-level folder is made here", ErrNoFolder, path)
+	default:
+		t.Log(fmt.Sprintf("making the folder %q with -Create new-", path))
+		name, _ := json.Marshal(path)
+		var r struct {
+			ID      string `json:"id"`
+			Refused string `json:"refused"`
+		}
+		if err := t.CallMain(ctx, 45*time.Second, &r, fmt.Sprintf(createFolderJS, name)); err != nil {
+			return err
+		}
+		if r.Refused != "" {
+			return fmt.Errorf("%w: Vidara did not make the folder %q: %s", ErrPage, path, r.Refused)
+		}
+		if r.ID == "" || r.ID == "0" || r.ID == "000" {
+			return fmt.Errorf("%w: the folder %q was not made", ErrPage, path)
+		}
+		id = r.ID
+	}
+	if err := t.Call(ctx, &fs, "folders"); err != nil {
+		return err
+	}
+	if fs.Chosen != id {
+		return fmt.Errorf("%w: the Folder list shows %q, not the folder %q", ErrPage, fs.Chosen, path)
+	}
+	return nil
 }
 
 // file names a staged file for vidara.js choose(). Modified is the file's
@@ -377,16 +500,27 @@ func (t *session) sent(ctx context.Context) error {
 }
 
 // find searches My videos for q, a title or a code, and reads the rows.
-func (t *session) find(ctx context.Context, q string) ([]Video, error) {
+// With front, a shown session first waits for its window (Front), as Delete
+// does before it presses anything; without, it searches in a hidden tab too,
+// as after an upload. The box is typed with a person's gaps only while the
+// page is on screen: a hidden page's timers run once a second at most, and
+// once a minute after five minutes.
+func (t *session) find(ctx context.Context, q string, front bool) ([]Video, error) {
 	t.Log(fmt.Sprintf("searching My videos for %q", q))
-	if err := t.Front(ctx); err != nil {
-		return nil, err
+	if front {
+		if err := t.Front(ctx); err != nil {
+			return nil, err
+		}
 	}
 	if err := t.Pause(ctx); err != nil {
 		return nil, err
 	}
+	paced, err := t.Visible(ctx)
+	if err != nil {
+		return nil, err
+	}
 	var typed *string
-	if err := t.Call(ctx, &typed, "typeSearch", q, t.Shown); err != nil {
+	if err := t.Call(ctx, &typed, "typeSearch", q, paced); err != nil {
 		return nil, err
 	}
 	if typed == nil {
@@ -401,7 +535,7 @@ func (t *session) find(ctx context.Context, q string) ([]Video, error) {
 		return nil, err
 	}
 	var rows []Video
-	err := t.Call(ctx, &rows, "rows")
+	err = t.Call(ctx, &rows, "rows")
 	return rows, err
 }
 
@@ -439,7 +573,7 @@ func (t *session) videos(ctx context.Context, search string) ([]Video, int, erro
 	var rows []Video
 	var err error
 	if search != "" {
-		rows, err = t.find(ctx, search)
+		rows, err = t.find(ctx, search, false)
 	} else {
 		err = t.Call(ctx, &rows, "rows")
 	}
@@ -483,7 +617,7 @@ func (t *session) delete(ctx context.Context, q string) (*Video, error) {
 	if err := t.nav(ctx, "/files", "My videos", listed); err != nil {
 		return nil, err
 	}
-	rows, err := t.find(ctx, q)
+	rows, err := t.find(ctx, q, true)
 	if err != nil {
 		return nil, err
 	}

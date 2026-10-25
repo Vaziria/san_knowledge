@@ -252,10 +252,7 @@ func (s *Session) Front(ctx context.Context) error {
 	if !s.Shown {
 		return nil
 	}
-	visible := func() (bool, error) {
-		r, err := s.B.Exec(ctx, &v1.ExecRequest{Browser: s.Browser, TabId: s.Tab, Code: "return document.visibilityState === 'visible';", TimeoutMs: 10_000})
-		return err == nil && r.GetResultJson() == "true", err
-	}
+	visible := func() (bool, error) { return s.Visible(ctx) }
 	if ok, err := visible(); err != nil || ok {
 		return err
 	}
@@ -273,6 +270,14 @@ func (s *Session) Front(ctx context.Context) error {
 			return fmt.Errorf("%w: waited %s for the window to be shown: Windows keeps the window you are using in front; click Chrome's flashing taskbar button when it asks", s.site.ErrPage, FrontWait)
 		}
 	}
+}
+
+// Visible says whether the session's page is on screen: its tab is the
+// active one of a window that is not minimized or behind other windows.
+// Chrome throttles the timers of a page that is not.
+func (s *Session) Visible(ctx context.Context) (bool, error) {
+	r, err := s.B.Exec(ctx, &v1.ExecRequest{Browser: s.Browser, TabId: s.Tab, Code: "return document.visibilityState === 'visible';", TimeoutMs: 10_000})
+	return err == nil && r.GetResultJson() == "true", err
 }
 
 // Fail adds a screenshot of the tab to a page error, for a person to look

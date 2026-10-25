@@ -90,6 +90,39 @@ func TestFileJSON(t *testing.T) {
 	}
 }
 
+// A folder's path is written as the Folder list writes it.
+func TestCheckFolder(t *testing.T) {
+	ok := sized(t, "a.mp4", MinSize)
+	for in, want := range map[string]string{"": "", "  Promo ": "Promo", " Promo / 2026 /": "Promo/2026", "//": ""} {
+		u := Upload{File: ok, Folder: in}
+		if err := u.Check(); err != nil || u.Folder != want {
+			t.Errorf("Folder %q: %q, %v; want %q", in, u.Folder, err, want)
+		}
+	}
+	if u := (Upload{File: ok, Folder: "a\tb"}); !errors.Is(u.Check(), ErrInvalidUpload) {
+		t.Error("a control character in the folder was taken")
+	}
+}
+
+// vidara.js folders() reports {loaded, folders: [{id, path}], chosen}, and
+// a folder is found by its path, as written, else ignoring case.
+func TestFolders(t *testing.T) {
+	var fs folders
+	if err := json.Unmarshal([]byte(`{"loaded":true,"folders":[{"id":"11","path":"Promo"},{"id":"12","path":"Promo/2026"},{"id":"13","path":"promo"}],"chosen":"0"}`), &fs); err != nil {
+		t.Fatal(err)
+	}
+	for path, want := range map[string]string{"Promo": "11", "promo": "13", "PROMO/2026": "12", "Musik": "", "2026": ""} {
+		if got := fs.find(path); got != want {
+			t.Errorf("find(%q) = %q, want %q", path, got, want)
+		}
+	}
+	for _, fn := range []string{"folders()", "pickFolder(id)", "loaded:", "chosen:"} {
+		if !strings.Contains(vidaraJS, fn) {
+			t.Errorf("vidara.js no longer has %s", fn)
+		}
+	}
+}
+
 func TestPick(t *testing.T) {
 	rows := []Video{
 		{Code: "AAAAAAAA1", Title: "Uji vidara (hapus saja)"},

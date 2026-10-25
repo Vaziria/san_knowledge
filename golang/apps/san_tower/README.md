@@ -43,6 +43,29 @@ buf generate; buf generate --template buf.gen.san_message.yaml
 The broker's CLI works against the tower too:
 `go run ../../packages/san_message/cmd/san_message --server http://127.0.0.1:7477 topic list`.
 
+## Release
+
+Pushing a version tag releases the tower and the San Remote extension
+(the user, 2026-10-25; `.github/workflows/release.yml`):
+
+```powershell
+git tag v1.0.0; git push origin v1.0.0
+```
+
+A Windows job runs `build.ps1` with `SAN_TOWER_VERSION` set to the tag (the
+binaries' `--version`; `build.sh` takes it too, and a local build without it
+is stamped with the date), so the UI is built and the tower vetted and
+tested, then builds the extension. A Linux job packages them and makes the
+GitHub release of the tag, with:
+- `san_tower-<tag>-windows-amd64.zip`: `san_tower.exe`, `start.bat`, the
+  extension and `README.txt`, the setup for whoever gets it
+  (`release/` holds both files);
+- `san_tower-<tag>-linux-amd64.tar.gz`: the same with the Linux binary;
+- `san_remote_extension-<tag>.zip`: the extension alone.
+
+The extension's manifest gets the tag's version (v1.2.3-rc1 is 1.2.3, its
+`version_name` the whole tag).
+
 ## Workflows
 
 A workflow is a graph of steps joined by links between typed sockets:

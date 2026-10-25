@@ -1,0 +1,104 @@
+# Release San Tower and the San Remote extension when a version tag (v1.0.0)
+# is pushed: the tower's build.ps1 builds the UI, vets and tests the tower and
+# builds its Windows and Linux binaries, stamped with the tag; the extension
+# is built from typescripts/san_remote_extension. A GitHub release of the tag
+# then gets a Windows bundle (the tower, start.bat, the extension, README), a
+# Linux bundle and the extension alone.
+name: Release San Tower
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    # Windows, where the tower is developed and its tests are run.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: golang/apps/san_tower/go.mod
+          cache-dependency-path: |
+            golang/apps/san_tower/go.sum
+            golang/apps/san_remote/go.sum
+            golang/packages/san_message/go.sum
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            typescripts/san_tower_frontend/package-lock.json
+            typescripts/san_remote_extension/package-lock.json
+      - name: Build the tower (UI, vet, test, binaries)
+        shell: pwsh
+        env:
+          SAN_TOWER_VERSION: ${{ github.ref_name }}
+        run: ./golang/apps/san_tower/build.ps1
+      - name: Build the extension
+        working-directory: typescripts/san_remote_extension
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          if-no-files-found: error
+          path: |
+            golang/apps/san_tower/bin/san_tower.exe
+            golang/apps/san_tower/bin/san_tower
+            typescripts/san_remote_extension/dist/
+
+  release:
+    # Linux, so the Linux binary keeps its executable bit in the tarball.
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build
+      - name: Package
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          tower=build/golang/apps/san_tower/bin
+          ext=build/typescripts/san_remote_extension/dist
+          files=golang/apps/san_tower/release
+          # Chrome takes up to four numbers: v1.2.3-rc1 is 1.2.3.
+          num="${TAG#v}"; num="${num%%-*}"
+          jq --arg v "$num" --arg n "$TAG" '.version = $v | .version_name = $n' "$ext/manifest.json" > manifest.json
+          mv manifest.json "$ext/manifest.json"
+          mkdir -p dist out
+          stage() { rm -rf "dist/$1"; mkdir -p "dist/$1"; cp "$files/README.txt" "dist/$1/"; cp -r "$ext" "dist/$1/san_remote_extension"; }
+
+          stage san_tower
+          cp "$tower/san_tower.exe" dist/san_tower/
+          sed 's/\r*$/\r/' "$files/start.bat" > dist/san_tower/start.bat
+          (cd dist && zip -qr "../out/san_tower-$TAG-windows-amd64.zip" san_tower)
+
+          stage san_tower
+          install -m 755 "$tower/san_tower" dist/san_tower/san_tower
+          tar -C dist -czf "out/san_tower-$TAG-linux-amd64.tar.gz" san_tower
+
+          (cd "$ext" && zip -qr "$GITHUB_WORKSPACE/out/san_remote_extension-$TAG.zip" .)
+          ls -l out
+      - name: Release
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<EOF
+          San Tower $TAG, with the San Remote browser extension.
+
+          - **san_tower-$TAG-windows-amd64.zip**: the tower for Windows, start.bat, the extension and a README with the setup.
+          - **san_tower-$TAG-linux-amd64.tar.gz**: the same for Linux.
+          - **san_remote_extension-$TAG.zip**: the extension alone (Chrome or Edge 135+: Load unpacked, then turn on Allow User Scripts).
+
+          Start the tower (\`san_tower serve\`), open http://127.0.0.1:7477, switch on the Browser Remote Server page, install the extension and add a San Remote connection to http://127.0.0.1:7478. The README in the bundle has each step.
+          EOF
+          gh release create "$TAG" out/* --title "San Tower $TAG" --notes-file notes.md --verify-tag

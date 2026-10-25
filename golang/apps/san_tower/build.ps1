@@ -7,7 +7,8 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location $root
 try {
-    $version = Get-Date -Format "yyyy.MM.dd-HHmm"
+    # The release pipeline gives the tag (v1.0.0); a local build the date.
+    $version = if ($env:SAN_TOWER_VERSION) { $env:SAN_TOWER_VERSION } else { Get-Date -Format "yyyy.MM.dd-HHmm" }
 
     Write-Host "ui..."
     Push-Location ../../../typescripts/san_tower_frontend

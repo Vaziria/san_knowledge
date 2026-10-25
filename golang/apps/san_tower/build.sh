@@ -6,7 +6,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-version="$(date +%Y.%m.%d-%H%M)"
+# The release pipeline gives the tag (v1.0.0); a local build the date.
+version="${SAN_TOWER_VERSION:-$(date +%Y.%m.%d-%H%M)}"
 ldflags="-X main.version=${version}"
 
 echo "ui..."

@@ -9,20 +9,50 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 // File is the settings file's name in the tower's data folder.
 const File = "tower.json"
 
 type Settings struct {
-	Broker Broker `json:"broker"`
+	Broker        Broker        `json:"broker"`
+	BrowserRemote BrowserRemote `json:"browser_remote"`
 }
 
-// Broker is the setup of the San Message broker the tower runs.
+// Broker is the setup of the San Message broker the tower uses: its own,
+// running inside it, or a separate san_message server.
 type Broker struct {
-	// DataDir is the broker's data folder: empty for the default, a relative
-	// path is inside the tower's data folder.
+	// DataDir is the data folder of the broker inside the tower: empty for
+	// the default, a relative path is inside the tower's data folder.
 	DataDir string `json:"data_dir,omitempty"`
+	// Remote says the tower uses the san_message server at URI instead of
+	// its own. Both settings are kept either way.
+	Remote bool   `json:"remote,omitempty"`
+	URI    string `json:"uri,omitempty"`
+}
+
+// BrowserRemote is the San Remote server the tower can run, for the browser
+// extension and the site services (golang/apps/san_remote).
+type BrowserRemote struct {
+	// Active: the tower runs it, and starts it when the tower starts.
+	Active bool `json:"active,omitempty"`
+}
+
+// mu serializes Update, so two parts of the tower saving their settings at
+// once do not undo each other's change.
+var mu sync.Mutex
+
+// Update changes the settings in dir with change and saves them.
+func Update(dir string, change func(*Settings)) error {
+	mu.Lock()
+	defer mu.Unlock()
+	s, err := Load(dir)
+	if err != nil {
+		return err
+	}
+	change(&s)
+	return Save(dir, s)
 }
 
 // Load reads the settings in dir. With no settings file yet, every setting

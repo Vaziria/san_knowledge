@@ -1,8 +1,12 @@
 // Command san_tower watches the project from one place. `san_tower serve`
 // runs the tower on 127.0.0.1:7477: TowerService, the San Message broker
-// (golang/packages/san_message, data in --data) with its MessageService, and
-// the UI (typescripts/san_tower_frontend, built into the binary), where the
-// Message Broker page manages the broker's topics and subscribers.
+// (golang/packages/san_message, data in --data) with its MessageService,
+// WorkflowService (workflows and their runs in --data's tower.db, and the
+// engine that runs them), and the UI (typescripts/san_tower_frontend, built
+// into the binary), where the Message Broker page manages the broker's
+// topics and subscribers and the Workflow pages edit and run the workflows.
+// The Browser Remote Server page switches on the San Remote server
+// (golang/apps/san_remote) inside the tower, on san_remote's own addresses.
 // `san_tower dev` runs the tower with the UI's Vite dev server instead, for
 // hot reload.
 //
@@ -34,7 +38,10 @@ import (
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/gen/san/tower/v1/towerv1connect"
 	"github.com/wargasipil/san_tower/internal/broker"
+	"github.com/wargasipil/san_tower/internal/browserremote"
+	"github.com/wargasipil/san_tower/internal/engine"
 	"github.com/wargasipil/san_tower/internal/server"
+	"github.com/wargasipil/san_tower/internal/store"
 )
 
 // version is stamped at build time.
@@ -77,7 +84,7 @@ var (
 	dataFlag = &cli.StringFlag{
 		Name:    "data",
 		Value:   "data",
-		Usage:   "the tower's data folder: its settings (tower.json) and, unless they name another folder, the broker's in <data>/san_message",
+		Usage:   "the tower's data folder: its settings (tower.json), its database (tower.db) and, unless the settings name another folder, the broker's in <data>/san_message",
 		Sources: cli.EnvVars("SAN_TOWER_DATA"),
 	}
 )
@@ -98,29 +105,53 @@ func listen(addr string) (net.Listener, error) {
 	return net.Listen("tcp", addr)
 }
 
-// serveTower opens the broker (in the data folder its setting names, in
-// dataDir) and serves the tower on ln until ctx ends.
+// serveTower opens the database and the broker (in the data folder its
+// setting names, in dataDir), serves the tower on ln until ctx ends, and
+// switches on the active workflows' triggers once it is listening.
 func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir string) error {
+	st, err := store.Open(dataDir, log)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
 	b, err := broker.Open(dataDir, log)
 	if err != nil {
 		return err
 	}
 	defer b.Close()
+	// The San Remote server starts here when it is switched on; one that
+	// cannot (san_remote already runs) only says so on its page.
+	rm, err := browserremote.Open(dataDir, browserremote.HubAddr, browserremote.APIAddr, log)
+	if err != nil {
+		return err
+	}
+	defer rm.Close()
 
-	srv := &http.Server{Handler: server.New(version, b).Handler(), ReadHeaderTimeout: 10 * time.Second}
+	eng := engine.New(st, b, log)
+	// Runs still going are cut short and recorded before the database closes.
+	defer eng.Close()
+	srv := &http.Server{Handler: server.New(version, b, st, eng, rm).Handler(), ReadHeaderTimeout: 10 * time.Second}
 	// HTTP/2 without TLS for the broker's Subscribe stream, and pings that
 	// drop dead connections.
 	san_message.ConfigureServer(srv)
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(ln) }()
-	log.Info("san_tower listening", "url", "http://"+ln.Addr().String(), "data", dataDir, "broker", b.State().DataPath, "version", version)
+	log.Info("san_tower listening", "url", "http://"+ln.Addr().String(), "data", dataDir, "broker", brokerWhere(b), "version", version)
+	// The triggers stream from the broker inside the tower at its own address,
+	// or from the separate server.
+	if err := eng.Start("http://" + ln.Addr().String()); err != nil {
+		log.Error("switch on the workflows' triggers", "err", err)
+	}
 
 	select {
 	case err := <-errc:
 		return err
 	case <-ctx.Done():
 	}
-	b.Close() // ends the open Subscribe streams, so Shutdown does not wait on them
+	// The triggers' streams stop first, then the broker inside the tower ends
+	// the Subscribe streams still open, so Shutdown does not wait on them.
+	eng.Close()
+	b.Close()
 	sctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return srv.Shutdown(sctx)
@@ -263,4 +294,13 @@ func statusCommand() *cli.Command {
 			return nil
 		},
 	}
+}
+
+// brokerWhere is where the broker in use is, for the log: its data folder
+// inside the tower, or a separate server's URI.
+func brokerWhere(b *broker.Broker) string {
+	if uri := b.Remote(); uri != "" {
+		return uri
+	}
+	return b.State().DataPath
 }

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// StorageService keeps the tower's storages, in its database: named base
+// folders on this computer, which workflow steps use (the Storage step). A
+// storage's path is absolute, or relative to the tower's data folder.
+service StorageService {
+  // ListStorages lists the storages by name.
+  rpc ListStorages(ListStoragesRequest) returns (ListStoragesResponse);
+  // CreateStorage creates a storage. Names are unique.
+  rpc CreateStorage(CreateStorageRequest) returns (CreateStorageResponse);
+  // UpdateStorage replaces a storage's name and path.
+  rpc UpdateStorage(UpdateStorageRequest) returns (UpdateStorageResponse);
+  // DeleteStorage deletes a storage. A step that uses it fails from then
+  // on, saying so. The folder itself is left as it is.
+  rpc DeleteStorage(DeleteStorageRequest) returns (DeleteStorageResponse);
+}
+
+message Storage {
+  uint32 id = 1;
+  string name = 2;
+  // path is the base path as given: absolute (D:\videos), or relative to
+  // the tower's data folder (videos).
+  string path = 3;
+  // absolute_path is where path is on this computer. The tower sets it;
+  // what is sent is ignored.
+  string absolute_path = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message ListStoragesRequest {}
+
+message ListStoragesResponse {
+  repeated Storage storages = 1;
+  // data_dir is the tower's data folder, which a relative path is in.
+  string data_dir = 2;
+}
+
+message CreateStorageRequest {
+  Storage storage = 1;
+}
+
+message CreateStorageResponse {
+  Storage storage = 1;
+}
+
+message UpdateStorageRequest {
+  Storage storage = 1;
+}
+
+message UpdateStorageResponse {
+  Storage storage = 1;
+}
+
+message DeleteStorageRequest {
+  uint32 id = 1;
+}
+
+message DeleteStorageResponse {}

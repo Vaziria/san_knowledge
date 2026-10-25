@@ -9,12 +9,16 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/wargasipil/san_message"
 	messagev1 "github.com/wargasipil/san_message/gen/san/message/v1"
 	"github.com/wargasipil/san_message/gen/san/message/v1/messagev1connect"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/gen/san/tower/v1/towerv1connect"
 	"github.com/wargasipil/san_tower/internal/broker"
+	"github.com/wargasipil/san_tower/internal/browserremote"
+	"github.com/wargasipil/san_tower/internal/engine"
+	"github.com/wargasipil/san_tower/internal/store"
 )
 
 func TestBrokerSettings(t *testing.T) {
@@ -46,19 +50,72 @@ func TestBrokerSettings(t *testing.T) {
 	}
 }
 
-// tower serves a tower with its data in a temporary folder.
-func tower(t *testing.T) *httptest.Server {
-	t.Helper()
-	b, err := broker.Open(t.TempDir(), slog.New(slog.DiscardHandler))
+func TestBrokerStatus(t *testing.T) {
+	ts, b := towerWithBroker(t)
+	if err := b.Broker().CreateTopic("orders"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := b.Broker().Publish("orders", []byte(`{}`)); err != nil {
+		t.Fatal(err)
+	}
+	c := towerv1connect.NewBrokerServiceClient(ts.Client(), ts.URL)
+	got, err := c.GetBrokerStatus(context.Background(), connect.NewRequest(&v1.GetBrokerStatusRequest{}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	ts := httptest.NewServer(New("test", b).Handler())
+	st := got.Msg.Status
+	if st.Topics != 1 || st.Events != 1 || st.Subscribers != 0 || st.DataPath != b.State().DataPath || st.DiskBytes == 0 || st.OpenedAt.AsTime().IsZero() {
+		t.Errorf("status = %v", st)
+	}
+}
+
+// tower serves a tower with its data in a temporary folder, its workflow
+// triggers on.
+func tower(t *testing.T) *httptest.Server {
+	t.Helper()
+	ts, _ := towerWithBroker(t)
+	return ts
+}
+
+// offRemote is a browser remote server that is off, on any port: switching
+// it on in a test never takes san_remote's own addresses.
+func offRemote(t *testing.T, dir string) *browserremote.Remote {
+	t.Helper()
+	rm, err := browserremote.Open(dir, "127.0.0.1:0", "127.0.0.1:0", slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { rm.Close() })
+	return rm
+}
+
+func towerWithBroker(t *testing.T) (*httptest.Server, *broker.Broker) {
+	t.Helper()
+	dir := t.TempDir()
+	log := slog.New(slog.DiscardHandler)
+	st, err := store.Open(dir, log)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := broker.Open(dir, log)
+	if err != nil {
+		t.Fatal(err)
+	}
+	eng := engine.New(st, b, log)
+	// HTTP/2 without TLS, as the tower serves: the triggers stream from it.
+	ts := httptest.NewUnstartedServer(New("test", b, st, eng, offRemote(t, dir)).Handler())
+	san_message.ConfigureServer(ts.Config)
+	ts.Start()
 	t.Cleanup(func() {
+		eng.Close()
 		b.Close()
+		st.Close()
 		ts.Close()
 	})
-	return ts
+	if err := eng.Start(ts.URL); err != nil {
+		t.Fatal(err)
+	}
+	return ts, b
 }
 
 func TestGetStatus(t *testing.T) {
@@ -123,5 +180,60 @@ func TestGuard(t *testing.T) {
 		if rec.Code != c.code {
 			t.Errorf("host %s origin %q: code %d, want %d", c.host, c.origin, rec.Code, c.code)
 		}
+	}
+}
+
+func TestWorkflowService(t *testing.T) {
+	ts := tower(t)
+	ctx := context.Background()
+	c := towerv1connect.NewWorkflowServiceClient(ts.Client(), ts.URL)
+
+	cr, err := c.CreateWorkflow(ctx, connect.NewRequest(&v1.CreateWorkflowRequest{Name: "orders"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := cr.Msg.Workflow
+	if _, err := c.CreateWorkflow(ctx, connect.NewRequest(&v1.CreateWorkflowRequest{Name: "Orders"})); connect.CodeOf(err) != connect.CodeAlreadyExists {
+		t.Errorf("same name: %v", err)
+	}
+
+	w.Steps = []*v1.Step{
+		{Id: "a", Kind: "topic-event", X: 10, Y: 20, Values: map[string]string{"Topic": "orders"}},
+		{Id: "b", Kind: "log"},
+	}
+	w.Links = []*v1.Link{{Source: "a", SourceSocket: "Event", Target: "b", TargetSocket: "Event"}}
+	if _, err := c.UpdateWorkflow(ctx, connect.NewRequest(&v1.UpdateWorkflowRequest{Workflow: w})); err != nil {
+		t.Fatal(err)
+	}
+	got, err := c.GetWorkflow(ctx, connect.NewRequest(&v1.GetWorkflowRequest{Id: w.Id}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g := got.Msg.Workflow; len(g.Steps) != 2 || g.Steps[0].Values["Topic"] != "orders" || g.Steps[0].X != 10 || len(g.Links) != 1 || g.Links[0].TargetSocket != "Event" {
+		t.Errorf("got %v", g)
+	}
+
+	list, err := c.ListWorkflows(ctx, connect.NewRequest(&v1.ListWorkflowsRequest{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if l := list.Msg.Workflows; len(l) != 1 || list.Msg.Total != 1 || l[0].Name != "orders" || l[0].StepCount != 2 {
+		t.Errorf("list = %v", list.Msg)
+	}
+	list, err = c.ListWorkflows(ctx, connect.NewRequest(&v1.ListWorkflowsRequest{Query: "nothing", Limit: 20}))
+	if err != nil || len(list.Msg.Workflows) != 0 || list.Msg.Total != 0 {
+		t.Errorf("list nothing = %v, %v", list.Msg, err)
+	}
+
+	w.Links = []*v1.Link{{Source: "a", Target: "gone"}}
+	if _, err := c.UpdateWorkflow(ctx, connect.NewRequest(&v1.UpdateWorkflowRequest{Workflow: w})); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Errorf("link to a missing step: %v", err)
+	}
+
+	if _, err := c.DeleteWorkflow(ctx, connect.NewRequest(&v1.DeleteWorkflowRequest{Id: w.Id})); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.GetWorkflow(ctx, connect.NewRequest(&v1.GetWorkflowRequest{Id: w.Id})); connect.CodeOf(err) != connect.CodeNotFound {
+		t.Errorf("get deleted: %v", err)
 	}
 }

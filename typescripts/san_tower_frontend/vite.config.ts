@@ -24,8 +24,10 @@ export default defineConfig(({ mode }) => ({
   },
   // The dev server (`san_tower dev`, or `npm run dev`) serves the UI with hot
   // reload and passes the services on to the tower at SAN_TOWER_SERVER, which
-  // `san_tower dev` sets to the tower it runs.
+  // `san_tower dev` sets to the tower it runs. Every service the tower serves
+  // is under /san.: its own (/san.tower.v1.*) and the broker's
+  // (/san.message.v1.MessageService). The UI's routes never start with /san.
   server: {
-    proxy: { '/san.tower.': loadEnv(mode, '.', 'SAN_TOWER_').SAN_TOWER_SERVER || 'http://127.0.0.1:7477' },
+    proxy: { '^/san\\.': loadEnv(mode, '.', 'SAN_TOWER_').SAN_TOWER_SERVER || 'http://127.0.0.1:7477' },
   },
 }));

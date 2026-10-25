@@ -13,16 +13,31 @@ import (
 	"time"
 
 	"github.com/wargasipil/san_tower/internal/broker"
+	"github.com/wargasipil/san_tower/internal/browserremote"
+	"github.com/wargasipil/san_tower/internal/engine"
 	"github.com/wargasipil/san_tower/internal/server"
+	"github.com/wargasipil/san_tower/internal/store"
 )
 
 func TestStatus(t *testing.T) {
-	b, err := broker.Open(t.TempDir(), slog.New(slog.DiscardHandler))
+	dir := t.TempDir()
+	st, err := store.Open(dir, slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	b, err := broker.Open(dir, slog.New(slog.DiscardHandler))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer b.Close()
-	ts := httptest.NewServer(server.New("test", b).Handler())
+	// Off, on any port: the test never takes san_remote's own.
+	rm, err := browserremote.Open(dir, "127.0.0.1:0", "127.0.0.1:0", slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rm.Close()
+	ts := httptest.NewServer(server.New("test", b, st, engine.New(st, b, slog.New(slog.DiscardHandler)), rm).Handler())
 	defer ts.Close()
 
 	var out bytes.Buffer

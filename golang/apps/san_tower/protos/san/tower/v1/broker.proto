@@ -2,21 +2,34 @@ syntax = "proto3";
 
 package san.tower.v1;
 
+import "google/protobuf/timestamp.proto";
+
 // BrokerService is the tower's setup of the San Message broker it runs. The
 // broker's topics and subscribers are on san_message's own MessageService.
 service BrokerService {
   rpc GetBrokerSettings(GetBrokerSettingsRequest) returns (GetBrokerSettingsResponse);
   // UpdateBrokerSettings saves new settings in the tower's data folder and
-  // applies them. A new data folder opens a broker there and closes the old
-  // one, whose pull streams end; nothing is moved or deleted. When the broker
-  // cannot open in the new folder, nothing changes.
+  // applies them at once. A new data folder opens a broker there; a separate
+  // server is used once it answers. The broker let go of is closed (its pull
+  // streams end) when it ran inside the tower; nothing is moved or deleted.
+  // The workflows' triggers follow. When the new broker cannot open, or does
+  // not answer, nothing changes.
   rpc UpdateBrokerSettings(UpdateBrokerSettingsRequest) returns (UpdateBrokerSettingsResponse);
+  // GetBrokerStatus says how the broker in use is doing: since when it runs,
+  // how much it holds, and whether its subscribers keep up.
+  rpc GetBrokerStatus(GetBrokerStatusRequest) returns (GetBrokerStatusResponse);
 }
 
 message BrokerSettings {
-  // data_dir is the broker's data folder: empty for the default, a relative
-  // path is inside the tower's data folder. Its parent folder must exist.
+  // data_dir is the data folder of the broker inside the tower: empty for the
+  // default, a relative path is inside the tower's data folder. Its parent
+  // folder must exist.
   string data_dir = 1;
+  // remote: the tower uses the san_message server at uri (http or https,
+  // such as http://10.8.0.5:7070) instead of its own broker. Both data_dir
+  // and uri are kept either way.
+  bool remote = 2;
+  string uri = 3;
 }
 
 // BrokerState is the broker's settings and what they resolve to.
@@ -40,4 +53,37 @@ message UpdateBrokerSettingsRequest {
 
 message UpdateBrokerSettingsResponse {
   BrokerState state = 1;
+}
+
+// BrokerStatus is the broker in use, as it is now.
+message BrokerStatus {
+  // opened_at is when the tower began to use it: when the tower started, or
+  // when the setting last changed.
+  google.protobuf.Timestamp opened_at = 1;
+  // data_path is the data folder of a broker inside the tower, absolute, and
+  // disk_bytes the size of the files in it (with the fixed-size topic and
+  // subscriber metadata files). Both are empty for a separate server.
+  string data_path = 2;
+  uint64 disk_bytes = 3;
+  uint32 topics = 4;
+  // events is how many events were published, on all topics.
+  uint64 events = 5;
+  uint32 subscribers = 6;
+  // pull_subscribers are those of type pull, and pull_connected those of
+  // them with an open Subscribe stream.
+  uint32 pull_subscribers = 7;
+  uint32 pull_connected = 8;
+  // behind is how many subscribers have events left to get, and retrying
+  // how many of them wait to retry one that failed.
+  uint32 behind = 9;
+  uint32 retrying = 10;
+  // remote: it is the separate san_message server at uri.
+  bool remote = 11;
+  string uri = 12;
+}
+
+message GetBrokerStatusRequest {}
+
+message GetBrokerStatusResponse {
+  BrokerStatus status = 1;
 }

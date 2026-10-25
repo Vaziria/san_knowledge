@@ -1,0 +1,313 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+// WorkflowService keeps and runs the tower's workflows, which the UI's
+// Workflow pages edit: graphs of steps joined by links, stored in the tower's
+// database (<data>/tower.db). The tower's engine defines the kinds of step
+// and runs a workflow by hand (RunWorkflow) or, once it is active, from its
+// triggers. Every run is kept, with what each step did.
+service WorkflowService {
+  // ListStepKinds lists the kinds of step the editor can add.
+  rpc ListStepKinds(ListStepKindsRequest) returns (ListStepKindsResponse);
+  // ListWorkflows lists the workflows by name, without their steps.
+  rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse);
+  // CreateWorkflow creates an empty, inactive workflow. Names are unique.
+  rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
+  rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
+  // UpdateWorkflow replaces a workflow's name, steps and links. An active
+  // workflow's triggers follow the new steps at once.
+  rpc UpdateWorkflow(UpdateWorkflowRequest) returns (UpdateWorkflowResponse);
+  // SetWorkflowActive switches a workflow's triggers on or off.
+  rpc SetWorkflowActive(SetWorkflowActiveRequest) returns (SetWorkflowActiveResponse);
+  // DeleteWorkflow deletes a workflow, its runs and its triggers.
+  rpc DeleteWorkflow(DeleteWorkflowRequest) returns (DeleteWorkflowResponse);
+  // RunWorkflow runs a workflow once from one of its trigger steps, as if
+  // that trigger got data, and returns the finished run.
+  rpc RunWorkflow(RunWorkflowRequest) returns (RunWorkflowResponse);
+  // ListRuns lists a workflow's runs, newest first, without their steps.
+  rpc ListRuns(ListRunsRequest) returns (ListRunsResponse);
+  rpc GetRun(GetRunRequest) returns (GetRunResponse);
+}
+
+// StepKind is a kind of step: its sockets and settings.
+message StepKind {
+  string kind = 1;
+  string title = 2;
+  // category is Trigger, Logic, Data, Datetime, Action or Social. A trigger
+  // starts runs.
+  string category = 3;
+  repeated Socket outputs = 4;
+  repeated Setting settings = 5;
+  repeated Socket inputs = 6;
+  // runnable says the engine can run it; the others are planned.
+  bool runnable = 7;
+  // description says what the step does, in a sentence, for the editor's
+  // Add menu.
+  string description = 8;
+  // group is a sub-menu of its category in the Add menu (Social › Threads);
+  // empty: right in the category.
+  string group = 9;
+}
+
+// Socket is an input or output of a step. A link joins sockets of the same
+// type: event (when a step runs), object (structured data) or text.
+message Socket {
+  string name = 1;
+  string type = 2;
+  // field: an input that nothing is linked to takes the value typed in the
+  // step instead.
+  bool field = 3;
+  // picker: a field input whose value is picked rather than typed:
+  // "datetime" (2026-10-25T09:00), "date" (2026-10-25) or "time" (09:00).
+  // The socket is still text, so it links to and from any text.
+  string picker = 4;
+  // when: an input that matters only when a setting has one value, as
+  // "Source=File"; the editor shows it then, or while it is linked. The
+  // engine reads the inputs the settings say, whatever is shown.
+  string when = 5;
+}
+
+// Setting is a setting of a step. One with options is a select, and starts
+// at the first option. One with a connection_type picks a connection of that
+// type (ConnectionService); its value is the connection's id. One with
+// storage picks a storage (StorageService); its value is the storage's id.
+message Setting {
+  string name = 1;
+  repeated string options = 2;
+  string placeholder = 3;
+  string connection_type = 4;
+  bool storage = 5;
+}
+
+message Workflow {
+  uint32 id = 1;
+  string name = 2;
+  repeated Step steps = 3;
+  repeated Link links = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  // active: its triggers run it. UpdateWorkflow leaves it as it is.
+  bool active = 7;
+  // triggers say what each trigger step of an active workflow is doing.
+  repeated TriggerState triggers = 8;
+}
+
+// Step is one node of a workflow.
+message Step {
+  // id is unique in its workflow, chosen by the UI.
+  string id = 1;
+  string kind = 2;
+  // x and y are where the step sits in the editor.
+  double x = 3;
+  double y = 4;
+  // values are its settings, and its unlinked field inputs, by name.
+  map<string, string> values = 5;
+}
+
+// Link joins an output socket of one step to an input socket of another.
+message Link {
+  string source = 1;
+  string source_socket = 2;
+  string target = 3;
+  string target_socket = 4;
+}
+
+// Graph is a workflow's steps and links as the tower stores them (protojson
+// in tower.db).
+message Graph {
+  repeated Step steps = 1;
+  repeated Link links = 2;
+}
+
+// TriggerState is a trigger step of an active workflow.
+message TriggerState {
+  string step_id = 1;
+  // what the trigger waits for, e.g. "topic orders" or "every 5m".
+  string source = 2;
+  bool listening = 3;
+  // error is why it is not listening.
+  string error = 4;
+  // next is when a Schedule step runs next.
+  google.protobuf.Timestamp next = 5;
+}
+
+// WorkflowSummary is a workflow in the list.
+message WorkflowSummary {
+  uint32 id = 1;
+  string name = 2;
+  uint32 step_count = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  bool active = 6;
+}
+
+enum RunStatus {
+  RUN_STATUS_UNSPECIFIED = 0;
+  RUN_STATUS_RUNNING = 1;
+  RUN_STATUS_SUCCEEDED = 2;
+  RUN_STATUS_FAILED = 3;
+  // The tower stopped during the run.
+  RUN_STATUS_INTERRUPTED = 4;
+}
+
+// Run is one run of a workflow.
+message Run {
+  uint32 id = 1;
+  uint32 workflow_id = 2;
+  RunStatus status = 3;
+  // trigger says what started it: "manual" or "topic orders, event 42".
+  string trigger = 4;
+  google.protobuf.Timestamp started_at = 5;
+  google.protobuf.Timestamp finished_at = 6;
+  // error is why it failed.
+  string error = 7;
+  // steps are the steps that ran, in the order they ran. ListRuns leaves
+  // them out.
+  repeated StepRun steps = 8;
+  // In a list of every workflow's runs (ListRuns with workflow_id 0):
+  // workflow_name is its workflow's name, and logs the lines its steps
+  // logged, in order, with log_levels their types (as in StepRun).
+  string workflow_name = 9;
+  repeated string logs = 10;
+  repeated LogLevel log_levels = 11;
+}
+
+// LogLevel is the type of a line a Log step writes.
+enum LogLevel {
+  // A line from before lines had a type; shown as info.
+  LOG_LEVEL_UNSPECIFIED = 0;
+  LOG_LEVEL_INFO = 1;
+  LOG_LEVEL_SUCCESS = 2;
+  LOG_LEVEL_WARNING = 3;
+  LOG_LEVEL_FAILED = 4;
+  LOG_LEVEL_DEBUG = 5;
+}
+
+// StepRun is what one step did in a run.
+message StepRun {
+  string step_id = 1;
+  string kind = 2;
+  // error is why it failed; a failed step ends the run.
+  string error = 3;
+  // outputs are its data outputs' values by socket name: a
+  // google.protobuf.Value for an object, a google.protobuf.StringValue for
+  // text.
+  map<string, google.protobuf.Any> outputs = 4;
+  // fired are the event outputs it fired.
+  repeated string fired = 5;
+  // logs are the lines it wrote (Log), and log_levels[i] is the type of
+  // logs[i]. A run stored before lines had a type has no log_levels.
+  repeated string logs = 6;
+  google.protobuf.Duration duration = 7;
+  repeated LogLevel log_levels = 8;
+}
+
+// RunSteps is a run's steps as the tower stores them (protojson in tower.db).
+message RunSteps {
+  repeated StepRun steps = 1;
+}
+
+message ListStepKindsRequest {}
+
+message ListStepKindsResponse {
+  repeated StepKind kinds = 1;
+}
+
+// ListWorkflowsRequest asks for one page of the workflows whose name contains
+// query, ignoring case (all when it is empty): limit of them (all when 0)
+// from offset.
+message ListWorkflowsRequest {
+  string query = 1;
+  uint32 offset = 2;
+  uint32 limit = 3;
+}
+
+message ListWorkflowsResponse {
+  repeated WorkflowSummary workflows = 1;
+  // total is how many workflows match the query, on every page.
+  uint32 total = 2;
+}
+
+message CreateWorkflowRequest {
+  string name = 1;
+}
+
+message CreateWorkflowResponse {
+  Workflow workflow = 1;
+}
+
+message GetWorkflowRequest {
+  uint32 id = 1;
+}
+
+message GetWorkflowResponse {
+  Workflow workflow = 1;
+}
+
+message UpdateWorkflowRequest {
+  Workflow workflow = 1;
+}
+
+message UpdateWorkflowResponse {
+  Workflow workflow = 1;
+}
+
+message SetWorkflowActiveRequest {
+  uint32 id = 1;
+  bool active = 2;
+}
+
+message SetWorkflowActiveResponse {
+  Workflow workflow = 1;
+}
+
+message DeleteWorkflowRequest {
+  uint32 id = 1;
+}
+
+message DeleteWorkflowResponse {}
+
+message RunWorkflowRequest {
+  uint32 workflow_id = 1;
+  // step_id is the trigger step to start from.
+  string step_id = 2;
+  // data is what the trigger gets: for Topic Event, an event's data (JSON,
+  // or any text).
+  bytes data = 3;
+}
+
+message RunWorkflowResponse {
+  Run run = 1;
+}
+
+message ListRunsRequest {
+  // workflow_id is the workflow whose runs to list; 0 lists the runs of
+  // every workflow (the Workflow page's Logs), each with its workflow's name
+  // and the lines its steps logged.
+  uint32 workflow_id = 1;
+  // limit is the most runs to list; 0 means 50.
+  uint32 limit = 2;
+  // active_only: with workflow_id 0, only the runs of the workflows switched
+  // on now.
+  bool active_only = 3;
+  // statuses: with workflow_id 0, only the runs with one of these statuses;
+  // any status when empty.
+  repeated RunStatus statuses = 4;
+}
+
+message ListRunsResponse {
+  repeated Run runs = 1;
+}
+
+message GetRunRequest {
+  uint32 id = 1;
+}
+
+message GetRunResponse {
+  Run run = 1;
+}

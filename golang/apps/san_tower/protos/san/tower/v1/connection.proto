@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// ConnectionService keeps the tower's connections to other programs, which
+// workflow steps use, in its database. The types are san_remote:
+// `san_remote api`, which posts through the user's own browser, and
+// telegram_bot: a Telegram bot, through the Bot API.
+service ConnectionService {
+  // ListConnections lists the connections by name.
+  rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
+  // CreateConnection creates a connection. Names are unique.
+  rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse);
+  // UpdateConnection replaces a connection's name and settings.
+  rpc UpdateConnection(UpdateConnectionRequest) returns (UpdateConnectionResponse);
+  // DeleteConnection deletes a connection. A step that uses it fails from
+  // then on, saying so.
+  rpc DeleteConnection(DeleteConnectionRequest) returns (DeleteConnectionResponse);
+  // TestConnection checks settings, saved or not, against the other side.
+  rpc TestConnection(TestConnectionRequest) returns (TestConnectionResponse);
+}
+
+message Connection {
+  uint32 id = 1;
+  string name = 2;
+  ConnectionSettings settings = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// ConnectionSettings is a connection's type, by which field is set, and that
+// type's settings.
+message ConnectionSettings {
+  oneof type {
+    SanRemoteSettings san_remote = 1;
+    TelegramBotSettings telegram_bot = 2;
+  }
+}
+
+// SanRemoteSettings is a connection to `san_remote api`.
+message SanRemoteSettings {
+  // url is where it listens, e.g. http://127.0.0.1:7478.
+  string url = 1;
+}
+
+// TelegramBotSettings is a Telegram bot, which the tower reads and sends
+// messages as.
+message TelegramBotSettings {
+  // token is the bot's token from @BotFather, e.g. 123456:ABC-DEF1234.
+  string token = 1;
+}
+
+message ListConnectionsRequest {
+  // type lists only one type's connections, e.g. "san_remote"; empty lists
+  // all.
+  string type = 1;
+}
+
+message ListConnectionsResponse {
+  repeated Connection connections = 1;
+}
+
+message CreateConnectionRequest {
+  Connection connection = 1;
+}
+
+message CreateConnectionResponse {
+  Connection connection = 1;
+}
+
+message UpdateConnectionRequest {
+  Connection connection = 1;
+}
+
+message UpdateConnectionResponse {
+  Connection connection = 1;
+}
+
+message DeleteConnectionRequest {
+  uint32 id = 1;
+}
+
+message DeleteConnectionResponse {}
+
+message TestConnectionRequest {
+  ConnectionSettings settings = 1;
+}
+
+message TestConnectionResponse {
+  // ok: the other side answered and can do its work.
+  bool ok = 1;
+  // message says what was found, or why it is not ok.
+  string message = 2;
+}

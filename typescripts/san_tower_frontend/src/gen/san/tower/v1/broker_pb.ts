@@ -4,25 +4,42 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file san/tower/v1/broker.proto.
  */
 export const file_san_tower_v1_broker: GenFile = /*@__PURE__*/
-  fileDesc("ChlzYW4vdG93ZXIvdjEvYnJva2VyLnByb3RvEgxzYW4udG93ZXIudjEiIgoOQnJva2VyU2V0dGluZ3MSEAoIZGF0YV9kaXIYASABKAkiawoLQnJva2VyU3RhdGUSLgoIc2V0dGluZ3MYASABKAsyHC5zYW4udG93ZXIudjEuQnJva2VyU2V0dGluZ3MSEQoJZGF0YV9wYXRoGAIgASgJEhkKEWRlZmF1bHRfZGF0YV9wYXRoGAMgASgJIhoKGEdldEJyb2tlclNldHRpbmdzUmVxdWVzdCJFChlHZXRCcm9rZXJTZXR0aW5nc1Jlc3BvbnNlEigKBXN0YXRlGAEgASgLMhkuc2FuLnRvd2VyLnYxLkJyb2tlclN0YXRlIk0KG1VwZGF0ZUJyb2tlclNldHRpbmdzUmVxdWVzdBIuCghzZXR0aW5ncxgBIAEoCzIcLnNhbi50b3dlci52MS5Ccm9rZXJTZXR0aW5ncyJIChxVcGRhdGVCcm9rZXJTZXR0aW5nc1Jlc3BvbnNlEigKBXN0YXRlGAEgASgLMhkuc2FuLnRvd2VyLnYxLkJyb2tlclN0YXRlMuQBCg1Ccm9rZXJTZXJ2aWNlEmQKEUdldEJyb2tlclNldHRpbmdzEiYuc2FuLnRvd2VyLnYxLkdldEJyb2tlclNldHRpbmdzUmVxdWVzdBonLnNhbi50b3dlci52MS5HZXRCcm9rZXJTZXR0aW5nc1Jlc3BvbnNlEm0KFFVwZGF0ZUJyb2tlclNldHRpbmdzEikuc2FuLnRvd2VyLnYxLlVwZGF0ZUJyb2tlclNldHRpbmdzUmVxdWVzdBoqLnNhbi50b3dlci52MS5VcGRhdGVCcm9rZXJTZXR0aW5nc1Jlc3BvbnNlQqsBChBjb20uc2FuLnRvd2VyLnYxQgtCcm9rZXJQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM");
+  fileDesc("ChlzYW4vdG93ZXIvdjEvYnJva2VyLnByb3RvEgxzYW4udG93ZXIudjEiPwoOQnJva2VyU2V0dGluZ3MSEAoIZGF0YV9kaXIYASABKAkSDgoGcmVtb3RlGAIgASgIEgsKA3VyaRgDIAEoCSJrCgtCcm9rZXJTdGF0ZRIuCghzZXR0aW5ncxgBIAEoCzIcLnNhbi50b3dlci52MS5Ccm9rZXJTZXR0aW5ncxIRCglkYXRhX3BhdGgYAiABKAkSGQoRZGVmYXVsdF9kYXRhX3BhdGgYAyABKAkiGgoYR2V0QnJva2VyU2V0dGluZ3NSZXF1ZXN0IkUKGUdldEJyb2tlclNldHRpbmdzUmVzcG9uc2USKAoFc3RhdGUYASABKAsyGS5zYW4udG93ZXIudjEuQnJva2VyU3RhdGUiTQobVXBkYXRlQnJva2VyU2V0dGluZ3NSZXF1ZXN0Ei4KCHNldHRpbmdzGAEgASgLMhwuc2FuLnRvd2VyLnYxLkJyb2tlclNldHRpbmdzIkgKHFVwZGF0ZUJyb2tlclNldHRpbmdzUmVzcG9uc2USKAoFc3RhdGUYASABKAsyGS5zYW4udG93ZXIudjEuQnJva2VyU3RhdGUiigIKDEJyb2tlclN0YXR1cxItCglvcGVuZWRfYXQYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhEKCWRhdGFfcGF0aBgCIAEoCRISCgpkaXNrX2J5dGVzGAMgASgEEg4KBnRvcGljcxgEIAEoDRIOCgZldmVudHMYBSABKAQSEwoLc3Vic2NyaWJlcnMYBiABKA0SGAoQcHVsbF9zdWJzY3JpYmVycxgHIAEoDRIWCg5wdWxsX2Nvbm5lY3RlZBgIIAEoDRIOCgZiZWhpbmQYCSABKA0SEAoIcmV0cnlpbmcYCiABKA0SDgoGcmVtb3RlGAsgASgIEgsKA3VyaRgMIAEoCSIYChZHZXRCcm9rZXJTdGF0dXNSZXF1ZXN0IkUKF0dldEJyb2tlclN0YXR1c1Jlc3BvbnNlEioKBnN0YXR1cxgBIAEoCzIaLnNhbi50b3dlci52MS5Ccm9rZXJTdGF0dXMyxAIKDUJyb2tlclNlcnZpY2USZAoRR2V0QnJva2VyU2V0dGluZ3MSJi5zYW4udG93ZXIudjEuR2V0QnJva2VyU2V0dGluZ3NSZXF1ZXN0Gicuc2FuLnRvd2VyLnYxLkdldEJyb2tlclNldHRpbmdzUmVzcG9uc2USbQoUVXBkYXRlQnJva2VyU2V0dGluZ3MSKS5zYW4udG93ZXIudjEuVXBkYXRlQnJva2VyU2V0dGluZ3NSZXF1ZXN0Giouc2FuLnRvd2VyLnYxLlVwZGF0ZUJyb2tlclNldHRpbmdzUmVzcG9uc2USXgoPR2V0QnJva2VyU3RhdHVzEiQuc2FuLnRvd2VyLnYxLkdldEJyb2tlclN0YXR1c1JlcXVlc3QaJS5zYW4udG93ZXIudjEuR2V0QnJva2VyU3RhdHVzUmVzcG9uc2VCqwEKEGNvbS5zYW4udG93ZXIudjFCC0Jyb2tlclByb3RvUAFaOGdpdGh1Yi5jb20vd2FyZ2FzaXBpbC9zYW5fdG93ZXIvZ2VuL3Nhbi90b3dlci92MTt0b3dlcnYxogIDU1RYqgIMU2FuLlRvd2VyLlYxygIMU2FuXFRvd2VyXFYx4gIYU2FuXFRvd2VyXFYxXEdQQk1ldGFkYXRh6gIOU2FuOjpUb3dlcjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message san.tower.v1.BrokerSettings
  */
 export type BrokerSettings = Message<"san.tower.v1.BrokerSettings"> & {
   /**
-   * data_dir is the broker's data folder: empty for the default, a relative
-   * path is inside the tower's data folder. Its parent folder must exist.
+   * data_dir is the data folder of the broker inside the tower: empty for the
+   * default, a relative path is inside the tower's data folder. Its parent
+   * folder must exist.
    *
    * @generated from field: string data_dir = 1;
    */
   dataDir: string;
+
+  /**
+   * remote: the tower uses the san_message server at uri (http or https,
+   * such as http://10.8.0.5:7070) instead of its own broker. Both data_dir
+   * and uri are kept either way.
+   *
+   * @generated from field: bool remote = 2;
+   */
+  remote: boolean;
+
+  /**
+   * @generated from field: string uri = 3;
+   */
+  uri: string;
 };
 
 /**
@@ -130,6 +147,127 @@ export const UpdateBrokerSettingsResponseSchema: GenMessage<UpdateBrokerSettings
   messageDesc(file_san_tower_v1_broker, 5);
 
 /**
+ * BrokerStatus is the broker in use, as it is now.
+ *
+ * @generated from message san.tower.v1.BrokerStatus
+ */
+export type BrokerStatus = Message<"san.tower.v1.BrokerStatus"> & {
+  /**
+   * opened_at is when the tower began to use it: when the tower started, or
+   * when the setting last changed.
+   *
+   * @generated from field: google.protobuf.Timestamp opened_at = 1;
+   */
+  openedAt?: Timestamp;
+
+  /**
+   * data_path is the data folder of a broker inside the tower, absolute, and
+   * disk_bytes the size of the files in it (with the fixed-size topic and
+   * subscriber metadata files). Both are empty for a separate server.
+   *
+   * @generated from field: string data_path = 2;
+   */
+  dataPath: string;
+
+  /**
+   * @generated from field: uint64 disk_bytes = 3;
+   */
+  diskBytes: bigint;
+
+  /**
+   * @generated from field: uint32 topics = 4;
+   */
+  topics: number;
+
+  /**
+   * events is how many events were published, on all topics.
+   *
+   * @generated from field: uint64 events = 5;
+   */
+  events: bigint;
+
+  /**
+   * @generated from field: uint32 subscribers = 6;
+   */
+  subscribers: number;
+
+  /**
+   * pull_subscribers are those of type pull, and pull_connected those of
+   * them with an open Subscribe stream.
+   *
+   * @generated from field: uint32 pull_subscribers = 7;
+   */
+  pullSubscribers: number;
+
+  /**
+   * @generated from field: uint32 pull_connected = 8;
+   */
+  pullConnected: number;
+
+  /**
+   * behind is how many subscribers have events left to get, and retrying
+   * how many of them wait to retry one that failed.
+   *
+   * @generated from field: uint32 behind = 9;
+   */
+  behind: number;
+
+  /**
+   * @generated from field: uint32 retrying = 10;
+   */
+  retrying: number;
+
+  /**
+   * remote: it is the separate san_message server at uri.
+   *
+   * @generated from field: bool remote = 11;
+   */
+  remote: boolean;
+
+  /**
+   * @generated from field: string uri = 12;
+   */
+  uri: string;
+};
+
+/**
+ * Describes the message san.tower.v1.BrokerStatus.
+ * Use `create(BrokerStatusSchema)` to create a new message.
+ */
+export const BrokerStatusSchema: GenMessage<BrokerStatus> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_broker, 6);
+
+/**
+ * @generated from message san.tower.v1.GetBrokerStatusRequest
+ */
+export type GetBrokerStatusRequest = Message<"san.tower.v1.GetBrokerStatusRequest"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.GetBrokerStatusRequest.
+ * Use `create(GetBrokerStatusRequestSchema)` to create a new message.
+ */
+export const GetBrokerStatusRequestSchema: GenMessage<GetBrokerStatusRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_broker, 7);
+
+/**
+ * @generated from message san.tower.v1.GetBrokerStatusResponse
+ */
+export type GetBrokerStatusResponse = Message<"san.tower.v1.GetBrokerStatusResponse"> & {
+  /**
+   * @generated from field: san.tower.v1.BrokerStatus status = 1;
+   */
+  status?: BrokerStatus;
+};
+
+/**
+ * Describes the message san.tower.v1.GetBrokerStatusResponse.
+ * Use `create(GetBrokerStatusResponseSchema)` to create a new message.
+ */
+export const GetBrokerStatusResponseSchema: GenMessage<GetBrokerStatusResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_broker, 8);
+
+/**
  * BrokerService is the tower's setup of the San Message broker it runs. The
  * broker's topics and subscribers are on san_message's own MessageService.
  *
@@ -146,9 +284,11 @@ export const BrokerService: GenService<{
   },
   /**
    * UpdateBrokerSettings saves new settings in the tower's data folder and
-   * applies them. A new data folder opens a broker there and closes the old
-   * one, whose pull streams end; nothing is moved or deleted. When the broker
-   * cannot open in the new folder, nothing changes.
+   * applies them at once. A new data folder opens a broker there; a separate
+   * server is used once it answers. The broker let go of is closed (its pull
+   * streams end) when it ran inside the tower; nothing is moved or deleted.
+   * The workflows' triggers follow. When the new broker cannot open, or does
+   * not answer, nothing changes.
    *
    * @generated from rpc san.tower.v1.BrokerService.UpdateBrokerSettings
    */
@@ -156,6 +296,17 @@ export const BrokerService: GenService<{
     methodKind: "unary";
     input: typeof UpdateBrokerSettingsRequestSchema;
     output: typeof UpdateBrokerSettingsResponseSchema;
+  },
+  /**
+   * GetBrokerStatus says how the broker in use is doing: since when it runs,
+   * how much it holds, and whether its subscribers keep up.
+   *
+   * @generated from rpc san.tower.v1.BrokerService.GetBrokerStatus
+   */
+  getBrokerStatus: {
+    methodKind: "unary";
+    input: typeof GetBrokerStatusRequestSchema;
+    output: typeof GetBrokerStatusResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_san_tower_v1_broker, 0);

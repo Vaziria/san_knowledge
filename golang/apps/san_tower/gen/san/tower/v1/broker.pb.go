@@ -9,6 +9,7 @@ package towerv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -23,9 +24,15 @@ const (
 
 type BrokerSettings struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// data_dir is the broker's data folder: empty for the default, a relative
-	// path is inside the tower's data folder. Its parent folder must exist.
-	DataDir       string `protobuf:"bytes,1,opt,name=data_dir,json=dataDir,proto3" json:"data_dir,omitempty"`
+	// data_dir is the data folder of the broker inside the tower: empty for the
+	// default, a relative path is inside the tower's data folder. Its parent
+	// folder must exist.
+	DataDir string `protobuf:"bytes,1,opt,name=data_dir,json=dataDir,proto3" json:"data_dir,omitempty"`
+	// remote: the tower uses the san_message server at uri (http or https,
+	// such as http://10.8.0.5:7070) instead of its own broker. Both data_dir
+	// and uri are kept either way.
+	Remote        bool   `protobuf:"varint,2,opt,name=remote,proto3" json:"remote,omitempty"`
+	Uri           string `protobuf:"bytes,3,opt,name=uri,proto3" json:"uri,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -63,6 +70,20 @@ func (*BrokerSettings) Descriptor() ([]byte, []int) {
 func (x *BrokerSettings) GetDataDir() string {
 	if x != nil {
 		return x.DataDir
+	}
+	return ""
+}
+
+func (x *BrokerSettings) GetRemote() bool {
+	if x != nil {
+		return x.Remote
+	}
+	return false
+}
+
+func (x *BrokerSettings) GetUri() string {
+	if x != nil {
+		return x.Uri
 	}
 	return ""
 }
@@ -298,13 +319,239 @@ func (x *UpdateBrokerSettingsResponse) GetState() *BrokerState {
 	return nil
 }
 
+// BrokerStatus is the broker in use, as it is now.
+type BrokerStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// opened_at is when the tower began to use it: when the tower started, or
+	// when the setting last changed.
+	OpenedAt *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=opened_at,json=openedAt,proto3" json:"opened_at,omitempty"`
+	// data_path is the data folder of a broker inside the tower, absolute, and
+	// disk_bytes the size of the files in it (with the fixed-size topic and
+	// subscriber metadata files). Both are empty for a separate server.
+	DataPath  string `protobuf:"bytes,2,opt,name=data_path,json=dataPath,proto3" json:"data_path,omitempty"`
+	DiskBytes uint64 `protobuf:"varint,3,opt,name=disk_bytes,json=diskBytes,proto3" json:"disk_bytes,omitempty"`
+	Topics    uint32 `protobuf:"varint,4,opt,name=topics,proto3" json:"topics,omitempty"`
+	// events is how many events were published, on all topics.
+	Events      uint64 `protobuf:"varint,5,opt,name=events,proto3" json:"events,omitempty"`
+	Subscribers uint32 `protobuf:"varint,6,opt,name=subscribers,proto3" json:"subscribers,omitempty"`
+	// pull_subscribers are those of type pull, and pull_connected those of
+	// them with an open Subscribe stream.
+	PullSubscribers uint32 `protobuf:"varint,7,opt,name=pull_subscribers,json=pullSubscribers,proto3" json:"pull_subscribers,omitempty"`
+	PullConnected   uint32 `protobuf:"varint,8,opt,name=pull_connected,json=pullConnected,proto3" json:"pull_connected,omitempty"`
+	// behind is how many subscribers have events left to get, and retrying
+	// how many of them wait to retry one that failed.
+	Behind   uint32 `protobuf:"varint,9,opt,name=behind,proto3" json:"behind,omitempty"`
+	Retrying uint32 `protobuf:"varint,10,opt,name=retrying,proto3" json:"retrying,omitempty"`
+	// remote: it is the separate san_message server at uri.
+	Remote        bool   `protobuf:"varint,11,opt,name=remote,proto3" json:"remote,omitempty"`
+	Uri           string `protobuf:"bytes,12,opt,name=uri,proto3" json:"uri,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrokerStatus) Reset() {
+	*x = BrokerStatus{}
+	mi := &file_san_tower_v1_broker_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrokerStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrokerStatus) ProtoMessage() {}
+
+func (x *BrokerStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_broker_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrokerStatus.ProtoReflect.Descriptor instead.
+func (*BrokerStatus) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_broker_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *BrokerStatus) GetOpenedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.OpenedAt
+	}
+	return nil
+}
+
+func (x *BrokerStatus) GetDataPath() string {
+	if x != nil {
+		return x.DataPath
+	}
+	return ""
+}
+
+func (x *BrokerStatus) GetDiskBytes() uint64 {
+	if x != nil {
+		return x.DiskBytes
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetTopics() uint32 {
+	if x != nil {
+		return x.Topics
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetEvents() uint64 {
+	if x != nil {
+		return x.Events
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetSubscribers() uint32 {
+	if x != nil {
+		return x.Subscribers
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetPullSubscribers() uint32 {
+	if x != nil {
+		return x.PullSubscribers
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetPullConnected() uint32 {
+	if x != nil {
+		return x.PullConnected
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetBehind() uint32 {
+	if x != nil {
+		return x.Behind
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetRetrying() uint32 {
+	if x != nil {
+		return x.Retrying
+	}
+	return 0
+}
+
+func (x *BrokerStatus) GetRemote() bool {
+	if x != nil {
+		return x.Remote
+	}
+	return false
+}
+
+func (x *BrokerStatus) GetUri() string {
+	if x != nil {
+		return x.Uri
+	}
+	return ""
+}
+
+type GetBrokerStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBrokerStatusRequest) Reset() {
+	*x = GetBrokerStatusRequest{}
+	mi := &file_san_tower_v1_broker_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBrokerStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBrokerStatusRequest) ProtoMessage() {}
+
+func (x *GetBrokerStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_broker_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBrokerStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetBrokerStatusRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_broker_proto_rawDescGZIP(), []int{7}
+}
+
+type GetBrokerStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        *BrokerStatus          `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBrokerStatusResponse) Reset() {
+	*x = GetBrokerStatusResponse{}
+	mi := &file_san_tower_v1_broker_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBrokerStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBrokerStatusResponse) ProtoMessage() {}
+
+func (x *GetBrokerStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_broker_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBrokerStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetBrokerStatusResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_broker_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetBrokerStatusResponse) GetStatus() *BrokerStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 var File_san_tower_v1_broker_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_broker_proto_rawDesc = "" +
 	"\n" +
-	"\x19san/tower/v1/broker.proto\x12\fsan.tower.v1\"+\n" +
+	"\x19san/tower/v1/broker.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"U\n" +
 	"\x0eBrokerSettings\x12\x19\n" +
-	"\bdata_dir\x18\x01 \x01(\tR\adataDir\"\x90\x01\n" +
+	"\bdata_dir\x18\x01 \x01(\tR\adataDir\x12\x16\n" +
+	"\x06remote\x18\x02 \x01(\bR\x06remote\x12\x10\n" +
+	"\x03uri\x18\x03 \x01(\tR\x03uri\"\x90\x01\n" +
 	"\vBrokerState\x128\n" +
 	"\bsettings\x18\x01 \x01(\v2\x1c.san.tower.v1.BrokerSettingsR\bsettings\x12\x1b\n" +
 	"\tdata_path\x18\x02 \x01(\tR\bdataPath\x12*\n" +
@@ -315,10 +562,29 @@ const file_san_tower_v1_broker_proto_rawDesc = "" +
 	"\x1bUpdateBrokerSettingsRequest\x128\n" +
 	"\bsettings\x18\x01 \x01(\v2\x1c.san.tower.v1.BrokerSettingsR\bsettings\"O\n" +
 	"\x1cUpdateBrokerSettingsResponse\x12/\n" +
-	"\x05state\x18\x01 \x01(\v2\x19.san.tower.v1.BrokerStateR\x05state2\xe4\x01\n" +
+	"\x05state\x18\x01 \x01(\v2\x19.san.tower.v1.BrokerStateR\x05state\"\x85\x03\n" +
+	"\fBrokerStatus\x127\n" +
+	"\topened_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\bopenedAt\x12\x1b\n" +
+	"\tdata_path\x18\x02 \x01(\tR\bdataPath\x12\x1d\n" +
+	"\n" +
+	"disk_bytes\x18\x03 \x01(\x04R\tdiskBytes\x12\x16\n" +
+	"\x06topics\x18\x04 \x01(\rR\x06topics\x12\x16\n" +
+	"\x06events\x18\x05 \x01(\x04R\x06events\x12 \n" +
+	"\vsubscribers\x18\x06 \x01(\rR\vsubscribers\x12)\n" +
+	"\x10pull_subscribers\x18\a \x01(\rR\x0fpullSubscribers\x12%\n" +
+	"\x0epull_connected\x18\b \x01(\rR\rpullConnected\x12\x16\n" +
+	"\x06behind\x18\t \x01(\rR\x06behind\x12\x1a\n" +
+	"\bretrying\x18\n" +
+	" \x01(\rR\bretrying\x12\x16\n" +
+	"\x06remote\x18\v \x01(\bR\x06remote\x12\x10\n" +
+	"\x03uri\x18\f \x01(\tR\x03uri\"\x18\n" +
+	"\x16GetBrokerStatusRequest\"M\n" +
+	"\x17GetBrokerStatusResponse\x122\n" +
+	"\x06status\x18\x01 \x01(\v2\x1a.san.tower.v1.BrokerStatusR\x06status2\xc4\x02\n" +
 	"\rBrokerService\x12d\n" +
 	"\x11GetBrokerSettings\x12&.san.tower.v1.GetBrokerSettingsRequest\x1a'.san.tower.v1.GetBrokerSettingsResponse\x12m\n" +
-	"\x14UpdateBrokerSettings\x12).san.tower.v1.UpdateBrokerSettingsRequest\x1a*.san.tower.v1.UpdateBrokerSettingsResponseB\xab\x01\n" +
+	"\x14UpdateBrokerSettings\x12).san.tower.v1.UpdateBrokerSettingsRequest\x1a*.san.tower.v1.UpdateBrokerSettingsResponse\x12^\n" +
+	"\x0fGetBrokerStatus\x12$.san.tower.v1.GetBrokerStatusRequest\x1a%.san.tower.v1.GetBrokerStatusResponseB\xab\x01\n" +
 	"\x10com.san.tower.v1B\vBrokerProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -333,7 +599,7 @@ func file_san_tower_v1_broker_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_broker_proto_rawDescData
 }
 
-var file_san_tower_v1_broker_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_san_tower_v1_broker_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_san_tower_v1_broker_proto_goTypes = []any{
 	(*BrokerSettings)(nil),               // 0: san.tower.v1.BrokerSettings
 	(*BrokerState)(nil),                  // 1: san.tower.v1.BrokerState
@@ -341,21 +607,29 @@ var file_san_tower_v1_broker_proto_goTypes = []any{
 	(*GetBrokerSettingsResponse)(nil),    // 3: san.tower.v1.GetBrokerSettingsResponse
 	(*UpdateBrokerSettingsRequest)(nil),  // 4: san.tower.v1.UpdateBrokerSettingsRequest
 	(*UpdateBrokerSettingsResponse)(nil), // 5: san.tower.v1.UpdateBrokerSettingsResponse
+	(*BrokerStatus)(nil),                 // 6: san.tower.v1.BrokerStatus
+	(*GetBrokerStatusRequest)(nil),       // 7: san.tower.v1.GetBrokerStatusRequest
+	(*GetBrokerStatusResponse)(nil),      // 8: san.tower.v1.GetBrokerStatusResponse
+	(*timestamppb.Timestamp)(nil),        // 9: google.protobuf.Timestamp
 }
 var file_san_tower_v1_broker_proto_depIdxs = []int32{
 	0, // 0: san.tower.v1.BrokerState.settings:type_name -> san.tower.v1.BrokerSettings
 	1, // 1: san.tower.v1.GetBrokerSettingsResponse.state:type_name -> san.tower.v1.BrokerState
 	0, // 2: san.tower.v1.UpdateBrokerSettingsRequest.settings:type_name -> san.tower.v1.BrokerSettings
 	1, // 3: san.tower.v1.UpdateBrokerSettingsResponse.state:type_name -> san.tower.v1.BrokerState
-	2, // 4: san.tower.v1.BrokerService.GetBrokerSettings:input_type -> san.tower.v1.GetBrokerSettingsRequest
-	4, // 5: san.tower.v1.BrokerService.UpdateBrokerSettings:input_type -> san.tower.v1.UpdateBrokerSettingsRequest
-	3, // 6: san.tower.v1.BrokerService.GetBrokerSettings:output_type -> san.tower.v1.GetBrokerSettingsResponse
-	5, // 7: san.tower.v1.BrokerService.UpdateBrokerSettings:output_type -> san.tower.v1.UpdateBrokerSettingsResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	9, // 4: san.tower.v1.BrokerStatus.opened_at:type_name -> google.protobuf.Timestamp
+	6, // 5: san.tower.v1.GetBrokerStatusResponse.status:type_name -> san.tower.v1.BrokerStatus
+	2, // 6: san.tower.v1.BrokerService.GetBrokerSettings:input_type -> san.tower.v1.GetBrokerSettingsRequest
+	4, // 7: san.tower.v1.BrokerService.UpdateBrokerSettings:input_type -> san.tower.v1.UpdateBrokerSettingsRequest
+	7, // 8: san.tower.v1.BrokerService.GetBrokerStatus:input_type -> san.tower.v1.GetBrokerStatusRequest
+	3, // 9: san.tower.v1.BrokerService.GetBrokerSettings:output_type -> san.tower.v1.GetBrokerSettingsResponse
+	5, // 10: san.tower.v1.BrokerService.UpdateBrokerSettings:output_type -> san.tower.v1.UpdateBrokerSettingsResponse
+	8, // 11: san.tower.v1.BrokerService.GetBrokerStatus:output_type -> san.tower.v1.GetBrokerStatusResponse
+	9, // [9:12] is the sub-list for method output_type
+	6, // [6:9] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_broker_proto_init() }
@@ -369,7 +643,7 @@ func file_san_tower_v1_broker_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_broker_proto_rawDesc), len(file_san_tower_v1_broker_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

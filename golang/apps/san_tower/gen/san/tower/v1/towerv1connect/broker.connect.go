@@ -39,16 +39,24 @@ const (
 	// BrokerServiceUpdateBrokerSettingsProcedure is the fully-qualified name of the BrokerService's
 	// UpdateBrokerSettings RPC.
 	BrokerServiceUpdateBrokerSettingsProcedure = "/san.tower.v1.BrokerService/UpdateBrokerSettings"
+	// BrokerServiceGetBrokerStatusProcedure is the fully-qualified name of the BrokerService's
+	// GetBrokerStatus RPC.
+	BrokerServiceGetBrokerStatusProcedure = "/san.tower.v1.BrokerService/GetBrokerStatus"
 )
 
 // BrokerServiceClient is a client for the san.tower.v1.BrokerService service.
 type BrokerServiceClient interface {
 	GetBrokerSettings(context.Context, *connect.Request[v1.GetBrokerSettingsRequest]) (*connect.Response[v1.GetBrokerSettingsResponse], error)
 	// UpdateBrokerSettings saves new settings in the tower's data folder and
-	// applies them. A new data folder opens a broker there and closes the old
-	// one, whose pull streams end; nothing is moved or deleted. When the broker
-	// cannot open in the new folder, nothing changes.
+	// applies them at once. A new data folder opens a broker there; a separate
+	// server is used once it answers. The broker let go of is closed (its pull
+	// streams end) when it ran inside the tower; nothing is moved or deleted.
+	// The workflows' triggers follow. When the new broker cannot open, or does
+	// not answer, nothing changes.
 	UpdateBrokerSettings(context.Context, *connect.Request[v1.UpdateBrokerSettingsRequest]) (*connect.Response[v1.UpdateBrokerSettingsResponse], error)
+	// GetBrokerStatus says how the broker in use is doing: since when it runs,
+	// how much it holds, and whether its subscribers keep up.
+	GetBrokerStatus(context.Context, *connect.Request[v1.GetBrokerStatusRequest]) (*connect.Response[v1.GetBrokerStatusResponse], error)
 }
 
 // NewBrokerServiceClient constructs a client for the san.tower.v1.BrokerService service. By
@@ -74,6 +82,12 @@ func NewBrokerServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(brokerServiceMethods.ByName("UpdateBrokerSettings")),
 			connect.WithClientOptions(opts...),
 		),
+		getBrokerStatus: connect.NewClient[v1.GetBrokerStatusRequest, v1.GetBrokerStatusResponse](
+			httpClient,
+			baseURL+BrokerServiceGetBrokerStatusProcedure,
+			connect.WithSchema(brokerServiceMethods.ByName("GetBrokerStatus")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -81,6 +95,7 @@ func NewBrokerServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 type brokerServiceClient struct {
 	getBrokerSettings    *connect.Client[v1.GetBrokerSettingsRequest, v1.GetBrokerSettingsResponse]
 	updateBrokerSettings *connect.Client[v1.UpdateBrokerSettingsRequest, v1.UpdateBrokerSettingsResponse]
+	getBrokerStatus      *connect.Client[v1.GetBrokerStatusRequest, v1.GetBrokerStatusResponse]
 }
 
 // GetBrokerSettings calls san.tower.v1.BrokerService.GetBrokerSettings.
@@ -93,14 +108,24 @@ func (c *brokerServiceClient) UpdateBrokerSettings(ctx context.Context, req *con
 	return c.updateBrokerSettings.CallUnary(ctx, req)
 }
 
+// GetBrokerStatus calls san.tower.v1.BrokerService.GetBrokerStatus.
+func (c *brokerServiceClient) GetBrokerStatus(ctx context.Context, req *connect.Request[v1.GetBrokerStatusRequest]) (*connect.Response[v1.GetBrokerStatusResponse], error) {
+	return c.getBrokerStatus.CallUnary(ctx, req)
+}
+
 // BrokerServiceHandler is an implementation of the san.tower.v1.BrokerService service.
 type BrokerServiceHandler interface {
 	GetBrokerSettings(context.Context, *connect.Request[v1.GetBrokerSettingsRequest]) (*connect.Response[v1.GetBrokerSettingsResponse], error)
 	// UpdateBrokerSettings saves new settings in the tower's data folder and
-	// applies them. A new data folder opens a broker there and closes the old
-	// one, whose pull streams end; nothing is moved or deleted. When the broker
-	// cannot open in the new folder, nothing changes.
+	// applies them at once. A new data folder opens a broker there; a separate
+	// server is used once it answers. The broker let go of is closed (its pull
+	// streams end) when it ran inside the tower; nothing is moved or deleted.
+	// The workflows' triggers follow. When the new broker cannot open, or does
+	// not answer, nothing changes.
 	UpdateBrokerSettings(context.Context, *connect.Request[v1.UpdateBrokerSettingsRequest]) (*connect.Response[v1.UpdateBrokerSettingsResponse], error)
+	// GetBrokerStatus says how the broker in use is doing: since when it runs,
+	// how much it holds, and whether its subscribers keep up.
+	GetBrokerStatus(context.Context, *connect.Request[v1.GetBrokerStatusRequest]) (*connect.Response[v1.GetBrokerStatusResponse], error)
 }
 
 // NewBrokerServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -122,12 +147,20 @@ func NewBrokerServiceHandler(svc BrokerServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(brokerServiceMethods.ByName("UpdateBrokerSettings")),
 		connect.WithHandlerOptions(opts...),
 	)
+	brokerServiceGetBrokerStatusHandler := connect.NewUnaryHandler(
+		BrokerServiceGetBrokerStatusProcedure,
+		svc.GetBrokerStatus,
+		connect.WithSchema(brokerServiceMethods.ByName("GetBrokerStatus")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.BrokerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case BrokerServiceGetBrokerSettingsProcedure:
 			brokerServiceGetBrokerSettingsHandler.ServeHTTP(w, r)
 		case BrokerServiceUpdateBrokerSettingsProcedure:
 			brokerServiceUpdateBrokerSettingsHandler.ServeHTTP(w, r)
+		case BrokerServiceGetBrokerStatusProcedure:
+			brokerServiceGetBrokerStatusHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -143,4 +176,8 @@ func (UnimplementedBrokerServiceHandler) GetBrokerSettings(context.Context, *con
 
 func (UnimplementedBrokerServiceHandler) UpdateBrokerSettings(context.Context, *connect.Request[v1.UpdateBrokerSettingsRequest]) (*connect.Response[v1.UpdateBrokerSettingsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.BrokerService.UpdateBrokerSettings is not implemented"))
+}
+
+func (UnimplementedBrokerServiceHandler) GetBrokerStatus(context.Context, *connect.Request[v1.GetBrokerStatusRequest]) (*connect.Response[v1.GetBrokerStatusResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.BrokerService.GetBrokerStatus is not implemented"))
 }

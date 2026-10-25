@@ -1,26 +1,49 @@
-import { Badge, Button, Code, HStack, Heading, Input, NativeSelect, Stack, Table, Tabs, Text } from '@chakra-ui/react';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
+import {
+  Badge,
+  Button,
+  Flex,
+  HStack,
+  Heading,
+  Input,
+  NativeSelect,
+  Stack,
+  Stat,
+  Table,
+  Tabs,
+  Text,
+} from '@chakra-ui/react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { broker, brokerSettings, errorText } from '../api';
-import { SubscriberType, type Subscriber, type Topic } from '../gen/san/message/v1/message_pb';
-import type { BrokerState } from '../gen/san/tower/v1/broker_pb';
+import { SubscriberStart, SubscriberType, type Subscriber, type Topic } from '../gen/san/message/v1/message_pb';
+import type { BrokerStatus } from '../gen/san/tower/v1/broker_pb';
 import { FormDialog, FormField, toast } from '../ui';
 
+const tabs = ['topics', 'subscribers'];
+
 // MessageBroker manages the San Message broker the tower runs
-// (golang/packages/san_message): its topics and their subscribers, and its
-// settings. The tab is in the URL (?tab=subscribers), and so is the
-// subscriber list's topic (?topic=orders), so a view can be linked to.
+// (golang/packages/san_message): its status, its topics and their
+// subscribers. Its settings are on the Settings page. The tab is in the URL
+// (?tab=subscribers), and so is the subscriber list's topic (?topic=orders),
+// so a view can be linked to.
 export function MessageBroker() {
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') ?? 'topics';
+  const tab = tabs.find((t) => t === params.get('tab')) ?? 'topics';
   const topic = params.get('topic') ?? '';
+  const [status, setStatus] = useState<BrokerStatus>();
   const [topics, setTopics] = useState<Topic[]>();
   const [subscribers, setSubscribers] = useState<Subscriber[]>();
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     try {
-      const [t, s] = await Promise.all([broker.listTopics({}), broker.listSubscribers({})]);
+      const [st, t, s] = await Promise.all([
+        brokerSettings.getBrokerStatus({}),
+        broker.listTopics({}),
+        broker.listSubscribers({}),
+      ]);
+      setStatus(st.status);
       setTopics(t.topics);
       setSubscribers(s.subscribers);
       setError('');
@@ -42,6 +65,7 @@ export function MessageBroker() {
           Refresh
         </Button>
       </HStack>
+      <StatusBar status={status} error={error} />
       {error && <Text color="fg.error">The broker does not answer: {error}</Text>}
       <Tabs.Root value={tab} onValueChange={(e) => setParams(e.value === 'topics' ? {} : { tab: e.value })}>
         <Tabs.List>
@@ -51,21 +75,97 @@ export function MessageBroker() {
           <Tabs.Trigger value="subscribers">
             Subscribers <Badge size="sm">{subscribers?.length ?? 0}</Badge>
           </Tabs.Trigger>
-          <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="topics">
           <Topics topics={topics} reload={load} onShowSubscribers={showSubscribers} />
         </Tabs.Content>
         <Tabs.Content value="subscribers">
-          <Subscribers topics={topics} subscribers={subscribers} topic={topic} onTopic={showSubscribers} reload={load} />
-        </Tabs.Content>
-        <Tabs.Content value="settings">
-          <Settings reload={load} />
+          <Subscribers
+            topics={topics}
+            subscribers={subscribers}
+            topic={topic}
+            onTopic={showSubscribers}
+            reload={load}
+          />
         </Tabs.Content>
       </Tabs.Root>
     </Stack>
   );
 }
+
+// StatusBar is the broker at a glance (BrokerService.GetBrokerStatus):
+// whether it answers, where it runs and since when, what it holds, whether
+// its subscribers keep up, and its size on disk or the separate server's
+// address.
+function StatusBar({ status, error }: { status?: BrokerStatus; error: string }) {
+  if (!status && !error) return null;
+  return (
+    <Flex wrap="wrap" gap="8" rowGap="4" borderWidth="1px" rounded="md" px="4" py="3">
+      <Stat.Root flex="none">
+        <Stat.Label>Status</Stat.Label>
+        <Badge size="lg" alignSelf="flex-start" colorPalette={error ? 'red' : 'green'}>
+          {error ? 'Not answering' : 'Running'}
+        </Badge>
+        {!error && status?.openedAt && (
+          <Stat.HelpText>
+            {status.remote ? 'separate server' : 'inside the tower'}, since{' '}
+            {timestampDate(status.openedAt).toLocaleString()}
+          </Stat.HelpText>
+        )}
+      </Stat.Root>
+      {!error && status && (
+        <>
+          <Figure label="Topics" value={status.topics} help={`${status.events.toLocaleString()} events published`} />
+          <Figure
+            label="Subscribers"
+            value={status.subscribers}
+            help={`${status.pullConnected} of ${status.pullSubscribers} pull connected`}
+          />
+          <Figure label="Behind" value={status.behind} help="have events left to get" palette="orange" />
+          <Figure label="Retrying" value={status.retrying} help="wait to retry a failed event" palette="red" />
+          {status.remote ? (
+            <Figure label="Server" value={new URL(status.uri).host} help={status.uri} />
+          ) : (
+            <Figure label="On disk" value={bytes(status.diskBytes)} help={status.dataPath} />
+          )}
+        </>
+      )}
+    </Flex>
+  );
+}
+
+// Figure is one number in the status bar; palette colours it when it is not
+// zero.
+function Figure({
+  label,
+  value,
+  help,
+  palette,
+}: {
+  label: string;
+  value: number | string;
+  help: string;
+  palette?: string;
+}) {
+  return (
+    <Stat.Root flex="none" maxW="xs">
+      <Stat.Label>{label}</Stat.Label>
+      <Stat.ValueText color={palette && value !== 0 ? `${palette}.fg` : undefined}>{value}</Stat.ValueText>
+      <Stat.HelpText truncate title={help}>
+        {help}
+      </Stat.HelpText>
+    </Stat.Root>
+  );
+}
+
+const bytes = (n: bigint) => {
+  let v = Number(n);
+  for (const unit of ['B', 'KB', 'MB', 'GB']) {
+    if (v < 1024 || unit === 'GB') return `${unit === 'B' ? v : v.toFixed(1)} ${unit}`;
+    v /= 1024;
+  }
+  return '';
+};
 
 // position is a place in a topic's log: segment file number and byte offset.
 const position = (segment: number, offset: number) => `${segment}:${offset}`;
@@ -306,7 +406,8 @@ function Subscribers({
   );
 }
 
-const typeName = (t: SubscriberType) => (t === SubscriberType.WEBHOOK ? 'Webhook' : t === SubscriberType.PULL ? 'Pull' : 'Unknown');
+const typeName = (t: SubscriberType) =>
+  t === SubscriberType.WEBHOOK ? 'Webhook' : t === SubscriberType.PULL ? 'Pull' : 'Unknown';
 
 function CreateSubscriber({
   topics,
@@ -323,6 +424,7 @@ function CreateSubscriber({
   const [topicKey, setTopicKey] = useState(topic || topics[0]?.key || '');
   const [type, setType] = useState(SubscriberType.PULL);
   const [uri, setUri] = useState('');
+  const [start, setStart] = useState(SubscriberStart.LATEST);
   const webhook = type === SubscriberType.WEBHOOK;
   return (
     <FormDialog
@@ -335,6 +437,7 @@ function CreateSubscriber({
           topic: topicKey,
           type,
           webhookUri: webhook ? uri.trim() : '',
+          start,
         });
         toast(`Created subscriber ${key.trim()}`);
         await reload();
@@ -372,92 +475,22 @@ function CreateSubscriber({
           <Input value={uri} onChange={(e) => setUri(e.currentTarget.value)} placeholder="https://example.com/hook" />
         </FormField>
       )}
-      <Text fontSize="sm" color="fg.muted">
-        It starts at the end of the topic's log, so it gets only events published from now on.
-      </Text>
-    </FormDialog>
-  );
-}
-
-// ----------------------------------------------------------- settings ---
-
-// Settings sets the broker's data folder. Saving a new one switches the
-// broker to it (BrokerService.UpdateBrokerSettings); nothing is moved.
-function Settings({ reload }: { reload: () => Promise<void> }) {
-  const [state, setState] = useState<BrokerState>();
-  const [dataDir, setDataDir] = useState('');
-  const [error, setError] = useState('');
-  const [confirming, setConfirming] = useState(false);
-
-  const show = (s?: BrokerState) => {
-    setState(s);
-    setDataDir(s?.settings?.dataDir ?? '');
-  };
-  useEffect(() => {
-    brokerSettings.getBrokerSettings({}).then(
-      (r) => show(r.state),
-      (err: unknown) => setError(errorText(err)),
-    );
-  }, []);
-
-  if (error) return <Text color="fg.error">{error}</Text>;
-  if (!state) return <Text color="fg.muted">Loading...</Text>;
-  const changed = dataDir.trim() !== (state.settings?.dataDir ?? '');
-  return (
-    <Stack gap="4" maxW="2xl">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (changed) setConfirming(true);
-        }}
+      <FormField
+        label="Start"
+        help={
+          start === SubscriberStart.EARLIEST
+            ? "At the start of the topic's log: it gets every event already in it first, then the new ones."
+            : "At the last offset, the end of the topic's log: it gets only events published from now on."
+        }
       >
-        <Stack gap="4">
-          <FormField
-            label="Data directory"
-            help={`Where the broker keeps its topics, subscribers and event logs. Empty for the default, ${state.defaultDataPath}. A relative path is inside the tower's data folder, and the folder above it must exist.`}
-          >
-            <Input
-              fontFamily="mono"
-              value={dataDir}
-              onChange={(e) => setDataDir(e.currentTarget.value)}
-              placeholder={state.defaultDataPath}
-            />
-          </FormField>
-          <Text fontSize="sm" color="fg.muted">
-            In use: <Code>{state.dataPath}</Code>
-          </Text>
-          <HStack>
-            <Button type="submit" size="sm" colorPalette="blue" disabled={!changed}>
-              Save
-            </Button>
-            <Button size="sm" variant="outline" disabled={dataDir === ''} onClick={() => setDataDir('')}>
-              Use the default
-            </Button>
-          </HStack>
-        </Stack>
-      </form>
-      {confirming && (
-        <FormDialog
-          title="Switch the broker's data directory?"
-          submitText="Switch"
-          onClose={() => setConfirming(false)}
-          onSubmit={async () => {
-            const r = await brokerSettings.updateBrokerSettings({ settings: { dataDir: dataDir.trim() } });
-            show(r.state);
-            toast(`The broker now uses ${r.state?.dataPath}`);
-            await reload();
-          }}
-        >
-          <Text>
-            The broker in <Code>{state.dataPath}</Code> closes, and its pull subscribers are disconnected. It opens in{' '}
-            <Code>{dataDir.trim() || state.defaultDataPath}</Code>.
-          </Text>
-          <Text>
-            Nothing is moved or deleted: the topics and subscribers become the ones in that folder, none if it is new.
-            Do not point two towers at one folder.
-          </Text>
-        </FormDialog>
-      )}
-    </Stack>
+        <NativeSelect.Root>
+          <NativeSelect.Field value={String(start)} onChange={(e) => setStart(Number(e.currentTarget.value))}>
+            <option value={SubscriberStart.LATEST}>Last offset</option>
+            <option value={SubscriberStart.EARLIEST}>From start</option>
+          </NativeSelect.Field>
+          <NativeSelect.Indicator />
+        </NativeSelect.Root>
+      </FormField>
+    </FormDialog>
   );
 }

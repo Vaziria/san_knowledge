@@ -20,6 +20,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/telegram/v1/telegramv1connect"
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/threads/v1/threadsv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1/tiktokv1connect"
@@ -27,6 +28,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/vidara/v1/vidarav1connect"
 	xv1 "github.com/wargasipil/san_remote/gen/san/remote/x/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/x/v1/xv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/youtube/v1/youtubev1connect"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -47,7 +49,7 @@ import (
 
 // Sites a Social Posts step reads; a Social Status step reads them and
 // ChatGPT (statusSites, sites.go).
-var sites = []string{"Threads", "X", "Facebook", "Vidara", "Medium", "LinkedIn", "TikTok"}
+var sites = []string{"Threads", "X", "Facebook", "Vidara", "Medium", "LinkedIn", "TikTok", "YouTube"}
 
 // The times each site's scheduler offers, onto which At is rounded up:
 // Threads, X and Medium take any minute, Facebook and TikTok 5-minute marks,
@@ -303,7 +305,7 @@ var socialKinds = []*kind{
 }
 
 // scheduleSites are the sites with scheduled posts.
-var scheduleSites = []string{"Threads", "X", "Facebook", "Medium", "LinkedIn", "TikTok"}
+var scheduleSites = []string{"Threads", "X", "Facebook", "Medium", "LinkedIn", "TikTok", "YouTube"}
 
 // socialPosts lists a site's scheduled or published posts, or drafts
 // (Vidara: the account's videos). Last is the last scheduled one (the latest
@@ -445,7 +447,7 @@ func (c *call) listPosts(site, kind string) ([]proto.Message, func(i int) time.T
 				items = append(items, v)
 			}
 		}
-	case "Medium", "LinkedIn", "TikTok":
+	case "Medium", "LinkedIn", "TikTok", "YouTube":
 		items, at, err = c.listSitePosts(r, site, kind)
 		if errors.Is(err, errNoList) {
 			return nil, nil, err
@@ -636,6 +638,8 @@ type remoteClients struct {
 	medium   mediumv1connect.MediumServiceClient
 	linkedin linkedinv1connect.LinkedInServiceClient
 	tiktok   tiktokv1connect.TikTokServiceClient
+	youtube  youtubev1connect.YouTubeServiceClient
+	telegram telegramv1connect.TelegramServiceClient
 	chatgpt  chatgptv1connect.ChatGPTServiceClient
 	gemini   geminiv1connect.GeminiServiceClient
 	claude   claudev1connect.ClaudeServiceClient
@@ -675,6 +679,8 @@ func (c *call) sanRemote() (remoteClients, error) {
 		medium:   mediumv1connect.NewMediumServiceClient(hc, url),
 		linkedin: linkedinv1connect.NewLinkedInServiceClient(hc, url),
 		tiktok:   tiktokv1connect.NewTikTokServiceClient(hc, url),
+		youtube:  youtubev1connect.NewYouTubeServiceClient(hc, url),
+		telegram: telegramv1connect.NewTelegramServiceClient(hc, url),
 		chatgpt:  chatgptv1connect.NewChatGPTServiceClient(hc, url),
 		gemini:   geminiv1connect.NewGeminiServiceClient(hc, url),
 		claude:   claudev1connect.NewClaudeServiceClient(hc, url),

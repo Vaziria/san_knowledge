@@ -6,8 +6,10 @@ import "google/protobuf/timestamp.proto";
 
 // ConnectionService keeps the tower's connections to other programs, which
 // workflow steps use, in its database. The types are san_remote:
-// `san_remote api`, which posts through the user's own browser, and
-// telegram_bot: a Telegram bot, through the Bot API.
+// `san_remote api`, which posts through the user's own browser,
+// telegram_bot: a Telegram bot, through the Bot API, whatsapp: a
+// WhatsApp account, as a device linked to it (PairWhatsApp), and binance: a
+// Binance USD-M futures account, through an API key.
 service ConnectionService {
   // ListConnections lists the connections by name.
   rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
@@ -20,6 +22,13 @@ service ConnectionService {
   rpc DeleteConnection(DeleteConnectionRequest) returns (DeleteConnectionResponse);
   // TestConnection checks settings, saved or not, against the other side.
   rpc TestConnection(TestConnectionRequest) returns (TestConnectionResponse);
+  // PairWhatsApp creates a WhatsApp connection by linking a device to the
+  // account (the user, 2026-10-26: scan a QR code, and connected before it
+  // is made). It streams QR codes to scan with the phone (WhatsApp ›
+  // Linked devices › Link a device), a new one every 20 s or so, and ends
+  // with the connection, created once the device is linked and connected.
+  // Closing the stream before stops it, and nothing is kept.
+  rpc PairWhatsApp(PairWhatsAppRequest) returns (stream PairWhatsAppResponse);
 }
 
 message Connection {
@@ -36,7 +45,23 @@ message ConnectionSettings {
   oneof type {
     SanRemoteSettings san_remote = 1;
     TelegramBotSettings telegram_bot = 2;
+    WhatsAppSettings whatsapp = 3;
+    BinanceSettings binance = 4;
   }
+}
+
+// BinanceSettings is a Binance USD-M futures account, through an API key,
+// as autotrade reaches it (the user, 2026-10-27): the Finance steps read it
+// and place orders on it.
+message BinanceSettings {
+  string api_key = 1;
+  // api_secret signs the requests. Like a bot's token, it stays in the
+  // tower: an export leaves connection settings behind.
+  string api_secret = 2;
+  // network is testnet (testnet.binancefuture.com, the default), demo
+  // (demo-fapi.binance.com, Binance's Demo Trading) or live
+  // (fapi.binance.com: real money).
+  string network = 3;
 }
 
 // SanRemoteSettings is a connection to `san_remote api`.
@@ -50,6 +75,27 @@ message SanRemoteSettings {
 message TelegramBotSettings {
   // token is the bot's token from @BotFather, e.g. 123456:ABC-DEF1234.
   string token = 1;
+}
+
+// WhatsAppSettings is a WhatsApp account, as a device linked to it, as
+// WhatsApp Web is. PairWhatsApp makes it; it is never typed in, and only
+// its connection's name can change. The device's keys stay in its database
+// file in its storage's folder, not in the tower's database or an export.
+message WhatsAppSettings {
+  // jid is the linked device's: the account's number and the device's,
+  // e.g. 6281234567890:12@s.whatsapp.net.
+  string jid = 1;
+  // phone is the account's phone number, e.g. 6281234567890.
+  string phone = 2;
+  // name is the account's name, as WhatsApp shows it.
+  string name = 3;
+  // storage_id is the storage (StorageService) whose folder has the
+  // device's database (the user, 2026-10-26: a base storage, required).
+  uint32 storage_id = 4;
+  // database is the device's database file in that folder, one per
+  // connection: the SHA-256 of the connection's name as it was made, in
+  // hex, with .db (the user, 2026-10-26). A rename keeps it.
+  string database = 5;
 }
 
 message ListConnectionsRequest {
@@ -93,4 +139,20 @@ message TestConnectionResponse {
   bool ok = 1;
   // message says what was found, or why it is not ok.
   string message = 2;
+}
+
+message PairWhatsAppRequest {
+  // name is the new connection's.
+  string name = 1;
+  // storage_id is the storage to keep the device's database in: required.
+  uint32 storage_id = 2;
+}
+
+// PairWhatsAppResponse is a QR code to show, or, last, the connection.
+message PairWhatsAppResponse {
+  // qr_code is the code, and qr_png the same as a PNG image to show.
+  string qr_code = 1;
+  bytes qr_png = 2;
+  // connection is set last: linked, connected and created.
+  Connection connection = 3;
 }

@@ -94,16 +94,22 @@ func (s *Server) Handler() http.Handler {
 }
 
 func (s *Server) GetStatus(context.Context, *connect.Request[v1.GetStatusRequest]) (*connect.Response[v1.GetStatusResponse], error) {
+	n, err := s.store.CountRunning()
+	if err != nil {
+		return nil, storeError(err)
+	}
 	return connect.NewResponse(&v1.GetStatusResponse{
-		Version:    s.version,
-		Hostname:   s.hostname,
-		StartedAt:  timestamppb.New(s.started),
-		Executable: s.executable,
+		Version:        s.version,
+		Hostname:       s.hostname,
+		StartedAt:      timestamppb.New(s.started),
+		Executable:     s.executable,
+		RunsInProgress: uint32(n),
 	}), nil
 }
 
 // Restart answers, then restarts the tower a moment later, so the answer
-// gets out first.
+// gets out first; in between, the Tower Restart steps' Before runs go
+// (engine.BeforeRestart), for up to a minute.
 func (s *Server) Restart(_ context.Context, req *connect.Request[v1.RestartRequest]) (*connect.Response[v1.RestartResponse], error) {
 	if s.OnRestart == nil {
 		return nil, connect.NewError(connect.CodeUnimplemented, errors.New("this tower cannot restart itself"))
@@ -117,7 +123,13 @@ func (s *Server) Restart(_ context.Context, req *connect.Request[v1.RestartReque
 			return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("%d runs are in progress: restart once they end, or force it to cut them short", n))
 		}
 	}
-	time.AfterFunc(200*time.Millisecond, s.OnRestart)
+	restart := s.OnRestart
+	time.AfterFunc(200*time.Millisecond, func() {
+		if s.engine != nil {
+			s.engine.BeforeRestart(time.Minute)
+		}
+		restart()
+	})
 	return connect.NewResponse(&v1.RestartResponse{}), nil
 }
 

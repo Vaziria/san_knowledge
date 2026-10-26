@@ -31,6 +31,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/vidara/v1/vidarav1connect"
 	xv1 "github.com/wargasipil/san_remote/gen/san/remote/x/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/x/v1/xv1connect"
+	youtubev1 "github.com/wargasipil/san_remote/gen/san/remote/youtube/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/youtube/v1/youtubev1connect"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -55,6 +57,9 @@ type fakeRemote struct {
 	chatgpt  *chatgptv1.AskRequest
 	gemini   *geminiv1.AskRequest
 	claude   *claudev1.AskRequest
+	youtube  *youtubev1.UploadVideoRequest
+	ytDelete *youtubev1.DeleteVideoRequest
+	ytPriv   *youtubev1.MakePrivateRequest
 }
 
 type fakeThreads struct {
@@ -158,6 +163,7 @@ func remote(t *testing.T) (*fakeRemote, Env) {
 	mux.Handle(mediumv1connect.NewMediumServiceHandler(fakeMedium{fakeRemote: f}))
 	mux.Handle(linkedinv1connect.NewLinkedInServiceHandler(fakeLinkedIn{fakeRemote: f}))
 	mux.Handle(tiktokv1connect.NewTikTokServiceHandler(fakeTikTok{fakeRemote: f}))
+	mux.Handle(youtubev1connect.NewYouTubeServiceHandler(fakeYouTube{fakeRemote: f}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(fakeChatGPT{fakeRemote: f}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(fakeGemini{fakeRemote: f}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(fakeClaude{fakeRemote: f}))

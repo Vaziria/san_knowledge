@@ -25,14 +25,23 @@ var ErrBadStart = errors.New("cannot start there")
 type Env struct {
 	// Connection looks up a connection by id: a step's Connection setting.
 	Connection func(id uint32) (store.Connection, error)
+	// AddConnection adds a connection, as the Connections page does: a
+	// bot Telegram Create Bot made.
+	AddConnection func(c store.Connection) (store.Connection, error)
 	// Publish publishes data on a topic of the tower's broker and returns
 	// the event's id (Publish to Topic).
 	Publish func(ctx context.Context, topic string, data []byte) (uint64, error)
 	// TelegramAPI is where the Bot API answers, telegram.API when empty.
 	TelegramAPI string
+	// BinanceURL is where Binance answers, whatever a connection's network:
+	// a fake in tests. Empty: the network's own.
+	BinanceURL string
 	// TelegramMessages lists the messages a Telegram bot connection got,
 	// newest first: of every chat, or of one (Telegram Messages).
 	TelegramMessages func(connectionID uint32, chat string, limit int) ([]store.TelegramMessage, error)
+	// WhatsAppSend sends text to a chat as a WhatsApp connection's account
+	// and returns the message's id (WhatsApp Send).
+	WhatsAppSend func(ctx context.Context, connectionID uint32, chat, text, file string) (string, error)
 	// Storage looks up a storage by id, with its absolute path: a step's
 	// Storage setting.
 	Storage func(id uint32) (store.Storage, error)
@@ -42,6 +51,9 @@ type Env struct {
 	// Logged gets the lines each step logged, with their types, as the
 	// step is recorded: for the Log Event steps of other workflows.
 	Logged func(step *v1.Step, lines []string, levels []v1.LogLevel)
+	// Workflow is the id of the workflow the run is of: a Claude Chat
+	// Session step's conversation is its own in that workflow.
+	Workflow uint32
 }
 
 // Execute runs a graph from its trigger step trigger, as if the trigger got
@@ -105,6 +117,9 @@ type execution struct {
 	busy   map[string]bool // pure steps being run, against a loop of data links
 	runs   []*v1.StepRun
 	budget int
+	// failed is the error of the last step whose Failed output fired, for
+	// Fail Run.
+	failed error
 }
 
 func newExecution(ctx context.Context, g *v1.Graph, env Env) *execution {
@@ -164,7 +179,8 @@ func (x *execution) call(id string) ([]string, error) {
 			return nil, err
 		}
 	}
-	c := &call{ctx: x.ctx, env: x.env, step: st, inputs: make(map[string]proto.Message), outputs: make(map[string]proto.Message)}
+	c := &call{ctx: x.ctx, env: x.env, step: st, inputs: make(map[string]proto.Message), outputs: make(map[string]proto.Message), failed: x.failed}
+	c.linked = func(output string) bool { return len(x.out[id][output]) > 0 }
 	// A loop's outputs, and the error of a step in its branch, which ends
 	// the run as it would anywhere else: it is not this step's.
 	var looped []string
@@ -193,6 +209,7 @@ func (x *execution) call(id string) ([]string, error) {
 		r = x.record(st, c, start, nil)
 	case k.output(Failed, Event) >= 0 && len(x.out[id][Failed]) > 0:
 		c.fired, c.outputs = []string{Failed}, map[string]proto.Message{ErrorOutput: stringValue(err.Error())}
+		x.failed = fmt.Errorf("%s: %w", k.Title, err)
 		r = x.record(st, c, start, err)
 		r.Fired = c.fired
 	default:

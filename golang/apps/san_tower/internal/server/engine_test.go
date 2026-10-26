@@ -29,7 +29,7 @@ func TestWorkflowEngine(t *testing.T) {
 	msg := messagev1connect.NewMessageServiceClient(ts.Client(), ts.URL)
 
 	kinds, err := c.ListStepKinds(ctx, connect.NewRequest(&v1.ListStepKindsRequest{}))
-	if err != nil || len(kinds.Msg.Kinds) == 0 || kinds.Msg.Kinds[0].Kind != "topic-event" || !kinds.Msg.Kinds[0].Runnable {
+	if err != nil || len(kinds.Msg.Kinds) == 0 || kinds.Msg.Kinds[0].Kind != "manual" || !kinds.Msg.Kinds[0].Runnable {
 		t.Fatalf("kinds: %v, %v", kinds, err)
 	}
 

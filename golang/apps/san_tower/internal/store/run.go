@@ -9,8 +9,10 @@ import (
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 )
 
-// Run is one run of a workflow. What its steps did is one protojson column;
-// the columns the list shows stay columns.
+// Run is one run of a workflow. What its steps did is one protojson column,
+// cut to what a run keeps (boundSteps), and its summary, the last lines
+// they logged, another, for the Logs pages; the columns the list shows stay
+// columns.
 type Run struct {
 	ID         uint32       `gorm:"primaryKey"`
 	WorkflowID uint32       `gorm:"not null;index"`
@@ -18,8 +20,9 @@ type Run struct {
 	Trigger    string       `gorm:"not null"`
 	StartedAt  time.Time    `gorm:"not null"`
 	FinishedAt *time.Time
-	Error      string       `gorm:"not null"`
-	Steps      *v1.RunSteps `gorm:"serializer:protojson"`
+	Error      string         `gorm:"not null"`
+	Steps      *v1.RunSteps   `gorm:"serializer:protojson"`
+	Summary    *v1.RunSummary `gorm:"serializer:protojson"`
 }
 
 // MaxRunsKept is how many runs of a workflow are kept: finishing one deletes
@@ -32,25 +35,30 @@ func (s *Store) StartRun(workflowID uint32, trigger string) (Run, error) {
 	return r, s.db.Create(&r).Error
 }
 
-// FinishRun records how a run ended, then keeps only the newest MaxRunsKept
-// runs of its workflow.
+// FinishRun records how a run ended, with what its steps did cut to what a
+// run keeps (in place) and its summary, then keeps only the newest
+// MaxRunsKept runs of its workflow.
 func (s *Store) FinishRun(r Run, status v1.RunStatus, errText string, steps []*v1.StepRun) (Run, error) {
 	now := time.Now()
-	r.Status, r.Error, r.FinishedAt, r.Steps = status, errText, &now, &v1.RunSteps{Steps: steps}
+	boundSteps(steps)
+	r.Status, r.Error, r.FinishedAt = status, clip(errText, MaxLineLen), &now
+	r.Steps, r.Summary = &v1.RunSteps{Steps: steps}, summarize(steps)
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&Run{ID: r.ID}).Select("Status", "Error", "FinishedAt", "Steps").Updates(&r).Error; err != nil {
+		if err := tx.Model(&Run{ID: r.ID}).Select("Status", "Error", "FinishedAt", "Steps", "Summary").Updates(&r).Error; err != nil {
 			return err
 		}
+		// A run still waiting in its workflow's queue is kept, however old.
 		keep := tx.Model(&Run{}).Select("id").Where("workflow_id = ?", r.WorkflowID).Order("id DESC").Limit(MaxRunsKept)
-		return tx.Where("workflow_id = ? AND id NOT IN (?)", r.WorkflowID, keep).Delete(&Run{}).Error
+		return tx.Where("workflow_id = ? AND status <> ? AND id NOT IN (?)", r.WorkflowID, v1.RunStatus_RUN_STATUS_RUNNING, keep).Delete(&Run{}).Error
 	})
 	return r, err
 }
 
-// ListRuns lists a workflow's newest runs first, without their steps.
+// ListRuns lists a workflow's newest runs first, without their steps or
+// summaries.
 func (s *Store) ListRuns(workflowID uint32, limit int) ([]Run, error) {
 	var list []Run
-	err := s.db.Omit("Steps").Where("workflow_id = ?", workflowID).Order("id DESC").Limit(limit).Find(&list).Error
+	err := s.db.Omit("Steps", "Summary").Where("workflow_id = ?", workflowID).Order("id DESC").Limit(limit).Find(&list).Error
 	return list, err
 }
 
@@ -83,9 +91,10 @@ func (s *Store) InterruptRuns() (int64, error) {
 
 // ListAllRuns lists the newest runs of one workflow (workflowID), or of
 // every workflow (0) or only of those switched on (activeOnly), newest
-// first, with their steps. With statuses, only the runs with one of them.
+// first, with their summaries and not their steps: the Logs pages ask every
+// 2 s. With statuses, only the runs with one of them.
 func (s *Store) ListAllRuns(workflowID uint32, activeOnly bool, statuses []v1.RunStatus, limit int) ([]Run, error) {
-	q := s.db.Order("id DESC").Limit(limit)
+	q := s.db.Omit("Steps").Order("id DESC").Limit(limit)
 	if workflowID != 0 {
 		q = q.Where("workflow_id = ?", workflowID)
 	} else if activeOnly {
@@ -95,8 +104,38 @@ func (s *Store) ListAllRuns(workflowID uint32, activeOnly bool, statuses []v1.Ru
 		q = q.Where("status IN ?", statuses)
 	}
 	var list []Run
-	err := q.Find(&list).Error
-	return list, err
+	if err := q.Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, s.summarizeOld(list)
+}
+
+// summarizeOld gives the finished runs stored before runs had a summary
+// theirs, from their steps, and stores it, so each is read once. Such a
+// run's summary column is NULL (which reads as an empty summary).
+func (s *Store) summarizeOld(list []Run) error {
+	ids := make([]uint32, 0, len(list))
+	at := map[uint32]int{}
+	for i, r := range list {
+		ids = append(ids, r.ID)
+		at[r.ID] = i
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	var old []Run
+	err := s.db.Select("id", "steps").Where("id IN ? AND summary IS NULL AND status <> ?", ids, v1.RunStatus_RUN_STATUS_RUNNING).Find(&old).Error
+	if err != nil {
+		return err
+	}
+	for _, o := range old {
+		sum := summarize(o.Steps.GetSteps())
+		list[at[o.ID]].Summary = sum
+		if err := s.db.Model(&Run{ID: o.ID}).Select("Summary").Updates(&Run{Summary: sum}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // WorkflowNames are the workflows' names by ID.

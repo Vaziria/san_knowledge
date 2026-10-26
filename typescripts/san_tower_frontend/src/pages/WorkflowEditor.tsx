@@ -71,7 +71,7 @@ import { runStatus, StepRunContext } from '../workflow/runs';
 import { RunLog } from '../workflow/RunLog';
 import { RunsPanel } from '../workflow/RunsPanel';
 import { AddPalette } from '../workflow/AddPalette';
-import { RenameDialog } from '../workflow/RenameDialog';
+import { type Details, DetailsDialog } from '../workflow/DetailsDialog';
 import { exportWorkflows } from '../workflow/transfer';
 import { StepNode } from '../workflow/StepNode';
 
@@ -103,10 +103,12 @@ export function WorkflowEditor() {
     );
   }, [id]);
 
+  // Back goes to the folder the workflow is in.
+  const back = workflow?.folderId ? `/workflow?folder=${workflow.folderId}` : '/workflow';
   return (
     <Stack gap="3" h="calc(100vh - 3rem)">
       <Button asChild size="sm" variant="ghost" color="fg.muted" alignSelf="flex-start" ms="-3">
-        <Link to="/workflow">
+        <Link to={back}>
           <ArrowLeftIcon />
           Workflows
         </Link>
@@ -117,7 +119,7 @@ export function WorkflowEditor() {
         <Text color="fg.muted">Loading...</Text>
       ) : (
         <ReactFlowProvider key={id}>
-          <Canvas workflow={workflow} onDeleted={() => navigate('/workflow')} />
+          <Canvas workflow={workflow} onDeleted={() => navigate(back)} />
         </ReactFlowProvider>
       )}
     </Stack>
@@ -199,8 +201,12 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
   );
   const { undo, redo } = history;
   const [save, setSave] = useState<SaveState>({ state: 'saved' });
-  // The name goes with every save; renaming changes it (rename).
+  // The name goes with every save; renaming changes it (rename). The
+  // description and one at a time are not sent with the graph's saves,
+  // which keep them; the settings dialog sends them (rename).
   const [name, setName] = useState(workflow.name);
+  const [description, setDescription] = useState(workflow.description ?? '');
+  const [oneAtATime, setOneAtATime] = useState(workflow.oneAtATime ?? false);
   const nameRef = useRef(name);
   const flush = useCallback(() => {
     saves = saves.then(async () => {
@@ -218,16 +224,18 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
       }
     });
   }, [workflow.id]);
-  // rename saves the graph as it is now under a new name, in line with the
+  // rename saves the graph as it is now with new settings, in line with the
   // other saves. Its error goes to the caller, and later saves still run.
   const [renaming, setRenaming] = useState(false);
-  const rename = (next: string) => {
+  const rename = (next: Details) => {
     const done = saves.then(async () => {
       const body = latest.current;
       const g = JSON.parse(body) as Graph;
-      const r = await workflows.updateWorkflow({ workflow: { id: workflow.id, name: next, ...g } });
-      nameRef.current = next;
-      setName(next);
+      const r = await workflows.updateWorkflow({ workflow: { id: workflow.id, ...next, ...g } });
+      nameRef.current = next.name;
+      setName(next.name);
+      setDescription(r.workflow!.description ?? next.description);
+      setOneAtATime(r.workflow!.oneAtATime ?? next.oneAtATime);
       setTriggers(r.workflow!.triggers);
       saved.current = body;
       setSave({ state: latest.current === body ? 'saved' : 'unsaved' });
@@ -419,12 +427,19 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
       <HStack justify="space-between">
         <HStack gap="3" minW="0">
           <HStack gap="1" minW="0">
-            <Heading size="lg" truncate>
-              {name}
-            </Heading>
+            <Stack gap="0" minW="0">
+              <Heading size="lg" truncate>
+                {name}
+              </Heading>
+              {description && (
+                <Text color="fg.muted" textStyle="xs" truncate title={description}>
+                  {description}
+                </Text>
+              )}
+            </Stack>
             <IconButton
-              aria-label="Rename the workflow"
-              title="Rename"
+              aria-label="The workflow's settings"
+              title="Settings: name, description, one run at a time"
               size="xs"
               variant="ghost"
               color="fg.muted"
@@ -672,12 +687,12 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
       )}
       {running && <RunDialog triggers={triggerSteps} onRun={run} onClose={() => setRunning(false)} />}
       {renaming && (
-        <RenameDialog
-          name={name}
+        <DetailsDialog
+          details={{ name, description, oneAtATime }}
           onClose={() => setRenaming(false)}
-          onRename={async (next) => {
+          onSave={async (next) => {
             await rename(next);
-            toast(`Renamed to ${next}`);
+            toast(`Saved ${next.name}`);
           }}
         />
       )}
@@ -739,7 +754,8 @@ function TriggerStatus({
 
 // RunDialog runs the workflow once from one of its trigger steps, with the
 // data typed in, as if that trigger got it; a schedule takes no data, as if
-// its time came now.
+// its time came now. A Manual trigger, there only for this, is the one
+// picked first, with no data.
 function RunDialog({
   triggers,
   onRun,
@@ -749,8 +765,9 @@ function RunDialog({
   onRun: (stepId: string, data: string) => Promise<void>;
   onClose: () => void;
 }) {
-  const [stepId, setStepId] = useState(triggers[0]?.id ?? '');
-  const [data, setData] = useState('{\n  "id": "A1",\n  "total": 1500000\n}');
+  const manual = triggers.find((s) => s.data.kind === 'manual');
+  const [stepId, setStepId] = useState((manual ?? triggers[0])?.id ?? '');
+  const [data, setData] = useState(manual ? '' : '{\n  "id": "A1",\n  "total": 1500000\n}');
   const label = (s: Step) => {
     const { Topic: topic, Every: every } = s.data.values;
     const what = topic ? `topic ${topic}` : every;
@@ -784,8 +801,12 @@ function RunDialog({
         </Text>
       ) : (
         <FormField
-          label="Event data"
-          help="What the trigger gets, as if an event came on its topic: JSON, or any text."
+          label={triggers.find((s) => s.id === stepId)?.data.kind === 'manual' ? 'Payload (optional)' : 'Event data'}
+          help={
+            triggers.find((s) => s.id === stepId)?.data.kind === 'manual'
+              ? "The Manual step's Payload: JSON, any text, or nothing."
+              : 'What the trigger gets, as if an event came on its topic: JSON, or any text.'
+          }
         >
           <Textarea
             autoFocus

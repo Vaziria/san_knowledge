@@ -29,10 +29,23 @@ type Connection struct {
 const (
 	SanRemote   = "san_remote"
 	TelegramBot = "telegram_bot"
+	WhatsApp    = "whatsapp"
+	Binance     = "binance"
+)
+
+// Binance networks, a Binance connection's network.
+const (
+	BinanceTestnet = "testnet"
+	BinanceDemo    = "demo"
+	BinanceLive    = "live"
 )
 
 // telegramToken is the shape of a bot token from @BotFather.
 var telegramToken = regexp.MustCompile(`^\d+:[\w-]+$`)
+
+// whatsappDatabase is the shape of a WhatsApp connection's database file
+// name (whatsapp.FileName): a name only, never a path out of its storage.
+var whatsappDatabase = regexp.MustCompile(`^[0-9a-f]{64}\.db$`)
 
 // ConnectionType is the type the settings are for, "" when none is set.
 func ConnectionType(s *v1.ConnectionSettings) string {
@@ -41,6 +54,10 @@ func ConnectionType(s *v1.ConnectionSettings) string {
 		return SanRemote
 	case *v1.ConnectionSettings_TelegramBot:
 		return TelegramBot
+	case *v1.ConnectionSettings_Whatsapp:
+		return WhatsApp
+	case *v1.ConnectionSettings_Binance:
+		return Binance
 	}
 	return ""
 }
@@ -93,6 +110,18 @@ func (s *Store) UpdateConnection(c Connection) (Connection, error) {
 		if n == 0 {
 			return fail(ErrNotFound, "no connection %d", c.ID)
 		}
+		// A WhatsApp connection is its linked device: only its name
+		// changes, and nothing becomes or stops being one.
+		var old Connection
+		if err := tx.First(&old, c.ID).Error; err != nil {
+			return err
+		}
+		switch {
+		case (old.Type == WhatsApp) != (c.Type == WhatsApp):
+			return fail(ErrInvalid, "a connection keeps its type")
+		case old.Type == WhatsApp:
+			c.Settings = old.Settings
+		}
 		if err := connectionNameFree(tx, c.Name, c.ID); err != nil {
 			return err
 		}
@@ -144,6 +173,30 @@ func checkConnection(c *Connection) error {
 		tb.Token = strings.TrimSpace(tb.Token)
 		if !telegramToken.MatchString(tb.Token) {
 			return fail(ErrInvalid, "the token is the bot's token from @BotFather, such as 123456:ABC-DEF1234")
+		}
+		return nil
+	case WhatsApp:
+		// Made by linking a device (PairWhatsApp), never typed in.
+		wa := c.Settings.GetWhatsapp()
+		if !strings.Contains(wa.GetJid(), "@") || !whatsappDatabase.MatchString(wa.GetDatabase()) {
+			return fail(ErrInvalid, "a WhatsApp connection is made by scanning its QR code with the phone")
+		}
+		if wa.GetStorageId() == 0 {
+			return fail(ErrInvalid, "a WhatsApp connection needs a storage, for its database")
+		}
+		return nil
+	case Binance:
+		b := c.Settings.GetBinance()
+		b.ApiKey, b.ApiSecret = strings.TrimSpace(b.ApiKey), strings.TrimSpace(b.ApiSecret)
+		if b.ApiKey == "" || b.ApiSecret == "" {
+			return fail(ErrInvalid, "a Binance connection needs an API key and its secret")
+		}
+		switch b.Network = strings.ToLower(strings.TrimSpace(b.Network)); b.Network {
+		case "":
+			b.Network = BinanceTestnet
+		case BinanceTestnet, BinanceDemo, BinanceLive:
+		default:
+			return fail(ErrInvalid, "a Binance connection's network is testnet, demo or live, not %q", b.Network)
 		}
 		return nil
 	}

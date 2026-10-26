@@ -57,3 +57,27 @@ func TestConnections(t *testing.T) {
 		t.Errorf("update deleted: %v", err)
 	}
 }
+
+// A Binance connection needs a key and its secret; its network is testnet
+// unless it says demo or live.
+func TestBinanceConnection(t *testing.T) {
+	s := open(t)
+	binance := func(key, secret, network string) *v1.ConnectionSettings {
+		return &v1.ConnectionSettings{Type: &v1.ConnectionSettings_Binance{Binance: &v1.BinanceSettings{ApiKey: key, ApiSecret: secret, Network: network}}}
+	}
+	c, err := s.CreateConnection(Connection{Name: "Binance test", Settings: binance(" key ", "secret", "")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b := c.Settings.GetBinance(); c.Type != Binance || b.ApiKey != "key" || b.Network != BinanceTestnet {
+		t.Errorf("connection = %+v", c)
+	}
+	if c, err := s.CreateConnection(Connection{Name: "Binance live", Settings: binance("k", "s", "Live")}); err != nil || c.Settings.GetBinance().Network != BinanceLive {
+		t.Errorf("live: %+v, %v", c, err)
+	}
+	for _, bad := range []*v1.ConnectionSettings{binance("key", "", "testnet"), binance("", "secret", ""), binance("key", "secret", "mainnet")} {
+		if _, err := s.CreateConnection(Connection{Name: "bad", Settings: bad}); !errors.Is(err, ErrInvalid) {
+			t.Errorf("%v: %v, want ErrInvalid", bad, err)
+		}
+	}
+}

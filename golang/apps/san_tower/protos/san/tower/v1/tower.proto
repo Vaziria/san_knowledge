@@ -25,6 +25,9 @@ message GetStatusResponse {
   google.protobuf.Timestamp started_at = 3;
   // executable is the file the tower runs from, as it started.
   string executable = 4;
+  // runs_in_progress is how many runs are going now: Restart waits for
+  // none, and `dev --watch` builds a change only then (2026-10-27).
+  uint32 runs_in_progress = 5;
 }
 
 message RestartRequest {

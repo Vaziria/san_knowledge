@@ -24,14 +24,17 @@ export const socketColor = (type: string) => socketColors[type] ?? '#a1a1a1';
 
 // categories are the Add menu's groups, in order; a kind in another category
 // goes last.
-export const categories = ['Trigger', 'Logic', 'Data', 'Datetime', 'Action', 'Social', 'AI'];
+export const categories = ['Trigger', 'Logic', 'Data', 'Storage', 'Datetime', 'Action', 'Messengers', 'Social', 'Finance', 'AI'];
 const palettes: Record<string, string> = {
   Trigger: 'red',
   Logic: 'blue',
   Data: 'purple',
+  Storage: 'orange',
   Datetime: 'teal',
   Action: 'green',
+  Messengers: 'cyan',
   Social: 'pink',
+  Finance: 'gray',
   AI: 'yellow',
 };
 export const categoryPalette = (category: string) => palettes[category] ?? 'gray';
@@ -61,7 +64,9 @@ export const stepKinds = () => kinds;
 // stepKind is undefined for a kind the tower does not have (any more).
 export const stepKind = (kind: string) => byKind.get(kind);
 
-export const isTrigger = (kind: string) => stepKind(kind)?.category === 'Trigger';
+// A trigger starts runs: the tower says so (StepKind.trigger), since a
+// messenger's trigger is in Messengers, not Trigger (2026-10-27).
+export const isTrigger = (kind: string) => !!stepKind(kind)?.trigger;
 
 // The connections a step can pick (a setting with a connection type), from
 // the tower: asked once per type, and again after the Connections page

@@ -79,10 +79,26 @@ type Engine struct {
 	tgSteps map[uint32][]tgStep
 	// The Log Event steps of active workflows, by workflow id.
 	logSteps map[uint32][]logStep
+	// The Folder Watch and File Watch steps watching, by the same key as the
+	// timers, and the watch steps' states (watch.go).
+	watchers    map[string]*watcher
+	watchStates map[uint32][]*v1.TriggerState
+	// The WhatsApp connections' devices, by connection id (whatsapp.go).
+	wa map[uint32]*waConn
+	// The one-at-a-time workflows' lines (queue.go): each waiting run's
+	// turn, by run id, and the end of the last run in line, by workflow id.
+	lineMu  sync.Mutex
+	turns   map[uint32]*turn
+	lineEnd map[uint32]chan struct{}
 
 	// TelegramAPI is where the Bot API answers, telegram.API when empty;
 	// tests set a fake's before Start.
 	TelegramAPI string
+	// Version is the tower's, for the Tower Restart steps (towerrestart.go).
+	Version string
+	// WhatsApp links the WhatsApp connections' devices (whatsapp.go); set
+	// before Start. Without it the WhatsApp steps fail, saying so.
+	WhatsApp WhatsAppLink
 }
 
 // listener is a trigger's Subscribe stream, opened again when it ends.
@@ -101,6 +117,8 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		timers: make(map[string]*timer), timerStates: make(map[uint32][]*v1.TriggerState),
 		pollers: make(map[uint32]*poller), tgSteps: make(map[uint32][]tgStep),
 		logSteps: make(map[uint32][]logStep),
+		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
+		turns:    make(map[uint32]*turn), lineEnd: make(map[uint32]chan struct{}),
 	}
 }
 
@@ -133,12 +151,25 @@ func (e *Engine) background(f func()) error {
 func (e *Engine) env() Env {
 	return Env{
 		Connection:       e.store.GetConnection,
+		AddConnection:    e.addConnection,
 		Publish:          e.publish,
 		TelegramAPI:      e.TelegramAPI,
 		TelegramMessages: e.store.TelegramMessages,
+		WhatsAppSend:     e.sendWhatsApp,
 		Storage:          e.store.GetStorage,
 		DataDir:          e.store.Dir(),
 	}
+}
+
+// addConnection adds a connection and starts what it needs, such as a
+// Telegram bot's poller, as the Connections page's Create does.
+func (e *Engine) addConnection(c store.Connection) (store.Connection, error) {
+	c, err := e.store.CreateConnection(c)
+	if err != nil {
+		return c, err
+	}
+	e.SyncConnections()
+	return c, nil
 }
 
 // Start marks the runs the tower stopped during as interrupted, then
@@ -157,6 +188,8 @@ func (e *Engine) Start(baseURL string) error {
 	e.mu.Unlock()
 	err = e.SyncAll()
 	e.SyncConnections()
+	// Back from a restart: the Tower Restart steps' After runs.
+	e.afterRestart()
 	return err
 }
 
@@ -187,8 +220,10 @@ func (e *Engine) SyncAll() error {
 		e.syncTimers(w)
 		e.syncTelegram(w)
 		e.syncLogs(w)
+		e.syncWatches(w)
 	}
 	e.dropTimers(known)
+	e.dropWatches(known)
 	for id := range e.tgSteps {
 		if !known[id] {
 			delete(e.tgSteps, id)
@@ -242,6 +277,7 @@ func (e *Engine) Sync(id uint32) {
 	e.syncTimers(w)
 	e.syncTelegram(w)
 	e.syncLogs(w)
+	e.syncWatches(w)
 	url := e.brokerURL()
 	subs, err := e.subscribers(url)
 	if err != nil {
@@ -435,8 +471,21 @@ func (e *Engine) stream(ctx context.Context, l *listener, key string, workflowID
 	s := broker.NewClient(l.url).Subscribe(ctx)
 	defer s.CloseResponse()
 	defer s.CloseRequest()
+	// A Receive waiting for the next event does not see ctx end once an
+	// event came (queue.go): end the request then. The acks are sent from
+	// this goroutine, so sendMu keeps the two apart.
+	var sendMu sync.Mutex
+	stop := context.AfterFunc(ctx, func() {
+		sendMu.Lock()
+		defer sendMu.Unlock()
+		_ = s.CloseRequest()
+	})
+	defer stop()
 	hello := &messagev1.SubscribeRequest{Payload: &messagev1.SubscribeRequest_Hello{Hello: &messagev1.Hello{Subscriber: key}}}
-	if err := s.Send(hello); err != nil {
+	sendMu.Lock()
+	err := s.Send(hello)
+	sendMu.Unlock()
+	if err != nil {
 		return err
 	}
 	e.mu.Lock()
@@ -454,7 +503,10 @@ func (e *Engine) stream(ctx context.Context, l *listener, key string, workflowID
 			return err
 		}
 		ack := &messagev1.SubscribeRequest{Payload: &messagev1.SubscribeRequest_Ack{Ack: &messagev1.Ack{EventId: ev.GetId()}}}
-		if err := s.Send(ack); err != nil {
+		sendMu.Lock()
+		err = s.Send(ack)
+		sendMu.Unlock()
+		if err != nil {
 			return err
 		}
 	}
@@ -475,7 +527,7 @@ func (e *Engine) deliver(workflowID uint32, stepID string, ev *messagev1.Event) 
 	if !wf.Active {
 		return nil
 	}
-	run, err := e.begin(wf, stepID, fmt.Sprintf("topic %s, event %d", ev.GetTopic(), ev.GetId()))
+	run, err := e.begin(wf, stepID, fmt.Sprintf("topic %s, event %d", ev.GetTopic(), ev.GetId()), ev.GetData())
 	switch {
 	case errors.Is(err, ErrBadStart):
 		return nil
@@ -497,7 +549,7 @@ func (e *Engine) Triggers(id uint32) []*v1.TriggerState {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var out []*v1.TriggerState
-	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id), e.logStates(id)) {
+	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id), e.whatsappStates(id), e.logStates(id), e.watchStatesOf(id)) {
 		out = append(out, proto.Clone(s).(*v1.TriggerState))
 	}
 	return out
@@ -527,7 +579,7 @@ func (e *Engine) Run(ctx context.Context, workflowID uint32, stepID string, data
 	if err != nil {
 		return store.Run{}, err
 	}
-	r, err := e.begin(w, stepID, trigger)
+	r, err := e.begin(w, stepID, trigger, data)
 	if err != nil {
 		return r, err
 	}
@@ -551,8 +603,9 @@ func (e *Engine) Run(ctx context.Context, workflowID uint32, stepID string, data
 }
 
 // begin checks that stepID is a trigger step of w, and records that a run
-// of it started.
-func (e *Engine) begin(w store.Workflow, stepID, trigger string) (store.Run, error) {
+// of it started with data; a run of a one-at-a-time workflow takes its place
+// in line (queue.go), in the order begin is called.
+func (e *Engine) begin(w store.Workflow, stepID, trigger string, data []byte) (store.Run, error) {
 	var st *v1.Step
 	for _, s := range w.Graph.GetSteps() {
 		if s.GetId() == stepID {
@@ -562,16 +615,29 @@ func (e *Engine) begin(w store.Workflow, stepID, trigger string) (store.Run, err
 	if st == nil || !IsTrigger(st.GetKind()) {
 		return store.Run{}, fmt.Errorf("%w: step %s is not a trigger of workflow %d", ErrBadStart, stepID, w.ID)
 	}
-	return e.store.StartRun(w.ID, trigger)
+	r, err := e.store.StartRun(w.ID, trigger)
+	if err == nil && w.OneAtATime {
+		e.line(w.ID, r.ID)
+	}
+	return r, err
 }
 
-// finish runs a begun run's steps under the engine's context, and records
-// how it ended. The lines its steps log, and its error when it fails, go to
-// the other workflows' Log Event steps (logevent.go).
+// finish runs a begun run's steps under the engine's context, once its
+// turn comes (queue.go), and records how it ended. The lines its steps log,
+// and its error when it fails, go to the other workflows' Log Event steps
+// (logevent.go).
 func (e *Engine) finish(w store.Workflow, r store.Run, stepID string, data []byte) (store.Run, error) {
+	end, ok := e.waitTurn(w.ID, r.ID)
+	if !ok {
+		return e.store.FinishRun(r, v1.RunStatus_RUN_STATUS_INTERRUPTED, "the tower stopped while the run waited for its turn", nil)
+	}
+	defer end()
 	env := e.env()
 	env.Logged = e.logLines(w, r, stepID)
+	env.Workflow = w.ID
+	waited := time.Since(r.StartedAt)
 	steps, runErr := Execute(e.ctx, w.Graph, stepID, data, env)
+	noteWait(steps, waited)
 	status, errText := v1.RunStatus_RUN_STATUS_SUCCEEDED, ""
 	switch {
 	case runErr != nil && e.ctx.Err() != nil:

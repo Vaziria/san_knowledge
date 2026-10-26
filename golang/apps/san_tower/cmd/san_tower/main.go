@@ -8,11 +8,12 @@
 // The Browser Remote Server page switches on the San Remote server
 // (golang/apps/san_remote) inside the tower, on san_remote's own addresses.
 // `san_tower dev` runs the tower with the UI's Vite dev server instead, for
-// hot reload. `san_tower update` installs the newest release and restarts
-// the running tower into it (update.go).
+// hot reload; with --watch it also rebuilds and restarts the tower when its
+// Go source changes (devwatch.go). `san_tower update` installs the newest
+// release and restarts the running tower into it (update.go).
 //
 //	san_tower serve [--listen 0.0.0.0:7477 --lan]
-//	san_tower dev
+//	san_tower dev [--watch]
 //	san_tower status
 //	san_tower update [--check]
 //	san_tower restart
@@ -146,7 +147,14 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	}
 	defer rm.Close()
 
+	// WhatsApp's linked devices: whatsapp.db in each WhatsApp connection's
+	// storage folder, closed after the engine.
+	wa := &engine.WhatsAppStores{}
+	defer wa.Close()
+
 	eng := engine.New(st, b, log)
+	eng.Version = version
+	eng.WhatsApp = wa
 	// Runs still going are cut short and recorded before the database closes.
 	defer eng.Close()
 	s := server.New(version, b, st, eng, rm)
@@ -224,10 +232,22 @@ func runServe(ctx context.Context, cmd *cli.Command) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	restarting := false
-	err = serveTower(ctx, log, ln, cmd.String("data"), cmd.Bool("lan"), func() {
+	restart := func() {
 		restarting = true
 		cancel()
-	})
+	}
+	if os.Getenv(devChildEnv) != "" {
+		// Run by dev --watch: it stops this tower by closing stdin, and
+		// starts it again itself, so a Restart only stops it (dev asks for
+		// one to learn that no run is in progress).
+		os.Unsetenv(devChildEnv)
+		go func() {
+			io.Copy(io.Discard, os.Stdin)
+			cancel()
+		}()
+		restart = cancel
+	}
+	err = serveTower(ctx, log, ln, cmd.String("data"), cmd.Bool("lan"), restart)
 	if !restarting {
 		return err
 	}
@@ -245,6 +265,7 @@ func devCommand() *cli.Command {
 		Flags: []cli.Flag{
 			listenFlag, dataFlag, logLevelFlag,
 			&cli.StringFlag{Name: "frontend", Usage: "the frontend's folder (default: typescripts/san_tower_frontend, looked for from the current folder up)"},
+			&cli.BoolFlag{Name: "watch", Usage: "rebuild and restart the tower when its Go source (golang/apps/san_tower, looked for from the current folder up) changes"},
 		},
 		Action: runDev,
 	}
@@ -269,6 +290,9 @@ func runDev(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("npm ci in %s: %w", dir, err)
 		}
 	}
+	if cmd.Bool("watch") {
+		return runDevWatch(ctx, log, cmd, dir)
+	}
 	// Listen first, so a busy port fails before Vite starts.
 	ln, err := listen(cmd.String("listen"), false)
 	if err != nil {
@@ -277,7 +301,7 @@ func runDev(ctx context.Context, cmd *cli.Command) error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	log.Info("open the UI at Vite's address below; a Go change needs a restart, a UI change reloads by itself")
+	log.Info("open the UI at Vite's address below; a Go change needs a restart (or dev --watch), a UI change reloads by itself")
 	errc := make(chan error, 2)
 	go func() { errc <- serveTower(ctx, log, ln, cmd.String("data"), false, nil) }()
 	go func() { errc <- runVite(ctx, dir, "http://"+ln.Addr().String()) }()

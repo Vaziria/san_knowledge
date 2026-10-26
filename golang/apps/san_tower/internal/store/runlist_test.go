@@ -6,7 +6,7 @@ import (
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 )
 
-// ListAllRuns lists every workflow's runs newest first, with their steps, or
+// ListAllRuns lists every workflow's runs newest first, with their summaries, or
 // only those of the workflows switched on, or of one workflow, or only those
 // with some statuses.
 func TestListAllRuns(t *testing.T) {
@@ -44,8 +44,8 @@ func TestListAllRuns(t *testing.T) {
 	if len(all) != 3 || all[0].WorkflowID != on.ID || all[1].WorkflowID != off.ID || all[0].ID < all[1].ID {
 		t.Fatalf("all runs = %+v", all)
 	}
-	if all[0].Steps == nil || all[0].Steps.Steps[0].Logs[0] != "from workflow" {
-		t.Errorf("steps = %v", all[0].Steps)
+	if all[0].Steps != nil || len(all[0].Summary.GetLogs()) != 1 || all[0].Summary.GetLogs()[0] != "from workflow" {
+		t.Errorf("steps = %v, summary = %v", all[0].Steps, all[0].Summary)
 	}
 	active, err := s.ListAllRuns(0, true, nil, 10)
 	if err != nil {
@@ -66,7 +66,7 @@ func TestListAllRuns(t *testing.T) {
 	}
 	// One workflow's, switched off: active only does not apply to it.
 	mine, err := s.ListAllRuns(off.ID, true, nil, 10)
-	if err != nil || len(mine) != 1 || mine[0].WorkflowID != off.ID || mine[0].Steps == nil {
+	if err != nil || len(mine) != 1 || mine[0].WorkflowID != off.ID || mine[0].Summary == nil {
 		t.Errorf("runs of off = %+v, %v", mine, err)
 	}
 	if none, _ := s.ListAllRuns(on.ID, false, []v1.RunStatus{failed}, 10); len(none) != 0 {

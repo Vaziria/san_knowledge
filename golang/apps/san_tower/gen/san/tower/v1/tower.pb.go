@@ -65,9 +65,12 @@ type GetStatusResponse struct {
 	Hostname  string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
 	StartedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
 	// executable is the file the tower runs from, as it started.
-	Executable    string `protobuf:"bytes,4,opt,name=executable,proto3" json:"executable,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Executable string `protobuf:"bytes,4,opt,name=executable,proto3" json:"executable,omitempty"`
+	// runs_in_progress is how many runs are going now: Restart waits for
+	// none, and `dev --watch` builds a change only then (2026-10-27).
+	RunsInProgress uint32 `protobuf:"varint,5,opt,name=runs_in_progress,json=runsInProgress,proto3" json:"runs_in_progress,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetStatusResponse) Reset() {
@@ -126,6 +129,13 @@ func (x *GetStatusResponse) GetExecutable() string {
 		return x.Executable
 	}
 	return ""
+}
+
+func (x *GetStatusResponse) GetRunsInProgress() uint32 {
+	if x != nil {
+		return x.RunsInProgress
+	}
+	return 0
 }
 
 type RestartRequest struct {
@@ -213,7 +223,7 @@ var File_san_tower_v1_tower_proto protoreflect.FileDescriptor
 const file_san_tower_v1_tower_proto_rawDesc = "" +
 	"\n" +
 	"\x18san/tower/v1/tower.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x12\n" +
-	"\x10GetStatusRequest\"\xa4\x01\n" +
+	"\x10GetStatusRequest\"\xce\x01\n" +
 	"\x11GetStatusResponse\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x12\x1a\n" +
 	"\bhostname\x18\x02 \x01(\tR\bhostname\x129\n" +
@@ -221,7 +231,8 @@ const file_san_tower_v1_tower_proto_rawDesc = "" +
 	"started_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12\x1e\n" +
 	"\n" +
 	"executable\x18\x04 \x01(\tR\n" +
-	"executable\"&\n" +
+	"executable\x12(\n" +
+	"\x10runs_in_progress\x18\x05 \x01(\rR\x0erunsInProgress\"&\n" +
 	"\x0eRestartRequest\x12\x14\n" +
 	"\x05force\x18\x01 \x01(\bR\x05force\"\x11\n" +
 	"\x0fRestartResponse2\xa4\x01\n" +

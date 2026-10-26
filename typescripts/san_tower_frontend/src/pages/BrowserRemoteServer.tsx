@@ -1,7 +1,8 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { Badge, Button, Clipboard, HStack, Heading, Input, Stack, Switch, Table, Text } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { browserRemote, errorText } from '../api';
+import { usePoll } from '../poll';
 import type { BrowserRemote } from '../gen/san/tower/v1/browser_remote_pb';
 import { FormField, toast } from '../ui';
 
@@ -14,30 +15,26 @@ const every = 3000;
 // runs it on this machine (BrowserRemoteService). The switch starts or stops
 // it; while on, it starts with the tower. It shows the URI to paste in the
 // San Remote extension's Server field, the one a San Remote connection
-// calls, and the browsers attached, asked for every 3 s.
+// calls, and the browsers attached, asked for every 3 s (not while the
+// browser tab is hidden).
 export function BrowserRemoteServer() {
   const [remote, setRemote] = useState<BrowserRemote>();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    let stale = false;
-    const load = () =>
+  usePoll(
+    (stale) =>
       browserRemote.getBrowserRemote({}).then(
         (r) => {
-          if (stale) return;
+          if (stale()) return;
           setRemote(r.remote);
           setError('');
         },
-        (err: unknown) => !stale && setError(errorText(err)),
-      );
-    void load();
-    const t = setInterval(load, every);
-    return () => {
-      stale = true;
-      clearInterval(t);
-    };
-  }, []);
+        (err: unknown) => !stale() && setError(errorText(err)),
+      ),
+    every,
+    [],
+  );
 
   const setActive = async (active: boolean) => {
     setBusy(true);

@@ -308,13 +308,13 @@ func (e *Engine) fire(t *timer, workflowID uint32, stepID string, at time.Time) 
 		}
 		return
 	}
-	run, err := e.begin(wf, stepID, "schedule, "+describe(t.every))
+	data, _ := protojson.Marshal(duePayload(at))
+	run, err := e.begin(wf, stepID, "schedule, "+describe(t.every), data)
 	if err != nil {
 		done()
 		e.log.Error("start a scheduled run", "workflow", workflowID, "err", err)
 		return
 	}
-	data, _ := protojson.Marshal(duePayload(at))
 	if err := e.background(func() {
 		defer done()
 		_, _ = e.finish(wf, run, stepID, data)

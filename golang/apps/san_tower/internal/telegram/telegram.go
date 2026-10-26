@@ -346,6 +346,25 @@ func (c *Client) SendMessage(ctx context.Context, m Send) (json.RawMessage, erro
 	return sent, c.send(ctx, func(cl *Client) error { return cl.call(ctx, "sendMessage", p, &sent) })
 }
 
+// MessageID is the id of a message as Telegram sent it back, 0 when it has
+// none.
+func MessageID(sent json.RawMessage) int64 {
+	var m struct {
+		MessageID int64 `json:"message_id"`
+	}
+	_ = json.Unmarshal(sent, &m)
+	return m.MessageID
+}
+
+// EditMessageText replaces the text of message id in chat, once: a status
+// that is edited again soon needs no retries.
+func (c *Client) EditMessageText(ctx context.Context, chat string, id int64, text string) error {
+	p := Send{Chat: chat}.params()
+	p["message_id"] = id
+	p["text"] = text
+	return c.call(ctx, "editMessageText", p, nil)
+}
+
 // SendMedia sends m's Media, with its Text as the caption, and returns the
 // message as Telegram sent it back. It is tried again as send says, a file
 // uploaded afresh each time.

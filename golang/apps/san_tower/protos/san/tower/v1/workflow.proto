@@ -16,6 +16,21 @@ service WorkflowService {
   rpc ListStepKinds(ListStepKindsRequest) returns (ListStepKindsResponse);
   // ListWorkflows lists the workflows by name, without their steps.
   rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse);
+  // ListFolders lists every folder of workflows (the user, 2026-10-27:
+  // folders to manage workflows), each with its parent and how many
+  // workflows and folders are right in it.
+  rpc ListFolders(ListFoldersRequest) returns (ListFoldersResponse);
+  // CreateFolder makes a folder in parent_id (0: at the top). Names are
+  // unique within a folder, ignoring case.
+  rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse);
+  // UpdateFolder renames a folder and puts it in parent_id. A folder cannot
+  // go into itself or a folder inside it.
+  rpc UpdateFolder(UpdateFolderRequest) returns (UpdateFolderResponse);
+  // DeleteFolder deletes a folder. What was in it, workflows and folders,
+  // goes to the folder it was in: no workflow is deleted with it.
+  rpc DeleteFolder(DeleteFolderRequest) returns (DeleteFolderResponse);
+  // MoveWorkflows puts workflows in a folder (0: at the top).
+  rpc MoveWorkflows(MoveWorkflowsRequest) returns (MoveWorkflowsResponse);
   // CreateWorkflow creates an empty, inactive workflow. Names are unique.
   rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
   rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
@@ -50,8 +65,8 @@ service WorkflowService {
 message StepKind {
   string kind = 1;
   string title = 2;
-  // category is Trigger, Logic, Data, Datetime, Action or Social. A trigger
-  // starts runs.
+  // category is Trigger, Logic, Data, Storage, Datetime, Action,
+  // Messengers, Social or AI.
   string category = 3;
   repeated Socket outputs = 4;
   repeated Setting settings = 5;
@@ -64,6 +79,10 @@ message StepKind {
   // group is a sub-menu of its category in the Add menu (Social › Threads);
   // empty: right in the category.
   string group = 9;
+  // trigger: a step of this kind starts runs. Most triggers are in the
+  // Trigger category; a messenger's (Telegram Message, WhatsApp Message)
+  // is in Messengers, with the messenger's other steps (2026-10-27).
+  bool trigger = 10;
 }
 
 // Socket is an input or output of a step. A link joins sockets of the same
@@ -109,6 +128,18 @@ message Workflow {
   bool active = 7;
   // triggers say what each trigger step of an active workflow is doing.
   repeated TriggerState triggers = 8;
+  // folder_id is the folder it is in, 0 at the top. UpdateWorkflow leaves
+  // it as it is; MoveWorkflows moves it.
+  uint32 folder_id = 9;
+  // description says what it is for (the user, 2026-10-27), up to 2000
+  // characters. UpdateWorkflow replaces it when it is set, and leaves it as
+  // it is when it is not, as the editor's saves of the graph do.
+  optional string description = 10;
+  // one_at_a_time: a run waits until the workflow's earlier runs have
+  // ended, and they go in the order they came (the user, 2026-10-27: X
+  // links sent in a burst ran together and failed together). UpdateWorkflow
+  // replaces it when it is set, and leaves it as it is when it is not.
+  optional bool one_at_a_time = 11;
 }
 
 // Step is one node of a workflow.
@@ -158,7 +189,59 @@ message WorkflowSummary {
   google.protobuf.Timestamp created_at = 4;
   google.protobuf.Timestamp updated_at = 5;
   bool active = 6;
+  uint32 folder_id = 7;
+  string description = 8;
+  bool one_at_a_time = 9;
 }
+
+// Folder is a folder of workflows; folders nest.
+message Folder {
+  uint32 id = 1;
+  string name = 2;
+  // parent_id is the folder it is in, 0 at the top.
+  uint32 parent_id = 3;
+  // How many workflows and folders are right in it.
+  uint32 workflow_count = 4;
+  uint32 folder_count = 5;
+}
+
+message ListFoldersRequest {}
+
+message ListFoldersResponse {
+  repeated Folder folders = 1;
+}
+
+message CreateFolderRequest {
+  string name = 1;
+  uint32 parent_id = 2;
+}
+
+message CreateFolderResponse {
+  Folder folder = 1;
+}
+
+message UpdateFolderRequest {
+  uint32 id = 1;
+  string name = 2;
+  uint32 parent_id = 3;
+}
+
+message UpdateFolderResponse {
+  Folder folder = 1;
+}
+
+message DeleteFolderRequest {
+  uint32 id = 1;
+}
+
+message DeleteFolderResponse {}
+
+message MoveWorkflowsRequest {
+  repeated uint32 ids = 1;
+  uint32 folder_id = 2;
+}
+
+message MoveWorkflowsResponse {}
 
 enum RunStatus {
   RUN_STATUS_UNSPECIFIED = 0;
@@ -189,6 +272,11 @@ message Run {
   string workflow_name = 9;
   repeated string logs = 10;
   repeated LogLevel log_levels = 11;
+  // more_logs is how many earlier lines such a list leaves out: it gives a
+  // run's last lines only, each cut to a length, as the run was stored
+  // (2026-10-27: a Logs page asked for every 2 s stays light however much
+  // the runs log). GetRun has them all.
+  uint32 more_logs = 12;
 }
 
 // LogLevel is the type of a line a Log step writes.
@@ -226,6 +314,16 @@ message RunSteps {
   repeated StepRun steps = 1;
 }
 
+// RunSummary is what a list of runs shows of one (the Logs pages), stored
+// beside its steps so the list need not read them: the last lines its steps
+// logged, each cut short.
+message RunSummary {
+  repeated string logs = 1;
+  repeated LogLevel log_levels = 2;
+  // more is how many earlier lines are left out.
+  uint32 more = 3;
+}
+
 message ListStepKindsRequest {}
 
 message ListStepKindsResponse {
@@ -239,6 +337,10 @@ message ListWorkflowsRequest {
   string query = 1;
   uint32 offset = 2;
   uint32 limit = 3;
+  // folder_id lists the workflows right in that folder (0: at the top);
+  // all_folders those of every folder, as a search does.
+  uint32 folder_id = 4;
+  bool all_folders = 5;
 }
 
 message ListWorkflowsResponse {
@@ -249,6 +351,9 @@ message ListWorkflowsResponse {
 
 message CreateWorkflowRequest {
   string name = 1;
+  // folder_id is the folder to make it in, 0 at the top.
+  uint32 folder_id = 2;
+  string description = 3;
 }
 
 message CreateWorkflowResponse {
@@ -377,6 +482,8 @@ message ExportedWorkflow {
   string name = 1;
   repeated Step steps = 2;
   repeated Link links = 3;
+  string description = 4;
+  bool one_at_a_time = 5;
 }
 
 // ExportedRef is a connection or a storage a step picks, as a file names

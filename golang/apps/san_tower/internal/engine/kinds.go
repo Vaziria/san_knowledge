@@ -35,6 +35,12 @@ const (
 // on a topic of the tower's broker.
 const TopicEvent = "topic-event"
 
+// Manual is the kind of the trigger that starts a run only by hand (the
+// user, 2026-10-27: "What if I need have workflow, but I just run it
+// manually"): the editor's Run, or RunWorkflow. Nothing else fires it, so
+// the engine's triggers leave it out, switched on or not.
+const Manual = "manual"
+
 // kind is a kind of step and how it runs. A trigger starts runs; a step with
 // run is run when an event link reaches it, or, without event inputs (a
 // "pure" step, such as Template), when a step needs one of its outputs.
@@ -59,12 +65,23 @@ func (k *kind) pure() bool {
 func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ} }
 
 // kinds are the kinds of step, in the order the editor's Add menu shows them:
-// the core ones, Log Event (logevent.go), the datetime ones (datetime.go),
-// the san_remote ones (social.go, then sites.go), then the Telegram ones
-// (telegram.go).
-var kinds = slices.Concat(coreKinds, logKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, telegramKinds)
+// the core ones, Log Event (logevent.go), Tower Restart (towerrestart.go),
+// the datetime ones (datetime.go), the san_remote ones (social.go, then
+// sites.go), then the Telegram ones (telegram.go) and the WhatsApp ones
+// (whatsapp.go).
+var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds)
 
 var coreKinds = []*kind{
+	{
+		StepKind: &v1.StepKind{
+			Kind: Manual, Title: "Manual", Category: "Trigger",
+			Description: "Starts the workflow only by hand: the editor's Run button, never by itself, switched on or not; Payload is the data typed in Run, JSON as it is or text.",
+			Outputs:     []*v1.Socket{sock("Event", Event), sock("Payload", Object)},
+		},
+		trigger: func(_ *v1.Step, data []byte) (map[string]proto.Message, []string, error) {
+			return map[string]proto.Message{"Payload": payload(data)}, []string{"Event"}, nil
+		},
+	},
 	{
 		StepKind: &v1.StepKind{
 			Kind: TopicEvent, Title: "Topic Event", Category: "Trigger",
@@ -190,7 +207,7 @@ var coreKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
-			Kind: "storage", Title: "Storage", Category: "Data",
+			Kind: "storage", Title: "Storage", Category: "Storage",
 			Description: "A storage from the Storage page: Path as set there, and Absolute Path, where it is on this computer (a relative path is in the tower's data folder).",
 			Outputs:     []*v1.Socket{sock("Path", Text), sock("Absolute Path", Text)},
 			Settings:    []*v1.Setting{{Name: "Storage", Storage: true}},
@@ -207,7 +224,7 @@ var coreKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
-			Kind: "file-path", Title: "File Path", Category: "Data",
+			Kind: "file-path", Title: "File Path", Category: "Storage",
 			Description: "A file's path from its File Name, in a storage when one is picked, else in the tower's data folder: Path, and Absolute Path.",
 			Outputs:     []*v1.Socket{sock("Path", Text), sock("Absolute Path", Text)},
 			Settings:    []*v1.Setting{{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"}},
@@ -217,7 +234,7 @@ var coreKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
-			Kind: "read-file", Title: "Read File", Category: "Data",
+			Kind: "read-file", Title: "Read File", Category: "Storage",
 			Description: "Reads the text of the file at Path (UTF-8, up to 10 MB), in a storage when one is picked, else in the tower's data folder or an absolute path: Text.",
 			Outputs:     []*v1.Socket{sock("Text", Text)},
 			Settings:    []*v1.Setting{{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"}},
@@ -227,7 +244,7 @@ var coreKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
-			Kind: "glob", Title: "Glob", Category: "Data",
+			Kind: "glob", Title: "Glob", Category: "Storage",
 			Description: "Finds the files matching Pattern (articles/*/*.md, ** for any folders) in a storage, the data folder or an absolute folder: Each fires once per file with Item its path, then Done; Files, First and Count.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Each", Event), sock("Item", Text), sock("Files", Object), sock("First", Text), sock("Count", Text)},
 			Settings:    []*v1.Setting{{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"}},
@@ -368,6 +385,24 @@ var coreKinds = []*kind{
 			return nil
 		},
 	},
+	{
+		// The user, 2026-10-27: a Failed branch that cleans up (deletes a
+		// download) would otherwise turn a failed run into a succeeded one.
+		StepKind: &v1.StepKind{
+			Kind: "fail", Title: "Fail Run", Category: "Action",
+			Description: "Ends the run as failed, with Message, or when it is empty with the error of the last step whose Failed output fired: put it at the end of a Failed branch that cleans up, so the run still counts as failed.",
+			Inputs:      []*v1.Socket{sock("Event", Event), {Name: "Message", Type: Text, Field: true}},
+		},
+		run: func(c *call) error {
+			switch msg := c.text("Message"); {
+			case strings.TrimSpace(msg) != "":
+				return errors.New(msg)
+			case c.failed != nil:
+				return c.failed
+			}
+			return errors.New("the run failed here")
+		},
+	},
 }
 
 // Done is the event output of a step that does something. Such a step also
@@ -389,6 +424,7 @@ var byKind = func() map[string]*kind {
 	m := make(map[string]*kind, len(kinds))
 	for _, k := range kinds {
 		k.Runnable = k.trigger != nil || k.run != nil
+		k.Trigger = k.trigger != nil
 		if i := k.output(Done, Event); i >= 0 {
 			k.Outputs = slices.Insert(k.Outputs, i, sock(InProgress, Event))
 			k.Outputs = slices.Insert(k.Outputs, i+2, sock(Failed, Event))
@@ -448,6 +484,12 @@ type call struct {
 	// with the step's outputs as they are now: once per item of a loop
 	// (Glob's Each). Nil outside a run.
 	each func(output string) error
+	// linked says whether an output of the step links to a step. Nil
+	// outside a run.
+	linked func(output string) bool
+	// failed is the error of the run's last step whose Failed output fired
+	// (Fail Run).
+	failed error
 }
 
 func (c *call) setting(name string) string { return strings.TrimSpace(c.step.GetValues()[name]) }

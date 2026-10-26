@@ -27,6 +27,7 @@ type Fake struct {
 	offsets []int64          // the offsets getUpdates was asked with
 	sent    []map[string]any // what the send methods were given, and "method"
 	fails   []int            // how the next send calls fail (FailSends)
+	refuse  int              // how many sends with a parse_mode to refuse (RefuseFormatting)
 	wake    chan struct{}    // closed when an update is pushed
 }
 
@@ -66,6 +67,15 @@ func (f *Fake) FailSends(codes ...int) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.fails = append(f.fails, codes...)
+}
+
+// RefuseFormatting makes the next n sends with a parse_mode fail as
+// Telegram does when it cannot read the formatting: a 400 "can't parse
+// entities". A refused send is not in Sent.
+func (f *Fake) RefuseFormatting(n int) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.refuse += n
 }
 
 // Sent is what the bot was asked to send, in order: each call's parameters,
@@ -187,6 +197,15 @@ func (f *Fake) serve(w http.ResponseWriter, r *http.Request) {
 		}
 	case "sendMessage", "sendPhoto", "sendVideo", "sendAudio", "sendVoice", "sendDocument", "sendAnimation":
 		f.mu.Lock()
+		if f.refuse > 0 && p["parse_mode"] != nil {
+			f.refuse--
+			f.mu.Unlock()
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]any{"ok": false, "error_code": http.StatusBadRequest,
+				"description": "Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 3"})
+			return
+		}
 		if len(f.fails) > 0 {
 			code := f.fails[0]
 			f.fails = f.fails[1:]
@@ -209,6 +228,12 @@ func (f *Fake) serve(w http.ResponseWriter, r *http.Request) {
 			m["text"] = p["text"]
 		}
 		reply(w, m)
+	case "editMessageText":
+		p["method"] = method
+		f.mu.Lock()
+		f.sent = append(f.sent, p)
+		f.mu.Unlock()
+		reply(w, true)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]any{"ok": false, "error_code": 404, "description": "Not Found"})

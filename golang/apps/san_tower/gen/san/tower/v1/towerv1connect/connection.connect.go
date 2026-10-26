@@ -48,6 +48,9 @@ const (
 	// ConnectionServiceTestConnectionProcedure is the fully-qualified name of the ConnectionService's
 	// TestConnection RPC.
 	ConnectionServiceTestConnectionProcedure = "/san.tower.v1.ConnectionService/TestConnection"
+	// ConnectionServicePairWhatsAppProcedure is the fully-qualified name of the ConnectionService's
+	// PairWhatsApp RPC.
+	ConnectionServicePairWhatsAppProcedure = "/san.tower.v1.ConnectionService/PairWhatsApp"
 )
 
 // ConnectionServiceClient is a client for the san.tower.v1.ConnectionService service.
@@ -63,6 +66,13 @@ type ConnectionServiceClient interface {
 	DeleteConnection(context.Context, *connect.Request[v1.DeleteConnectionRequest]) (*connect.Response[v1.DeleteConnectionResponse], error)
 	// TestConnection checks settings, saved or not, against the other side.
 	TestConnection(context.Context, *connect.Request[v1.TestConnectionRequest]) (*connect.Response[v1.TestConnectionResponse], error)
+	// PairWhatsApp creates a WhatsApp connection by linking a device to the
+	// account (the user, 2026-10-26: scan a QR code, and connected before it
+	// is made). It streams QR codes to scan with the phone (WhatsApp ›
+	// Linked devices › Link a device), a new one every 20 s or so, and ends
+	// with the connection, created once the device is linked and connected.
+	// Closing the stream before stops it, and nothing is kept.
+	PairWhatsApp(context.Context, *connect.Request[v1.PairWhatsAppRequest]) (*connect.ServerStreamForClient[v1.PairWhatsAppResponse], error)
 }
 
 // NewConnectionServiceClient constructs a client for the san.tower.v1.ConnectionService service. By
@@ -106,6 +116,12 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(connectionServiceMethods.ByName("TestConnection")),
 			connect.WithClientOptions(opts...),
 		),
+		pairWhatsApp: connect.NewClient[v1.PairWhatsAppRequest, v1.PairWhatsAppResponse](
+			httpClient,
+			baseURL+ConnectionServicePairWhatsAppProcedure,
+			connect.WithSchema(connectionServiceMethods.ByName("PairWhatsApp")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -116,6 +132,7 @@ type connectionServiceClient struct {
 	updateConnection *connect.Client[v1.UpdateConnectionRequest, v1.UpdateConnectionResponse]
 	deleteConnection *connect.Client[v1.DeleteConnectionRequest, v1.DeleteConnectionResponse]
 	testConnection   *connect.Client[v1.TestConnectionRequest, v1.TestConnectionResponse]
+	pairWhatsApp     *connect.Client[v1.PairWhatsAppRequest, v1.PairWhatsAppResponse]
 }
 
 // ListConnections calls san.tower.v1.ConnectionService.ListConnections.
@@ -143,6 +160,11 @@ func (c *connectionServiceClient) TestConnection(ctx context.Context, req *conne
 	return c.testConnection.CallUnary(ctx, req)
 }
 
+// PairWhatsApp calls san.tower.v1.ConnectionService.PairWhatsApp.
+func (c *connectionServiceClient) PairWhatsApp(ctx context.Context, req *connect.Request[v1.PairWhatsAppRequest]) (*connect.ServerStreamForClient[v1.PairWhatsAppResponse], error) {
+	return c.pairWhatsApp.CallServerStream(ctx, req)
+}
+
 // ConnectionServiceHandler is an implementation of the san.tower.v1.ConnectionService service.
 type ConnectionServiceHandler interface {
 	// ListConnections lists the connections by name.
@@ -156,6 +178,13 @@ type ConnectionServiceHandler interface {
 	DeleteConnection(context.Context, *connect.Request[v1.DeleteConnectionRequest]) (*connect.Response[v1.DeleteConnectionResponse], error)
 	// TestConnection checks settings, saved or not, against the other side.
 	TestConnection(context.Context, *connect.Request[v1.TestConnectionRequest]) (*connect.Response[v1.TestConnectionResponse], error)
+	// PairWhatsApp creates a WhatsApp connection by linking a device to the
+	// account (the user, 2026-10-26: scan a QR code, and connected before it
+	// is made). It streams QR codes to scan with the phone (WhatsApp ›
+	// Linked devices › Link a device), a new one every 20 s or so, and ends
+	// with the connection, created once the device is linked and connected.
+	// Closing the stream before stops it, and nothing is kept.
+	PairWhatsApp(context.Context, *connect.Request[v1.PairWhatsAppRequest], *connect.ServerStream[v1.PairWhatsAppResponse]) error
 }
 
 // NewConnectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -195,6 +224,12 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		connect.WithSchema(connectionServiceMethods.ByName("TestConnection")),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionServicePairWhatsAppHandler := connect.NewServerStreamHandler(
+		ConnectionServicePairWhatsAppProcedure,
+		svc.PairWhatsApp,
+		connect.WithSchema(connectionServiceMethods.ByName("PairWhatsApp")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.ConnectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionServiceListConnectionsProcedure:
@@ -207,6 +242,8 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 			connectionServiceDeleteConnectionHandler.ServeHTTP(w, r)
 		case ConnectionServiceTestConnectionProcedure:
 			connectionServiceTestConnectionHandler.ServeHTTP(w, r)
+		case ConnectionServicePairWhatsAppProcedure:
+			connectionServicePairWhatsAppHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -234,4 +271,8 @@ func (UnimplementedConnectionServiceHandler) DeleteConnection(context.Context, *
 
 func (UnimplementedConnectionServiceHandler) TestConnection(context.Context, *connect.Request[v1.TestConnectionRequest]) (*connect.Response[v1.TestConnectionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.ConnectionService.TestConnection is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) PairWhatsApp(context.Context, *connect.Request[v1.PairWhatsAppRequest], *connect.ServerStream[v1.PairWhatsAppResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.ConnectionService.PairWhatsApp is not implemented"))
 }

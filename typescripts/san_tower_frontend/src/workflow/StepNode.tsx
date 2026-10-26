@@ -278,7 +278,8 @@ function SettingField({
       ) : setting.options.length > 0 ? (
         <NativeSelect.Root size="xs" className="nodrag">
           <NativeSelect.Field value={value} onChange={(e) => onChange(e.target.value)}>
-            {setting.options.map((o) => (
+            {/* A value no longer offered still shows, so the step says what it is set to. */}
+            {(setting.options.includes(value) ? setting.options : [value, ...setting.options]).map((o) => (
               <option key={o} value={o}>
                 {o}
               </option>

@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/tower.proto.
  */
 export const file_san_tower_v1_tower: GenFile = /*@__PURE__*/
-  fileDesc("ChhzYW4vdG93ZXIvdjEvdG93ZXIucHJvdG8SDHNhbi50b3dlci52MSISChBHZXRTdGF0dXNSZXF1ZXN0InoKEUdldFN0YXR1c1Jlc3BvbnNlEg8KB3ZlcnNpb24YASABKAkSEAoIaG9zdG5hbWUYAiABKAkSLgoKc3RhcnRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEgoKZXhlY3V0YWJsZRgEIAEoCSIfCg5SZXN0YXJ0UmVxdWVzdBINCgVmb3JjZRgBIAEoCCIRCg9SZXN0YXJ0UmVzcG9uc2UypAEKDFRvd2VyU2VydmljZRJMCglHZXRTdGF0dXMSHi5zYW4udG93ZXIudjEuR2V0U3RhdHVzUmVxdWVzdBofLnNhbi50b3dlci52MS5HZXRTdGF0dXNSZXNwb25zZRJGCgdSZXN0YXJ0Ehwuc2FuLnRvd2VyLnYxLlJlc3RhcnRSZXF1ZXN0Gh0uc2FuLnRvd2VyLnYxLlJlc3RhcnRSZXNwb25zZUKqAQoQY29tLnNhbi50b3dlci52MUIKVG93ZXJQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
+  fileDesc("ChhzYW4vdG93ZXIvdjEvdG93ZXIucHJvdG8SDHNhbi50b3dlci52MSISChBHZXRTdGF0dXNSZXF1ZXN0IpQBChFHZXRTdGF0dXNSZXNwb25zZRIPCgd2ZXJzaW9uGAEgASgJEhAKCGhvc3RuYW1lGAIgASgJEi4KCnN0YXJ0ZWRfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhIKCmV4ZWN1dGFibGUYBCABKAkSGAoQcnVuc19pbl9wcm9ncmVzcxgFIAEoDSIfCg5SZXN0YXJ0UmVxdWVzdBINCgVmb3JjZRgBIAEoCCIRCg9SZXN0YXJ0UmVzcG9uc2UypAEKDFRvd2VyU2VydmljZRJMCglHZXRTdGF0dXMSHi5zYW4udG93ZXIudjEuR2V0U3RhdHVzUmVxdWVzdBofLnNhbi50b3dlci52MS5HZXRTdGF0dXNSZXNwb25zZRJGCgdSZXN0YXJ0Ehwuc2FuLnRvd2VyLnYxLlJlc3RhcnRSZXF1ZXN0Gh0uc2FuLnRvd2VyLnYxLlJlc3RhcnRSZXNwb25zZUKqAQoQY29tLnNhbi50b3dlci52MUIKVG93ZXJQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message san.tower.v1.GetStatusRequest
@@ -54,6 +54,14 @@ export type GetStatusResponse = Message<"san.tower.v1.GetStatusResponse"> & {
    * @generated from field: string executable = 4;
    */
   executable: string;
+
+  /**
+   * runs_in_progress is how many runs are going now: Restart waits for
+   * none, and `dev --watch` builds a change only then (2026-10-27).
+   *
+   * @generated from field: uint32 runs_in_progress = 5;
+   */
+  runsInProgress: number;
 };
 
 /**

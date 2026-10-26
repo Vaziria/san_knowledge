@@ -7,6 +7,7 @@ import {
   IconButton,
   Input,
   InputGroup,
+  Link,
   Menu,
   Pagination,
   Portal,
@@ -21,6 +22,9 @@ import {
   ChevronRightIcon,
   DownloadIcon,
   EllipsisVerticalIcon,
+  FolderIcon,
+  FolderInputIcon,
+  FolderPlusIcon,
   PencilIcon,
   ScrollTextIcon,
   SearchIcon,
@@ -31,9 +35,10 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { errorText, workflows } from '../api';
-import type { Workflow, WorkflowSummary } from '../gen/san/tower/v1/workflow_pb';
+import type { Folder, Workflow, WorkflowSummary } from '../gen/san/tower/v1/workflow_pb';
 import { FormDialog, FormField, toast } from '../ui';
-import { RenameDialog } from '../workflow/RenameDialog';
+import { dragType, dropTarget, FolderCrumbs, FolderDialog, folderPath, MoveDialog, pathText } from '../workflow/folders';
+import { DescriptionField, DetailsDialog } from '../workflow/DetailsDialog';
 import { RunLog } from '../workflow/RunLog';
 import { exportWorkflows, ImportResult, importFiles, type Imported } from '../workflow/transfer';
 import { savesDone } from './WorkflowEditor';
@@ -47,30 +52,54 @@ const pageSize = 20;
 // search and the page are in the URL (?q=order&page=2). A
 // workflow opens in its editor, /workflow/<id>. Its Logs tab (?tab=logs,
 // RunLog) watches the runs of the active workflows as they come.
+//
+// Workflows are in folders (folders.tsx; the user, 2026-10-27): the tab
+// shows one folder (?folder=<id>; none is the top), its folders first, with
+// a breadcrumb back up. New workflow and New folder make them there; Move
+// to... (a row's menu) or dragging a workflow onto a folder, or onto the
+// breadcrumb, moves it. A search looks in every folder and says where each
+// workflow is.
 export function WorkflowList() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') === 'logs' ? 'logs' : 'workflows';
   const q = params.get('q') ?? '';
   const page = Math.max(1, Number(params.get('page')) || 1);
+  const folder = Math.max(0, Number(params.get('folder')) || 0);
   const [text, setText] = useState(q);
   const [result, setResult] = useState<{ list: WorkflowSummary[]; total: number }>();
+  const [folders, setFolders] = useState<Folder[]>();
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<WorkflowSummary>();
   const [renaming, setRenaming] = useState<WorkflowSummary>();
+  const [moving, setMoving] = useState<WorkflowSummary>();
+  const [folderEdit, setFolderEdit] = useState<Folder | 'new'>();
+  const [folderMove, setFolderMove] = useState<Folder>();
+  const [folderDelete, setFolderDelete] = useState<Folder>();
   const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState<Imported>();
   const fileInput = useRef<HTMLInputElement>(null);
+  const changed = () => setReload((n) => n + 1);
 
-  const setPage = (n: number) =>
-    setParams((p) => {
-      const next = new URLSearchParams(p);
-      if (n > 1) next.set('page', String(n));
-      else next.delete('page');
-      return next;
-    });
+  // param sets one search parameter, keeping the others, a new page at 1.
+  const param = (key: string, value: string, replace = false) =>
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        if (key !== 'page') next.delete('page');
+        return next;
+      },
+      { replace },
+    );
+  const setPage = (n: number) => param('page', n > 1 ? String(n) : '');
+  const openFolder = (id: number) => {
+    setText('');
+    setParams(id ? { folder: String(id) } : {});
+  };
 
   // The search box follows the URL (back and forward), and sets it once the
   // typing pauses; a new search starts at the first page.
@@ -78,19 +107,31 @@ export function WorkflowList() {
   useEffect(() => {
     const query = text.trim();
     if (query === q) return;
-    const t = setTimeout(() => setParams(query ? { q: query } : {}, { replace: true }), 300);
+    const t = setTimeout(() => param('q', query, true), 300);
     return () => clearTimeout(t);
-  }, [text, q, setParams]);
+  }, [text, q]);
 
   useEffect(() => {
     let stale = false;
     // An editor just closed saves its last change first.
     savesDone()
-      .then(() => workflows.listWorkflows({ query: q, offset: (page - 1) * pageSize, limit: pageSize }))
+      .then(() =>
+        Promise.all([
+          workflows.listWorkflows({
+            query: q,
+            offset: (page - 1) * pageSize,
+            limit: pageSize,
+            folderId: folder,
+            allFolders: q !== '',
+          }),
+          workflows.listFolders({}),
+        ]),
+      )
       .then(
-        (r) => {
+        ([r, f]) => {
           if (stale) return;
           setResult({ list: r.workflows, total: r.total });
+          setFolders(f.folders);
           setError('');
         },
         (err: unknown) => !stale && setError(errorText(err)),
@@ -98,24 +139,39 @@ export function WorkflowList() {
     return () => {
       stale = true;
     };
-  }, [q, page, reload]);
+  }, [q, page, folder, reload]);
 
-  // A page past the end (after a delete, or from an old link) shows the last.
+  // A page past the end (after a delete, or from an old link) shows the
+  // last; a folder that is gone shows the top.
   const last = result ? Math.max(1, Math.ceil(result.total / pageSize)) : 1;
   useEffect(() => {
     if (result && page > last) setPage(last);
+    if (folders && folder && !folders.some((f) => f.id === folder)) openFolder(0);
   });
 
   const open = (id: number) => navigate(`/workflow/${id}`);
+  const inside = q || page > 1 ? [] : (folders ?? []).filter((f) => f.parentId === folder);
+  const folderName = (id: number) => (id ? (folderPath(folders ?? [], id).at(-1)?.name ?? 'a folder') : 'All workflows');
 
   const switchActive = async (w: WorkflowSummary, on: boolean) => {
     try {
       await workflows.setWorkflowActive({ id: w.id, active: on });
-      setReload((n) => n + 1);
+      changed();
     } catch (err) {
       toast(`${w.name} not switched ${on ? 'on' : 'off'}: ${errorText(err)}`, true);
     }
   };
+
+  const moveWorkflow = async (id: number, to: number, name?: string) => {
+    try {
+      await workflows.moveWorkflows({ ids: [id], folderId: to });
+      toast(`Moved ${name ?? 'the workflow'} to ${folderName(to)}`);
+      changed();
+    } catch (err) {
+      toast(`Not moved: ${errorText(err)}`, true);
+    }
+  };
+  const nameOf = (id: number) => result?.list.find((w) => w.id === id)?.name;
 
   // Export saves what an editor just closed has not saved yet first: the
   // file is the workflows as stored.
@@ -134,7 +190,7 @@ export function WorkflowList() {
     const result = await importFiles(files);
     setImporting(false);
     setImported(result);
-    setReload((n) => n + 1);
+    changed();
   };
 
   return (
@@ -167,7 +223,7 @@ export function WorkflowList() {
           <Button
             size="sm"
             variant="outline"
-            disabled={!result?.total}
+            disabled={!result?.total && !folders?.length}
             title="Download every workflow as one file"
             onClick={() => void exportSome([])}
           >
@@ -200,20 +256,40 @@ export function WorkflowList() {
         </Tabs.Content>
         <Tabs.Content value="workflows">
           <Stack gap="4">
-            <InputGroup maxW="sm" startElement={<SearchIcon size="16" />}>
-              <Input
-                size="sm"
-                value={text}
-                onChange={(e) => setText(e.currentTarget.value)}
-                placeholder="Search by name"
+            <HStack gap="2" wrap="wrap">
+              <InputGroup maxW="sm" startElement={<SearchIcon size="16" />}>
+                <Input
+                  size="sm"
+                  value={text}
+                  onChange={(e) => setText(e.currentTarget.value)}
+                  placeholder="Search by name or description, in every folder"
+                />
+              </InputGroup>
+              <Button size="sm" variant="outline" onClick={() => setFolderEdit('new')}>
+                <FolderPlusIcon />
+                New folder
+              </Button>
+            </HStack>
+            {!q && folders && (
+              <FolderCrumbs
+                folders={folders}
+                folder={folder}
+                onOpen={openFolder}
+                onDropWorkflow={(id, to) => void moveWorkflow(id, to, nameOf(id))}
               />
-            </InputGroup>
+            )}
             {error ? (
               <Text color="fg.error">The tower does not answer: {error}</Text>
-            ) : !result ? (
+            ) : !result || !folders ? (
               <Text color="fg.muted">Loading...</Text>
-            ) : result.total === 0 ? (
-              <Text color="fg.muted">{q ? `No workflow's name contains "${q}".` : 'No workflows yet.'}</Text>
+            ) : result.total === 0 && inside.length === 0 ? (
+              <Text color="fg.muted">
+                {q
+                  ? `No workflow's name contains "${q}".`
+                  : folder
+                    ? 'This folder is empty: New workflow makes one here, and a workflow dragged onto a folder moves there.'
+                    : 'No workflows yet.'}
+              </Text>
             ) : (
               <>
                 <Table.ScrollArea borderWidth="1px" rounded="md">
@@ -228,8 +304,28 @@ export function WorkflowList() {
                       </Table.Row>
                     </Table.Header>
                     <Table.Body>
+                      {inside.map((f) => (
+                        <FolderRow
+                          key={`f${f.id}`}
+                          folder={f}
+                          onOpen={() => openFolder(f.id)}
+                          onDropWorkflow={(id) => void moveWorkflow(id, f.id, nameOf(id))}
+                          onRename={() => setFolderEdit(f)}
+                          onMove={() => setFolderMove(f)}
+                          onDelete={() => setFolderDelete(f)}
+                        />
+                      ))}
                       {result.list.map((w) => (
-                        <Table.Row key={w.id} cursor="pointer" onClick={() => open(w.id)}>
+                        <Table.Row
+                          key={w.id}
+                          cursor="pointer"
+                          onClick={() => open(w.id)}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData(dragType, String(w.id));
+                            e.dataTransfer.effectAllowed = 'move';
+                          }}
+                        >
                           {/* A control's cell: a click in it does not open the workflow. */}
                           <Table.Cell onClick={(e) => e.stopPropagation()}>
                             <Switch.Root
@@ -245,7 +341,48 @@ export function WorkflowList() {
                               </Switch.Control>
                             </Switch.Root>
                           </Table.Cell>
-                          <Table.Cell fontWeight="semibold">{w.name}</Table.Cell>
+                          <Table.Cell maxW="xl">
+                            <Text fontWeight="semibold">{w.name}</Text>
+                            {w.description ? (
+                              // A click on it edits it; the rest of the row
+                              // opens the workflow.
+                              <Text
+                                color="fg.muted"
+                                textStyle="xs"
+                                truncate
+                                cursor="text"
+                                _hover={{ color: 'fg', textDecoration: 'underline dotted' }}
+                                title={`${w.description}\n(click to edit)`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRenaming(w);
+                                }}
+                              >
+                                {w.description}
+                              </Text>
+                            ) : (
+                              // Without one, a way to write it: the row itself
+                              // opens the workflow.
+                              <Link
+                                as="button"
+                                color="fg.subtle"
+                                textStyle="xs"
+                                _hover={{ color: 'fg.muted' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRenaming(w);
+                                }}
+                              >
+                                Add a description
+                              </Link>
+                            )}
+                            {q && w.folderId > 0 && (
+                              <HStack gap="1" color="fg.muted" textStyle="xs">
+                                <FolderIcon size="12" />
+                                {pathText(folders, w.folderId)}
+                              </HStack>
+                            )}
+                          </Table.Cell>
                           <Table.Cell textAlign="end">{w.stepCount}</Table.Cell>
                           <Table.Cell color="fg.muted">
                             {w.updatedAt && timestampDate(w.updatedAt).toLocaleString()}
@@ -256,9 +393,12 @@ export function WorkflowList() {
                           <Table.Cell textAlign="end" py="0" onClick={(e) => e.stopPropagation()}>
                             <RowMenu
                               name={w.name}
-                              onRename={() => setRenaming(w)}
-                              onExport={() => void exportSome([w.id])}
-                              onDelete={() => setDeleting(w)}
+                              items={{
+                                rename: () => setRenaming(w),
+                                move: () => setMoving(w),
+                                export: () => void exportSome([w.id]),
+                                delete: () => setDeleting(w),
+                              }}
                             />
                           </Table.Cell>
                         </Table.Row>
@@ -300,21 +440,37 @@ export function WorkflowList() {
           </Stack>
         </Tabs.Content>
       </Tabs.Root>
-      {creating && <CreateWorkflow onClose={() => setCreating(false)} onCreated={(w) => open(w.id)} />}
+      {creating && (
+        <CreateWorkflow
+          folder={folder}
+          where={folderName(folder)}
+          onClose={() => setCreating(false)}
+          onCreated={(w) => open(w.id)}
+        />
+      )}
       {imported && <ImportResult result={imported} onOpen={open} onClose={() => setImported(undefined)} />}
       {renaming && (
-        <RenameDialog
-          name={renaming.name}
+        <DetailsDialog
+          details={renaming}
           onClose={() => setRenaming(undefined)}
-          onRename={async (name) => {
-            // UpdateWorkflow replaces the name and the graph: send the graph
-            // as last saved, after any save still on its way.
+          onSave={async (next) => {
+            // UpdateWorkflow replaces the settings and the graph: send the
+            // graph as last saved, after any save still on its way.
             await savesDone();
             const { workflow } = await workflows.getWorkflow({ id: renaming.id });
-            await workflows.updateWorkflow({ workflow: { ...workflow!, name } });
-            toast(`Renamed ${renaming.name} to ${name}`);
-            setReload((n) => n + 1);
+            await workflows.updateWorkflow({ workflow: { ...workflow!, ...next } });
+            toast(`Saved ${next.name}`);
+            changed();
           }}
+        />
+      )}
+      {moving && folders && (
+        <MoveDialog
+          name={moving.name}
+          folders={folders}
+          from={moving.folderId}
+          onClose={() => setMoving(undefined)}
+          onMove={(to) => moveWorkflow(moving.id, to, moving.name)}
         />
       )}
       {deleting && (
@@ -326,32 +482,110 @@ export function WorkflowList() {
           onSubmit={async () => {
             await workflows.deleteWorkflow({ id: deleting.id });
             toast(`Deleted workflow ${deleting.name}`);
-            setReload((n) => n + 1);
+            changed();
           }}
         >
           <Text>Its steps, links, runs and triggers go with it. This cannot be undone.</Text>
+        </FormDialog>
+      )}
+      {folderEdit && (
+        <FolderDialog
+          folder={folderEdit === 'new' ? undefined : folderEdit}
+          parent={folder}
+          onClose={() => setFolderEdit(undefined)}
+          onSaved={(f) => {
+            toast(folderEdit === 'new' ? `Created folder ${f.name}` : `Renamed the folder to ${f.name}`);
+            changed();
+          }}
+        />
+      )}
+      {folderMove && folders && (
+        <MoveDialog
+          name={`folder ${folderMove.name}`}
+          folders={folders}
+          from={folderMove.parentId}
+          folder={folderMove}
+          onClose={() => setFolderMove(undefined)}
+          onMove={async (to) => {
+            await workflows.updateFolder({ id: folderMove.id, name: folderMove.name, parentId: to });
+            toast(`Moved folder ${folderMove.name} to ${folderName(to)}`);
+            changed();
+          }}
+        />
+      )}
+      {folderDelete && (
+        <FormDialog
+          title={`Delete folder ${folderDelete.name}?`}
+          submitText="Delete folder"
+          danger
+          onClose={() => setFolderDelete(undefined)}
+          onSubmit={async () => {
+            await workflows.deleteFolder({ id: folderDelete.id });
+            toast(`Deleted folder ${folderDelete.name}`);
+            changed();
+          }}
+        >
+          <Text>
+            Its {folderDelete.workflowCount} workflows and {folderDelete.folderCount} folders move to{' '}
+            {folderName(folderDelete.parentId)}. No workflow is deleted.
+          </Text>
         </FormDialog>
       )}
     </Stack>
   );
 }
 
-// RowMenu is a workflow's actions, behind the three dots at the end of its
-// row.
-function RowMenu({
-  name,
+// FolderRow is a folder in the list: a click opens it, and a workflow
+// dragged onto it moves there.
+function FolderRow({
+  folder,
+  onOpen,
+  onDropWorkflow,
   onRename,
-  onExport,
+  onMove,
   onDelete,
 }: {
-  name: string;
+  folder: Folder;
+  onOpen: () => void;
+  onDropWorkflow: (workflowId: number) => void;
   onRename: () => void;
-  onExport: () => void;
+  onMove: () => void;
   onDelete: () => void;
 }) {
-  const actions: Record<string, () => void> = { rename: onRename, export: onExport, delete: onDelete };
+  const [over, setOver] = useState(false);
+  const counts = [
+    `${folder.workflowCount} ${folder.workflowCount === 1 ? 'workflow' : 'workflows'}`,
+    folder.folderCount > 0 && `${folder.folderCount} ${folder.folderCount === 1 ? 'folder' : 'folders'}`,
+  ]
+    .filter(Boolean)
+    .join(', ');
   return (
-    <Menu.Root positioning={{ placement: 'bottom-end' }} onSelect={(e) => actions[e.value]?.()}>
+    <Table.Row
+      cursor="pointer"
+      onClick={onOpen}
+      bg={over ? 'bg.emphasized' : undefined}
+      {...dropTarget(onDropWorkflow, setOver)}
+    >
+      <Table.Cell color="fg.muted">
+        <FolderIcon size="18" />
+      </Table.Cell>
+      <Table.Cell fontWeight="semibold">{folder.name}</Table.Cell>
+      <Table.Cell textAlign="end" color="fg.muted" whiteSpace="nowrap">
+        {counts}
+      </Table.Cell>
+      <Table.Cell />
+      <Table.Cell textAlign="end" py="0" onClick={(e) => e.stopPropagation()}>
+        <RowMenu name={folder.name} items={{ rename: onRename, move: onMove, delete: onDelete }} />
+      </Table.Cell>
+    </Table.Row>
+  );
+}
+
+// RowMenu is a row's actions, behind the three dots at the end of it: those
+// given of Rename, Move to..., Export and Delete.
+function RowMenu({ name, items }: { name: string; items: Partial<Record<'rename' | 'move' | 'export' | 'delete', () => void>> }) {
+  return (
+    <Menu.Root positioning={{ placement: 'bottom-end' }} onSelect={(e) => items[e.value as keyof typeof items]?.()}>
       <Menu.Trigger asChild>
         <IconButton aria-label={`Actions for ${name}`} title="Actions" size="xs" variant="ghost" color="fg.muted">
           <EllipsisVerticalIcon />
@@ -360,14 +594,24 @@ function RowMenu({
       <Portal>
         <Menu.Positioner>
           <Menu.Content minW="36">
-            <Menu.Item value="rename">
-              <PencilIcon />
-              Rename
-            </Menu.Item>
-            <Menu.Item value="export">
-              <DownloadIcon />
-              Export
-            </Menu.Item>
+            {items.rename && (
+              <Menu.Item value="rename">
+                <PencilIcon />
+                {items.export ? 'Settings' : 'Rename'}
+              </Menu.Item>
+            )}
+            {items.move && (
+              <Menu.Item value="move">
+                <FolderInputIcon />
+                Move to...
+              </Menu.Item>
+            )}
+            {items.export && (
+              <Menu.Item value="export">
+                <DownloadIcon />
+                Export
+              </Menu.Item>
+            )}
             <Menu.Separator />
             <Menu.Item value="delete" color="fg.error" _hover={{ bg: 'bg.error', color: 'fg.error' }}>
               <Trash2Icon />
@@ -380,15 +624,30 @@ function RowMenu({
   );
 }
 
-function CreateWorkflow({ onClose, onCreated }: { onClose: () => void; onCreated: (w: Workflow) => void }) {
+function CreateWorkflow({
+  folder,
+  where,
+  onClose,
+  onCreated,
+}: {
+  folder: number;
+  where: string;
+  onClose: () => void;
+  onCreated: (w: Workflow) => void;
+}) {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   return (
     <FormDialog
-      title="New workflow"
+      title={folder ? `New workflow in ${where}` : 'New workflow'}
       submitText="Create"
       onClose={onClose}
       onSubmit={async () => {
-        const { workflow } = await workflows.createWorkflow({ name: name.trim() });
+        const { workflow } = await workflows.createWorkflow({
+          name: name.trim(),
+          folderId: folder,
+          description: description.trim(),
+        });
         toast(`Created workflow ${workflow!.name}`);
         onCreated(workflow!);
       }}
@@ -396,6 +655,7 @@ function CreateWorkflow({ onClose, onCreated }: { onClose: () => void; onCreated
       <FormField label="Name" help="Unique, at most 100 characters.">
         <Input autoFocus value={name} onChange={(e) => setName(e.currentTarget.value)} placeholder="Big order alert" />
       </FormField>
+      <DescriptionField value={description} onChange={setDescription} />
     </FormDialog>
   );
 }

@@ -36,6 +36,7 @@ pwsh build.ps1                          # UI build + vet + test + bin/san_tower.
 bin\san_tower.exe serve                 # then open http://127.0.0.1:7477
 bin\san_tower.exe serve --listen 0.0.0.0:7477 --lan   # on the network too (no login: see Network)
 go run .\cmd\san_tower dev              # tower + the UI's Vite dev server; open Vite's address (http://localhost:5173)
+go run .\cmd\san_tower dev --watch      # the same, and a Go change rebuilds and restarts the tower once no run is in progress
 bin\san_tower.exe status                # asks the running tower (--server, $env:SAN_TOWER_SERVER)
 bin\san_tower.exe update                # install the newest release and restart the tower into it (see Updating)
 bin\san_tower.exe restart               # restart the running tower, once no run is in progress
@@ -102,7 +103,8 @@ the same process (`syscall.Exec`), so a supervisor (the Pi's `run.sh` loop,
 systemd) sees no exit; on Windows as a new process in the same console
 (start.bat's window stays: it pauses after the first one ends). The new one
 retries its address for 10 s (`SAN_TOWER_RESTARTED`), while the old one
-lets go of it. `dev` cannot restart itself.
+lets go of it. `dev` cannot restart itself; `dev --watch` restarts the
+tower when its source changes, once no run is in progress.
 
 ## Network
 
@@ -148,14 +150,28 @@ and `text` (a StringValue) links carry data. The engine (`internal/engine`)
 defines the kinds of step, each with a one-sentence description for the
 editor's Add menu (a test checks every kind has one) and, for a step of one
 site or service, a group, its sub-menu in its category (Social › Threads,
-Social › Telegram); the UI asks for them
-(ListStepKinds). All of them run: Topic Event, Schedule, Log Event and Telegram
-Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
+Messengers › Telegram); the UI asks for them
+(ListStepKinds). The categories, in the Add menu's order, are Trigger,
+Logic, Data, Storage (the user, 2026-10-27: Storage, File Path, Read File
+and Glob, moved out of Data), Datetime, Action, Messengers (the user,
+2026-10-27: Telegram's and WhatsApp's steps, their triggers too, each
+messenger a sub-menu), Social, Finance (the user, 2026-10-27: Binance) and
+AI; the UI gives each a colour and an
+icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
+(StepKind's `trigger`), which the UI reads rather than the category, since
+a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart and
+Telegram Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
 Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Now, Datetime,
-Datetime Operation, String to Datetime, HTTP Request, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
+Datetime Operation, String to Datetime, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
 and
-the San Remote and Telegram steps (Social, below).
+the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
 
+- Manual (the user, 2026-10-27: "What if I need have workflow, but I just
+  run it manually") is a trigger that only the editor's Run button (or
+  RunWorkflow) starts: nothing else fires it, and the Active switch does
+  not change that, so a workflow meant to be run by hand cannot start on
+  its own. Payload is the data typed in Run (JSON, text, or nothing); the
+  Run dialog picks a Manual step first, with no data.
 - A run starts at a trigger step, which fires its event outputs (Topic
   Event: Event, and Payload is the event's data, JSON as it is, other text
   as a string). A step runs when an event link from a fired output reaches
@@ -181,6 +197,21 @@ the San Remote and Telegram steps (Social, below).
   lines never start runs in a chain (two workflows listening to each other
   would otherwise run forever). It listens while its workflow is on and
   needs no broker; an unknown Type shows as its trigger's error.
+- Tower Restart (Trigger; `towerrestart.go`; the user, 2026-10-26: a chat
+  before and after a restart, to be aware) fires Before once the tower has
+  agreed to restart (TowerService's Restart: `san_tower restart`, `san_tower
+  update`, `dev --watch`), with no other run in progress; the tower waits
+  for these runs to end, up to a minute, then stops (`engine.BeforeRestart`,
+  from the server's Restart). It leaves `restarting.json` (its version and
+  the time) in the data folder; the tower started next finds it on Start,
+  removes it, and fires After. Version is the tower's (the old one for
+  Before, the new one for After), Previous the one it restarted from, Down
+  For how long it was away ("4s"). A stop that is no restart (Ctrl+C, a
+  crash) fires neither. Its runs read "tower, before restart" and "tower,
+  after restart"; by hand, text "before" fires Before, else After. It has
+  no trigger state: it needs nothing to listen to. The workflow "Tower
+  Restart Notice" uses it to send the user a Telegram chat (Developer Bot)
+  before and after.
 - A loop (Glob's Each, 2026-10-25) fires one event output once per item:
   each time, the steps it links to run to the end of their branch before
   the next item, reading the item from the step's outputs (Item). Pure
@@ -196,7 +227,10 @@ the San Remote and Telegram steps (Social, below).
   does. When the step fails and Failed is linked, Failed fires instead of
   Done, with Error (text) the error, and the run goes on (it ends Succeeded
   unless a later step fails); the step is still recorded with its error.
-  With Failed not linked, the run fails as before.
+  With Failed not linked, the run fails as before. Fail Run (the user,
+  2026-10-27) at the end of a Failed branch that cleans up ends the run as
+  failed after all: with its Message, or when that is empty with the error
+  of the last step whose Failed fired ("Fail Run: X Post Download: …").
 - Expressions are CEL (`cel.dev/cel-go`, pure Go): Filter's If is a
   condition over `payload` (`payload.total > 1000000`), Template's Text puts
   `{{ expression }}` values in text. Numbers from JSON are doubles and
@@ -219,7 +253,7 @@ the San Remote and Telegram steps (Social, below).
   Datetime in any zone, a Date, a time alone for today). An empty one gives
   the other, so a Last Scheduled Post that found nothing leaves Now; a tie
   gives A. Anything else, such as a number and a date, fails the step.
-- Storage, UUID and MD5 Hash (Data, the user's ask, 2026-10-25) are pure
+- Storage (Storage), UUID and MD5 Hash (Data; the user's ask, 2026-10-25) are pure
   steps: they run when a step takes one of their outputs, once per run.
   Storage gives the storage its Storage setting picks (Storage below): Path
   as set on the Storage page, and Absolute Path, where it is (e.g. for
@@ -228,7 +262,7 @@ the San Remote and Telegram steps (Social, below).
   (crypto/rand), so every step that takes it in a run gets the same one and
   the next run a new one. MD5 Hash gives the MD5 of its Text field input,
   as 32 lowercase hexadecimal digits.
-- File Path (Data, pure) is a file's path from its File Name (a field
+- File Path (Storage, pure) is a file's path from its File Name (a field
   input, e.g. a UUID through Format Text: `{{ text }}.mp4`): Path and
   Absolute Path, with / as storages have. With a Storage picked, the name
   is inside it (`tmp/videos` + `test.mp4`: `tmp/videos/test.mp4` and
@@ -236,13 +270,13 @@ the San Remote and Telegram steps (Social, below).
   absolute path) fails the step. With none ("No storage: the data
   folder"), a relative name is in the tower's data folder and an absolute
   one is itself. It only makes the path: it creates and checks nothing.
-- Read File (Data, pure; `filepath.go`; the user's ask, 2026-10-25) gives
+- Read File (Storage, pure; `filepath.go`; the user's ask, 2026-10-25) gives
   the text of the file at Path as Text. Path is placed as File Path places
   a name (Storage setting, else the data folder, or absolute). UTF-8 text
   up to 10 MB: a byte order mark is dropped and Windows line ends become
   `\n`. A file that is not there, a folder, a bigger file or a binary one
   fails the step. Linked from Glob's Item, it reads each file in turn.
-- Glob (Data; `glob.go`; the user's ask, 2026-10-25) finds the files
+- Glob (Storage; `glob.go`; the user's ask, 2026-10-25) finds the files
   matching Pattern, a field input placed as File Path places a name (in
   the picked storage, the data folder, or absolute): `articles/*/*.md`;
   `*`, `?` and `[ab]` match within one name and `**` any number of folders
@@ -315,12 +349,108 @@ the San Remote and Telegram steps (Social, below).
   in the temporary folder, as the knowledge tool's AI step runs it, or in
   Directory, an absolute folder, when it is set (the user's ask: a base
   project directory, the working directory of the call), so that project's
-  CLAUDE.md and settings come in. Claude
-  gets no tools or MCP servers (a prompt may come from a message
-  anyone sent), and it is the user's own Claude Code login. Model is
-  Default, Sonnet, Opus or Haiku; Wait bounds the answer (default 10m).
+  CLAUDE.md and settings come in. Directory is a field input (2026-10-26),
+  typed in the step or linked from any text, as Prompt is. It is the
+  user's own Claude Code login.
+  - Model (2026-10-26, the user's ask: a model and its version, as Claude
+    Code's /model lists them) is Default, Fable 5.1, Opus 5.5, Opus 5.5
+    (1M), Sonnet 5.5, Sonnet 5.5 (1M) or Haiku 5.5, sent as their full
+    names (`claude-fable-5-1`, `claude-opus-5-5`, `claude-opus-5-5[1m]`,
+    …). Opus, Sonnet and Haiku, the choices before versions, still run, as
+    claude's aliases for the latest of each, and the editor still shows
+    them in a step set to one (a select shows a value it no longer offers).
+    A model the account cannot use fails the step with what Claude Code
+    says about it. Effort is Default, Low, Medium, High, XHigh or Max
+    (`--effort`). Default leaves either to Claude Code.
+  - Tools (2026-10-26, the user's ask) is None (the default: `--tools ""
+    --strict-mcp-config`, no tools and no MCP servers, for a prompt that
+    may come from a message anyone sent), Read Only (`--tools
+    Read,Grep,Glob`, still no MCP: Claude reads and searches the files of
+    Directory), or Full (no tool flags: all of Claude Code's tools, the
+    MCP servers of the project and the user, and the skills). claude -p
+    cannot ask for permission, so a tool runs only when Permission Mode or
+    the user's Claude Code settings (the `allow` rules of
+    `~/.claude/settings.json` and the project's `.claude/settings.json`)
+    allow it; anything else Claude is refused, and says so.
+  - Permission Mode (2026-10-26, the user's ask) is `--permission-mode`:
+    Default (none sent: the settings' `defaultMode`, else Manual), Manual
+    (only what the settings allow), Accept Edits (file edits in Directory
+    too), Auto (Claude Code's safety check allows what is safe and refuses
+    what is risky, as in an auto-mode session), Plan (looks and plans,
+    changes nothing), Don't Ask (only what the settings allow, never
+    asking), or Bypass Permissions (everything, nothing checked). Bypass
+    Permissions is only for prompts the user writes: a Telegram message or
+    a failure line could then run anything on this computer. Auto is the
+    one for a workflow that should act on its own.
+  - Wait bounds the answer (default 10m).
   Answer is its reply; an error Claude Code reports (a usage limit, not
-  signed in) fails the step with it.
+  signed in) fails the step with it. With a Session ID (a field input,
+  2026-10-26: the user's ask, so that several steps attach the same
+  session) it keeps the conversation: no `--no-session-persistence`, but
+  `--resume <id>`, and when Claude Code has no such conversation yet
+  ("No conversation found"), `--session-id <id>`, which starts it. Session
+  ID must be a UUID, as claude takes.
+  - A session's questions go to one live process while it answers
+    (`claudelive.go`; the user, 2026-10-26: the Telegram chat as
+    interactive as Claude Code itself, built by hand to learn how): claude
+    -p in stream-json both ways (`--input-format stream-json
+    --output-format stream-json --verbose --replay-user-messages`), each
+    question a JSON line on stdin with a uuid of its own. Experiments with
+    claude 2.1.306 showed what it does, which the fake claude in
+    `claudelive_test.go` copies (and `TestClaudeLiveReal`, with
+    `SAN_TOWER_CLAUDE_LIVE=1`, checks against the real one): a question sent
+    while Claude works is queued by Claude Code and answered next, in the
+    same process; questions queued when a turn begins are read as one turn
+    and answered once; each question is echoed back with its uuid as it is
+    taken into a turn, so the turn's answer (its `result`) goes to the run
+    of the last question taken, and the runs of the others end firing
+    nothing, logging that they were read with it; `--json-schema` still
+    shapes each answer; a `--resume` of a conversation Claude Code does not
+    have yet is a `result` with "No conversation found" before any `init`,
+    and the process is started again with `--session-id` and the questions
+    sent again. Once no question waits, stdin is closed and the process
+    ends: nothing runs, or takes memory, between conversations, and the
+    next question starts it again (one arriving while it ends waits for
+    that). The process's settings (Model, Tools...) are its first
+    question's. The tool calls and what Claude says become the step's log
+    lines.
+  - Claude Interrupt (AI › Claude) stops the turn going on in a Session ID
+    as Esc does: a `control_request` of subtype interrupt. Claude Code
+    notes "[Request interrupted by user]", the turn ends without an answer
+    (`error_during_execution`), the Claude Ask (CLI) waiting on it fires
+    Stopped, and the conversation and the questions queued behind it go
+    on. It fires Stopped, or Idle when nothing was going on. A question
+    whose Wait runs out is interrupted the same way; a tower that stops
+    kills the process.
+  - With Status Bot (a Telegram Bot connection) and Status Chat, the step
+    sends a Telegram message that shows what Claude does, as Claude Code
+    does on screen: "Queued" while another question is answered, then
+    "Working · 1m 20s · 5 steps" with the last six steps ("Read
+    claude.go", the Bash step's description, "“Let me look…”"), edited at
+    most every 3 s (Telegram allows about one message a second in a chat),
+    and at the end "Done", "Stopped", "Failed" or "Read together with your
+    next message". It is plain text, edited with editMessageText.
+  - The Dev Workflow uses it: a Prefix Filter sends "/stop" to Claude
+    Interrupt (replying "Stopped." or "Nothing is running."), everything
+    else to Claude Ask (CLI) with the live status in the same chat. Claude says
+  whether it answered or needs feedback (2026-10-26, the user's ask: tell
+  the two apart): the step asks for its reply in a shape (`--json-schema`,
+  `{needs_feedback, text}`), and when Claude cannot answer without more
+  information or a decision from the person, Needs Feedback fires instead
+  of Done, with Question its question. When Needs Feedback links nowhere,
+  a question goes out by Done as Answer (and Question), so a workflow that
+  only reads Answer still gets it; a reply not in the shape is an answer.
+  The step does not wait for the reply: it comes in a later run, to a
+  Claude Ask (CLI) with the same Session ID (a Telegram Message trigger
+  in the same workflow, say), and Claude goes on from its question.
+- Claude Chat Session (AI › Claude, pure, 2026-10-26) gives a Session ID
+  for Claude Ask (CLI) steps: linked to several, they ask in one
+  conversation, which goes on from run to run. It is a UUID (version 5)
+  made from the workflow's id and the step's, so every run gives the same
+  one, and another Claude Chat Session step, or this one in an imported
+  copy of the workflow, gives another. Its conversation is a Claude Code
+  session like any other: `claude --resume <id>` opens it, and it is in
+  `/resume` of the folder its first question ran in.
 - Stringify (Data, pure) writes its Object input as JSON text: Compact on
   one line or Pretty, indented by two spaces; keys sorted, whole numbers
   without a decimal point, `< > &` as they are (it is for messages), and
@@ -339,6 +469,24 @@ the San Remote and Telegram steps (Social, below).
   slip cannot wipe the tower or a disk: a file (Delete File's), a drive's
   root, the tower's data folder or any folder holding it, and the picked
   storage's own folder (give a folder inside it).
+- Bash (the user, 2026-10-27: "Add node bash for executing shell and it can
+  connect to storage as working directory"; `engine/bash.go`) runs Script
+  with bash in the folder of the storage its Storage setting picks, or in
+  the tower's data folder when none is, with Input on its standard input.
+  Stdout and Stderr (each its first 1 MB, the last newline trimmed) and
+  Exit Code are its outputs, and its log line says the exit code, how long
+  it took and where it ran. An exit code other than 0 fails the step
+  (Failed, with Error the code and stderr's last lines) unless Non-zero
+  Exit is Goes On. After Timeout (5m, up to 24h), or when the tower stops,
+  it is stopped with everything it started: a process group on Linux, a
+  job object of its own on Windows, where it starts suspended, joins the
+  job and then runs (msys's fork loses the parent links `taskkill /T`
+  follows: a `sleep 30 &` outlived the script, 2026-10-27). What a script
+  leaves running when it ends by itself goes on, as in a terminal. The
+  script goes through a temporary file, not `-c`. On Windows it is Git
+  Bash's bash (beside git, or where Git for Windows installs it), never the
+  `bash.exe` of System32 or WindowsApps, which starts WSL and which a
+  cmd.exe's PATH finds first; `SAN_TOWER_BASH` names another.
 - HTTP Request sends its Body (when linked) as JSON with its Method to its
   URL, whose `{{ expressions }}` read Body as `payload`; GET sends no body.
   Response is the answer: status, headers and body (JSON when it is JSON).
@@ -435,6 +583,27 @@ the San Remote and Telegram steps (Social, below).
   - TikTok Post (Social › TikTok) schedules Video (an absolute path) with
     Caption for Everyone at At, on a 5-minute step up to 30 days ahead;
     `#hashtags` are picked from TikTok's suggestions.
+  - YouTube Upload (Social › YouTube; the user, 2026-10-26: YouTube in San
+    Remote, Shorts too) uploads Video (an absolute path) through YouTube
+    Studio (San Remote's YouTubeService) with Title, Description and Tags
+    (commas between them), not made for kids, and schedules it at At
+    (rounded up to a quarter hour, Studio's only times; at least 15 minutes
+    ahead), or without At saves it as Private:
+    never public at once. Kind Short is for a Short, which YouTube makes of
+    a vertical or square video of at most 3 minutes by itself: the step
+    fails when Studio lists it under Videos (it is saved all the same).
+    Video is the response (the video's id, link, visibility, date, Studio
+    link, channel), Link its link (youtube.com/shorts/<id> for a Short).
+    Social Status reads who is signed in on YouTube; Social Posts lists
+    Studio's Videos and Shorts: Scheduled, Published (Public), or Drafts
+    (Private and Unlisted), each at its day (Studio's date column has no
+    time), so Last Scheduled Post gives the last day one is scheduled.
+  - YouTube Make Private (Social › YouTube) makes Video (its id or a link,
+    such as a YouTube Upload's Link) Private in Studio's content list; a
+    scheduled one loses its schedule. YouTube Delete deletes one for good
+    (Delete forever), but never a Public video (the user, 2026-10-26: a
+    workflow has nobody to ask; make it Private first when that is meant):
+    it sends `allow_public` false. It cannot be undone.
   - ChatGPT Ask (AI › ChatGPT) asks ChatGPT the Prompt in a Temporary chat,
     which ChatGPT does not keep (the user's choice, 2026-10-25); Answer is
     its reply as markdown. Wait bounds a long answer (default 10m).
@@ -472,16 +641,26 @@ the San Remote and Telegram steps (Social, below).
 - Telegram steps work as a bot, through the Telegram Bot connection their
   Connection setting names (the Bot API, over plain net/http,
   `internal/telegram`):
-  - Telegram Message (a trigger) starts a run for each message the bot
+  - Telegram Message (Messengers › Telegram, a trigger) starts a run for each message the bot
     gets, in any chat or in the one its Chat names (a chat's id or
     @username). Message is the message as Telegram sent it (`payload.text`,
     `payload.chat.id`, `payload.from.username`), Text its text (or a
     photo's caption), Chat its chat's id, which a Telegram Send can take to
     reply. A run's trigger reads "telegram, chat @heri, message 1010".
-  - Telegram Send (Social › Telegram) sends Text to Chat (a chat's id, a
+  - Telegram Send (Messengers › Telegram) sends Text to Chat (a chat's id, a
     group's such as -1001234567890, or a channel's @username), Plain, HTML
-    or Markdown (Telegram's legacy Markdown), as a reply when Reply To has
-    a message id. Message is the message sent.
+    or Markdown, as a reply when Reply To has a message id. Message is the
+    message sent.
+  - Markdown (2026-10-26, after Telegram refused a Claude answer with
+    "can't parse entities") is Markdown as people and Claude write it
+    (`**bold**`, `` `code` `` in bold, lists, fenced code, links), turned
+    into Telegram's HTML by `telegram.MarkdownHTML`: bold, italic, strike,
+    code, code blocks, quotes and http(s) links as tags, headings bold,
+    lists with • or their numbers, the rest as escaped text. Telegram's own
+    "Markdown" parse mode reads only its old dialect (`*bold*`, nothing
+    nested) and refuses the whole message otherwise. When Telegram still
+    cannot read a message's formatting (HTML typed by hand, too), the step
+    sends the text as it is, without parse_mode, and logs a warning.
   - Its Media (the user's ask, 2026-10-25) sends a Photo, Video, Audio,
     Voice, Document or Animation instead, with Text as its caption
     (optional, up to 1024 characters). The File input, shown once Media is
@@ -502,7 +681,7 @@ the San Remote and Telegram steps (Social, below).
     in the run ("try 2 in 2s, after: ... (now over IPv4)"). A send whose
     answer was lost after Telegram took it is sent twice: the Bot API has
     no way to tell.
-  - Telegram Messages (Social › Telegram) lists the newest messages the bot
+  - Telegram Messages (Messengers › Telegram) lists the newest messages the bot
     got, in every chat or in Chat; Last is the newest. The Bot API cannot
     read a chat's history, so these are the messages the tower kept: what
     the bot received since its connection was made, the newest 1000 per
@@ -517,6 +696,104 @@ the San Remote and Telegram steps (Social, below).
     makes Telegram answer 409 Conflict, which the trigger's state shows. In
     a group the bot gets every message only with its privacy mode off
     (@BotFather, /setprivacy); otherwise commands, replies and mentions.
+- Telegram account steps (the user, 2026-10-27: "In telegram add node
+  create bot, delete bot, create group, delete group, add user to group,
+  remove user to group", then "We use San remote, not telegram API") work
+  as your own Telegram account, in Telegram Web in your browser, through
+  the San Remote connection their Connection setting names
+  (`san.remote.telegram.v1.TelegramService`, `engine/telegramweb.go`; the
+  steps themselves are San Remote's `internal/telegram`). Each brings
+  Chrome to the front with a tab of its own for a minute or so: Telegram
+  Web does not start in a hidden tab. All in Messengers › Telegram:
+  - Telegram Create Bot asks @BotFather for a new bot with Name and
+    Username (ending in bot) and adds it as a Telegram Bot connection named
+    after the bot (the user's choice), or after the bot and its @username
+    when that name is taken, so Telegram Message and Telegram Send can use
+    it at once (its poller starts as on the Connections page). Bot is the
+    bot without its token, Username and Link (t.me) its own, Connection ID
+    the new connection's id. The token goes into the connection only, never
+    into an output, which a run keeps and shows. @BotFather's refusal (a
+    username taken) fails the step with what it said.
+  - Telegram Delete Bot deletes one of your bots through @BotFather
+    (/deletebot, with its confirmation). It cannot be undone. The bot's
+    connection stays, and no longer works.
+  - Telegram Create Group makes a group titled Title with no other members
+    yet. Group ID is its chat id (-5012345678), which a basic group shares
+    with the Bot API, so a Telegram Send can post to it once its bot is a
+    member.
+  - Telegram Delete Group deletes one of your groups for all its members
+    (its menu's Delete Group, with "Delete for all members"). Group is its
+    id, or its title when only one of your groups has it. A group you do
+    not own is refused, never left. It cannot be undone.
+  - Telegram Add Member and Telegram Remove Member add a user to one of
+    your groups, or remove one, by username (User, with or without the @);
+    Group as for Delete Group. A user already in the group is left as they
+    are; one whose privacy settings keep them out of groups, or who is not
+    a member to remove, fails the step.
+- WhatsApp steps (the user, 2026-10-26: WhatsApp like Telegram, with
+  `go.mau.fi/whatsmeow`) work as the WhatsApp account of the WhatsApp
+  connection their Connection setting names, which is a device linked to
+  the account, as WhatsApp Web is (`internal/whatsapp`, `engine/whatsapp.go`):
+  - The connection is made by linking, never typed in (the user: scan the
+    QR code, and connected first): the Connections page's New connection,
+    type WhatsApp, a Storage (required), Link with QR code, calls
+    ConnectionService's PairWhatsApp, a server stream. It sends a QR code (the code, and a 320 px PNG made by
+    `skip2/go-qrcode`) every 20 s or so; the user scans one with the phone
+    (WhatsApp › Settings › Linked devices › Link a device); once the device
+    is linked and then connected (whatsmeow logs in again after the link),
+    the connection is created, with the device's JID, the account's number,
+    its name and the storage, and the stream ends with it. A storage
+    missing or gone, or a name in use, fails before the first code. Closing the dialog ends the stream, which stops the
+    linking and keeps nothing. Editing renames it; another account is
+    another connection. Deleting it logs the device out first, so the phone
+    drops it from Linked devices (a device that cannot connect is only
+    forgotten here).
+  - Each connection's device keys are in a database file of its own in
+    the folder of its storage (the user, 2026-10-26: a base storage from
+    those registered, required), never in tower.db or an export: named by
+    the SHA-256 of the connection's name as it was made, in hex, with .db
+    (`whatsapp.FileName`; the user, 2026-10-26), and saved in the
+    connection's settings (`database`), so a rename keeps it. Only a
+    WhatsApp connection's name can change (UpdateConnection keeps its
+    settings), and the store takes only such a file name, never a path out
+    of the storage. It is whatsmeow's sqlstore on the same pure-Go SQLite
+    (`glebarez/go-sqlite`). `engine.WhatsAppStores` opens each file once,
+    when first needed (making the folder), and closes them after the
+    engine; a linking that fails removes the file it made, and deleting the
+    connection deletes it (with its -wal and -shm). A file that is gone is
+    not made again empty: the trigger's state says to link again. The
+    storage is looked up at each connect, so one that is gone shows as the
+    trigger's state until it is back. The tower keeps each WhatsApp connection's device
+    connected all the time it runs, used by a workflow or not, as a Telegram
+    bot's poller; whatsmeow connects again by itself when the connection
+    drops, and a first connect that fails is tried again after 1 s doubling
+    to 30 s. Test says whether it is connected. When the phone logs the
+    device out, the state says so: delete the connection and link again.
+  - WhatsApp Message (Messengers › WhatsApp, a trigger) starts a run for each message the account
+    gets, in any chat or the one Chat names: a phone number with its
+    country code (any spaces, +, - or dots aside), which takes the chat
+    with that number and that number's messages in groups, or a chat's JID
+    (a group's ends in @g.us). From says whose: Others (the default),
+    Others and me, or Me: yours are those you send from the phone or
+    another device, such as in the chat with yourself; the messages the
+    tower sent never start runs (it remembers the last 500 it sent), and a
+    message that comes twice runs once. Message is all of it (`id`, `chat`,
+    `sender`, `phone`, `name`, `text`, `type`, `from_me`, `is_group`,
+    `time`), Text its text or a photo's, video's or document's caption,
+    Chat where to reply, Phone and Name the sender's number and own name.
+    Reactions and protocol messages start nothing. A run's trigger reads
+    "whatsapp, chat +628123456789, message 3EB0...". Messages that came
+    while the tower was stopped arrive when it connects again.
+  - WhatsApp Send (Messengers › WhatsApp) sends Text to Chat, a phone number
+    with its country code or a JID (a WhatsApp Message's Chat, to reply);
+    Message ID is the sent message's. With File (the user, 2026-10-27: a
+    zip of the tower's build to a friend), a file on this computer,
+    absolute or in the tower's data folder, up to 500 MB, goes as a
+    document with Text as its caption (`whatsapp.Conn.SendFile`: encrypted
+    and uploaded through a temporary file, not held in memory; its MIME
+    type by its extension).
+  - WhatsApp does not allow unofficial programs and may ban an account that
+    uses one: the dialog says so; a number you can risk is safer.
 - Runs go on in the background under the engine's own context, so a step
   that takes minutes is not cut off by whatever started it; stopping the
   tower cuts them short and records them as interrupted.
@@ -538,6 +815,23 @@ the San Remote and Telegram steps (Social, below).
   active workflow, are rebuilt on start and when the tower switches
   brokers, and say whether they listen (Workflow.triggers: "topic orders
   does not exist", "not connected to the broker: ...").
+- Folder Watch and File Watch (Trigger; `watch.go`; the user, 2026-10-27:
+  "add node that can watch file add, edited, deleted in folder and
+  subfolder with base storage. And add node file watch too") start a run
+  for each file added, changed or deleted: Folder Watch in Folder of its
+  Storage (the whole storage when empty) and every folder under it, folders
+  made later too (their files count as added); File Watch for File in its
+  Storage. A file's events (fsnotify) count once the file has been quiet
+  for 2 s, so a copy or a save in parts is one run; a file that came and
+  went in that time is none, and one replaced by a save is changed. Folders
+  themselves are not told. The run's outputs are Path (in the storage, with
+  /), Absolute Path, Change (added, changed or deleted), and Event with
+  Added, Changed or Deleted fired; its trigger reads "folder watch, added
+  inbox/a.mp4". A watch works only while its workflow is switched on, and
+  says so in the editor ("folder Videos/inbox", or why not: no storage, a
+  path outside it, a folder that is not there). Changes made while the
+  tower is stopped are not told afterwards. A workflow that writes into the
+  folder it watches starts itself again.
 - Schedule steps of a workflow switched on are timers in the engine
   (`schedule.go`), with no broker. Every is a time between runs, a Go
   duration that may start with days ("5m", "90m", "1d", "7d"), at whole
@@ -558,6 +852,59 @@ the San Remote and Telegram steps (Social, below).
   it fired, its log lines, its data outputs as google.protobuf.Any): the
   newest 100 per workflow. A run still going when the tower stops is
   marked interrupted on the next start.
+- What a run keeps is bounded (the user, 2026-10-27: "what if log contain
+  many log"; `store/runlimit.go`), so neither tower.db nor the pages that
+  show runs grow without end, however much a step logs (a loop, a long
+  Claude session) or outputs (a whole file or page). The run itself has it
+  all; what is stored is cut, with a note saying what was left out: a log
+  line to 2000 characters, a step's lines to its last 500, an output to
+  64 KB (a text keeps its start, any other value becomes a note), a run's
+  steps to 2 MB in all (the steps after keep only their errors and what
+  they fired). Each run also stores its summary (`RunSummary`): its last
+  20 lines, each cut to 300 characters, and how many came before. The Logs
+  pages, which ask every 2 s for up to 200 runs, get the summaries
+  (`Run.more_logs` the count left out) and never read the steps; opening a
+  run (GetRun) shows them. A run stored before summaries gets its summary
+  the first time a list reads it.
+- The pages that ask again and again (the Logs, the editor's Runs, the
+  Browser Remote Server page) ask nothing while their browser tab is hidden,
+  and again as soon as it is shown, and never twice at once
+  (`usePoll`, `src/poll.ts`). The Logs keep a run that did not change as
+  it was drawn.
+- A description (the user, 2026-10-27), up to 2000 characters, says what
+  a workflow is for: given when it is made (CreateWorkflow), shown under
+  its name in the list and in the editor, edited in its settings (the
+  pencil in the editor, Settings in the list's menu), found by the search
+  as the name is, and carried by an export. Workflow.description is
+  optional: UpdateWorkflow replaces it when it is sent and keeps it when
+  not, as the editor's saves of the graph do.
+- One run at a time (the user, 2026-10-27: X links sent to Underground
+  Flow in a burst ran together, fought over the browser, scheduled their
+  posts for the same minute, and failed together), a workflow setting
+  beside the name and description (Workflow.one_at_a_time, optional as the
+  description is, carried by an export): a run waits until the workflow's
+  earlier runs have ended, in the order their events came (`engine/queue.go`;
+  begin puts each run in line, finish waits for its turn). A waiting run is
+  Running; its trigger's log says how long it waited when that was a
+  second or more. Runs of other workflows are not held up. A tower that
+  stops marks the waiting runs Interrupted.
+- Folders (the user, 2026-10-27: "In workflow, add folder like. So I can
+  manage workflow easily"; `store/folder.go`): a workflow is in one folder
+  or at the top, and folders nest (WorkflowService's ListFolders,
+  CreateFolder, UpdateFolder, DeleteFolder, MoveWorkflows; ListWorkflows
+  lists one folder's workflows, or with all_folders every folder's, as a
+  search does). A folder's name is unique in the folder it is in, ignoring
+  case; a folder cannot go into itself or a folder inside it. Deleting a
+  folder deletes no workflow: what was in it moves up to its parent (a
+  folder named like one there gets " (2)"). Workflow names stay unique
+  across folders. The Workflow page shows one folder (`?folder=<id>`), its
+  folders first with how much is in each, under a breadcrumb back to the
+  top; New workflow and New folder make them there; a row's menu has Move
+  to..., and a workflow dragged onto a folder, or onto a folder of the
+  breadcrumb, moves there. A search looks in every folder and shows each
+  workflow's folder. The editor's back link returns to the workflow's
+  folder. An export does not carry folders yet: imported workflows land at
+  the top.
 - Export and import (the user's ask, 2026-10-26; `internal/server/transfer.go`):
   ExportWorkflows writes some workflows, or all, to a file for
   ImportWorkflows, here or in another tower: a `WorkflowFile` as JSON
@@ -599,6 +946,84 @@ connection is gone fails, saying so.
   (getMe), which reads no messages. Deleting the connection deletes the
   messages it kept. The token is a secret: it is stored and listed as it
   is (the tower only answers on loopback), and kept out of errors.
+- **Binance** (the user, 2026-10-27, as autotrade reaches Binance): a USD-M
+  futures account through an API key and its secret, on a network:
+  testnet (testnet.binancefuture.com, the default), demo
+  (demo-fapi.binance.com, Binance's Demo Trading) or live
+  (fapi.binance.com: real money). Test reads the wallet with the key
+  (nothing is traded) and says when the account is in hedge mode, which
+  Binance Order cannot trade. The secret is stored and listed as a bot's
+  token is. From this PC only the test network answered: fapi.binance.com
+  and demo-fapi.binance.com timed out (2026-10-27, likely the ISP).
+
+## Finance
+
+The Finance steps (the user, 2026-10-27: "new node category ... finance.
+And add binance. It can execute order (limit / market / stoploss and take
+profit option), get the candle, get the Porto, get order history, get open
+or close position"; `engine/finance.go`) work on a Binance connection, with
+the client autotrade uses (`internal/binance`, adopted from
+`golang/apps/autotrade/internal/binance`: signed requests on the server's
+clock, stop losses and take profits through the Algo Order API). They are
+in Finance › Binance. Every line they log starts with the network
+("testnet: BUY 0.012 BTCUSDT MARKET at 80000.1, order 11 FILLED"), so a run
+says whether it traded for real.
+
+- **Binance Order** places a Market order, or a Limit one at Price (Time In
+  Force: GTC, Post Only, IOC or FOK), to Buy (long) or Sell (short)
+  Quantity of Symbol (BTCUSDT, or btc/usdt; rounded down to the symbol's
+  step, a price to its tick), Reduce Only or not, with Leverage set first
+  when given (1 to 125). A Stop Loss and a Take Profit are trigger prices
+  on the mark price: reduce-only stop-market and take-profit-market orders
+  for the order's quantity (a market order's fill, a limit order's whole
+  quantity, which protects it from its first fill). Refused before
+  anything is placed: a stop on the wrong side of the entry (a limit's
+  price, a market order's best ask or bid), a quantity below the symbol's
+  least, stops with Reduce Only, and an account in hedge mode (the steps
+  trade in one-way mode, as autotrade does). When the exchange refuses a
+  stop after the order went in, the order is undone, so no position stays
+  without the protection asked for: the stops already placed are
+  cancelled, a limit order cancelled, and what filled closed at market;
+  the step fails saying what was refused and what was undone. Order is the
+  order as Binance took it, Order ID its id, Stop Loss Order and Take
+  Profit Order the conditional orders.
+- **Binance Candles** reads Symbol's latest candles (klines) at Interval
+  (1m to 1M), Limit of them (100, up to 1500), oldest first, from the
+  public market data of Network: Testnet (the default, the market Testnet
+  orders fill on), Live or Demo; no connection or key. Candles is the list
+  (open and close times, open, high, low, close, volume, quote volume,
+  trades), Last Closed the newest that has closed (the last one is usually
+  still forming), Close its close price.
+- **Binance Portfolio**: Account the totals in USD (wallet, available,
+  margin balance, unrealized PnL), Assets each asset held, Positions the
+  open positions.
+- **Binance Orders** lists orders, newest first, by Show: History, the
+  Symbol's latest orders of any status (Limit, 50, up to 1000; Binance
+  keeps a cancelled order that never filled for a few days only); Open,
+  the orders that can still fill, of Symbol or every symbol; Stop Orders,
+  the stop losses and take profits waiting to trigger. Last is the newest.
+- **Binance Positions** lists the open positions, of Symbol or every
+  symbol, and goes on by Found or None, then Done. Position is the first:
+  side (LONG or SHORT), amount (negative for a short), entry, break-even,
+  mark and liquidation price, unrealized PnL, notional.
+- **Binance Close Position** closes Symbol's position at market
+  (reduce-only, its whole amount), then cancels the symbol's stop orders
+  still waiting; None when there is no position. Order is the closing
+  order, Position the position as it was.
+
+Tested against a fake Binance (`finance_test.go`, and the client's own
+tests from autotrade), and live on the test network on 2026-10-27: a
+workflow of the six steps through the tower's Binance connection (candles,
+portfolio, a market buy of 10 XRPUSDT at 5x with its stop loss and take
+profit, the position Found, both stops listed, the position closed and
+its stops cancelled, then None and the history), and
+`SAN_TOWER_BINANCE_LIVE=1` with the testnet key (`finance_live_test.go`,
+`binance/live_test.go`): a market buy and a limit sell that filled at once,
+each with its stops and closed, a post-only order that would have taken and
+a stop on the wrong side refused, nothing left open. XRPUSDT, because
+autotrade trades BTC, ETH, BNB and BCH with the same key. The test network
+answers a market order with an average price of 0; the order is read back
+for its price.
 
 ## Storage
 
@@ -705,7 +1130,8 @@ second fails to listen before it opens the broker.
   code (`gen/`) and the UI's TS client. `buf.gen.san_message.yaml` makes
   the UI's TS client for san_message's proto; the Go side uses san_message's
   own generated code.
-- `cmd/san_tower/main.go`: the CLI (`serve`, `dev`, `status`).
+- `cmd/san_tower/main.go`: the CLI (`serve`, `dev`, `status`; `dev --watch`
+  in `devwatch.go`).
   - `serve` and `dev` open the database and the broker, then serve the
     tower with `san_message.ConfigureServer` (h2c, for the broker's
     Subscribe stream, and pings), and once it listens start the engine with
@@ -720,6 +1146,47 @@ second fails to listen before it opens the broker.
     missing. Vite's proxy goes to this tower through `SAN_TOWER_SERVER`.
     When either one stops, so does the other; Ctrl+C stops both. A UI
     change reloads by itself; a Go change needs a restart.
+  - `dev --watch` (`devwatch.go`; the user, 2026-10-26: the tower refreshes
+    itself in dev, but not aggressively while Claude is implementing) runs
+    the tower as a process of its own instead: `serve` built with `go build`
+    from the source (`golang/apps/san_tower`, found from the current folder
+    up) into a temporary folder. Every 0.5 s it looks at the source's Go
+    files, go.mod and go.sum, and those of the modules go.mod replaces with
+    a folder (San Remote, `../san_remote`, which the tower serves in its
+    process), with the .js files beside Go files (San Remote's site
+    scripts, go:embed); not hidden folders, node_modules or the data
+    folder. Once they changed and then stayed the same for 2 s, it builds
+    again, so several saves give one build, but only once the tower has no
+    run in progress (TowerService's GetStatus, `runs_in_progress`; the
+    user, 2026-10-27, before the PC runs out of memory): a build takes a few
+    hundred MB for a minute, and Claude editing the tower through one of its
+    runs would otherwise make one at each pause, of which only the last is
+    used. It logs once that a change waits. A failed build is logged and the
+    running tower goes on. A build that passes still waits until no run is
+    in progress, since one may have started while it built: dev asks the
+    tower for TowerService's Restart, which refuses while runs go on (the
+    rule `san_tower restart` uses), and asks again every 0.5 s, logging why
+    it waits. So Claude editing the tower through
+    one of its own runs (Telegram, Claude Ask) is not cut short: the run
+    ends, its reply gets out, then the tower restarts once, into the newest
+    build. A tower that agreed stops by itself once its Tower Restart
+    runs (Before) end, which dev waits for, up to 90 s, before it stops it.
+    A tower that does not answer is stopped as it is. The new one
+    starts on the same address (`SAN_TOWER_RESTARTED`, so it waits for the
+    old one to let go). The tower it runs has `SAN_TOWER_DEV_CHILD` set: it
+    stops when its stdin closes, which is how dev stops it (Windows cannot
+    send a child Ctrl+C), so it also stops when dev ends however dev ends;
+    and it takes a Restart as a stop, after which dev starts it again (from
+    the newest build, so the UI's or `san_tower restart`'s Restart works
+    too). One that has not stopped in 15 s is killed. One that fails by
+    itself (a panic) is logged, and the next change starts it again.
+    On Windows dev puts itself in a job object that kills what is in it
+    when dev ends, however it ends (Ctrl+C, a closed window, Task Manager):
+    Vite, the tower, a build, and what the tower started (claude). Vite
+    shares the console, so its stdin does not close with dev. The builds'
+    folder (`san_tower-dev-*` in the temporary folder) holds `dev.pid`;
+    dev removes it when it ends, and at the start removes those whose dev
+    is gone (one was left from a dev that was killed, 2026-10-27).
 - `internal/server`: the HTTP server. It serves TowerService, BrokerService,
   WorkflowService (`workflow.go` the database's half, `engine.go` the
   engine's), ConnectionService (`connection.go`), BrowserRemoteService

@@ -267,3 +267,37 @@ func TestTelegramFired(t *testing.T) {
 		t.Errorf("text: %v", out)
 	}
 }
+
+// Markdown goes as Telegram's HTML; formatting Telegram cannot read goes as
+// plain text, with a warning line, rather than failing the step.
+func TestTelegramSendMarkdown(t *testing.T) {
+	f := telegramtest.New(t)
+	env := Env{TelegramAPI: f.URL, Connection: func(id uint32) (store.Connection, error) {
+		return store.Connection{ID: id, Name: "Bot", Type: store.TelegramBot, Settings: &v1.ConnectionSettings{
+			Type: &v1.ConnectionSettings_TelegramBot{TelegramBot: &v1.TelegramBotSettings{Token: telegramtest.Token}},
+		}}, nil
+	}}
+	send := func(format string) *v1.StepRun {
+		t.Helper()
+		steps, err := Execute(context.Background(), &v1.Graph{
+			Steps: []*v1.Step{{Id: "go", Kind: "schedule"}, {Id: "out", Kind: "telegram-send", Values: map[string]string{"Connection": "1", "Chat": "42", "Format": format, "Text": "**Frontend (`a_b`)** < 2"}}},
+			Links: []*v1.Link{{Source: "go", SourceSocket: "Event", Target: "out", TargetSocket: "Event"}},
+		}, "go", nil, env)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return steps[1]
+	}
+	send("Markdown")
+	if p := f.Sent()[0]; p["parse_mode"] != "HTML" || p["text"] != "<b>Frontend (<code>a_b</code>)</b> &lt; 2" {
+		t.Errorf("Markdown sent %v", p)
+	}
+	f.RefuseFormatting(1)
+	r := send("Markdown")
+	if p := f.Sent()[1]; p["parse_mode"] != nil || p["text"] != "**Frontend (`a_b`)** < 2" {
+		t.Errorf("refused formatting sent %v", p)
+	}
+	if len(r.Logs) != 1 || !strings.Contains(r.Logs[0], "Telegram could not read the Markdown") || r.LogLevels[0] != v1.LogLevel_LOG_LEVEL_WARNING {
+		t.Errorf("logs: %q %v", r.Logs, r.LogLevels)
+	}
+}

@@ -71,8 +71,8 @@ func (s *Server) GetRun(_ context.Context, req *connect.Request[v1.GetRunRequest
 }
 
 // listAllRuns lists the runs of every workflow (the Workflow page's Logs),
-// or of one (the editor's Logs), each with its workflow's name and the lines
-// its steps logged instead of its steps.
+// or of one (the editor's Logs), each with its workflow's name and its
+// summary, the last lines its steps logged, instead of its steps.
 func (s *Server) listAllRuns(workflowID uint32, activeOnly bool, statuses []v1.RunStatus, limit int) (*connect.Response[v1.ListRunsResponse], error) {
 	list, err := s.store.ListAllRuns(workflowID, activeOnly, statuses, limit)
 	if err != nil {
@@ -86,22 +86,11 @@ func (s *Server) listAllRuns(workflowID uint32, activeOnly bool, statuses []v1.R
 	for i, r := range list {
 		p := runToProto(r)
 		p.WorkflowName = names[r.WorkflowID]
-		for _, st := range p.Steps {
-			p.Logs = append(p.Logs, st.GetLogs()...)
-			p.LogLevels = append(p.LogLevels, levels(st)...)
-		}
+		p.Logs, p.LogLevels, p.MoreLogs = r.Summary.GetLogs(), r.Summary.GetLogLevels(), r.Summary.GetMore()
 		p.Steps = nil
 		res.Runs[i] = p
 	}
 	return connect.NewResponse(res), nil
-}
-
-// levels are the types of a step's log lines, one per line. A step stored
-// before lines had a type has none, so its lines are unspecified (info).
-func levels(st *v1.StepRun) []v1.LogLevel {
-	out := make([]v1.LogLevel, len(st.GetLogs()))
-	copy(out, st.GetLogLevels())
-	return out
 }
 
 func runToProto(r store.Run) *v1.Run {

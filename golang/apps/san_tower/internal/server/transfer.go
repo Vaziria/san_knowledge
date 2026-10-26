@@ -78,7 +78,7 @@ func (s *Server) ExportWorkflows(_ context.Context, req *connect.Request[v1.Expo
 	}
 	refs := stepRefs()
 	for _, w := range list {
-		f.Workflows = append(f.Workflows, &v1.ExportedWorkflow{Name: w.Name, Steps: w.Graph.GetSteps(), Links: w.Graph.GetLinks()})
+		f.Workflows = append(f.Workflows, &v1.ExportedWorkflow{Name: w.Name, Description: w.Description, OneAtATime: w.OneAtATime, Steps: w.Graph.GetSteps(), Links: w.Graph.GetLinks()})
 		for _, st := range w.Graph.GetSteps() {
 			for _, r := range refs[st.GetKind()] {
 				id := strings.TrimSpace(st.GetValues()[r.setting])
@@ -189,6 +189,18 @@ func (s *Server) ImportWorkflows(_ context.Context, req *connect.Request[v1.Impo
 			notes = append(notes, fmt.Sprintf("%s is called %s here: the name was taken", ew.GetName(), w.Name))
 		}
 		w.Graph = &v1.Graph{Steps: ew.GetSteps(), Links: ew.GetLinks()}
+		if d := ew.GetDescription(); strings.TrimSpace(d) != "" {
+			if err := s.store.SetWorkflowDescription(w.ID, d); err != nil {
+				undo()
+				return nil, storeError(fmt.Errorf("%s: %w", ew.GetName(), err))
+			}
+		}
+		if ew.GetOneAtATime() {
+			if err := s.store.SetWorkflowOneAtATime(w.ID, true); err != nil {
+				undo()
+				return nil, storeError(fmt.Errorf("%s: %w", ew.GetName(), err))
+			}
+		}
 		if made[len(made)-1], err = s.store.UpdateWorkflow(w); err != nil {
 			undo()
 			return nil, storeError(fmt.Errorf("%s: %w", ew.GetName(), err))

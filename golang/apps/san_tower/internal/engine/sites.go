@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
 	tiktokv1 "github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1"
+	youtubev1 "github.com/wargasipil/san_remote/gen/san/remote/youtube/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -27,7 +29,8 @@ import (
 // version in san_remote and have node in tower", then "san_gpt too"). Like
 // the others they go through `san_remote api` at a San Remote connection.
 // Articles become drafts, and are scheduled only when At is given; a TikTok
-// video is only scheduled. ChatGPT asks in a Temporary chat (the user's
+// video is only scheduled. YouTube (the user, 2026-10-26, Shorts too) is
+// scheduled, or without At saved as Private. ChatGPT asks in a Temporary chat (the user's
 // choice), which ChatGPT does not keep; Gemini too, in a tab brought to the
 // front, since Gemini sends only from a shown page; Claude (claude.ai) in an
 // incognito chat. Claude Ask (CLI) is claude.go's.
@@ -129,6 +132,94 @@ var siteKinds = []*kind{
 				return remoteErr(err)
 			}
 			c.outputs["Result"] = toValue(res.Msg)
+			c.fire("Done")
+			return nil
+		},
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "youtube-upload", Title: "YouTube Upload", Category: "Social",
+			Group:       "YouTube",
+			Description: "Uploads a video file to YouTube through San Remote, in YouTube Studio, with Title, Description and Tags (commas between them), not made for kids: scheduled at At (rounded up to a quarter hour, Studio's steps; at least 15 minutes ahead), or without At saved as Private; never public at once. Kind Short is for a Short (vertical or square, at most 3 minutes: YouTube decides), and fails when Studio lists it under Videos (it is saved all the same). Link is the video's.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Video", Object), sock("Link", Text)},
+			Settings:    []*v1.Setting{connectionSetting(), {Name: "Kind", Options: []string{"Video", "Short"}}},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Video"), field("Title"), field("Description"), field("Tags"), atPicker()},
+		},
+		run: func(c *call) error {
+			r, err := c.sanRemote()
+			if err != nil {
+				return err
+			}
+			video, err := c.absolute("Video", "the video file")
+			if err != nil {
+				return err
+			}
+			title := strings.TrimSpace(c.text("Title"))
+			if title == "" {
+				return fmt.Errorf("Title %w", errEmpty)
+			}
+			// Studio's list of times is a quarter hour apart (2026-10-27).
+			at, err := c.optionalAt(quarterHour)
+			if err != nil {
+				return err
+			}
+			res, err := r.youtube.UploadVideo(c.ctx, connect.NewRequest(&youtubev1.UploadVideoRequest{
+				Video: video, Title: title, Description: strings.TrimSpace(c.text("Description")), Tags: list(c.text("Tags")),
+				At: at, Short: c.setting("Kind") == "Short",
+			}))
+			if err != nil {
+				return remoteErr(err)
+			}
+			c.outputs["Video"] = toValue(res.Msg)
+			c.outputs["Link"] = stringValue(res.Msg.GetVideo().GetUrl())
+			c.fire("Done")
+			return nil
+		},
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "youtube-private", Title: "YouTube Make Private", Category: "Social",
+			Group:       "YouTube",
+			Description: "Makes a YouTube video Private through San Remote, in Studio's content list (its visibility, Private, Save): Video is its id or a link (a YouTube Upload's Link). A scheduled video loses its schedule; a Private one is left as it is. Video out is the video as the list then shows it.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Video", Object)},
+			Settings:    []*v1.Setting{connectionSetting()},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Video")},
+		},
+		run: func(c *call) error {
+			r, video, err := c.youtubeVideo()
+			if err != nil {
+				return err
+			}
+			res, err := r.youtube.MakePrivate(c.ctx, connect.NewRequest(&youtubev1.MakePrivateRequest{Video: video}))
+			if err != nil {
+				return remoteErr(err)
+			}
+			c.outputs["Video"] = toValue(res.Msg.GetVideo())
+			c.fire("Done")
+			return nil
+		},
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "youtube-delete", Title: "YouTube Delete", Category: "Social",
+			Group:       "YouTube",
+			Description: "Deletes a YouTube video for good through San Remote, in Studio's content list (Options, Delete forever): Video is its id or a link. It never deletes a Public video: make it Private first (YouTube Make Private) when that is meant. It cannot be undone. Video out is the video as the list showed it.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Video", Object)},
+			Settings:    []*v1.Setting{connectionSetting()},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Video")},
+		},
+		run: func(c *call) error {
+			r, video, err := c.youtubeVideo()
+			if err != nil {
+				return err
+			}
+			// A workflow runs with nobody to ask: a Public video is never
+			// deleted from one (the user, 2026-10-26).
+			res, err := r.youtube.DeleteVideo(c.ctx, connect.NewRequest(&youtubev1.DeleteVideoRequest{Video: video, AllowPublic: false}))
+			if err != nil {
+				return remoteErr(err)
+			}
+			c.outputs["Video"] = toValue(res.Msg.GetVideo())
 			c.fire("Done")
 			return nil
 		},
@@ -329,6 +420,12 @@ func (c *call) siteStatus(r remoteClients, site string) (proto.Message, error) {
 			return nil, err
 		}
 		return res.Msg.GetStatus(), nil
+	case "YouTube":
+		res, err := r.youtube.GetStatus(c.ctx, connect.NewRequest(&youtubev1.GetStatusRequest{}))
+		if err != nil {
+			return nil, err
+		}
+		return res.Msg.GetStatus(), nil
 	case "ChatGPT":
 		res, err := r.chatgpt.GetStatus(c.ctx, connect.NewRequest(&chatgptv1.GetStatusRequest{}))
 		if err != nil {
@@ -408,6 +505,19 @@ func (c *call) listSitePosts(r remoteClients, site, kind string) ([]proto.Messag
 				items, at = append(items, p), append(at, t)
 			}
 		}
+	case "YouTube/Scheduled", "YouTube/Published", "YouTube/Drafts":
+		// Studio's content list: Scheduled, Public (published), and Private
+		// or Unlisted ones, which are kept as drafts are. Its date column
+		// gives the day only.
+		res, err := r.youtube.ListVideos(c.ctx, connect.NewRequest(&youtubev1.ListVideosRequest{}))
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, v := range res.Msg.Videos {
+			if youtubeList(v.GetVisibility()) == kind {
+				items, at = append(items, v), append(at, youtubeDay(v.GetDate()))
+			}
+		}
 	default:
 		return nil, nil, fmt.Errorf("%s %w (%s)", site, errNoList, kind)
 	}
@@ -416,6 +526,31 @@ func (c *call) listSitePosts(r remoteClients, site, kind string) ([]proto.Messag
 		return items, nil, nil
 	}
 	return items, func(i int) time.Time { return at[i] }, nil
+}
+
+// youtubeList is the list of Social Posts a YouTube video's visibility, as
+// Studio's content list shows it, puts it in.
+func youtubeList(visibility string) string {
+	switch v := strings.ToLower(visibility); {
+	case strings.Contains(v, "scheduled"):
+		return "Scheduled"
+	case strings.Contains(v, "public"):
+		return "Published"
+	}
+	return "Drafts"
+}
+
+// youtubeDate is the day at the start of Studio's date column, "Nov 13,
+// 2026" (then "Scheduled" or "Published").
+var youtubeDate = regexp.MustCompile(`(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}`)
+
+// youtubeDay is that day, local; zero when there is none.
+func youtubeDay(date string) time.Time {
+	t, err := time.ParseInLocation("Jan 2, 2006", youtubeDate.FindString(date), time.Local)
+	if err != nil {
+		return time.Time{}
+	}
+	return t
 }
 
 // postText is a listed post's text: its text, an article's title, or a
@@ -428,4 +563,18 @@ func postText(v *structpb.Value) string {
 		}
 	}
 	return ""
+}
+
+// youtubeVideo is a YouTube step's San Remote connection and its Video: a
+// video's id or link, which San Remote reads.
+func (c *call) youtubeVideo() (remoteClients, string, error) {
+	r, err := c.sanRemote()
+	if err != nil {
+		return r, "", err
+	}
+	video := strings.TrimSpace(c.text("Video"))
+	if video == "" {
+		return r, "", fmt.Errorf("Video %w: give the video's id or link (a YouTube Upload's Link)", errEmpty)
+	}
+	return r, video, nil
 }

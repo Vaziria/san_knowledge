@@ -72,7 +72,7 @@ func Open(dir string, log *slog.Logger) (*Store, error) {
 	// One connection: SQLite writes one at a time anyway, and this way a
 	// transaction never meets "database is locked" from the tower itself.
 	sqlDB.SetMaxOpenConns(1)
-	if err := db.AutoMigrate(&Workflow{}, &Run{}, &Connection{}, &TelegramMessage{}, &Storage{}); err != nil {
+	if err := db.AutoMigrate(&Workflow{}, &Folder{}, &Run{}, &Connection{}, &TelegramMessage{}, &Storage{}); err != nil {
 		sqlDB.Close()
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}

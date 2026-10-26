@@ -1,10 +1,11 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { Badge, Box, Button, ButtonGroup, HStack, Link, Stack, Switch, Text } from '@chakra-ui/react';
 import { ChevronDownIcon, ChevronRightIcon, PauseIcon, PlayIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router';
 import { errorText, workflows } from '../api';
 import { RunStatus, type Run } from '../gen/san/tower/v1/workflow_pb';
+import { usePoll } from '../poll';
 import { loadStepKinds } from './catalog';
 import { LogLine, runDuration, runStatus } from './runs';
 import { RunDetail } from './RunsPanel';
@@ -35,6 +36,11 @@ type StatusFilter = keyof typeof statusFilters;
 // did. Pause stops asking, so the list stands still to read. With a
 // workflowId it is the editor's Logs: that workflow's runs (ListRuns with
 // logs), switched on or not, without the workflow's name on each.
+//
+// However much the runs log, it stays light (2026-10-27): a run comes with
+// its last lines only (the tower's summary; moreLogs says how many came
+// before, which opening the run shows), nothing is asked while the browser
+// tab is hidden, and a run that did not change keeps its row as drawn.
 export function RunLog({ workflowId = 0 }: { workflowId?: number }) {
   const [activeSwitch, setActiveOnly] = useState(true);
   const activeOnly = !workflowId && activeSwitch;
@@ -55,18 +61,17 @@ export function RunLog({ workflowId = 0 }: { workflowId?: number }) {
   // The runs seen so far, and when the new ones came in.
   const seen = useRef<Set<number> | null>(null);
   const [arrived, setArrived] = useState<Map<number, number>>(new Map());
+  // The runs as last drawn, by id, with what tells that one changed.
+  const drawn = useRef(new Map<number, { sig: string; run: Run }>());
 
   useEffect(() => {
     seen.current = null; // a new filter marks nothing as new
   }, [workflowId, activeOnly, status]);
-  useEffect(() => {
-    if (paused) return;
-    let stale = false;
-    const statuses = statusFilters[status].statuses;
-    const load = () =>
-      workflows.listRuns({ workflowId, logs: true, activeOnly, statuses, limit: shown }).then(
+  usePoll(
+    (stale) =>
+      workflows.listRuns({ workflowId, logs: true, activeOnly, statuses: statusFilters[status].statuses, limit: shown }).then(
         (r) => {
-          if (stale) return;
+          if (stale()) return;
           const now = Date.now();
           if (seen.current) {
             const known = seen.current;
@@ -74,20 +79,33 @@ export function RunLog({ workflowId = 0 }: { workflowId?: number }) {
             if (added.length) setArrived((m) => new Map([...m, ...added.map((x) => [x.id, now] as const)]));
           }
           seen.current = new Set(r.runs.map((x) => x.id));
-          setArrived((m) => new Map([...m].filter(([, at]) => now - at < fresh)));
-          setRuns(r.runs);
+          setArrived((m) => (m.size ? new Map([...m].filter(([, at]) => now - at < fresh)) : m));
+          // A run that did not change stays the same object, so its row is
+          // not drawn again; the list is set only when one did.
+          const before = drawn.current;
+          const ids = [...before.keys()];
+          const next = new Map<number, { sig: string; run: Run }>();
+          let changed = before.size !== r.runs.length;
+          const list = r.runs.map((x, i) => {
+            const sig = runSig(x);
+            const old = before.get(x.id);
+            const run = old?.sig === sig ? old.run : x;
+            if (run !== old?.run || ids[i] !== x.id) changed = true;
+            next.set(x.id, { sig, run });
+            return run;
+          });
+          drawn.current = next;
+          if (changed) setRuns(list);
           setChecked(new Date());
           setError('');
         },
-        (err: unknown) => !stale && setError(errorText(err)),
-      );
-    void load();
-    const t = setInterval(load, every);
-    return () => {
-      stale = true;
-      clearInterval(t);
-    };
-  }, [workflowId, activeOnly, status, paused]);
+        (err: unknown) => !stale() && setError(errorText(err)),
+      ),
+    every,
+    [workflowId, activeOnly, status],
+    !paused,
+  );
+  const toggle = useCallback((r: Run) => setOpen((o) => (o?.id === r.id ? undefined : r)), []);
 
   // The open run's steps, again when its status changes (it finished).
   const openStatus = runs?.find((r) => r.id === open?.id)?.status;
@@ -164,7 +182,7 @@ export function RunLog({ workflowId = 0 }: { workflowId?: number }) {
               named={!workflowId}
               isNew={arrived.has(r.id)}
               open={open?.id === r.id ? open : undefined}
-              onToggle={() => setOpen(open?.id === r.id ? undefined : r)}
+              onToggle={toggle}
             />
           ))}
         </Stack>
@@ -173,8 +191,15 @@ export function RunLog({ workflowId = 0 }: { workflowId?: number }) {
   );
 }
 
-// RunRow is one run of the log; named shows its workflow's name.
-function RunRow({
+// runSig is what tells that a run of the list changed: its status, its end,
+// and its lines.
+function runSig(r: Run): string {
+  return `${r.status}|${r.finishedAt?.seconds ?? ''}|${r.moreLogs}|${r.logs.length}|${r.logs.at(-1) ?? ''}|${r.error}`;
+}
+
+// RunRow is one run of the log; named shows its workflow's name. It is drawn
+// again only when its props change.
+const RunRow = memo(function RunRow({
   run,
   named,
   isNew,
@@ -185,7 +210,7 @@ function RunRow({
   named: boolean;
   isNew: boolean;
   open?: Run;
-  onToggle: () => void;
+  onToggle: (run: Run) => void;
 }) {
   const status = runStatus[run.status];
   const failed = run.status === RunStatus.FAILED || run.status === RunStatus.INTERRUPTED;
@@ -197,7 +222,7 @@ function RunRow({
       bg={isNew ? 'bg.muted' : undefined}
       transition="background 0.6s"
     >
-      <HStack px="3" py="2" gap="3" cursor="pointer" _hover={{ bg: 'bg.subtle' }} onClick={onToggle}>
+      <HStack px="3" py="2" gap="3" cursor="pointer" _hover={{ bg: 'bg.subtle' }} onClick={() => onToggle(run)}>
         <Chevron size="14" color="var(--chakra-colors-fg-subtle)" />
         <Text fontFamily="mono" textStyle="xs" color="fg.muted" flexShrink={0}>
           {run.startedAt && timestampDate(run.startedAt).toLocaleTimeString()}
@@ -219,6 +244,11 @@ function RunRow({
       </HStack>
       {(run.logs.length > 0 || (failed && run.error)) && (
         <Stack gap="0.5" ms="12" me="3" mb="2" ps="3" borderStartWidth="2px" borderColor={`${status.palette}.muted`}>
+          {run.moreLogs > 0 && (
+            <Text textStyle="xs" color="fg.muted">
+              {run.moreLogs} earlier {run.moreLogs === 1 ? 'line' : 'lines'}: open the run to see them
+            </Text>
+          )}
           {run.logs.map((l, i) => (
             <LogLine key={i} text={l} level={run.logLevels[i]} variant="plain" textStyle="xs" px="0" />
           ))}
@@ -236,4 +266,4 @@ function RunRow({
       )}
     </Box>
   );
-}
+});

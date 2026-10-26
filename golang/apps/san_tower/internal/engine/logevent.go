@@ -157,7 +157,7 @@ func (e *Engine) logged(w store.Workflow, l logLine) {
 			e.log.Error("start a Log Event run", "workflow", s.workflow, "err", err)
 			continue
 		}
-		run, err := e.begin(lw, s.step, fmt.Sprintf("log, %s run %d", w.Name, l.RunID))
+		run, err := e.begin(lw, s.step, fmt.Sprintf("log, %s run %d", w.Name, l.RunID), data)
 		if err != nil {
 			e.log.Error("record a workflow run", "workflow", lw.ID, "err", err)
 			continue

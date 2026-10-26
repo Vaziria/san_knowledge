@@ -1,15 +1,16 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { Badge, Box, Button, Code, Flex, HStack, Stack, Text } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { errorText, workflows } from '../api';
 import type { Run } from '../gen/san/tower/v1/workflow_pb';
+import { usePoll } from '../poll';
 import { stepKind } from './catalog';
 import { LogLine, outputText, runDuration, runStatus, stepDuration } from './runs';
 
 // RunsPanel is the editor's Runs tab: a workflow's runs, newest first,
 // checking for new ones every few seconds (an active workflow runs on its
-// own), and beside them the picked one. Picking one shows what each step did,
-// here and on the canvas (onPick).
+// own; not while the browser tab is hidden), and beside them the picked one.
+// Picking one shows what each step did, here and on the canvas (onPick).
 export function RunsPanel({
   workflowId,
   picked,
@@ -24,24 +25,19 @@ export function RunsPanel({
   const [runs, setRuns] = useState<Run[]>();
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let stale = false;
-    const load = () =>
+  usePoll(
+    (stale) =>
       workflows.listRuns({ workflowId, limit: 50 }).then(
         (r) => {
-          if (stale) return;
+          if (stale()) return;
           setRuns(r.runs);
           setError('');
         },
-        (err: unknown) => !stale && setError(errorText(err)),
-      );
-    void load();
-    const t = setInterval(load, 3000);
-    return () => {
-      stale = true;
-      clearInterval(t);
-    };
-  }, [workflowId, reload]);
+        (err: unknown) => !stale() && setError(errorText(err)),
+      ),
+    3000,
+    [workflowId, reload],
+  );
 
   const pick = async (id: number) => {
     try {

@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/workflow.proto.
  */
 export const file_san_tower_v1_workflow: GenFile = /*@__PURE__*/
-  fileDesc("ChtzYW4vdG93ZXIvdjEvd29ya2Zsb3cucHJvdG8SDHNhbi50b3dlci52MSLlAQoIU3RlcEtpbmQSDAoEa2luZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIlCgdvdXRwdXRzGAQgAygLMhQuc2FuLnRvd2VyLnYxLlNvY2tldBInCghzZXR0aW5ncxgFIAMoCzIVLnNhbi50b3dlci52MS5TZXR0aW5nEiQKBmlucHV0cxgGIAMoCzIULnNhbi50b3dlci52MS5Tb2NrZXQSEAoIcnVubmFibGUYByABKAgSEwoLZGVzY3JpcHRpb24YCCABKAkSDQoFZ3JvdXAYCSABKAkiUQoGU29ja2V0EgwKBG5hbWUYASABKAkSDAoEdHlwZRgCIAEoCRINCgVmaWVsZBgDIAEoCBIOCgZwaWNrZXIYBCABKAkSDAoEd2hlbhgFIAEoCSJnCgdTZXR0aW5nEgwKBG5hbWUYASABKAkSDwoHb3B0aW9ucxgCIAMoCRITCgtwbGFjZWhvbGRlchgDIAEoCRIXCg9jb25uZWN0aW9uX3R5cGUYBCABKAkSDwoHc3RvcmFnZRgFIAEoCCKIAgoIV29ya2Zsb3cSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIhCgVzdGVwcxgDIAMoCzISLnNhbi50b3dlci52MS5TdGVwEiEKBWxpbmtzGAQgAygLMhIuc2FuLnRvd2VyLnYxLkxpbmsSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGYWN0aXZlGAcgASgIEiwKCHRyaWdnZXJzGAggAygLMhouc2FuLnRvd2VyLnYxLlRyaWdnZXJTdGF0ZSKVAQoEU3RlcBIKCgJpZBgBIAEoCRIMCgRraW5kGAIgASgJEgkKAXgYAyABKAESCQoBeRgEIAEoARIuCgZ2YWx1ZXMYBSADKAsyHi5zYW4udG93ZXIudjEuU3RlcC5WYWx1ZXNFbnRyeRotCgtWYWx1ZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlQKBExpbmsSDgoGc291cmNlGAEgASgJEhUKDXNvdXJjZV9zb2NrZXQYAiABKAkSDgoGdGFyZ2V0GAMgASgJEhUKDXRhcmdldF9zb2NrZXQYBCABKAkiTQoFR3JhcGgSIQoFc3RlcHMYASADKAsyEi5zYW4udG93ZXIudjEuU3RlcBIhCgVsaW5rcxgCIAMoCzISLnNhbi50b3dlci52MS5MaW5rInsKDFRyaWdnZXJTdGF0ZRIPCgdzdGVwX2lkGAEgASgJEg4KBnNvdXJjZRgCIAEoCRIRCglsaXN0ZW5pbmcYAyABKAgSDQoFZXJyb3IYBCABKAkSKAoEbmV4dBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAirwEKD1dvcmtmbG93U3VtbWFyeRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhIKCnN0ZXBfY291bnQYAyABKA0SLgoKY3JlYXRlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGYWN0aXZlGAYgASgIIscCCgNSdW4SCgoCaWQYASABKA0SEwoLd29ya2Zsb3dfaWQYAiABKA0SJwoGc3RhdHVzGAMgASgOMhcuc2FuLnRvd2VyLnYxLlJ1blN0YXR1cxIPCgd0cmlnZ2VyGAQgASgJEi4KCnN0YXJ0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC2ZpbmlzaGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVlcnJvchgHIAEoCRIkCgVzdGVwcxgIIAMoCzIVLnNhbi50b3dlci52MS5TdGVwUnVuEhUKDXdvcmtmbG93X25hbWUYCSABKAkSDAoEbG9ncxgKIAMoCRIqCgpsb2dfbGV2ZWxzGAsgAygOMhYuc2FuLnRvd2VyLnYxLkxvZ0xldmVsIqgCCgdTdGVwUnVuEg8KB3N0ZXBfaWQYASABKAkSDAoEa2luZBgCIAEoCRINCgVlcnJvchgDIAEoCRIzCgdvdXRwdXRzGAQgAygLMiIuc2FuLnRvd2VyLnYxLlN0ZXBSdW4uT3V0cHV0c0VudHJ5Eg0KBWZpcmVkGAUgAygJEgwKBGxvZ3MYBiADKAkSKwoIZHVyYXRpb24YByABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SKgoKbG9nX2xldmVscxgIIAMoDjIWLnNhbi50b3dlci52MS5Mb2dMZXZlbBpECgxPdXRwdXRzRW50cnkSCwoDa2V5GAEgASgJEiMKBXZhbHVlGAIgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueToCOAEiMAoIUnVuU3RlcHMSJAoFc3RlcHMYASADKAsyFS5zYW4udG93ZXIudjEuU3RlcFJ1biIWChRMaXN0U3RlcEtpbmRzUmVxdWVzdCI+ChVMaXN0U3RlcEtpbmRzUmVzcG9uc2USJQoFa2luZHMYASADKAsyFi5zYW4udG93ZXIudjEuU3RlcEtpbmQiRAoUTGlzdFdvcmtmbG93c1JlcXVlc3QSDQoFcXVlcnkYASABKAkSDgoGb2Zmc2V0GAIgASgNEg0KBWxpbWl0GAMgASgNIlgKFUxpc3RXb3JrZmxvd3NSZXNwb25zZRIwCgl3b3JrZmxvd3MYASADKAsyHS5zYW4udG93ZXIudjEuV29ya2Zsb3dTdW1tYXJ5Eg0KBXRvdGFsGAIgASgNIiUKFUNyZWF0ZVdvcmtmbG93UmVxdWVzdBIMCgRuYW1lGAEgASgJIkIKFkNyZWF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciIAoSR2V0V29ya2Zsb3dSZXF1ZXN0EgoKAmlkGAEgASgNIj8KE0dldFdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciQQoVVXBkYXRlV29ya2Zsb3dSZXF1ZXN0EigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IkIKFlVwZGF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciNgoYU2V0V29ya2Zsb3dBY3RpdmVSZXF1ZXN0EgoKAmlkGAEgASgNEg4KBmFjdGl2ZRgCIAEoCCJFChlTZXRXb3JrZmxvd0FjdGl2ZVJlc3BvbnNlEigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IiMKFURlbGV0ZVdvcmtmbG93UmVxdWVzdBIKCgJpZBgBIAEoDSIYChZEZWxldGVXb3JrZmxvd1Jlc3BvbnNlIkgKElJ1bldvcmtmbG93UmVxdWVzdBITCgt3b3JrZmxvd19pZBgBIAEoDRIPCgdzdGVwX2lkGAIgASgJEgwKBGRhdGEYAyABKAwiNQoTUnVuV29ya2Zsb3dSZXNwb25zZRIeCgNydW4YASABKAsyES5zYW4udG93ZXIudjEuUnVuIoMBCg9MaXN0UnVuc1JlcXVlc3QSEwoLd29ya2Zsb3dfaWQYASABKA0SDQoFbGltaXQYAiABKA0SEwoLYWN0aXZlX29ubHkYAyABKAgSKQoIc3RhdHVzZXMYBCADKA4yFy5zYW4udG93ZXIudjEuUnVuU3RhdHVzEgwKBGxvZ3MYBSABKAgiMwoQTGlzdFJ1bnNSZXNwb25zZRIfCgRydW5zGAEgAygLMhEuc2FuLnRvd2VyLnYxLlJ1biIbCg1HZXRSdW5SZXF1ZXN0EgoKAmlkGAEgASgNIjAKDkdldFJ1blJlc3BvbnNlEh4KA3J1bhgBIAEoCzIRLnNhbi50b3dlci52MS5SdW4iJQoWRXhwb3J0V29ya2Zsb3dzUmVxdWVzdBILCgNpZHMYASADKA0iOgoXRXhwb3J0V29ya2Zsb3dzUmVzcG9uc2USDAoEanNvbhgBIAEoCRIRCglmaWxlX25hbWUYAiABKAkiJgoWSW1wb3J0V29ya2Zsb3dzUmVxdWVzdBIMCgRqc29uGAEgASgJIloKF0ltcG9ydFdvcmtmbG93c1Jlc3BvbnNlEjAKCXdvcmtmbG93cxgBIAMoCzIdLnNhbi50b3dlci52MS5Xb3JrZmxvd1N1bW1hcnkSDQoFbm90ZXMYAiADKAkiuwMKDFdvcmtmbG93RmlsZRIOCgZmb3JtYXQYASABKAkSDwoHdmVyc2lvbhgCIAEoDRIvCgtleHBvcnRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDQoFdG93ZXIYBCABKAkSMQoJd29ya2Zsb3dzGAUgAygLMh4uc2FuLnRvd2VyLnYxLkV4cG9ydGVkV29ya2Zsb3cSQAoLY29ubmVjdGlvbnMYBiADKAsyKy5zYW4udG93ZXIudjEuV29ya2Zsb3dGaWxlLkNvbm5lY3Rpb25zRW50cnkSOgoIc3RvcmFnZXMYByADKAsyKC5zYW4udG93ZXIudjEuV29ya2Zsb3dGaWxlLlN0b3JhZ2VzRW50cnkaTQoQQ29ubmVjdGlvbnNFbnRyeRILCgNrZXkYASABKAkSKAoFdmFsdWUYAiABKAsyGS5zYW4udG93ZXIudjEuRXhwb3J0ZWRSZWY6AjgBGkoKDVN0b3JhZ2VzRW50cnkSCwoDa2V5GAEgASgJEigKBXZhbHVlGAIgASgLMhkuc2FuLnRvd2VyLnYxLkV4cG9ydGVkUmVmOgI4ASJmChBFeHBvcnRlZFdvcmtmbG93EgwKBG5hbWUYASABKAkSIQoFc3RlcHMYAiADKAsyEi5zYW4udG93ZXIudjEuU3RlcBIhCgVsaW5rcxgDIAMoCzISLnNhbi50b3dlci52MS5MaW5rIikKC0V4cG9ydGVkUmVmEgwKBG5hbWUYASABKAkSDAoEdHlwZRgCIAEoCSqMAQoJUnVuU3RhdHVzEhoKFlJVTl9TVEFUVVNfVU5TUEVDSUZJRUQQABIWChJSVU5fU1RBVFVTX1JVTk5JTkcQARIYChRSVU5fU1RBVFVTX1NVQ0NFRURFRBACEhUKEVJVTl9TVEFUVVNfRkFJTEVEEAMSGgoWUlVOX1NUQVRVU19JTlRFUlJVUFRFRBAEKpIBCghMb2dMZXZlbBIZChVMT0dfTEVWRUxfVU5TUEVDSUZJRUQQABISCg5MT0dfTEVWRUxfSU5GTxABEhUKEUxPR19MRVZFTF9TVUNDRVNTEAISFQoRTE9HX0xFVkVMX1dBUk5JTkcQAxIUChBMT0dfTEVWRUxfRkFJTEVEEAQSEwoPTE9HX0xFVkVMX0RFQlVHEAUyuggKD1dvcmtmbG93U2VydmljZRJYCg1MaXN0U3RlcEtpbmRzEiIuc2FuLnRvd2VyLnYxLkxpc3RTdGVwS2luZHNSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLkxpc3RTdGVwS2luZHNSZXNwb25zZRJYCg1MaXN0V29ya2Zsb3dzEiIuc2FuLnRvd2VyLnYxLkxpc3RXb3JrZmxvd3NSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLkxpc3RXb3JrZmxvd3NSZXNwb25zZRJbCg5DcmVhdGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5DcmVhdGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuQ3JlYXRlV29ya2Zsb3dSZXNwb25zZRJSCgtHZXRXb3JrZmxvdxIgLnNhbi50b3dlci52MS5HZXRXb3JrZmxvd1JlcXVlc3QaIS5zYW4udG93ZXIudjEuR2V0V29ya2Zsb3dSZXNwb25zZRJbCg5VcGRhdGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5VcGRhdGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuVXBkYXRlV29ya2Zsb3dSZXNwb25zZRJkChFTZXRXb3JrZmxvd0FjdGl2ZRImLnNhbi50b3dlci52MS5TZXRXb3JrZmxvd0FjdGl2ZVJlcXVlc3QaJy5zYW4udG93ZXIudjEuU2V0V29ya2Zsb3dBY3RpdmVSZXNwb25zZRJbCg5EZWxldGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5EZWxldGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuRGVsZXRlV29ya2Zsb3dSZXNwb25zZRJSCgtSdW5Xb3JrZmxvdxIgLnNhbi50b3dlci52MS5SdW5Xb3JrZmxvd1JlcXVlc3QaIS5zYW4udG93ZXIudjEuUnVuV29ya2Zsb3dSZXNwb25zZRJJCghMaXN0UnVucxIdLnNhbi50b3dlci52MS5MaXN0UnVuc1JlcXVlc3QaHi5zYW4udG93ZXIudjEuTGlzdFJ1bnNSZXNwb25zZRJDCgZHZXRSdW4SGy5zYW4udG93ZXIudjEuR2V0UnVuUmVxdWVzdBocLnNhbi50b3dlci52MS5HZXRSdW5SZXNwb25zZRJeCg9FeHBvcnRXb3JrZmxvd3MSJC5zYW4udG93ZXIudjEuRXhwb3J0V29ya2Zsb3dzUmVxdWVzdBolLnNhbi50b3dlci52MS5FeHBvcnRXb3JrZmxvd3NSZXNwb25zZRJeCg9JbXBvcnRXb3JrZmxvd3MSJC5zYW4udG93ZXIudjEuSW1wb3J0V29ya2Zsb3dzUmVxdWVzdBolLnNhbi50b3dlci52MS5JbXBvcnRXb3JrZmxvd3NSZXNwb25zZUKtAQoQY29tLnNhbi50b3dlci52MUINV29ya2Zsb3dQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp]);
+  fileDesc("ChtzYW4vdG93ZXIvdjEvd29ya2Zsb3cucHJvdG8SDHNhbi50b3dlci52MSL2AQoIU3RlcEtpbmQSDAoEa2luZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIlCgdvdXRwdXRzGAQgAygLMhQuc2FuLnRvd2VyLnYxLlNvY2tldBInCghzZXR0aW5ncxgFIAMoCzIVLnNhbi50b3dlci52MS5TZXR0aW5nEiQKBmlucHV0cxgGIAMoCzIULnNhbi50b3dlci52MS5Tb2NrZXQSEAoIcnVubmFibGUYByABKAgSEwoLZGVzY3JpcHRpb24YCCABKAkSDQoFZ3JvdXAYCSABKAkSDwoHdHJpZ2dlchgKIAEoCCJRCgZTb2NrZXQSDAoEbmFtZRgBIAEoCRIMCgR0eXBlGAIgASgJEg0KBWZpZWxkGAMgASgIEg4KBnBpY2tlchgEIAEoCRIMCgR3aGVuGAUgASgJImcKB1NldHRpbmcSDAoEbmFtZRgBIAEoCRIPCgdvcHRpb25zGAIgAygJEhMKC3BsYWNlaG9sZGVyGAMgASgJEhcKD2Nvbm5lY3Rpb25fdHlwZRgEIAEoCRIPCgdzdG9yYWdlGAUgASgIIvMCCghXb3JrZmxvdxIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEiEKBXN0ZXBzGAMgAygLMhIuc2FuLnRvd2VyLnYxLlN0ZXASIQoFbGlua3MYBCADKAsyEi5zYW4udG93ZXIudjEuTGluaxIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZhY3RpdmUYByABKAgSLAoIdHJpZ2dlcnMYCCADKAsyGi5zYW4udG93ZXIudjEuVHJpZ2dlclN0YXRlEhEKCWZvbGRlcl9pZBgJIAEoDRIYCgtkZXNjcmlwdGlvbhgKIAEoCUgAiAEBEhoKDW9uZV9hdF9hX3RpbWUYCyABKAhIAYgBAUIOCgxfZGVzY3JpcHRpb25CEAoOX29uZV9hdF9hX3RpbWUilQEKBFN0ZXASCgoCaWQYASABKAkSDAoEa2luZBgCIAEoCRIJCgF4GAMgASgBEgkKAXkYBCABKAESLgoGdmFsdWVzGAUgAygLMh4uc2FuLnRvd2VyLnYxLlN0ZXAuVmFsdWVzRW50cnkaLQoLVmFsdWVzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJUCgRMaW5rEg4KBnNvdXJjZRgBIAEoCRIVCg1zb3VyY2Vfc29ja2V0GAIgASgJEg4KBnRhcmdldBgDIAEoCRIVCg10YXJnZXRfc29ja2V0GAQgASgJIk0KBUdyYXBoEiEKBXN0ZXBzGAEgAygLMhIuc2FuLnRvd2VyLnYxLlN0ZXASIQoFbGlua3MYAiADKAsyEi5zYW4udG93ZXIudjEuTGluayJ7CgxUcmlnZ2VyU3RhdGUSDwoHc3RlcF9pZBgBIAEoCRIOCgZzb3VyY2UYAiABKAkSEQoJbGlzdGVuaW5nGAMgASgIEg0KBWVycm9yGAQgASgJEigKBG5leHQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIu4BCg9Xb3JrZmxvd1N1bW1hcnkSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRISCgpzdGVwX2NvdW50GAMgASgNEi4KCmNyZWF0ZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg4KBmFjdGl2ZRgGIAEoCBIRCglmb2xkZXJfaWQYByABKA0SEwoLZGVzY3JpcHRpb24YCCABKAkSFQoNb25lX2F0X2FfdGltZRgJIAEoCCJjCgZGb2xkZXISCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIRCglwYXJlbnRfaWQYAyABKA0SFgoOd29ya2Zsb3dfY291bnQYBCABKA0SFAoMZm9sZGVyX2NvdW50GAUgASgNIhQKEkxpc3RGb2xkZXJzUmVxdWVzdCI8ChNMaXN0Rm9sZGVyc1Jlc3BvbnNlEiUKB2ZvbGRlcnMYASADKAsyFC5zYW4udG93ZXIudjEuRm9sZGVyIjYKE0NyZWF0ZUZvbGRlclJlcXVlc3QSDAoEbmFtZRgBIAEoCRIRCglwYXJlbnRfaWQYAiABKA0iPAoUQ3JlYXRlRm9sZGVyUmVzcG9uc2USJAoGZm9sZGVyGAEgASgLMhQuc2FuLnRvd2VyLnYxLkZvbGRlciJCChNVcGRhdGVGb2xkZXJSZXF1ZXN0EgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSEQoJcGFyZW50X2lkGAMgASgNIjwKFFVwZGF0ZUZvbGRlclJlc3BvbnNlEiQKBmZvbGRlchgBIAEoCzIULnNhbi50b3dlci52MS5Gb2xkZXIiIQoTRGVsZXRlRm9sZGVyUmVxdWVzdBIKCgJpZBgBIAEoDSIWChREZWxldGVGb2xkZXJSZXNwb25zZSI2ChRNb3ZlV29ya2Zsb3dzUmVxdWVzdBILCgNpZHMYASADKA0SEQoJZm9sZGVyX2lkGAIgASgNIhcKFU1vdmVXb3JrZmxvd3NSZXNwb25zZSLaAgoDUnVuEgoKAmlkGAEgASgNEhMKC3dvcmtmbG93X2lkGAIgASgNEicKBnN0YXR1cxgDIAEoDjIXLnNhbi50b3dlci52MS5SdW5TdGF0dXMSDwoHdHJpZ2dlchgEIAEoCRIuCgpzdGFydGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtmaW5pc2hlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDQoFZXJyb3IYByABKAkSJAoFc3RlcHMYCCADKAsyFS5zYW4udG93ZXIudjEuU3RlcFJ1bhIVCg13b3JrZmxvd19uYW1lGAkgASgJEgwKBGxvZ3MYCiADKAkSKgoKbG9nX2xldmVscxgLIAMoDjIWLnNhbi50b3dlci52MS5Mb2dMZXZlbBIRCgltb3JlX2xvZ3MYDCABKA0iqAIKB1N0ZXBSdW4SDwoHc3RlcF9pZBgBIAEoCRIMCgRraW5kGAIgASgJEg0KBWVycm9yGAMgASgJEjMKB291dHB1dHMYBCADKAsyIi5zYW4udG93ZXIudjEuU3RlcFJ1bi5PdXRwdXRzRW50cnkSDQoFZmlyZWQYBSADKAkSDAoEbG9ncxgGIAMoCRIrCghkdXJhdGlvbhgHIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbhIqCgpsb2dfbGV2ZWxzGAggAygOMhYuc2FuLnRvd2VyLnYxLkxvZ0xldmVsGkQKDE91dHB1dHNFbnRyeRILCgNrZXkYASABKAkSIwoFdmFsdWUYAiABKAsyFC5nb29nbGUucHJvdG9idWYuQW55OgI4ASIwCghSdW5TdGVwcxIkCgVzdGVwcxgBIAMoCzIVLnNhbi50b3dlci52MS5TdGVwUnVuIlQKClJ1blN1bW1hcnkSDAoEbG9ncxgBIAMoCRIqCgpsb2dfbGV2ZWxzGAIgAygOMhYuc2FuLnRvd2VyLnYxLkxvZ0xldmVsEgwKBG1vcmUYAyABKA0iFgoUTGlzdFN0ZXBLaW5kc1JlcXVlc3QiPgoVTGlzdFN0ZXBLaW5kc1Jlc3BvbnNlEiUKBWtpbmRzGAEgAygLMhYuc2FuLnRvd2VyLnYxLlN0ZXBLaW5kImwKFExpc3RXb3JrZmxvd3NSZXF1ZXN0Eg0KBXF1ZXJ5GAEgASgJEg4KBm9mZnNldBgCIAEoDRINCgVsaW1pdBgDIAEoDRIRCglmb2xkZXJfaWQYBCABKA0SEwoLYWxsX2ZvbGRlcnMYBSABKAgiWAoVTGlzdFdvcmtmbG93c1Jlc3BvbnNlEjAKCXdvcmtmbG93cxgBIAMoCzIdLnNhbi50b3dlci52MS5Xb3JrZmxvd1N1bW1hcnkSDQoFdG90YWwYAiABKA0iTQoVQ3JlYXRlV29ya2Zsb3dSZXF1ZXN0EgwKBG5hbWUYASABKAkSEQoJZm9sZGVyX2lkGAIgASgNEhMKC2Rlc2NyaXB0aW9uGAMgASgJIkIKFkNyZWF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciIAoSR2V0V29ya2Zsb3dSZXF1ZXN0EgoKAmlkGAEgASgNIj8KE0dldFdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciQQoVVXBkYXRlV29ya2Zsb3dSZXF1ZXN0EigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IkIKFlVwZGF0ZVdvcmtmbG93UmVzcG9uc2USKAoId29ya2Zsb3cYASABKAsyFi5zYW4udG93ZXIudjEuV29ya2Zsb3ciNgoYU2V0V29ya2Zsb3dBY3RpdmVSZXF1ZXN0EgoKAmlkGAEgASgNEg4KBmFjdGl2ZRgCIAEoCCJFChlTZXRXb3JrZmxvd0FjdGl2ZVJlc3BvbnNlEigKCHdvcmtmbG93GAEgASgLMhYuc2FuLnRvd2VyLnYxLldvcmtmbG93IiMKFURlbGV0ZVdvcmtmbG93UmVxdWVzdBIKCgJpZBgBIAEoDSIYChZEZWxldGVXb3JrZmxvd1Jlc3BvbnNlIkgKElJ1bldvcmtmbG93UmVxdWVzdBITCgt3b3JrZmxvd19pZBgBIAEoDRIPCgdzdGVwX2lkGAIgASgJEgwKBGRhdGEYAyABKAwiNQoTUnVuV29ya2Zsb3dSZXNwb25zZRIeCgNydW4YASABKAsyES5zYW4udG93ZXIudjEuUnVuIoMBCg9MaXN0UnVuc1JlcXVlc3QSEwoLd29ya2Zsb3dfaWQYASABKA0SDQoFbGltaXQYAiABKA0SEwoLYWN0aXZlX29ubHkYAyABKAgSKQoIc3RhdHVzZXMYBCADKA4yFy5zYW4udG93ZXIudjEuUnVuU3RhdHVzEgwKBGxvZ3MYBSABKAgiMwoQTGlzdFJ1bnNSZXNwb25zZRIfCgRydW5zGAEgAygLMhEuc2FuLnRvd2VyLnYxLlJ1biIbCg1HZXRSdW5SZXF1ZXN0EgoKAmlkGAEgASgNIjAKDkdldFJ1blJlc3BvbnNlEh4KA3J1bhgBIAEoCzIRLnNhbi50b3dlci52MS5SdW4iJQoWRXhwb3J0V29ya2Zsb3dzUmVxdWVzdBILCgNpZHMYASADKA0iOgoXRXhwb3J0V29ya2Zsb3dzUmVzcG9uc2USDAoEanNvbhgBIAEoCRIRCglmaWxlX25hbWUYAiABKAkiJgoWSW1wb3J0V29ya2Zsb3dzUmVxdWVzdBIMCgRqc29uGAEgASgJIloKF0ltcG9ydFdvcmtmbG93c1Jlc3BvbnNlEjAKCXdvcmtmbG93cxgBIAMoCzIdLnNhbi50b3dlci52MS5Xb3JrZmxvd1N1bW1hcnkSDQoFbm90ZXMYAiADKAkiuwMKDFdvcmtmbG93RmlsZRIOCgZmb3JtYXQYASABKAkSDwoHdmVyc2lvbhgCIAEoDRIvCgtleHBvcnRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDQoFdG93ZXIYBCABKAkSMQoJd29ya2Zsb3dzGAUgAygLMh4uc2FuLnRvd2VyLnYxLkV4cG9ydGVkV29ya2Zsb3cSQAoLY29ubmVjdGlvbnMYBiADKAsyKy5zYW4udG93ZXIudjEuV29ya2Zsb3dGaWxlLkNvbm5lY3Rpb25zRW50cnkSOgoIc3RvcmFnZXMYByADKAsyKC5zYW4udG93ZXIudjEuV29ya2Zsb3dGaWxlLlN0b3JhZ2VzRW50cnkaTQoQQ29ubmVjdGlvbnNFbnRyeRILCgNrZXkYASABKAkSKAoFdmFsdWUYAiABKAsyGS5zYW4udG93ZXIudjEuRXhwb3J0ZWRSZWY6AjgBGkoKDVN0b3JhZ2VzRW50cnkSCwoDa2V5GAEgASgJEigKBXZhbHVlGAIgASgLMhkuc2FuLnRvd2VyLnYxLkV4cG9ydGVkUmVmOgI4ASKSAQoQRXhwb3J0ZWRXb3JrZmxvdxIMCgRuYW1lGAEgASgJEiEKBXN0ZXBzGAIgAygLMhIuc2FuLnRvd2VyLnYxLlN0ZXASIQoFbGlua3MYAyADKAsyEi5zYW4udG93ZXIudjEuTGluaxITCgtkZXNjcmlwdGlvbhgEIAEoCRIVCg1vbmVfYXRfYV90aW1lGAUgASgIIikKC0V4cG9ydGVkUmVmEgwKBG5hbWUYASABKAkSDAoEdHlwZRgCIAEoCSqMAQoJUnVuU3RhdHVzEhoKFlJVTl9TVEFUVVNfVU5TUEVDSUZJRUQQABIWChJSVU5fU1RBVFVTX1JVTk5JTkcQARIYChRSVU5fU1RBVFVTX1NVQ0NFRURFRBACEhUKEVJVTl9TVEFUVVNfRkFJTEVEEAMSGgoWUlVOX1NUQVRVU19JTlRFUlJVUFRFRBAEKpIBCghMb2dMZXZlbBIZChVMT0dfTEVWRUxfVU5TUEVDSUZJRUQQABISCg5MT0dfTEVWRUxfSU5GTxABEhUKEUxPR19MRVZFTF9TVUNDRVNTEAISFQoRTE9HX0xFVkVMX1dBUk5JTkcQAxIUChBMT0dfTEVWRUxfRkFJTEVEEAQSEwoPTE9HX0xFVkVMX0RFQlVHEAUy7QsKD1dvcmtmbG93U2VydmljZRJYCg1MaXN0U3RlcEtpbmRzEiIuc2FuLnRvd2VyLnYxLkxpc3RTdGVwS2luZHNSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLkxpc3RTdGVwS2luZHNSZXNwb25zZRJYCg1MaXN0V29ya2Zsb3dzEiIuc2FuLnRvd2VyLnYxLkxpc3RXb3JrZmxvd3NSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLkxpc3RXb3JrZmxvd3NSZXNwb25zZRJSCgtMaXN0Rm9sZGVycxIgLnNhbi50b3dlci52MS5MaXN0Rm9sZGVyc1JlcXVlc3QaIS5zYW4udG93ZXIudjEuTGlzdEZvbGRlcnNSZXNwb25zZRJVCgxDcmVhdGVGb2xkZXISIS5zYW4udG93ZXIudjEuQ3JlYXRlRm9sZGVyUmVxdWVzdBoiLnNhbi50b3dlci52MS5DcmVhdGVGb2xkZXJSZXNwb25zZRJVCgxVcGRhdGVGb2xkZXISIS5zYW4udG93ZXIudjEuVXBkYXRlRm9sZGVyUmVxdWVzdBoiLnNhbi50b3dlci52MS5VcGRhdGVGb2xkZXJSZXNwb25zZRJVCgxEZWxldGVGb2xkZXISIS5zYW4udG93ZXIudjEuRGVsZXRlRm9sZGVyUmVxdWVzdBoiLnNhbi50b3dlci52MS5EZWxldGVGb2xkZXJSZXNwb25zZRJYCg1Nb3ZlV29ya2Zsb3dzEiIuc2FuLnRvd2VyLnYxLk1vdmVXb3JrZmxvd3NSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLk1vdmVXb3JrZmxvd3NSZXNwb25zZRJbCg5DcmVhdGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5DcmVhdGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuQ3JlYXRlV29ya2Zsb3dSZXNwb25zZRJSCgtHZXRXb3JrZmxvdxIgLnNhbi50b3dlci52MS5HZXRXb3JrZmxvd1JlcXVlc3QaIS5zYW4udG93ZXIudjEuR2V0V29ya2Zsb3dSZXNwb25zZRJbCg5VcGRhdGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5VcGRhdGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuVXBkYXRlV29ya2Zsb3dSZXNwb25zZRJkChFTZXRXb3JrZmxvd0FjdGl2ZRImLnNhbi50b3dlci52MS5TZXRXb3JrZmxvd0FjdGl2ZVJlcXVlc3QaJy5zYW4udG93ZXIudjEuU2V0V29ya2Zsb3dBY3RpdmVSZXNwb25zZRJbCg5EZWxldGVXb3JrZmxvdxIjLnNhbi50b3dlci52MS5EZWxldGVXb3JrZmxvd1JlcXVlc3QaJC5zYW4udG93ZXIudjEuRGVsZXRlV29ya2Zsb3dSZXNwb25zZRJSCgtSdW5Xb3JrZmxvdxIgLnNhbi50b3dlci52MS5SdW5Xb3JrZmxvd1JlcXVlc3QaIS5zYW4udG93ZXIudjEuUnVuV29ya2Zsb3dSZXNwb25zZRJJCghMaXN0UnVucxIdLnNhbi50b3dlci52MS5MaXN0UnVuc1JlcXVlc3QaHi5zYW4udG93ZXIudjEuTGlzdFJ1bnNSZXNwb25zZRJDCgZHZXRSdW4SGy5zYW4udG93ZXIudjEuR2V0UnVuUmVxdWVzdBocLnNhbi50b3dlci52MS5HZXRSdW5SZXNwb25zZRJeCg9FeHBvcnRXb3JrZmxvd3MSJC5zYW4udG93ZXIudjEuRXhwb3J0V29ya2Zsb3dzUmVxdWVzdBolLnNhbi50b3dlci52MS5FeHBvcnRXb3JrZmxvd3NSZXNwb25zZRJeCg9JbXBvcnRXb3JrZmxvd3MSJC5zYW4udG93ZXIudjEuSW1wb3J0V29ya2Zsb3dzUmVxdWVzdBolLnNhbi50b3dlci52MS5JbXBvcnRXb3JrZmxvd3NSZXNwb25zZUKtAQoQY29tLnNhbi50b3dlci52MUINV29ya2Zsb3dQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp]);
 
 /**
  * StepKind is a kind of step: its sockets and settings.
@@ -31,8 +31,8 @@ export type StepKind = Message<"san.tower.v1.StepKind"> & {
   title: string;
 
   /**
-   * category is Trigger, Logic, Data, Datetime, Action or Social. A trigger
-   * starts runs.
+   * category is Trigger, Logic, Data, Storage, Datetime, Action,
+   * Messengers, Social or AI.
    *
    * @generated from field: string category = 3;
    */
@@ -75,6 +75,15 @@ export type StepKind = Message<"san.tower.v1.StepKind"> & {
    * @generated from field: string group = 9;
    */
   group: string;
+
+  /**
+   * trigger: a step of this kind starts runs. Most triggers are in the
+   * Trigger category; a messenger's (Telegram Message, WhatsApp Message)
+   * is in Messengers, with the messenger's other steps (2026-10-27).
+   *
+   * @generated from field: bool trigger = 10;
+   */
+  trigger: boolean;
 };
 
 /**
@@ -226,6 +235,33 @@ export type Workflow = Message<"san.tower.v1.Workflow"> & {
    * @generated from field: repeated san.tower.v1.TriggerState triggers = 8;
    */
   triggers: TriggerState[];
+
+  /**
+   * folder_id is the folder it is in, 0 at the top. UpdateWorkflow leaves
+   * it as it is; MoveWorkflows moves it.
+   *
+   * @generated from field: uint32 folder_id = 9;
+   */
+  folderId: number;
+
+  /**
+   * description says what it is for (the user, 2026-10-27), up to 2000
+   * characters. UpdateWorkflow replaces it when it is set, and leaves it as
+   * it is when it is not, as the editor's saves of the graph do.
+   *
+   * @generated from field: optional string description = 10;
+   */
+  description?: string;
+
+  /**
+   * one_at_a_time: a run waits until the workflow's earlier runs have
+   * ended, and they go in the order they came (the user, 2026-10-27: X
+   * links sent in a burst ran together and failed together). UpdateWorkflow
+   * replaces it when it is set, and leaves it as it is when it is not.
+   *
+   * @generated from field: optional bool one_at_a_time = 11;
+   */
+  oneAtATime?: boolean;
 };
 
 /**
@@ -419,6 +455,21 @@ export type WorkflowSummary = Message<"san.tower.v1.WorkflowSummary"> & {
    * @generated from field: bool active = 6;
    */
   active: boolean;
+
+  /**
+   * @generated from field: uint32 folder_id = 7;
+   */
+  folderId: number;
+
+  /**
+   * @generated from field: string description = 8;
+   */
+  description: string;
+
+  /**
+   * @generated from field: bool one_at_a_time = 9;
+   */
+  oneAtATime: boolean;
 };
 
 /**
@@ -427,6 +478,227 @@ export type WorkflowSummary = Message<"san.tower.v1.WorkflowSummary"> & {
  */
 export const WorkflowSummarySchema: GenMessage<WorkflowSummary> = /*@__PURE__*/
   messageDesc(file_san_tower_v1_workflow, 8);
+
+/**
+ * Folder is a folder of workflows; folders nest.
+ *
+ * @generated from message san.tower.v1.Folder
+ */
+export type Folder = Message<"san.tower.v1.Folder"> & {
+  /**
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * parent_id is the folder it is in, 0 at the top.
+   *
+   * @generated from field: uint32 parent_id = 3;
+   */
+  parentId: number;
+
+  /**
+   * How many workflows and folders are right in it.
+   *
+   * @generated from field: uint32 workflow_count = 4;
+   */
+  workflowCount: number;
+
+  /**
+   * @generated from field: uint32 folder_count = 5;
+   */
+  folderCount: number;
+};
+
+/**
+ * Describes the message san.tower.v1.Folder.
+ * Use `create(FolderSchema)` to create a new message.
+ */
+export const FolderSchema: GenMessage<Folder> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 9);
+
+/**
+ * @generated from message san.tower.v1.ListFoldersRequest
+ */
+export type ListFoldersRequest = Message<"san.tower.v1.ListFoldersRequest"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.ListFoldersRequest.
+ * Use `create(ListFoldersRequestSchema)` to create a new message.
+ */
+export const ListFoldersRequestSchema: GenMessage<ListFoldersRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 10);
+
+/**
+ * @generated from message san.tower.v1.ListFoldersResponse
+ */
+export type ListFoldersResponse = Message<"san.tower.v1.ListFoldersResponse"> & {
+  /**
+   * @generated from field: repeated san.tower.v1.Folder folders = 1;
+   */
+  folders: Folder[];
+};
+
+/**
+ * Describes the message san.tower.v1.ListFoldersResponse.
+ * Use `create(ListFoldersResponseSchema)` to create a new message.
+ */
+export const ListFoldersResponseSchema: GenMessage<ListFoldersResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 11);
+
+/**
+ * @generated from message san.tower.v1.CreateFolderRequest
+ */
+export type CreateFolderRequest = Message<"san.tower.v1.CreateFolderRequest"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: uint32 parent_id = 2;
+   */
+  parentId: number;
+};
+
+/**
+ * Describes the message san.tower.v1.CreateFolderRequest.
+ * Use `create(CreateFolderRequestSchema)` to create a new message.
+ */
+export const CreateFolderRequestSchema: GenMessage<CreateFolderRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 12);
+
+/**
+ * @generated from message san.tower.v1.CreateFolderResponse
+ */
+export type CreateFolderResponse = Message<"san.tower.v1.CreateFolderResponse"> & {
+  /**
+   * @generated from field: san.tower.v1.Folder folder = 1;
+   */
+  folder?: Folder;
+};
+
+/**
+ * Describes the message san.tower.v1.CreateFolderResponse.
+ * Use `create(CreateFolderResponseSchema)` to create a new message.
+ */
+export const CreateFolderResponseSchema: GenMessage<CreateFolderResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 13);
+
+/**
+ * @generated from message san.tower.v1.UpdateFolderRequest
+ */
+export type UpdateFolderRequest = Message<"san.tower.v1.UpdateFolderRequest"> & {
+  /**
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: uint32 parent_id = 3;
+   */
+  parentId: number;
+};
+
+/**
+ * Describes the message san.tower.v1.UpdateFolderRequest.
+ * Use `create(UpdateFolderRequestSchema)` to create a new message.
+ */
+export const UpdateFolderRequestSchema: GenMessage<UpdateFolderRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 14);
+
+/**
+ * @generated from message san.tower.v1.UpdateFolderResponse
+ */
+export type UpdateFolderResponse = Message<"san.tower.v1.UpdateFolderResponse"> & {
+  /**
+   * @generated from field: san.tower.v1.Folder folder = 1;
+   */
+  folder?: Folder;
+};
+
+/**
+ * Describes the message san.tower.v1.UpdateFolderResponse.
+ * Use `create(UpdateFolderResponseSchema)` to create a new message.
+ */
+export const UpdateFolderResponseSchema: GenMessage<UpdateFolderResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 15);
+
+/**
+ * @generated from message san.tower.v1.DeleteFolderRequest
+ */
+export type DeleteFolderRequest = Message<"san.tower.v1.DeleteFolderRequest"> & {
+  /**
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+};
+
+/**
+ * Describes the message san.tower.v1.DeleteFolderRequest.
+ * Use `create(DeleteFolderRequestSchema)` to create a new message.
+ */
+export const DeleteFolderRequestSchema: GenMessage<DeleteFolderRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 16);
+
+/**
+ * @generated from message san.tower.v1.DeleteFolderResponse
+ */
+export type DeleteFolderResponse = Message<"san.tower.v1.DeleteFolderResponse"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.DeleteFolderResponse.
+ * Use `create(DeleteFolderResponseSchema)` to create a new message.
+ */
+export const DeleteFolderResponseSchema: GenMessage<DeleteFolderResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 17);
+
+/**
+ * @generated from message san.tower.v1.MoveWorkflowsRequest
+ */
+export type MoveWorkflowsRequest = Message<"san.tower.v1.MoveWorkflowsRequest"> & {
+  /**
+   * @generated from field: repeated uint32 ids = 1;
+   */
+  ids: number[];
+
+  /**
+   * @generated from field: uint32 folder_id = 2;
+   */
+  folderId: number;
+};
+
+/**
+ * Describes the message san.tower.v1.MoveWorkflowsRequest.
+ * Use `create(MoveWorkflowsRequestSchema)` to create a new message.
+ */
+export const MoveWorkflowsRequestSchema: GenMessage<MoveWorkflowsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 18);
+
+/**
+ * @generated from message san.tower.v1.MoveWorkflowsResponse
+ */
+export type MoveWorkflowsResponse = Message<"san.tower.v1.MoveWorkflowsResponse"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.MoveWorkflowsResponse.
+ * Use `create(MoveWorkflowsResponseSchema)` to create a new message.
+ */
+export const MoveWorkflowsResponseSchema: GenMessage<MoveWorkflowsResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 19);
 
 /**
  * Run is one run of a workflow.
@@ -499,6 +771,16 @@ export type Run = Message<"san.tower.v1.Run"> & {
    * @generated from field: repeated san.tower.v1.LogLevel log_levels = 11;
    */
   logLevels: LogLevel[];
+
+  /**
+   * more_logs is how many earlier lines such a list leaves out: it gives a
+   * run's last lines only, each cut to a length, as the run was stored
+   * (2026-10-27: a Logs page asked for every 2 s stays light however much
+   * the runs log). GetRun has them all.
+   *
+   * @generated from field: uint32 more_logs = 12;
+   */
+  moreLogs: number;
 };
 
 /**
@@ -506,7 +788,7 @@ export type Run = Message<"san.tower.v1.Run"> & {
  * Use `create(RunSchema)` to create a new message.
  */
 export const RunSchema: GenMessage<Run> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 9);
+  messageDesc(file_san_tower_v1_workflow, 20);
 
 /**
  * StepRun is what one step did in a run.
@@ -571,7 +853,7 @@ export type StepRun = Message<"san.tower.v1.StepRun"> & {
  * Use `create(StepRunSchema)` to create a new message.
  */
 export const StepRunSchema: GenMessage<StepRun> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 10);
+  messageDesc(file_san_tower_v1_workflow, 21);
 
 /**
  * RunSteps is a run's steps as the tower stores them (protojson in tower.db).
@@ -590,7 +872,40 @@ export type RunSteps = Message<"san.tower.v1.RunSteps"> & {
  * Use `create(RunStepsSchema)` to create a new message.
  */
 export const RunStepsSchema: GenMessage<RunSteps> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 11);
+  messageDesc(file_san_tower_v1_workflow, 22);
+
+/**
+ * RunSummary is what a list of runs shows of one (the Logs pages), stored
+ * beside its steps so the list need not read them: the last lines its steps
+ * logged, each cut short.
+ *
+ * @generated from message san.tower.v1.RunSummary
+ */
+export type RunSummary = Message<"san.tower.v1.RunSummary"> & {
+  /**
+   * @generated from field: repeated string logs = 1;
+   */
+  logs: string[];
+
+  /**
+   * @generated from field: repeated san.tower.v1.LogLevel log_levels = 2;
+   */
+  logLevels: LogLevel[];
+
+  /**
+   * more is how many earlier lines are left out.
+   *
+   * @generated from field: uint32 more = 3;
+   */
+  more: number;
+};
+
+/**
+ * Describes the message san.tower.v1.RunSummary.
+ * Use `create(RunSummarySchema)` to create a new message.
+ */
+export const RunSummarySchema: GenMessage<RunSummary> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_workflow, 23);
 
 /**
  * @generated from message san.tower.v1.ListStepKindsRequest
@@ -603,7 +918,7 @@ export type ListStepKindsRequest = Message<"san.tower.v1.ListStepKindsRequest"> 
  * Use `create(ListStepKindsRequestSchema)` to create a new message.
  */
 export const ListStepKindsRequestSchema: GenMessage<ListStepKindsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 12);
+  messageDesc(file_san_tower_v1_workflow, 24);
 
 /**
  * @generated from message san.tower.v1.ListStepKindsResponse
@@ -620,7 +935,7 @@ export type ListStepKindsResponse = Message<"san.tower.v1.ListStepKindsResponse"
  * Use `create(ListStepKindsResponseSchema)` to create a new message.
  */
 export const ListStepKindsResponseSchema: GenMessage<ListStepKindsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 13);
+  messageDesc(file_san_tower_v1_workflow, 25);
 
 /**
  * ListWorkflowsRequest asks for one page of the workflows whose name contains
@@ -644,6 +959,19 @@ export type ListWorkflowsRequest = Message<"san.tower.v1.ListWorkflowsRequest"> 
    * @generated from field: uint32 limit = 3;
    */
   limit: number;
+
+  /**
+   * folder_id lists the workflows right in that folder (0: at the top);
+   * all_folders those of every folder, as a search does.
+   *
+   * @generated from field: uint32 folder_id = 4;
+   */
+  folderId: number;
+
+  /**
+   * @generated from field: bool all_folders = 5;
+   */
+  allFolders: boolean;
 };
 
 /**
@@ -651,7 +979,7 @@ export type ListWorkflowsRequest = Message<"san.tower.v1.ListWorkflowsRequest"> 
  * Use `create(ListWorkflowsRequestSchema)` to create a new message.
  */
 export const ListWorkflowsRequestSchema: GenMessage<ListWorkflowsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 14);
+  messageDesc(file_san_tower_v1_workflow, 26);
 
 /**
  * @generated from message san.tower.v1.ListWorkflowsResponse
@@ -675,7 +1003,7 @@ export type ListWorkflowsResponse = Message<"san.tower.v1.ListWorkflowsResponse"
  * Use `create(ListWorkflowsResponseSchema)` to create a new message.
  */
 export const ListWorkflowsResponseSchema: GenMessage<ListWorkflowsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 15);
+  messageDesc(file_san_tower_v1_workflow, 27);
 
 /**
  * @generated from message san.tower.v1.CreateWorkflowRequest
@@ -685,6 +1013,18 @@ export type CreateWorkflowRequest = Message<"san.tower.v1.CreateWorkflowRequest"
    * @generated from field: string name = 1;
    */
   name: string;
+
+  /**
+   * folder_id is the folder to make it in, 0 at the top.
+   *
+   * @generated from field: uint32 folder_id = 2;
+   */
+  folderId: number;
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description: string;
 };
 
 /**
@@ -692,7 +1032,7 @@ export type CreateWorkflowRequest = Message<"san.tower.v1.CreateWorkflowRequest"
  * Use `create(CreateWorkflowRequestSchema)` to create a new message.
  */
 export const CreateWorkflowRequestSchema: GenMessage<CreateWorkflowRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 16);
+  messageDesc(file_san_tower_v1_workflow, 28);
 
 /**
  * @generated from message san.tower.v1.CreateWorkflowResponse
@@ -709,7 +1049,7 @@ export type CreateWorkflowResponse = Message<"san.tower.v1.CreateWorkflowRespons
  * Use `create(CreateWorkflowResponseSchema)` to create a new message.
  */
 export const CreateWorkflowResponseSchema: GenMessage<CreateWorkflowResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 17);
+  messageDesc(file_san_tower_v1_workflow, 29);
 
 /**
  * @generated from message san.tower.v1.GetWorkflowRequest
@@ -726,7 +1066,7 @@ export type GetWorkflowRequest = Message<"san.tower.v1.GetWorkflowRequest"> & {
  * Use `create(GetWorkflowRequestSchema)` to create a new message.
  */
 export const GetWorkflowRequestSchema: GenMessage<GetWorkflowRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 18);
+  messageDesc(file_san_tower_v1_workflow, 30);
 
 /**
  * @generated from message san.tower.v1.GetWorkflowResponse
@@ -743,7 +1083,7 @@ export type GetWorkflowResponse = Message<"san.tower.v1.GetWorkflowResponse"> & 
  * Use `create(GetWorkflowResponseSchema)` to create a new message.
  */
 export const GetWorkflowResponseSchema: GenMessage<GetWorkflowResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 19);
+  messageDesc(file_san_tower_v1_workflow, 31);
 
 /**
  * @generated from message san.tower.v1.UpdateWorkflowRequest
@@ -760,7 +1100,7 @@ export type UpdateWorkflowRequest = Message<"san.tower.v1.UpdateWorkflowRequest"
  * Use `create(UpdateWorkflowRequestSchema)` to create a new message.
  */
 export const UpdateWorkflowRequestSchema: GenMessage<UpdateWorkflowRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 20);
+  messageDesc(file_san_tower_v1_workflow, 32);
 
 /**
  * @generated from message san.tower.v1.UpdateWorkflowResponse
@@ -777,7 +1117,7 @@ export type UpdateWorkflowResponse = Message<"san.tower.v1.UpdateWorkflowRespons
  * Use `create(UpdateWorkflowResponseSchema)` to create a new message.
  */
 export const UpdateWorkflowResponseSchema: GenMessage<UpdateWorkflowResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 21);
+  messageDesc(file_san_tower_v1_workflow, 33);
 
 /**
  * @generated from message san.tower.v1.SetWorkflowActiveRequest
@@ -799,7 +1139,7 @@ export type SetWorkflowActiveRequest = Message<"san.tower.v1.SetWorkflowActiveRe
  * Use `create(SetWorkflowActiveRequestSchema)` to create a new message.
  */
 export const SetWorkflowActiveRequestSchema: GenMessage<SetWorkflowActiveRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 22);
+  messageDesc(file_san_tower_v1_workflow, 34);
 
 /**
  * @generated from message san.tower.v1.SetWorkflowActiveResponse
@@ -816,7 +1156,7 @@ export type SetWorkflowActiveResponse = Message<"san.tower.v1.SetWorkflowActiveR
  * Use `create(SetWorkflowActiveResponseSchema)` to create a new message.
  */
 export const SetWorkflowActiveResponseSchema: GenMessage<SetWorkflowActiveResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 23);
+  messageDesc(file_san_tower_v1_workflow, 35);
 
 /**
  * @generated from message san.tower.v1.DeleteWorkflowRequest
@@ -833,7 +1173,7 @@ export type DeleteWorkflowRequest = Message<"san.tower.v1.DeleteWorkflowRequest"
  * Use `create(DeleteWorkflowRequestSchema)` to create a new message.
  */
 export const DeleteWorkflowRequestSchema: GenMessage<DeleteWorkflowRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 24);
+  messageDesc(file_san_tower_v1_workflow, 36);
 
 /**
  * @generated from message san.tower.v1.DeleteWorkflowResponse
@@ -846,7 +1186,7 @@ export type DeleteWorkflowResponse = Message<"san.tower.v1.DeleteWorkflowRespons
  * Use `create(DeleteWorkflowResponseSchema)` to create a new message.
  */
 export const DeleteWorkflowResponseSchema: GenMessage<DeleteWorkflowResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 25);
+  messageDesc(file_san_tower_v1_workflow, 37);
 
 /**
  * @generated from message san.tower.v1.RunWorkflowRequest
@@ -878,7 +1218,7 @@ export type RunWorkflowRequest = Message<"san.tower.v1.RunWorkflowRequest"> & {
  * Use `create(RunWorkflowRequestSchema)` to create a new message.
  */
 export const RunWorkflowRequestSchema: GenMessage<RunWorkflowRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 26);
+  messageDesc(file_san_tower_v1_workflow, 38);
 
 /**
  * @generated from message san.tower.v1.RunWorkflowResponse
@@ -895,7 +1235,7 @@ export type RunWorkflowResponse = Message<"san.tower.v1.RunWorkflowResponse"> & 
  * Use `create(RunWorkflowResponseSchema)` to create a new message.
  */
 export const RunWorkflowResponseSchema: GenMessage<RunWorkflowResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 27);
+  messageDesc(file_san_tower_v1_workflow, 39);
 
 /**
  * @generated from message san.tower.v1.ListRunsRequest
@@ -947,7 +1287,7 @@ export type ListRunsRequest = Message<"san.tower.v1.ListRunsRequest"> & {
  * Use `create(ListRunsRequestSchema)` to create a new message.
  */
 export const ListRunsRequestSchema: GenMessage<ListRunsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 28);
+  messageDesc(file_san_tower_v1_workflow, 40);
 
 /**
  * @generated from message san.tower.v1.ListRunsResponse
@@ -964,7 +1304,7 @@ export type ListRunsResponse = Message<"san.tower.v1.ListRunsResponse"> & {
  * Use `create(ListRunsResponseSchema)` to create a new message.
  */
 export const ListRunsResponseSchema: GenMessage<ListRunsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 29);
+  messageDesc(file_san_tower_v1_workflow, 41);
 
 /**
  * @generated from message san.tower.v1.GetRunRequest
@@ -981,7 +1321,7 @@ export type GetRunRequest = Message<"san.tower.v1.GetRunRequest"> & {
  * Use `create(GetRunRequestSchema)` to create a new message.
  */
 export const GetRunRequestSchema: GenMessage<GetRunRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 30);
+  messageDesc(file_san_tower_v1_workflow, 42);
 
 /**
  * @generated from message san.tower.v1.GetRunResponse
@@ -998,7 +1338,7 @@ export type GetRunResponse = Message<"san.tower.v1.GetRunResponse"> & {
  * Use `create(GetRunResponseSchema)` to create a new message.
  */
 export const GetRunResponseSchema: GenMessage<GetRunResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 31);
+  messageDesc(file_san_tower_v1_workflow, 43);
 
 /**
  * @generated from message san.tower.v1.ExportWorkflowsRequest
@@ -1017,7 +1357,7 @@ export type ExportWorkflowsRequest = Message<"san.tower.v1.ExportWorkflowsReques
  * Use `create(ExportWorkflowsRequestSchema)` to create a new message.
  */
 export const ExportWorkflowsRequestSchema: GenMessage<ExportWorkflowsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 32);
+  messageDesc(file_san_tower_v1_workflow, 44);
 
 /**
  * @generated from message san.tower.v1.ExportWorkflowsResponse
@@ -1045,7 +1385,7 @@ export type ExportWorkflowsResponse = Message<"san.tower.v1.ExportWorkflowsRespo
  * Use `create(ExportWorkflowsResponseSchema)` to create a new message.
  */
 export const ExportWorkflowsResponseSchema: GenMessage<ExportWorkflowsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 33);
+  messageDesc(file_san_tower_v1_workflow, 45);
 
 /**
  * @generated from message san.tower.v1.ImportWorkflowsRequest
@@ -1064,7 +1404,7 @@ export type ImportWorkflowsRequest = Message<"san.tower.v1.ImportWorkflowsReques
  * Use `create(ImportWorkflowsRequestSchema)` to create a new message.
  */
 export const ImportWorkflowsRequestSchema: GenMessage<ImportWorkflowsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 34);
+  messageDesc(file_san_tower_v1_workflow, 46);
 
 /**
  * @generated from message san.tower.v1.ImportWorkflowsResponse
@@ -1092,7 +1432,7 @@ export type ImportWorkflowsResponse = Message<"san.tower.v1.ImportWorkflowsRespo
  * Use `create(ImportWorkflowsResponseSchema)` to create a new message.
  */
 export const ImportWorkflowsResponseSchema: GenMessage<ImportWorkflowsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 35);
+  messageDesc(file_san_tower_v1_workflow, 47);
 
 /**
  * WorkflowFile is the file ExportWorkflows writes and ImportWorkflows reads.
@@ -1148,7 +1488,7 @@ export type WorkflowFile = Message<"san.tower.v1.WorkflowFile"> & {
  * Use `create(WorkflowFileSchema)` to create a new message.
  */
 export const WorkflowFileSchema: GenMessage<WorkflowFile> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 36);
+  messageDesc(file_san_tower_v1_workflow, 48);
 
 /**
  * ExportedWorkflow is a workflow in a WorkflowFile.
@@ -1170,6 +1510,16 @@ export type ExportedWorkflow = Message<"san.tower.v1.ExportedWorkflow"> & {
    * @generated from field: repeated san.tower.v1.Link links = 3;
    */
   links: Link[];
+
+  /**
+   * @generated from field: string description = 4;
+   */
+  description: string;
+
+  /**
+   * @generated from field: bool one_at_a_time = 5;
+   */
+  oneAtATime: boolean;
 };
 
 /**
@@ -1177,7 +1527,7 @@ export type ExportedWorkflow = Message<"san.tower.v1.ExportedWorkflow"> & {
  * Use `create(ExportedWorkflowSchema)` to create a new message.
  */
 export const ExportedWorkflowSchema: GenMessage<ExportedWorkflow> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 37);
+  messageDesc(file_san_tower_v1_workflow, 49);
 
 /**
  * ExportedRef is a connection or a storage a step picks, as a file names
@@ -1202,7 +1552,7 @@ export type ExportedRef = Message<"san.tower.v1.ExportedRef"> & {
  * Use `create(ExportedRefSchema)` to create a new message.
  */
 export const ExportedRefSchema: GenMessage<ExportedRef> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_workflow, 38);
+  messageDesc(file_san_tower_v1_workflow, 50);
 
 /**
  * @generated from enum san.tower.v1.RunStatus
@@ -1316,6 +1666,61 @@ export const WorkflowService: GenService<{
     methodKind: "unary";
     input: typeof ListWorkflowsRequestSchema;
     output: typeof ListWorkflowsResponseSchema;
+  },
+  /**
+   * ListFolders lists every folder of workflows (the user, 2026-10-27:
+   * folders to manage workflows), each with its parent and how many
+   * workflows and folders are right in it.
+   *
+   * @generated from rpc san.tower.v1.WorkflowService.ListFolders
+   */
+  listFolders: {
+    methodKind: "unary";
+    input: typeof ListFoldersRequestSchema;
+    output: typeof ListFoldersResponseSchema;
+  },
+  /**
+   * CreateFolder makes a folder in parent_id (0: at the top). Names are
+   * unique within a folder, ignoring case.
+   *
+   * @generated from rpc san.tower.v1.WorkflowService.CreateFolder
+   */
+  createFolder: {
+    methodKind: "unary";
+    input: typeof CreateFolderRequestSchema;
+    output: typeof CreateFolderResponseSchema;
+  },
+  /**
+   * UpdateFolder renames a folder and puts it in parent_id. A folder cannot
+   * go into itself or a folder inside it.
+   *
+   * @generated from rpc san.tower.v1.WorkflowService.UpdateFolder
+   */
+  updateFolder: {
+    methodKind: "unary";
+    input: typeof UpdateFolderRequestSchema;
+    output: typeof UpdateFolderResponseSchema;
+  },
+  /**
+   * DeleteFolder deletes a folder. What was in it, workflows and folders,
+   * goes to the folder it was in: no workflow is deleted with it.
+   *
+   * @generated from rpc san.tower.v1.WorkflowService.DeleteFolder
+   */
+  deleteFolder: {
+    methodKind: "unary";
+    input: typeof DeleteFolderRequestSchema;
+    output: typeof DeleteFolderResponseSchema;
+  },
+  /**
+   * MoveWorkflows puts workflows in a folder (0: at the top).
+   *
+   * @generated from rpc san.tower.v1.WorkflowService.MoveWorkflows
+   */
+  moveWorkflows: {
+    methodKind: "unary";
+    input: typeof MoveWorkflowsRequestSchema;
+    output: typeof MoveWorkflowsResponseSchema;
   },
   /**
    * CreateWorkflow creates an empty, inactive workflow. Names are unique.

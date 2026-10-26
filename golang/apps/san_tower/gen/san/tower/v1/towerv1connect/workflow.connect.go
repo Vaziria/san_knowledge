@@ -39,6 +39,21 @@ const (
 	// WorkflowServiceListWorkflowsProcedure is the fully-qualified name of the WorkflowService's
 	// ListWorkflows RPC.
 	WorkflowServiceListWorkflowsProcedure = "/san.tower.v1.WorkflowService/ListWorkflows"
+	// WorkflowServiceListFoldersProcedure is the fully-qualified name of the WorkflowService's
+	// ListFolders RPC.
+	WorkflowServiceListFoldersProcedure = "/san.tower.v1.WorkflowService/ListFolders"
+	// WorkflowServiceCreateFolderProcedure is the fully-qualified name of the WorkflowService's
+	// CreateFolder RPC.
+	WorkflowServiceCreateFolderProcedure = "/san.tower.v1.WorkflowService/CreateFolder"
+	// WorkflowServiceUpdateFolderProcedure is the fully-qualified name of the WorkflowService's
+	// UpdateFolder RPC.
+	WorkflowServiceUpdateFolderProcedure = "/san.tower.v1.WorkflowService/UpdateFolder"
+	// WorkflowServiceDeleteFolderProcedure is the fully-qualified name of the WorkflowService's
+	// DeleteFolder RPC.
+	WorkflowServiceDeleteFolderProcedure = "/san.tower.v1.WorkflowService/DeleteFolder"
+	// WorkflowServiceMoveWorkflowsProcedure is the fully-qualified name of the WorkflowService's
+	// MoveWorkflows RPC.
+	WorkflowServiceMoveWorkflowsProcedure = "/san.tower.v1.WorkflowService/MoveWorkflows"
 	// WorkflowServiceCreateWorkflowProcedure is the fully-qualified name of the WorkflowService's
 	// CreateWorkflow RPC.
 	WorkflowServiceCreateWorkflowProcedure = "/san.tower.v1.WorkflowService/CreateWorkflow"
@@ -76,6 +91,21 @@ type WorkflowServiceClient interface {
 	ListStepKinds(context.Context, *connect.Request[v1.ListStepKindsRequest]) (*connect.Response[v1.ListStepKindsResponse], error)
 	// ListWorkflows lists the workflows by name, without their steps.
 	ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error)
+	// ListFolders lists every folder of workflows (the user, 2026-10-27:
+	// folders to manage workflows), each with its parent and how many
+	// workflows and folders are right in it.
+	ListFolders(context.Context, *connect.Request[v1.ListFoldersRequest]) (*connect.Response[v1.ListFoldersResponse], error)
+	// CreateFolder makes a folder in parent_id (0: at the top). Names are
+	// unique within a folder, ignoring case.
+	CreateFolder(context.Context, *connect.Request[v1.CreateFolderRequest]) (*connect.Response[v1.CreateFolderResponse], error)
+	// UpdateFolder renames a folder and puts it in parent_id. A folder cannot
+	// go into itself or a folder inside it.
+	UpdateFolder(context.Context, *connect.Request[v1.UpdateFolderRequest]) (*connect.Response[v1.UpdateFolderResponse], error)
+	// DeleteFolder deletes a folder. What was in it, workflows and folders,
+	// goes to the folder it was in: no workflow is deleted with it.
+	DeleteFolder(context.Context, *connect.Request[v1.DeleteFolderRequest]) (*connect.Response[v1.DeleteFolderResponse], error)
+	// MoveWorkflows puts workflows in a folder (0: at the top).
+	MoveWorkflows(context.Context, *connect.Request[v1.MoveWorkflowsRequest]) (*connect.Response[v1.MoveWorkflowsResponse], error)
 	// CreateWorkflow creates an empty, inactive workflow. Names are unique.
 	CreateWorkflow(context.Context, *connect.Request[v1.CreateWorkflowRequest]) (*connect.Response[v1.CreateWorkflowResponse], error)
 	GetWorkflow(context.Context, *connect.Request[v1.GetWorkflowRequest]) (*connect.Response[v1.GetWorkflowResponse], error)
@@ -127,6 +157,36 @@ func NewWorkflowServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+WorkflowServiceListWorkflowsProcedure,
 			connect.WithSchema(workflowServiceMethods.ByName("ListWorkflows")),
+			connect.WithClientOptions(opts...),
+		),
+		listFolders: connect.NewClient[v1.ListFoldersRequest, v1.ListFoldersResponse](
+			httpClient,
+			baseURL+WorkflowServiceListFoldersProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("ListFolders")),
+			connect.WithClientOptions(opts...),
+		),
+		createFolder: connect.NewClient[v1.CreateFolderRequest, v1.CreateFolderResponse](
+			httpClient,
+			baseURL+WorkflowServiceCreateFolderProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("CreateFolder")),
+			connect.WithClientOptions(opts...),
+		),
+		updateFolder: connect.NewClient[v1.UpdateFolderRequest, v1.UpdateFolderResponse](
+			httpClient,
+			baseURL+WorkflowServiceUpdateFolderProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("UpdateFolder")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteFolder: connect.NewClient[v1.DeleteFolderRequest, v1.DeleteFolderResponse](
+			httpClient,
+			baseURL+WorkflowServiceDeleteFolderProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("DeleteFolder")),
+			connect.WithClientOptions(opts...),
+		),
+		moveWorkflows: connect.NewClient[v1.MoveWorkflowsRequest, v1.MoveWorkflowsResponse](
+			httpClient,
+			baseURL+WorkflowServiceMoveWorkflowsProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("MoveWorkflows")),
 			connect.WithClientOptions(opts...),
 		),
 		createWorkflow: connect.NewClient[v1.CreateWorkflowRequest, v1.CreateWorkflowResponse](
@@ -196,6 +256,11 @@ func NewWorkflowServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 type workflowServiceClient struct {
 	listStepKinds     *connect.Client[v1.ListStepKindsRequest, v1.ListStepKindsResponse]
 	listWorkflows     *connect.Client[v1.ListWorkflowsRequest, v1.ListWorkflowsResponse]
+	listFolders       *connect.Client[v1.ListFoldersRequest, v1.ListFoldersResponse]
+	createFolder      *connect.Client[v1.CreateFolderRequest, v1.CreateFolderResponse]
+	updateFolder      *connect.Client[v1.UpdateFolderRequest, v1.UpdateFolderResponse]
+	deleteFolder      *connect.Client[v1.DeleteFolderRequest, v1.DeleteFolderResponse]
+	moveWorkflows     *connect.Client[v1.MoveWorkflowsRequest, v1.MoveWorkflowsResponse]
 	createWorkflow    *connect.Client[v1.CreateWorkflowRequest, v1.CreateWorkflowResponse]
 	getWorkflow       *connect.Client[v1.GetWorkflowRequest, v1.GetWorkflowResponse]
 	updateWorkflow    *connect.Client[v1.UpdateWorkflowRequest, v1.UpdateWorkflowResponse]
@@ -216,6 +281,31 @@ func (c *workflowServiceClient) ListStepKinds(ctx context.Context, req *connect.
 // ListWorkflows calls san.tower.v1.WorkflowService.ListWorkflows.
 func (c *workflowServiceClient) ListWorkflows(ctx context.Context, req *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error) {
 	return c.listWorkflows.CallUnary(ctx, req)
+}
+
+// ListFolders calls san.tower.v1.WorkflowService.ListFolders.
+func (c *workflowServiceClient) ListFolders(ctx context.Context, req *connect.Request[v1.ListFoldersRequest]) (*connect.Response[v1.ListFoldersResponse], error) {
+	return c.listFolders.CallUnary(ctx, req)
+}
+
+// CreateFolder calls san.tower.v1.WorkflowService.CreateFolder.
+func (c *workflowServiceClient) CreateFolder(ctx context.Context, req *connect.Request[v1.CreateFolderRequest]) (*connect.Response[v1.CreateFolderResponse], error) {
+	return c.createFolder.CallUnary(ctx, req)
+}
+
+// UpdateFolder calls san.tower.v1.WorkflowService.UpdateFolder.
+func (c *workflowServiceClient) UpdateFolder(ctx context.Context, req *connect.Request[v1.UpdateFolderRequest]) (*connect.Response[v1.UpdateFolderResponse], error) {
+	return c.updateFolder.CallUnary(ctx, req)
+}
+
+// DeleteFolder calls san.tower.v1.WorkflowService.DeleteFolder.
+func (c *workflowServiceClient) DeleteFolder(ctx context.Context, req *connect.Request[v1.DeleteFolderRequest]) (*connect.Response[v1.DeleteFolderResponse], error) {
+	return c.deleteFolder.CallUnary(ctx, req)
+}
+
+// MoveWorkflows calls san.tower.v1.WorkflowService.MoveWorkflows.
+func (c *workflowServiceClient) MoveWorkflows(ctx context.Context, req *connect.Request[v1.MoveWorkflowsRequest]) (*connect.Response[v1.MoveWorkflowsResponse], error) {
+	return c.moveWorkflows.CallUnary(ctx, req)
 }
 
 // CreateWorkflow calls san.tower.v1.WorkflowService.CreateWorkflow.
@@ -274,6 +364,21 @@ type WorkflowServiceHandler interface {
 	ListStepKinds(context.Context, *connect.Request[v1.ListStepKindsRequest]) (*connect.Response[v1.ListStepKindsResponse], error)
 	// ListWorkflows lists the workflows by name, without their steps.
 	ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error)
+	// ListFolders lists every folder of workflows (the user, 2026-10-27:
+	// folders to manage workflows), each with its parent and how many
+	// workflows and folders are right in it.
+	ListFolders(context.Context, *connect.Request[v1.ListFoldersRequest]) (*connect.Response[v1.ListFoldersResponse], error)
+	// CreateFolder makes a folder in parent_id (0: at the top). Names are
+	// unique within a folder, ignoring case.
+	CreateFolder(context.Context, *connect.Request[v1.CreateFolderRequest]) (*connect.Response[v1.CreateFolderResponse], error)
+	// UpdateFolder renames a folder and puts it in parent_id. A folder cannot
+	// go into itself or a folder inside it.
+	UpdateFolder(context.Context, *connect.Request[v1.UpdateFolderRequest]) (*connect.Response[v1.UpdateFolderResponse], error)
+	// DeleteFolder deletes a folder. What was in it, workflows and folders,
+	// goes to the folder it was in: no workflow is deleted with it.
+	DeleteFolder(context.Context, *connect.Request[v1.DeleteFolderRequest]) (*connect.Response[v1.DeleteFolderResponse], error)
+	// MoveWorkflows puts workflows in a folder (0: at the top).
+	MoveWorkflows(context.Context, *connect.Request[v1.MoveWorkflowsRequest]) (*connect.Response[v1.MoveWorkflowsResponse], error)
 	// CreateWorkflow creates an empty, inactive workflow. Names are unique.
 	CreateWorkflow(context.Context, *connect.Request[v1.CreateWorkflowRequest]) (*connect.Response[v1.CreateWorkflowResponse], error)
 	GetWorkflow(context.Context, *connect.Request[v1.GetWorkflowRequest]) (*connect.Response[v1.GetWorkflowResponse], error)
@@ -321,6 +426,36 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 		WorkflowServiceListWorkflowsProcedure,
 		svc.ListWorkflows,
 		connect.WithSchema(workflowServiceMethods.ByName("ListWorkflows")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceListFoldersHandler := connect.NewUnaryHandler(
+		WorkflowServiceListFoldersProcedure,
+		svc.ListFolders,
+		connect.WithSchema(workflowServiceMethods.ByName("ListFolders")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceCreateFolderHandler := connect.NewUnaryHandler(
+		WorkflowServiceCreateFolderProcedure,
+		svc.CreateFolder,
+		connect.WithSchema(workflowServiceMethods.ByName("CreateFolder")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceUpdateFolderHandler := connect.NewUnaryHandler(
+		WorkflowServiceUpdateFolderProcedure,
+		svc.UpdateFolder,
+		connect.WithSchema(workflowServiceMethods.ByName("UpdateFolder")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceDeleteFolderHandler := connect.NewUnaryHandler(
+		WorkflowServiceDeleteFolderProcedure,
+		svc.DeleteFolder,
+		connect.WithSchema(workflowServiceMethods.ByName("DeleteFolder")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceMoveWorkflowsHandler := connect.NewUnaryHandler(
+		WorkflowServiceMoveWorkflowsProcedure,
+		svc.MoveWorkflows,
+		connect.WithSchema(workflowServiceMethods.ByName("MoveWorkflows")),
 		connect.WithHandlerOptions(opts...),
 	)
 	workflowServiceCreateWorkflowHandler := connect.NewUnaryHandler(
@@ -389,6 +524,16 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 			workflowServiceListStepKindsHandler.ServeHTTP(w, r)
 		case WorkflowServiceListWorkflowsProcedure:
 			workflowServiceListWorkflowsHandler.ServeHTTP(w, r)
+		case WorkflowServiceListFoldersProcedure:
+			workflowServiceListFoldersHandler.ServeHTTP(w, r)
+		case WorkflowServiceCreateFolderProcedure:
+			workflowServiceCreateFolderHandler.ServeHTTP(w, r)
+		case WorkflowServiceUpdateFolderProcedure:
+			workflowServiceUpdateFolderHandler.ServeHTTP(w, r)
+		case WorkflowServiceDeleteFolderProcedure:
+			workflowServiceDeleteFolderHandler.ServeHTTP(w, r)
+		case WorkflowServiceMoveWorkflowsProcedure:
+			workflowServiceMoveWorkflowsHandler.ServeHTTP(w, r)
 		case WorkflowServiceCreateWorkflowProcedure:
 			workflowServiceCreateWorkflowHandler.ServeHTTP(w, r)
 		case WorkflowServiceGetWorkflowProcedure:
@@ -424,6 +569,26 @@ func (UnimplementedWorkflowServiceHandler) ListStepKinds(context.Context, *conne
 
 func (UnimplementedWorkflowServiceHandler) ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.ListWorkflows is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) ListFolders(context.Context, *connect.Request[v1.ListFoldersRequest]) (*connect.Response[v1.ListFoldersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.ListFolders is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) CreateFolder(context.Context, *connect.Request[v1.CreateFolderRequest]) (*connect.Response[v1.CreateFolderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.CreateFolder is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) UpdateFolder(context.Context, *connect.Request[v1.UpdateFolderRequest]) (*connect.Response[v1.UpdateFolderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.UpdateFolder is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) DeleteFolder(context.Context, *connect.Request[v1.DeleteFolderRequest]) (*connect.Response[v1.DeleteFolderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.DeleteFolder is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) MoveWorkflows(context.Context, *connect.Request[v1.MoveWorkflowsRequest]) (*connect.Response[v1.MoveWorkflowsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.WorkflowService.MoveWorkflows is not implemented"))
 }
 
 func (UnimplementedWorkflowServiceHandler) CreateWorkflow(context.Context, *connect.Request[v1.CreateWorkflowRequest]) (*connect.Response[v1.CreateWorkflowResponse], error) {

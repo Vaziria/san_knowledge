@@ -1,10 +1,12 @@
 package engine
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io/fs"
 	"net/url"
 	"os"
@@ -40,7 +42,7 @@ var telegramRetry []time.Duration
 var telegramKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
-			Kind: TelegramMessage, Title: "Telegram Message", Category: "Trigger",
+			Kind: TelegramMessage, Title: "Telegram Message", Category: "Messengers", Group: "Telegram",
 			Description: "Starts the workflow when a Telegram bot gets a message, in any chat or in one.",
 			Outputs:     []*v1.Socket{sock("Event", Event), sock("Message", Object), sock("Text", Text), sock("Chat", Text)},
 			Settings:    []*v1.Setting{telegramSetting(), {Name: "Chat", Placeholder: "any chat, or a chat id or @username"}},
@@ -49,7 +51,7 @@ var telegramKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
-			Kind: "telegram-send", Title: "Telegram Send", Category: "Social", Group: "Telegram",
+			Kind: "telegram-send", Title: "Telegram Send", Category: "Messengers", Group: "Telegram",
 			Description: "Sends a message to a Telegram chat, group or channel as a bot: Text, or by Media a photo, video, audio, voice, document or animation from File (a file on this computer, an http(s) link or a Telegram file_id) with Text its caption; formatted or not, maybe as a reply.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Message", Object)},
 			Settings: []*v1.Setting{telegramSetting(), {Name: "Format", Options: []string{"Plain", "HTML", "Markdown"}},
@@ -61,7 +63,7 @@ var telegramKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
-			Kind: "telegram-messages", Title: "Telegram Messages", Category: "Social", Group: "Telegram",
+			Kind: "telegram-messages", Title: "Telegram Messages", Category: "Messengers", Group: "Telegram",
 			Description: "Lists the newest messages a Telegram bot got, in every chat or in one; Last is the newest.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Messages", Object), sock("Last", Object)},
 			Settings:    []*v1.Setting{telegramSetting(), {Name: "Limit", Placeholder: "20"}},
@@ -98,9 +100,15 @@ func telegramFired(_ *v1.Step, data []byte) (map[string]proto.Message, []string,
 
 // telegram is the client of the step's Telegram Bot connection, and its id.
 func (c *call) telegram() (*telegram.Client, uint32, error) {
-	id := c.setting("Connection")
+	return c.telegramOf("Connection")
+}
+
+// telegramOf is the client of the Telegram Bot connection the step's
+// setting names, and its id.
+func (c *call) telegramOf(setting string) (*telegram.Client, uint32, error) {
+	id := c.setting(setting)
 	if id == "" {
-		return nil, 0, errors.New("Connection: pick a Telegram Bot connection (Connections page)")
+		return nil, 0, fmt.Errorf("%s: pick a Telegram Bot connection (Connections page)", setting)
 	}
 	n, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
@@ -122,7 +130,11 @@ func (c *call) telegram() (*telegram.Client, uint32, error) {
 	return &telegram.Client{Token: conn.Settings.GetTelegramBot().GetToken(), Base: c.env.TelegramAPI, Retry: telegramRetry}, uint32(n), nil
 }
 
-var parseModes = map[string]string{"": "", "Plain": "", "HTML": "HTML", "Markdown": "Markdown"}
+// parseModes are Telegram Send's Format and the parse_mode each sends.
+// Markdown is the Markdown people and Claude write, sent as Telegram's HTML
+// (telegram.MarkdownHTML; the user, 2026-10-26, after Telegram refused a
+// Claude answer): Telegram's own Markdown takes only its old dialect.
+var parseModes = map[string]string{"": "", "Plain": "", "HTML": "HTML", "Markdown": "HTML"}
 
 // mediaOptions are Telegram Send's Media: None sends Text alone, the others
 // a file of that type (the user's ask, 2026-10-25).
@@ -154,6 +166,10 @@ func telegramSend(c *call) error {
 		return fmt.Errorf("Format %q: Plain, HTML or Markdown", c.setting("Format"))
 	}
 	m.ParseMode = mode
+	plain := m.Text
+	if c.setting("Format") == "Markdown" {
+		m.Text = cmp.Or(telegram.MarkdownHTML(m.Text), html.EscapeString(m.Text))
+	}
 	if r := strings.TrimSpace(c.text("Reply To")); r != "" {
 		if m.ReplyTo, err = strconv.ParseInt(r, 10, 64); err != nil {
 			return fmt.Errorf("Reply To %q: give the id of the message it answers", r)
@@ -168,11 +184,21 @@ func telegramSend(c *call) error {
 		c.logs = append(c.logs, line)
 		c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_WARNING)
 	}
-	var sent json.RawMessage
-	if m.Media.Type != "" {
-		sent, err = cl.SendMedia(c.ctx, m)
-	} else {
-		sent, err = cl.SendMessage(c.ctx, m)
+	send := func() (json.RawMessage, error) {
+		if m.Media.Type != "" {
+			return cl.SendMedia(c.ctx, m)
+		}
+		return cl.SendMessage(c.ctx, m)
+	}
+	sent, err := send()
+	// Formatting Telegram cannot read is no reason not to send: the text
+	// goes as it is, with a warning line.
+	var te *telegram.Error
+	if m.ParseMode != "" && errors.As(err, &te) && strings.Contains(te.Description, "can't parse entities") {
+		c.logs = append(c.logs, fmt.Sprintf("Telegram could not read the %s (%s): sent as plain text", c.setting("Format"), te.Description))
+		c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_WARNING)
+		m.Text, m.ParseMode = plain, ""
+		sent, err = send()
 	}
 	if err != nil {
 		return err
@@ -290,6 +316,9 @@ func (e *Engine) Telegram(token string) *telegram.Client {
 // again when its token changed, and stops those of connections that are
 // gone: on start, and after a connection changes.
 func (e *Engine) SyncConnections() {
+	// And the WhatsApp connections' devices (whatsapp.go), once e.mu is
+	// let go.
+	defer e.syncWhatsApp()
 	conns, err := e.store.ListConnections(store.TelegramBot)
 	if err != nil {
 		e.log.Error("list the Telegram bots", "err", err)
@@ -434,7 +463,7 @@ func (e *Engine) received(id uint32, u telegram.Update) error {
 				!chatMatches(st.GetValues()["Chat"], m.Chat) {
 				continue
 			}
-			run, err := e.begin(w, st.GetId(), fmt.Sprintf("telegram, chat %s, message %d", m.Chat.Name(), m.MessageID))
+			run, err := e.begin(w, st.GetId(), fmt.Sprintf("telegram, chat %s, message %d", m.Chat.Name(), m.MessageID), raw)
 			if err != nil {
 				e.log.Error("record a workflow run", "workflow", w.ID, "err", err)
 				continue

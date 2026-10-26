@@ -211,3 +211,25 @@ func TestInProgressAndFailed(t *testing.T) {
 		t.Errorf("Publish's outputs = %s", got)
 	}
 }
+
+// Fail Run at the end of a Failed branch (a folder given to Delete File is
+// refused): the branch runs, and the run
+// still fails, with the handled step's error or the Message given.
+func TestFailRun(t *testing.T) {
+	g := &v1.Graph{
+		Steps: []*v1.Step{step("go", Manual), step("read", "delete-file", "Path", t.TempDir()),
+			step("clean", "delete-file", "Path", t.TempDir()+"/download.mp4"), step("fail", "fail")},
+		Links: []*v1.Link{link("go", "Event", "read", "Event"), link("read", "Failed", "clean", "Event"), link("clean", "Done", "fail", "Event")},
+	}
+	steps, err := Execute(context.Background(), g, "go", nil, Env{})
+	if err == nil || !strings.HasPrefix(err.Error(), "Fail Run: Delete File: ") {
+		t.Fatalf("err = %v", err)
+	}
+	if len(steps) != 4 || steps[2].GetStepId() != "clean" || steps[2].GetError() != "" {
+		t.Errorf("steps = %v", steps)
+	}
+	g.Steps[3] = step("fail", "fail", "Message", "no video")
+	if _, err := Execute(context.Background(), g, "go", nil, Env{}); err == nil || err.Error() != "Fail Run: no video" {
+		t.Errorf("with a message: %v", err)
+	}
+}

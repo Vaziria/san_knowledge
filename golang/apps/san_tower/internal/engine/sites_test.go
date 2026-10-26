@@ -20,6 +20,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
 	tiktokv1 "github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1/tiktokv1connect"
+	youtubev1 "github.com/wargasipil/san_remote/gen/san/remote/youtube/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/youtube/v1/youtubev1connect"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -326,5 +328,78 @@ func TestSiteLists(t *testing.T) {
 	steps, err = run(t, env, "social-status", "Connection", "1", "Site", "ChatGPT")
 	if err != nil || objectOut(t, steps[1], "Status").GetStructValue().Fields["plan"].GetStringValue() != "Free" {
 		t.Errorf("chatgpt status: %s, %v", ran(steps), err)
+	}
+}
+
+type fakeYouTube struct {
+	youtubev1connect.UnimplementedYouTubeServiceHandler
+	*fakeRemote
+}
+
+func (f fakeYouTube) UploadVideo(_ context.Context, req *connect.Request[youtubev1.UploadVideoRequest]) (*connect.Response[youtubev1.UploadVideoResponse], error) {
+	f.youtube = req.Msg
+	url := "https://youtu.be/abcdefghijk"
+	if req.Msg.Short {
+		url = "https://youtube.com/shorts/abcdefghijk"
+	}
+	return connect.NewResponse(&youtubev1.UploadVideoResponse{Video: &youtubev1.Video{Id: "abcdefghijk", Title: req.Msg.Title, Visibility: "Private", Short: req.Msg.Short, Url: url}}), nil
+}
+
+func (f fakeYouTube) DeleteVideo(_ context.Context, req *connect.Request[youtubev1.DeleteVideoRequest]) (*connect.Response[youtubev1.DeleteVideoResponse], error) {
+	f.ytDelete = req.Msg
+	return connect.NewResponse(&youtubev1.DeleteVideoResponse{Video: &youtubev1.Video{Id: "abcdefghijk", Visibility: "Private"}}), nil
+}
+
+func (f fakeYouTube) MakePrivate(_ context.Context, req *connect.Request[youtubev1.MakePrivateRequest]) (*connect.Response[youtubev1.MakePrivateResponse], error) {
+	f.ytPriv = req.Msg
+	return connect.NewResponse(&youtubev1.MakePrivateResponse{Video: &youtubev1.Video{Id: "abcdefghijk", Visibility: "Private"}}), nil
+}
+
+// YouTube Upload sends the video, its words and the Kind; without At it is
+// Private. YouTube Delete never allows a Public video; YouTube Make Private
+// sends the video.
+func TestYouTubeSteps(t *testing.T) {
+	f, env := remote(t)
+	video := filepath.Join(t.TempDir(), "v.mp4")
+	steps, err := run(t, env, "youtube-upload", "Connection", "1", "Video", video, "Title", "Uji", "Description", "Deskripsi", "Tags", "a, b", "Kind", "Short")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := f.youtube; r.GetVideo() != video || r.GetTitle() != "Uji" || r.GetDescription() != "Deskripsi" || strings.Join(r.GetTags(), "|") != "a|b" || !r.GetShort() || r.GetAt() != nil {
+		t.Errorf("upload request = %v", r)
+	}
+	if got := textOut(t, steps[1], "Link"); got != "https://youtube.com/shorts/abcdefghijk" {
+		t.Errorf("Link = %q", got)
+	}
+	if _, err := run(t, env, "youtube-upload", "Connection", "1", "Video", video); err == nil || !strings.Contains(err.Error(), "Title") {
+		t.Errorf("no title: %v", err)
+	}
+	if _, err := run(t, env, "youtube-delete", "Connection", "1", "Video", "https://youtu.be/abcdefghijk"); err != nil {
+		t.Fatal(err)
+	}
+	if r := f.ytDelete; r.GetVideo() != "https://youtu.be/abcdefghijk" || r.GetAllowPublic() {
+		t.Errorf("delete request = %v", r)
+	}
+	if _, err := run(t, env, "youtube-private", "Connection", "1", "Video", "abcdefghijk"); err != nil || f.ytPriv.GetVideo() != "abcdefghijk" {
+		t.Errorf("private: %v, %v", f.ytPriv, err)
+	}
+	if _, err := run(t, env, "youtube-delete", "Connection", "1"); err == nil || !strings.Contains(err.Error(), "Video") {
+		t.Errorf("no video: %v", err)
+	}
+}
+
+// A YouTube video's list in Social Posts, and its day, from Studio's
+// content list.
+func TestYouTubeList(t *testing.T) {
+	for vis, want := range map[string]string{"Scheduled": "Scheduled", "Public": "Published", "Private": "Drafts", "Unlisted": "Drafts", "": "Drafts"} {
+		if got := youtubeList(vis); got != want {
+			t.Errorf("%q: %s, want %s", vis, got, want)
+		}
+	}
+	if d := youtubeDay("Nov 13, 2026 Scheduled"); !d.Equal(time.Date(2026, 11, 13, 0, 0, 0, 0, time.Local)) {
+		t.Errorf("day: %v", d)
+	}
+	if d := youtubeDay("Draft"); !d.IsZero() {
+		t.Errorf("no day: %v", d)
 	}
 }

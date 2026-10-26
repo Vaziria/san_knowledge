@@ -13,15 +13,19 @@ import (
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/tiktok"
+	"github.com/wargasipil/san_remote/internal/youtube"
 )
 
 // The tools of the sites added on 2026-10-25: medium_*, linkedin_*, tiktok_*,
-// chatgpt_*, gemini_* and claude_*.
+// chatgpt_*, gemini_* and claude_*; youtube_* on 2026-10-26, telegram_* on
+// 2026-10-27.
 
 const sitesInstructions = `
 medium_* write the user's markdown articles into Medium (interface in English) through that browser, as a person does in Medium's editor: medium_draft makes a draft from an article file (title, subtitle, text, images with alt text and captions) and, with at, schedules it; medium_schedule schedules a draft, medium_unschedule cancels its time; medium_drafts, medium_scheduled, medium_get and medium_status read. Nothing is published at once. medium_delete deletes a draft (it cannot be undone: ask the user first).
 linkedin_* do the same for the user's LinkedIn articles (interface in English), in LinkedIn's article editor: linkedin_draft (with a cover, and with at a schedule on a quarter hour, shared with text), linkedin_schedule, linkedin_unschedule (by title), linkedin_drafts, linkedin_scheduled, linkedin_get, linkedin_status; linkedin_delete deletes a draft (ask the user first). Each brings Chrome to the front for a minute or more.
 tiktok_* post the user's videos to TikTok (interface in English) through TikTok Studio in that browser: tiktok_post schedules a video for Everyone (15 minutes to 30 days ahead, on a 5-minute step) or, with now, posts it for Only you; tiktok_posts lists Studio's posts; tiktok_delete deletes one (it cannot be undone: ask the user first); tiktok_status reads. Post only what the user asked for.
+youtube_* upload the user's videos to YouTube (interface in English) through YouTube Studio in that browser: youtube_upload uploads a video (title, description, tags; short for a Short, a vertical or square video of at most 3 minutes) and schedules it at at (at least 15 minutes ahead), or without at saves it as Private: never public at once; youtube_videos lists Studio's Videos and Shorts; youtube_private makes a video Private (a scheduled one loses its schedule); youtube_delete deletes one for good (a Public one only with allow_public; it cannot be undone: ask the user first); youtube_status reads. Upload only what the user asked for. An upload brings Chrome to the front for as long as the file takes to go up.
+telegram_* work in Telegram Web (interface in English) in that browser, as the user's own account: telegram_create_bot asks @BotFather for a new bot and returns its token (a secret: hand it to what needs it, never repeat it in chat); telegram_delete_bot deletes one of the account's bots; telegram_create_group makes a group with no other members yet and returns its id; telegram_delete_group deletes a group for all its members; telegram_add_member and telegram_remove_member add and remove a user by username; telegram_status reads. Deletes and removals cannot be undone, and adding someone to a group is seen by them: ask the user first. Each brings Chrome to the front with a tab of its own for a minute or so.
 chatgpt_* ask ChatGPT (interface in English) through that browser: chatgpt_ask sends a prompt and returns the answer as markdown, in a Temporary chat unless keep is set; chat continues a kept chat by its link. chatgpt_status reads the account and plan.
 gemini_* ask Gemini (gemini.google.com, interface in English) through that browser: gemini_ask sends a prompt and returns the answer, in a Temporary chat unless keep is set; it brings Chrome to the front while it asks, since Gemini sends only from a shown page. gemini_status reads the Google account's name.
 claude_* ask Claude on claude.ai (interface in English) through that browser: claude_ask sends a prompt and returns the answer as markdown, in an incognito chat (kept out of the history) unless keep is set; claude_status reads the account and plan.`
@@ -128,6 +132,81 @@ func siteToolDefs() []any {
 				"when":    str(`Its date as tiktok_posts shows it, "Nov 3, 7:00 PM"`),
 				"browser": browserProp,
 			}, "caption", "when"), false, true),
+
+		tool("youtube_status", "YouTube: who is signed in",
+			"Whether the browser is signed in to YouTube, and as whom (name and @handle).",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("youtube_upload", "YouTube: upload a video",
+			"Upload a video through YouTube Studio with its title, description and tags, say it is not made for kids, and schedule it at at, or without at save it as Private. Never public at once. With short, the upload fails when Studio does not list it under Shorts (a Short is vertical or square and at most 3 minutes; it is saved all the same). Give a post file (frontmatter video:, tags:, at:, short:; then a `# ` title and the description) or video and title. Brings Chrome to the front for as long as the file takes to go up.",
+			schema(map[string]any{
+				"file":        str("A post markdown file: frontmatter video:, tags:, at:, short:, then a `# ` title and the description"),
+				"video":       str("The video file, instead of a post file"),
+				"title":       str("The title, with video: up to 100 characters, no < or >"),
+				"description": str("The description, with video: plain text, up to 5000 bytes"),
+				"tags":        strs("Tags"),
+				"at":          timeProp("When YouTube makes it public: at least 15 minutes ahead; without it, it is saved as Private"),
+				"short":       flag("It is meant as a Short"),
+				"browser":     browserProp,
+			}), false, false),
+		tool("youtube_private", "YouTube: make a video Private",
+			"Make a video Private in Studio's content list (its visibility, Private, Save); a scheduled one loses its schedule. Brings Chrome to the front.",
+			schema(map[string]any{
+				"video":   str("The video's id, or a link to it (youtu.be/<id>, youtube.com/shorts/<id>, studio link)"),
+				"browser": browserProp,
+			}, "video"), false, false),
+		tool("youtube_delete", "YouTube: delete a video",
+			"Delete a video for good from Studio's content list (Options, Delete forever). A Public video is refused unless allow_public. It cannot be undone: ask the user first.",
+			schema(map[string]any{
+				"video":        str("The video's id, or a link to it"),
+				"allow_public": flag("Delete it even when it is Public"),
+				"browser":      browserProp,
+			}, "video"), false, true),
+		tool("youtube_videos", "YouTube: Studio's videos",
+			"Studio's content list, the Videos tab then Shorts, newest first: kind, visibility, date, link, title. Brings Chrome to the front briefly.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+
+		tool("telegram_status", "Telegram: who is signed in",
+			"Whether the browser is signed in to Telegram Web, and as whom (name and @username).",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("telegram_create_bot", "Telegram: create a bot",
+			"Ask @BotFather (/newbot) for a new bot with name and username, and return its username, link and token. The token is a secret: never repeat it in chat. @BotFather's refusal (a username taken, too many bots) comes back with what it said. Brings Chrome to the front for a minute.",
+			schema(map[string]any{
+				"name":     str("The bot's name, up to 64 characters"),
+				"username": str("Its username: 5 to 32 letters, digits and _, ending in bot"),
+				"browser":  browserProp,
+			}, "name", "username"), false, false),
+		tool("telegram_delete_bot", "Telegram: delete a bot",
+			"Delete one of the account's bots through @BotFather (/deletebot, with its confirmation). It cannot be undone: ask the user first.",
+			schema(map[string]any{
+				"username": str("The bot's username, with or without the @"),
+				"browser":  browserProp,
+			}, "username"), false, true),
+		tool("telegram_create_group", "Telegram: create a group",
+			"Make a group with title and no other members yet (New Group), and return its id (-5012345678). Brings Chrome to the front for a minute.",
+			schema(map[string]any{
+				"title":   str("The group's title, up to 128 characters"),
+				"browser": browserProp,
+			}, "title"), false, false),
+		tool("telegram_delete_group", "Telegram: delete a group",
+			"Delete a group of the account's for all its members (the chat's Delete Group, with Delete for all members). A group the account does not own is refused. It cannot be undone: ask the user first.",
+			schema(map[string]any{
+				"group":   str("The group's id (-5012345678), or its title when only one of the account's groups has it"),
+				"browser": browserProp,
+			}, "group"), false, true),
+		tool("telegram_add_member", "Telegram: add a user to a group",
+			"Add a user, by username, to a group of the account's, from the group's profile (Add Members). A user already in it is left as they are; one whose privacy settings keep them out of groups is refused. Ask the user first.",
+			schema(map[string]any{
+				"group":   str("The group's id, or its title"),
+				"user":    str("The user's username, with or without the @"),
+				"browser": browserProp,
+			}, "group", "user"), false, false),
+		tool("telegram_remove_member", "Telegram: remove a user from a group",
+			"Remove a user, by username, from a group of the account's (the member's Remove from group in the group's profile). Ask the user first.",
+			schema(map[string]any{
+				"group":   str("The group's id, or its title"),
+				"user":    str("The member's username, with or without the @"),
+				"browser": browserProp,
+			}, "group", "user"), false, true),
 
 		tool("chatgpt_status", "ChatGPT: who is signed in",
 			"Whether the browser is signed in to ChatGPT, as whom, and on which plan.",
@@ -433,6 +512,145 @@ func (s *Server) tiktok(ctx context.Context, name string, a args) (string, error
 			return "", err
 		}
 		return "Deleted: " + l.Row, nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) youtube(ctx context.Context, name string, a args) (string, error) {
+	yt := s.YouTube
+	switch name {
+	case "youtube_status":
+		st, err := yt.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to YouTube.", nil
+		}
+		who := st.Name
+		if st.Handle != "" {
+			who += " (@" + st.Handle + ")"
+		}
+		return "Signed in to YouTube as " + strings.TrimSpace(who) + ".", nil
+	case "youtube_upload":
+		var p *youtube.Post
+		switch {
+		case a.File != "" && a.Video != "":
+			return "", errors.New("give file or video, not both")
+		case a.File != "":
+			var err error
+			if p, err = youtube.ParseFile(a.File); err != nil {
+				return "", err
+			}
+		case a.Video != "":
+			p = &youtube.Post{Video: a.Video, Title: a.Title, Description: a.Description}
+		default:
+			return "", errors.New("file or video is required")
+		}
+		if tags := youtube.SplitTags(a.Tags...); len(tags) > 0 {
+			p.Tags = tags
+		}
+		if a.At != "" {
+			at, err := youtube.ParseTime(a.At)
+			if err != nil {
+				return "", err
+			}
+			p.At = at
+		}
+		p.Short = p.Short || a.Short
+		p.Browser = a.Browser
+		v, err := yt.Upload(ctx, *p)
+		if err != nil {
+			if v != nil {
+				return "", fmt.Errorf("%w (Studio made video %s: %s; finish or delete it there)", err, v.ID, v.Studio)
+			}
+			return "", err
+		}
+		return fmt.Sprintf("Uploaded: %s, %s %s (edit: %s)", v.URL, v.Visibility, v.Date, v.Studio), nil
+	case "youtube_private":
+		l, err := yt.MakePrivate(ctx, a.Browser, a.Video)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Private: %s (%s)", l.URL(), l.Title), nil
+	case "youtube_delete":
+		l, err := yt.Delete(ctx, a.Browser, a.Video, a.AllowPublic)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted: %s (%s, %s)", l.URL(), l.Title, l.Visibility), nil
+	case "youtube_videos":
+		list, err := yt.Videos(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if len(list) == 0 {
+			return "No videos.", nil
+		}
+		var b strings.Builder
+		for _, l := range list {
+			kind := "video"
+			if l.Short {
+				kind = "short"
+			}
+			fmt.Fprintf(&b, "%s | %s | %s | %s | %s\n", kind, l.Visibility, l.Date, l.URL(), l.Title)
+		}
+		return b.String(), nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) telegram(ctx context.Context, name string, a args) (string, error) {
+	tg := s.Telegram
+	switch name {
+	case "telegram_status":
+		st, err := tg.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to Telegram Web.", nil
+		}
+		who := st.Name
+		if st.Username != "" {
+			who += " (@" + st.Username + ")"
+		}
+		return "Signed in to Telegram Web as " + strings.TrimSpace(who) + ".", nil
+	case "telegram_create_bot":
+		b, err := tg.CreateBot(ctx, a.Browser, a.Name, a.Username)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Made bot @%s (%s), %s. Its token (secret): %s", b.Username, b.Name, b.Link, b.Token), nil
+	case "telegram_delete_bot":
+		if err := tg.DeleteBot(ctx, a.Browser, a.Username); err != nil {
+			return "", err
+		}
+		return "Deleted bot @" + strings.TrimPrefix(strings.TrimSpace(a.Username), "@") + ".", nil
+	case "telegram_create_group":
+		g, err := tg.CreateGroup(ctx, a.Browser, a.Title)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Made group %q, id %s.", g.Title, g.ID), nil
+	case "telegram_delete_group":
+		g, err := tg.DeleteGroup(ctx, a.Browser, a.Group)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted group %q (%s) for all its members.", g.Title, g.ID), nil
+	case "telegram_add_member":
+		g, m, err := tg.AddMember(ctx, a.Browser, a.Group, a.User)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("@%s (%s) is a member of %q (%s).", m.Username, m.Name, g.Title, g.ID), nil
+	case "telegram_remove_member":
+		g, m, err := tg.RemoveMember(ctx, a.Browser, a.Group, a.User)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Removed @%s (%s) from %q (%s).", m.Username, m.Name, g.Title, g.ID), nil
 	}
 	return "", fmt.Errorf("unknown tool %q", name)
 }

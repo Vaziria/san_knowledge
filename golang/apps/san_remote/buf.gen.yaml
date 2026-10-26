@@ -13,7 +13,8 @@ plugins:
     opt: paths=source_relative
   # The extension's client (typescripts/san_remote_extension). It only talks
   # BrowserService; the site services (Threads, X, Facebook, Vidara, Medium,
-  # LinkedIn, TikTok, ChatGPT, Gemini, Claude) stay on the Go side.
+  # LinkedIn, TikTok, ChatGPT, Gemini, Claude, YouTube, Telegram) stay on the
+  # Go side.
   - local: protoc-gen-es
     out: ../../../typescripts/san_remote_extension/src/gen
     opt: target=ts
@@ -28,3 +29,5 @@ plugins:
       - san.remote.chatgpt.v1
       - san.remote.gemini.v1
       - san.remote.claude.v1
+      - san.remote.youtube.v1
+      - san.remote.telegram.v1

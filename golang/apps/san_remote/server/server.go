@@ -19,10 +19,12 @@ import (
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/page"
+	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/vidara"
 	"github.com/wargasipil/san_remote/internal/x"
+	"github.com/wargasipil/san_remote/internal/youtube"
 )
 
 const (
@@ -52,7 +54,7 @@ func (h *Hub) Browsers() []*v1.Browser { return h.h.Browsers() }
 func (h *Hub) Close() { h.h.Close() }
 
 // API serves the site services (Threads, X, Facebook, Vidara, Medium,
-// LinkedIn, TikTok, ChatGPT, Gemini, Claude), reaching the
+// LinkedIn, TikTok, YouTube, Telegram, ChatGPT, Gemini, Claude), reaching the
 // browser through the hub at hubURL, as `san_remote api --server hubURL`
 // does. The sites' steps go to log as debug lines.
 func API(hubURL string, log *slog.Logger) http.Handler {
@@ -71,6 +73,8 @@ func API(hubURL string, log *slog.Logger) http.Handler {
 		Medium:   &medium.Service{B: b, Progress: progress("medium")},
 		LinkedIn: &linkedin.Service{B: b, Progress: progress("linkedin")},
 		TikTok:   &tiktok.Service{B: b, Progress: progress("tiktok")},
+		YouTube:  &youtube.Service{B: b, Progress: progress("youtube")},
+		Telegram: &telegram.Service{B: b, Progress: progress("telegram")},
 		ChatGPT:  &chatgpt.Service{B: b, Progress: progress("chatgpt")},
 		Gemini:   &gemini.Service{B: b, Progress: progress("gemini")},
 		Claude:   &claude.Service{B: b, Progress: progress("claude")},

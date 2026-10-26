@@ -14,17 +14,21 @@ import (
 	chatgptv1 "github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
+	telegramv1 "github.com/wargasipil/san_remote/gen/san/remote/telegram/v1"
 	tiktokv1 "github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1"
+	youtubev1 "github.com/wargasipil/san_remote/gen/san/remote/youtube/v1"
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
+	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/tiktok"
+	"github.com/wargasipil/san_remote/internal/youtube"
 )
 
 // The site services added on 2026-10-25: Medium, LinkedIn, TikTok and
-// ChatGPT.
+// ChatGPT; YouTube on 2026-10-26; Telegram on 2026-10-27.
 
 // absolute refuses a relative path: it would be inside wherever `san_remote
 // api` was started.
@@ -235,6 +239,139 @@ func (s tiktokAPI) ListPosts(ctx context.Context, req *connect.Request[tiktokv1.
 	return reply(res, nil)
 }
 
+// ---- YouTube -------------------------------------------------------------------------
+
+type youtubeAPI struct{ a *API }
+
+func (s youtubeAPI) GetStatus(ctx context.Context, req *connect.Request[youtubev1.GetStatusRequest]) (*connect.Response[youtubev1.GetStatusResponse], error) {
+	st, err := s.a.YouTube.Status(ctx, req.Msg.Browser)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&youtubev1.GetStatusResponse{Status: &youtubev1.Status{SignedIn: st.SignedIn, Name: st.Name, Handle: st.Handle}}, nil)
+}
+
+func (s youtubeAPI) UploadVideo(ctx context.Context, req *connect.Request[youtubev1.UploadVideoRequest]) (*connect.Response[youtubev1.UploadVideoResponse], error) {
+	p, err := youtubePostOf(req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	if err := p.Check(time.Now()); err != nil {
+		return nil, s.a.fail(err)
+	}
+	v, err := s.a.YouTube.Upload(ctx, *p)
+	if err != nil {
+		if v != nil {
+			// Studio made the video: say which, so it can be finished there.
+			err = fmt.Errorf("%w (video %s, %s)", err, v.ID, v.Studio)
+		}
+		return nil, s.a.fail(err)
+	}
+	return reply(&youtubev1.UploadVideoResponse{
+		Video:  &youtubev1.Video{Id: v.ID, Title: p.Title, Visibility: v.Visibility, Date: v.Date, Short: v.Short, Url: v.URL},
+		Studio: v.Studio, Channel: v.Channel, At: stamp(v.At),
+	}, nil)
+}
+
+func (s youtubeAPI) ListVideos(ctx context.Context, req *connect.Request[youtubev1.ListVideosRequest]) (*connect.Response[youtubev1.ListVideosResponse], error) {
+	list, err := s.a.YouTube.Videos(ctx, req.Msg.Browser)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	res := &youtubev1.ListVideosResponse{}
+	for _, l := range list {
+		res.Videos = append(res.Videos, &youtubev1.Video{Id: l.ID, Title: l.Title, Visibility: l.Visibility, Date: l.Date, Short: l.Short, Url: l.URL()})
+	}
+	return reply(res, nil)
+}
+
+func (s youtubeAPI) DeleteVideo(ctx context.Context, req *connect.Request[youtubev1.DeleteVideoRequest]) (*connect.Response[youtubev1.DeleteVideoResponse], error) {
+	l, err := s.a.YouTube.Delete(ctx, req.Msg.Browser, req.Msg.Video, req.Msg.AllowPublic)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&youtubev1.DeleteVideoResponse{Video: ytVideo(*l)}, nil)
+}
+
+func (s youtubeAPI) MakePrivate(ctx context.Context, req *connect.Request[youtubev1.MakePrivateRequest]) (*connect.Response[youtubev1.MakePrivateResponse], error) {
+	l, err := s.a.YouTube.MakePrivate(ctx, req.Msg.Browser, req.Msg.Video)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&youtubev1.MakePrivateResponse{Video: ytVideo(*l)}, nil)
+}
+
+func ytVideo(l youtube.Listed) *youtubev1.Video {
+	return &youtubev1.Video{Id: l.ID, Title: l.Title, Visibility: l.Visibility, Date: l.Date, Short: l.Short, Url: l.URL()}
+}
+
+// ---- Telegram ------------------------------------------------------------------------
+
+type telegramAPI struct{ a *API }
+
+func (s telegramAPI) GetStatus(ctx context.Context, req *connect.Request[telegramv1.GetStatusRequest]) (*connect.Response[telegramv1.GetStatusResponse], error) {
+	st, err := s.a.Telegram.Status(ctx, req.Msg.Browser)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&telegramv1.GetStatusResponse{Status: &telegramv1.Status{SignedIn: st.SignedIn, Name: st.Name, Username: st.Username}}, nil)
+}
+
+func (s telegramAPI) CreateBot(ctx context.Context, req *connect.Request[telegramv1.CreateBotRequest]) (*connect.Response[telegramv1.CreateBotResponse], error) {
+	b, err := s.a.Telegram.CreateBot(ctx, req.Msg.Browser, req.Msg.Name, req.Msg.Username)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&telegramv1.CreateBotResponse{Bot: &telegramv1.Bot{Name: b.Name, Username: b.Username, Token: b.Token, Link: b.Link}}, nil)
+}
+
+func (s telegramAPI) DeleteBot(ctx context.Context, req *connect.Request[telegramv1.DeleteBotRequest]) (*connect.Response[telegramv1.DeleteBotResponse], error) {
+	if err := s.a.Telegram.DeleteBot(ctx, req.Msg.Browser, req.Msg.Username); err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&telegramv1.DeleteBotResponse{}, nil)
+}
+
+func (s telegramAPI) CreateGroup(ctx context.Context, req *connect.Request[telegramv1.CreateGroupRequest]) (*connect.Response[telegramv1.CreateGroupResponse], error) {
+	g, err := s.a.Telegram.CreateGroup(ctx, req.Msg.Browser, req.Msg.Title)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&telegramv1.CreateGroupResponse{Group: tgGroup(g)}, nil)
+}
+
+func (s telegramAPI) DeleteGroup(ctx context.Context, req *connect.Request[telegramv1.DeleteGroupRequest]) (*connect.Response[telegramv1.DeleteGroupResponse], error) {
+	g, err := s.a.Telegram.DeleteGroup(ctx, req.Msg.Browser, req.Msg.Group)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&telegramv1.DeleteGroupResponse{Group: tgGroup(g)}, nil)
+}
+
+func (s telegramAPI) AddMember(ctx context.Context, req *connect.Request[telegramv1.AddMemberRequest]) (*connect.Response[telegramv1.AddMemberResponse], error) {
+	g, m, err := s.a.Telegram.AddMember(ctx, req.Msg.Browser, req.Msg.Group, req.Msg.User)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&telegramv1.AddMemberResponse{Group: tgGroup(g), Member: tgMember(m)}, nil)
+}
+
+func (s telegramAPI) RemoveMember(ctx context.Context, req *connect.Request[telegramv1.RemoveMemberRequest]) (*connect.Response[telegramv1.RemoveMemberResponse], error) {
+	g, m, err := s.a.Telegram.RemoveMember(ctx, req.Msg.Browser, req.Msg.Group, req.Msg.User)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&telegramv1.RemoveMemberResponse{Group: tgGroup(g), Member: tgMember(m)}, nil)
+}
+
+func tgGroup(g *telegram.Group) *telegramv1.Group {
+	return &telegramv1.Group{Id: g.ID, Title: g.Title}
+}
+
+func tgMember(m *telegram.Member) *telegramv1.Member {
+	return &telegramv1.Member{Id: m.ID, Name: m.Name, Username: m.Username}
+}
+
 // ---- ChatGPT -------------------------------------------------------------------------
 
 type chatgptAPI struct{ a *API }
@@ -267,6 +404,8 @@ func siteCode(err error) (connect.Code, bool) {
 		medium.ErrInvalid, medium.ErrTooSoon, medium.ErrNoTitle, medium.ErrNotFound,
 		linkedin.ErrInvalid, linkedin.ErrTooSoon, linkedin.ErrNoTitle, linkedin.ErrNotFound, linkedin.ErrAmbiguous,
 		tiktok.ErrInvalidPost, tiktok.ErrTooSoon, tiktok.ErrTooLate,
+		youtube.ErrInvalidPost, youtube.ErrTooSoon, youtube.ErrNoMatch,
+		telegram.ErrInvalid, telegram.ErrNotFound, telegram.ErrAmbiguous,
 		chatgpt.ErrInvalidPrompt,
 		gemini.ErrInvalidPrompt,
 		claude.ErrInvalidPrompt,
@@ -279,6 +418,8 @@ func siteCode(err error) (connect.Code, bool) {
 		medium.ErrNotSignedIn, medium.ErrBlocked,
 		linkedin.ErrNotSignedIn, linkedin.ErrLanguage,
 		tiktok.ErrNotSignedIn, tiktok.ErrLanguage, tiktok.ErrNeedsHuman,
+		youtube.ErrNotSignedIn, youtube.ErrLanguage, youtube.ErrNotShort, youtube.ErrPublic,
+		telegram.ErrNotSignedIn, telegram.ErrLanguage, telegram.ErrRefused,
 		chatgpt.ErrNotSignedIn, chatgpt.ErrLanguage, chatgpt.ErrRefused,
 		gemini.ErrNotSignedIn, gemini.ErrLanguage, gemini.ErrRefused,
 		claude.ErrNotSignedIn, claude.ErrLanguage, claude.ErrRefused,

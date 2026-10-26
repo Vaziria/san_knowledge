@@ -20,7 +20,7 @@ import (
 func apiCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "api",
-		Usage: "serve the site services (Threads, X, Facebook, Vidara, Medium, LinkedIn, TikTok, ChatGPT, Gemini, Claude) over Connect (gRPC) for other programs, such as the tower; needs a running `san_remote serve`",
+		Usage: "serve the site services (Threads, X, Facebook, Vidara, Medium, LinkedIn, TikTok, YouTube, Telegram, ChatGPT, Gemini, Claude) over Connect (gRPC) for other programs, such as the tower; needs a running `san_remote serve`",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "listen", Value: api.DefaultAddr, Usage: "address to listen on (loopback only)"},
 			&cli.StringFlag{Name: "log-level", Value: "info", Usage: "debug, info, warn or error"},
@@ -52,6 +52,8 @@ func runAPI(ctx context.Context, cmd *cli.Command) error {
 		Medium:   mediumService(cmd),
 		LinkedIn: linkedinService(cmd),
 		TikTok:   tiktokService(cmd),
+		YouTube:  youtubeService(cmd),
+		Telegram: telegramService(cmd),
 		ChatGPT:  chatgptService(cmd),
 		Gemini:   geminiService(cmd),
 		Claude:   claudeService(cmd),
@@ -61,6 +63,7 @@ func runAPI(ctx context.Context, cmd *cli.Command) error {
 	}
 	a.Threads.Progress, a.X.Progress, a.Facebook.Progress, a.Vidara.Progress = progress("threads"), progress("x"), progress("facebook"), progress("vidara")
 	a.Medium.Progress, a.LinkedIn.Progress, a.TikTok.Progress, a.ChatGPT.Progress = progress("medium"), progress("linkedin"), progress("tiktok"), progress("chatgpt")
+	a.YouTube.Progress, a.Telegram.Progress = progress("youtube"), progress("telegram")
 	a.Gemini.Progress, a.Claude.Progress = progress("gemini"), progress("claude")
 
 	// No WriteTimeout: a post takes a minute or two.

@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package san.remote.youtube.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// YouTubeService is the YouTube service (internal/youtube) over Connect,
+// served by `san_remote api` for other programs (the tower's workflows). Like
+// the CLI, it works in a tab of the user's browser, the way a person does in
+// YouTube Studio. A video is never made public at once: it is scheduled, or
+// saved as Private.
+service YouTubeService {
+  // GetStatus says whether the browser is signed in to YouTube, and as whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // UploadVideo uploads a video file of this computer through Studio's
+  // upload dialog, with its title, description and tags, and schedules it,
+  // or saves it as Private: Studio opens in a tab brought to the front, for
+  // as long as the file takes to go up.
+  rpc UploadVideo(UploadVideoRequest) returns (UploadVideoResponse);
+  // ListVideos lists Studio's content list: the Videos tab, then Shorts,
+  // newest first, scheduled ones included.
+  rpc ListVideos(ListVideosRequest) returns (ListVideosResponse);
+  // DeleteVideo deletes a video for good from Studio's content list (its
+  // Options, Delete forever). A Public video is refused unless
+  // allow_public. It cannot be undone.
+  rpc DeleteVideo(DeleteVideoRequest) returns (DeleteVideoResponse);
+  // MakePrivate makes a video Private from Studio's content list (its
+  // visibility, Private, Save); a scheduled one loses its schedule.
+  rpc MakePrivate(MakePrivateRequest) returns (MakePrivateResponse);
+}
+
+// Status is the browser's YouTube session.
+message Status {
+  bool signed_in = 1;
+  // The account's name, and its @handle without the @.
+  string name = 2;
+  string handle = 3;
+}
+
+// Video is a video of Studio's content list.
+message Video {
+  string id = 1;
+  string title = 2;
+  // As the list shows them: "Scheduled", "Private", "Public"; "Nov 13, 2026
+  // Scheduled".
+  string visibility = 3;
+  string date = 4;
+  // Listed under Shorts.
+  bool short = 5;
+  // https://youtube.com/shorts/<id> for a Short, else https://youtu.be/<id>.
+  string url = 6;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message UploadVideoRequest {
+  string browser = 1;
+  // The video: an absolute path of a file on this computer. With file or
+  // markdown it may be empty, for the frontmatter's video.
+  string video = 2;
+  // Up to 100 characters, without < or >.
+  string title = 3;
+  // Plain text, newlines kept; up to 5000 bytes, without < or >.
+  string description = 4;
+  repeated string tags = 5;
+  // When YouTube makes it public: at least 15 minutes ahead. Unset saves it
+  // as Private. With file or markdown it may be unset, for the frontmatter's
+  // at.
+  google.protobuf.Timestamp at = 6;
+  // It is meant as a Short: a vertical or square video of at most 3 minutes,
+  // which YouTube makes a Short by itself. The upload fails when Studio lists
+  // it under Videos instead (it is saved all the same).
+  bool short = 7;
+  // Instead of title and description: the video's markdown file, an
+  // absolute path on this computer, read as `san_remote youtube upload`
+  // reads one (frontmatter video, relative to it, tags, at and short; the
+  // first `# ` heading the title, the rest the description).
+  string file = 8;
+  // Instead of title and description: the video as markdown text, read as a
+  // file is; a video named in it needs an absolute path.
+  string markdown = 9;
+}
+
+message UploadVideoResponse {
+  Video video = 1;
+  // Where to edit it in Studio.
+  string studio = 2;
+  string channel = 3;
+  google.protobuf.Timestamp at = 4;
+}
+
+message ListVideosRequest {
+  string browser = 1;
+}
+
+message ListVideosResponse {
+  repeated Video videos = 1;
+}
+
+message DeleteVideoRequest {
+  string browser = 1;
+  // The video's id, or a link to it (youtu.be/<id>, youtube.com/shorts/<id>,
+  // watch?v=<id>, studio.youtube.com/video/<id>/edit).
+  string video = 2;
+  // Delete it even when it is Public.
+  bool allow_public = 3;
+}
+
+message DeleteVideoResponse {
+  // The video as the list showed it before it was deleted.
+  Video video = 1;
+}
+
+message MakePrivateRequest {
+  string browser = 1;
+  // The video's id, or a link to it.
+  string video = 2;
+}
+
+message MakePrivateResponse {
+  // The video as the list shows it afterwards.
+  Video video = 1;
+}

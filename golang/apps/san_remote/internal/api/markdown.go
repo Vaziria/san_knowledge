@@ -18,10 +18,12 @@ import (
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	tiktokv1 "github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1"
 	xv1 "github.com/wargasipil/san_remote/gen/san/remote/x/v1"
+	youtubev1 "github.com/wargasipil/san_remote/gen/san/remote/youtube/v1"
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/x"
+	"github.com/wargasipil/san_remote/internal/youtube"
 )
 
 // ---- Posts in markdown -----------------------------------------------------------------
@@ -284,4 +286,60 @@ func relativeImage(md string) string {
 		return ast.WalkStop, nil
 	})
 	return found
+}
+
+// youtubePostOf reads an UploadVideo request: its title and description, or
+// a markdown file or text (`# ` title, then the description); video, tags,
+// at and short given in the request win over the frontmatter's.
+func youtubePostOf(m *youtubev1.UploadVideoRequest) (*youtube.Post, error) {
+	md, err := markdownOf(m.File, m.Markdown, strings.TrimSpace(m.Title) != "")
+	if err != nil {
+		return nil, err
+	}
+	video, file := strings.TrimSpace(m.Video), strings.TrimSpace(m.File)
+	if video != "" || !md {
+		if err := absolute("video", video); err != nil {
+			return nil, err
+		}
+	}
+	p := &youtube.Post{Title: strings.TrimSpace(m.Title), Description: strings.TrimSpace(m.Description)}
+	switch {
+	case !md:
+	case file != "" && video != "":
+		b, err := os.ReadFile(file)
+		if err != nil {
+			return nil, parsed(fmt.Errorf("youtube: %w", err))
+		}
+		if p, err = youtube.Parse(b); err != nil {
+			return nil, parsed(fmt.Errorf("%s: %w", file, err))
+		}
+	case file != "":
+		if p, err = youtube.ParseFile(file); err != nil {
+			return nil, parsed(err)
+		}
+	default:
+		if p, err = youtube.Parse([]byte(m.Markdown)); err != nil {
+			return nil, parsed(err)
+		}
+		if video == "" {
+			if p.Video == "" {
+				return nil, invalid("no video: give video, or video: in the markdown")
+			}
+			if err := absoluteIn("video", p.Video); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if video != "" {
+		p.Video = video
+	}
+	if tags := youtube.SplitTags(m.Tags...); len(tags) > 0 {
+		p.Tags = tags
+	}
+	p.Short = p.Short || m.Short
+	p.Browser = m.Browser
+	if p.At, err = atOr(m.At, p.At); err != nil {
+		return nil, err
+	}
+	return p, nil
 }

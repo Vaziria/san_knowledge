@@ -28,6 +28,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/telegram/v1/telegramv1connect"
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/threads/v1/threadsv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1/tiktokv1connect"
@@ -37,6 +38,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/vidara/v1/vidarav1connect"
 	xv1 "github.com/wargasipil/san_remote/gen/san/remote/x/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/x/v1/xv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/youtube/v1/youtubev1connect"
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/facebook"
@@ -44,10 +46,12 @@ import (
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
+	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/vidara"
 	"github.com/wargasipil/san_remote/internal/x"
+	"github.com/wargasipil/san_remote/internal/youtube"
 )
 
 // DefaultAddr is where `san_remote api` listens: serve is on 7476 and the
@@ -66,6 +70,8 @@ type API struct {
 	Medium   *medium.Service
 	LinkedIn *linkedin.Service
 	TikTok   *tiktok.Service
+	YouTube  *youtube.Service
+	Telegram *telegram.Service
 	ChatGPT  *chatgpt.Service
 	Gemini   *gemini.Service
 	Claude   *claude.Service
@@ -83,6 +89,8 @@ func (a *API) Handler() http.Handler {
 	mux.Handle(mediumv1connect.NewMediumServiceHandler(mediumAPI{a}))
 	mux.Handle(linkedinv1connect.NewLinkedInServiceHandler(linkedinAPI{a}))
 	mux.Handle(tiktokv1connect.NewTikTokServiceHandler(tiktokAPI{a}))
+	mux.Handle(youtubev1connect.NewYouTubeServiceHandler(youtubeAPI{a}))
+	mux.Handle(telegramv1connect.NewTelegramServiceHandler(telegramAPI{a}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatgptAPI{a}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAPI{a}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeAPI{a}))

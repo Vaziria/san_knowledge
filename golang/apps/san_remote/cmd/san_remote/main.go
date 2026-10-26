@@ -77,7 +77,7 @@ func root(in io.Reader, out io.Writer) *cli.Command {
 			serveCommand(), browsersCommand(), tabsCommand(), execCommand(),
 			openCommand(), navigateCommand(), closeCommand(), focusCommand(), screenshotCommand(),
 			threadsCommand(), vidaraCommand(), facebookCommand(), xCommand(),
-			mediumCommand(), linkedinCommand(), tiktokCommand(), chatgptCommand(), geminiCommand(), claudeCommand(), mcpCommand(), apiCommand(),
+			mediumCommand(), linkedinCommand(), tiktokCommand(), youtubeCommand(), telegramCommand(), chatgptCommand(), geminiCommand(), claudeCommand(), mcpCommand(), apiCommand(),
 		},
 	}
 }
@@ -375,8 +375,8 @@ func mcpCommand() *cli.Command {
 			// stdout carries only JSON-RPC.
 			s := &mcp.Server{
 				Client: client(cmd), Threads: threadsService(cmd), Vidara: vidaraService(cmd), Facebook: facebookService(cmd), X: xService(cmd),
-				Medium: mediumService(cmd), LinkedIn: linkedinService(cmd), TikTok: tiktokService(cmd), ChatGPT: chatgptService(cmd),
-				Gemini: geminiService(cmd), Claude: claudeService(cmd),
+				Medium: mediumService(cmd), LinkedIn: linkedinService(cmd), TikTok: tiktokService(cmd), YouTube: youtubeService(cmd), ChatGPT: chatgptService(cmd),
+				Gemini: geminiService(cmd), Claude: claudeService(cmd), Telegram: telegramService(cmd),
 				Server: cmd.String("server"), Version: version,
 			}
 			return s.Serve(ctx, cmd.Root().Reader, cmd.Root().Writer)

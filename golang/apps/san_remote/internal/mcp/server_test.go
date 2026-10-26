@@ -51,7 +51,7 @@ func TestServe(t *testing.T) {
 	if init["protocolVersion"] != "2025-03-26" || !strings.Contains(init["instructions"].(string), "remote_exec") {
 		t.Errorf("initialize %v", init)
 	}
-	if n := len(replies[1]["result"].(map[string]any)["tools"].([]any)); n != 57 {
+	if n := len(replies[1]["result"].(map[string]any)["tools"].([]any)); n != 69 {
 		t.Errorf("%d tools", n)
 	}
 	text := func(i int) (string, bool) {

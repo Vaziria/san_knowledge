@@ -29,10 +29,12 @@ import (
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
+	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/vidara"
 	"github.com/wargasipil/san_remote/internal/x"
+	"github.com/wargasipil/san_remote/internal/youtube"
 )
 
 type Server struct {
@@ -51,6 +53,8 @@ type Server struct {
 	Medium   *medium.Service
 	LinkedIn *linkedin.Service
 	TikTok   *tiktok.Service
+	YouTube  *youtube.Service
+	Telegram *telegram.Service
 	ChatGPT  *chatgpt.Service
 	Gemini   *gemini.Service
 	Claude   *claude.Service
@@ -420,12 +424,21 @@ type args struct {
 	Topics       []string `json:"topics"`
 	RemoveTopics []string `json:"remove_topics"`
 	Video        string   `json:"video"`
+	Description  string   `json:"description"`
+	Tags         []string `json:"tags"`
+	Short        bool     `json:"short"`
+	AllowPublic  bool     `json:"allow_public"`
 	Caption      string   `json:"caption"`
 	When         string   `json:"when"`
 	Prompt       string   `json:"prompt"`
 	Keep         bool     `json:"keep"`
 	Chat         string   `json:"chat"`
 	WaitSeconds  int32    `json:"wait_seconds"`
+	// telegram_*
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Group    string `json:"group"`
+	User     string `json:"user"`
 }
 
 // Call runs one tool and returns its content: text, or for
@@ -461,6 +474,10 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.linkedin(ctx, name, a)
 	case strings.HasPrefix(name, "tiktok_"):
 		text, err = s.tiktok(ctx, name, a)
+	case strings.HasPrefix(name, "youtube_"):
+		text, err = s.youtube(ctx, name, a)
+	case strings.HasPrefix(name, "telegram_"):
+		text, err = s.telegram(ctx, name, a)
 	case strings.HasPrefix(name, "chatgpt_"):
 		text, err = s.chatgpt(ctx, name, a)
 	case strings.HasPrefix(name, "gemini_"):

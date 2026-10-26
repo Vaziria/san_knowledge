@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package san.remote.telegram.v1;
+
+// TelegramService is the Telegram service (internal/telegram) over Connect,
+// served by `san_remote api` for other programs (the tower's workflows). It
+// works in Telegram Web (web.telegram.org/k) in the user's browser, as the
+// user's account, the way a person does there: bots through the chat with
+// @BotFather, groups from Telegram Web's menus and a group's profile. Each
+// call brings Chrome to the front with a tab of its own, since Telegram Web
+// does not start in a tab that is not shown.
+service TelegramService {
+  // GetStatus says whether the browser is signed in to Telegram Web, and as
+  // whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // CreateBot asks @BotFather for a new bot (/newbot) and returns it with
+  // its token. @BotFather's refusal, such as a username taken, is
+  // FailedPrecondition with what it said.
+  rpc CreateBot(CreateBotRequest) returns (CreateBotResponse);
+  // DeleteBot deletes one of the account's bots through @BotFather
+  // (/deletebot). It cannot be undone.
+  rpc DeleteBot(DeleteBotRequest) returns (DeleteBotResponse);
+  // CreateGroup makes a group with no other members yet (New Group).
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  // DeleteGroup deletes a group of the account's for all its members. A
+  // group the account may only leave is FailedPrecondition. It cannot be
+  // undone.
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse);
+  // AddMember adds a user to a group, by username, from the group's profile
+  // (Add Members). A user already in it is left as they are.
+  rpc AddMember(AddMemberRequest) returns (AddMemberResponse);
+  // RemoveMember removes a user from a group, by username (the member's
+  // Remove from group).
+  rpc RemoveMember(RemoveMemberRequest) returns (RemoveMemberResponse);
+}
+
+// Status is the browser's Telegram Web session.
+message Status {
+  bool signed_in = 1;
+  // The account's name, and its @username without the @.
+  string name = 2;
+  string username = 3;
+}
+
+// Bot is a bot @BotFather made.
+message Bot {
+  string name = 1;
+  // Without the @.
+  string username = 2;
+  // The bot's token for the Bot API: a secret.
+  string token = 3;
+  // https://t.me/<username>.
+  string link = 4;
+}
+
+// Group is a group of the account's.
+message Group {
+  // Its chat id as Telegram Web has it, such as -5012345678. A basic
+  // group's (what CreateGroup makes) is the id the Bot API uses too.
+  string id = 1;
+  string title = 2;
+}
+
+// Member is a user of a group.
+message Member {
+  string id = 1;
+  string name = 2;
+  // Without the @.
+  string username = 3;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message CreateBotRequest {
+  string browser = 1;
+  // The bot's name, up to 64 characters.
+  string name = 2;
+  // Its username, with or without the @: 5 to 32 letters, digits and _,
+  // ending in "bot".
+  string username = 3;
+}
+
+message CreateBotResponse {
+  Bot bot = 1;
+}
+
+message DeleteBotRequest {
+  string browser = 1;
+  // The bot's username, with or without the @, or its t.me link.
+  string username = 2;
+}
+
+message DeleteBotResponse {}
+
+message CreateGroupRequest {
+  string browser = 1;
+  // Up to 128 characters.
+  string title = 2;
+}
+
+message CreateGroupResponse {
+  Group group = 1;
+}
+
+message DeleteGroupRequest {
+  string browser = 1;
+  // The group's id (-5012345678), or its title when only one of the
+  // account's groups has it.
+  string group = 2;
+}
+
+message DeleteGroupResponse {
+  Group group = 1;
+}
+
+message AddMemberRequest {
+  string browser = 1;
+  // The group's id, or its title.
+  string group = 2;
+  // The user's username, with or without the @, or their t.me link.
+  string user = 3;
+}
+
+message AddMemberResponse {
+  Group group = 1;
+  Member member = 2;
+}
+
+message RemoveMemberRequest {
+  string browser = 1;
+  // The group's id, or its title.
+  string group = 2;
+  // The member's username, with or without the @, or their t.me link.
+  string user = 3;
+}
+
+message RemoveMemberResponse {
+  Group group = 1;
+  Member member = 2;
+}

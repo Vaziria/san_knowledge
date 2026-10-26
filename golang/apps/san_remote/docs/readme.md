@@ -181,6 +181,16 @@ rebuilding, reconnect with `/mcp`.
 | `tiktok_status`, `tiktok_posts` | browser |
 | `tiktok_post` | file, or video with caption; at or now, browser |
 | `tiktok_delete` | caption, when, browser |
+| `youtube_status`, `youtube_videos` | browser |
+| `youtube_upload` | file, or video with title; description, tags, at, short, browser |
+| `youtube_private` | video (id or link), browser |
+| `youtube_delete` | video (id or link); allow_public, browser |
+| `telegram_status` | browser |
+| `telegram_create_bot` | name, username; browser |
+| `telegram_delete_bot` | username, browser |
+| `telegram_create_group` | title, browser |
+| `telegram_delete_group` | group (id or title), browser |
+| `telegram_add_member`, `telegram_remove_member` | group, user (username), browser |
 | `chatgpt_status` | browser |
 | `chatgpt_ask` | prompt; keep, chat, wait_seconds, browser |
 | `gemini_status` | browser |
@@ -197,7 +207,9 @@ an ad. For Facebook they say to post only what you asked for, where you
 asked, and to ask before a delete. For X, as for Threads, they say to
 schedule or post only what you asked for, and never now unless you asked.
 For Medium, LinkedIn and TikTok they say that nothing is published at once,
-to post only what you asked for, and to ask before a delete. For ChatGPT
+to post only what you asked for, and to ask before a delete. For Telegram
+they say the bot token is a secret not to repeat in chat, and to ask before
+a delete, a removal or adding someone to a group. For ChatGPT
 and Gemini they say a new chat is a Temporary chat unless `keep` is set, and
 for Claude an incognito chat.
 
@@ -224,6 +236,8 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.medium.v1.MediumService` | GetStatus, CreateDraft (an absolute article file, or its markdown; with `at`, scheduled too, with topics), ScheduleDraft, ListDrafts, ListScheduled |
 | `san.remote.linkedin.v1.LinkedInService` | GetStatus, CreateDraft (an absolute article file, or its markdown, and cover; with `at`, scheduled too, shared with `text`), ScheduleDraft, ListDrafts, ListScheduled |
 | `san.remote.tiktok.v1.TikTokService` | GetStatus, SchedulePost (an absolute video file, for Everyone; the caption, or a markdown file or text), ListPosts |
+| `san.remote.youtube.v1.YouTubeService` | GetStatus, UploadVideo (an absolute video file; scheduled, or saved as Private; `short`), ListVideos, DeleteVideo (never a Public one unless `allow_public`), MakePrivate |
+| `san.remote.telegram.v1.TelegramService` | GetStatus, CreateBot (through @BotFather; the bot with its token), DeleteBot, CreateGroup (the group's id), DeleteGroup, AddMember, RemoveMember (a group by id or title, a user by username) |
 | `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat) |
 | `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat) |
 | `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat) |
@@ -614,7 +628,11 @@ drawn from, so nothing is clicked and nothing changes on the account.
   missing: `<id>-1.mp4`, `<id>-2.jpg`, in the post's order. A photo is its
   original size, a video or GIF its best mp4 (the 1080p one where there is
   one). They come from X's media servers, which need no sign-in. A file of
-  the same name is replaced.
+  the same name is replaced. A connection that breaks while a file comes
+  (2026-10-27: several downloads at once share one connection to
+  video.twimg.com, and a reset killed them all) is opened again, up to 4
+  tries 2, 4 and 8 s apart, going on from the byte it broke at; a file X
+  will not give (404) is not asked again.
 - **Caption** is the post's text: a long post's whole text, links written
   out, the link to its own media dropped. **Tags** are its hashtags (X's
   own, else the `#words` in the caption).
@@ -801,6 +819,186 @@ Baris kedua #gamedev
 `post` and `delete` bring Chrome to the front; `status` and `posts` read in
 a background tab. A failed step stops with a screenshot:
 `san_remote-tiktok-150405.png`.
+
+## YouTube
+
+`san_remote youtube` uploads your videos, and Shorts, through YouTube
+Studio, in your browser's YouTube session (2026-10-26). It is the Studio
+uploader of [san_youtube](../../../packages/san_youtube/README.md) on your
+own browser: its flow and selectors (found 2026-10-13 with chromedp), with
+the clicks and typing done from the page (`youtube.js`):
+- **upload** goes to youtube.com, presses Create, then Upload video, gives
+  the dialog the video, types the title and description, answers "not made
+  for kids", adds the tags, presses Next to Visibility, and schedules it
+  (`--at`) or saves it as Private. A video is never public at once. It
+  waits for the file to go up, then finds the video in Studio's content
+  list.
+- **videos** lists Studio's content list: the Videos tab, then Shorts.
+- **private** makes a video Private from the content list (its visibility,
+  Private, Save); a scheduled one loses its schedule.
+- **delete** deletes a video for good from the content list (the row's
+  Options, Delete forever, "I understand…", Delete forever). A Public video
+  is refused unless `--allow-public`. It cannot be undone.
+- **status** says who is signed in (the account menu's name and @handle).
+
+```powershell
+bin\san_remote.exe youtube status                         # signed in as Heri Santoso (@herisantoso)
+bin\san_remote.exe youtube upload --dry-run video.md      # the video, kind, when, title, tags; opens nothing
+bin\san_remote.exe youtube upload video.md                # https://youtu.be/<id>  Scheduled  Nov 13, 2026 …
+bin\san_remote.exe youtube upload --video clip.mp4 --title "Uji" --tags "a, b" --short --at "2026-11-03 19:00"
+bin\san_remote.exe youtube videos                         # KIND, VISIBILITY, DATE, URL, TITLE
+bin\san_remote.exe youtube private https://youtu.be/<id>   # makes it Private
+bin\san_remote.exe youtube delete <id>                    # deletes it for good (not a Public one)
+```
+
+**The post file** is san_youtube's: frontmatter `video:` (relative to the
+file), `tags:` (a list, or one line with commas), `at:` and `short:`, then a
+`# ` title and the description.
+
+```markdown
+---
+video: renders/clip.mp4
+tags: [raspberry pi, radio 24 jam]
+at: 2026-11-03 19:00
+short: true
+---
+
+# Judul video
+
+Deskripsinya, sebagai teks biasa.
+```
+
+- **`at`** is local time on a quarter hour (:00, :15, :30, :45), at least
+  15 minutes ahead; without it the video is saved as Private. Studio's
+  "Local Time" is the browser's: its offset at that time must be this
+  computer's. The day is picked in Studio's calendar (a scrolling list of
+  months, `div.calendar-month[aria-label="Nov 2026"]`, days
+  `span.calendar-day`) and the time in its list of 96 quarter hours
+  (`tp-yt-paper-item` "7:00 PM"): a date or time typed in the box with an
+  Enter from the page did not take (2026-10-27). Studio shows the time with
+  a narrow no-break space, U+202F ("7:00 PM"), which is read as a space.
+- **A Short** is not a setting: YouTube makes a vertical or square video of
+  at most 3 minutes a Short by itself. `--short` (or `short: true`) makes
+  the upload fail when Studio lists the video under Videos instead; it is
+  saved all the same, private or scheduled.
+- **Limits** are checked before any browser opens: a title of up to 100
+  characters, a description of up to 5000 bytes, tags of up to 500
+  characters as Studio counts them, no `<` or `>`.
+- **The file** goes to the dialog's file input through a DataTransfer, in 4
+  MB pieces, as for TikTok: the dialog's Select files opens a file chooser
+  a page cannot answer.
+- Studio must be in English: the schedule's date and time are typed as it
+  shows them ("Nov 13, 2026", "7:05 PM") and read back.
+- Once Studio has made the video, an error names it (its Studio link): it
+  is kept as Private, to finish or delete there.
+
+- **private** and **delete** take the video's id or a link (youtu.be,
+  youtube.com/shorts, watch?v=, its Studio link). They read the newest page
+  of the Videos and the Shorts tabs. A row renders its actions (Details,
+  Analytics, Comments, View on YouTube, Options) only once a mouseover
+  reaches its inner elements, so the tool sends one to each; Options is the
+  `ytcp-icon-button` named Options, and its menu's Delete forever is
+  `tp-yt-paper-item[test-id=delete]`. Live-tested on 2026-10-27: a 5-second
+  vertical clip uploaded with `--short` was listed under Shorts as Private
+  (youtube.com/shorts/…), then deleted (the box "I understand…" ticked,
+  Delete forever pressed, the row gone). A draft (an upload never saved)
+  asks with "Delete draft video" instead. The visibility choice is
+  `ytcp-video-visibility-edit-popup`: a scheduled video's opens on
+  Schedule, with "Save or publish" folded (`#first-container-expand-button`)
+  and its radio buttons drawn only once it is open; Private, then
+  `#save-button`. Live-tested the same night: a 4-minute 1280x720 video
+  scheduled for a week ahead (listed under Videos as Scheduled), the
+  tower's Last Scheduled Post finding it, then made Private and deleted.
+
+`upload`, `videos`, `private` and `delete` bring Chrome to the front
+(each opens the upload dialog and closes it, to reach the content list as a
+person does);
+`status` reads in a background tab. A failed step stops with a screenshot:
+`san_remote-youtube-150405.png`.
+
+## Telegram
+
+`san_remote telegram` works in Telegram Web (web.telegram.org/k) in your
+browser, as your own account, the way you would there (2026-10-27: the
+tower's Telegram nodes for bots and groups go through San Remote, not a
+Telegram API). The steps are in Go (`internal/telegram/service.go`) and the
+page knowledge in `telegram.js`, found in your signed-in Telegram Web and in
+the client's source ([tweb](https://github.com/morethanwords/tweb)):
+- **create-bot** opens the chat with @BotFather (from the chat list, or the
+  search), sends `/newbot`, the name and the username, and reads the token
+  out of @BotFather's "Done!". A refusal (a username taken or invalid, too
+  many bots) fails with what @BotFather said, and `/cancel` ends its
+  conversation.
+- **delete-bot** sends `/deletebot`, the bot's @username, and the phrase
+  @BotFather asks for ("Yes, I am totally sure."). A bot that is not yours
+  is refused. It cannot be undone.
+- **create-group** presses New Chats (the pencil), New Group, Next past Add
+  Members (no members yet), types the name and presses Next; it prints the
+  new group's id.
+- **delete-group** opens the group, its More menu, Delete Group, ticks
+  "Delete for all members" and presses Delete group. When the menu only
+  offers Leave Group, or the popup has no "Delete for all members", the
+  group is not yours and nothing is done. It cannot be undone.
+- **add-member** opens the group's profile (its title bar), Members, the
+  Add Members button, searches the username, ticks the user, Next, Add. A
+  user already in the group is left as they are. A user whose privacy
+  settings keep them out of groups fails with Telegram's message (a toast,
+  or its "Invite via Link" offer, which is closed).
+- **remove-member** opens the group's profile, finds the member (scrolling
+  for a big group's), and right-clicks them: Remove from group.
+- **status** says who is signed in.
+
+```powershell
+bin\san_remote.exe telegram status                                  # signed in as Heri Santoso (@…)
+bin\san_remote.exe telegram create-bot "San Test" san_test_bot      # @san_test_bot  https://t.me/san_test_bot  San Test, then the token
+bin\san_remote.exe telegram delete-bot @san_test_bot
+bin\san_remote.exe telegram create-group "San Tower Test"           # -5012345678  San Tower Test
+bin\san_remote.exe telegram add-member -5012345678 @someone
+bin\san_remote.exe telegram remove-member "San Tower Test" @someone
+bin\san_remote.exe telegram delete-group -5012345678
+```
+
+- **A group** is its id (what create-group prints, `-5012345678`) or its
+  title, which must be one of your groups' only: the search's results are
+  checked against what the page knows (a group you are in, not a channel),
+  so a public group of the same title does not count, and two of yours are
+  an error that lists their ids. A basic group's id (what create-group
+  makes) is also its chat id for the Bot API, and so for the tower's
+  Telegram Send.
+- **Users and bots** are usernames, with or without the @, or a t.me link.
+  A row shows a name, not a username: the username of each row is read in
+  the page's own world (`rootScope.managers`, `getPeerUsername`), which is
+  also how the tool checks it talks to the real @BotFather (user 93372553)
+  and not a look-alike the search also finds.
+- **The token** is printed last, on a line of its own; the MCP tool returns
+  it too. It is a secret.
+- Telegram Web does not start in a tab that is not shown (its chat list
+  stayed empty, its account id 0, and reading the account never returned),
+  so every command, status too, brings Chrome to the front with a tab of
+  its own. A Telegram Web tab of yours goes on working beside it.
+- A chat row opens on a mouse button going down, so rows and menus get a
+  whole press (mousedown, mouseup, click); buttons a click. The message box
+  is a ProseMirror editor that takes `execCommand('insertText')`; the send
+  button sends once it shows its send state (it records voice messages while
+  the box is empty).
+- The interface must be in English: the steps press menu items and buttons
+  by their names (New Group, Delete Group, Remove from group, Add), in any
+  case, since a popup draws its buttons in capitals ("ADD") and the page
+  reports them so.
+- Add Members clears its search once a user is ticked, so the tick is read
+  from the chip above the search (`.selector-user[data-key]`). The delete
+  popup's "Delete for all members" is a row (`label.popup-peer-checkbox-row`,
+  its name in `.row-title`). A delete is confirmed by what the page knows of
+  the group (Telegram marks it deactivated), not by the screen.
+
+Live-tested on 2026-10-27, as the account the browser is signed in to: a
+bot made (@BotFather's token read, 46 characters), a group made, the bot
+added to it by the group's id and removed by its title (the bot had the
+same name: only the group counted), the group deleted for all members, a
+second group made and deleted by title, the bot deleted, and deleting it
+again refused as not one of the account's bots.
+
+A failed step stops with a screenshot: `san_remote-telegram-150405.png`.
 
 ## ChatGPT
 

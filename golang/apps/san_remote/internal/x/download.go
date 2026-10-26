@@ -241,25 +241,27 @@ func extOf(u, typ string) string {
 }
 
 // fetch saves u at file, through a .part file beside it, so a failed
-// download leaves nothing.
+// download leaves nothing. A connection that breaks is opened again, up to
+// fetchTries times, going on from where it broke when the server allows
+// (the user, 2026-10-27: downloads of several posts at once shared one
+// connection to video.twimg.com, and died together when it was reset).
 func fetch(ctx context.Context, u, file string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
-	if err != nil {
-		return err
-	}
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode/100 != 2 {
-		return fmt.Errorf("x: %s: %s", u, res.Status)
-	}
 	f, err := os.CreateTemp(filepath.Dir(file), filepath.Base(file)+".*.part")
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(f, res.Body)
+	var have int64 // bytes in f
+	for try := 1; ; try++ {
+		var again bool
+		have, again, err = fetchFrom(ctx, u, f, have)
+		if err == nil || !again || try == fetchTries || ctx.Err() != nil {
+			break
+		}
+		select {
+		case <-ctx.Done():
+		case <-time.After(fetchWait << (try - 1)):
+		}
+	}
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
@@ -271,4 +273,54 @@ func fetch(ctx context.Context, u, file string) error {
 		return fmt.Errorf("x: %s: %w", u, err)
 	}
 	return nil
+}
+
+// A download tries fetchTries times, waiting fetchWait, then twice as
+// long, between tries.
+var (
+	fetchTries = 4
+	fetchWait  = 2 * time.Second
+)
+
+// fetchFrom writes u into f from byte have on, asking only for the rest when
+// have is not 0, and says how many bytes f has then, and whether a failure
+// may pass if asked again: a broken connection or a server error may, a
+// file that is not there (4xx) does not.
+func fetchFrom(ctx context.Context, u string, f *os.File, have int64) (int64, bool, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return have, false, err
+	}
+	if have > 0 {
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", have))
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return have, true, err
+	}
+	defer res.Body.Close()
+	switch {
+	case have > 0 && res.StatusCode == http.StatusPartialContent && strings.HasPrefix(res.Header.Get("Content-Range"), fmt.Sprintf("bytes %d-", have)):
+		// the rest
+	case res.StatusCode == http.StatusOK || res.StatusCode == http.StatusPartialContent:
+		// the whole file again
+		if err := f.Truncate(0); err != nil {
+			return have, false, err
+		}
+		if _, err := f.Seek(0, io.SeekStart); err != nil {
+			return have, false, err
+		}
+		have = 0
+		if res.StatusCode == http.StatusPartialContent {
+			return 0, true, fmt.Errorf("the server sent another part than asked: %s", res.Header.Get("Content-Range"))
+		}
+	default:
+		return have, res.StatusCode >= 500 || res.StatusCode == http.StatusTooManyRequests, errors.New(res.Status)
+	}
+	n, err := io.Copy(f, res.Body)
+	have += n
+	if err == nil && res.ContentLength >= 0 && n < res.ContentLength {
+		err = io.ErrUnexpectedEOF
+	}
+	return have, err != nil, err
 }

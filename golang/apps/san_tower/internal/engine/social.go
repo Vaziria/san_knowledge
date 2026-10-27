@@ -302,6 +302,19 @@ var socialKinds = []*kind{
 		},
 		run: lastScheduledPost,
 	},
+	{
+		// The user, 2026-10-27: "add node for getting post count at input
+		// date in X" (postcount.go).
+		StepKind: &v1.StepKind{
+			Kind: "post-count", Title: "Post Count", Category: "Social",
+			Description: "Counts a site's posts on Date through San Remote: a day in the tower's local time (2026-10-28; a datetime counts its day; empty: today). List picks Scheduled, Published or Both. Count is the total, Scheduled and Published each list's count, Posts the posts counted, each with its list. Published reads the latest 100 posts.",
+			Outputs: []*v1.Socket{sock("Done", Event), sock("Count", Text), sock("Scheduled", Text), sock("Published", Text),
+				sock("Posts", Object), sock("Date", Text)},
+			Settings: []*v1.Setting{connectionSetting(), {Name: "Site", Options: countSites}, {Name: "List", Options: []string{"Both", "Scheduled", "Published"}}},
+			Inputs:   []*v1.Socket{sock("Event", Event), {Name: "Date", Type: Text, Field: true}},
+		},
+		run: postCount,
+	},
 }
 
 // scheduleSites are the sites with scheduled posts.
@@ -385,6 +398,12 @@ func lastOf(n int, at func(i int) time.Time) int {
 // nil when the list has no times). kind is "Scheduled", "Published" or
 // "Drafts"; Vidara lists the account's videos whatever it is.
 func (c *call) listPosts(site, kind string) ([]proto.Message, func(i int) time.Time, error) {
+	return c.listPostsUpTo(site, kind, 0)
+}
+
+// listPostsUpTo is listPosts reading up to limit published posts on X and
+// Threads (0: San Remote's default, 10).
+func (c *call) listPostsUpTo(site, kind string, limit int) ([]proto.Message, func(i int) time.Time, error) {
 	r, err := c.sanRemote()
 	if err != nil {
 		return nil, nil, err
@@ -406,7 +425,7 @@ func (c *call) listPosts(site, kind string) ([]proto.Message, func(i int) time.T
 				at = func(i int) time.Time { return res.Msg.Posts[i].GetAt().AsTime() }
 			}
 		} else {
-			res, e := r.threads.ListPosts(c.ctx, connect.NewRequest(&threadsv1.ListPostsRequest{}))
+			res, e := r.threads.ListPosts(c.ctx, connect.NewRequest(&threadsv1.ListPostsRequest{Limit: uint32(limit)}))
 			if err = e; err == nil {
 				for _, p := range res.Msg.Posts {
 					items = append(items, p)
@@ -424,7 +443,7 @@ func (c *call) listPosts(site, kind string) ([]proto.Message, func(i int) time.T
 				at = func(i int) time.Time { return res.Msg.Threads[i].GetAt().AsTime() }
 			}
 		} else {
-			res, e := r.x.ListPosts(c.ctx, connect.NewRequest(&xv1.ListPostsRequest{}))
+			res, e := r.x.ListPosts(c.ctx, connect.NewRequest(&xv1.ListPostsRequest{Limit: uint32(limit)}))
 			if err = e; err == nil {
 				for _, p := range res.Msg.Posts {
 					items = append(items, p)

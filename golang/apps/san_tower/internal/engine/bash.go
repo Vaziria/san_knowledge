@@ -1,9 +1,11 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -48,21 +50,64 @@ func bashStep(c *call) error {
 	if err != nil {
 		return err
 	}
-	timeout := 5 * time.Minute
-	if s := c.setting("Timeout"); s != "" {
-		if timeout, err = time.ParseDuration(s); err != nil || timeout <= 0 || timeout > 24*time.Hour {
-			return fmt.Errorf("Timeout %q: give a duration such as 30s, 5m or 2h, up to 24h", s)
-		}
-	}
-	bash, err := bashPath()
+	timeout, err := c.timeout()
 	if err != nil {
 		return err
+	}
+	res, err := runScript(c.ctx, script, c.text("Input"), dir, timeout, nil)
+	if err != nil {
+		return err
+	}
+	if res.timedOut {
+		return fmt.Errorf("stopped after the Timeout, %s%s", timeout, tail(res.stderr))
+	}
+	c.outputs["Stdout"] = stringValue(trimNewline(res.stdout))
+	c.outputs["Stderr"] = stringValue(trimNewline(res.stderr))
+	c.outputs["Exit Code"] = stringValue(strconv.Itoa(res.code))
+	c.logs = append(c.logs, fmt.Sprintf("exit %d after %s, in %s", res.code, res.took, filepath.ToSlash(dir)))
+	if res.code != 0 && c.setting("Non-zero Exit") != "Goes On" {
+		return fmt.Errorf("exit code %d%s", res.code, tail(res.stderr))
+	}
+	c.fire("Done")
+	return nil
+}
+
+// timeout is the step's Timeout setting, 5m when not set.
+func (c *call) timeout() (time.Duration, error) {
+	s := c.setting("Timeout")
+	if s == "" {
+		return 5 * time.Minute, nil
+	}
+	timeout, err := time.ParseDuration(s)
+	if err != nil || timeout <= 0 || timeout > 24*time.Hour {
+		return 0, fmt.Errorf("Timeout %q: give a duration such as 30s, 5m or 2h, up to 24h", s)
+	}
+	return timeout, nil
+}
+
+// scriptResult is what a script gave: its output, its exit code, and how
+// long it took; timedOut when it was stopped after its timeout.
+type scriptResult struct {
+	stdout, stderr string
+	code           int
+	took           time.Duration
+	timedOut       bool
+}
+
+// runScript runs script with bash in dir, with input on its standard
+// input, and stops it, with what it started, after timeout. An exit code
+// other than 0 is not an error; ctx ending is. When onLine is set, it gets
+// each line of stdout and stderr as it comes (from two goroutines).
+func runScript(ctx context.Context, script, input, dir string, timeout time.Duration, onLine func(string)) (scriptResult, error) {
+	bash, err := bashPath()
+	if err != nil {
+		return scriptResult{}, err
 	}
 	// The script goes through a file, not -c: on Windows a command line
 	// with quotes and newlines does not come out whole on the other side.
 	f, err := os.CreateTemp("", "san_tower-*.sh")
 	if err != nil {
-		return err
+		return scriptResult{}, err
 	}
 	defer os.Remove(f.Name())
 	_, err = f.WriteString(strings.ReplaceAll(script, "\r\n", "\n"))
@@ -70,46 +115,44 @@ func bashStep(c *call) error {
 		err = cerr
 	}
 	if err != nil {
-		return err
+		return scriptResult{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(c.ctx, timeout)
+	tctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, bash, filepath.ToSlash(f.Name()))
+	cmd := exec.CommandContext(tctx, bash, filepath.ToSlash(f.Name()))
 	cmd.Dir = dir
-	cmd.Stdin = strings.NewReader(c.text("Input"))
+	cmd.Stdin = strings.NewReader(input)
 	var stdout, stderr cappedBuffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	if onLine != nil {
+		outLines, errLines := &lineWriter{line: onLine}, &lineWriter{line: onLine}
+		cmd.Stdout, cmd.Stderr = io.MultiWriter(&stdout, outLines), io.MultiWriter(&stderr, errLines)
+		defer outLines.flush()
+		defer errLines.flush()
+	}
 	// A program the script left running may keep the pipes open: Wait
 	// gives up on them a moment after the script itself has ended.
 	cmd.WaitDelay = 5 * time.Second
 	start := time.Now()
 	err = runTree(cmd)
-	took := time.Since(start).Round(time.Millisecond)
+	res := scriptResult{took: time.Since(start).Round(time.Millisecond)}
 
-	code := 0
 	var exit *exec.ExitError
 	switch {
-	case ctx.Err() == context.DeadlineExceeded:
-		return fmt.Errorf("stopped after the Timeout, %s%s", timeout, tail(stderr.String()))
-	case c.ctx.Err() != nil:
-		return c.ctx.Err()
+	case tctx.Err() == context.DeadlineExceeded && ctx.Err() == nil:
+		res.timedOut = true
+	case ctx.Err() != nil:
+		return res, ctx.Err()
 	case errors.As(err, &exit):
-		code = exit.ExitCode()
+		res.code = exit.ExitCode()
 	case errors.Is(err, exec.ErrWaitDelay):
 		// The script ended; something it started still held the output.
 	case err != nil:
-		return err
+		return res, err
 	}
-	c.outputs["Stdout"] = stringValue(trimNewline(stdout.String()))
-	c.outputs["Stderr"] = stringValue(trimNewline(stderr.String()))
-	c.outputs["Exit Code"] = stringValue(strconv.Itoa(code))
-	c.logs = append(c.logs, fmt.Sprintf("exit %d after %s, in %s", code, took, filepath.ToSlash(dir)))
-	if code != 0 && c.setting("Non-zero Exit") != "Goes On" {
-		return fmt.Errorf("exit code %d%s", code, tail(stderr.String()))
-	}
-	c.fire("Done")
-	return nil
+	res.stdout, res.stderr = stdout.String(), stderr.String()
+	return res, nil
 }
 
 // workDir is the folder of the step's storage, or the tower's data folder
@@ -199,6 +242,52 @@ func (w *cappedBuffer) String() string {
 		return string(w.b) + fmt.Sprintf("\n(%d more bytes left out)", w.more)
 	}
 	return string(w.b)
+}
+
+// lineWriter passes each line written to it on to line, without its line
+// break, as it comes. A \r ends a line too, so a progress bar redrawn in
+// place (ffmpeg, npm) shows each time it moves; empty lines are left out.
+// It is locked: a program the script left running may still write as the
+// script's end flushes it.
+type lineWriter struct {
+	line func(string)
+	mu   sync.Mutex
+	buf  []byte
+}
+
+// lineMax is the longest line a lineWriter waits for: past it, the line is
+// passed on in pieces.
+const lineMax = 4096
+
+func (w *lineWriter) Write(p []byte) (int, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.buf = append(w.buf, p...)
+	for {
+		i := bytes.IndexAny(w.buf, "\r\n")
+		if i < 0 {
+			break
+		}
+		if i > 0 {
+			w.line(string(w.buf[:i]))
+		}
+		w.buf = w.buf[i+1:]
+	}
+	if len(w.buf) >= lineMax {
+		w.line(string(w.buf))
+		w.buf = w.buf[:0]
+	}
+	return len(p), nil
+}
+
+// flush passes on the last line, when it had no line break.
+func (w *lineWriter) flush() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if len(w.buf) > 0 {
+		w.line(string(w.buf))
+		w.buf = nil
+	}
 }
 
 func trimNewline(s string) string { return strings.TrimRight(s, "\r\n") }

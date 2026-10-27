@@ -188,6 +188,9 @@ func (s *Store) DeleteWorkflow(id uint32) error {
 		if r.RowsAffected == 0 {
 			return fail(ErrNotFound, "no workflow %d", id)
 		}
+		if err := deleteChatSessions(tx, id); err != nil {
+			return err
+		}
 		return tx.Where("workflow_id = ?", id).Delete(&Run{}).Error
 	})
 }

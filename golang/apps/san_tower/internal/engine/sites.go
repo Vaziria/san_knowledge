@@ -228,83 +228,62 @@ var siteKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "chatgpt-ask", Title: "ChatGPT Ask", Category: "AI",
 			Group:       "ChatGPT",
-			Description: "Asks ChatGPT the Prompt through San Remote, in a Temporary chat that ChatGPT does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text)},
+			Description: "Asks ChatGPT the Prompt through San Remote, in a Temporary chat that ChatGPT does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat).",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Chat Link", Text)},
 			Settings:    askSettings(),
-			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt")},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), field("Chat Link")},
 		},
-		run: func(c *call) error {
-			r, err := c.sanRemote()
-			if err != nil {
-				return err
-			}
-			prompt, wait, err := c.askArgs()
-			if err != nil {
-				return err
-			}
-			res, err := r.chatgpt.Ask(c.ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Keep: c.setting("Temporary") == "No", Stay: c.setting("Chat") == "Stay"}))
-			if err != nil {
-				return remoteErr(err)
-			}
-			c.outputs["Answer"] = stringValue(res.Msg.Text)
-			c.fire("Done")
-			return nil
-		},
+		run: askStep("ChatGPT", askChatGPT),
 	},
 	{
 		StepKind: &v1.StepKind{
 			Kind: "gemini-ask", Title: "Gemini Ask", Category: "AI",
 			Group:       "Gemini",
-			Description: "Asks Gemini the Prompt through San Remote, in a Temporary chat that Gemini does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply. Brings Chrome to the front while it asks. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text)},
+			Description: "Asks Gemini the Prompt through San Remote, in a Temporary chat that Gemini does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply. Brings Chrome to the front while it asks. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat).",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Chat Link", Text)},
 			Settings:    askSettings(),
-			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt")},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), field("Chat Link")},
 		},
-		run: func(c *call) error {
-			r, err := c.sanRemote()
-			if err != nil {
-				return err
-			}
-			prompt, wait, err := c.askArgs()
-			if err != nil {
-				return err
-			}
-			res, err := r.gemini.Ask(c.ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Keep: c.setting("Temporary") == "No", Stay: c.setting("Chat") == "Stay"}))
-			if err != nil {
-				return remoteErr(err)
-			}
-			c.outputs["Answer"] = stringValue(res.Msg.Text)
-			c.fire("Done")
-			return nil
-		},
+		run: askStep("Gemini", askGemini),
 	},
 	{
 		StepKind: &v1.StepKind{
 			Kind: "claude-ask-browser", Title: "Claude Ask (Browser)", Category: "AI",
 			Group:       "Claude",
-			Description: "Asks Claude on claude.ai the Prompt through San Remote, in an incognito chat kept out of the history, or with Temporary No a normal chat kept in it; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text)},
+			Description: "Asks Claude on claude.ai the Prompt through San Remote, in an incognito chat kept out of the history, or with Temporary No a normal chat kept in it; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat).",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Chat Link", Text)},
 			Settings:    askSettings(),
-			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt")},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), field("Chat Link")},
 		},
-		run: func(c *call) error {
-			r, err := c.sanRemote()
-			if err != nil {
-				return err
-			}
-			prompt, wait, err := c.askArgs()
-			if err != nil {
-				return err
-			}
-			res, err := r.claude.Ask(c.ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Keep: c.setting("Temporary") == "No", Stay: c.setting("Chat") == "Stay"}))
-			if err != nil {
-				return remoteErr(err)
-			}
-			c.outputs["Answer"] = stringValue(res.Msg.Text)
-			c.fire("Done")
-			return nil
-		},
+		run: askStep("Claude", askClaude),
 	},
+}
+
+// browserAsks are the sites of the browser ask steps, and how each asks.
+var browserAsks = map[string]browserAsk{"ChatGPT": askChatGPT, "Gemini": askGemini, "Claude": askClaude}
+
+func askChatGPT(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
+	res, err := r.chatgpt.Ask(c.ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
+	if err != nil {
+		return "", "", err
+	}
+	return res.Msg.Text, res.Msg.Chat, nil
+}
+
+func askGemini(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
+	res, err := r.gemini.Ask(c.ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
+	if err != nil {
+		return "", "", err
+	}
+	return res.Msg.Text, res.Msg.Chat, nil
+}
+
+func askClaude(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
+	res, err := r.claude.Ask(c.ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
+	if err != nil {
+		return "", "", err
+	}
+	return res.Msg.Text, res.Msg.Chat, nil
 }
 
 // statusSites are the sites a Social Status step reads: the posting sites,
@@ -332,14 +311,21 @@ func (c *call) askArgs() (string, time.Duration, error) {
 	if prompt == "" {
 		return "", 0, fmt.Errorf("Prompt %w", errEmpty)
 	}
-	var wait time.Duration
-	if w := c.setting("Wait"); w != "" {
-		var err error
-		if wait, err = time.ParseDuration(w); err != nil || wait <= 0 {
-			return "", 0, fmt.Errorf("Wait %q: give a duration such as 10m or 90s", w)
-		}
+	wait, err := c.wait()
+	return prompt, wait, err
+}
+
+// wait is an ask step's Wait, 0 when not set.
+func (c *call) wait() (time.Duration, error) {
+	w := c.setting("Wait")
+	if w == "" {
+		return 0, nil
 	}
-	return prompt, wait, nil
+	wait, err := time.ParseDuration(w)
+	if err != nil || wait <= 0 {
+		return 0, fmt.Errorf("Wait %q: give a duration such as 10m or 90s", w)
+	}
+	return wait, nil
 }
 
 // absolute is a file input that must be an absolute path: `san_remote api`

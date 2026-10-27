@@ -66,6 +66,10 @@ type Engine struct {
 	runMu  sync.Mutex     // guards closed, so nothing starts once Close waits
 	closed bool
 
+	// The lines running runs log as they go, by run id (live.go).
+	liveMu sync.Mutex
+	live   map[uint32]*liveLog
+
 	mu        sync.Mutex // serializes changes to the triggers, and guards their states
 	base      string     // the tower's own address; empty until Start
 	states    map[uint32][]*v1.TriggerState
@@ -160,6 +164,8 @@ func (e *Engine) env() Env {
 		TelegramMessages: e.store.TelegramMessages,
 		WhatsAppSend:     e.sendWhatsApp,
 		Storage:          e.store.GetStorage,
+		ChatLink:         e.store.ChatLink,
+		SetChatLink:      e.store.SetChatLink,
 		DataDir:          e.store.Dir(),
 	}
 }
@@ -666,6 +672,8 @@ func (e *Engine) finish(w store.Workflow, r store.Run, stepID string, data []byt
 func (e *Engine) execute(w store.Workflow, r store.Run, stepID string, data []byte, ack func() error) (store.Run, error) {
 	env := e.env()
 	env.Logged = e.logLines(w, r, stepID)
+	env.Live = func(_ *v1.Step, line string, level v1.LogLevel) { e.addLive(r.ID, line, level) }
+	defer e.dropLive(r.ID) // once the run's record has its lines
 	env.Workflow = w.ID
 	env.Ack = ack
 	waited := time.Since(r.StartedAt)

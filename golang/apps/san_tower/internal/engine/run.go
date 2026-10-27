@@ -51,9 +51,16 @@ type Env struct {
 	// Logged gets the lines each step logged, with their types, as the
 	// step is recorded: for the Log Event steps of other workflows.
 	Logged func(step *v1.Step, lines []string, levels []v1.LogLevel)
+	// Live gets each line a step logs with call.log as it comes, long
+	// before the step is recorded: a running run's lines (live.go).
+	Live func(step *v1.Step, line string, level v1.LogLevel)
 	// Ack acks a queued run's event now (the Ack step, queue.go); nil for a
 	// run that was not queued.
 	Ack func() error
+	// ChatLink and SetChatLink read and keep the link of a Browser Chat
+	// Session's chat on a site (browserchat.go).
+	ChatLink    func(session, site string) (string, error)
+	SetChatLink func(session, site, link string) error
 	// Workflow is the id of the workflow the run is of: a Claude Chat
 	// Session step's conversation is its own in that workflow.
 	Workflow uint32
@@ -304,6 +311,10 @@ func (x *execution) input(st *v1.Step, s *v1.Socket) (proto.Message, error) {
 // record adds what a step did to the run, a failed one without the outputs
 // it fired, and returns it.
 func (x *execution) record(st *v1.Step, c *call, start time.Time, err error) *v1.StepRun {
+	if c.dropped > 0 {
+		c.logs = append([]string{fmt.Sprintf("(%d earlier lines left out)", c.dropped)}, c.logs...)
+		c.levels = append([]v1.LogLevel{v1.LogLevel_LOG_LEVEL_UNSPECIFIED}, c.levels...)
+	}
 	r := &v1.StepRun{
 		StepId:    st.GetId(),
 		Kind:      st.GetKind(),

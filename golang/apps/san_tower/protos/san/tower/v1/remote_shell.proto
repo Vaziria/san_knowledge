@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+// The Web Machine Shell Protocol (golang/apps/san_remote/docs/
+// remote_shell_protocol.md), which the Remote Shell step speaks: a web chat
+// (ChatGPT, Gemini or Claude on claude.ai, through San Remote) talks with a
+// user and a machine, a shell on this computer, in the same chat. Both go
+// to and from the chat as protojson, with the field names as written here.
+
+// WebchatResponse is each answer of the web chat: execute is a script for
+// the machine to run, chat is what to tell the user; either may be empty.
+message WebchatResponse {
+  string execute = 1;
+  string chat = 2;
+}
+
+// FromType says who a WebchatRequest is from: the machine, with the result
+// of the last execute, or the user, with a chat.
+enum FromType {
+  FROM_TYPE_UNSPECIFIED = 0;
+  FROM_TYPE_EXECUTE = 1;
+  FROM_TYPE_USER = 2;
+}
+
+// WebchatRequest is each message to the web chat.
+message WebchatRequest {
+  string execute_result = 1;
+  string chat = 2;
+  FromType from = 3;
+}

@@ -424,8 +424,11 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
 
   return (
     <>
+      {/* A long name or description is cut short with "…", never the
+          buttons: they keep their size (the user, 2026-10-27: Undo and Redo
+          were squeezed on top of each other). */}
       <HStack justify="space-between">
-        <HStack gap="3" minW="0">
+        <HStack gap="3" flex="1" minW="0">
           <HStack gap="1" minW="0">
             <Stack gap="0" minW="0">
               <Heading size="lg" truncate>
@@ -443,6 +446,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
               size="xs"
               variant="ghost"
               color="fg.muted"
+              flexShrink="0"
               onClick={() => setRenaming(true)}
             >
               <PencilIcon />
@@ -450,7 +454,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
           </HStack>
           <SaveStatus save={save} />
         </HStack>
-        <HStack gap="2">
+        <HStack gap="2" flexShrink="0">
           <HStack gap="0" me="2" display={tab === 'workflow' ? undefined : 'none'}>
             <IconButton
               aria-label="Undo"

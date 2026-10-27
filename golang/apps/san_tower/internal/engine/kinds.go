@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -69,7 +70,7 @@ func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ
 // the datetime ones (datetime.go), the san_remote ones (social.go, then
 // sites.go), then the Telegram ones (telegram.go) and the WhatsApp ones
 // (whatsapp.go).
-var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds)
+var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds)
 
 var coreKinds = []*kind{
 	{
@@ -514,6 +515,10 @@ type call struct {
 	// failed is the error of the run's last step whose Failed output fired
 	// (Fail Run).
 	failed error
+	// logMu guards logs and levels for log, which several goroutines may
+	// call; dropped counts the earliest lines log let go.
+	logMu   sync.Mutex
+	dropped int
 }
 
 func (c *call) setting(name string) string { return strings.TrimSpace(c.step.GetValues()[name]) }

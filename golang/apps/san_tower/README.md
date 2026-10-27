@@ -620,6 +620,65 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
   - Temporary, on those three (the user's ask, 2026-10-25): Yes, the
     default, asks in a Temporary chat (incognito on claude.ai) that the site
     does not keep; No asks in a normal chat, kept in the history.
+  - Chat Link, on those three (the user, 2026-10-27: sessions as Claude Ask
+    (CLI) has; `browserchat.go`): an input that goes on in a kept chat, a
+    chat's link (https://chatgpt.com/c/..., https://gemini.google.com/app/...,
+    https://claude.ai/chat/...) or a Browser Chat Session's; and an output,
+    the chat's link (empty for a Temporary chat). A chat that goes on is
+    always a kept one: Temporary does not apply, and the step's log says so.
+  - Browser Chat Session (AI) is a chat that goes on from run to run: link
+    its Chat Link to the asks' Chat Link. The first ask on a site starts a
+    kept chat and the session keeps its link (the tower's database,
+    `chat_sessions`, by session and site; a deleted workflow's go with it),
+    so each later ask, in this run or another, goes on in it. One session
+    holds a chat per site, so the same session can go to ChatGPT, Gemini
+    and Claude. San Remote opens the chat by its link, as a person opens one
+    they kept; a chat deleted on the site makes the ask fail.
+  - Remote Shell (AI; the user, 2026-10-27: "Implement
+    remote_shell_protocol.md. it to be node"; `engine/remoteshell.go`) is
+    the Web Machine Shell Protocol of
+    [remote_shell_protocol.md](../san_remote/docs/remote_shell_protocol.md):
+    a web chat on Site (ChatGPT, the default, Gemini or Claude) talks with
+    the user and the machine, a bash shell on this computer, in one chat.
+    Each message to the chat is a WebchatRequest and each answer a
+    WebchatResponse (`protos/san/tower/v1/remote_shell.proto`), as JSON with
+    the proto's field names. Message, the user's, goes first, from
+    `FROM_TYPE_USER`; a new chat gets the protocol in that same message (who
+    talks, the two JSON shapes, the shell and its folder). Each answer's
+    `chat` fires Chat, with Reply its text, so a Telegram Send on Chat
+    tells the user; its `execute` runs as Bash runs a script (in Storage's
+    folder, else the data folder; Timeout, 5m, each), and its exit code,
+    stdout and stderr (each 8000 characters at most, the middle left out)
+    go back to the chat from `FROM_TYPE_EXECUTE`. An answer with nothing to
+    execute ends the step (Done): the chat waits for the user's next
+    Message, in a later run. The answer is read from its first `{` to its
+    last `}`, so a code fence does no harm. San Remote reads it with the
+    site's Copy button, which gives markdown, so JSON written as text comes
+    with markdown's escapes (`\*\*bold\*\*`, `https\://`; Gemini,
+    2026-10-27), which JSON does not have: such a backslash is dropped, and
+    a raw line break in a string escaped, before it is read again. One that
+    is still not a
+    WebchatResponse is asked for again once, then fails the step. The chat
+    is always a kept one, in one tab (the user, 2026-10-27: a tab opened
+    and closed for each turn flickered): San Remote keeps the tab open on
+    the chat (`idle_seconds`, its `page.Kept`), each turn and each later run
+    goes on in it, and it is closed once 5 minutes go by without an ask; a
+    tab the user closed is opened again by the chat's link. Chat Link goes
+    on in a chat, a chat's link or a
+    Browser Chat Session's, which keeps the conversation from run to run,
+    and the output is the chat's link. The protocol goes only in a new
+    chat's first message; in a chat that goes on, the user's Message comes
+    after a one-line reminder of it (the user's choice, 2026-10-27: a chat
+    picked up hours later may have drifted), while a script's result, seconds
+    after the last answer, comes without one. Commands counts the scripts
+    run. There is no limit on them unless Max Commands sets one (the user,
+    2026-10-27: long jobs, such as making a video or setting up a project,
+    take many scripts); a script asked for past it fails the step. The step
+    fails too when the chat looks stuck: the same script with the same
+    result 3 times in a row (a script polling something whose result
+    changes goes on). The step logs, as it goes (see the Logs below), the chat's answers, each script, what it prints and how it ended; each script runs in a new bash in the storage's folder (a cd does not carry over), which the protocol tells the chat, with the Timeout. The web chat runs any script it wants with the tower's rights
+    (the protocol asks it to ask the user first before what cannot be
+    undone, which it may not do): give it a storage to work in.
   - Social Status says who is signed in on a Site (ChatGPT too). Social Posts
     lists a Site's Scheduled or Published posts, or Drafts (Facebook, Medium,
     LinkedIn); Vidara lists its videos, and TikTok's scheduled posts are the
@@ -635,6 +694,15 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
     user's ask, 2026-10-25). Facebook's list has no times, so there it is
     the first listed and the three are empty. For a post the day after:
     Datetime Operation (Add 1 Days) on Datetime, into the post step's At.
+  - Post Count (the user, 2026-10-27: "add node for getting post count at
+    input date in X"; `postcount.go`) counts a Site's (X or Threads, whose
+    lists tell each post's time) posts on Date: a day in local time
+    (2026-10-28, a datetime counts its day, empty is today). List is
+    Both, Scheduled or Published. Count is the total, Scheduled and
+    Published each list's count (empty when not counted), Posts the posts
+    counted with their `list`, Date the day. Published reads the latest 100
+    posts from the profile; when all 100 are on or after the day, the log
+    says older ones were not counted.
   - A post brings Chrome to the front for a minute or two. A Vidara
     upload opens its tab but does not wait for Chrome to be in front: it
     goes on behind other windows, as long as the file takes.
@@ -866,6 +934,18 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
   (`Run.more_logs` the count left out) and never read the steps; opening a
   run (GetRun) shows them. A run stored before summaries gets its summary
   the first time a list reads it.
+- A running run's lines show as they come (the user, 2026-10-27: "When
+  remote shell node execute command, can it log streamed to frontend log";
+  `engine/live.go`). A run's steps are stored only when it ends, so a
+  step that works long logs with `call.log` as well, which passes each line
+  on at once (`Env.Live`): the engine keeps a running run's last 20 lines
+  in memory, and the Logs pages get them, with the count before them, as
+  the run's summary until it ends and its record has them. Remote Shell
+  logs this way: the web chat's answers, each script, each line the script
+  prints to stdout or stderr (debug; a `\r` ends a line, so a progress bar
+  shows as it moves), and how it ended. A step logging without end keeps
+  its last 500 lines as it runs, with a first line counting the ones that
+  went. Opening a running run shows nothing yet.
 - The pages that ask again and again (the Logs, the editor's Runs, the
   Browser Remote Server page) ask nothing while their browser tab is hidden,
   and again as soon as it is shown, and never twice at once

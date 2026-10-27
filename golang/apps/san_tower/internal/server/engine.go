@@ -87,6 +87,13 @@ func (s *Server) listAllRuns(workflowID uint32, activeOnly bool, statuses []v1.R
 		p := runToProto(r)
 		p.WorkflowName = names[r.WorkflowID]
 		p.Logs, p.LogLevels, p.MoreLogs = r.Summary.GetLogs(), r.Summary.GetLogLevels(), r.Summary.GetMore()
+		// A running run has no summary yet: its lines as they come, from a
+		// step that logs as it goes (Remote Shell's scripts).
+		if r.Status == v1.RunStatus_RUN_STATUS_RUNNING && s.engine != nil {
+			if lines, levels, more, ok := s.engine.LiveLogs(r.ID); ok {
+				p.Logs, p.LogLevels, p.MoreLogs = lines, levels, more
+			}
+		}
 		p.Steps = nil
 		res.Runs[i] = p
 	}

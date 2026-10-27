@@ -67,3 +67,20 @@ func TestHelpersExist(t *testing.T) {
 		}
 	}
 }
+
+func TestChatID(t *testing.T) {
+	const id = "8c2f1d3e4b5a6978"
+	for _, s := range []string{id, "https://gemini.google.com/app/" + id, "https://gemini.google.com/app/" + id + "?hl=en", " https://gemini.google.com/app/" + id + " "} {
+		if got, err := ChatID(s); err != nil || got != id {
+			t.Errorf("ChatID(%q) = %q, %v", s, got, err)
+		}
+	}
+	for _, s := range []string{"", "https://example.com/app/" + id, "hello"} {
+		if _, err := ChatID(s); !errors.Is(err, ErrInvalidPrompt) {
+			t.Errorf("ChatID(%q): %v", s, err)
+		}
+	}
+	if err := (&Ask{Prompt: "lagi", Chat: "nope"}).Check(); !errors.Is(err, ErrInvalidPrompt) {
+		t.Errorf("a bad chat: %v", err)
+	}
+}

@@ -61,3 +61,20 @@ func TestHelpersExist(t *testing.T) {
 		}
 	}
 }
+
+func TestChatID(t *testing.T) {
+	const id = "0f3c2a9e-5b1d-4c7e-8a6f-2d9b1e4c7a30"
+	for _, s := range []string{id, "https://claude.ai/chat/" + id, "https://claude.ai/chat/" + id + "?x=1", " https://claude.ai/chat/" + id + " "} {
+		if got, err := ChatID(s); err != nil || got != id {
+			t.Errorf("ChatID(%q) = %q, %v", s, got, err)
+		}
+	}
+	for _, s := range []string{"", "https://example.com/chat/" + id, "hello"} {
+		if _, err := ChatID(s); !errors.Is(err, ErrInvalidPrompt) {
+			t.Errorf("ChatID(%q): %v", s, err)
+		}
+	}
+	if err := (&Ask{Prompt: "lagi", Chat: "nope"}).Check(); !errors.Is(err, ErrInvalidPrompt) {
+		t.Errorf("a bad chat: %v", err)
+	}
+}

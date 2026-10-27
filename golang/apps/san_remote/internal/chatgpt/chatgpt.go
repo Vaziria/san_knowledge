@@ -64,6 +64,10 @@ type Ask struct {
 	// to read on or go on in it (the user, 2026-10-25); otherwise it is
 	// closed.
 	Stay bool
+	// Idle keeps the tab open on a kept chat for the chat's next ask, which
+	// goes on in it, and closes it once Idle goes by without one (the user,
+	// 2026-10-27); zero closes it, unless Stay.
+	Idle time.Duration
 }
 
 // Answer is ChatGPT's answer to one Ask.

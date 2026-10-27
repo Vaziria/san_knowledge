@@ -225,10 +225,11 @@ func siteToolDefs() []any {
 			"Whether the browser is signed in to claude.ai, as whom, and on which plan.",
 			schema(map[string]any{"browser": browserProp}), true, false),
 		tool("claude_ask", "Claude: ask",
-			"Send a prompt to Claude on claude.ai and return its answer as markdown. The chat is an incognito chat (kept out of the user's history) unless keep is set. Works in a background tab.",
+			"Send a prompt to Claude on claude.ai and return its answer as markdown. A new chat is an incognito chat (kept out of the user's history) unless keep is set; chat continues a kept chat by its link. Works in a background tab.",
 			schema(map[string]any{
 				"prompt":       str("The prompt"),
 				"keep":         flag("A normal chat, kept in the history, instead of an incognito chat; its link comes back"),
+				"chat":         str("Continue the kept chat at this link (https://claude.ai/chat/<id>)"),
 				"wait_seconds": intg("How long to wait for the answer (default 600)"),
 				"browser":      browserProp,
 			}, "prompt"), false, false),
@@ -237,10 +238,11 @@ func siteToolDefs() []any {
 			"Whether the browser is signed in to Gemini, and as whom (the Google account's name).",
 			schema(map[string]any{"browser": browserProp}), true, false),
 		tool("gemini_ask", "Gemini: ask",
-			"Send a prompt to Gemini and return its answer. The chat is a Temporary chat (not kept in the user's history) unless keep is set. Brings Chrome to the front while it asks.",
+			"Send a prompt to Gemini and return its answer. A new chat is a Temporary chat (not kept in the user's history) unless keep is set; chat continues a kept chat by its link. Brings Chrome to the front while it asks.",
 			schema(map[string]any{
 				"prompt":       str("The prompt"),
 				"keep":         flag("A normal chat, kept in the history, instead of a Temporary chat; its link comes back"),
+				"chat":         str("Continue the kept chat at this link (https://gemini.google.com/app/<id>)"),
 				"wait_seconds": intg("How long to wait for the answer (default 600)"),
 				"browser":      browserProp,
 			}, "prompt"), false, false),
@@ -694,7 +696,7 @@ func (s *Server) claude(ctx context.Context, name string, a args) (string, error
 		return fmt.Sprintf("Signed in to claude.ai as %s (%s).", st.Name, st.Plan), nil
 	case "claude_ask":
 		ans, err := s.Claude.Ask(ctx, claude.Ask{
-			Browser: a.Browser, Prompt: a.Prompt, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
 		})
 		if err != nil {
 			return "", err
@@ -720,7 +722,7 @@ func (s *Server) gemini(ctx context.Context, name string, a args) (string, error
 		return "Signed in to Gemini as " + st.Name + ".", nil
 	case "gemini_ask":
 		ans, err := s.Gemini.Ask(ctx, gemini.Ask{
-			Browser: a.Browser, Prompt: a.Prompt, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
 		})
 		if err != nil {
 			return "", err

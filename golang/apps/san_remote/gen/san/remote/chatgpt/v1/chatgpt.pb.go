@@ -184,7 +184,11 @@ type AskRequest struct {
 	WaitSeconds uint32 `protobuf:"varint,5,opt,name=wait_seconds,json=waitSeconds,proto3" json:"wait_seconds,omitempty"`
 	// Leave the tab open on the chat once the ask is over, for the user to
 	// read on or go on in it; otherwise it is closed.
-	Stay          bool `protobuf:"varint,6,opt,name=stay,proto3" json:"stay,omitempty"`
+	Stay bool `protobuf:"varint,6,opt,name=stay,proto3" json:"stay,omitempty"`
+	// Keep the tab open on the kept chat for the chat's next ask, which goes on
+	// in it, and close it once this long goes by without one; 0 closes it
+	// (unless stay).
+	IdleSeconds   uint32 `protobuf:"varint,7,opt,name=idle_seconds,json=idleSeconds,proto3" json:"idle_seconds,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -261,6 +265,13 @@ func (x *AskRequest) GetStay() bool {
 	return false
 }
 
+func (x *AskRequest) GetIdleSeconds() uint32 {
+	if x != nil {
+		return x.IdleSeconds
+	}
+	return 0
+}
+
 type AskResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The answer as ChatGPT's Copy button gives it: markdown.
@@ -335,7 +346,7 @@ const file_san_remote_chatgpt_v1_chatgpt_proto_rawDesc = "" +
 	"\x10GetStatusRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\"J\n" +
 	"\x11GetStatusResponse\x125\n" +
-	"\x06status\x18\x01 \x01(\v2\x1d.san.remote.chatgpt.v1.StatusR\x06status\"\x9d\x01\n" +
+	"\x06status\x18\x01 \x01(\v2\x1d.san.remote.chatgpt.v1.StatusR\x06status\"\xc0\x01\n" +
 	"\n" +
 	"AskRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x16\n" +
@@ -343,7 +354,8 @@ const file_san_remote_chatgpt_v1_chatgpt_proto_rawDesc = "" +
 	"\x04keep\x18\x03 \x01(\bR\x04keep\x12\x12\n" +
 	"\x04chat\x18\x04 \x01(\tR\x04chat\x12!\n" +
 	"\fwait_seconds\x18\x05 \x01(\rR\vwaitSeconds\x12\x12\n" +
-	"\x04stay\x18\x06 \x01(\bR\x04stay\"S\n" +
+	"\x04stay\x18\x06 \x01(\bR\x04stay\x12!\n" +
+	"\fidle_seconds\x18\a \x01(\rR\vidleSeconds\"S\n" +
 	"\vAskResponse\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x12\x12\n" +
 	"\x04chat\x18\x02 \x01(\tR\x04chat\x12\x1c\n" +

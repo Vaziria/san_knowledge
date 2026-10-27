@@ -39,6 +39,8 @@ type Service struct {
 
 	once sync.Once
 	turn chan struct{}
+	// kept are the tabs left open on their chat for its next ask (a.Idle).
+	kept page.Kept
 }
 
 func (s *Service) begin(ctx context.Context) (done func(), err error) {
@@ -169,7 +171,8 @@ func (s *Service) Status(ctx context.Context, browser string) (*Status, error) {
 
 // Ask sends a prompt and returns ChatGPT's answer. A new chat is a Temporary
 // chat unless a.Keep says otherwise; a.Chat continues a kept chat. It works in
-// a background tab, which it closes afterwards unless a.Stay.
+// a background tab, which it closes afterwards unless a.Stay, or with a.Idle
+// keeps open on the chat for its next ask.
 func (s *Service) Ask(ctx context.Context, a Ask) (*Answer, error) {
 	if err := a.Check(); err != nil {
 		return nil, err
@@ -179,15 +182,37 @@ func (s *Service) Ask(ctx context.Context, a Ask) (*Answer, error) {
 		return nil, err
 	}
 	defer done()
-	t, err := s.open(ctx, a.Browser, homeURL)
+	t, err := s.tab(ctx, a)
 	if err != nil {
 		return nil, err
 	}
-	if !a.Stay {
-		defer t.Close()
-	}
 	ans, err := t.ask(ctx, a)
-	return ans, t.Fail(err)
+	err = t.Fail(err)
+	switch {
+	case a.Stay:
+	case a.Idle > 0 && err == nil && ans.Chat != "":
+		id, _ := ChatID(ans.Chat)
+		s.kept.Keep(a.Browser+" "+id, t.Session, a.Idle)
+	default:
+		t.Close()
+	}
+	return ans, err
+}
+
+// tab is the tab an ask works in: the one kept open on its chat when there
+// is one and it is still there, else a new one.
+func (s *Service) tab(ctx context.Context, a Ask) (*session, error) {
+	if id, _ := ChatID(a.Chat); id != "" {
+		if p := s.kept.Take(a.Browser + " " + id); p != nil {
+			t := &session{p}
+			if _, err := t.state(ctx); err == nil {
+				t.Log("going on in the chat's open tab")
+				return t, nil
+			}
+			t.Close() // closed by the user, or no longer the site's page
+		}
+	}
+	return s.open(ctx, a.Browser, homeURL)
 }
 
 func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
@@ -202,6 +227,9 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 	case a.Chat != "":
 		// A chat is opened by its link, as a person opens one they kept.
 		id, _ := ChatID(a.Chat)
+		if on, _ := ChatID(st.URL); on == id {
+			break // the tab kept open on the chat
+		}
 		t.Log("opening the chat " + id)
 		if err := t.Navigate(ctx, homeURL+"c/"+id); err != nil {
 			return nil, err

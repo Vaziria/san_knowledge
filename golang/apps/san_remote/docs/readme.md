@@ -238,9 +238,9 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.tiktok.v1.TikTokService` | GetStatus, SchedulePost (an absolute video file, for Everyone; the caption, or a markdown file or text), ListPosts |
 | `san.remote.youtube.v1.YouTubeService` | GetStatus, UploadVideo (an absolute video file; scheduled, or saved as Private; `short`), ListVideos, DeleteVideo (never a Public one unless `allow_public`), MakePrivate |
 | `san.remote.telegram.v1.TelegramService` | GetStatus, CreateBot (through @BotFather; the bot with its token), DeleteBot, CreateGroup (the group's id), DeleteGroup, AddMember, RemoveMember (a group by id or title, a user by username) |
-| `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat) |
-| `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat) |
-| `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat) |
+| `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
+| `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
+| `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 
 - **Only scheduling.** A post's `at` is required, and there is no "now"
   (the user's choice, 2026-10-24): the site publishes it at its time, and
@@ -1039,6 +1039,8 @@ Google session, as `chatgpt` does ChatGPT:
   answer's own Copy button gives it, caught in the page before it reaches
   your clipboard.
 - `--keep` asks in a normal chat instead, and prints its link to stderr.
+- `--chat LINK` goes on in a kept chat (2026-10-27): it opens the chat by its
+  link, as a person opens one they kept, and asks there.
 - **status** says which Google account is signed in.
 
 ```powershell
@@ -1047,6 +1049,7 @@ bin\san_remote.exe gemini ask "Dua kota besar di Indonesia, sebagai daftar"
 Get-Content prompt.md | bin\san_remote.exe gemini ask -
 bin\san_remote.exe gemini ask --file prompt.md --wait 20m
 bin\san_remote.exe gemini ask --keep "Mulai topik baru"             # == chat https://gemini.google.com/app/...
+bin\san_remote.exe gemini ask --chat https://gemini.google.com/app/... "Lanjutkan"
 ```
 
 - **ask brings Chrome to the front** for as long as it asks: Gemini sends a
@@ -1064,6 +1067,7 @@ claude.ai session, as `chatgpt` does ChatGPT:
   it as **markdown**: the answer's own Copy button gives it, caught in the
   page before it reaches your clipboard.
 - `--keep` asks in a normal chat instead, and prints its link to stderr.
+- `--chat LINK` goes on in a kept chat (2026-10-27), opened by its link.
 - **status** says who is signed in, and on which plan.
 
 ```powershell
@@ -1071,6 +1075,7 @@ bin\san_remote.exe claude status                       # signed in as sease (Fre
 bin\san_remote.exe claude ask "Dua kota besar di Indonesia, sebagai daftar"
 Get-Content prompt.md | bin\san_remote.exe claude ask -
 bin\san_remote.exe claude ask --keep "Mulai topik baru"             # == chat https://claude.ai/chat/...
+bin\san_remote.exe claude ask --chat https://claude.ai/chat/... "Lanjutkan"
 ```
 
 - Both commands work in a background tab, which is closed afterwards.

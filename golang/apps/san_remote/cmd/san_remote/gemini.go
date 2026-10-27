@@ -52,6 +52,7 @@ func geminiCommand() *cli.Command {
 					"(not kept in your history) unless --keep, which prints the chat's link to stderr.",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "file", Usage: "read the prompt from this file"},
+					&cli.StringFlag{Name: "chat", Usage: "continue the kept chat at this link (https://gemini.google.com/app/<id>)"},
 					&cli.BoolFlag{Name: "keep", Usage: "a normal chat, kept in your history, instead of a Temporary chat"},
 					&cli.DurationFlag{Name: "wait", Value: gemini.DefaultWait, Usage: "how long to wait for the answer"},
 				},
@@ -61,7 +62,7 @@ func geminiCommand() *cli.Command {
 						return err
 					}
 					a, err := geminiService(cmd).Ask(ctx, gemini.Ask{
-						Browser: cmd.String("browser"), Prompt: prompt, Keep: cmd.Bool("keep"), Wait: cmd.Duration("wait"),
+						Browser: cmd.String("browser"), Prompt: prompt, Chat: cmd.String("chat"), Keep: cmd.Bool("keep"), Wait: cmd.Duration("wait"),
 					})
 					if err != nil {
 						return clientError(cmd, err)

@@ -20,6 +20,7 @@ package gemini
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -53,6 +54,10 @@ const DefaultWait = 10 * time.Minute
 type Ask struct {
 	Browser string
 	Prompt  string
+	// Chat continues the kept chat at this link
+	// (https://gemini.google.com/app/<id>); empty starts a new chat (the user,
+	// 2026-10-27: chats that go on from run to run, as Claude Code's do).
+	Chat string
 	// Keep makes the chat a normal one, kept in the history; otherwise it is
 	// a Temporary chat, which Gemini does not keep.
 	Keep bool
@@ -62,6 +67,10 @@ type Ask struct {
 	// to read on or go on in it (the user, 2026-10-25); otherwise it is
 	// closed.
 	Stay bool
+	// Idle keeps the tab open on a kept chat for the chat's next ask, which
+	// goes on in it, and closes it once Idle goes by without one (the user,
+	// 2026-10-27); zero closes it, unless Stay.
+	Idle time.Duration
 }
 
 // Answer is Gemini's answer to one Ask.
@@ -92,7 +101,28 @@ func (a *Ask) Check() error {
 	case a.Wait < 0:
 		return fmt.Errorf("%w: a negative wait", ErrInvalidPrompt)
 	}
+	if a.Chat != "" {
+		if _, err := ChatID(a.Chat); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// chatOnly is a chat's id alone.
+var chatOnly = regexp.MustCompile(`^[0-9a-f]{8,}$`)
+
+// ChatID takes a chat's link (https://gemini.google.com/app/<id>), or its id, and
+// returns the id.
+func ChatID(s string) (string, error) {
+	s = strings.TrimSpace(s)
+	if m := chatLink.FindStringSubmatch(s); m != nil {
+		return m[1], nil
+	}
+	if chatOnly.MatchString(s) {
+		return s, nil
+	}
+	return "", fmt.Errorf("%w: %q is not a Gemini chat link (https://gemini.google.com/app/<id>)", ErrInvalidPrompt, s)
 }
 
 // words is a text as the prompt box holds it, for comparing: its editor

@@ -385,7 +385,7 @@ func (s chatgptAPI) GetStatus(ctx context.Context, req *connect.Request[chatgptv
 }
 
 func (s chatgptAPI) Ask(ctx context.Context, req *connect.Request[chatgptv1.AskRequest]) (*connect.Response[chatgptv1.AskResponse], error) {
-	q := chatgpt.Ask{Browser: req.Msg.Browser, Prompt: req.Msg.Prompt, Keep: req.Msg.Keep, Chat: req.Msg.Chat, Wait: time.Duration(req.Msg.WaitSeconds) * time.Second, Stay: req.Msg.Stay}
+	q := chatgpt.Ask{Browser: req.Msg.Browser, Prompt: req.Msg.Prompt, Keep: req.Msg.Keep, Chat: req.Msg.Chat, Wait: time.Duration(req.Msg.WaitSeconds) * time.Second, Stay: req.Msg.Stay, Idle: time.Duration(req.Msg.IdleSeconds) * time.Second}
 	if err := q.Check(); err != nil {
 		return nil, s.a.fail(err)
 	}

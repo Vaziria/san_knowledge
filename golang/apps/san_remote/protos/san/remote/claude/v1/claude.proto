@@ -41,6 +41,13 @@ message AskRequest {
   // Leave the tab open on the chat once the ask is over, for the user to
   // read on or go on in it; otherwise it is closed.
   bool stay = 5;
+  // Continue the kept chat at this link (https://claude.ai/chat/<id>); empty
+  // starts a new chat.
+  string chat = 6;
+  // Keep the tab open on the kept chat for the chat's next ask, which goes on
+  // in it, and close it once this long goes by without one; 0 closes it
+  // (unless stay).
+  uint32 idle_seconds = 7;
 }
 
 message AskResponse {

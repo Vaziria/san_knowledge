@@ -23,7 +23,7 @@ func (s claudeAPI) GetStatus(ctx context.Context, req *connect.Request[claudev1.
 }
 
 func (s claudeAPI) Ask(ctx context.Context, req *connect.Request[claudev1.AskRequest]) (*connect.Response[claudev1.AskResponse], error) {
-	q := claude.Ask{Browser: req.Msg.Browser, Prompt: req.Msg.Prompt, Keep: req.Msg.Keep, Wait: time.Duration(req.Msg.WaitSeconds) * time.Second, Stay: req.Msg.Stay}
+	q := claude.Ask{Browser: req.Msg.Browser, Prompt: req.Msg.Prompt, Keep: req.Msg.Keep, Chat: req.Msg.Chat, Wait: time.Duration(req.Msg.WaitSeconds) * time.Second, Stay: req.Msg.Stay, Idle: time.Duration(req.Msg.IdleSeconds) * time.Second}
 	if err := q.Check(); err != nil {
 		return nil, s.a.fail(err)
 	}

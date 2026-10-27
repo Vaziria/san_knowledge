@@ -692,8 +692,11 @@ func (t *session) unschedule(ctx context.Context, match string, at time.Time) (*
 // ---- posts -------------------------------------------------------------------------
 
 // Posts lists the account's latest published posts, newest first, up to
-// limit, from its profile. It reads in a background tab.
+// limit (0: 10), from its profile. It reads in a background tab.
 func (s *Service) Posts(ctx context.Context, browser string, limit int) ([]Listed, error) {
+	if limit <= 0 {
+		limit = 10
+	}
 	done, err := s.begin(ctx)
 	if err != nil {
 		return nil, err

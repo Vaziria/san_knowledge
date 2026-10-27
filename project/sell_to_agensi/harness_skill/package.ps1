@@ -15,10 +15,12 @@ Copy-Item (Join-Path $here "$skill/*") $stage -Recurse
 
 # Tracked and new (not ignored) files: leaves out bin/, ui/node_modules and the built UI in dist/ (except .gitkeep).
 # The repo's build scripts build Windows+Linux for this repo; SKILL.md has the buyer's build commands instead.
-$files = git -C $repo ls-files -co --exclude-standard -- san_knowledge |
-    Where-Object { $_ -notmatch '^san_knowledge/build\.(ps1|sh)$' -and (Test-Path (Join-Path $repo $_)) }
+# The source lives in golang/packages/san_knowledge here, and ships as the skill's san_knowledge/ folder.
+$src = 'golang/packages/san_knowledge'
+$files = git -C $repo ls-files -co --exclude-standard -- $src |
+    Where-Object { $_ -notmatch "^$src/build\.(ps1|sh)$" -and (Test-Path (Join-Path $repo $_)) }
 foreach ($f in $files) {
-    $to = Join-Path $stage $f
+    $to = Join-Path $stage ('san_knowledge' + $f.Substring($src.Length))
     New-Item -ItemType Directory -Force (Split-Path $to) | Out-Null
     Copy-Item (Join-Path $repo $f) $to
 }

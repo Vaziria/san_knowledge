@@ -10,13 +10,13 @@ Marketing research scoped to the **Indonesian market**, plus `knowledge`, a Go t
 
 ## Commands
 
-All Go work happens in `san_knowledge/` (module name `san_knowledge`, Go 1.25). Both build scripts produce `bin/knowledge.exe` (Windows) and `bin/knowledge` (Linux); use the one for the current OS.
+The knowledge tool's Go code is in `golang/packages/san_knowledge/` (module name `san_knowledge`, Go 1.25). Both build scripts produce `bin/knowledge.exe` (Windows) and `bin/knowledge` (Linux) in the repo root's `bin/`, not the package's, since the data dir falls back to `<exe dir>/../knowledge_data`; use the one for the current OS.
 
 ```powershell
-pwsh san_knowledge/build.ps1                  # UI build (npm) + go vet + go test + build both binaries (stamps main.version)
-bash san_knowledge/build.sh                   # same, from Linux
-cd san_knowledge/ui; npm run dev              # UI with hot reload; /api is proxied to a running view on :7474
-cd san_knowledge; go test ./...               # all tests
+pwsh golang/packages/san_knowledge/build.ps1  # UI build (npm) + go vet + go test + build both binaries (stamps main.version)
+bash golang/packages/san_knowledge/build.sh   # same, from Linux
+cd golang/packages/san_knowledge/ui; npm run dev   # UI with hot reload; /api is proxied to a running view on :7474
+cd golang/packages/san_knowledge; go test ./...    # all tests
 go test ./internal/kb -run TestSyncLifecycle -v   # single test
 go test ./cmd/knowledge -run TestMCP -v
 ```
@@ -119,7 +119,7 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 - Docs and sections are managed only by sync: `delete` and the UI refuse them, and only a domain's title is editable.
 - Data dir: `--data` → nearest `knowledge_data/` walking up from cwd → `<exe dir>/../knowledge_data`. Docs root = parent of the data dir.
 
-**UI (`san_knowledge/ui`, served by `internal/ownview`).**
+**UI (`golang/packages/san_knowledge/ui`, served by `internal/ownview`).**
 - React 19 + TypeScript + Chakra UI v3, with cytoscape for the graph. Vite builds it into `internal/ownview/dist`, which is git-ignored except `.gitkeep`; that file keeps `go:embed` compiling before the first build, and the page then answers 503 "not built". The build scripts run `npm ci` (first time only) and `npm run build`. Rebuild the exe to see changes.
 - Asset names are fixed (`assets/index.js`), not hashed: the server sends no-cache, and the output dir is not emptied, so `.gitkeep` survives.
 - `App.tsx` holds the state, data loading, URL and keyboard handling, and passes the shared parts down through `useApp()` (`ui.tsx`). `GraphView.tsx` wraps cytoscape: data, what is shown, folded marks, highlight and colours each have an effect, and viewport moves arrive as a `ViewRequest`. `model.ts` derives the graph (degree, domains, section tree, communities), filters and colours. Also `TopBar.tsx` (search, Graph/Table/Board, theme), `Panel.tsx`, `Tools.tsx`, `TableView.tsx`, `BoardView.tsx`, `dialogs.tsx`, `api.ts`.

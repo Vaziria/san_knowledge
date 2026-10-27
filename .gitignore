@@ -1,11 +1,11 @@
-# Build output (rebuild with san_knowledge/build.sh or build.ps1)
+# Build output (rebuild with golang/packages/san_knowledge/build.sh or build.ps1)
 bin/knowledge
 bin/*.exe
 bin/*.exe~
-# Knowledge UI: built into the binary from san_knowledge/ui by the build scripts
-san_knowledge/ui/node_modules/
-san_knowledge/internal/ownview/dist/*
-!san_knowledge/internal/ownview/dist/.gitkeep
+# Knowledge UI: built into the binary from golang/packages/san_knowledge/ui by the build scripts
+golang/packages/san_knowledge/ui/node_modules/
+golang/packages/san_knowledge/internal/ownview/dist/*
+!golang/packages/san_knowledge/internal/ownview/dist/.gitkeep
 
 # Live graph database: binary bbolt file, rewritten on every change.
 # Version knowledge through JSON exports instead: bin/knowledge.exe export knowledge_data/export.json

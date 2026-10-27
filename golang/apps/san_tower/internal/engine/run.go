@@ -51,6 +51,9 @@ type Env struct {
 	// Logged gets the lines each step logged, with their types, as the
 	// step is recorded: for the Log Event steps of other workflows.
 	Logged func(step *v1.Step, lines []string, levels []v1.LogLevel)
+	// Ack acks a queued run's event now (the Ack step, queue.go); nil for a
+	// run that was not queued.
+	Ack func() error
 	// Workflow is the id of the workflow the run is of: a Claude Chat
 	// Session step's conversation is its own in that workflow.
 	Workflow uint32

@@ -403,6 +403,30 @@ var coreKinds = []*kind{
 			return errors.New("the run failed here")
 		},
 	},
+	{
+		// The user, 2026-10-27: "And we add ack node" (queue.go).
+		StepKind: &v1.StepKind{
+			Kind: "ack", Title: "Ack", Category: "Action",
+			Description: "In a one-at-a-time workflow, tells its queue in the message broker that this run is done with now: a tower that stops after it does not run it again. Without it a run is acked when it ends, succeeded or failed. Put it after the step that must not happen twice (an X Post). The next run still waits for this one to end; outside a queued run it does nothing.",
+			Outputs:     []*v1.Socket{sock("Done", Event)},
+			Inputs:      []*v1.Socket{sock("Event", Event)},
+		},
+		run: func(c *call) error {
+			switch {
+			case c.env.Ack == nil:
+				c.logs = append(c.logs, "not a queued run (one run at a time is off, or it ran by itself): nothing to ack")
+				c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_INFO)
+			case c.env.Ack() != nil:
+				c.logs = append(c.logs, "the queue did not take the ack now; the run is acked when it ends")
+				c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_WARNING)
+			default:
+				c.logs = append(c.logs, "acked: a tower that stops now does not run it again")
+				c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_INFO)
+			}
+			c.fire(Done)
+			return nil
+		},
+	},
 }
 
 // Done is the event output of a step that does something. Such a step also

@@ -85,11 +85,14 @@ type Engine struct {
 	watchStates map[uint32][]*v1.TriggerState
 	// The WhatsApp connections' devices, by connection id (whatsapp.go).
 	wa map[uint32]*waConn
-	// The one-at-a-time workflows' lines (queue.go): each waiting run's
-	// turn, by run id, and the end of the last run in line, by workflow id.
-	lineMu  sync.Mutex
-	turns   map[uint32]*turn
-	lineEnd map[uint32]chan struct{}
+	// The one-at-a-time workflows' queues (queue.go), guarded by qmu: the
+	// runs this tower queued, by run id; each queue's reader, by workflow
+	// id; the broker each queue was made in; and the tower's own address.
+	qmu     sync.Mutex
+	waiting map[uint32]*waiter
+	readers map[uint32]context.CancelFunc
+	queues  map[uint32]string
+	qbase   string
 
 	// TelegramAPI is where the Bot API answers, telegram.API when empty;
 	// tests set a fake's before Start.
@@ -118,7 +121,7 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		pollers: make(map[uint32]*poller), tgSteps: make(map[uint32][]tgStep),
 		logSteps: make(map[uint32][]logStep),
 		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
-		turns:    make(map[uint32]*turn), lineEnd: make(map[uint32]chan struct{}),
+		waiting: make(map[uint32]*waiter), readers: make(map[uint32]context.CancelFunc), queues: make(map[uint32]string),
 	}
 }
 
@@ -186,6 +189,9 @@ func (e *Engine) Start(baseURL string) error {
 	e.mu.Lock()
 	e.base = strings.TrimRight(baseURL, "/")
 	e.mu.Unlock()
+	e.qmu.Lock()
+	e.qbase = strings.TrimRight(baseURL, "/")
+	e.qmu.Unlock()
 	err = e.SyncAll()
 	e.SyncConnections()
 	// Back from a restart: the Tower Restart steps' After runs.
@@ -255,6 +261,7 @@ func (e *Engine) SyncAll() error {
 			e.deleteSubscriber(url, s.Key)
 		}
 	}
+	e.syncQueues(url, list, subs, known)
 	return nil
 }
 
@@ -286,6 +293,19 @@ func (e *Engine) Sync(id uint32) {
 		return
 	}
 	e.sync(url, w, subs)
+	switch {
+	case w.Graph == nil && w.Name == "": // gone
+		e.dropQueue(url, id)
+	case w.OneAtATime:
+		ctx, cancel := context.WithTimeout(e.ctx, callTimeout)
+		err := e.ensureQueue(ctx, id)
+		cancel()
+		if err != nil {
+			e.log.Error("make a workflow's queue", "workflow", id, "err", err)
+			return
+		}
+		e.startReader(id)
+	}
 }
 
 // trigger is a Topic Event step of an active workflow, as its subscriber.
@@ -531,6 +551,8 @@ func (e *Engine) deliver(workflowID uint32, stepID string, ev *messagev1.Event) 
 	switch {
 	case errors.Is(err, ErrBadStart):
 		return nil
+	case err != nil && run.ID != 0: // recorded as failed
+		return nil
 	case err != nil:
 		e.log.Error("record a workflow run", "workflow", wf.ID, "err", err)
 		return err
@@ -603,8 +625,9 @@ func (e *Engine) Run(ctx context.Context, workflowID uint32, stepID string, data
 }
 
 // begin checks that stepID is a trigger step of w, and records that a run
-// of it started with data; a run of a one-at-a-time workflow takes its place
-// in line (queue.go), in the order begin is called.
+// of it started with data. A run of a one-at-a-time workflow joins its queue
+// in the message broker (queue.go) in the order begin is called; one that
+// cannot is recorded as failed.
 func (e *Engine) begin(w store.Workflow, stepID, trigger string, data []byte) (store.Run, error) {
 	var st *v1.Step
 	for _, s := range w.Graph.GetSteps() {
@@ -616,25 +639,35 @@ func (e *Engine) begin(w store.Workflow, stepID, trigger string, data []byte) (s
 		return store.Run{}, fmt.Errorf("%w: step %s is not a trigger of workflow %d", ErrBadStart, stepID, w.ID)
 	}
 	r, err := e.store.StartRun(w.ID, trigger)
-	if err == nil && w.OneAtATime {
-		e.line(w.ID, r.ID)
+	if err != nil || !w.OneAtATime {
+		return r, err
 	}
-	return r, err
+	if err := e.enqueue(w, r, stepID, data); err != nil {
+		err = fmt.Errorf("the run could not join the workflow's queue (one run at a time): %w", err)
+		r, _ = e.store.FinishRun(r, v1.RunStatus_RUN_STATUS_FAILED, err.Error(), nil)
+		return r, err
+	}
+	return r, nil
 }
 
-// finish runs a begun run's steps under the engine's context, once its
-// turn comes (queue.go), and records how it ended. The lines its steps log,
-// and its error when it fails, go to the other workflows' Log Event steps
-// (logevent.go).
+// finish runs a begun run's steps under the engine's context, and records
+// how it ended; a queued run is run by its queue's reader, and finish waits
+// for it to end.
 func (e *Engine) finish(w store.Workflow, r store.Run, stepID string, data []byte) (store.Run, error) {
-	end, ok := e.waitTurn(w.ID, r.ID)
-	if !ok {
-		return e.store.FinishRun(r, v1.RunStatus_RUN_STATUS_INTERRUPTED, "the tower stopped while the run waited for its turn", nil)
+	if fr, ok, err := e.await(r); ok {
+		return fr, err
 	}
-	defer end()
+	return e.execute(w, r, stepID, data, nil)
+}
+
+// execute runs a run's steps and records how it ended. ack, for a queued
+// run, acks its event (the Ack step). The lines its steps log, and its error
+// when it fails, go to the other workflows' Log Event steps (logevent.go).
+func (e *Engine) execute(w store.Workflow, r store.Run, stepID string, data []byte, ack func() error) (store.Run, error) {
 	env := e.env()
 	env.Logged = e.logLines(w, r, stepID)
 	env.Workflow = w.ID
+	env.Ack = ack
 	waited := time.Since(r.StartedAt)
 	steps, runErr := Execute(e.ctx, w.Graph, stepID, data, env)
 	noteWait(steps, waited)

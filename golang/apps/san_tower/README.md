@@ -882,12 +882,27 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
   Flow in a burst ran together, fought over the browser, scheduled their
   posts for the same minute, and failed together), a workflow setting
   beside the name and description (Workflow.one_at_a_time, optional as the
-  description is, carried by an export): a run waits until the workflow's
-  earlier runs have ended, in the order their events came (`engine/queue.go`;
-  begin puts each run in line, finish waits for its turn). A waiting run is
-  Running; its trigger's log says how long it waited when that was a
-  second or more. Runs of other workflows are not held up. A tower that
-  stops marks the waiting runs Interrupted.
+  description is, carried by an export). Its queue is in the message
+  broker (the user: "I need undercover flow use our message broker";
+  `engine/queue.go`):
+  - Each run is published, as its event came, to the workflow's topic
+    `tower-queue-<id>`, and waits as Running. The workflow's queue reader,
+    the pull subscriber of that topic, takes the runs one at a time and
+    runs each to its end before it takes the next. A run that waited a
+    second or more says so in its trigger's log.
+  - A run's event is acked when the run ends, succeeded or failed, or
+    earlier by an Ack step. One not acked stays in the broker: after a
+    restart it runs again as a new run, its trigger ending "(again: the
+    tower stopped before it was done)". Put Ack after the step that must
+    not happen twice (Underground Flow: after X Post); a run that ran to
+    its end but whose ack was lost is not run twice.
+  - The reader's stream asks San Message to hold each event for up to 6
+    hours (Hello.ack_timeout_seconds); the broker's loop does not wait for
+    a pull stream's ack, so a run of minutes holds up no other subscriber.
+  - A run that cannot join its queue (the broker does not answer) is
+    recorded as failed. Switching the setting off leaves a queue that
+    still holds runs being read until it is empty; deleting the workflow
+    deletes its queue. Runs of other workflows are not held up.
 - Folders (the user, 2026-10-27: "In workflow, add folder like. So I can
   manage workflow easily"; `store/folder.go`): a workflow is in one folder
   or at the top, and folders nest (WorkflowService's ListFolders,

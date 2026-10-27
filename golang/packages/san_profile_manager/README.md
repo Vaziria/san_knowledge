@@ -1,9 +1,9 @@
 # san_profile_manager
 
 The Chrome profiles that the san_* tools drive, kept in one place, and Chrome
-started on them the way those tools need it. `san_medium`, `san_linkedin`,
-`san_tiktok` and `san_gpt` use it, and so should every tool that drives a
-signed-in browser.
+started on them the way those tools need it. `san_medium`, `san_linkedin`
+and `san_tiktok` use it, and so should every tool that drives a signed-in
+browser.
 
 A profile is a Chrome user-data folder, and one profile can be signed in to
 Medium, TikTok and any other site at once. So every tool uses the same
@@ -56,7 +56,7 @@ err = chromedp.Run(b.Tab(), chromedp.Navigate("https://www.tiktok.com/tiktokstud
 // Signed in? Read the cookies; no page is loaded.
 cs, err := b.Cookies(ctx) // []Cookie{Name, Domain, Value}, for every site
 
-// More tabs in the same Chrome, such as one per conversation (san_gpt).
+// More tabs in the same Chrome.
 tab, closeTab, err := b.NewTab()
 defer closeTab() // b.Close also closes any left open
 ```

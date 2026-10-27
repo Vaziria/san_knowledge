@@ -14,7 +14,7 @@ import (
 // its actions still have the shapes the parser reads.
 //
 // It is the only test that uses the network, so it is off unless a stream is
-// named, and like san_gpt's browser test it is skipped under -short:
+// named, and it is skipped under -short:
 //
 //	SAN_YOUTUBE_LIVE=@KompasTV go test -run Integration -v
 //

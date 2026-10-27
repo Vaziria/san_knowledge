@@ -1,5 +1,13 @@
 # SAN GPT
 
+**Removed on 2026-10-27** (the user: "Remove san_gpt, we already have in
+san_remote"). ChatGPT is asked through the user's own browser by
+[san_remote](san_remote.md) (`san_remote chatgpt`, `internal/chatgpt`), the
+extension way weighed in
+[Alternative: a Chrome extension](#alternative-a-chrome-extension). The
+`golang/packages/san_gpt` package is gone; this page stays for the design
+san_remote still follows: the page's own code sends every request.
+
 SAN GPT holds a conversation on chatgpt.com from Go, driving a real logged-in
 Chrome session rather than an API key. It exists for the case where the thing
 being paid for is a ChatGPT subscription and the thing that needs to use it is

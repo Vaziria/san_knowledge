@@ -47,13 +47,14 @@ state core {
     state loop {
         state "Subscriber (from Subscriber Metadata)" as sitem
         state retry_if <<choice>>
+        state flight_if <<choice>>
         state new_if <<choice>>
         state "Read Event, check CRC" as read
         state subtype_if <<choice>>
         state "Send To Webhook (5s timeout)" as sendhook
         state hook_if <<choice>>
         state stream_if <<choice>>
-        state "Send Pull Event" as pevent
+        state "Send Pull Event, now in flight" as pevent
         state wait_if <<choice>>
         state "Ack Received" as ack
         state "Update Pointer, reset Retry Count and Retry At" as pointup
@@ -64,8 +65,10 @@ state core {
 
         [*]-->sitem
         sitem-->retry_if
-        retry_if-->new_if: retry at passed, or 0
+        retry_if-->flight_if: retry at passed, or 0
         retry_if-->[*]: waiting to retry, next subscriber
+        flight_if-->wait_if: pull stream holds an event in flight
+        flight_if-->new_if: nothing in flight
         new_if-->read: new event exist (pointer before Topic Metadata last offset)
         new_if-->[*]: no event, next subscriber
         read-->subtype_if
@@ -79,10 +82,10 @@ state core {
         subtype_if-->stream_if: pull
         stream_if-->pevent: stream in Stream Pool
         stream_if-->[*]: no stream, next subscriber
-        pevent-->wait_if: wait acknowledge (30s)
-        wait_if-->ack: ack with this event ID
-        wait_if-->failed: no ack in time
-        wait_if-->[*]: stream closed, next subscriber
+        pevent-->[*]: next subscriber, without waiting for the ack
+        wait_if-->ack: ack with its event ID came
+        wait_if-->failed: no ack within the stream's ack timeout (30s, or what its Hello asked)
+        wait_if-->[*]: not acked yet, or stream closed, next subscriber
         ack-->pointup
 
         failed-->max_if
@@ -96,7 +99,7 @@ state core {
     pullcon: Pull Rpc Server
     state pullcon {
         state "Connection Open" as copen
-        state "Hello (subscriber key)" as hello
+        state "Hello (subscriber key, ack timeout)" as hello
         state conn_if <<choice>>
         state "Stream Pool map[subscriber_key]stream" as spool
         state "Denied (AlreadyExists)" as deny
@@ -112,7 +115,7 @@ state core {
         cclose-->[*]: removed from Stream Pool
     }
 
-    pullcon-->loop: loop sends pull events through the Stream Pool
+    pullcon-->loop: loop sends pull events through the Stream Pool, an ack wakes the loop
 }
 
 subscribe: Subscriber
@@ -195,9 +198,14 @@ packet
 
 ## Pull Subscriber.
 1. Pull uses a connect-rpc bidirectional stream, so it needs HTTP/2.
-2. One event at a time: core sends an event, waits for its ack, then sends the next (event → ack → event → ack). Sending several events before an ack may come later.
+2. One event at a time: core sends an event, and sends the next only after its ack (event → ack → event → ack). Sending several events before an ack may come later.
+    - The loop does not wait for the ack. The event stays in flight while the loop serves the other subscribers, and each pass checks whether its ack came; an ack wakes the loop.
+    - So a subscriber that works on each event before it acks it (a job queue) holds up nobody. San Tower's one-at-a-time workflows queue this way: each run's event is acked when the run ends.
+    - An event not acked within the stream's ack timeout is retried like a failed webhook: Retry Count + 1, sent again after the retry wait.
 3. One connection per subscriber key. While a stream for a key is open, a new connection with the same key is denied.
 4. The server pings each connection (HTTP/2 ping) when it is quiet for 15s. A connection with no answer within 15s is closed and removed from the Stream Pool, so a client that lost its connection can connect again.
+5. Hello may ask for a longer ack timeout, `ack_timeout_seconds`: how long the stream may hold an event before it acks it. 0 is the default (30s), the most is 24 hours, more is refused. San Tower's queues ask for 6 hours.
+6. A stream that closes takes its event in flight with it, unacked: the pointer has not moved, so the next stream for the key gets the event again.
 
 
 ## Event Log File.
@@ -257,8 +265,8 @@ Every default can be changed in `Options`.
 | Webhook timeout | 5s |
 | Retry wait | 1s, doubling up to 5 min |
 | Give up | after 10 attempts: the event is logged and skipped |
-| Pull ack timeout | 30s |
-| Idle wait | 100ms, or until a publish wakes the loop |
+| Pull ack timeout | 30s, or what the stream's Hello asks (at most 24 hours) |
+| Idle wait | 100ms, or until a publish or a pull ack wakes the loop |
 | Old log files | kept; deleting them comes later |
 
 ## CLI.

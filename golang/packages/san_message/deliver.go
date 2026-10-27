@@ -24,12 +24,17 @@ const (
 	retry            // failed; try again after a wait
 	giveUp           // the receiver refused this event; skip it
 	notSent          // nothing happened: no pull stream, it closed, or the broker is closing
+	sent             // handed to a pull stream, which acks it later
+	pending          // a pull stream holds it, not acked yet
 )
 
 // run is the subscriber loop. One goroutine serves every subscriber, by
-// design (see "Flow" in docs/readme.md): a slow subscriber holds up the rest
-// for at most its timeout. Each pass gives every subscriber at most one
-// event, so they take turns; a pass with nothing to send waits for a publish
+// design (see "Flow" in docs/readme.md): a slow webhook holds up the rest
+// for at most its timeout. A pull stream's ack is not waited for: its event
+// stays in flight while the loop serves the others, and is looked at again
+// on each pass (landPull), so a stream may work on an event for minutes
+// before it acks it. Each pass gives every subscriber at most one event, so
+// they take turns; a pass with nothing to send waits for a publish, an ack
 // or IdleWait.
 func (b *Broker) run(ctx context.Context) {
 	defer b.wg.Done()
@@ -77,6 +82,20 @@ func (b *Broker) deliverNext(ctx context.Context, s *subscriber) bool {
 	if !ok || st.retryAt > time.Now().UnixMilli() {
 		return false
 	}
+	if s.typ == Pull {
+		if c := b.pullConn(s.key); c != nil && c.flight != nil {
+			f, res, why := b.landPull(c)
+			switch res {
+			case delivered:
+				b.setState(s, subState{at: f.next})
+				return true
+			case retry:
+				b.retryLater(s, f.rec, st.retryCount, f.at, f.next, why)
+				return true
+			}
+			return false // still in flight, or its stream ended
+		}
+	}
 	rec, at, next, ok := b.nextEvent(s, st.at)
 	if !ok {
 		return false
@@ -90,9 +109,10 @@ func (b *Broker) deliverNext(ctx context.Context, s *subscriber) bool {
 	case Webhook:
 		res, why = b.sendWebhook(ctx, s, rec)
 	case Pull:
-		res, why = b.sendPull(ctx, s, rec)
+		res, why = b.sendPull(ctx, s, rec, at, next)
 	}
 	switch res {
+	case sent:
 	case delivered:
 		b.setState(s, subState{at: next})
 	case retry:

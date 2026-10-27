@@ -50,6 +50,10 @@ message SubscribeRequest {
 
 message Hello {
   string subscriber = 1;
+  // How long this stream may hold an event before it acks it, for a
+  // subscriber that works on each event before the ack (a job queue); 0 is
+  // the broker's ack timeout (30s). Up to 24 hours.
+  uint32 ack_timeout_seconds = 2;
 }
 
 message Ack {

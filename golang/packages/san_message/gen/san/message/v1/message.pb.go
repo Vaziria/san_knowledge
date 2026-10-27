@@ -302,10 +302,14 @@ func (*SubscribeRequest_Hello) isSubscribeRequest_Payload() {}
 func (*SubscribeRequest_Ack) isSubscribeRequest_Payload() {}
 
 type Hello struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Subscriber    string                 `protobuf:"bytes,1,opt,name=subscriber,proto3" json:"subscriber,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Subscriber string                 `protobuf:"bytes,1,opt,name=subscriber,proto3" json:"subscriber,omitempty"`
+	// How long this stream may hold an event before it acks it, for a
+	// subscriber that works on each event before the ack (a job queue); 0 is
+	// the broker's ack timeout (30s). Up to 24 hours.
+	AckTimeoutSeconds uint32 `protobuf:"varint,2,opt,name=ack_timeout_seconds,json=ackTimeoutSeconds,proto3" json:"ack_timeout_seconds,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Hello) Reset() {
@@ -343,6 +347,13 @@ func (x *Hello) GetSubscriber() string {
 		return x.Subscriber
 	}
 	return ""
+}
+
+func (x *Hello) GetAckTimeoutSeconds() uint32 {
+	if x != nil {
+		return x.AckTimeoutSeconds
+	}
+	return 0
 }
 
 type Ack struct {
@@ -1224,11 +1235,12 @@ const file_san_message_v1_message_proto_rawDesc = "" +
 	"\x10SubscribeRequest\x12-\n" +
 	"\x05hello\x18\x01 \x01(\v2\x15.san.message.v1.HelloH\x00R\x05hello\x12'\n" +
 	"\x03ack\x18\x02 \x01(\v2\x13.san.message.v1.AckH\x00R\x03ackB\t\n" +
-	"\apayload\"'\n" +
+	"\apayload\"W\n" +
 	"\x05Hello\x12\x1e\n" +
 	"\n" +
 	"subscriber\x18\x01 \x01(\tR\n" +
-	"subscriber\" \n" +
+	"subscriber\x12.\n" +
+	"\x13ack_timeout_seconds\x18\x02 \x01(\rR\x11ackTimeoutSeconds\" \n" +
 	"\x03Ack\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\x04R\aeventId\"@\n" +
 	"\x11SubscribeResponse\x12+\n" +

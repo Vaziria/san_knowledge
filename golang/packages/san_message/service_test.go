@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -122,4 +123,88 @@ func TestCreateSubscriberStart(t *testing.T) {
 	if s := subs[1]; s.Key != "early" || s.Segment != 1 || s.Offset != 0 {
 		t.Errorf("early = %+v, want at segment 1 offset 0", s)
 	}
+}
+
+// A stream that asks for a longer ack timeout may hold its event while it
+// works on it: it does not get the event again, and the other subscribers
+// are not held up meanwhile.
+func TestPullHoldsEvent(t *testing.T) {
+	b := openBroker(t, testOptions(t)) // AckTimeout 300ms
+	client := serve(t, b)
+	ctx := t.Context()
+
+	must(t, b.CreateTopic("jobs"))
+	for _, key := range []string{"worker", "fast"} {
+		if _, err := client.CreateSubscriber(ctx, connect.NewRequest(&v1.CreateSubscriberRequest{
+			Subscriber: key, Topic: "jobs", Type: v1.SubscriberType_SUBSCRIBER_TYPE_PULL,
+		})); err != nil {
+			t.Fatal(err)
+		}
+	}
+	publish(t, b, "jobs", "one", "two")
+
+	open := func(key string, seconds uint32) *connect.BidiStreamForClient[v1.SubscribeRequest, v1.SubscribeResponse] {
+		t.Helper()
+		s := client.Subscribe(ctx)
+		t.Cleanup(func() { s.CloseResponse() })
+		if err := s.Send(&v1.SubscribeRequest{Payload: &v1.SubscribeRequest_Hello{Hello: &v1.Hello{Subscriber: key, AckTimeoutSeconds: seconds}}}); err != nil {
+			t.Fatal(err)
+		}
+		return s
+	}
+	receive := func(s *connect.BidiStreamForClient[v1.SubscribeRequest, v1.SubscribeResponse]) string {
+		t.Helper()
+		resp, err := s.Receive()
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(resp.GetEvent().GetData())
+	}
+	ack := func(s *connect.BidiStreamForClient[v1.SubscribeRequest, v1.SubscribeResponse], id uint64) {
+		t.Helper()
+		if err := s.Send(&v1.SubscribeRequest{Payload: &v1.SubscribeRequest_Ack{Ack: &v1.Ack{EventId: id}}}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	worker := open("worker", 5)
+	if got := receive(worker); got != "one" {
+		t.Fatalf("worker got %q", got)
+	}
+	// While the worker holds "one", well past the broker's 300ms, the other
+	// subscriber gets both events at once.
+	fast := open("fast", 0)
+	start := time.Now()
+	if a, c := receive(fast), receive2(t, fast, ack); a != "one" || c != "two" {
+		t.Fatalf("fast got %q, %q", a, c)
+	}
+	if d := time.Since(start); d > 2*time.Second {
+		t.Errorf("the other subscriber waited %s", d)
+	}
+	time.Sleep(time.Second)
+	ack(worker, 1)
+	if got := receive(worker); got != "two" { // not "one" again
+		t.Fatalf("after the ack the worker got %q", got)
+	}
+	ack(worker, 2)
+
+	// A stream may not hold an event longer than a day.
+	s := client.Subscribe(ctx)
+	defer s.CloseResponse()
+	s.Send(&v1.SubscribeRequest{Payload: &v1.SubscribeRequest_Hello{Hello: &v1.Hello{Subscriber: "fast", AckTimeoutSeconds: 2 * 24 * 3600}}})
+	if _, err := s.Receive(); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Errorf("two days: %v, want InvalidArgument", err)
+	}
+}
+
+// receive2 acks event 1 on s and gives the next event's data.
+func receive2(t *testing.T, s *connect.BidiStreamForClient[v1.SubscribeRequest, v1.SubscribeResponse], ack func(*connect.BidiStreamForClient[v1.SubscribeRequest, v1.SubscribeResponse], uint64)) string {
+	t.Helper()
+	ack(s, 1)
+	resp, err := s.Receive()
+	if err != nil {
+		t.Fatal(err)
+	}
+	ack(s, resp.GetEvent().GetId())
+	return string(resp.GetEvent().GetData())
 }

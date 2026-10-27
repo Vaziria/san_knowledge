@@ -66,14 +66,14 @@ func (s service) Subscribe(ctx context.Context, stream *connect.BidiStream[v1.Su
 	if hello == nil {
 		return connect.NewError(connect.CodeInvalidArgument, errors.New("the first message must be hello"))
 	}
-	c, sub, err := s.b.connectPull(ctx, hello.GetSubscriber())
+	c, sub, err := s.b.connectPull(ctx, hello.GetSubscriber(), time.Duration(hello.GetAckTimeoutSeconds())*time.Second)
 	if err != nil {
 		return connectError(err)
 	}
 	defer s.b.disconnectPull(sub.key, c)
 
-	// Acks are read on their own goroutine, so the loop's wait for one can
-	// also end on a timeout or on the stream closing.
+	// Acks are read on their own goroutine and handed to the loop, which
+	// looks for them on its passes.
 	received := make(chan error, 1)
 	go func() {
 		for {
@@ -85,6 +85,7 @@ func (s service) Subscribe(ctx context.Context, stream *connect.BidiStream[v1.Su
 			if ack := req.GetAck(); ack != nil {
 				select {
 				case c.acks <- ack.GetEventId():
+					s.b.wakeUp() // the loop does not wait for it
 				default: // only stray acks can fill the buffer
 				}
 			}

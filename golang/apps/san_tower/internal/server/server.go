@@ -6,6 +6,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -86,11 +87,34 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle(towerv1connect.NewBrowserRemoteServiceHandler(s))
 	mux.Handle(towerv1connect.NewStorageServiceHandler(s))
 	mux.Handle(s.broker.Handler())
+	// /api/claude-health is the UI startup banner's probe: a plain-JSON
+	// endpoint because the frontend's proto codegen (@bufbuild/protoc-gen-es)
+	// is not always installed on contributors' machines (2026-10-27). The
+	// engine probes `claude --version` once and caches it.
+	mux.HandleFunc("/api/claude-health", s.claudeHealth)
 	mux.Handle("/", web.Handler(web.Dist()))
 	if s.LAN {
 		return GuardLAN(mux)
 	}
 	return Guard(mux)
+}
+
+// claudeHealth answers GET /api/claude-health with
+// {"version":"2.1.132","minVersion":"2.1.280","error":""} — what the UI's
+// startup banner tells the user: whether `claude` is installed and new enough
+// for the Claude Ask (CLI) steps. The engine probes once and caches, so this
+// is cheap to poll.
+func (s *Server) claudeHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "GET only", http.StatusMethodNotAllowed)
+		return
+	}
+	p := engine.ClaudeCLIProbe{MinVersion: engine.ClaudeCLIMinVersion}
+	if s.engine != nil {
+		p = s.engine.ClaudeCLIVersion(r.Context())
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_ = json.NewEncoder(w).Encode(p)
 }
 
 func (s *Server) GetStatus(context.Context, *connect.Request[v1.GetStatusRequest]) (*connect.Response[v1.GetStatusResponse], error) {

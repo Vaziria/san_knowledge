@@ -80,6 +80,38 @@ var datetimeKinds = []*kind{
 		},
 		run: stringToDatetime,
 	},
+	{
+		// The user, 2026-10-27: "add node time wait", to delete a demo
+		// upload a minute after it.
+		StepKind: &v1.StepKind{
+			Kind: "wait", Title: "Wait", Category: "Datetime",
+			Description: "Waits For a while (\"30s\", \"1m\", \"2h\", \"1d\") before the run goes on by Done; a run stopped while it waits ends there.",
+			Outputs:     []*v1.Socket{sock("Done", Event)},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("For")},
+		},
+		run: wait,
+	},
+}
+
+// wait holds the run for its For, unless the run is stopped first.
+func wait(c *call) error {
+	s := strings.TrimSpace(c.text("For"))
+	if s == "" {
+		return fmt.Errorf("For %w", errEmpty)
+	}
+	d, err := days(s)
+	if err != nil || d <= 0 {
+		return fmt.Errorf(`For %q: give a time to wait, such as "30s", "1m", "2h" or "1d"`, s)
+	}
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-t.C:
+	case <-c.ctx.Done():
+		return c.ctx.Err()
+	}
+	c.fire("Done")
+	return nil
 }
 
 // stringToDatetime reads its Text as a time and gives it as To says: an

@@ -246,7 +246,9 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
   (the user's choice, 2026-10-24): the site publishes it at its time, and
   until then it can be deleted from the site's scheduled list. So a group
   post on Facebook, which cannot be scheduled, is refused. A Medium or
-  LinkedIn article without `at` stays a draft, which nobody else sees.
+  LinkedIn article without `at` stays a draft, and a YouTube video without
+  it is saved as Private (2026-10-27: the tower's YouTube Upload sends none
+  when At is empty); nobody else sees either.
 - **Files are absolute paths** (articles, covers, videos): a relative one
   would be inside wherever the api was started.
 - **Markdown posts** (the user, 2026-10-25, for the tower's post steps'

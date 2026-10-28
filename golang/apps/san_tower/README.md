@@ -162,7 +162,7 @@ icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart and
 Telegram Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
 Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Now, Datetime,
-Datetime Operation, String to Datetime, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
+Datetime Operation, String to Datetime, Wait, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
 and
 the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
 
@@ -343,6 +343,10 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
   h (12-hour, with A for AM/PM), mm, ss; other characters are taken as
   they are, so `DD/MM/YYYY HH:mm` reads 20/11/2026 09:00. Month names are
   English.
+- Wait (Datetime; the user, 2026-10-27) holds the run For a while, typed
+  or linked (`30s`, `1m`, `2h`, `1d`, `1d12h`), then goes on by Done. A run
+  stopped while it waits (the tower stopping) ends there. While it waits,
+  the run is in progress, so `dev --watch` and Restart wait for it too.
 - Claude Ask (CLI) (AI › Claude; the user's ask, 2026-10-25) asks Claude
   with this computer's Claude Code: `claude -p --output-format json --tools
   "" --strict-mcp-config --no-session-persistence` with the Prompt on stdin,

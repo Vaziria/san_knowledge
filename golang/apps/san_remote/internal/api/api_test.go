@@ -34,6 +34,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/vidara/v1/vidarav1connect"
 	xv1 "github.com/wargasipil/san_remote/gen/san/remote/x/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/x/v1/xv1connect"
+	youtubev1 "github.com/wargasipil/san_remote/gen/san/remote/youtube/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/youtube/v1/youtubev1connect"
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/facebook"
@@ -124,6 +126,7 @@ func TestRefused(t *testing.T) {
 	cg := chatgptv1connect.NewChatGPTServiceClient(ts.Client(), ts.URL)
 	gm := geminiv1connect.NewGeminiServiceClient(ts.Client(), ts.URL)
 	cl := claudev1connect.NewClaudeServiceClient(ts.Client(), ts.URL)
+	yt := youtubev1connect.NewYouTubeServiceClient(ts.Client(), ts.URL)
 	post := []*threadsv1.Post{{Text: "hello"}}
 
 	for name, err := range map[string]error{
@@ -153,6 +156,8 @@ func TestRefused(t *testing.T) {
 		"tiktok relative video":    second(tt.SchedulePost(ctx, connect.NewRequest(&tiktokv1.SchedulePostRequest{Video: "video.mp4", At: later}))),
 		"tiktok off the step":      second(tt.SchedulePost(ctx, connect.NewRequest(&tiktokv1.SchedulePostRequest{Video: video, At: timestamppb.New(later.AsTime().Add(time.Minute))}))),
 		"tiktok too late":          second(tt.SchedulePost(ctx, connect.NewRequest(&tiktokv1.SchedulePostRequest{Video: video, At: timestamppb.New(later.AsTime().AddDate(0, 2, 0))}))),
+		"youtube too soon":         second(yt.UploadVideo(ctx, connect.NewRequest(&youtubev1.UploadVideoRequest{Video: video, Title: "Uji", At: soon}))),
+		"youtube relative video":   second(yt.UploadVideo(ctx, connect.NewRequest(&youtubev1.UploadVideoRequest{Video: "v.mp4", Title: "Uji"}))),
 		"chatgpt no prompt":        second(cg.Ask(ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: "  "}))),
 		"chatgpt bad chat":         second(cg.Ask(ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: "halo", Chat: "https://example.com/c/1"}))),
 		"gemini no prompt":         second(gm.Ask(ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: "   "}))),
@@ -166,6 +171,11 @@ func TestRefused(t *testing.T) {
 	// A call that gets to the browser fails when none is attached.
 	if _, err := th.GetStatus(ctx, connect.NewRequest(&threadsv1.GetStatusRequest{})); err == nil {
 		t.Error("status without a browser")
+	}
+	// A video without at is not refused: it is saved as Private, so it gets
+	// as far as the browser.
+	if _, err := yt.UploadVideo(ctx, connect.NewRequest(&youtubev1.UploadVideoRequest{Video: video, Title: "Uji", Short: true})); err == nil || connect.CodeOf(err) == connect.CodeInvalidArgument {
+		t.Errorf("youtube without at: %v", err)
 	}
 }
 

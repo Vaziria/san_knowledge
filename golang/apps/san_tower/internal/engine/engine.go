@@ -106,6 +106,12 @@ type Engine struct {
 	// WhatsApp links the WhatsApp connections' devices (whatsapp.go); set
 	// before Start. Without it the WhatsApp steps fail, saying so.
 	WhatsApp WhatsAppLink
+
+	// claudeVersion is what `claude --version` printed on first ask, with
+	// its minimum (ClaudeCLIMinVersion) and the probe error if any; the UI's
+	// startup banner reads it (claude.go).
+	claudeVersionOnce sync.Once
+	claudeVersion     ClaudeCLIProbe
 }
 
 // listener is a trigger's Subscribe stream, opened again when it ends.

@@ -43,3 +43,32 @@ export const storages = createClient(StorageService, transport);
 // Connect's "[code]" prefix.
 export const errorText = (err: unknown) =>
   err instanceof ConnectError ? err.rawMessage : err instanceof Error ? err.message : String(err);
+
+// ClaudeHealth is GET /api/claude-health: the installed Claude Code's version,
+// the oldest the Claude Ask (CLI) steps support, and the probe error when
+// claude is not on PATH or printed something unexpected. Layout's startup
+// banner shows a warning when version is empty or older than minVersion.
+export type ClaudeHealth = { version: string; minVersion: string; error?: string };
+
+export async function claudeHealth(): Promise<ClaudeHealth> {
+  const r = await fetch('/api/claude-health');
+  if (!r.ok) {
+    throw new Error(`GET /api/claude-health: ${r.status}`);
+  }
+  return (await r.json()) as ClaudeHealth;
+}
+
+// cmpVersion compares two "major.minor.patch" strings; empty = older than
+// everything. Returns <0 when a<b, 0 when equal, >0 when a>b. Used by the
+// banner to decide whether the installed claude is behind the minimum.
+export function cmpVersion(a: string, b: string): number {
+  const pa = a.split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = b.split('.').map((n) => parseInt(n, 10) || 0);
+  const n = Math.max(pa.length, pb.length);
+  for (let i = 0; i < n; i++) {
+    const x = pa[i] ?? 0;
+    const y = pb[i] ?? 0;
+    if (x !== y) return x - y;
+  }
+  return 0;
+}

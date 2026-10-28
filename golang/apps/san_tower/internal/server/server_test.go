@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -126,6 +129,34 @@ func TestGetStatus(t *testing.T) {
 	}
 	if r.Msg.Version != "test" || r.Msg.StartedAt == nil {
 		t.Errorf("status = %v", r.Msg)
+	}
+}
+
+// The UI's banner polls GET /api/claude-health for the installed Claude
+// Code's version and the minimum the Claude Ask (CLI) steps need. A missing
+// claude command fills Error so the banner can say which.
+func TestClaudeHealth(t *testing.T) {
+	ts := tower(t)
+	r, err := ts.Client().Get(ts.URL + "/api/claude-health")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Body.Close()
+	body, _ := io.ReadAll(r.Body)
+	if r.StatusCode != http.StatusOK {
+		t.Fatalf("status %d: %s", r.StatusCode, body)
+	}
+	var got engine.ClaudeCLIProbe
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("json: %v: %s", err, body)
+	}
+	// `claude` is probably not on PATH in CI, so Version is empty and Error
+	// says so; MinVersion is always set.
+	if got.MinVersion != engine.ClaudeCLIMinVersion {
+		t.Errorf("MinVersion = %q, want %q", got.MinVersion, engine.ClaudeCLIMinVersion)
+	}
+	if got.Version == "" && !strings.Contains(got.Error, "claude") {
+		t.Errorf("no version and no claude error: %+v", got)
 	}
 }
 

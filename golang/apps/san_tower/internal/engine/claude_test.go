@@ -25,8 +25,19 @@ import (
 // in the shape asked for. In mode session it keeps the prompts of each
 // --session-id in a file in FAKE_CLAUDE_SESSIONS, fails as claude does on a
 // --resume of none or a --session-id taken, and says what was asked before.
+// With --version it prints what FAKE_CLAUDE_VERSION says (or crashes when
+// empty), so the version banner's probe (claude.go) tests like claude.
 func TestMain(m *testing.M) {
 	if mode := os.Getenv("FAKE_CLAUDE"); mode != "" {
+		if len(os.Args) >= 2 && os.Args[1] == "--version" {
+			v := os.Getenv("FAKE_CLAUDE_VERSION")
+			if v == "" {
+				fmt.Fprintln(os.Stderr, "no --version")
+				os.Exit(1)
+			}
+			fmt.Println(v)
+			os.Exit(0)
+		}
 		if slices.Contains(os.Args, "stream-json") {
 			fakeStream(mode) // a chat session's live process (claudelive_test.go)
 		}
@@ -114,6 +125,12 @@ func TestClaudeAskCLI(t *testing.T) {
 	if got, err := ask("ok", "Prompt", "x", "Model", "Opus 5.5 (1M)", "Effort", "XHigh"); err != nil || !strings.Contains(got, "--model claude-opus-5-5[1m] --effort xhigh") {
 		t.Errorf("Model and Effort: %q, %v", got, err)
 	}
+	// Custom lets a model Claude Code added after the list was last updated
+	// work without a code change: Model=Custom reads Custom Model, Effort=
+	// Custom reads Custom Effort.
+	if got, err := ask("ok", "Prompt", "x", "Model", "Custom", "Custom Model", "claude-opus-5-6", "Effort", "Custom", "Custom Effort", "ultracode"); err != nil || !strings.Contains(got, "--model claude-opus-5-6 --effort ultracode") {
+		t.Errorf("Custom Model and Effort: %q, %v", got, err)
+	}
 	// Tools: Read Only reads the files; Full has everything, MCP too.
 	if got, err := ask("ok", "Prompt", "x", "Tools", "Read Only"); err != nil || !strings.Contains(got, "--tools Read,Grep,Glob --strict-mcp-config") {
 		t.Errorf("Read Only: %q, %v", got, err)
@@ -153,6 +170,8 @@ func TestClaudeAskCLI(t *testing.T) {
 		{"ok", []string{"Prompt", "x", "Directory", filepath.Join(project, "nope")}, "not a folder"},
 		{"ok", []string{"Prompt", "x", "Session ID", "chat-42"}, "not a session's ID"},
 		{"ok", []string{"Prompt", "x", "Effort", "Turbo"}, `Effort "Turbo"`},
+		{"ok", []string{"Prompt", "x", "Model", "Custom"}, "Custom Model is empty"},
+		{"ok", []string{"Prompt", "x", "Effort", "Custom"}, "Custom Effort is empty"},
 		{"ok", []string{"Prompt", "x", "Tools", "Some"}, `Tools "Some"`},
 		{"ok", []string{"Prompt", "x", "Permission Mode", "Yolo"}, `Permission Mode "Yolo"`},
 		{"badmodel", []string{"Prompt", "x", "Model", "Fable 5.1"}, "Claude: There's an issue with the selected model"},
@@ -164,6 +183,32 @@ func TestClaudeAskCLI(t *testing.T) {
 	claudeCLI = "no-such-claude-command"
 	if _, err := ask("ok", "Prompt", "x"); err == nil || !strings.Contains(err.Error(), "not on this computer's PATH") {
 		t.Errorf("missing command: %v", err)
+	}
+}
+
+// probeClaudeCLI (claude.go) reads the version `claude --version` prints
+// and tags everything the UI's banner needs: the installed version, the
+// minimum the Claude Ask (CLI) steps need, and an error when the probe
+// could not get a version (claude not on PATH, or output in another shape).
+func TestProbeClaudeCLI(t *testing.T) {
+	defer func(s string) { claudeCLI = s }(claudeCLI)
+	claudeCLI = os.Args[0]
+
+	t.Setenv("FAKE_CLAUDE", "ok")
+	t.Setenv("FAKE_CLAUDE_VERSION", "2.1.132 (Claude Code)")
+	p := probeClaudeCLI(context.Background())
+	if p.Version != "2.1.132" || p.MinVersion != ClaudeCLIMinVersion || p.Error != "" {
+		t.Errorf("installed = %+v", p)
+	}
+
+	t.Setenv("FAKE_CLAUDE_VERSION", "banana (Claude Code)")
+	if p := probeClaudeCLI(context.Background()); p.Version != "" || !strings.Contains(p.Error, "not a version") {
+		t.Errorf("garbage output = %+v", p)
+	}
+
+	claudeCLI = "no-such-claude-command"
+	if p := probeClaudeCLI(context.Background()); p.Version != "" || !strings.Contains(p.Error, "not on this computer's PATH") {
+		t.Errorf("missing command = %+v", p)
 	}
 }
 

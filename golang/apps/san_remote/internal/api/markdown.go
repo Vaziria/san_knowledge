@@ -338,8 +338,10 @@ func youtubePostOf(m *youtubev1.UploadVideoRequest) (*youtube.Post, error) {
 	}
 	p.Short = p.Short || m.Short
 	p.Browser = m.Browser
-	if p.At, err = atOr(m.At, p.At); err != nil {
-		return nil, err
+	// Unlike a post, a video needs no at: without one it is saved as Private,
+	// which nobody else sees, as an article without one stays a draft.
+	if m.At != nil {
+		p.At = m.At.AsTime().Local()
 	}
 	return p, nil
 }

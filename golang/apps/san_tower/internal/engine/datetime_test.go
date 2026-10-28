@@ -127,3 +127,31 @@ func TestStringToDatetime(t *testing.T) {
 		}
 	}
 }
+
+func TestWait(t *testing.T) {
+	waitFor := func(ctx context.Context, d string) (*call, time.Duration, error) {
+		st := step("s", "wait", "For", d)
+		c := &call{ctx: ctx, step: st, inputs: map[string]proto.Message{"For": wrapperspb.String(d)}, outputs: map[string]proto.Message{}}
+		start := time.Now()
+		err := byKind["wait"].run(c)
+		return c, time.Since(start), err
+	}
+
+	c, took, err := waitFor(context.Background(), "50ms")
+	if err != nil || took < 50*time.Millisecond || len(c.fired) != 1 || c.fired[0] != "Done" {
+		t.Errorf("50ms: took %s, fired %v, %v", took, c.fired, err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	c, took, err = waitFor(ctx, "1h")
+	if err == nil || took > time.Second || len(c.fired) != 0 {
+		t.Errorf("stopped while waiting: took %s, fired %v, %v", took, c.fired, err)
+	}
+
+	for _, d := range []string{"", "soon", "0s", "-1m"} {
+		if _, _, err := waitFor(context.Background(), d); err == nil || !strings.Contains(err.Error(), "For") {
+			t.Errorf("For %q: %v", d, err)
+		}
+	}
+}

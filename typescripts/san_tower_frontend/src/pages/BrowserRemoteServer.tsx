@@ -1,10 +1,10 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
-import { Badge, Button, Clipboard, HStack, Heading, Input, Stack, Switch, Table, Text } from '@chakra-ui/react';
+import { Alert, Badge, Button, Clipboard, HStack, Heading, Input, RadioGroup, Stack, Switch, Table, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 import { browserRemote, errorText } from '../api';
 import { usePoll } from '../poll';
 import type { BrowserRemote } from '../gen/san/tower/v1/browser_remote_pb';
-import { FormField, toast } from '../ui';
+import { FormDialog, FormField, toast } from '../ui';
 
 // every is how often the page asks how the server is doing, so a browser
 // that attaches shows up.
@@ -16,11 +16,14 @@ const every = 3000;
 // it; while on, it starts with the tower. It shows the URI to paste in the
 // San Remote extension's Server field, the one a San Remote connection
 // calls, and the browsers attached, asked for every 3 s (not while the
-// browser tab is hidden).
+// browser tab is hidden). Listen on (the user, 2026-10-28) is this computer
+// only, or every network, so another machine reaches it too; the second
+// asks first, saying what it opens.
 export function BrowserRemoteServer() {
   const [remote, setRemote] = useState<BrowserRemote>();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [opening, setOpening] = useState(false); // asking before every network
 
   usePoll(
     (stale) =>
@@ -44,6 +47,17 @@ export function BrowserRemoteServer() {
       toast(active ? 'The browser remote server is running' : 'The browser remote server is stopped');
     } catch (err) {
       toast(errorText(err), true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const setNetwork = async (network: boolean) => {
+    setBusy(true);
+    try {
+      const r = await browserRemote.setBrowserRemoteNetwork({ network });
+      setRemote(r.remote);
+      toast(network ? 'The browser remote server listens on every network' : 'The browser remote server listens on this computer only');
     } finally {
       setBusy(false);
     }
@@ -75,6 +89,54 @@ export function BrowserRemoteServer() {
       {remote && (
         <>
           <Status remote={remote} />
+          <FormField
+            label="Listen on"
+            help={
+              remote.running ? 'A change starts the server again on its new addresses: attached browsers reconnect.' : undefined
+            }
+          >
+            <RadioGroup.Root
+              value={remote.network ? 'network' : 'local'}
+              disabled={busy}
+              onValueChange={(e) => {
+                if (e.value === 'network') setOpening(true);
+                else void setNetwork(false).catch((err: unknown) => toast(errorText(err), true));
+              }}
+            >
+              <Stack gap="3">
+                <RadioGroup.Item value="local" alignItems="flex-start">
+                  <RadioGroup.ItemHiddenInput />
+                  <RadioGroup.ItemIndicator />
+                  <Stack gap="0">
+                    <RadioGroup.ItemText fontWeight="medium">This computer only (127.0.0.1)</RadioGroup.ItemText>
+                    <Text textStyle="sm" color="fg.muted">
+                      Only browsers and programs on this computer reach it.
+                    </Text>
+                  </Stack>
+                </RadioGroup.Item>
+                <RadioGroup.Item value="network" alignItems="flex-start">
+                  <RadioGroup.ItemHiddenInput />
+                  <RadioGroup.ItemIndicator />
+                  <Stack gap="0">
+                    <RadioGroup.ItemText fontWeight="medium">All networks (0.0.0.0)</RadioGroup.ItemText>
+                    <Text textStyle="sm" color="fg.muted">
+                      Machines on your local network reach it too: a browser on another computer attaches to it, or a
+                      tower elsewhere (a Raspberry Pi) posts through the browsers attached here.
+                    </Text>
+                  </Stack>
+                </RadioGroup.Item>
+              </Stack>
+            </RadioGroup.Root>
+          </FormField>
+          {remote.network && (
+            <Alert.Root status="warning">
+              <Alert.Indicator />
+              <Alert.Description>
+                There is no password: anyone on your network can run code in the attached browsers, on every site they
+                are signed in to, and post as you. Keep it to a network you trust.
+              </Alert.Description>
+            </Alert.Root>
+          )}
           <UriField
             label="Server URI, for the extension"
             uri={remote.serverUri}
@@ -85,8 +147,41 @@ export function BrowserRemoteServer() {
             uri={remote.apiUri}
             help="The URL of a San Remote connection (Connections page), which Threads, X, Facebook and Vidara steps use."
           />
+          {remote.network &&
+            remote.networkServerUris.map((uri) => (
+              <UriField
+                key={uri}
+                label="Server URI, from another machine"
+                uri={uri}
+                help="In the San Remote extension of a browser on another computer of this network."
+              />
+            ))}
+          {remote.network &&
+            remote.networkApiUris.map((uri) => (
+              <UriField
+                key={uri}
+                label="API URI, from another machine"
+                uri={uri}
+                help="For a San Remote connection in a tower on another computer of this network."
+              />
+            ))}
           <Browsers remote={remote} />
         </>
+      )}
+      {opening && (
+        <FormDialog
+          title="Listen on every network?"
+          submitText="Listen on every network"
+          danger
+          onClose={() => setOpening(false)}
+          onSubmit={() => setNetwork(true)}
+        >
+          <Text>
+            The server then takes calls from every machine on your local network, without a password. Anyone there can
+            run code in the browsers attached to it, on every site they are signed in to, and post as you.
+          </Text>
+          <Text>Choose it only on a network you trust, such as your home network.</Text>
+        </FormDialog>
       )}
     </Stack>
   );

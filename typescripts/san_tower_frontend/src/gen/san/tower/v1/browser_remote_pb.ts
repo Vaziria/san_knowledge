@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/browser_remote.proto.
  */
 export const file_san_tower_v1_browser_remote: GenFile = /*@__PURE__*/
-  fileDesc("CiFzYW4vdG93ZXIvdjEvYnJvd3Nlcl9yZW1vdGUucHJvdG8SDHNhbi50b3dlci52MSL2AQoNQnJvd3NlclJlbW90ZRIOCgZhY3RpdmUYASABKAgSDwoHcnVubmluZxgCIAEoCBINCgVlcnJvchgDIAEoCRIuCgpzdGFydGVkX2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBISCgpzZXJ2ZXJfdXJpGAUgASgJEg8KB2FwaV91cmkYBiABKAkSLwoIYnJvd3NlcnMYByADKAsyHS5zYW4udG93ZXIudjEuQXR0YWNoZWRCcm93c2VyEhgKEHNlcnZlcl9lbHNld2hlcmUYCCABKAgSFQoNYXBpX2Vsc2V3aGVyZRgJIAEoCCJ3Cg9BdHRhY2hlZEJyb3dzZXISCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIZChFleHRlbnNpb25fdmVyc2lvbhgDIAEoCRIvCgthdHRhY2hlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiGQoXR2V0QnJvd3NlclJlbW90ZVJlcXVlc3QiRwoYR2V0QnJvd3NlclJlbW90ZVJlc3BvbnNlEisKBnJlbW90ZRgBIAEoCzIbLnNhbi50b3dlci52MS5Ccm93c2VyUmVtb3RlIi8KHVNldEJyb3dzZXJSZW1vdGVBY3RpdmVSZXF1ZXN0Eg4KBmFjdGl2ZRgBIAEoCCJNCh5TZXRCcm93c2VyUmVtb3RlQWN0aXZlUmVzcG9uc2USKwoGcmVtb3RlGAEgASgLMhsuc2FuLnRvd2VyLnYxLkJyb3dzZXJSZW1vdGUy7gEKFEJyb3dzZXJSZW1vdGVTZXJ2aWNlEmEKEEdldEJyb3dzZXJSZW1vdGUSJS5zYW4udG93ZXIudjEuR2V0QnJvd3NlclJlbW90ZVJlcXVlc3QaJi5zYW4udG93ZXIudjEuR2V0QnJvd3NlclJlbW90ZVJlc3BvbnNlEnMKFlNldEJyb3dzZXJSZW1vdGVBY3RpdmUSKy5zYW4udG93ZXIudjEuU2V0QnJvd3NlclJlbW90ZUFjdGl2ZVJlcXVlc3QaLC5zYW4udG93ZXIudjEuU2V0QnJvd3NlclJlbW90ZUFjdGl2ZVJlc3BvbnNlQrIBChBjb20uc2FuLnRvd2VyLnYxQhJCcm93c2VyUmVtb3RlUHJvdG9QAVo4Z2l0aHViLmNvbS93YXJnYXNpcGlsL3Nhbl90b3dlci9nZW4vc2FuL3Rvd2VyL3YxO3Rvd2VydjGiAgNTVFiqAgxTYW4uVG93ZXIuVjHKAgxTYW5cVG93ZXJcVjHiAhhTYW5cVG93ZXJcVjFcR1BCTWV0YWRhdGHqAg5TYW46OlRvd2VyOjpWMWIGcHJvdG8z", [file_google_protobuf_timestamp]);
+  fileDesc("CiFzYW4vdG93ZXIvdjEvYnJvd3Nlcl9yZW1vdGUucHJvdG8SDHNhbi50b3dlci52MSK+AgoNQnJvd3NlclJlbW90ZRIOCgZhY3RpdmUYASABKAgSDwoHcnVubmluZxgCIAEoCBINCgVlcnJvchgDIAEoCRIuCgpzdGFydGVkX2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBISCgpzZXJ2ZXJfdXJpGAUgASgJEg8KB2FwaV91cmkYBiABKAkSLwoIYnJvd3NlcnMYByADKAsyHS5zYW4udG93ZXIudjEuQXR0YWNoZWRCcm93c2VyEhgKEHNlcnZlcl9lbHNld2hlcmUYCCABKAgSFQoNYXBpX2Vsc2V3aGVyZRgJIAEoCBIPCgduZXR3b3JrGAogASgIEhsKE25ldHdvcmtfc2VydmVyX3VyaXMYCyADKAkSGAoQbmV0d29ya19hcGlfdXJpcxgMIAMoCSJ3Cg9BdHRhY2hlZEJyb3dzZXISCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIZChFleHRlbnNpb25fdmVyc2lvbhgDIAEoCRIvCgthdHRhY2hlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiGQoXR2V0QnJvd3NlclJlbW90ZVJlcXVlc3QiRwoYR2V0QnJvd3NlclJlbW90ZVJlc3BvbnNlEisKBnJlbW90ZRgBIAEoCzIbLnNhbi50b3dlci52MS5Ccm93c2VyUmVtb3RlIi8KHVNldEJyb3dzZXJSZW1vdGVBY3RpdmVSZXF1ZXN0Eg4KBmFjdGl2ZRgBIAEoCCJNCh5TZXRCcm93c2VyUmVtb3RlQWN0aXZlUmVzcG9uc2USKwoGcmVtb3RlGAEgASgLMhsuc2FuLnRvd2VyLnYxLkJyb3dzZXJSZW1vdGUiMQoeU2V0QnJvd3NlclJlbW90ZU5ldHdvcmtSZXF1ZXN0Eg8KB25ldHdvcmsYASABKAgiTgofU2V0QnJvd3NlclJlbW90ZU5ldHdvcmtSZXNwb25zZRIrCgZyZW1vdGUYASABKAsyGy5zYW4udG93ZXIudjEuQnJvd3NlclJlbW90ZTLmAgoUQnJvd3NlclJlbW90ZVNlcnZpY2USYQoQR2V0QnJvd3NlclJlbW90ZRIlLnNhbi50b3dlci52MS5HZXRCcm93c2VyUmVtb3RlUmVxdWVzdBomLnNhbi50b3dlci52MS5HZXRCcm93c2VyUmVtb3RlUmVzcG9uc2UScwoWU2V0QnJvd3NlclJlbW90ZUFjdGl2ZRIrLnNhbi50b3dlci52MS5TZXRCcm93c2VyUmVtb3RlQWN0aXZlUmVxdWVzdBosLnNhbi50b3dlci52MS5TZXRCcm93c2VyUmVtb3RlQWN0aXZlUmVzcG9uc2USdgoXU2V0QnJvd3NlclJlbW90ZU5ldHdvcmsSLC5zYW4udG93ZXIudjEuU2V0QnJvd3NlclJlbW90ZU5ldHdvcmtSZXF1ZXN0Gi0uc2FuLnRvd2VyLnYxLlNldEJyb3dzZXJSZW1vdGVOZXR3b3JrUmVzcG9uc2VCsgEKEGNvbS5zYW4udG93ZXIudjFCEkJyb3dzZXJSZW1vdGVQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * BrowserRemote is the server as it is now.
@@ -78,6 +78,27 @@ export type BrowserRemote = Message<"san.tower.v1.BrowserRemote"> & {
    * @generated from field: bool api_elsewhere = 9;
    */
   apiElsewhere: boolean;
+
+  /**
+   * network: it listens on every network, not only on this computer
+   * (the user, 2026-10-28). network_server_uris and network_api_uris are
+   * then its URLs at this computer's addresses on the local network, for a
+   * browser's extension or a tower's San Remote connection on another
+   * machine. Anyone on that network can run code in the attached browsers.
+   *
+   * @generated from field: bool network = 10;
+   */
+  network: boolean;
+
+  /**
+   * @generated from field: repeated string network_server_uris = 11;
+   */
+  networkServerUris: string[];
+
+  /**
+   * @generated from field: repeated string network_api_uris = 12;
+   */
+  networkApiUris: string[];
 };
 
 /**
@@ -184,6 +205,40 @@ export const SetBrowserRemoteActiveResponseSchema: GenMessage<SetBrowserRemoteAc
   messageDesc(file_san_tower_v1_browser_remote, 5);
 
 /**
+ * @generated from message san.tower.v1.SetBrowserRemoteNetworkRequest
+ */
+export type SetBrowserRemoteNetworkRequest = Message<"san.tower.v1.SetBrowserRemoteNetworkRequest"> & {
+  /**
+   * @generated from field: bool network = 1;
+   */
+  network: boolean;
+};
+
+/**
+ * Describes the message san.tower.v1.SetBrowserRemoteNetworkRequest.
+ * Use `create(SetBrowserRemoteNetworkRequestSchema)` to create a new message.
+ */
+export const SetBrowserRemoteNetworkRequestSchema: GenMessage<SetBrowserRemoteNetworkRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_browser_remote, 6);
+
+/**
+ * @generated from message san.tower.v1.SetBrowserRemoteNetworkResponse
+ */
+export type SetBrowserRemoteNetworkResponse = Message<"san.tower.v1.SetBrowserRemoteNetworkResponse"> & {
+  /**
+   * @generated from field: san.tower.v1.BrowserRemote remote = 1;
+   */
+  remote?: BrowserRemote;
+};
+
+/**
+ * Describes the message san.tower.v1.SetBrowserRemoteNetworkResponse.
+ * Use `create(SetBrowserRemoteNetworkResponseSchema)` to create a new message.
+ */
+export const SetBrowserRemoteNetworkResponseSchema: GenMessage<SetBrowserRemoteNetworkResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_browser_remote, 7);
+
+/**
  * BrowserRemoteService is the San Remote server the tower can run
  * (golang/apps/san_remote): the hub the San Remote browser extension
  * attaches to, and the Threads, X, Facebook and Vidara services a San Remote
@@ -214,6 +269,19 @@ export const BrowserRemoteService: GenService<{
     methodKind: "unary";
     input: typeof SetBrowserRemoteActiveRequestSchema;
     output: typeof SetBrowserRemoteActiveResponseSchema;
+  },
+  /**
+   * SetBrowserRemoteNetwork has it listen on this computer only (loopback,
+   * the default) or on every network, and saves the choice. A server that
+   * runs starts again on its new addresses; when it cannot, it goes on as it
+   * was, nothing is saved, and the call is FailedPrecondition.
+   *
+   * @generated from rpc san.tower.v1.BrowserRemoteService.SetBrowserRemoteNetwork
+   */
+  setBrowserRemoteNetwork: {
+    methodKind: "unary";
+    input: typeof SetBrowserRemoteNetworkRequestSchema;
+    output: typeof SetBrowserRemoteNetworkResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_san_tower_v1_browser_remote, 0);

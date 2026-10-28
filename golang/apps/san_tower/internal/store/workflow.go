@@ -178,7 +178,8 @@ func (s *Store) SetWorkflowOneAtATime(id uint32, on bool) error {
 	return nil
 }
 
-// DeleteWorkflow deletes a workflow and its runs.
+// DeleteWorkflow deletes a workflow and its runs, its Browser Chat Sessions'
+// chats and its Chat page chats.
 func (s *Store) DeleteWorkflow(id uint32) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		r := tx.Delete(&Workflow{}, id)
@@ -189,6 +190,9 @@ func (s *Store) DeleteWorkflow(id uint32) error {
 			return fail(ErrNotFound, "no workflow %d", id)
 		}
 		if err := deleteChatSessions(tx, id); err != nil {
+			return err
+		}
+		if err := deleteTowerChats(tx, id); err != nil {
 			return err
 		}
 		return tx.Where("workflow_id = ?", id).Delete(&Run{}).Error

@@ -1,5 +1,6 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import {
+  Badge,
   Button,
   HStack,
   Heading,
@@ -11,17 +12,20 @@ import {
   Portal,
   Stack,
   Table,
+  Tabs,
   Text,
 } from '@chakra-ui/react';
 import { EllipsisVerticalIcon, PencilIcon, PlugZapIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { connections, errorText, storages } from '../api';
 import type { Connection, ConnectionSettings, TestConnectionResponse } from '../gen/san/tower/v1/connection_pb';
 import type { Storage } from '../gen/san/tower/v1/storage_pb';
 import { FormDialog, FormField, toast } from '../ui';
 import { forgetConnections } from '../workflow/catalog';
 
-// typeLabels names each connection type, by ConnectionSettings' field.
+// typeLabels names each connection type, by ConnectionSettings' field, in
+// the order of the page's tabs.
 const typeLabels: Record<string, string> = {
   sanRemote: 'San Remote',
   telegramBot: 'Telegram Bot',
@@ -29,6 +33,15 @@ const typeLabels: Record<string, string> = {
   binance: 'Binance',
 };
 type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance';
+
+// typeHelp says what a connection of each type is, over its tab's list.
+const typeHelp: Record<ConnectionType, string> = {
+  sanRemote:
+    '`san_remote api`, which posts to Threads, X, Facebook, Vidara and the other sites, and asks ChatGPT, Gemini and Claude, through your browser.',
+  telegramBot: 'A bot from @BotFather, which the tower reads and sends Telegram messages as.',
+  whatsapp: 'Your WhatsApp account, linked by scanning a QR code as WhatsApp Web is.',
+  binance: 'A Binance futures account, through an API key, which the Finance steps read and trade on.',
+};
 
 // binanceNetworks are a Binance connection's networks; Live trades real money.
 const binanceNetworks: Record<string, string> = {
@@ -66,8 +79,12 @@ const pngURL = (png: Uint8Array) => {
 // (ConnectionService), which workflow steps use, and creates, edits, tests
 // and deletes them. The types are San Remote, `san_remote api`, which posts
 // through the user's own browser, Telegram Bot, a bot from @BotFather,
-// WhatsApp, and Binance, a futures account through an API key.
+// WhatsApp, and Binance, a futures account through an API key. A tab per
+// type (the user, 2026-10-28), after All, lists that type's connections, and
+// its New connection makes one of it; the tab is in the URL (?type=binance).
 export function Connections() {
+  const [params, setParams] = useSearchParams();
+  const tab = (Object.keys(typeLabels) as ConnectionType[]).find((t) => t === params.get('type')) ?? 'all';
   const [list, setList] = useState<Connection[]>();
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
@@ -97,44 +114,58 @@ export function Connections() {
     }
   };
 
+  const count = (t: ConnectionType) => list?.filter((c) => c.settings?.type.case === t).length ?? 0;
+  const shown = tab === 'all' ? list : list?.filter((c) => c.settings?.type.case === tab);
+
   return (
     <Stack gap="4">
       <HStack justify="space-between">
         <Heading size="lg">Connections</Heading>
         <Button size="sm" colorPalette="blue" onClick={() => setEditing('new')}>
-          New connection
+          New {tab === 'all' ? 'connection' : `${typeLabels[tab]} connection`}
         </Button>
       </HStack>
+      <Tabs.Root value={tab} onValueChange={(e) => setParams(e.value === 'all' ? {} : { type: e.value })}>
+        <Tabs.List flexWrap="wrap">
+          <Tabs.Trigger value="all">
+            All <Badge size="sm">{list?.length ?? 0}</Badge>
+          </Tabs.Trigger>
+          {(Object.keys(typeLabels) as ConnectionType[]).map((t) => (
+            <Tabs.Trigger key={t} value={t}>
+              {typeLabels[t]} <Badge size="sm">{count(t)}</Badge>
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
+      </Tabs.Root>
       <Text color="fg.muted" textStyle="sm">
-        Programs the workflow steps use. A San Remote connection is `san_remote api`, which posts to Threads, X,
-        Facebook and Vidara through your browser. A Telegram Bot connection is a bot from @BotFather, which the tower
-        reads and sends Telegram messages as. A WhatsApp connection is your WhatsApp account, linked by scanning a QR
-        code as WhatsApp Web is. A Binance connection is a Binance futures account, through an API key, which the
-        Finance steps read and trade on.
+        {tab === 'all'
+          ? 'Programs the workflow steps use. ' +
+            (Object.keys(typeLabels) as ConnectionType[]).map((t) => `${typeLabels[t]}: ${typeHelp[t]}`).join(' ')
+          : typeHelp[tab]}
       </Text>
       {error ? (
         <Text color="fg.error">The tower does not answer: {error}</Text>
-      ) : !list ? (
+      ) : !shown ? (
         <Text color="fg.muted">Loading...</Text>
-      ) : list.length === 0 ? (
-        <Text color="fg.muted">No connections yet.</Text>
+      ) : shown.length === 0 ? (
+        <Text color="fg.muted">No {tab === 'all' ? '' : `${typeLabels[tab]} `}connections yet.</Text>
       ) : (
         <Table.ScrollArea borderWidth="1px" rounded="md">
           <Table.Root size="sm" interactive>
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Name</Table.ColumnHeader>
-                <Table.ColumnHeader>Type</Table.ColumnHeader>
+                {tab === 'all' && <Table.ColumnHeader>Type</Table.ColumnHeader>}
                 <Table.ColumnHeader>Address</Table.ColumnHeader>
                 <Table.ColumnHeader>Last change</Table.ColumnHeader>
                 <Table.ColumnHeader w="12" />
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {list.map((c) => (
+              {shown.map((c) => (
                 <Table.Row key={c.id} cursor="pointer" onClick={() => setEditing(c)}>
                   <Table.Cell fontWeight="semibold">{c.name}</Table.Cell>
-                  <Table.Cell>{typeLabels[c.settings?.type.case ?? ''] ?? 'Unknown'}</Table.Cell>
+                  {tab === 'all' && <Table.Cell>{typeLabels[c.settings?.type.case ?? ''] ?? 'Unknown'}</Table.Cell>}
                   <Table.Cell fontFamily="mono">{address(c.settings)}</Table.Cell>
                   <Table.Cell color="fg.muted">{c.updatedAt && timestampDate(c.updatedAt).toLocaleString()}</Table.Cell>
                   {/* The menu is the row's own: a click in it does not open the editor. */}
@@ -155,6 +186,7 @@ export function Connections() {
       {editing && (
         <ConnectionDialog
           connection={editing === 'new' ? undefined : editing}
+          type={tab === 'all' ? undefined : tab}
           onClose={() => setEditing(undefined)}
           onSaved={changed}
         />
@@ -222,21 +254,24 @@ function RowMenu({
   );
 }
 
-// ConnectionDialog creates a connection, or edits one, and tests what is
-// typed in before it is saved. A new WhatsApp connection is made by linking
-// (PairWhatsApp): the dialog shows the QR codes to scan, and the connection
-// exists once the phone is linked and connected; closing it stops that.
+// ConnectionDialog creates a connection, of type when given (the tab's), or
+// edits one, and tests what is typed in before it is saved. A new WhatsApp
+// connection is made by linking (PairWhatsApp): the dialog shows the QR codes
+// to scan, and the connection exists once the phone is linked and connected;
+// closing it stops that.
 function ConnectionDialog({
   connection,
+  type: initialType,
   onClose,
   onSaved,
 }: {
   connection?: Connection;
+  type?: ConnectionType;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const old = connection?.settings?.type;
-  const [type, setType] = useState<ConnectionType>(old?.case ?? 'sanRemote');
+  const [type, setType] = useState<ConnectionType>(old?.case ?? initialType ?? 'sanRemote');
   const [name, setName] = useState(connection?.name ?? '');
   const [url, setUrl] = useState(old?.case === 'sanRemote' ? old.value.url : 'http://127.0.0.1:7478');
   const [token, setToken] = useState(old?.case === 'telegramBot' ? old.value.token : '');

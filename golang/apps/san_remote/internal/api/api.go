@@ -75,10 +75,14 @@ type API struct {
 	ChatGPT  *chatgpt.Service
 	Gemini   *gemini.Service
 	Claude   *claude.Service
+	// LAN takes calls from the local network too (hub.GuardLAN), for a
+	// server that listens there.
+	LAN bool
 }
 
 // Handler serves RemoteService (passed through to serve) and the four site
-// services, behind hub.Guard: loopback only, and no calls from web pages.
+// services, behind hub.Guard: loopback only, and no calls from web pages;
+// with LAN, behind hub.GuardLAN.
 func (a *API) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle(remotev1connect.NewRemoteServiceHandler(remote{a}))
@@ -94,6 +98,9 @@ func (a *API) Handler() http.Handler {
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatgptAPI{a}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAPI{a}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeAPI{a}))
+	if a.LAN {
+		return hub.GuardLAN(mux)
+	}
 	return hub.Guard(mux)
 }
 

@@ -17,6 +17,11 @@ service BrowserRemoteService {
   // and nothing is saved, when its addresses are in use (san_remote already
   // runs on this machine).
   rpc SetBrowserRemoteActive(SetBrowserRemoteActiveRequest) returns (SetBrowserRemoteActiveResponse);
+  // SetBrowserRemoteNetwork has it listen on this computer only (loopback,
+  // the default) or on every network, and saves the choice. A server that
+  // runs starts again on its new addresses; when it cannot, it goes on as it
+  // was, nothing is saved, and the call is FailedPrecondition.
+  rpc SetBrowserRemoteNetwork(SetBrowserRemoteNetworkRequest) returns (SetBrowserRemoteNetworkResponse);
 }
 
 // BrowserRemote is the server as it is now.
@@ -40,6 +45,14 @@ message BrowserRemote {
   // (`san_remote api`).
   bool server_elsewhere = 8;
   bool api_elsewhere = 9;
+  // network: it listens on every network, not only on this computer
+  // (the user, 2026-10-28). network_server_uris and network_api_uris are
+  // then its URLs at this computer's addresses on the local network, for a
+  // browser's extension or a tower's San Remote connection on another
+  // machine. Anyone on that network can run code in the attached browsers.
+  bool network = 10;
+  repeated string network_server_uris = 11;
+  repeated string network_api_uris = 12;
 }
 
 message AttachedBrowser {
@@ -60,5 +73,13 @@ message SetBrowserRemoteActiveRequest {
 }
 
 message SetBrowserRemoteActiveResponse {
+  BrowserRemote remote = 1;
+}
+
+message SetBrowserRemoteNetworkRequest {
+  bool network = 1;
+}
+
+message SetBrowserRemoteNetworkResponse {
   BrowserRemote remote = 1;
 }

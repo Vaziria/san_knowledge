@@ -71,6 +71,16 @@ func (s *Store) GetRun(id uint32) (Run, error) {
 	return r, err
 }
 
+// RunHeads are the runs of ids that are still kept, without their steps or
+// summaries: how a chat's runs are doing.
+func (s *Store) RunHeads(ids []uint32) ([]Run, error) {
+	var list []Run
+	if len(ids) == 0 {
+		return list, nil
+	}
+	return list, s.db.Omit("Steps", "Summary").Where("id IN ?", ids).Order("id").Find(&list).Error
+}
+
 // CountRunning is how many runs are still going.
 func (s *Store) CountRunning() (int64, error) {
 	var n int64

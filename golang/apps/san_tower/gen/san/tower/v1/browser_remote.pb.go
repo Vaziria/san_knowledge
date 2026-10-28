@@ -44,8 +44,16 @@ type BrowserRemote struct {
 	// (`san_remote api`).
 	ServerElsewhere bool `protobuf:"varint,8,opt,name=server_elsewhere,json=serverElsewhere,proto3" json:"server_elsewhere,omitempty"`
 	ApiElsewhere    bool `protobuf:"varint,9,opt,name=api_elsewhere,json=apiElsewhere,proto3" json:"api_elsewhere,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// network: it listens on every network, not only on this computer
+	// (the user, 2026-10-28). network_server_uris and network_api_uris are
+	// then its URLs at this computer's addresses on the local network, for a
+	// browser's extension or a tower's San Remote connection on another
+	// machine. Anyone on that network can run code in the attached browsers.
+	Network           bool     `protobuf:"varint,10,opt,name=network,proto3" json:"network,omitempty"`
+	NetworkServerUris []string `protobuf:"bytes,11,rep,name=network_server_uris,json=networkServerUris,proto3" json:"network_server_uris,omitempty"`
+	NetworkApiUris    []string `protobuf:"bytes,12,rep,name=network_api_uris,json=networkApiUris,proto3" json:"network_api_uris,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *BrowserRemote) Reset() {
@@ -139,6 +147,27 @@ func (x *BrowserRemote) GetApiElsewhere() bool {
 		return x.ApiElsewhere
 	}
 	return false
+}
+
+func (x *BrowserRemote) GetNetwork() bool {
+	if x != nil {
+		return x.Network
+	}
+	return false
+}
+
+func (x *BrowserRemote) GetNetworkServerUris() []string {
+	if x != nil {
+		return x.NetworkServerUris
+	}
+	return nil
+}
+
+func (x *BrowserRemote) GetNetworkApiUris() []string {
+	if x != nil {
+		return x.NetworkApiUris
+	}
+	return nil
 }
 
 type AttachedBrowser struct {
@@ -377,11 +406,99 @@ func (x *SetBrowserRemoteActiveResponse) GetRemote() *BrowserRemote {
 	return nil
 }
 
+type SetBrowserRemoteNetworkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Network       bool                   `protobuf:"varint,1,opt,name=network,proto3" json:"network,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetBrowserRemoteNetworkRequest) Reset() {
+	*x = SetBrowserRemoteNetworkRequest{}
+	mi := &file_san_tower_v1_browser_remote_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetBrowserRemoteNetworkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetBrowserRemoteNetworkRequest) ProtoMessage() {}
+
+func (x *SetBrowserRemoteNetworkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_browser_remote_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetBrowserRemoteNetworkRequest.ProtoReflect.Descriptor instead.
+func (*SetBrowserRemoteNetworkRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_browser_remote_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SetBrowserRemoteNetworkRequest) GetNetwork() bool {
+	if x != nil {
+		return x.Network
+	}
+	return false
+}
+
+type SetBrowserRemoteNetworkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Remote        *BrowserRemote         `protobuf:"bytes,1,opt,name=remote,proto3" json:"remote,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetBrowserRemoteNetworkResponse) Reset() {
+	*x = SetBrowserRemoteNetworkResponse{}
+	mi := &file_san_tower_v1_browser_remote_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetBrowserRemoteNetworkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetBrowserRemoteNetworkResponse) ProtoMessage() {}
+
+func (x *SetBrowserRemoteNetworkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_browser_remote_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetBrowserRemoteNetworkResponse.ProtoReflect.Descriptor instead.
+func (*SetBrowserRemoteNetworkResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_browser_remote_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SetBrowserRemoteNetworkResponse) GetRemote() *BrowserRemote {
+	if x != nil {
+		return x.Remote
+	}
+	return nil
+}
+
 var File_san_tower_v1_browser_remote_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_browser_remote_proto_rawDesc = "" +
 	"\n" +
-	"!san/tower/v1/browser_remote.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd5\x02\n" +
+	"!san/tower/v1/browser_remote.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc9\x03\n" +
 	"\rBrowserRemote\x12\x16\n" +
 	"\x06active\x18\x01 \x01(\bR\x06active\x12\x18\n" +
 	"\arunning\x18\x02 \x01(\bR\arunning\x12\x14\n" +
@@ -393,7 +510,11 @@ const file_san_tower_v1_browser_remote_proto_rawDesc = "" +
 	"\aapi_uri\x18\x06 \x01(\tR\x06apiUri\x129\n" +
 	"\bbrowsers\x18\a \x03(\v2\x1d.san.tower.v1.AttachedBrowserR\bbrowsers\x12)\n" +
 	"\x10server_elsewhere\x18\b \x01(\bR\x0fserverElsewhere\x12#\n" +
-	"\rapi_elsewhere\x18\t \x01(\bR\fapiElsewhere\"\x9f\x01\n" +
+	"\rapi_elsewhere\x18\t \x01(\bR\fapiElsewhere\x12\x18\n" +
+	"\anetwork\x18\n" +
+	" \x01(\bR\anetwork\x12.\n" +
+	"\x13network_server_uris\x18\v \x03(\tR\x11networkServerUris\x12(\n" +
+	"\x10network_api_uris\x18\f \x03(\tR\x0enetworkApiUris\"\x9f\x01\n" +
 	"\x0fAttachedBrowser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12+\n" +
@@ -406,10 +527,15 @@ const file_san_tower_v1_browser_remote_proto_rawDesc = "" +
 	"\x1dSetBrowserRemoteActiveRequest\x12\x16\n" +
 	"\x06active\x18\x01 \x01(\bR\x06active\"U\n" +
 	"\x1eSetBrowserRemoteActiveResponse\x123\n" +
-	"\x06remote\x18\x01 \x01(\v2\x1b.san.tower.v1.BrowserRemoteR\x06remote2\xee\x01\n" +
+	"\x06remote\x18\x01 \x01(\v2\x1b.san.tower.v1.BrowserRemoteR\x06remote\":\n" +
+	"\x1eSetBrowserRemoteNetworkRequest\x12\x18\n" +
+	"\anetwork\x18\x01 \x01(\bR\anetwork\"V\n" +
+	"\x1fSetBrowserRemoteNetworkResponse\x123\n" +
+	"\x06remote\x18\x01 \x01(\v2\x1b.san.tower.v1.BrowserRemoteR\x06remote2\xe6\x02\n" +
 	"\x14BrowserRemoteService\x12a\n" +
 	"\x10GetBrowserRemote\x12%.san.tower.v1.GetBrowserRemoteRequest\x1a&.san.tower.v1.GetBrowserRemoteResponse\x12s\n" +
-	"\x16SetBrowserRemoteActive\x12+.san.tower.v1.SetBrowserRemoteActiveRequest\x1a,.san.tower.v1.SetBrowserRemoteActiveResponseB\xb2\x01\n" +
+	"\x16SetBrowserRemoteActive\x12+.san.tower.v1.SetBrowserRemoteActiveRequest\x1a,.san.tower.v1.SetBrowserRemoteActiveResponse\x12v\n" +
+	"\x17SetBrowserRemoteNetwork\x12,.san.tower.v1.SetBrowserRemoteNetworkRequest\x1a-.san.tower.v1.SetBrowserRemoteNetworkResponseB\xb2\x01\n" +
 	"\x10com.san.tower.v1B\x12BrowserRemoteProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -424,31 +550,36 @@ func file_san_tower_v1_browser_remote_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_browser_remote_proto_rawDescData
 }
 
-var file_san_tower_v1_browser_remote_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_san_tower_v1_browser_remote_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_san_tower_v1_browser_remote_proto_goTypes = []any{
-	(*BrowserRemote)(nil),                  // 0: san.tower.v1.BrowserRemote
-	(*AttachedBrowser)(nil),                // 1: san.tower.v1.AttachedBrowser
-	(*GetBrowserRemoteRequest)(nil),        // 2: san.tower.v1.GetBrowserRemoteRequest
-	(*GetBrowserRemoteResponse)(nil),       // 3: san.tower.v1.GetBrowserRemoteResponse
-	(*SetBrowserRemoteActiveRequest)(nil),  // 4: san.tower.v1.SetBrowserRemoteActiveRequest
-	(*SetBrowserRemoteActiveResponse)(nil), // 5: san.tower.v1.SetBrowserRemoteActiveResponse
-	(*timestamppb.Timestamp)(nil),          // 6: google.protobuf.Timestamp
+	(*BrowserRemote)(nil),                   // 0: san.tower.v1.BrowserRemote
+	(*AttachedBrowser)(nil),                 // 1: san.tower.v1.AttachedBrowser
+	(*GetBrowserRemoteRequest)(nil),         // 2: san.tower.v1.GetBrowserRemoteRequest
+	(*GetBrowserRemoteResponse)(nil),        // 3: san.tower.v1.GetBrowserRemoteResponse
+	(*SetBrowserRemoteActiveRequest)(nil),   // 4: san.tower.v1.SetBrowserRemoteActiveRequest
+	(*SetBrowserRemoteActiveResponse)(nil),  // 5: san.tower.v1.SetBrowserRemoteActiveResponse
+	(*SetBrowserRemoteNetworkRequest)(nil),  // 6: san.tower.v1.SetBrowserRemoteNetworkRequest
+	(*SetBrowserRemoteNetworkResponse)(nil), // 7: san.tower.v1.SetBrowserRemoteNetworkResponse
+	(*timestamppb.Timestamp)(nil),           // 8: google.protobuf.Timestamp
 }
 var file_san_tower_v1_browser_remote_proto_depIdxs = []int32{
-	6, // 0: san.tower.v1.BrowserRemote.started_at:type_name -> google.protobuf.Timestamp
+	8, // 0: san.tower.v1.BrowserRemote.started_at:type_name -> google.protobuf.Timestamp
 	1, // 1: san.tower.v1.BrowserRemote.browsers:type_name -> san.tower.v1.AttachedBrowser
-	6, // 2: san.tower.v1.AttachedBrowser.attached_at:type_name -> google.protobuf.Timestamp
+	8, // 2: san.tower.v1.AttachedBrowser.attached_at:type_name -> google.protobuf.Timestamp
 	0, // 3: san.tower.v1.GetBrowserRemoteResponse.remote:type_name -> san.tower.v1.BrowserRemote
 	0, // 4: san.tower.v1.SetBrowserRemoteActiveResponse.remote:type_name -> san.tower.v1.BrowserRemote
-	2, // 5: san.tower.v1.BrowserRemoteService.GetBrowserRemote:input_type -> san.tower.v1.GetBrowserRemoteRequest
-	4, // 6: san.tower.v1.BrowserRemoteService.SetBrowserRemoteActive:input_type -> san.tower.v1.SetBrowserRemoteActiveRequest
-	3, // 7: san.tower.v1.BrowserRemoteService.GetBrowserRemote:output_type -> san.tower.v1.GetBrowserRemoteResponse
-	5, // 8: san.tower.v1.BrowserRemoteService.SetBrowserRemoteActive:output_type -> san.tower.v1.SetBrowserRemoteActiveResponse
-	7, // [7:9] is the sub-list for method output_type
-	5, // [5:7] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	0, // 5: san.tower.v1.SetBrowserRemoteNetworkResponse.remote:type_name -> san.tower.v1.BrowserRemote
+	2, // 6: san.tower.v1.BrowserRemoteService.GetBrowserRemote:input_type -> san.tower.v1.GetBrowserRemoteRequest
+	4, // 7: san.tower.v1.BrowserRemoteService.SetBrowserRemoteActive:input_type -> san.tower.v1.SetBrowserRemoteActiveRequest
+	6, // 8: san.tower.v1.BrowserRemoteService.SetBrowserRemoteNetwork:input_type -> san.tower.v1.SetBrowserRemoteNetworkRequest
+	3, // 9: san.tower.v1.BrowserRemoteService.GetBrowserRemote:output_type -> san.tower.v1.GetBrowserRemoteResponse
+	5, // 10: san.tower.v1.BrowserRemoteService.SetBrowserRemoteActive:output_type -> san.tower.v1.SetBrowserRemoteActiveResponse
+	7, // 11: san.tower.v1.BrowserRemoteService.SetBrowserRemoteNetwork:output_type -> san.tower.v1.SetBrowserRemoteNetworkResponse
+	9, // [9:12] is the sub-list for method output_type
+	6, // [6:9] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_browser_remote_proto_init() }
@@ -462,7 +593,7 @@ func file_san_tower_v1_browser_remote_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_browser_remote_proto_rawDesc), len(file_san_tower_v1_browser_remote_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

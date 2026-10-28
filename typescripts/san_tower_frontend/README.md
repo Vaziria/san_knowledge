@@ -31,6 +31,23 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   `san-tower-sidebar-collapsed`).
 - `src/pages/`:
   - `Home.tsx`: the tower's status.
+  - `Chat.tsx` (`/chat`, after Home; the user, 2026-10-28): the tower's
+    own chat (ChatService). The chats on the left, the newest message
+    first, each with its workflow (a green dot when it is on) and its last
+    message, asked for every 5 s; New chat picks a workflow with a Tower
+    Chat step and a name (empty: the workflow's). The chat shown is in the
+    URL (`?c=3`; none: the newest). On the right the conversation: the
+    user's messages on the right, the workflow's on the left, as Markdown
+    when sent so (`react-markdown` with `remark-gfm`, never raw HTML; links
+    open in a new tab), each with its time. Under the user's, how the runs
+    it started are doing: Running with the last line logged, or Failed or
+    Interrupted with the error and a link to the workflow's Runs. It asks
+    every second for what came after the newest message and for the runs
+    still going (`usePoll`), keeps the newest in view while the reader is
+    at the bottom, and Older messages loads the ones before. The header has
+    the workflow (a link to its editor), its On/Off switch, and Rename and
+    Delete. Enter sends, Shift+Enter is a new line; a workflow switched off
+    or gone shows why instead of the box.
   - `MessageBroker.tsx`: the San Message broker the tower uses. A status
     bar on top (BrokerService.GetBrokerStatus): Running or Not answering,
     inside the tower or a separate server and since when, topics and events
@@ -46,9 +63,13 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     (`?tab=subscribers&topic=orders`). It reloads after each change and on
     Refresh.
   - `Connections.tsx` (`/connections`): the connections workflow steps use
-    (ConnectionService), in a table (name, type, address, last change). New
-    connection, or a row, opens a dialog: the type (San Remote or
-    Telegram Bot; a saved connection keeps its type), a name, and the URL
+    (ConnectionService), in a table (name, type, address, last change).
+    Tabs (the user, 2026-10-28): All, then one per type with its count,
+    which lists that type's connections (without the Type column) and says
+    what it is; the tab is in the URL (`?type=telegramBot`), and its New
+    connection starts the dialog on that type. New
+    connection, or a row, opens a dialog: the type (San Remote,
+    Telegram Bot, WhatsApp or Binance; a saved connection keeps its type), a name, and the URL
     of `san_remote api` (default http://127.0.0.1:7478) or the bot's token
     (a password field), with Test, which shows what the other side answers
     before anything is saved. A bot's address in the table is its id, the
@@ -73,6 +94,9 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     the extension's Server field and the API URI for a San Remote
     connection, each with a Copy button; and the attached browsers, the
     tower's or those of the san_remote serve outside it, asked for every 3 s.
+    Listen on (the user, 2026-10-28) is This computer only or All networks
+    (SetBrowserRemoteNetwork); All networks asks first, then shows a warning
+    and the URIs at this computer's local network addresses.
   - `Settings.tsx` (`/settings`, last in the menu): the tower's settings, a
     section per part. Message Broker (BrokerService; the user moved it here
     from the Message Broker page, 2026-10-24): which broker the tower uses,
@@ -206,7 +230,7 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
 - `src/ui.tsx`: the toaster, and `FormDialog`, a form in a modal that shows
   the server's error and closes when it succeeds.
 - `src/api.ts`: the TowerService, BrokerService, WorkflowService,
-  ConnectionService, BrowserRemoteService, StorageService and MessageService clients, same origin as the page,
+  ConnectionService, BrowserRemoteService, StorageService, ChatService and MessageService clients, same origin as the page,
   and `errorText`. Their
   JSON reading knows the types a run's `Any` outputs hold (Value,
   StringValue).

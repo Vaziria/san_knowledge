@@ -3,6 +3,7 @@ import {
   CableIcon,
   HardDriveIcon,
   HouseIcon,
+  MessageSquareTextIcon,
   MessagesSquareIcon,
   SettingsIcon,
   WorkflowIcon,
@@ -10,6 +11,7 @@ import {
 import { createBrowserRouter } from 'react-router';
 import { Layout, type Page } from './Layout';
 import { BrowserRemoteServer } from './pages/BrowserRemoteServer';
+import { Chat } from './pages/Chat';
 import { Connections } from './pages/Connections';
 import { Home } from './pages/Home';
 import { MessageBroker } from './pages/MessageBroker';
@@ -24,6 +26,8 @@ import { WorkflowList } from './pages/WorkflowList';
 // extension with index.html, so each page can be reloaded or linked to.
 const pages: Page[] = [
   { path: '/', label: 'Home', icon: HouseIcon, element: <Home /> },
+  // After Home (the user, 2026-10-28): chats with workflows.
+  { path: '/chat', label: 'Chat', icon: MessageSquareTextIcon, element: <Chat /> },
   { path: '/workflow', label: 'Workflow', icon: WorkflowIcon, element: <WorkflowList /> },
   { path: '/message-broker', label: 'Message Broker', icon: MessagesSquareIcon, element: <MessageBroker /> },
   { path: '/connections', label: 'Connections', icon: CableIcon, element: <Connections /> },

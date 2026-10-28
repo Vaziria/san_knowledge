@@ -83,6 +83,8 @@ type Engine struct {
 	tgSteps map[uint32][]tgStep
 	// The Log Event steps of active workflows, by workflow id.
 	logSteps map[uint32][]logStep
+	// The Tower Chat steps of active workflows, by workflow id (towerchat.go).
+	chatSteps map[uint32][]string
 	// The Folder Watch and File Watch steps watching, by the same key as the
 	// timers, and the watch steps' states (watch.go).
 	watchers    map[string]*watcher
@@ -129,7 +131,7 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		states: make(map[uint32][]*v1.TriggerState), listeners: make(map[string]*listener),
 		timers: make(map[string]*timer), timerStates: make(map[uint32][]*v1.TriggerState),
 		pollers: make(map[uint32]*poller), tgSteps: make(map[uint32][]tgStep),
-		logSteps: make(map[uint32][]logStep),
+		logSteps: make(map[uint32][]logStep), chatSteps: make(map[uint32][]string),
 		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
 		waiting: make(map[uint32]*waiter), readers: make(map[uint32]context.CancelFunc), queues: make(map[uint32]string),
 	}
@@ -238,6 +240,7 @@ func (e *Engine) SyncAll() error {
 		e.syncTimers(w)
 		e.syncTelegram(w)
 		e.syncLogs(w)
+		e.syncChats(w)
 		e.syncWatches(w)
 	}
 	e.dropTimers(known)
@@ -250,6 +253,11 @@ func (e *Engine) SyncAll() error {
 	for id := range e.logSteps {
 		if !known[id] {
 			delete(e.logSteps, id)
+		}
+	}
+	for id := range e.chatSteps {
+		if !known[id] {
+			delete(e.chatSteps, id)
 		}
 	}
 	for key, l := range e.listeners {
@@ -296,6 +304,7 @@ func (e *Engine) Sync(id uint32) {
 	e.syncTimers(w)
 	e.syncTelegram(w)
 	e.syncLogs(w)
+	e.syncChats(w)
 	e.syncWatches(w)
 	url := e.brokerURL()
 	subs, err := e.subscribers(url)
@@ -583,7 +592,7 @@ func (e *Engine) Triggers(id uint32) []*v1.TriggerState {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var out []*v1.TriggerState
-	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id), e.whatsappStates(id), e.logStates(id), e.watchStatesOf(id)) {
+	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id), e.whatsappStates(id), e.logStates(id), e.chatStates(id), e.watchStatesOf(id)) {
 		out = append(out, proto.Clone(s).(*v1.TriggerState))
 	}
 	return out
@@ -682,6 +691,9 @@ func (e *Engine) execute(w store.Workflow, r store.Run, stepID string, data []by
 	defer e.dropLive(r.ID) // once the run's record has its lines
 	env.Workflow = w.ID
 	env.Ack = ack
+	env.ChatSend = func(chat, text string, markdown bool) (chatMessage, error) {
+		return e.chatSend(w.ID, r.ID, chat, text, markdown)
+	}
 	waited := time.Since(r.StartedAt)
 	steps, runErr := Execute(e.ctx, w.Graph, stepID, data, env)
 	noteWait(steps, waited)

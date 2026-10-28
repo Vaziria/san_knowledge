@@ -39,6 +39,9 @@ const (
 	// BrowserRemoteServiceSetBrowserRemoteActiveProcedure is the fully-qualified name of the
 	// BrowserRemoteService's SetBrowserRemoteActive RPC.
 	BrowserRemoteServiceSetBrowserRemoteActiveProcedure = "/san.tower.v1.BrowserRemoteService/SetBrowserRemoteActive"
+	// BrowserRemoteServiceSetBrowserRemoteNetworkProcedure is the fully-qualified name of the
+	// BrowserRemoteService's SetBrowserRemoteNetwork RPC.
+	BrowserRemoteServiceSetBrowserRemoteNetworkProcedure = "/san.tower.v1.BrowserRemoteService/SetBrowserRemoteNetwork"
 )
 
 // BrowserRemoteServiceClient is a client for the san.tower.v1.BrowserRemoteService service.
@@ -49,6 +52,11 @@ type BrowserRemoteServiceClient interface {
 	// and nothing is saved, when its addresses are in use (san_remote already
 	// runs on this machine).
 	SetBrowserRemoteActive(context.Context, *connect.Request[v1.SetBrowserRemoteActiveRequest]) (*connect.Response[v1.SetBrowserRemoteActiveResponse], error)
+	// SetBrowserRemoteNetwork has it listen on this computer only (loopback,
+	// the default) or on every network, and saves the choice. A server that
+	// runs starts again on its new addresses; when it cannot, it goes on as it
+	// was, nothing is saved, and the call is FailedPrecondition.
+	SetBrowserRemoteNetwork(context.Context, *connect.Request[v1.SetBrowserRemoteNetworkRequest]) (*connect.Response[v1.SetBrowserRemoteNetworkResponse], error)
 }
 
 // NewBrowserRemoteServiceClient constructs a client for the san.tower.v1.BrowserRemoteService
@@ -74,13 +82,20 @@ func NewBrowserRemoteServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(browserRemoteServiceMethods.ByName("SetBrowserRemoteActive")),
 			connect.WithClientOptions(opts...),
 		),
+		setBrowserRemoteNetwork: connect.NewClient[v1.SetBrowserRemoteNetworkRequest, v1.SetBrowserRemoteNetworkResponse](
+			httpClient,
+			baseURL+BrowserRemoteServiceSetBrowserRemoteNetworkProcedure,
+			connect.WithSchema(browserRemoteServiceMethods.ByName("SetBrowserRemoteNetwork")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // browserRemoteServiceClient implements BrowserRemoteServiceClient.
 type browserRemoteServiceClient struct {
-	getBrowserRemote       *connect.Client[v1.GetBrowserRemoteRequest, v1.GetBrowserRemoteResponse]
-	setBrowserRemoteActive *connect.Client[v1.SetBrowserRemoteActiveRequest, v1.SetBrowserRemoteActiveResponse]
+	getBrowserRemote        *connect.Client[v1.GetBrowserRemoteRequest, v1.GetBrowserRemoteResponse]
+	setBrowserRemoteActive  *connect.Client[v1.SetBrowserRemoteActiveRequest, v1.SetBrowserRemoteActiveResponse]
+	setBrowserRemoteNetwork *connect.Client[v1.SetBrowserRemoteNetworkRequest, v1.SetBrowserRemoteNetworkResponse]
 }
 
 // GetBrowserRemote calls san.tower.v1.BrowserRemoteService.GetBrowserRemote.
@@ -93,6 +108,11 @@ func (c *browserRemoteServiceClient) SetBrowserRemoteActive(ctx context.Context,
 	return c.setBrowserRemoteActive.CallUnary(ctx, req)
 }
 
+// SetBrowserRemoteNetwork calls san.tower.v1.BrowserRemoteService.SetBrowserRemoteNetwork.
+func (c *browserRemoteServiceClient) SetBrowserRemoteNetwork(ctx context.Context, req *connect.Request[v1.SetBrowserRemoteNetworkRequest]) (*connect.Response[v1.SetBrowserRemoteNetworkResponse], error) {
+	return c.setBrowserRemoteNetwork.CallUnary(ctx, req)
+}
+
 // BrowserRemoteServiceHandler is an implementation of the san.tower.v1.BrowserRemoteService
 // service.
 type BrowserRemoteServiceHandler interface {
@@ -102,6 +122,11 @@ type BrowserRemoteServiceHandler interface {
 	// and nothing is saved, when its addresses are in use (san_remote already
 	// runs on this machine).
 	SetBrowserRemoteActive(context.Context, *connect.Request[v1.SetBrowserRemoteActiveRequest]) (*connect.Response[v1.SetBrowserRemoteActiveResponse], error)
+	// SetBrowserRemoteNetwork has it listen on this computer only (loopback,
+	// the default) or on every network, and saves the choice. A server that
+	// runs starts again on its new addresses; when it cannot, it goes on as it
+	// was, nothing is saved, and the call is FailedPrecondition.
+	SetBrowserRemoteNetwork(context.Context, *connect.Request[v1.SetBrowserRemoteNetworkRequest]) (*connect.Response[v1.SetBrowserRemoteNetworkResponse], error)
 }
 
 // NewBrowserRemoteServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -123,12 +148,20 @@ func NewBrowserRemoteServiceHandler(svc BrowserRemoteServiceHandler, opts ...con
 		connect.WithSchema(browserRemoteServiceMethods.ByName("SetBrowserRemoteActive")),
 		connect.WithHandlerOptions(opts...),
 	)
+	browserRemoteServiceSetBrowserRemoteNetworkHandler := connect.NewUnaryHandler(
+		BrowserRemoteServiceSetBrowserRemoteNetworkProcedure,
+		svc.SetBrowserRemoteNetwork,
+		connect.WithSchema(browserRemoteServiceMethods.ByName("SetBrowserRemoteNetwork")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.BrowserRemoteService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case BrowserRemoteServiceGetBrowserRemoteProcedure:
 			browserRemoteServiceGetBrowserRemoteHandler.ServeHTTP(w, r)
 		case BrowserRemoteServiceSetBrowserRemoteActiveProcedure:
 			browserRemoteServiceSetBrowserRemoteActiveHandler.ServeHTTP(w, r)
+		case BrowserRemoteServiceSetBrowserRemoteNetworkProcedure:
+			browserRemoteServiceSetBrowserRemoteNetworkHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -144,4 +177,8 @@ func (UnimplementedBrowserRemoteServiceHandler) GetBrowserRemote(context.Context
 
 func (UnimplementedBrowserRemoteServiceHandler) SetBrowserRemoteActive(context.Context, *connect.Request[v1.SetBrowserRemoteActiveRequest]) (*connect.Response[v1.SetBrowserRemoteActiveResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.BrowserRemoteService.SetBrowserRemoteActive is not implemented"))
+}
+
+func (UnimplementedBrowserRemoteServiceHandler) SetBrowserRemoteNetwork(context.Context, *connect.Request[v1.SetBrowserRemoteNetworkRequest]) (*connect.Response[v1.SetBrowserRemoteNetworkResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.BrowserRemoteService.SetBrowserRemoteNetwork is not implemented"))
 }

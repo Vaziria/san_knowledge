@@ -120,3 +120,80 @@ func TestElsewhere(t *testing.T) {
 		t.Errorf("without the api = %+v", st)
 	}
 }
+
+// On every network (the user, 2026-10-28) the running server starts again
+// and takes calls whose Host is a local network's address, which on
+// loopback it refuses; the choice is saved, and a tower opened on the same
+// folder starts that way.
+func TestSetNetwork(t *testing.T) {
+	dir := t.TempDir()
+	r := open(t, dir, anyPort, anyPort)
+	if err := r.SetActive(true); err != nil {
+		t.Fatal(err)
+	}
+	// ListBrowsers through the API at url, as if called at host.
+	call := func(url, host string) int {
+		t.Helper()
+		req, _ := http.NewRequest(http.MethodPost, url+"/"+remotev1connect.RemoteServiceName+"/ListBrowsers", strings.NewReader("{}"))
+		req.Host = host
+		req.Header.Set("Content-Type", "application/json")
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		return res.StatusCode
+	}
+	st := r.Status(t.Context())
+	if st.Network || len(st.NetworkHubURLs) != 0 || call(st.APIURL, "192.168.1.5:7478") != http.StatusForbidden {
+		t.Fatalf("loopback: %+v", st)
+	}
+
+	if err := r.SetNetwork(true); err != nil {
+		t.Fatal(err)
+	}
+	st = r.Status(t.Context())
+	if !st.Network || !st.Running || !strings.HasPrefix(st.HubURL, "http://127.0.0.1:") {
+		t.Fatalf("network: %+v", st)
+	}
+	if got := call(st.APIURL, "192.168.1.5:7478"); got != http.StatusOK {
+		t.Errorf("a local network's Host: %d", got)
+	}
+	if got := call(st.APIURL, "evil.example:7478"); got != http.StatusForbidden {
+		t.Errorf("another name: %d", got)
+	}
+	for _, u := range st.NetworkHubURLs {
+		if !strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "http://127.") {
+			t.Errorf("network URL %s", u)
+		}
+	}
+	if s, _ := settings.Load(dir); !s.BrowserRemote.Network {
+		t.Error("the setting was not saved")
+	}
+	r.Close()
+	again := open(t, dir, anyPort, anyPort)
+	if st := again.Status(t.Context()); !st.Network || !st.Running || call(st.APIURL, "10.0.0.2:7478") != http.StatusOK {
+		t.Errorf("reopened: %+v", st)
+	}
+	if err := again.SetNetwork(false); err != nil {
+		t.Fatal(err)
+	}
+	if st := again.Status(t.Context()); st.Network || !st.Running || call(st.APIURL, "10.0.0.2:7478") != http.StatusForbidden {
+		t.Errorf("back on loopback: %+v", st)
+	}
+}
+
+// Switched off, the choice is only saved.
+func TestSetNetworkOff(t *testing.T) {
+	dir := t.TempDir()
+	r := open(t, dir, anyPort, anyPort)
+	if err := r.SetNetwork(true); err != nil {
+		t.Fatal(err)
+	}
+	if st := r.Status(t.Context()); !st.Network || st.Running {
+		t.Errorf("off: %+v", st)
+	}
+	if s, _ := settings.Load(dir); !s.BrowserRemote.Network || s.BrowserRemote.Active {
+		t.Errorf("settings: %+v", s.BrowserRemote)
+	}
+}

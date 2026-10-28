@@ -21,15 +21,26 @@ func (s *Server) SetBrowserRemoteActive(ctx context.Context, req *connect.Reques
 	return connect.NewResponse(&v1.SetBrowserRemoteActiveResponse{Remote: s.browserRemote(ctx)}), nil
 }
 
+func (s *Server) SetBrowserRemoteNetwork(ctx context.Context, req *connect.Request[v1.SetBrowserRemoteNetworkRequest]) (*connect.Response[v1.SetBrowserRemoteNetworkResponse], error) {
+	if err := s.remote.SetNetwork(req.Msg.GetNetwork()); err != nil {
+		// Its addresses are in use, or the settings could not be saved.
+		return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+	}
+	return connect.NewResponse(&v1.SetBrowserRemoteNetworkResponse{Remote: s.browserRemote(ctx)}), nil
+}
+
 func (s *Server) browserRemote(ctx context.Context) *v1.BrowserRemote {
 	st := s.remote.Status(ctx)
 	r := &v1.BrowserRemote{
-		Active:          st.Active,
-		Running:         st.Running,
-		ServerUri:       st.HubURL,
-		ApiUri:          st.APIURL,
-		ServerElsewhere: st.HubElsewhere,
-		ApiElsewhere:    st.APIElsewhere,
+		Active:            st.Active,
+		Running:           st.Running,
+		ServerUri:         st.HubURL,
+		ApiUri:            st.APIURL,
+		ServerElsewhere:   st.HubElsewhere,
+		ApiElsewhere:      st.APIElsewhere,
+		Network:           st.Network,
+		NetworkServerUris: st.NetworkHubURLs,
+		NetworkApiUris:    st.NetworkAPIURLs,
 	}
 	if st.Err != nil {
 		r.Error = st.Err.Error()

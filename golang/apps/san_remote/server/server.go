@@ -46,6 +46,11 @@ func NewHub(log *slog.Logger) *Hub { return &Hub{hub.New(log)} }
 // Remote extension allowed to attach.
 func (h *Hub) Handler() http.Handler { return h.h.Handler() }
 
+// LANHandler serves the hub as Handler does, but takes calls from the local
+// network too: a Host that is a private network's address or this machine's
+// name. Anyone on that network can then run code in the attached browsers.
+func (h *Hub) LANHandler() http.Handler { return h.h.LANHandler() }
+
 // Browsers lists the attached browsers, the longest attached first.
 func (h *Hub) Browsers() []*v1.Browser { return h.h.Browsers() }
 
@@ -57,7 +62,18 @@ func (h *Hub) Close() { h.h.Close() }
 // LinkedIn, TikTok, YouTube, Telegram, ChatGPT, Gemini, Claude), reaching the
 // browser through the hub at hubURL, as `san_remote api --server hubURL`
 // does. The sites' steps go to log as debug lines.
-func API(hubURL string, log *slog.Logger) http.Handler {
+func API(hubURL string, log *slog.Logger) http.Handler { return newAPI(hubURL, log).Handler() }
+
+// LANAPI serves the site services as API does, but takes calls from the
+// local network too, as LANHandler does: anyone on that network can then post
+// as the user.
+func LANAPI(hubURL string, log *slog.Logger) http.Handler {
+	a := newAPI(hubURL, log)
+	a.LAN = true
+	return a.Handler()
+}
+
+func newAPI(hubURL string, log *slog.Logger) *api.API {
 	c := hub.NewClient(hubURL)
 	b := page.Remote{C: c}
 	progress := func(site string) func(string) {
@@ -79,5 +95,5 @@ func API(hubURL string, log *slog.Logger) http.Handler {
 		Gemini:   &gemini.Service{B: b, Progress: progress("gemini")},
 		Claude:   &claude.Service{B: b, Progress: progress("claude")},
 	}
-	return a.Handler()
+	return a
 }

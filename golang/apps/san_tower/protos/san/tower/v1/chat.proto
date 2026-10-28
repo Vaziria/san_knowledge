@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/timestamp.proto";
+import "san/tower/v1/workflow.proto";
+
+// ChatService is the tower's own chat, the Chat page (the user, 2026-10-28:
+// "after menu home, create menu chat. and we have node Tower Chat"). A chat
+// talks with one workflow, which has a Tower Chat trigger: each message sent
+// in it starts a run of that workflow, and the workflow answers with Tower
+// Chat Send steps. Chats and their messages are in the tower's database.
+service ChatService {
+  // ListChats lists the chats, the one with the newest message first.
+  rpc ListChats(ListChatsRequest) returns (ListChatsResponse);
+  // ListChatWorkflows lists the workflows a chat can talk with: those with a
+  // Tower Chat step, by name.
+  rpc ListChatWorkflows(ListChatWorkflowsRequest) returns (ListChatWorkflowsResponse);
+  // CreateChat starts a chat with a workflow.
+  rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
+  // UpdateChat renames a chat.
+  rpc UpdateChat(UpdateChatRequest) returns (UpdateChatResponse);
+  // DeleteChat deletes a chat and its messages.
+  rpc DeleteChat(DeleteChatRequest) returns (DeleteChatResponse);
+  // ListChatMessages lists a chat's messages, oldest first: the newest
+  // limit, those after after_id (the page asking for what came), or those
+  // before before_id (older ones); and how the runs in watch_runs are doing.
+  rpc ListChatMessages(ListChatMessagesRequest) returns (ListChatMessagesResponse);
+  // SendChatMessage sends the user's message in a chat, which starts a run
+  // of each Tower Chat step of its workflow. A workflow that is switched off,
+  // or has no Tower Chat step, is FailedPrecondition, and nothing is kept.
+  rpc SendChatMessage(SendChatMessageRequest) returns (SendChatMessageResponse);
+}
+
+message Chat {
+  uint32 id = 1;
+  string name = 2;
+  uint32 workflow_id = 3;
+  // workflow_name is its workflow's name, empty when it is gone, and
+  // workflow_active whether it is switched on.
+  string workflow_name = 4;
+  bool workflow_active = 5;
+  // last is the chat's newest message, if any.
+  ChatMessage last = 6;
+  google.protobuf.Timestamp created_at = 7;
+  // updated_at is when its newest message came, or it was made or renamed.
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+enum ChatFrom {
+  CHAT_FROM_UNSPECIFIED = 0;
+  // CHAT_FROM_USER: typed on the Chat page.
+  CHAT_FROM_USER = 1;
+  // CHAT_FROM_WORKFLOW: a Tower Chat Send step's.
+  CHAT_FROM_WORKFLOW = 2;
+}
+
+message ChatMessage {
+  uint32 id = 1;
+  uint32 chat_id = 2;
+  ChatFrom from = 3;
+  string text = 4;
+  // markdown: the text is Markdown, which the page shows formatted.
+  bool markdown = 5;
+  // run_ids: the user's message, the runs it started; a workflow's, the run
+  // that sent it.
+  repeated uint32 run_ids = 6;
+  // workflow_id is the workflow of those runs.
+  uint32 workflow_id = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+// ChatRun is how a run a chat's message started is doing.
+message ChatRun {
+  uint32 id = 1;
+  RunStatus status = 2;
+  string error = 3;
+  // line is the last line its steps logged, while it runs.
+  string line = 4;
+  google.protobuf.Timestamp started_at = 5;
+  google.protobuf.Timestamp finished_at = 6;
+}
+
+// ChatWorkflow is a workflow a chat can talk with.
+message ChatWorkflow {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  bool active = 4;
+}
+
+message ListChatsRequest {}
+
+message ListChatsResponse {
+  repeated Chat chats = 1;
+}
+
+message ListChatWorkflowsRequest {}
+
+message ListChatWorkflowsResponse {
+  repeated ChatWorkflow workflows = 1;
+}
+
+message CreateChatRequest {
+  uint32 workflow_id = 1;
+  // name is the chat's, the workflow's name when empty.
+  string name = 2;
+}
+
+message CreateChatResponse {
+  Chat chat = 1;
+}
+
+message UpdateChatRequest {
+  uint32 id = 1;
+  string name = 2;
+}
+
+message UpdateChatResponse {
+  Chat chat = 1;
+}
+
+message DeleteChatRequest {
+  uint32 id = 1;
+}
+
+message DeleteChatResponse {}
+
+message ListChatMessagesRequest {
+  uint32 chat_id = 1;
+  // after_id: only the messages after it, oldest first; before_id: the
+  // newest limit before it. Neither: the newest limit.
+  uint32 after_id = 2;
+  uint32 before_id = 3;
+  // limit is 100 when 0, at most 500.
+  uint32 limit = 4;
+  // watch_runs are runs the page shows as going on: the answer says how
+  // each is doing, leaving out those no longer kept (a workflow keeps its
+  // newest 100 runs).
+  repeated uint32 watch_runs = 5;
+}
+
+message ListChatMessagesResponse {
+  repeated ChatMessage messages = 1;
+  // more: there are older messages than these (with before_id or neither).
+  bool more = 2;
+  // chat is the chat as it is now (its workflow switched on or off).
+  Chat chat = 3;
+  repeated ChatRun runs = 4;
+}
+
+message SendChatMessageRequest {
+  uint32 chat_id = 1;
+  string text = 2;
+}
+
+message SendChatMessageResponse {
+  ChatMessage message = 1;
+  repeated ChatRun runs = 2;
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -171,6 +172,55 @@ func TestGuard(t *testing.T) {
 		if got := post(c.path, c.host, c.origin); got != c.want {
 			t.Errorf("%s: %d, want %d", c.name, got, c.want)
 		}
+	}
+}
+
+// GuardLAN takes the local network's addresses and this machine's name as
+// Host too, still not another name, and keeps Guard's Origin rules.
+func TestGuardLAN(t *testing.T) {
+	h := hub.New(nil)
+	handler := h.LANHandler()
+	name, _ := os.Hostname()
+	post := func(path, host, origin string) int {
+		r := httptest.NewRequest(http.MethodPost, path, strings.NewReader("{}"))
+		r.Host = host
+		r.Header.Set("Content-Type", "application/json")
+		if origin != "" {
+			r.Header.Set("Origin", origin)
+		}
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, r)
+		return w.Code
+	}
+	list := "/" + remotev1connect.RemoteServiceName + "/ListBrowsers"
+	reply := "/" + remotev1connect.BrowserServiceName + "/Reply"
+	ext := "chrome-extension://" + hub.ExtensionID
+	for _, c := range []struct {
+		name, path, host, origin string
+		want                     int
+	}{
+		{"loopback", list, "127.0.0.1:7476", "", http.StatusOK},
+		{"lan", list, "192.168.1.5:7476", "", http.StatusOK},
+		{"vpn", list, "100.101.102.103:7476", "", http.StatusOK},
+		{"machine name", list, strings.ToLower(name) + ".local:7476", "", http.StatusOK},
+		{"dns rebinding", list, "evil.example:7476", "", http.StatusForbidden},
+		{"public address", list, "8.8.8.8:7476", "", http.StatusForbidden},
+		{"web page", list, "192.168.1.5:7476", "http://192.168.1.5:7476", http.StatusForbidden},
+		{"extension over lan", reply, "192.168.1.5:7476", ext, http.StatusNotFound}, // passes the guard
+		{"other extension", reply, "192.168.1.5:7476", "chrome-extension://abcdefghijklmnopabcdefghijklmnop", http.StatusForbidden},
+	} {
+		if got := post(c.path, c.host, c.origin); got != c.want {
+			t.Errorf("%s: %d, want %d", c.name, got, c.want)
+		}
+	}
+	// The loopback Guard still refuses the network.
+	r := httptest.NewRequest(http.MethodPost, list, strings.NewReader("{}"))
+	r.Host = "192.168.1.5:7476"
+	r.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	h.Handler().ServeHTTP(w, r)
+	if w.Code != http.StatusForbidden {
+		t.Errorf("Guard on the network: %d", w.Code)
 	}
 }
 

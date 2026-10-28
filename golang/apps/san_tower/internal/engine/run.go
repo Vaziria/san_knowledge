@@ -64,6 +64,9 @@ type Env struct {
 	// Workflow is the id of the workflow the run is of: a Claude Chat
 	// Session step's conversation is its own in that workflow.
 	Workflow uint32
+	// ChatSend keeps a Tower Chat Send's text in the chat of the Chat page
+	// that chat names, its id or its name, as this run's (towerchat.go).
+	ChatSend func(chat, text string, markdown bool) (chatMessage, error)
 }
 
 // Execute runs a graph from its trigger step trigger, as if the trigger got

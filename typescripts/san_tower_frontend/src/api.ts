@@ -5,6 +5,7 @@ import { createConnectTransport } from '@connectrpc/connect-web';
 import { MessageService } from './gen/san/message/v1/message_pb';
 import { BrokerService } from './gen/san/tower/v1/broker_pb';
 import { BrowserRemoteService } from './gen/san/tower/v1/browser_remote_pb';
+import { ChatService } from './gen/san/tower/v1/chat_pb';
 import { ConnectionService } from './gen/san/tower/v1/connection_pb';
 import { StorageService } from './gen/san/tower/v1/storage_pb';
 import { TowerService } from './gen/san/tower/v1/tower_pb';
@@ -38,6 +39,9 @@ export const browserRemote = createClient(BrowserRemoteService, transport);
 
 // storages are the named base folders that workflow steps use.
 export const storages = createClient(StorageService, transport);
+
+// chats are the Chat page's chats with workflows (their Tower Chat steps).
+export const chats = createClient(ChatService, transport);
 
 // errorText is an error as a sentence: the server's own message, without
 // Connect's "[code]" prefix.

@@ -4,7 +4,8 @@
 // Vidara services a San Remote connection calls, at the addresses
 // `san_remote serve` and `san_remote api` use. It is for when nothing else
 // runs them, such as the tower alone on this machine. On or off is a setting
-// (tower.json) that can change while the tower runs.
+// (tower.json) that can change while the tower runs, and so is whether it
+// listens on this computer only or on every network (the user, 2026-10-28).
 package browserremote
 
 import (
@@ -15,6 +16,8 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -40,10 +43,11 @@ type Remote struct {
 	hubAddr, apiAddr string
 	log              *slog.Logger
 
-	mu     sync.Mutex // guards the fields below, and serializes SetActive and Close
-	active bool
-	run    *running // nil when it does not run
-	err    error    // why an active one does not run
+	mu      sync.Mutex // guards the fields below, and serializes SetActive, SetNetwork and Close
+	active  bool
+	network bool     // listens on every network, not only on loopback
+	run     *running // nil when it does not run
+	err     error    // why an active one does not run
 }
 
 // running is the server while it runs.
@@ -63,8 +67,13 @@ type Status struct {
 	StartedAt time.Time
 	// HubURL is the hub's URL, for the extension's Server field, and APIURL
 	// the site services' URL, for a San Remote connection: where they run,
-	// or will.
+	// or will, on this computer.
 	HubURL, APIURL string
+	// Network: it listens on every network. NetworkHubURLs and
+	// NetworkAPIURLs are then its URLs at this computer's addresses on the
+	// local network, for a browser or a tower on another machine.
+	Network                        bool
+	NetworkHubURLs, NetworkAPIURLs []string
 	// When it does not run in the tower, HubElsewhere and APIElsewhere say
 	// whether a san_remote run outside it (`san_remote serve`, `san_remote
 	// api`) answers at HubURL and APIURL.
@@ -90,7 +99,7 @@ func Open(towerDir, hubAddr, apiAddr string, log *slog.Logger) (*Remote, error) 
 	if err != nil {
 		return nil, err
 	}
-	r := &Remote{towerDir: abs, hubAddr: hubAddr, apiAddr: apiAddr, log: log, active: s.BrowserRemote.Active}
+	r := &Remote{towerDir: abs, hubAddr: hubAddr, apiAddr: apiAddr, log: log, active: s.BrowserRemote.Active, network: s.BrowserRemote.Network}
 	if r.active {
 		if r.run, r.err = r.start(); r.err != nil {
 			log.Error("start the browser remote server", "err", r.err)
@@ -112,18 +121,53 @@ func (r *Remote) SetActive(active bool) error {
 			}
 			r.run = run
 		}
-		if err := r.save(true); err != nil {
+		if err := r.save(func(s *settings.BrowserRemote) { s.Active = true }); err != nil {
 			r.stop()
 			return err
 		}
 		r.active, r.err = true, nil
 		return nil
 	}
-	if err := r.save(false); err != nil {
+	if err := r.save(func(s *settings.BrowserRemote) { s.Active = false }); err != nil {
 		return err
 	}
 	r.active, r.err = false, nil
 	r.stop()
+	return nil
+}
+
+// SetNetwork has it listen on every network, or on this computer only, and
+// saves the choice. A server that runs starts again on its new addresses;
+// when it cannot, it runs on its old ones again and nothing is saved.
+func (r *Remote) SetNetwork(network bool) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if network == r.network {
+		return nil
+	}
+	if r.run == nil {
+		if err := r.save(func(s *settings.BrowserRemote) { s.Network = network }); err != nil {
+			return err
+		}
+		r.network = network
+		return nil
+	}
+	r.stop()
+	r.network = network
+	run, err := r.start()
+	if err == nil {
+		err = r.save(func(s *settings.BrowserRemote) { s.Network = network })
+		if err != nil {
+			r.run = run
+			r.stop()
+		}
+	}
+	if err != nil {
+		r.network = !network
+		r.run, r.err = r.start()
+		return err
+	}
+	r.run = run
 	return nil
 }
 
@@ -132,12 +176,15 @@ func (r *Remote) SetActive(active bool) error {
 // hub there for its browsers.
 func (r *Remote) Status(ctx context.Context) Status {
 	r.mu.Lock()
-	st := Status{Active: r.active, Err: r.err, HubURL: "http://" + r.hubAddr, APIURL: "http://" + r.apiAddr}
+	st := Status{Active: r.active, Err: r.err, HubURL: "http://" + r.hubAddr, APIURL: "http://" + r.apiAddr, Network: r.network}
 	if run := r.run; run != nil {
 		st.Running, st.StartedAt, st.HubURL, st.APIURL = true, run.startedAt, run.hubURL, run.apiURL
 		st.Browsers = run.hub.Browsers()
 	}
 	r.mu.Unlock()
+	if st.Network {
+		st.NetworkHubURLs, st.NetworkAPIURLs = networkURLs(st.HubURL), networkURLs(st.APIURL)
+	}
 	if st.Running {
 		return st
 	}
@@ -165,33 +212,109 @@ func (r *Remote) Close() error {
 }
 
 // start listens on both addresses before it serves, so an address in use
-// is an error here rather than a server half up.
+// is an error here rather than a server half up. On every network it
+// listens on all of this computer's addresses, at the same ports, behind
+// san_remote's guard for the local network; the site services still reach
+// the hub on loopback.
 func (r *Remote) start() (*running, error) {
-	hubLn, err := net.Listen("tcp", r.hubAddr)
-	if err != nil {
-		return nil, fmt.Errorf("cannot listen for the extension on %s (is san_remote serve running already?): %w", r.hubAddr, err)
+	hubAddr, apiAddr := r.hubAddr, r.apiAddr
+	if r.network {
+		// A san_remote on loopback at the same port would go on answering
+		// there, beside this one: refuse, as on loopback.
+		for _, a := range []struct{ addr, cmd string }{{r.hubAddr, "serve"}, {r.apiAddr, "api"}} {
+			if inUse(a.addr) {
+				return nil, fmt.Errorf("%s is in use (is san_remote %s running already?)", a.addr, a.cmd)
+			}
+		}
+		hubAddr, apiAddr = everyAddr(r.hubAddr), everyAddr(r.apiAddr)
 	}
-	apiLn, err := net.Listen("tcp", r.apiAddr)
+	hubLn, err := net.Listen("tcp", hubAddr)
+	if err != nil {
+		return nil, fmt.Errorf("cannot listen for the extension on %s (is san_remote serve running already?): %w", hubAddr, err)
+	}
+	apiLn, err := net.Listen("tcp", apiAddr)
 	if err != nil {
 		hubLn.Close()
-		return nil, fmt.Errorf("cannot listen for the site services on %s (is san_remote api running already?): %w", r.apiAddr, err)
+		return nil, fmt.Errorf("cannot listen for the site services on %s (is san_remote api running already?): %w", apiAddr, err)
 	}
-	hubURL := "http://" + hubLn.Addr().String()
+	hubURL := loopbackURL(r.hubAddr, hubLn)
 	h := server.NewHub(r.log)
+	hubHandler, apiHandler := h.Handler(), server.API(hubURL, r.log)
+	if r.network {
+		hubHandler, apiHandler = h.LANHandler(), server.LANAPI(hubURL, r.log)
+	}
 	// No WriteTimeout: the Attach streams stay open as long as the browser
 	// does, and a post takes a minute or two.
 	run := &running{
 		hub:       h,
-		hubSrv:    &http.Server{Handler: h.Handler(), ReadHeaderTimeout: 10 * time.Second},
-		apiSrv:    &http.Server{Handler: server.API(hubURL, r.log), ReadHeaderTimeout: 10 * time.Second},
+		hubSrv:    &http.Server{Handler: hubHandler, ReadHeaderTimeout: 10 * time.Second},
+		apiSrv:    &http.Server{Handler: apiHandler, ReadHeaderTimeout: 10 * time.Second},
 		hubURL:    hubURL,
-		apiURL:    "http://" + apiLn.Addr().String(),
+		apiURL:    loopbackURL(r.apiAddr, apiLn),
 		startedAt: time.Now(),
 	}
 	go r.serve(run.hubSrv, hubLn)
 	go r.serve(run.apiSrv, apiLn)
-	r.log.Info("browser remote server started", "server", run.hubURL, "api", run.apiURL)
+	r.log.Info("browser remote server started", "server", run.hubURL, "api", run.apiURL, "every_network", r.network)
+	if r.network {
+		r.log.Warn("the browser remote server listens on every network: anyone on it can run code in the attached browsers", "server", hubAddr, "api", apiAddr)
+	}
 	return run, nil
+}
+
+// everyAddr is addr's port on every address of this computer.
+func everyAddr(addr string) string {
+	_, port, _ := net.SplitHostPort(addr)
+	return ":" + port
+}
+
+// loopbackURL is the URL of what listens on ln, at addr's host (loopback)
+// and ln's port, which a port 0 in addr picked.
+func loopbackURL(addr string, ln net.Listener) string {
+	host, _, _ := net.SplitHostPort(addr)
+	_, port, _ := net.SplitHostPort(ln.Addr().String())
+	return "http://" + net.JoinHostPort(host, port)
+}
+
+// inUse says whether something answers at addr; a port 0 never is.
+func inUse(addr string) bool {
+	if _, port, _ := net.SplitHostPort(addr); port == "0" {
+		return false
+	}
+	c, err := net.DialTimeout("tcp", addr, 300*time.Millisecond)
+	if err != nil {
+		return false
+	}
+	c.Close()
+	return true
+}
+
+// cgnat is 100.64.0.0/10, which VPNs such as Tailscale give out.
+var cgnat = &net.IPNet{IP: net.IPv4(100, 64, 0, 0), Mask: net.CIDRMask(10, 32)}
+
+// networkURLs are u at each of this computer's IPv4 addresses on a local
+// network (a private one, or a VPN's 100.64/10), for another machine there.
+func networkURLs(u string) []string {
+	_, port, err := net.SplitHostPort(strings.TrimPrefix(u, "http://"))
+	if err != nil {
+		return nil
+	}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil
+	}
+	var out []string
+	for _, a := range addrs {
+		n, ok := a.(*net.IPNet)
+		if !ok {
+			continue
+		}
+		if ip := n.IP.To4(); ip != nil && (ip.IsPrivate() || cgnat.Contains(ip)) {
+			out = append(out, "http://"+net.JoinHostPort(ip.String(), port))
+		}
+	}
+	slices.Sort(out)
+	return slices.Compact(out)
 }
 
 func (r *Remote) serve(srv *http.Server, ln net.Listener) {
@@ -219,8 +342,9 @@ func (r *Remote) stop() {
 	r.log.Info("browser remote server stopped")
 }
 
-func (r *Remote) save(active bool) error {
-	if err := settings.Update(r.towerDir, func(s *settings.Settings) { s.BrowserRemote.Active = active }); err != nil {
+// save changes the server's settings in tower.json with change.
+func (r *Remote) save(change func(*settings.BrowserRemote)) error {
+	if err := settings.Update(r.towerDir, func(s *settings.Settings) { change(&s.BrowserRemote) }); err != nil {
 		return errors.Join(errors.New("save the settings"), err)
 	}
 	return nil

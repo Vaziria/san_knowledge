@@ -1134,6 +1134,12 @@ in to, so the server is kept to this computer:
 
 - `serve` refuses a non-loopback `--listen` address.
 - Requests must have a loopback `Host`, against DNS rebinding.
+- The one way onto the network is a program that runs the servers itself,
+  through the `server` package, and asks for it: `LANHandler` and `LANAPI`
+  (`hub.GuardLAN`) also take a private network's address or this machine's
+  name as `Host`, never another name, with the same `Origin` rules. The tower
+  does so when its Browser Remote Server is set to All networks (the user,
+  2026-10-28); anyone on that network can then act as you.
 - Only the San Remote extension may attach. Its id is fixed by the `key` in
   its `manifest.json` and checked against the `Origin` header. Other
   extensions and web pages can neither attach nor read the commands.

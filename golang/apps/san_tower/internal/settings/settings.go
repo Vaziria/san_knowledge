@@ -37,6 +37,10 @@ type Broker struct {
 type BrowserRemote struct {
 	// Active: the tower runs it, and starts it when the tower starts.
 	Active bool `json:"active,omitempty"`
+	// Network: it listens on every network, not only on this computer
+	// (the user, 2026-10-28), so a browser or a tower on another machine of
+	// the local network can reach it.
+	Network bool `json:"network,omitempty"`
 }
 
 // mu serializes Update, so two parts of the tower saving their settings at

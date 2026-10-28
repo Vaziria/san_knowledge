@@ -68,9 +68,9 @@ func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ
 // kinds are the kinds of step, in the order the editor's Add menu shows them:
 // the core ones, Log Event (logevent.go), Tower Restart (towerrestart.go),
 // the datetime ones (datetime.go), the san_remote ones (social.go, then
-// sites.go), then the Telegram ones (telegram.go) and the WhatsApp ones
-// (whatsapp.go).
-var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds)
+// sites.go), then the Tower Chat ones (towerchat.go), the Telegram ones
+// (telegram.go) and the WhatsApp ones (whatsapp.go).
+var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds)
 
 var coreKinds = []*kind{
 	{

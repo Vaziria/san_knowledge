@@ -11,13 +11,16 @@ http://127.0.0.1:7477:
   use, first San Remote (see Connections below);
 - StorageService: the storages, named base folders that workflow steps use
   (see Storage below);
+- ChatService: the tower's own chat, chats with workflows that have a Tower
+  Chat step (see Chat below);
 - the San Message broker ([golang/packages/san_message](../../packages/san_message/README.md))
   with its MessageService, so apps publish and subscribe at the tower's
   address: embedded in the tower, or a separate `san_message server` at a
   URI, on this machine or another, whose calls the tower passes on (see
   Message broker below);
 - the tower's UI ([typescripts/san_tower_frontend](../../../typescripts/san_tower_frontend),
-  built into the binary). Home shows the tower's status; Message Broker
+  built into the binary). Home shows the tower's status; Chat, after it,
+  the chats with workflows; Message Broker
   shows the broker's status and manages its topics and subscribers; Workflow
   lists, creates, edits, runs, switches on and deletes the workflows;
   Connections manages the connections; Storage the storages; Browser Remote Server switches on
@@ -117,7 +120,8 @@ network (10/8, 172.16/12, 192.168/16, fc00::/7, link-local, 100.64/10 as
 VPNs give out) or this machine's name (`raspi`, `raspi.local`, `raspi.lan`),
 and a browser call must come from the tower's own page (its Origin's host
 is the Host) or a loopback one. The Browser Remote Server's addresses stay
-on loopback. Listening on every address, the tower reaches itself (its
+on loopback unless its own Listen on setting says All networks (see Browser
+Remote Server below). Listening on every address, the tower reaches itself (its
 triggers' broker streams) at 127.0.0.1 (`selfURL`), never at `[::]`.
 
 ## Raspberry Pi
@@ -159,12 +163,12 @@ messenger a sub-menu), Social, Finance (the user, 2026-10-27: Binance) and
 AI; the UI gives each a colour and an
 icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
-a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart and
+a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart, Tower Chat and
 Telegram Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
 Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Now, Datetime,
 Datetime Operation, String to Datetime, Wait, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
 and
-the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
+the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
 
 - Manual (the user, 2026-10-27: "What if I need have workflow, but I just
   run it manually") is a trigger that only the editor's Run button (or
@@ -816,6 +820,22 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
     Group as for Delete Group. A user already in the group is left as they
     are; one whose privacy settings keep them out of groups, or who is not
     a member to remove, fails the step.
+- Tower Chat steps (Messengers › Tower Chat; `engine/towerchat.go`; the
+  user, 2026-10-28: "after menu home, create menu chat. and we have node
+  Tower Chat") talk with the Chat page (see Chat below), as the Telegram
+  steps talk with a bot (the user's choice: a trigger and a send):
+  - Tower Chat (a trigger) starts a run for each message sent, on the Chat
+    page, in a chat with its workflow, while the workflow is switched on.
+    Message is the message (`id`, `chat`, `chat_name`, `from`, `text`,
+    `at`), Text its text, Chat its chat's id, which a Tower Chat Send takes
+    to answer. A run's trigger reads "chat Dev, message 12"; one by hand
+    with text is a message of that text in no chat.
+  - Tower Chat Send sends Text to Chat: a chat's id (a Tower Chat's Chat) or
+    its name (case aside, when only one chat has it), so a Schedule
+    workflow can post in a chat too. Format is Markdown (the default),
+    which the page shows formatted (headings, lists, code, tables, links),
+    or Plain. A text over 64K characters is cut, saying so. Message is the
+    message sent; a run may send several.
 - WhatsApp steps (the user, 2026-10-26: WhatsApp like Telegram, with
   `go.mau.fi/whatsmeow`) work as the WhatsApp account of the WhatsApp
   connection their Connection setting names, which is a device linked to
@@ -1041,10 +1061,35 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
   workflow that cannot be saved (e.g. two steps with one id) takes back
   the ones made before it, so a refused file leaves nothing.
 
+## Chat
+
+The Chat page, after Home in the menu (the user, 2026-10-28), is the tower's
+own chat, kept in `tower.db` (`store/towerchat.go`). A chat talks with one
+workflow (the user's choice), picked when it is made among those with a
+Tower Chat step (ChatService's ListChatWorkflows), and named after it unless
+named otherwise:
+- What the user sends (SendChatMessage) is kept and starts a run of each of
+  the workflow's Tower Chat steps; the workflow answers with Tower Chat Send
+  steps. A workflow switched off, gone, or without a Tower Chat step takes
+  nothing (FailedPrecondition, and nothing is kept): the page says so
+  instead of the box to write in, and the chat's header has the workflow's
+  On/Off switch.
+- The page asks every second, while its tab is shown, for the messages
+  after its newest (ListChatMessages' `after_id`) and how the runs of the
+  user's messages still going are doing (`watch_runs`): under each message,
+  Running with the last line its steps logged as they went (the Logs' live
+  lines), or Failed with the error and a link to the workflow's Runs. A run
+  that succeeded shows nothing: its answer is in the chat.
+- A chat keeps its newest 2000 messages; the page shows the newest 100 and
+  Older messages pages back. The chats are listed with the newest message
+  first; Rename and Delete are in a chat's menu. Deleting a workflow deletes
+  its chats.
+
 ## Connections
 
 A connection is how workflow steps reach another program, managed on the
-Connections page (ConnectionService) and kept in `tower.db`: a name (unique,
+Connections page (ConnectionService), with a tab per type after All (the
+user, 2026-10-28), and kept in `tower.db`: a name (unique,
 ignoring case), a type, and the type's settings (ConnectionSettings, one
 field per type, stored as protojson). A step picks one in a setting with a
 connection type; its value is the connection's id, and a step whose
@@ -1189,6 +1234,28 @@ browsers attached to that one (the user, 2026-10-25: it showed Off and no
 browser while `san_remote serve` ran with Chrome attached). A fix to a site's steps needs the tower rebuilt, as the site code
 is in the tower's binary.
 
+Listen on (the user, 2026-10-28: "add setting for only localhost or all
+network"; BrowserRemoteService's SetBrowserRemoteNetwork,
+`browser_remote.network` in `tower.json`) is This computer only (127.0.0.1,
+the default) or All networks:
+- Both servers then listen on every address of this computer, at the same
+  ports, behind san_remote's guard for the local network (`server.LANHandler`,
+  `server.LANAPI`, `hub.GuardLAN`): Host may also be a private network's
+  address or this machine's name, never another name, and the extension's
+  Origin rule is the same. A browser on another computer can attach to it,
+  or a tower elsewhere (the Raspberry Pi, which has no browser) can post
+  through the browsers attached here, with a San Remote connection to
+  `http://<this computer>:7478`. The site services still reach the hub at
+  127.0.0.1.
+- A change restarts a running server on its new addresses; when that fails,
+  it goes on as it was and nothing is saved. A san_remote already answering
+  on 127.0.0.1 at those ports is refused, as on loopback.
+- The page asks before All networks, warns while it is on (there is no
+  password: anyone on the network can run code in the attached browsers and
+  post as the user), and lists the URIs at this computer's local network
+  addresses. On Windows, the first listen on every address may bring up a
+  Windows Firewall prompt for the tower's executable.
+
 ## Message broker
 
 The tower uses one broker at a time (Settings > Message Broker, saved in
@@ -1237,9 +1304,11 @@ second fails to listen before it opens the broker.
   Graph and RunSteps messages the database stores; a Setting with `storage`
   picks a storage), `connection.proto`
   (ConnectionService: list, create, update, delete, test; ConnectionSettings
-  per type: San Remote, Telegram Bot) and `storage.proto` (StorageService:
-  list, with the tower's data folder, create, update, delete; a storage's
-  absolute path). `buf.gen.yaml` makes their Go
+  per type: San Remote, Telegram Bot, WhatsApp, Binance), `storage.proto`
+  (StorageService: list, with the tower's data folder, create, update,
+  delete; a storage's absolute path) and `chat.proto` (ChatService: the
+  chats, the workflows they can talk with, their messages and how the runs
+  are doing, sending). `buf.gen.yaml` makes their Go
   code (`gen/`) and the UI's TS client. `buf.gen.san_message.yaml` makes
   the UI's TS client for san_message's proto; the Go side uses san_message's
   own generated code.
@@ -1303,7 +1372,8 @@ second fails to listen before it opens the broker.
 - `internal/server`: the HTTP server. It serves TowerService, BrokerService,
   WorkflowService (`workflow.go` the database's half, `engine.go` the
   engine's), ConnectionService (`connection.go`), BrowserRemoteService
-  (`browser_remote.go`), StorageService (`storage.go`), MessageService and the UI
+  (`browser_remote.go`), StorageService (`storage.go`), ChatService
+  (`chat.go`), MessageService and the UI
   behind `Guard`, which only accepts a loopback Host and loopback pages.
 - `internal/engine`: `kinds.go` the kinds of step and how each runs,
   `actions.go` HTTP Request and Publish to Topic, `social.go` the San Remote
@@ -1315,7 +1385,8 @@ second fails to listen before it opens the broker.
   subscribers and their streams, and `publish` for Publish to Topic,
   `schedule.go` the Schedule steps' timers and their Every, `telegram.go`
   the Telegram steps and the bots' pollers (`SyncConnections`, after a
-  connection changes).
+  connection changes), `towerchat.go` the Tower Chat steps and `Chat`, which
+  keeps a message sent on the Chat page and starts its runs.
 - `internal/telegram`: the Bot API client (getMe, getUpdates,
   sendMessage); `telegramtest` is a fake Bot API for tests, which reach no
   Telegram.
@@ -1348,7 +1419,10 @@ second fails to listen before it opens the broker.
   folder, made absolute), so it fills in each storage's absolute path
   (`AbsPath`) as it reads it. A Telegram message
   (`telegram.go`) is a row: connection, update id (kept once), chat id and
-  @username, date, and the message's JSON. Errors wrap `ErrNotFound`,
+  @username, date, and the message's JSON. A chat of the Chat page
+  (`towerchat.go`) is a row (name, workflow), and so is each of its
+  messages (chat, from the user or the workflow, text, Markdown or not, the
+  runs, time). Errors wrap `ErrNotFound`,
   `ErrInvalid` or `ErrExists`, which the server turns into Connect codes.
 - `internal/web`: the embedded UI. `dist/` is the Vite build (git-ignored but
   for `.gitkeep`). Paths without a file extension get `index.html`, so the

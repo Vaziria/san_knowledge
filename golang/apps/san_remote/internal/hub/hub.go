@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -100,6 +101,14 @@ func (h *Hub) Handler(extensionIDs ...string) http.Handler {
 	return Guard(mux, extensionIDs...)
 }
 
+// LANHandler serves the hub's services behind GuardLAN, for a server that
+// listens on the local network too.
+func (h *Hub) LANHandler(extensionIDs ...string) http.Handler {
+	mux := http.NewServeMux()
+	h.Mount(mux)
+	return GuardLAN(mux, extensionIDs...)
+}
+
 // Close ends every Attach stream, which a graceful shutdown would otherwise
 // wait on until its timeout.
 func (h *Hub) Close() {
@@ -121,12 +130,27 @@ func (h *Hub) Close() {
 //
 // extensionIDs are the extensions allowed to attach (default: ExtensionID).
 func Guard(next http.Handler, extensionIDs ...string) http.Handler {
+	return guard(next, IsLoopback, "san_remote only answers on a loopback address", extensionIDs)
+}
+
+// GuardLAN is Guard for a server that listens on the local network too (the
+// tower's Browser Remote Server on all networks; the user, 2026-10-28): Host
+// may also be an address of a private network or this machine's name, still
+// never another name, against DNS rebinding. Anyone on that network can then
+// run code in the attached browsers. The Origin rules are Guard's.
+func GuardLAN(next http.Handler, extensionIDs ...string) http.Handler {
+	name, _ := os.Hostname()
+	local := func(host string) bool { return IsLoopback(host) || IsLocalNetwork(host, name) }
+	return guard(next, local, "san_remote only answers on this machine's name or a local network address", extensionIDs)
+}
+
+func guard(next http.Handler, hostOK func(string) bool, refusal string, extensionIDs []string) http.Handler {
 	if len(extensionIDs) == 0 {
 		extensionIDs = []string{ExtensionID}
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !IsLoopback(r.Host) {
-			http.Error(w, "san_remote only answers on a loopback address", http.StatusForbidden)
+		if !hostOK(r.Host) {
+			http.Error(w, refusal, http.StatusForbidden)
 			return
 		}
 		origin := r.Header.Get("Origin")
@@ -156,6 +180,26 @@ func IsLoopback(hostport string) bool {
 	}
 	ip := net.ParseIP(host)
 	return ip != nil && ip.IsLoopback()
+}
+
+// cgnat is 100.64.0.0/10, which VPNs such as Tailscale give out.
+var cgnat = &net.IPNet{IP: net.IPv4(100, 64, 0, 0), Mask: net.CIDRMask(10, 32)}
+
+// IsLocalNetwork says whether a host or host:port is an address of a private
+// network (10/8, 172.16/12, 192.168/16, fc00::/7, link-local, 100.64/10) or
+// the machine called name (raspi, raspi.local, raspi.lan).
+func IsLocalNetwork(hostport, name string) bool {
+	host := hostport
+	if h, _, err := net.SplitHostPort(hostport); err == nil {
+		host = h
+	}
+	host = strings.Trim(host, "[]")
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.IsPrivate() || ip.IsLinkLocalUnicast() || cgnat.Contains(ip)
+	}
+	host = strings.TrimSuffix(strings.ToLower(host), ".")
+	name = strings.ToLower(name)
+	return name != "" && (host == name || host == name+".local" || host == name+".lan")
 }
 
 // ---- browsers ------------------------------------------------------------------------

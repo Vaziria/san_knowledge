@@ -109,12 +109,15 @@ message Socket {
 // at the first option. One with a connection_type picks a connection of that
 // type (ConnectionService); its value is the connection's id. One with
 // storage picks a storage (StorageService); its value is the storage's id.
+// One with knowledge picks a knowledge (KnowledgeService); its value is the
+// knowledge's id.
 message Setting {
   string name = 1;
   repeated string options = 2;
   string placeholder = 3;
   string connection_type = 4;
   bool storage = 5;
+  bool knowledge = 6;
 }
 
 message Workflow {
@@ -471,10 +474,12 @@ message WorkflowFile {
   // tower is the version of the tower that wrote it.
   string tower = 4;
   repeated ExportedWorkflow workflows = 5;
-  // connections and storages are those the steps' Connection and Storage
-  // settings pick, by their id in the tower that wrote the file.
+  // connections, storages and knowledge are those the steps' Connection,
+  // Storage and Knowledge settings pick, by their id in the tower that
+  // wrote the file.
   map<string, ExportedRef> connections = 6;
   map<string, ExportedRef> storages = 7;
+  map<string, ExportedRef> knowledge = 8;
 }
 
 // ExportedWorkflow is a workflow in a WorkflowFile.

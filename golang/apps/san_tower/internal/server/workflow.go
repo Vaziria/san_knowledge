@@ -137,7 +137,7 @@ func (s *Server) ListFolders(context.Context, *connect.Request[v1.ListFoldersReq
 	}
 	res := &v1.ListFoldersResponse{Folders: make([]*v1.Folder, len(list))}
 	for i, f := range list {
-		res.Folders[i] = &v1.Folder{Id: f.ID, Name: f.Name, ParentId: f.ParentID, WorkflowCount: uint32(f.Workflows), FolderCount: uint32(f.Folders)}
+		res.Folders[i] = &v1.Folder{Id: f.ID, Name: f.Name, ParentId: f.ParentID, WorkflowCount: uint32(f.Items), FolderCount: uint32(f.Folders)}
 	}
 	return connect.NewResponse(res), nil
 }

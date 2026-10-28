@@ -1,6 +1,6 @@
 import { timestampDate } from '@bufbuild/protobuf/wkt';
-import { Button, Code, HStack, Heading, IconButton, Input, Menu, Portal, Stack, Table, Text } from '@chakra-ui/react';
-import { EllipsisVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { Badge, Button, Code, HStack, Heading, IconButton, Input, Menu, Portal, Stack, Table, Text } from '@chakra-ui/react';
+import { BrainIcon, EllipsisVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { errorText, storages } from '../api';
 import type { Storage as TowerStorage } from '../gen/san/tower/v1/storage_pb';
@@ -68,7 +68,24 @@ export function Storage() {
             <Table.Body>
               {list.map((s) => (
                 <Table.Row key={s.id} cursor="pointer" onClick={() => setEditing(s)}>
-                  <Table.Cell fontWeight="semibold">{s.name}</Table.Cell>
+                  {/* A knowledge's storage is tagged (the user, 2026-10-28): it goes only with the knowledge. */}
+                  <Table.Cell>
+                    <Text fontWeight="semibold">{s.name}</Text>
+                    {s.knowledge && (
+                      <Badge
+                        colorPalette="purple"
+                        size="sm"
+                        mt="1"
+                        maxW="full"
+                        title={`Holds the files of knowledge ${s.knowledge}, and is deleted with it on the Knowledge page`}
+                      >
+                        <BrainIcon size="12" />
+                        <Text as="span" truncate>
+                          {s.knowledge === s.name ? 'Knowledge' : `Knowledge: ${s.knowledge}`}
+                        </Text>
+                      </Badge>
+                    )}
+                  </Table.Cell>
                   {/* A relative path says where it is under it; long paths wrap. */}
                   <Table.Cell fontFamily="mono" whiteSpace="normal" wordBreak="break-all">
                     {s.path}

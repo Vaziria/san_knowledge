@@ -31,9 +31,13 @@ type Storage struct {
 	Path string `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
 	// absolute_path is where path is on this computer. The tower sets it;
 	// what is sent is ignored.
-	AbsolutePath  string                 `protobuf:"bytes,4,opt,name=absolute_path,json=absolutePath,proto3" json:"absolute_path,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	AbsolutePath string                 `protobuf:"bytes,4,opt,name=absolute_path,json=absolutePath,proto3" json:"absolute_path,omitempty"`
+	CreatedAt    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// knowledge is the knowledge (KnowledgeService) whose files are in it, by
+	// name; empty for a storage of its own. The tower sets it; what is sent
+	// is ignored.
+	Knowledge     string `protobuf:"bytes,7,opt,name=knowledge,proto3" json:"knowledge,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -108,6 +112,13 @@ func (x *Storage) GetUpdatedAt() *timestamppb.Timestamp {
 		return x.UpdatedAt
 	}
 	return nil
+}
+
+func (x *Storage) GetKnowledge() string {
+	if x != nil {
+		return x.Knowledge
+	}
+	return ""
 }
 
 type ListStoragesRequest struct {
@@ -459,7 +470,7 @@ var File_san_tower_v1_storage_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_storage_proto_rawDesc = "" +
 	"\n" +
-	"\x1asan/tower/v1/storage.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdc\x01\n" +
+	"\x1asan/tower/v1/storage.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfa\x01\n" +
 	"\aStorage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -468,7 +479,8 @@ const file_san_tower_v1_storage_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x15\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1c\n" +
+	"\tknowledge\x18\a \x01(\tR\tknowledge\"\x15\n" +
 	"\x13ListStoragesRequest\"d\n" +
 	"\x14ListStoragesResponse\x121\n" +
 	"\bstorages\x18\x01 \x03(\v2\x15.san.tower.v1.StorageR\bstorages\x12\x19\n" +

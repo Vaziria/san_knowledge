@@ -14,12 +14,15 @@ import (
 // (the Storage step). Path is as given: absolute, or relative to the tower's
 // data folder. Abs is where it is, which the store fills in when it reads
 // one. Both use / between folders, on Windows too (the user, 2026-10-25),
-// which Windows takes as well as \.
+// which Windows takes as well as \. Knowledge is the name of the knowledge
+// whose files are in it (knowledge.go), also filled in when it is read;
+// empty for a storage of its own.
 type Storage struct {
 	ID        uint32 `gorm:"primaryKey"`
 	Name      string `gorm:"not null;uniqueIndex"`
 	Path      string `gorm:"not null"`
 	Abs       string `gorm:"-"`
+	Knowledge string `gorm:"-"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -50,8 +53,17 @@ func (s *Store) ListStorages() ([]Storage, error) {
 	if err := s.db.Order("name COLLATE NOCASE, id").Find(&list).Error; err != nil {
 		return nil, err
 	}
+	var held []Knowledge
+	if err := s.db.Select("name, storage_id").Find(&held).Error; err != nil {
+		return nil, err
+	}
+	holder := make(map[uint32]string, len(held))
+	for _, k := range held {
+		holder[k.StorageID] = k.Name
+	}
 	for i := range list {
 		s.fill(&list[i])
+		list[i].Knowledge = holder[list[i].ID]
 	}
 	return list, nil
 }
@@ -77,8 +89,16 @@ func (s *Store) GetStorage(id uint32) (Storage, error) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return st, fail(ErrNotFound, "no storage %d", id)
 	}
+	if err != nil {
+		return st, err
+	}
 	s.fill(&st)
-	return st, err
+	var k Knowledge
+	if err := s.db.Select("name").Where("storage_id = ?", id).Limit(1).Find(&k).Error; err != nil {
+		return st, err
+	}
+	st.Knowledge = k.Name
+	return st, nil
 }
 
 // UpdateStorage replaces a storage's name and path, and returns it as
@@ -106,16 +126,22 @@ func (s *Store) UpdateStorage(st Storage) (Storage, error) {
 	return s.GetStorage(st.ID)
 }
 
-// DeleteStorage deletes a storage; its folder is left as it is.
+// DeleteStorage deletes a storage; its folder is left as it is. A
+// knowledge's storage goes only with the knowledge (DeleteKnowledge).
 func (s *Store) DeleteStorage(id uint32) error {
-	r := s.db.Delete(&Storage{}, id)
-	if r.Error != nil {
-		return r.Error
-	}
-	if r.RowsAffected == 0 {
-		return fail(ErrNotFound, "no storage %d", id)
-	}
-	return nil
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if err := storageHolds(tx, id); err != nil {
+			return err
+		}
+		r := tx.Delete(&Storage{}, id)
+		if r.Error != nil {
+			return r.Error
+		}
+		if r.RowsAffected == 0 {
+			return fail(ErrNotFound, "no storage %d", id)
+		}
+		return nil
+	})
 }
 
 // checkStorage trims the name and path, puts / in the path, and checks

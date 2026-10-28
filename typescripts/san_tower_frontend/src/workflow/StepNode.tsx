@@ -17,6 +17,7 @@ import {
   categoryPalette,
   handleId,
   loadConnections,
+  loadKnowledge,
   loadStorages,
   socketColor,
   stepKind,
@@ -275,6 +276,8 @@ function SettingField({
           value={value}
           onChange={onChange}
         />
+      ) : setting.knowledge ? (
+        <PickSelect what="knowledge" load={loadKnowledge} loadKey="knowledge" value={value} onChange={onChange} />
       ) : setting.options.length > 0 ? (
         <NativeSelect.Root size="xs" className="nodrag">
           <NativeSelect.Field value={value} onChange={(e) => onChange(e.target.value)}>
@@ -294,8 +297,8 @@ function SettingField({
   );
 }
 
-// PickSelect picks a connection (of one type) or a storage; the value is its
-// id. One that is gone still shows, so the step says what it was set to.
+// PickSelect picks a connection (of one type), a storage or a knowledge; the
+// value is its id. One that is gone still shows, so the step says what it was set to.
 // load runs again when loadKey changes. none names the empty choice when
 // picking nothing is allowed (File Path: no storage).
 function PickSelect({
@@ -306,7 +309,7 @@ function PickSelect({
   value,
   onChange,
 }: {
-  what: 'connection' | 'storage';
+  what: 'connection' | 'storage' | 'knowledge';
   load: () => Promise<{ id: number; name: string }[]>;
   loadKey: string;
   none?: string;
@@ -326,12 +329,13 @@ function PickSelect({
     // load is new on each render; loadKey says what it loads.
   }, [loadKey]);
   const gone = value !== '' && list !== undefined && !list.some((c) => String(c.id) === value);
-  const Name = what === 'connection' ? 'Connection' : 'Storage';
+  const Name = { connection: 'Connection', storage: 'Storage', knowledge: 'Knowledge' }[what];
+  const plural = what === 'knowledge' ? what : `${what}s`;
   return (
     <NativeSelect.Root size="xs" className="nodrag">
       <NativeSelect.Field value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="">
-          {list === undefined ? 'Loading...' : none || (list.length > 0 ? `Pick a ${what}` : `No ${what}s yet`)}
+          {list === undefined ? 'Loading...' : none || (list.length > 0 ? `Pick a ${what}` : `No ${plural} yet`)}
         </option>
         {list?.map((c) => (
           <option key={c.id} value={String(c.id)}>

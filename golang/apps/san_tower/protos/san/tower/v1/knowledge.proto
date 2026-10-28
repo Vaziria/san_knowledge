@@ -1,0 +1,240 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/timestamp.proto";
+import "san/tower/v1/storage.proto";
+
+// KnowledgeService keeps the tower's knowledge, in its database, which the
+// UI's Knowledge page lists (the user, 2026-10-28). A knowledge's files are
+// in a storage (StorageService) made with it. Knowledge are in folders, as
+// workflows are, in a tree of their own.
+//
+// A knowledge is a knowledge graph of its markdown files, as the knowledge
+// tool (golang/packages/san_knowledge) makes for this project: every .md
+// file in its folder is a doc, each heading a section, and an AI step writes
+// their summaries, keywords and domains. The graph is in the folder's
+// knowledge_data (which the knowledge tool can open too).
+service KnowledgeService {
+  // ListKnowledge lists the knowledge right in a folder, by name.
+  rpc ListKnowledge(ListKnowledgeRequest) returns (ListKnowledgeResponse);
+  // CreateKnowledge creates a knowledge in folder_id (0: at the top), and
+  // its storage, of the same name, at path; the folder there is made if it
+  // is not there. Names are unique among the knowledge and among the
+  // storages.
+  rpc CreateKnowledge(CreateKnowledgeRequest) returns (CreateKnowledgeResponse);
+  // DeleteKnowledge deletes a knowledge and its storage. The folder and the
+  // files in it are left as they are. DeleteStorage refuses a knowledge's
+  // storage.
+  rpc DeleteKnowledge(DeleteKnowledgeRequest) returns (DeleteKnowledgeResponse);
+  // MoveKnowledge puts knowledge in a folder (0: at the top).
+  rpc MoveKnowledge(MoveKnowledgeRequest) returns (MoveKnowledgeResponse);
+  // ListKnowledgeFolders lists every folder of knowledge, each with its
+  // parent and how many knowledge and folders are right in it.
+  rpc ListKnowledgeFolders(ListKnowledgeFoldersRequest) returns (ListKnowledgeFoldersResponse);
+  // CreateKnowledgeFolder makes a folder in parent_id (0: at the top).
+  // Names are unique within a folder, ignoring case.
+  rpc CreateKnowledgeFolder(CreateKnowledgeFolderRequest) returns (CreateKnowledgeFolderResponse);
+  // UpdateKnowledgeFolder renames a folder and puts it in parent_id. A
+  // folder cannot go into itself or a folder inside it.
+  rpc UpdateKnowledgeFolder(UpdateKnowledgeFolderRequest) returns (UpdateKnowledgeFolderResponse);
+  // DeleteKnowledgeFolder deletes a folder. What was in it, knowledge and
+  // folders, goes to the folder it was in: no knowledge is deleted with it.
+  rpc DeleteKnowledgeFolder(DeleteKnowledgeFolderRequest) returns (DeleteKnowledgeFolderResponse);
+  rpc GetKnowledge(GetKnowledgeRequest) returns (GetKnowledgeResponse);
+  // SyncKnowledge brings a knowledge's graph in line with its files: docs
+  // and sections added, changed (their summary then needs redoing) and
+  // removed, and the references their links make. No AI.
+  rpc SyncKnowledge(SyncKnowledgeRequest) returns (SyncKnowledgeResponse);
+  // GetKnowledgeGraph gives every node and link of a knowledge's graph.
+  rpc GetKnowledgeGraph(GetKnowledgeGraphRequest) returns (GetKnowledgeGraphResponse);
+  // GetKnowledgeNode gives one node, its links, and its text from the file.
+  rpc GetKnowledgeNode(GetKnowledgeNodeRequest) returns (GetKnowledgeNodeResponse);
+  // SummarizeKnowledge has Claude (claude -p, on this computer's Claude Code
+  // login) write the summaries, keywords and domains that are missing or
+  // out of date, one call per doc, and answers when all are done. A summary
+  // a person wrote is never replaced.
+  rpc SummarizeKnowledge(SummarizeKnowledgeRequest) returns (SummarizeKnowledgeResponse);
+}
+
+message Knowledge {
+  uint32 id = 1;
+  string name = 2;
+  // folder_id is the folder it is in, 0 at the top.
+  uint32 folder_id = 3;
+  // storage is the storage its files are in; unset when it is gone.
+  Storage storage = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// KnowledgeFolder is a folder of knowledge; folders nest.
+message KnowledgeFolder {
+  uint32 id = 1;
+  string name = 2;
+  // parent_id is the folder it is in, 0 at the top.
+  uint32 parent_id = 3;
+  // How many knowledge and folders are right in it.
+  uint32 knowledge_count = 4;
+  uint32 folder_count = 5;
+}
+
+message ListKnowledgeRequest {
+  // folder_id is the folder, 0 the top.
+  uint32 folder_id = 1;
+  // all_folders lists every folder's instead (the editor's Knowledge
+  // selects).
+  bool all_folders = 2;
+}
+
+message ListKnowledgeResponse {
+  repeated Knowledge knowledge = 1;
+  // data_dir is the tower's data folder, which a relative path is in.
+  string data_dir = 2;
+}
+
+message CreateKnowledgeRequest {
+  string name = 1;
+  // path is where its files go: absolute (D:/notes), or relative to the
+  // tower's data folder (knowledge/notes).
+  string path = 2;
+  uint32 folder_id = 3;
+}
+
+message CreateKnowledgeResponse {
+  Knowledge knowledge = 1;
+}
+
+message DeleteKnowledgeRequest {
+  uint32 id = 1;
+}
+
+message DeleteKnowledgeResponse {}
+
+message MoveKnowledgeRequest {
+  repeated uint32 ids = 1;
+  uint32 folder_id = 2;
+}
+
+message MoveKnowledgeResponse {}
+
+message ListKnowledgeFoldersRequest {}
+
+message ListKnowledgeFoldersResponse {
+  repeated KnowledgeFolder folders = 1;
+}
+
+message CreateKnowledgeFolderRequest {
+  string name = 1;
+  uint32 parent_id = 2;
+}
+
+message CreateKnowledgeFolderResponse {
+  KnowledgeFolder folder = 1;
+}
+
+message UpdateKnowledgeFolderRequest {
+  uint32 id = 1;
+  string name = 2;
+  uint32 parent_id = 3;
+}
+
+message UpdateKnowledgeFolderResponse {
+  KnowledgeFolder folder = 1;
+}
+
+message DeleteKnowledgeFolderRequest {
+  uint32 id = 1;
+}
+
+message DeleteKnowledgeFolderResponse {}
+
+// KnowledgeNode is a node of a knowledge's graph.
+message KnowledgeNode {
+  // key: a domain's is its slug, a doc's its path in the folder
+  // (intro.md), a section's the path and its heading path
+  // (intro.md#setup/windows).
+  string key = 1;
+  // type is domain, doc or doc_section.
+  string type = 2;
+  string title = 3;
+  string summary = 4;
+  repeated string keywords = 5;
+  // loc is the file, and line the line its heading is on.
+  string loc = 6;
+  uint32 line = 7;
+  // needs_summary: its text is new or changed since its summary.
+  bool needs_summary = 8;
+  // author wrote its summary: sync, ai, frontmatter or a person.
+  string author = 9;
+}
+
+// KnowledgeLink is a link of a knowledge's graph: domain_of (a doc or
+// section to its domain), section_of (a section to its doc or parent
+// section) or reference (a markdown link from a doc or section to another).
+message KnowledgeLink {
+  string from = 1;
+  string rel = 2;
+  string to = 3;
+}
+
+message GetKnowledgeRequest {
+  uint32 id = 1;
+}
+
+message GetKnowledgeResponse {
+  Knowledge knowledge = 1;
+}
+
+message SyncKnowledgeRequest {
+  uint32 id = 1;
+}
+
+message SyncKnowledgeResponse {
+  uint32 docs_added = 1;
+  uint32 docs_updated = 2;
+  uint32 docs_removed = 3;
+  uint32 sections_added = 4;
+  uint32 sections_updated = 5;
+  uint32 sections_removed = 6;
+  // needs_summary is how many nodes wait for a summary now.
+  uint32 needs_summary = 7;
+  repeated string errors = 8;
+}
+
+message GetKnowledgeGraphRequest {
+  uint32 id = 1;
+}
+
+message GetKnowledgeGraphResponse {
+  repeated KnowledgeNode nodes = 1;
+  repeated KnowledgeLink links = 2;
+}
+
+message GetKnowledgeNodeRequest {
+  uint32 id = 1;
+  string key = 2;
+}
+
+message GetKnowledgeNodeResponse {
+  KnowledgeNode node = 1;
+  // out are its links to other nodes, in theirs to it.
+  repeated KnowledgeLink out = 2;
+  repeated KnowledgeLink in = 3;
+  // text is its text in the file (a doc's whole text), cut
+  // at 6000 characters.
+  string text = 4;
+}
+
+message SummarizeKnowledgeRequest {
+  uint32 id = 1;
+}
+
+message SummarizeKnowledgeResponse {
+  // docs are the docs it wrote for, and summarized how many nodes.
+  repeated string docs = 1;
+  uint32 summarized = 2;
+  repeated string domains_created = 3;
+  // failed says why a doc failed; it is tried again next time.
+  map<string, string> failed = 4;
+}

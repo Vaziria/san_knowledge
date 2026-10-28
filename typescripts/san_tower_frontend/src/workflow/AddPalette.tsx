@@ -7,9 +7,11 @@ import {
   AsteriskIcon,
   AtSignIcon,
   BookOpenIcon,
+  BookSearchIcon,
   BotIcon,
   BotMessageSquareIcon,
   BoxIcon,
+  BrainIcon,
   BracesIcon,
   BriefcaseIcon,
   CalendarClockIcon,
@@ -48,6 +50,8 @@ import {
   HistoryIcon,
   ImageDownIcon,
   LayersIcon,
+  LibraryBigIcon,
+  LightbulbIcon,
   ListIcon,
   LogsIcon,
   MegaphoneIcon,
@@ -96,6 +100,7 @@ const categoryIcons: Record<string, LucideIcon> = {
   Messengers: MessagesSquareIcon,
   Social: Share2Icon,
   Finance: ChartCandlestickIcon,
+  Knowledge: BrainIcon,
   AI: SparklesIcon,
 };
 const groupIcons: Record<string, LucideIcon> = {
@@ -180,6 +185,9 @@ const kindIcons: Record<string, LucideIcon> = {
   'binance-orders': HistoryIcon,
   'binance-positions': LayersIcon,
   'binance-close-position': CircleXIcon,
+  'knowledge-base': LibraryBigIcon,
+  'knowledge-search': BookSearchIcon,
+  'knowledge-explain': LightbulbIcon,
 };
 const iconOf = (k: StepKind) => kindIcons[k.kind] ?? categoryIcons[k.category] ?? BoxIcon;
 

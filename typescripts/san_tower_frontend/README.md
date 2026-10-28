@@ -48,6 +48,40 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     the workflow (a link to its editor), its On/Off switch, and Rename and
     Delete. Enter sends, Shift+Enter is a new line; a workflow switched off
     or gone shows why instead of the box.
+  - `Knowledge.tsx` (`/knowledge`, after Chat; the user, 2026-10-28): the
+    knowledge (KnowledgeService), one folder at a time, as the Workflow
+    page's Workflows tab (`src/folders.tsx`): the folder is in the URL
+    (`?folder=3`), its folders first with how much is in each, under a
+    breadcrumb back to the top. A table (name, path, with the absolute path
+    under a relative one, last change). New knowledge asks a name and a
+    path: the tower makes a storage of that name there, and the folder;
+    New folder makes a folder. A knowledge's menu has Move to... and
+    Delete (asks first, saying its storage goes and its files stay); a
+    folder's Rename, Move to... and Delete (what is in it moves up). A
+    knowledge dragged onto a folder, or onto the breadcrumb, moves there.
+    A create or delete makes the editor's Storage selects ask again. A
+    knowledge's row opens its graph.
+  - `KnowledgeGraph.tsx` (`/knowledge/<id>`, a page of its own; the nav
+    keeps Knowledge marked; the user, 2026-10-28): a knowledge's graph, as
+    the knowledge tool's view shows one (`src/knowledge/GraphCanvas.tsx`),
+    with a link back to its folder. Opening it syncs the graph with the
+    files first (no AI), as the view does when it starts; Sync does it again
+    and toasts what changed. Summarize (when something waits) asks first,
+    saying how many nodes in how many docs, that Claude writes them on this
+    computer's login and that it can take minutes, then waits for the
+    summaries and toasts how many were written and why a doc failed. The
+    line under the header counts docs, sections, domains and the nodes
+    waiting; the search box (title, keyword, summary, key) marks the nodes
+    it matches and fades the rest, and Enter selects the first. The graph
+    takes the page's width (the user, 2026-10-28: no panel beside it). A
+    click on a node selects it (`?node=<key>`), marking it and labelling
+    its links; a right-click selects it and opens its menu at the pointer
+    (as the workflow editor's), whose View opens a dialog with its type,
+    title, file:line, summary (and whether Claude or frontmatter wrote it),
+    keywords, its links grouped (Domain, Part of, Sections, Links to,
+    Linked from, In this domain; each views that node in the dialog and
+    selects it) and its text in the file. The legend sits on the graph, a
+    button fits it in view, and a line under it says what the mouse does.
   - `MessageBroker.tsx`: the San Message broker the tower uses. A status
     bar on top (BrokerService.GetBrokerStatus): Running or Not answering,
     inside the tower or a separate server and since when, topics and events
@@ -80,7 +114,9 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     2026-10-25): the storages (StorageService), named base folders that
     workflow steps use (the Storage step). A table (name, base path, last
     change; a relative path has its absolute path under it, and long paths
-    wrap). The line on top says where a relative path goes, the tower's
+    wrap). A knowledge's storage has a Knowledge tag under its name (with
+    the knowledge's name when the two differ; the user, 2026-10-28). The
+    line on top says where a relative path goes, the tower's
     data folder (ListStorages' `data_dir`). New storage, or a row, opens a
     dialog: a name and a base path (saved with /; a \ typed becomes /);
     saving toasts the absolute path. A
@@ -161,10 +197,11 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     says Saved, Unsaved changes, Saving... or why it was not saved. The
     steps are drawn from the kinds the tower has (ListStepKinds); one the
     engine cannot run yet says "soon". A step's Connection setting is a
-    select of the connections of its type, and its Storage setting a select
+    select of the connections of its type, its Storage setting a select
     of the storages (whose empty choice is the setting's placeholder when it
-    has one: File Path's "No storage: the data folder"); one that is gone
-    shows as such. Run gives a trigger step data typed
+    has one: File Path's "No storage: the data folder"), and its Knowledge
+    setting (Knowledge Base) a select of the knowledge of every folder; one
+    that is gone shows as such. Run gives a trigger step data typed
     in a dialog (JSON, or any text; a Schedule step takes none, as if its
     time came now) and runs the workflow; the Active switch turns its
     triggers on, and the line under the header says whether each listens,
@@ -182,12 +219,25 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     mounted while Runs or Logs shows, so nothing typed or undoable is
     lost; there Undo, Redo, Add and the canvas's keys are off.
   - `NotFound.tsx`.
+- `src/knowledge/GraphCanvas.tsx`: a knowledge's graph in cytoscape, drawn
+  as the knowledge tool's view draws one: domains blue hexagons, docs
+  orange rectangles, sections green circles (the view's first three
+  palette slots, light and dark from the `.dark` class, since cytoscape
+  cannot read CSS variables), sized by their links, dashed while waiting
+  for a summary; domain links dashed, references dotted. A cose layout,
+  sections close to their doc; on a reload nodes keep their places and
+  only new ones are laid out. The selected node's links are labelled. A
+  right-click on a node asks for its menu (`onMenu`, at the pointer); the
+  browser's own menu is kept off the graph.
 - `src/workflow/`: `catalog.ts`, the step kinds (loaded once from the
   tower), the connections a step can pick (asked once per type, forgotten
-  when the Connections page changes one) and the storages (asked once,
-  forgotten when the Storage page changes one), the socket colours and category
+  when the Connections page changes one), the storages (asked once,
+  forgotten when the Storage page changes one) and the knowledge (asked
+  once, forgotten when the Knowledge page makes or deletes one), the socket
+  colours (a `knowledge` socket, Knowledge Base's, orange) and category
   palettes (Datetime, the datetime steps, is teal; Social, the San Remote
-  steps, is pink; AI, ChatGPT Ask, is yellow), and the conversion
+  steps, is pink; Knowledge, before AI, is purple; AI, ChatGPT Ask, is
+  yellow), and the conversion
   between a stored workflow and React Flow's nodes and edges (a handle's id
   is `<type>:<socket>`); `StepNode.tsx`, how a step is drawn; `history.ts`,
   the editor's undo and redo (`useHistory`): the graph as saved (JSON)
@@ -227,10 +277,15 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   that opens, or moves in to stay on screen, under a still pointer leaves
   the keys in charge. Icons: `categoryIcons`, `groupIcons` and `kindIcons`
   (a kind or group without one shows its category's).
+- `src/folders.tsx`: the folders of the Workflow and Knowledge pages, two
+  trees, each page passing its own (`FolderApi`: what the top is called,
+  making and changing a folder): the breadcrumb, a folder's row and a
+  row's menu, the New folder / Rename and Move to... dialogs, and dragging
+  a row onto a folder.
 - `src/ui.tsx`: the toaster, and `FormDialog`, a form in a modal that shows
   the server's error and closes when it succeeds.
 - `src/api.ts`: the TowerService, BrokerService, WorkflowService,
-  ConnectionService, BrowserRemoteService, StorageService, ChatService and MessageService clients, same origin as the page,
+  ConnectionService, BrowserRemoteService, StorageService, ChatService, KnowledgeService and MessageService clients, same origin as the page,
   and `errorText`. Their
   JSON reading knows the types a run's `Any` outputs hold (Value,
   StringValue).

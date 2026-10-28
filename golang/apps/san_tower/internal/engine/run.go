@@ -45,6 +45,9 @@ type Env struct {
 	// Storage looks up a storage by id, with its absolute path: a step's
 	// Storage setting.
 	Storage func(id uint32) (store.Storage, error)
+	// Knowledge looks up a knowledge by id, with its storage: a Knowledge
+	// Base step's Knowledge setting.
+	Knowledge func(id uint32) (store.Knowledge, error)
 	// DataDir is the tower's data folder, absolute, with /: where File
 	// Path's relative names are when no storage is picked.
 	DataDir string

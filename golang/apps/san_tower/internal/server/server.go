@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -56,6 +57,10 @@ type Server struct {
 	// OnRestart, when set, stops the tower and starts it again; the Restart
 	// RPC calls it once it has answered.
 	OnRestart func()
+
+	// summarizing holds the ids of the knowledge whose summaries are being
+	// written (SummarizeKnowledge), one run each.
+	summarizing sync.Map
 }
 
 var (
@@ -66,6 +71,7 @@ var (
 	_ towerv1connect.BrowserRemoteServiceHandler = (*Server)(nil)
 	_ towerv1connect.StorageServiceHandler       = (*Server)(nil)
 	_ towerv1connect.ChatServiceHandler          = (*Server)(nil)
+	_ towerv1connect.KnowledgeServiceHandler     = (*Server)(nil)
 )
 
 func New(version string, broker *broker.Broker, store *store.Store, engine *engine.Engine, remote *browserremote.Remote) *Server {
@@ -88,6 +94,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle(towerv1connect.NewBrowserRemoteServiceHandler(s))
 	mux.Handle(towerv1connect.NewStorageServiceHandler(s))
 	mux.Handle(towerv1connect.NewChatServiceHandler(s))
+	mux.Handle(towerv1connect.NewKnowledgeServiceHandler(s))
 	mux.Handle(s.broker.Handler())
 	// /api/claude-health is the UI startup banner's probe: a plain-JSON
 	// endpoint because the frontend's proto codegen (@bufbuild/protoc-gen-es)

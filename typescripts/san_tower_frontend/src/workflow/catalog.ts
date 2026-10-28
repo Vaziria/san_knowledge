@@ -1,6 +1,7 @@
 import type { Connection, Edge, Node, XYPosition } from '@xyflow/react';
-import { connections, storages, workflows } from '../api';
+import { connections, knowledge, storages, workflows } from '../api';
 import type { Connection as TowerConnection } from '../gen/san/tower/v1/connection_pb';
+import type { Knowledge as TowerKnowledge } from '../gen/san/tower/v1/knowledge_pb';
 import type { Storage as TowerStorage } from '../gen/san/tower/v1/storage_pb';
 import type { Link, Socket, StepKind, Step as StoredStep } from '../gen/san/tower/v1/workflow_pb';
 
@@ -14,17 +15,31 @@ export type { Setting, Socket, StepKind } from '../gen/san/tower/v1/workflow_pb'
 
 // socketColor follows Blender's socket colours: the flow (event) is green
 // like geometry, structured data (object) purple like a vector, text blue
-// like a string. A type the UI does not know yet is grey.
+// like a string, a knowledge (Knowledge Base's) orange like an object. A
+// type the UI does not know yet is grey.
 const socketColors: Record<string, string> = {
   event: '#00d6a3',
   object: '#6363c7',
   text: '#70b2ff',
+  knowledge: '#ed9e5c',
 };
 export const socketColor = (type: string) => socketColors[type] ?? '#a1a1a1';
 
 // categories are the Add menu's groups, in order; a kind in another category
 // goes last.
-export const categories = ['Trigger', 'Logic', 'Data', 'Storage', 'Datetime', 'Action', 'Messengers', 'Social', 'Finance', 'AI'];
+export const categories = [
+  'Trigger',
+  'Logic',
+  'Data',
+  'Storage',
+  'Datetime',
+  'Action',
+  'Messengers',
+  'Social',
+  'Finance',
+  'Knowledge',
+  'AI',
+];
 const palettes: Record<string, string> = {
   Trigger: 'red',
   Logic: 'blue',
@@ -35,6 +50,7 @@ const palettes: Record<string, string> = {
   Messengers: 'cyan',
   Social: 'pink',
   Finance: 'gray',
+  Knowledge: 'purple',
   AI: 'yellow',
 };
 export const categoryPalette = (category: string) => palettes[category] ?? 'gray';
@@ -102,6 +118,24 @@ export function loadStorages(): Promise<TowerStorage[]> {
 }
 
 export const forgetStorages = () => (storageList = undefined);
+
+// The knowledge a step can pick (a setting with knowledge), of every folder,
+// from the tower: asked once, and again after the Knowledge page changes one
+// (forgetKnowledge).
+let knowledgeList: Promise<TowerKnowledge[]> | undefined;
+
+export function loadKnowledge(): Promise<TowerKnowledge[]> {
+  if (!knowledgeList) {
+    const p = knowledge.listKnowledge({ allFolders: true }).then((r) => r.knowledge);
+    p.catch(() => {
+      if (knowledgeList === p) knowledgeList = undefined; // try again next time
+    });
+    knowledgeList = p;
+  }
+  return knowledgeList;
+}
+
+export const forgetKnowledge = () => (knowledgeList = undefined);
 
 // StepData is what a step holds: its kind, and the values of its settings
 // and of its unlinked fields, by name.

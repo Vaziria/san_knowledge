@@ -172,6 +172,7 @@ func (e *Engine) env() Env {
 		TelegramMessages: e.store.TelegramMessages,
 		WhatsAppSend:     e.sendWhatsApp,
 		Storage:          e.store.GetStorage,
+		Knowledge:        e.store.GetKnowledge,
 		ChatLink:         e.store.ChatLink,
 		SetChatLink:      e.store.SetChatLink,
 		DataDir:          e.store.Dir(),

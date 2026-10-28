@@ -8,9 +8,7 @@ import {
   Input,
   InputGroup,
   Link,
-  Menu,
   Pagination,
-  Portal,
   Stack,
   Switch,
   Table,
@@ -21,14 +19,10 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   DownloadIcon,
-  EllipsisVerticalIcon,
   FolderIcon,
-  FolderInputIcon,
   FolderPlusIcon,
-  PencilIcon,
   ScrollTextIcon,
   SearchIcon,
-  Trash2Icon,
   UploadIcon,
   WorkflowIcon,
 } from 'lucide-react';
@@ -36,14 +30,32 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { errorText, workflows } from '../api';
 import type { Folder, Workflow, WorkflowSummary } from '../gen/san/tower/v1/workflow_pb';
+import {
+  draggable,
+  FolderCrumbs,
+  folderCounts,
+  FolderDialog,
+  folderPath,
+  FolderRow,
+  MoveDialog,
+  pathText,
+  RowMenu,
+  type FolderApi,
+} from '../folders';
 import { FormDialog, FormField, toast } from '../ui';
-import { dragType, dropTarget, FolderCrumbs, FolderDialog, folderPath, MoveDialog, pathText } from '../workflow/folders';
 import { DescriptionField, DetailsDialog } from '../workflow/DetailsDialog';
 import { RunLog } from '../workflow/RunLog';
 import { exportWorkflows, ImportResult, importFiles, type Imported } from '../workflow/transfer';
 import { savesDone } from './WorkflowEditor';
 
 const pageSize = 20;
+
+// workflowFolders are the folders of workflows, for folders.tsx.
+const workflowFolders: FolderApi = {
+  top: 'All workflows',
+  create: async (name, parentId) => (await workflows.createFolder({ name, parentId })).folder!,
+  update: async (id, name, parentId) => (await workflows.updateFolder({ id, name, parentId })).folder!,
+};
 
 // WorkflowList is the Workflow page. Its Workflows tab lists the tower's
 // workflows (WorkflowService, in its database) a page at a time, searches
@@ -53,7 +65,7 @@ const pageSize = 20;
 // workflow opens in its editor, /workflow/<id>. Its Logs tab (?tab=logs,
 // RunLog) watches the runs of the active workflows as they come.
 //
-// Workflows are in folders (folders.tsx; the user, 2026-10-27): the tab
+// Workflows are in folders (../folders.tsx; the user, 2026-10-27): the tab
 // shows one folder (?folder=<id>; none is the top), its folders first, with
 // a breadcrumb back up. New workflow and New folder make them there; Move
 // to... (a row's menu) or dragging a workflow onto a folder, or onto the
@@ -151,7 +163,7 @@ export function WorkflowList() {
 
   const open = (id: number) => navigate(`/workflow/${id}`);
   const inside = q || page > 1 ? [] : (folders ?? []).filter((f) => f.parentId === folder);
-  const folderName = (id: number) => (id ? (folderPath(folders ?? [], id).at(-1)?.name ?? 'a folder') : 'All workflows');
+  const folderName = (id: number) => (id ? (folderPath(folders ?? [], id).at(-1)?.name ?? 'a folder') : workflowFolders.top);
 
   const switchActive = async (w: WorkflowSummary, on: boolean) => {
     try {
@@ -272,10 +284,11 @@ export function WorkflowList() {
             </HStack>
             {!q && folders && (
               <FolderCrumbs
+                api={workflowFolders}
                 folders={folders}
                 folder={folder}
                 onOpen={openFolder}
-                onDropWorkflow={(id, to) => void moveWorkflow(id, to, nameOf(id))}
+                onDrop={(id, to) => void moveWorkflow(id, to, nameOf(id))}
               />
             )}
             {error ? (
@@ -308,8 +321,9 @@ export function WorkflowList() {
                         <FolderRow
                           key={`f${f.id}`}
                           folder={f}
+                          counts={folderCounts(f.workflowCount, 'workflow', 'workflows', f.folderCount)}
                           onOpen={() => openFolder(f.id)}
-                          onDropWorkflow={(id) => void moveWorkflow(id, f.id, nameOf(id))}
+                          onDrop={(id) => void moveWorkflow(id, f.id, nameOf(id))}
                           onRename={() => setFolderEdit(f)}
                           onMove={() => setFolderMove(f)}
                           onDelete={() => setFolderDelete(f)}
@@ -320,11 +334,7 @@ export function WorkflowList() {
                           key={w.id}
                           cursor="pointer"
                           onClick={() => open(w.id)}
-                          draggable
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData(dragType, String(w.id));
-                            e.dataTransfer.effectAllowed = 'move';
-                          }}
+                          {...draggable(w.id)}
                         >
                           {/* A control's cell: a click in it does not open the workflow. */}
                           <Table.Cell onClick={(e) => e.stopPropagation()}>
@@ -466,6 +476,7 @@ export function WorkflowList() {
       )}
       {moving && folders && (
         <MoveDialog
+          api={workflowFolders}
           name={moving.name}
           folders={folders}
           from={moving.folderId}
@@ -490,6 +501,7 @@ export function WorkflowList() {
       )}
       {folderEdit && (
         <FolderDialog
+          api={workflowFolders}
           folder={folderEdit === 'new' ? undefined : folderEdit}
           parent={folder}
           onClose={() => setFolderEdit(undefined)}
@@ -501,13 +513,14 @@ export function WorkflowList() {
       )}
       {folderMove && folders && (
         <MoveDialog
+          api={workflowFolders}
           name={`folder ${folderMove.name}`}
           folders={folders}
           from={folderMove.parentId}
           folder={folderMove}
           onClose={() => setFolderMove(undefined)}
           onMove={async (to) => {
-            await workflows.updateFolder({ id: folderMove.id, name: folderMove.name, parentId: to });
+            await workflowFolders.update(folderMove.id, folderMove.name, to);
             toast(`Moved folder ${folderMove.name} to ${folderName(to)}`);
             changed();
           }}
@@ -532,95 +545,6 @@ export function WorkflowList() {
         </FormDialog>
       )}
     </Stack>
-  );
-}
-
-// FolderRow is a folder in the list: a click opens it, and a workflow
-// dragged onto it moves there.
-function FolderRow({
-  folder,
-  onOpen,
-  onDropWorkflow,
-  onRename,
-  onMove,
-  onDelete,
-}: {
-  folder: Folder;
-  onOpen: () => void;
-  onDropWorkflow: (workflowId: number) => void;
-  onRename: () => void;
-  onMove: () => void;
-  onDelete: () => void;
-}) {
-  const [over, setOver] = useState(false);
-  const counts = [
-    `${folder.workflowCount} ${folder.workflowCount === 1 ? 'workflow' : 'workflows'}`,
-    folder.folderCount > 0 && `${folder.folderCount} ${folder.folderCount === 1 ? 'folder' : 'folders'}`,
-  ]
-    .filter(Boolean)
-    .join(', ');
-  return (
-    <Table.Row
-      cursor="pointer"
-      onClick={onOpen}
-      bg={over ? 'bg.emphasized' : undefined}
-      {...dropTarget(onDropWorkflow, setOver)}
-    >
-      <Table.Cell color="fg.muted">
-        <FolderIcon size="18" />
-      </Table.Cell>
-      <Table.Cell fontWeight="semibold">{folder.name}</Table.Cell>
-      <Table.Cell textAlign="end" color="fg.muted" whiteSpace="nowrap">
-        {counts}
-      </Table.Cell>
-      <Table.Cell />
-      <Table.Cell textAlign="end" py="0" onClick={(e) => e.stopPropagation()}>
-        <RowMenu name={folder.name} items={{ rename: onRename, move: onMove, delete: onDelete }} />
-      </Table.Cell>
-    </Table.Row>
-  );
-}
-
-// RowMenu is a row's actions, behind the three dots at the end of it: those
-// given of Rename, Move to..., Export and Delete.
-function RowMenu({ name, items }: { name: string; items: Partial<Record<'rename' | 'move' | 'export' | 'delete', () => void>> }) {
-  return (
-    <Menu.Root positioning={{ placement: 'bottom-end' }} onSelect={(e) => items[e.value as keyof typeof items]?.()}>
-      <Menu.Trigger asChild>
-        <IconButton aria-label={`Actions for ${name}`} title="Actions" size="xs" variant="ghost" color="fg.muted">
-          <EllipsisVerticalIcon />
-        </IconButton>
-      </Menu.Trigger>
-      <Portal>
-        <Menu.Positioner>
-          <Menu.Content minW="36">
-            {items.rename && (
-              <Menu.Item value="rename">
-                <PencilIcon />
-                {items.export ? 'Settings' : 'Rename'}
-              </Menu.Item>
-            )}
-            {items.move && (
-              <Menu.Item value="move">
-                <FolderInputIcon />
-                Move to...
-              </Menu.Item>
-            )}
-            {items.export && (
-              <Menu.Item value="export">
-                <DownloadIcon />
-                Export
-              </Menu.Item>
-            )}
-            <Menu.Separator />
-            <Menu.Item value="delete" color="fg.error" _hover={{ bg: 'bg.error', color: 'fg.error' }}>
-              <Trash2Icon />
-              Delete
-            </Menu.Item>
-          </Menu.Content>
-        </Menu.Positioner>
-      </Portal>
-    </Menu.Root>
   );
 }
 

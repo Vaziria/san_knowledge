@@ -46,9 +46,10 @@ internal/kb        domain layer on goraphdb: schema.go, store.go, markdown.go (p
 internal/ownview   Knowledge UI server: JSON API + the built UI in dist/ (go:embed)
 ui/                Knowledge UI source: React + TypeScript + Chakra UI v3 + cytoscape, built by Vite
 internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio), no SDK
+graph              public face of internal/kb for other modules (the tower's Knowledge page)
 ```
 
-**Everything goes through `internal/kb`.** The CLI, the UI API and the MCP tools are thin adapters over `kb.Store`. Schema rules live there, not in the adapters. The goraphdb `*DB` is only used directly in `kb` and for raw `query`.
+**Everything goes through `internal/kb`.** The CLI, the UI API and the MCP tools are thin adapters over `kb.Store`. Schema rules live there, not in the adapters. The goraphdb `*DB` is only used directly in `kb` and for raw `query`. Other modules cannot import `internal/`, so the tower (`golang/apps/san_tower`, `replace san_knowledge` in its go.mod) uses `graph`: type aliases of kb's, and `Init`/`With`/`RunAI` on a folder whose graph is `<folder>/knowledge_data` (`Init` writes a config tracking `.` unless one is there).
 
 **Schema (spec "# Knowledge").**
 - `node_type` property: `domain`, `doc` or `doc_section`.
@@ -82,7 +83,7 @@ internal/mcpserver hand-written MCP (JSON-RPC 2.0 over newline-delimited stdio),
 
 **AI step (`kb.RunAI`, `ai.go`).**
 - One `claude -p` call per doc that has pending nodes or no domain. It uses the user's Claude Code login, no API key.
-- Flags: `--json-schema` for structured output, `--tools ""`, `--strict-mcp-config` (so it can't call knowledge mcp back), `--no-session-persistence`. The working dir is the temp dir, so project CLAUDE.md and hooks stay out. Default model `sonnet` (`--model` to change). `sync --redo-ai` (`kb.RedoAISummaries`) flags every AI-written summary as pending so it is rewritten, e.g. after changing the model; human and frontmatter summaries are untouched.
+- Flags: `--json-schema` for structured output, `--tools ""`, `--strict-mcp-config` (so it can't call knowledge mcp back), `--no-session-persistence`. The working dir is the temp dir, so project CLAUDE.md and hooks stay out. Default model `sonnet` (`--model` to change). `ClaudeCLI.SystemPrompt` replaces the marketing-research prompt (the tower's knowledge is about anything). `sync --redo-ai` (`kb.RedoAISummaries`) flags every AI-written summary as pending so it is rewritten, e.g. after changing the model; human and frontmatter summaries are untouched.
 - The DB is opened only to build requests and to apply results, never during the call, so view/mcp/CLI keep working.
 - `IsHumanAuthor`: summaries written by anyone other than `sync`/`ai` (e.g. `user`, `frontmatter`) are never overwritten.
 - A failed doc stays pending and is retried on the next sync.

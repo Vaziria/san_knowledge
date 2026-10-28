@@ -7,6 +7,7 @@ import { BrokerService } from './gen/san/tower/v1/broker_pb';
 import { BrowserRemoteService } from './gen/san/tower/v1/browser_remote_pb';
 import { ChatService } from './gen/san/tower/v1/chat_pb';
 import { ConnectionService } from './gen/san/tower/v1/connection_pb';
+import { KnowledgeService } from './gen/san/tower/v1/knowledge_pb';
 import { StorageService } from './gen/san/tower/v1/storage_pb';
 import { TowerService } from './gen/san/tower/v1/tower_pb';
 import { WorkflowService } from './gen/san/tower/v1/workflow_pb';
@@ -42,6 +43,10 @@ export const storages = createClient(StorageService, transport);
 
 // chats are the Chat page's chats with workflows (their Tower Chat steps).
 export const chats = createClient(ChatService, transport);
+
+// knowledge is the Knowledge page's knowledge, each with its storage, and
+// their folders.
+export const knowledge = createClient(KnowledgeService, transport);
 
 // errorText is an error as a sentence: the server's own message, without
 // Connect's "[code]" prefix.

@@ -28,15 +28,15 @@ const (
 	workflowVersion = 1
 )
 
-// ref is a setting of a kind of step that picks a connection of a type, or
-// a storage.
+// ref is a setting of a kind of step that picks a connection of a type, a
+// storage or a knowledge.
 type ref struct {
-	setting, connType string
-	storage           bool
+	setting, connType  string
+	storage, knowledge bool
 }
 
-// stepRefs are each kind of step's settings that pick a connection or a
-// storage, as the kinds declare them.
+// stepRefs are each kind of step's settings that pick a connection, a
+// storage or a knowledge, as the kinds declare them.
 func stepRefs() map[string][]ref {
 	m := make(map[string][]ref)
 	for _, k := range engine.Kinds() {
@@ -46,6 +46,8 @@ func stepRefs() map[string][]ref {
 				m[k.GetKind()] = append(m[k.GetKind()], ref{setting: st.GetName(), connType: st.GetConnectionType()})
 			case st.GetStorage():
 				m[k.GetKind()] = append(m[k.GetKind()], ref{setting: st.GetName(), storage: true})
+			case st.GetKnowledge():
+				m[k.GetKind()] = append(m[k.GetKind()], ref{setting: st.GetName(), knowledge: true})
 			}
 		}
 	}
@@ -75,6 +77,7 @@ func (s *Server) ExportWorkflows(_ context.Context, req *connect.Request[v1.Expo
 	f := &v1.WorkflowFile{
 		Format: workflowFormat, Version: workflowVersion, ExportedAt: timestamppb.Now(), Tower: s.version,
 		Connections: make(map[string]*v1.ExportedRef), Storages: make(map[string]*v1.ExportedRef),
+		Knowledge: make(map[string]*v1.ExportedRef),
 	}
 	refs := stepRefs()
 	for _, w := range list {
@@ -93,7 +96,11 @@ func (s *Server) ExportWorkflows(_ context.Context, req *connect.Request[v1.Expo
 					if sto, err := s.store.GetStorage(uint32(n)); err == nil {
 						f.Storages[id] = &v1.ExportedRef{Name: sto.Name}
 					}
-				case !r.storage && f.Connections[id] == nil:
+				case r.knowledge && f.Knowledge[id] == nil:
+					if k, err := s.store.GetKnowledge(uint32(n)); err == nil {
+						f.Knowledge[id] = &v1.ExportedRef{Name: k.Name}
+					}
+				case !r.storage && !r.knowledge && f.Connections[id] == nil:
 					if c, err := s.store.GetConnection(uint32(n)); err == nil {
 						f.Connections[id] = &v1.ExportedRef{Name: c.Name, Type: c.Type}
 					}
@@ -142,6 +149,10 @@ func (s *Server) ImportWorkflows(_ context.Context, req *connect.Request[v1.Impo
 	if err != nil {
 		return nil, storeError(err)
 	}
+	knows, err := s.matchKnowledge(f.GetKnowledge(), &notes)
+	if err != nil {
+		return nil, storeError(err)
+	}
 	refs, known := stepRefs(), make(map[string]bool)
 	for _, k := range engine.Kinds() {
 		known[k.GetKind()] = true
@@ -166,8 +177,11 @@ func (s *Server) ImportWorkflows(_ context.Context, req *connect.Request[v1.Impo
 					continue
 				}
 				m := conns
-				if r.storage {
+				switch {
+				case r.storage:
 					m = stores
+				case r.knowledge:
+					m = knows
 				}
 				if id := m[old]; id != "" {
 					st.Values[r.setting] = id
@@ -265,6 +279,31 @@ func (s *Server) matchStorages(refs map[string]*v1.ExportedRef, notes *[]string)
 		}
 		if m[old] == "" {
 			*notes = append(*notes, fmt.Sprintf("storage %s is not here: make it on the Storage page, or pick one in its steps", r.GetName()))
+		}
+	}
+	return m, nil
+}
+
+// matchKnowledge finds this tower's knowledge of the same name (case aside)
+// for each one of a file; with none, the user picks one.
+func (s *Server) matchKnowledge(refs map[string]*v1.ExportedRef, notes *[]string) (map[string]string, error) {
+	m := make(map[string]string, len(refs))
+	if len(refs) == 0 {
+		return m, nil
+	}
+	list, err := s.store.ListKnowledge(store.AnyFolder)
+	if err != nil {
+		return nil, err
+	}
+	for old, r := range refs {
+		m[old] = ""
+		for _, k := range list {
+			if strings.EqualFold(k.Name, r.GetName()) {
+				m[old] = strconv.FormatUint(uint64(k.ID), 10)
+			}
+		}
+		if m[old] == "" {
+			*notes = append(*notes, fmt.Sprintf("knowledge %s is not here: make it on the Knowledge page, or pick one in its steps", r.GetName()))
 		}
 	}
 	return m, nil

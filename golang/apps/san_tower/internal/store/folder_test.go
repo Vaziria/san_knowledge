@@ -79,8 +79,8 @@ func TestFolders(t *testing.T) {
 		t.Fatalf("folders: %+v, %v", folders, err)
 	}
 	for _, f := range folders {
-		if f.ID == trading.ID && (f.Workflows != 1 || f.Folders != 1) {
-			t.Errorf("Trading holds %d workflows and %d folders", f.Workflows, f.Folders)
+		if f.ID == trading.ID && (f.Items != 1 || f.Folders != 1) {
+			t.Errorf("Trading holds %d workflows and %d folders", f.Items, f.Folders)
 		}
 	}
 

@@ -30,6 +30,10 @@ message Storage {
   string absolute_path = 4;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
+  // knowledge is the knowledge (KnowledgeService) whose files are in it, by
+  // name; empty for a storage of its own. The tower sets it; what is sent
+  // is ignored.
+  string knowledge = 7;
 }
 
 message ListStoragesRequest {}

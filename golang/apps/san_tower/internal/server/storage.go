@@ -54,6 +54,7 @@ func storageToProto(st store.Storage) *v1.Storage {
 		Name:         st.Name,
 		Path:         st.Path,
 		AbsolutePath: st.Abs,
+		Knowledge:    st.Knowledge,
 		CreatedAt:    timestamppb.New(st.CreatedAt),
 		UpdatedAt:    timestamppb.New(st.UpdatedAt),
 	}

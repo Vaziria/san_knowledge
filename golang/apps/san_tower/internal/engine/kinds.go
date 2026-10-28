@@ -30,6 +30,10 @@ const (
 	Event  = "event"
 	Object = "object" // a google.protobuf.Value
 	Text   = "text"   // a google.protobuf.StringValue
+	// Knowledge is a knowledge of the Knowledge page, a StringValue of its
+	// id: Knowledge Base's output, which the knowledge steps look in
+	// (knowledge.go).
+	Knowledge = "knowledge"
 )
 
 // TopicEvent is the kind of the step that starts a run when an event comes
@@ -69,8 +73,9 @@ func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ
 // the core ones, Log Event (logevent.go), Tower Restart (towerrestart.go),
 // the datetime ones (datetime.go), the san_remote ones (social.go, then
 // sites.go), then the Tower Chat ones (towerchat.go), the Telegram ones
-// (telegram.go) and the WhatsApp ones (whatsapp.go).
-var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds)
+// (telegram.go), the WhatsApp ones (whatsapp.go) and the knowledge ones
+// (knowledge.go).
+var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, knowledgeKinds)
 
 var coreKinds = []*kind{
 	{

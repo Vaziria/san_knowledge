@@ -68,6 +68,9 @@ type ClaudeCLI struct {
 	Command string        // default "claude"
 	Model   string        // default "sonnet"
 	Timeout time.Duration // per document, default 4 minutes
+	// SystemPrompt replaces the default, which is about this project's
+	// marketing research: the tower's knowledge is about anything.
+	SystemPrompt string
 }
 
 const annotateSystemPrompt = `You annotate markdown documents for a knowledge graph used by a marketing research team (Indonesian market).
@@ -95,7 +98,7 @@ var annotateSchema = `{
 }`
 
 func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*AnnotateResult, error) {
-	cmdName, model, timeout := c.Command, c.Model, c.Timeout
+	cmdName, model, timeout, system := c.Command, c.Model, c.Timeout, c.SystemPrompt
 	if cmdName == "" {
 		cmdName = "claude"
 	}
@@ -105,6 +108,9 @@ func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*Annotat
 	if timeout == 0 {
 		timeout = 4 * time.Minute
 	}
+	if system == "" {
+		system = annotateSystemPrompt
+	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
@@ -113,7 +119,7 @@ func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*Annotat
 		"--output-format", "json",
 		"--json-schema", annotateSchema,
 		"--model", model,
-		"--system-prompt", annotateSystemPrompt,
+		"--system-prompt", system,
 		"--tools", "",
 		"--strict-mcp-config", // no MCP servers: it must not call knowledge mcp back
 		"--no-session-persistence",

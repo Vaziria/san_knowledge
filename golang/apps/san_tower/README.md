@@ -13,6 +13,8 @@ http://127.0.0.1:7477:
   (see Storage below);
 - ChatService: the tower's own chat, chats with workflows that have a Tower
   Chat step (see Chat below);
+- KnowledgeService: the knowledge, each with a storage of its own, in
+  folders (see Knowledge below);
 - the San Message broker ([golang/packages/san_message](../../packages/san_message/README.md))
   with its MessageService, so apps publish and subscribe at the tower's
   address: embedded in the tower, or a separate `san_message server` at a
@@ -20,9 +22,9 @@ http://127.0.0.1:7477:
   Message broker below);
 - the tower's UI ([typescripts/san_tower_frontend](../../../typescripts/san_tower_frontend),
   built into the binary). Home shows the tower's status; Chat, after it,
-  the chats with workflows; Message Broker
-  shows the broker's status and manages its topics and subscribers; Workflow
-  lists, creates, edits, runs, switches on and deletes the workflows;
+  the chats with workflows; Knowledge, after Chat, lists, creates, moves
+  and deletes the knowledge and their folders; Message Broker shows the broker's status and manages its topics and subscribers;
+  Workflow lists, creates, edits, runs, switches on and deletes the workflows;
   Connections manages the connections; Storage the storages; Browser Remote Server switches on
   the San Remote server inside the tower (see below); Settings holds the
   tower's settings
@@ -31,8 +33,10 @@ http://127.0.0.1:7477:
 
 What else the tower watches is still to be decided.
 
-Module `github.com/wargasipil/san_tower`, Go 1.26. It uses san_message, and
-san_remote's generated clients, from this repository (`replace` in go.mod).
+Module `github.com/wargasipil/san_tower`, Go 1.26. It uses san_message,
+san_remote's generated clients, and san_knowledge's `graph` package (the
+knowledge tool's store, sync and AI step), from this repository (`replace`
+in go.mod).
 
 ```powershell
 pwsh build.ps1                          # UI build + vet + test + bin/san_tower.exe, bin/san_tower, bin/san_tower-linux-arm64
@@ -159,8 +163,8 @@ Messengers › Telegram); the UI asks for them
 Logic, Data, Storage (the user, 2026-10-27: Storage, File Path, Read File
 and Glob, moved out of Data), Datetime, Action, Messengers (the user,
 2026-10-27: Telegram's and WhatsApp's steps, their triggers too, each
-messenger a sub-menu), Social, Finance (the user, 2026-10-27: Binance) and
-AI; the UI gives each a colour and an
+messenger a sub-menu), Social, Finance (the user, 2026-10-27: Binance),
+Knowledge (the user, 2026-10-28) and AI; the UI gives each a colour and an
 icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
 a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart, Tower Chat and
@@ -257,6 +261,27 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   Datetime in any zone, a Date, a time alone for today). An empty one gives
   the other, so a Last Scheduled Post that found nothing leaves Now; a tie
   gives A. Anything else, such as a number and a date, fails the step.
+- Knowledge Base, Knowledge Search and Knowledge Explain (Knowledge;
+  `engine/knowledge.go`; the user, 2026-10-28) look in a knowledge of the
+  Knowledge page (Knowledge below) with the knowledge tool's own search and
+  explain. All three are pure. Knowledge Base's Knowledge setting picks one
+  (its value the knowledge's id, carried by name in an export, as a
+  storage is); its output is a socket of a type of its own, `knowledge`
+  (the id), which only the other two take. With Sync Yes it reads the
+  knowledge's files again first, so a file added since is found. Knowledge
+  Search gives the nodes that hold every word of Query, best first, up to
+  Limit (10); Knowledge Explain the nodes that match any word of Question
+  (English and Indonesian common words aside), up to Limit (5), each with
+  its domains and the nodes Depth (1, at most 3) links away. Both have AI
+  Format (the user's ask): Yes makes Text a context block for an AI's
+  prompt (headed with the knowledge's name, each node with its kind, key,
+  file:line to cite, domains, keywords, and its summary, or the start of
+  its text while it has none; Explain's is the knowledge tool's own
+  explain block), No a list for a person (title, file:line, summary;
+  Explain's with domains and "See also"). Explain's starts at Yes, Search's
+  at No. Results (Search) and Matches (Explain) are the same nodes as an
+  object list, and Count how many matched. They read the graph as last
+  synced: the knowledge's page, its Sync, or Knowledge Base's Sync.
 - Storage (Storage), UUID and MD5 Hash (Data; the user's ask, 2026-10-25) are pure
   steps: they run when a step takes one of their outputs, once per run.
   Storage gives the storage its Storage setting picks (Storage below): Path
@@ -1196,7 +1221,57 @@ a `\` typed is saved as `/`, one saved earlier is given out with `/`, and the
 absolute path and the data folder come with `/` (Windows takes both). The
 tower does not create, check or delete the folder: deleting a
 storage leaves it as it is (Vidara Download makes the folders it saves in). A step picks a storage in a setting with
-`storage` set; its value is the storage's id.
+`storage` set; its value is the storage's id. A knowledge's storage is
+deleted only with the knowledge (Knowledge below); a storage comes with the
+name of the knowledge it holds (`knowledge`, empty for one of its own),
+which the Storage page shows as a tag.
+
+## Knowledge
+
+A knowledge (the user, 2026-10-28; `store/knowledge.go`,
+`server/knowledge.go`, KnowledgeService) is a knowledge graph of the
+markdown files in a folder, adopted from the knowledge tool
+([golang/packages/san_knowledge](../../packages/san_knowledge), whose
+`graph` package the tower uses: the same store, sync and AI step), on the
+Knowledge page, after Chat. CreateKnowledge takes a name and a path, and
+makes a storage of the same name at that path (absolute, or relative to the
+data folder, as any storage), the folder there if it is not there, and the
+graph's `knowledge_data` in it with a `config.json` that tracks every
+`.md` file in the folder (one already there, as in a project the knowledge
+tool keeps, stays as it is); a folder that cannot be made leaves nothing
+behind. Names are
+unique, ignoring case, among the knowledge and among the storages, since
+the storage takes the knowledge's name. DeleteKnowledge deletes the
+knowledge and its storage and leaves the folder and its files;
+DeleteStorage refuses a knowledge's storage, saying to delete the
+knowledge. Knowledge are in folders as workflows are (Folders under
+Workflows), in a tree of their own (`knowledge_folders`; ListKnowledgeFolders,
+CreateKnowledgeFolder, UpdateKnowledgeFolder, DeleteKnowledgeFolder,
+MoveKnowledge; ListKnowledge lists one folder's).
+
+The graph is the knowledge tool's: every `.md` file is a doc node (its
+first `# ` heading the title), every other heading a section under its
+parent, a markdown link to another file or heading a reference, and
+frontmatter `domain:`, `keyword:` and `summary:` are applied as written.
+SyncKnowledge brings it in line with the files (no AI; a changed section
+keeps its summary and needs a new one), GetKnowledgeGraph gives every node
+and link, and GetKnowledgeNode one node with its links and its text from
+the file (6000 characters at most). SummarizeKnowledge runs the AI step:
+`claude -p` on this computer's Claude Code login, one call per doc with a
+node waiting or without a domain, three at a time, with a system prompt
+for knowledge about anything (the knowledge tool's own is about its
+marketing research); it answers once all are done, a doc that failed is
+tried again next time, a summary a person or frontmatter wrote stays, and
+one run per knowledge at a time. The graph is opened per call (bbolt lets
+one process at a time; a call that meets it busy says to try again), so
+the knowledge tool (`knowledge --data <folder>/knowledge_data`) can use the
+same graph between calls.
+
+A sample (2026-10-28): the knowledge General (`D:/tmp/general`) holds 8
+docs explaining San Tower (overview, workflows, chat, connections and
+storage, message broker, browser remote, knowledge, deploying), with
+frontmatter domains and summaries and links between them; its sections
+wait for Summarize.
 
 ## Data
 
@@ -1306,9 +1381,11 @@ second fails to listen before it opens the broker.
   (ConnectionService: list, create, update, delete, test; ConnectionSettings
   per type: San Remote, Telegram Bot, WhatsApp, Binance), `storage.proto`
   (StorageService: list, with the tower's data folder, create, update,
-  delete; a storage's absolute path) and `chat.proto` (ChatService: the
+  delete; a storage's absolute path), `chat.proto` (ChatService: the
   chats, the workflows they can talk with, their messages and how the runs
-  are doing, sending). `buf.gen.yaml` makes their Go
+  are doing, sending) and `knowledge.proto` (KnowledgeService: list,
+  create with its storage, delete, move, the knowledge's folders, and a
+  knowledge's graph: sync, its nodes and links, a node, summarize). `buf.gen.yaml` makes their Go
   code (`gen/`) and the UI's TS client. `buf.gen.san_message.yaml` makes
   the UI's TS client for san_message's proto; the Go side uses san_message's
   own generated code.
@@ -1373,7 +1450,7 @@ second fails to listen before it opens the broker.
   WorkflowService (`workflow.go` the database's half, `engine.go` the
   engine's), ConnectionService (`connection.go`), BrowserRemoteService
   (`browser_remote.go`), StorageService (`storage.go`), ChatService
-  (`chat.go`), MessageService and the UI
+  (`chat.go`), KnowledgeService (`knowledge.go`), MessageService and the UI
   behind `Guard`, which only accepts a loopback Host and loopback pages.
 - `internal/engine`: `kinds.go` the kinds of step and how each runs,
   `actions.go` HTTP Request and Publish to Topic, `social.go` the San Remote
@@ -1422,7 +1499,10 @@ second fails to listen before it opens the broker.
   @username, date, and the message's JSON. A chat of the Chat page
   (`towerchat.go`) is a row (name, workflow), and so is each of its
   messages (chat, from the user or the workflow, text, Markdown or not, the
-  runs, time). Errors wrap `ErrNotFound`,
+  runs, time). A knowledge (`knowledge.go`) is a row: name, its storage and
+  its folder. Folders (`folder.go`) are two trees, the workflows'
+  (`folders`) and the knowledge's (`knowledge_folders`), with the same
+  code (`folderTree`). Errors wrap `ErrNotFound`,
   `ErrInvalid` or `ErrExists`, which the server turns into Connect codes.
 - `internal/web`: the embedded UI. `dist/` is the Vite build (git-ignored but
   for `.gitkeep`). Paths without a file extension get `index.html`, so the

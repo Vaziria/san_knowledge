@@ -1,5 +1,6 @@
 import {
   AppWindowIcon,
+  BrainIcon,
   CableIcon,
   HardDriveIcon,
   HouseIcon,
@@ -14,6 +15,8 @@ import { BrowserRemoteServer } from './pages/BrowserRemoteServer';
 import { Chat } from './pages/Chat';
 import { Connections } from './pages/Connections';
 import { Home } from './pages/Home';
+import { Knowledge } from './pages/Knowledge';
+import { KnowledgeGraph } from './pages/KnowledgeGraph';
 import { MessageBroker } from './pages/MessageBroker';
 import { NotFound } from './pages/NotFound';
 import { Settings } from './pages/Settings';
@@ -28,6 +31,8 @@ const pages: Page[] = [
   { path: '/', label: 'Home', icon: HouseIcon, element: <Home /> },
   // After Home (the user, 2026-10-28): chats with workflows.
   { path: '/chat', label: 'Chat', icon: MessageSquareTextIcon, element: <Chat /> },
+  // After Chat, empty for now (the user, 2026-10-28).
+  { path: '/knowledge', label: 'Knowledge', icon: BrainIcon, element: <Knowledge /> },
   { path: '/workflow', label: 'Workflow', icon: WorkflowIcon, element: <WorkflowList /> },
   { path: '/message-broker', label: 'Message Broker', icon: MessagesSquareIcon, element: <MessageBroker /> },
   { path: '/connections', label: 'Connections', icon: CableIcon, element: <Connections /> },
@@ -38,7 +43,10 @@ const pages: Page[] = [
 
 // subpages are pages under a top-level page, which the nav marks while they
 // are open.
-const subpages = [{ path: '/workflow/:id', element: <WorkflowEditor /> }];
+const subpages = [
+  { path: '/workflow/:id', element: <WorkflowEditor /> },
+  { path: '/knowledge/:id', element: <KnowledgeGraph /> },
+];
 
 export const router = createBrowserRouter([
   {

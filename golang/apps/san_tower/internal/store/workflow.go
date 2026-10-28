@@ -98,7 +98,7 @@ func (s *Store) CreateWorkflowIn(name string, folder uint32) (Workflow, error) {
 		return w, err
 	}
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := folderExists(tx, folder); err != nil {
+		if err := workflowFolders.exists(tx, folder); err != nil {
 			return err
 		}
 		if err := nameFree(tx, w.Name, 0); err != nil {

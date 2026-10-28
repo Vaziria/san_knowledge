@@ -1,7 +1,7 @@
 // Package store is the tower's database: SQLite in <data>/tower.db, through
 // GORM. The driver (glebarez/sqlite, on modernc.org/sqlite) is pure Go, so
-// the tower still builds without cgo. It keeps the workflows, their runs, and
-// the connections and storages their steps use.
+// the tower still builds without cgo. It keeps the workflows, their runs, the
+// connections and storages their steps use, and the knowledge.
 package store
 
 import (
@@ -72,7 +72,7 @@ func Open(dir string, log *slog.Logger) (*Store, error) {
 	// One connection: SQLite writes one at a time anyway, and this way a
 	// transaction never meets "database is locked" from the tower itself.
 	sqlDB.SetMaxOpenConns(1)
-	if err := db.AutoMigrate(&Workflow{}, &Folder{}, &Run{}, &Connection{}, &TelegramMessage{}, &Storage{}, &ChatSession{}, &TowerChat{}, &TowerChatMessage{}); err != nil {
+	if err := db.AutoMigrate(&Workflow{}, &Folder{}, &Run{}, &Connection{}, &TelegramMessage{}, &Storage{}, &ChatSession{}, &TowerChat{}, &TowerChatMessage{}, &Knowledge{}, &KnowledgeFolder{}); err != nil {
 		sqlDB.Close()
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}

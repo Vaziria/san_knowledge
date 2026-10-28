@@ -1,4 +1,4 @@
 {
   "track": ["."],
-  "exclude": ["project/sell_to_agensi"]
+  "exclude": ["project/sell_to_agensi", "golang/apps/san_tower/data"]
 }

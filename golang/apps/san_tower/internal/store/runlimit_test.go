@@ -133,3 +133,26 @@ func TestSummarizeOld(t *testing.T) {
 		t.Errorf("the summary was not stored: %+v, %v", stored, err)
 	}
 }
+
+// A run whose steps logged bytes that are not UTF-8 (a Windows program's
+// output in its console code page) is recorded, those bytes U+FFFD; before,
+// protojson refused it and the run stayed running (2026-10-28).
+func TestFinishRunNotUTF8(t *testing.T) {
+	s := open(t)
+	w, err := s.CreateWorkflow("cp1252")
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := s.StartRun(w.ID, "manual")
+	if err != nil {
+		t.Fatal(err)
+	}
+	steps := []*v1.StepRun{{StepId: "s", Logs: []string{"caf\xe9 ok"}, Error: "bad \xff"}}
+	if _, err := s.FinishRun(r, v1.RunStatus_RUN_STATUS_FAILED, "failed: \xfe", steps); err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.GetRun(r.ID)
+	if err != nil || got.Status != v1.RunStatus_RUN_STATUS_FAILED || got.Steps.GetSteps()[0].Logs[0] != "caf� ok" || got.Error != "failed: �" {
+		t.Errorf("%+v, %v", got, err)
+	}
+}

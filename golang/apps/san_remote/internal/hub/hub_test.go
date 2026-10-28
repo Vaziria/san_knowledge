@@ -49,7 +49,8 @@ func TestBrowserError(t *testing.T) {
 }
 
 func TestPickBrowser(t *testing.T) {
-	_, url := hubtest.Start(t)
+	h, url := hubtest.Start(t)
+	h.AttachWait = 0
 	c := hub.NewClient(url)
 	ctx := context.Background()
 	if _, err := c.ListTabs(ctx, connect.NewRequest(&v1.ListTabsRequest{})); connect.CodeOf(err) != connect.CodeUnavailable {
@@ -68,6 +69,30 @@ func TestPickBrowser(t *testing.T) {
 	}
 	if _, err := c.ListTabs(ctx, connect.NewRequest(&v1.ListTabsRequest{Browser: "firefox"})); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Errorf("unknown name: %v", err)
+	}
+}
+
+// With no browser attached, a command waits for one: a browser coming back
+// after the server restarted gets it; none fails it after AttachWait.
+func TestWaitForBrowser(t *testing.T) {
+	h, url := hubtest.Start(t)
+	h.AttachWait = 5 * time.Second
+	c := hub.NewClient(url)
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		hubtest.Attach(t, url, "b1", "Chrome", nil)
+	}()
+	start := time.Now()
+	if _, err := c.ListTabs(context.Background(), connect.NewRequest(&v1.ListTabsRequest{})); err != nil || time.Since(start) > 4*time.Second {
+		t.Errorf("waited %s: %v", time.Since(start), err)
+	}
+
+	h2, url2 := hubtest.Start(t)
+	h2.AttachWait = 300 * time.Millisecond
+	start = time.Now()
+	_, err := hub.NewClient(url2).ListTabs(context.Background(), connect.NewRequest(&v1.ListTabsRequest{}))
+	if connect.CodeOf(err) != connect.CodeUnavailable || time.Since(start) < 300*time.Millisecond {
+		t.Errorf("none came: %v after %s", err, time.Since(start))
 	}
 }
 

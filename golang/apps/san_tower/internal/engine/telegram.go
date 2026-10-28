@@ -52,10 +52,10 @@ var telegramKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "telegram-send", Title: "Telegram Send", Category: "Messengers", Group: "Telegram",
-			Description: "Sends a message to a Telegram chat, group or channel as a bot: Text, or by Media a photo, video, audio, voice, document or animation from File (a file on this computer, an http(s) link or a Telegram file_id) with Text its caption; formatted or not, maybe as a reply.",
+			Description: "Sends a message to a Telegram chat, group or channel as a bot: Text, or by Media a photo, video, audio, voice, document or animation from File (a file on this computer, an http(s) link or a Telegram file_id) with Text its caption; formatted or not, maybe as a reply. A Text over a message's 4096 characters goes as several messages, split between lines, unless Long Text is Fail; Message is the last one sent.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Message", Object)},
 			Settings: []*v1.Setting{telegramSetting(), {Name: "Format", Options: []string{"Plain", "HTML", "Markdown"}},
-				{Name: "Media", Options: mediaOptions}},
+				{Name: "Media", Options: mediaOptions}, {Name: "Long Text", Options: []string{"Split", "Fail"}}},
 			Inputs: []*v1.Socket{sock("Event", Event), {Name: "Chat", Type: Text, Field: true}, {Name: "Text", Type: Text, Field: true},
 				only("Media!=None", field("File")), {Name: "Reply To", Type: Text, Field: true}},
 		},
@@ -165,15 +165,50 @@ func telegramSend(c *call) error {
 	if !ok {
 		return fmt.Errorf("Format %q: Plain, HTML or Markdown", c.setting("Format"))
 	}
-	m.ParseMode = mode
-	plain := m.Text
-	if c.setting("Format") == "Markdown" {
-		m.Text = cmp.Or(telegram.MarkdownHTML(m.Text), html.EscapeString(m.Text))
-	}
 	if r := strings.TrimSpace(c.text("Reply To")); r != "" {
 		if m.ReplyTo, err = strconv.ParseInt(r, 10, 64); err != nil {
 			return fmt.Errorf("Reply To %q: give the id of the message it answers", r)
 		}
+	}
+	// A text longer than a message may be goes as several, unless Long Text
+	// is Fail (2026-10-28: a web chat's long answer made Telegram refuse
+	// it, "message is too long"; the user then asked for it as a choice). A
+	// caption is not split.
+	parts := []string{m.Text}
+	if m.Media.Type == "" && c.setting("Long Text") != "Fail" {
+		parts = splitText(m.Text, telegramTextMax)
+	}
+	if len(parts) > 1 {
+		c.logf(v1.LogLevel_LOG_LEVEL_INFO, "the text is %d characters, over a message's %d: sent as %d messages", textLen(m.Text), telegramTextMax, len(parts))
+	}
+	var sent json.RawMessage
+	for i, part := range parts {
+		m.Text = part
+		if i > 0 {
+			m.ReplyTo = 0
+		}
+		if sent, err = c.telegramSendOne(cl, m, mode); err != nil {
+			if len(parts) > 1 {
+				err = fmt.Errorf("message %d of %d: %w", i+1, len(parts), err)
+			}
+			return err
+		}
+	}
+	c.outputs["Message"] = payload(sent)
+	c.fire("Done")
+	return nil
+}
+
+// telegramTextMax is the most characters Telegram Send puts in one text
+// message, counted as Telegram counts (textLen): it takes 4096.
+const telegramTextMax = 4000
+
+// telegramSendOne sends m, its Text as Format has it, with parse mode mode.
+func (c *call) telegramSendOne(cl *telegram.Client, m telegram.Send, mode string) (json.RawMessage, error) {
+	m.ParseMode = mode
+	plain := m.Text
+	if c.setting("Format") == "Markdown" {
+		m.Text = cmp.Or(telegram.MarkdownHTML(m.Text), html.EscapeString(m.Text))
 	}
 	// Each new try is a warning line in the run (the user's ask, 2026-10-25).
 	cl.OnRetry = func(try int, wait time.Duration, ipv4 bool, err error) {
@@ -200,12 +235,79 @@ func telegramSend(c *call) error {
 		m.Text, m.ParseMode = plain, ""
 		sent, err = send()
 	}
-	if err != nil {
-		return err
+	return sent, err
+}
+
+// splitText cuts s into parts of at most max characters as Telegram counts
+// them (textLen), whole lines kept together where they fit: a part ends
+// between lines, a line longer than max between words, a word longer than
+// max anywhere.
+func splitText(s string, max int) []string {
+	if textLen(s) <= max {
+		return []string{s}
 	}
-	c.outputs["Message"] = payload(sent)
-	c.fire("Done")
-	return nil
+	var parts []string
+	var cur strings.Builder
+	n := 0 // characters in cur
+	flush := func() {
+		if t := strings.TrimRight(cur.String(), "\n"); strings.TrimSpace(t) != "" {
+			parts = append(parts, t)
+		}
+		cur.Reset()
+		n = 0
+	}
+	add := func(piece, sep string) {
+		if n > 0 && n+textLen(sep)+textLen(piece) > max {
+			flush()
+		}
+		if n > 0 {
+			cur.WriteString(sep)
+			n += textLen(sep)
+		}
+		cur.WriteString(piece)
+		n += textLen(piece)
+	}
+	for _, line := range strings.Split(s, "\n") {
+		if textLen(line) <= max {
+			add(line, "\n")
+			continue
+		}
+		flush()
+		for _, word := range strings.SplitAfter(line, " ") {
+			for word != "" {
+				piece, k := "", 0
+				for _, r := range word {
+					w := textLen(string(r))
+					if k+w > max {
+						break
+					}
+					piece += string(r)
+					k += w
+				}
+				if piece == "" { // max below one character
+					return parts
+				}
+				add(piece, "")
+				word = word[len(piece):]
+			}
+		}
+		flush()
+	}
+	flush()
+	return parts
+}
+
+// textLen is how long Telegram counts s: in UTF-16 code units, so a
+// character past the Basic Multilingual Plane, such as an emoji, is two.
+func textLen(s string) int {
+	n := 0
+	for _, r := range s {
+		n++
+		if r > 0xFFFF {
+			n++
+		}
+	}
+	return n
 }
 
 // The Bot API takes uploads up to 10 MB for a photo, 50 MB for other files.

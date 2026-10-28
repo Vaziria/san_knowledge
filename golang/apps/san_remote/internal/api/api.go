@@ -115,7 +115,8 @@ func (a *API) fail(err error) error {
 	case errors.Is(err, threads.ErrNotSignedIn), errors.Is(err, x.ErrNotSignedIn), errors.Is(err, x.ErrLanguage),
 		errors.Is(err, facebook.ErrNotSignedIn), errors.Is(err, facebook.ErrLanguage), errors.Is(err, vidara.ErrNotSignedIn):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
-	case errors.Is(err, x.ErrNotFound), errors.Is(err, vidara.ErrNoFolder):
+	case errors.Is(err, x.ErrNotFound), errors.Is(err, vidara.ErrNoFolder),
+		errors.Is(err, chatgpt.ErrChatGone), errors.Is(err, gemini.ErrChatGone), errors.Is(err, claude.ErrChatGone):
 		return connect.NewError(connect.CodeNotFound, err)
 	}
 	if code, ok := siteCode(err); ok {

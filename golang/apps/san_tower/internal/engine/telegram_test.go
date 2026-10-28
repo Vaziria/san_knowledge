@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -299,5 +300,62 @@ func TestTelegramSendMarkdown(t *testing.T) {
 	}
 	if len(r.Logs) != 1 || !strings.Contains(r.Logs[0], "Telegram could not read the Markdown") || r.LogLevels[0] != v1.LogLevel_LOG_LEVEL_WARNING {
 		t.Errorf("logs: %q %v", r.Logs, r.LogLevels)
+	}
+}
+
+// A text over a message's length goes as several messages, split between
+// lines, the first only a reply; with Long Text Fail it goes whole, and
+// Telegram may refuse it.
+func TestTelegramSendLongText(t *testing.T) {
+	f := telegramtest.New(t)
+	env := Env{TelegramAPI: f.URL, Connection: func(id uint32) (store.Connection, error) {
+		return store.Connection{ID: id, Name: "Bot", Type: store.TelegramBot, Settings: &v1.ConnectionSettings{
+			Type: &v1.ConnectionSettings_TelegramBot{TelegramBot: &v1.TelegramBotSettings{Token: telegramtest.Token}},
+		}}, nil
+	}}
+	var lines []string
+	for i := range 300 {
+		lines = append(lines, fmt.Sprintf("## Scene %d\nMalin sails away, line %d of the story.", i, i))
+	}
+	text := strings.Join(lines, "\n\n")
+	steps, err := Execute(context.Background(), &v1.Graph{
+		Steps: []*v1.Step{{Id: "go", Kind: "schedule"}, {Id: "out", Kind: "telegram-send", Values: map[string]string{
+			"Connection": "1", "Chat": "42", "Text": text, "Format": "Markdown", "Reply To": "7"}}},
+		Links: []*v1.Link{{Source: "go", SourceSocket: "Event", Target: "out", TargetSocket: "Event"}},
+	}, "go", nil, env)
+	sent := f.Sent()
+	if err != nil || len(sent) < 3 {
+		t.Fatalf("%v, sent %d", err, len(sent))
+	}
+	if !strings.Contains(steps[1].Logs[0], "sent as") {
+		t.Errorf("logs %q", steps[1].Logs)
+	}
+	for i, m := range sent {
+		if _, reply := m["reply_parameters"]; reply != (i == 0) {
+			t.Errorf("message %d reply: %v", i, m)
+		}
+	}
+}
+
+func TestSplitText(t *testing.T) {
+	if got := splitText("short", 10); len(got) != 1 || got[0] != "short" {
+		t.Errorf("short: %q", got)
+	}
+	got := splitText("aaaa\nbbbb\ncccc", 9)
+	if strings.Join(got, "|") != "aaaa\nbbbb|cccc" {
+		t.Errorf("lines: %q", got)
+	}
+	got = splitText("one two three four", 9)
+	if strings.Join(got, "|") != "one two |three |four" {
+		t.Errorf("words: %q", got)
+	}
+	got = splitText(strings.Repeat("x", 25), 10)
+	if len(got) != 3 || got[2] != "xxxxx" {
+		t.Errorf("a long word: %q", got)
+	}
+	for _, p := range splitText(strings.Repeat("😀 ", 3000), 4000) {
+		if textLen(p) > 4000 {
+			t.Errorf("a part of %d", textLen(p))
+		}
 	}
 }

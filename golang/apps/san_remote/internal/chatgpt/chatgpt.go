@@ -20,12 +20,16 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 )
 
 var (
 	// ErrInvalidPrompt is a request the tool cannot send: no prompt, or a
 	// chat link that is not ChatGPT's.
 	ErrInvalidPrompt = errors.New("chatgpt: the prompt is not valid")
+	// ErrChatGone means an ask's chat link did not open a chat: it was
+	// deleted on the site (2026-10-28), or is not this account's.
+	ErrChatGone = errors.New("chatgpt: the chat is not there")
 	// ErrNotSignedIn means the browser has no ChatGPT session.
 	ErrNotSignedIn = errors.New("chatgpt: the browser is not signed in to ChatGPT")
 	// ErrLanguage means ChatGPT's interface is not in English, which the tool
@@ -123,6 +127,32 @@ func (a *Ask) Check() error {
 		}
 	}
 	return nil
+}
+
+// squash is a text without any space, for comparing what may be laid out
+// differently, such as code.
+func squash(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) || r == ' ' {
+			return -1
+		}
+		return r
+	}, s)
+}
+
+// holds says whether the composer's text holds the prompt. A long prompt
+// that looks like code, such as a tower Remote Shell's JSON with a
+// script's output, the composer may lay out as a code block, with its line
+// breaks and a label of its own (2026-10-28: the check waited its 10 s and
+// failed): its characters in order, spaces aside, are what count.
+func holds(composer, prompt string) bool {
+	return words(composer) == words(prompt) || strings.Contains(squash(composer), squash(prompt))
+}
+
+// composerWait is how long the composer may take to hold a prompt: 10 s,
+// and a second more for each 1000 characters, up to a minute.
+func composerWait(prompt string) time.Duration {
+	return min(10*time.Second+time.Duration(len(prompt)/1000)*time.Second, time.Minute)
 }
 
 // words is a text as the composer holds it, for comparing: ChatGPT's editor

@@ -633,7 +633,7 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
     so each later ask, in this run or another, goes on in it. One session
     holds a chat per site, so the same session can go to ChatGPT, Gemini
     and Claude. San Remote opens the chat by its link, as a person opens one
-    they kept; a chat deleted on the site makes the ask fail.
+    they kept. A session's chat deleted on the site (the user, 2026-10-28: "can it refresh when I delete session"; san_remote says NotFound, "the chat is not there") is started again: the ask goes to a new kept chat, the session keeps it, and the step logs a warning; Remote Shell does so for the user's message at the start of a run, the new chat getting the protocol. A chat's link typed in, not a session's, still fails.
   - Remote Shell (AI; the user, 2026-10-27: "Implement
     remote_shell_protocol.md. it to be node"; `engine/remoteshell.go`) is
     the Web Machine Shell Protocol of
@@ -651,13 +651,19 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
     stdout and stderr (each 8000 characters at most, the middle left out)
     go back to the chat from `FROM_TYPE_EXECUTE`. An answer with nothing to
     execute ends the step (Done): the chat waits for the user's next
-    Message, in a later run. The answer is read from its first `{` to its
-    last `}`, so a code fence does no harm. San Remote reads it with the
-    site's Copy button, which gives markdown, so JSON written as text comes
-    with markdown's escapes (`\*\*bold\*\*`, `https\://`; Gemini,
-    2026-10-27), which JSON does not have: such a backslash is dropped, and
-    a raw line break in a string escaped, before it is read again. One that
-    is still not a
+    Message, in a later run. San Remote reads the answer with the site's
+    Copy button, which gives markdown, and JSON written as text does not
+    come back as it was: Gemini's copy adds markdown's escapes
+    (`\*\*bold\*\*`, `https\://`; 2026-10-27), and ChatGPT writes its
+    backslashes doubled for markdown (`\\"$f\\"` for `\"$f\"`, which ends
+    the string early; 2026-10-28). So the protocol, its reminder and the
+    ask again ask for the JSON in a ```` ```json ```` code block, escaped as
+    JSON only, which neither touches. The answer's first code block is read, its fences as markdown reads them (a longer fence, four backticks, around JSON whose chat holds a code block; a ``` in the one-line JSON's strings ends nothing; 2026-10-28),
+    when it has one, else, or when it holds no WebchatResponse, the whole answer, from its first `{` to its last `}`. One
+    that is not JSON as it is is read again with markdown's added escapes
+    dropped (and a raw line break in a string escaped), then as markdown
+    shows it (a backslash before punctuation dropped once). One that is
+    still not a
     WebchatResponse is asked for again once, then fails the step. The chat
     is always a kept one, in one tab (the user, 2026-10-27: a tab opened
     and closed for each turn flickered): San Remote keeps the tab open on
@@ -676,7 +682,7 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
     take many scripts); a script asked for past it fails the step. The step
     fails too when the chat looks stuck: the same script with the same
     result 3 times in a row (a script polling something whose result
-    changes goes on). The step logs, as it goes (see the Logs below), the chat's answers, each script, what it prints and how it ended; each script runs in a new bash in the storage's folder (a cd does not carry over), which the protocol tells the chat, with the Timeout. The web chat runs any script it wants with the tower's rights
+    changes goes on). A script that only prints text it holds (echo or printf of plain words, no variable, substitution, redirection or pipe) is not run and ends the chat's turn (Done): a chat with nothing left to do ran echo OK, echo Selesai, echo Siap... one after another without end (2026-10-28); the protocol and its reminder say execute is only for the machine's shell, for work the user asked for, never for conversation, which goes in chat; a command the user asked how to run themselves is explained in chat, not run (2026-10-28: "how do I preview HyperFrames" ran `npx hyperframes preview`), and a command that does not end by itself (a preview or dev server, a watcher) is started in the background, never in the foreground. The step logs, as it goes (see the Logs below), the chat's answers, each script, what it prints and how it ended; each script runs in a new bash in the storage's folder (a cd does not carry over), which the protocol tells the chat, with the Timeout. The web chat runs any script it wants with the tower's rights
     (the protocol asks it to ask the user first before what cannot be
     undone, which it may not do): give it a storage to work in.
   - Social Status says who is signed in on a Site (ChatGPT too). Social Posts
@@ -719,6 +725,14 @@ the San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
     group's such as -1001234567890, or a channel's @username), Plain, HTML
     or Markdown, as a reply when Reply To has a message id. Message is the
     message sent.
+  - Long Text (2026-10-28: a web chat's long answer made Telegram refuse a
+    message, "message is too long"; the user asked for it as a choice):
+    Split, the default, sends a Text over a message's 4096 characters as
+    several messages of at most 4000, counted as Telegram counts (UTF-16,
+    an emoji two), each ending between lines (a longer line between words,
+    a longer word anywhere), each formatted on its own, only the first a
+    reply; the step logs how many, and Message is the last. Fail sends it
+    whole, and Telegram refuses it. A Media caption is never split.
   - Markdown (2026-10-26, after Telegram refused a Claude answer with
     "can't parse entities") is Markdown as people and Claude write it
     (`**bold**`, `` `code` `` in bold, lists, fenced code, links), turned

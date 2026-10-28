@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"unicode/utf8"
 
 	"connectrpc.com/connect"
 	chatgptv1 "github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1"
@@ -184,6 +186,65 @@ func TestRemoteShellSession(t *testing.T) {
 	}
 }
 
+// goneGPT is ChatGPT where one chat was deleted: asking in it is NotFound,
+// as san_remote says it (ErrChatGone).
+type goneGPT struct{ *shellGPT }
+
+func (f goneGPT) Ask(ctx context.Context, req *connect.Request[chatgptv1.AskRequest]) (*connect.Response[chatgptv1.AskResponse], error) {
+	if req.Msg.Chat == "https://chatgpt.com/c/gone" {
+		f.mu.Lock()
+		f.asks = append(f.asks, req.Msg)
+		f.mu.Unlock()
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("chatgpt: the chat is not there: https://chatgpt.com/c/gone, deleted or not this account's"))
+	}
+	return f.shellGPT.Ask(ctx, req)
+}
+
+// A session's chat deleted on the site: the user's message starts a new
+// chat, with the protocol, and the session keeps it; an ask step does the
+// same.
+func TestRemoteShellChatGone(t *testing.T) {
+	f, env, _ := shellEnv(t)
+	mux := http.NewServeMux()
+	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(goneGPT{f}))
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	env.Connection = func(uint32) (store.Connection, error) {
+		return store.Connection{ID: 1, Type: store.SanRemote, Settings: &v1.ConnectionSettings{
+			Type: &v1.ConnectionSettings_SanRemote{SanRemote: &v1.SanRemoteSettings{Url: ts.URL}},
+		}}, nil
+	}
+	f.answers = []string{`{"chat": "hello again"}`, "fine"}
+	session := store.ChatSessionKey(3, "session")
+	kept := map[string]string{session + "|ChatGPT": "https://chatgpt.com/c/gone"}
+	env.Workflow = 3
+	env.ChatLink = func(session, site string) (string, error) { return kept[session+"|"+site], nil }
+	env.SetChatLink = func(session, site, link string) error { kept[session+"|"+site] = link; return nil }
+	g := &v1.Graph{
+		Steps: []*v1.Step{step("go", Manual), step("session", "browser-chat-session"),
+			step("shell", "remote-shell", "Connection", "1", "Message", "hi")},
+		Links: []*v1.Link{link("go", "Event", "shell", "Event"), link("session", "Chat Link", "shell", "Chat Link")},
+	}
+	if _, err := Execute(context.Background(), g, "go", nil, env); err != nil {
+		t.Fatal(err)
+	}
+	if len(f.asks) != 2 || f.asks[1].Chat != "" || !strings.Contains(f.asks[1].Prompt, "This chat follows") {
+		t.Fatalf("asks: %v", f.asks)
+	}
+	if got := kept[session+"|ChatGPT"]; got != "https://chatgpt.com/c/new" {
+		t.Errorf("the session keeps %q", got)
+	}
+
+	kept[session+"|ChatGPT"] = "https://chatgpt.com/c/gone"
+	g.Steps[2] = step("shell", "chatgpt-ask", "Connection", "1", "Prompt", "hi")
+	if _, err := Execute(context.Background(), g, "go", nil, env); err != nil {
+		t.Fatal(err)
+	}
+	if got := kept[session+"|ChatGPT"]; got != "https://chatgpt.com/c/new" || f.asks[3].Chat != "" {
+		t.Errorf("ask step: session keeps %q, asks %v", got, f.asks)
+	}
+}
+
 // An answer that is not JSON is asked for again once; twice fails the step.
 // More scripts than Max Commands fail it too.
 func TestRemoteShellFails(t *testing.T) {
@@ -200,7 +261,7 @@ func TestRemoteShellFails(t *testing.T) {
 		t.Errorf("not JSON twice: %v", err)
 	}
 
-	_, env, _ = shellEnv(t, `{"execute": "echo 1"}`, `{"execute": "echo 2"}`)
+	_, env, _ = shellEnv(t, `{"execute": "pwd"}`, `{"execute": "ls"}`)
 	if _, err := run(t, env, "remote-shell", "Connection", "1", "Message", "hi", "Max Commands", "1"); err == nil || !strings.Contains(err.Error(), "Max Commands, 1") {
 		t.Errorf("Max Commands: %v", err)
 	}
@@ -213,14 +274,41 @@ func TestRemoteShellFails(t *testing.T) {
 	if steps, err := run(t, env, "remote-shell", "Connection", "1", "Storage", "1", "Message", "hi"); err != nil || textOut(t, steps[1], "Commands") != "4" {
 		t.Errorf("polling: %v", err)
 	}
-	same := `{"execute": "echo same"}`
+	same := `{"execute": "pwd"}`
 	f, env, _ = shellEnv(t, same, same, same, same)
 	if _, err := run(t, env, "remote-shell", "Connection", "1", "Message", "hi"); err == nil || !strings.Contains(err.Error(), "looks stuck") || len(f.asks) != 3 {
 		t.Errorf("stuck: %v after %d asks", err, len(f.asks))
 	}
 
+	// A script that only prints text is not run: the chat's turn is over
+	// (2026-10-28: echo OK, echo Selesai, echo Siap... without end).
+	f, env, _ = shellEnv(t, `{"chat": "Video sudah siap!", "execute": "echo Selesai"}`, `{"execute": "echo Siap"}`)
+	if steps, err := run(t, env, "remote-shell", "Connection", "1", "Message", "hi"); err != nil || textOut(t, steps[1], "Commands") != "0" || len(f.asks) != 1 {
+		t.Errorf("echo only: %v after %d asks", err, len(f.asks))
+	}
+
 	if _, err := run(t, env, "remote-shell", "Connection", "1"); err == nil || !strings.Contains(err.Error(), "Message is empty") {
 		t.Errorf("no Message: %v", err)
+	}
+}
+
+func TestPrintsOnly(t *testing.T) {
+	for script, want := range map[string]bool{
+		"echo Selesai":                         true,
+		"echo 'Menunggu instruksi berikutnya'": true,
+		"# done\necho OK; printf 'bye\\n'":     true,
+		"echo  a && echo b":                    true,
+		"echo $HOME":                           false,
+		"echo $(date)":                         false,
+		"echo hi > file.txt":                   false,
+		"ls | wc -l":                           false,
+		"echo start && npm run build":          false,
+		"pwd":                                  false,
+		"":                                     false,
+	} {
+		if got := printsOnly(script); got != want {
+			t.Errorf("printsOnly(%q) = %v", script, got)
+		}
 	}
 }
 
@@ -240,10 +328,56 @@ func TestParseWebchat(t *testing.T) {
 	if err != nil || res.GetChat() != "My idea: **n8n** at https://n8n.io\nnext line" || res.GetExecute() != `ls my_dir | grep "a\.b"` {
 		t.Errorf("repaired: %q, %q, %v", res.GetExecute(), res.GetChat(), err)
 	}
+	// JSON written as markdown text, its backslashes doubled (ChatGPT,
+	// 2026-10-28), is read as markdown shows it.
+	res, err = parseWebchat(`{"execute":"printf '\\\n=== Files ===\\\n'; for f in a b; do test -s \\"$f\\" && printf 'OK: %s\\\n' \\"$f\\"; done","chat":""}`)
+	if want := `printf '\n=== Files ===\n'; for f in a b; do test -s "$f" && printf 'OK: %s\n' "$f"; done`; err != nil || res.GetExecute() != want {
+		t.Errorf("markdown-escaped: %q, %v\nwant %q", res.GetExecute(), err, want)
+	}
+	// The code block is read, not the braces around it.
+	res, err = parseWebchat("Sure {here}:\n```json\n{\"execute\": \"echo '}'\", \"chat\": \"ok\"}\n```\nDone {now}.")
+	if err != nil || res.GetExecute() != "echo '}'" || res.GetChat() != "ok" {
+		t.Errorf("code block: %v, %v", res, err)
+	}
+	// A chat whose text holds a code block fences the JSON with four
+	// backticks; the ``` in its strings close nothing (2026-10-28).
+	res, err = parseWebchat("````\n<escape>{\"execute\":\"npx hyperframes preview\",\"chat\":\"Run:\\n\\n```bash\\nnpx hyperframes preview\\n```\\n\\nIt opens Studio.\"}\n````")
+	if err != nil || res.GetExecute() != "npx hyperframes preview" || !strings.Contains(res.GetChat(), "```bash\nnpx hyperframes preview\n```") {
+		t.Errorf("four backticks: %q, %v", res.GetChat(), err)
+	}
+	// JSON on its one line, its strings holding ``` with no fence around.
+	res, err = parseWebchat("{\"execute\":\"\",\"chat\":\"Use:\\n```bash\\nls\\n```\"}")
+	if err != nil || res.GetChat() != "Use:\n```bash\nls\n```" {
+		t.Errorf("no fence: %q, %v", res.GetChat(), err)
+	}
+	if got := codeBlock("text\n```json\n{\"a\":1}\n```\nmore"); got != "{\"a\":1}" {
+		t.Errorf("codeBlock: %q", got)
+	}
 	if _, err := parseWebchat("no json"); err == nil {
 		t.Error("no JSON: no error")
 	}
 	if got := clipMiddle("abcdefghij", 4); got != "ab\n… (6 characters left out) …\nij" {
 		t.Errorf("clipMiddle: %q", got)
+	}
+}
+
+// A script printing bytes that are not UTF-8 still sends its result, those
+// bytes U+FFFD; before, the JSON came out empty and so did the message
+// ("the prompt is empty", 2026-10-28).
+func TestRemoteShellNotUTF8(t *testing.T) {
+	// The script is printf 'caf\xe9 ok\n' | cat: a lone byte 0xE9, through
+	// a program (printf alone would only print text, and is not run).
+	f, env, _ := shellEnv(t, "{\"execute\": \"printf 'caf\\\\xe9 ok\\\\n' | cat\"}", `{"chat": "done"}`)
+	steps, err := run(t, env, "remote-shell", "Connection", "1", "Message", "hi")
+	if err != nil || len(f.asks) != 2 {
+		t.Fatalf("%v after %d asks", err, len(f.asks))
+	}
+	if req := request(t, f.asks[1].Prompt); !strings.Contains(req.ExecuteResult, "caf� ok") {
+		t.Errorf("result %q", req.ExecuteResult)
+	}
+	for _, l := range steps[1].Logs {
+		if !utf8.ValidString(l) {
+			t.Errorf("log line %q", l)
+		}
 	}
 }

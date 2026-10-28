@@ -101,7 +101,8 @@ func TestServeNotRunning(t *testing.T) {
 // What a site would refuse is refused before any tab opens: no time (the API
 // only schedules), a time too soon, a group post, a missing video file.
 func TestRefused(t *testing.T) {
-	_, server := hubtest.Start(t) // no browser: a call that got to the browser would fail otherwise
+	h, server := hubtest.Start(t) // no browser: a call that got to the browser would fail otherwise
+	h.AttachWait = 0
 	ts := start(t, server)
 	ctx := context.Background()
 	dir := t.TempDir()

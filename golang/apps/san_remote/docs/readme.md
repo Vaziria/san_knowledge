@@ -1147,7 +1147,7 @@ need a token and TLS first.
 | What you see | What to do |
 |---|---|
 | `san_remote is not running at http://127.0.0.1:7476` | Start `san_remote serve`. |
-| `no browser is attached` | Open the extension's popup. It retries at once and shows why it can't connect: a wrong server URL, or `serve` not running. |
+| `no browser is attached` | A command waits up to 45 s for a browser to attach (one that comes back after the server restarted) before saying this. Open the extension's popup. It retries at once and shows why it can't connect: a wrong server URL, or `serve` not running. |
 | popup: **Allow User Scripts is off** | Use its button to open the details page and turn the toggle on. |
 | `several browsers are attached, pick one` | Add `--browser <name or id>`; `san_remote browsers` lists them. |
 | `Frame with ID 0 is showing error page`, or cannot access a page | Chrome won't let extensions run code on its error pages, `chrome://` pages or the Web Store. Load a normal page first. |

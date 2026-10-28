@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/proto"
@@ -38,6 +39,7 @@ const (
 func boundSteps(steps []*v1.StepRun) {
 	total := 0
 	for _, st := range steps {
+		st.Error = strings.ToValidUTF8(st.Error, "�")
 		if total > MaxRunBytes {
 			st.Logs = []string{fmt.Sprintf("(%d lines left out: the run kept %d MB)", len(st.Logs), MaxRunBytes>>20)}
 			st.LogLevels = nil
@@ -96,7 +98,11 @@ func text(s string) *anypb.Any {
 func note(s string) *anypb.Any { return text("(" + s + ")") }
 
 // clip cuts s to max characters, marking the cut.
+// Bytes that are not UTF-8, such as a Windows program's output in its
+// console code page, become U+FFFD: protojson refuses them, and a run with
+// one was never recorded (2026-10-28).
 func clip(s string, max int) string {
+	s = strings.ToValidUTF8(s, "�")
 	if utf8.RuneCountInString(s) <= max {
 		return s
 	}

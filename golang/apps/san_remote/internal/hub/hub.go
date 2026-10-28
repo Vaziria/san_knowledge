@@ -42,11 +42,23 @@ type Hub struct {
 	log       *slog.Logger
 	pingEvery time.Duration
 	grace     time.Duration
+	// AttachWait is how long a command waits for a browser when none is
+	// attached (AttachWaitDefault from New).
+	AttachWait time.Duration
 
 	mu       sync.Mutex
 	browsers map[string]*browser // by id
 	pending  map[string]*pending // by command id
+	// attached is closed when a browser attaches, for the commands waiting
+	// for one; nil when none waits.
+	attached chan struct{}
 }
+
+// AttachWaitDefault is how long a command waits for a browser to attach
+// when none is (2026-10-28: a tower that restarted ran its queued runs at
+// once, before the extension was back, and they failed). The extension
+// attaches again within its backoff, at most 30 s, or its 30 s alarm.
+const AttachWaitDefault = 45 * time.Second
 
 type browser struct {
 	info *v1.Browser
@@ -66,11 +78,12 @@ func New(log *slog.Logger) *Hub {
 		log = slog.New(slog.DiscardHandler)
 	}
 	return &Hub{
-		log:       log,
-		pingEvery: pingEvery,
-		grace:     grace,
-		browsers:  map[string]*browser{},
-		pending:   map[string]*pending{},
+		log:        log,
+		pingEvery:  pingEvery,
+		grace:      grace,
+		AttachWait: AttachWaitDefault,
+		browsers:   map[string]*browser{},
+		pending:    map[string]*pending{},
 	}
 }
 
@@ -172,6 +185,10 @@ func (h *Hub) attach(ctx context.Context, req *v1.AttachRequest, stream *connect
 		old.cancel()
 	}
 	h.browsers[b.info.Id] = b
+	if h.attached != nil {
+		close(h.attached)
+		h.attached = nil
+	}
 	h.mu.Unlock()
 	h.log.Info("browser attached", "id", b.info.Id, "name", b.info.Name)
 	defer func() {
@@ -233,10 +250,34 @@ func (h *Hub) Browsers() []*v1.Browser {
 }
 
 // pick finds the browser named by sel (its id or name, ignoring case), or
-// the only one attached when sel is empty.
-func (h *Hub) pick(sel string) (*browser, error) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
+// the only one attached when sel is empty. When none is attached, it waits
+// up to AttachWait for one.
+func (h *Hub) pick(ctx context.Context, sel string) (*browser, error) {
+	deadline := time.Now().Add(h.AttachWait)
+	for {
+		h.mu.Lock()
+		if len(h.browsers) > 0 || !time.Now().Before(deadline) {
+			defer h.mu.Unlock()
+			return h.pickLocked(sel)
+		}
+		if h.attached == nil {
+			h.attached = make(chan struct{})
+		}
+		attached := h.attached
+		h.mu.Unlock()
+		timer := time.NewTimer(time.Until(deadline))
+		select {
+		case <-attached:
+		case <-timer.C:
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, ctx.Err()
+		}
+		timer.Stop()
+	}
+}
+
+func (h *Hub) pickLocked(sel string) (*browser, error) {
 	var found []*browser
 	for _, b := range h.browsers {
 		if sel == "" || b.info.Id == sel || strings.EqualFold(b.info.Name, sel) {
@@ -267,7 +308,7 @@ func (h *Hub) namesLocked() string {
 // call sends cmd to the browser named by sel and waits for its reply, up to
 // timeoutMs (0 is 30s) plus the grace.
 func (h *Hub) call(ctx context.Context, sel string, timeoutMs int32, cmd *v1.AttachResponse) (*v1.ReplyRequest, error) {
-	b, err := h.pick(sel)
+	b, err := h.pick(ctx, sel)
 	if err != nil {
 		return nil, err
 	}

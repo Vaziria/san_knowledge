@@ -25,6 +25,9 @@ var (
 	// ErrInvalidPrompt is a request the tool cannot send: no prompt, or one
 	// too long.
 	ErrInvalidPrompt = errors.New("claude: the prompt is not valid")
+	// ErrChatGone means an ask's chat link did not open a chat: it was
+	// deleted on the site (2026-10-28), or is not this account's.
+	ErrChatGone = errors.New("claude: the chat is not there")
 	// ErrNotSignedIn means the browser has no claude.ai session.
 	ErrNotSignedIn = errors.New("claude: the browser is not signed in to claude.ai")
 	// ErrLanguage means claude.ai's interface is not in English, which the

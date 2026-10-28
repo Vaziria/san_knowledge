@@ -253,7 +253,7 @@ Errors use Connect codes:
 
 | Code | When |
 |---|---|
-| `Unavailable` | no browser attached, or it went away before answering |
+| `Unavailable` | no browser attached (after waiting up to 45 s for one, 2026-10-28: a server that restarted got commands before the extension was back), or it went away before answering |
 | `NotFound` | no browser by that name; or a `Reply` for a command no longer waiting |
 | `FailedPrecondition` | several browsers attached and none picked |
 | `Aborted` | the browser answered with an error: an exception with its stack, a `SyntaxError`, a tab that does not exist, a page extensions cannot touch |
@@ -796,10 +796,22 @@ from the page instead.
 - **Send too soon** lost a prompt once: the composer emptied and no turn
   came. The service waits a second, presses Send, and writes the prompt once
   more if no turn and no Stop button come.
+- **A long prompt that looks like code** (a tower Remote Shell's JSON with a
+  script's output, 2026-10-28) went out as a code block, and the check that
+  the composer holds the prompt waited its 10 s and failed. The check now
+  also takes the prompt's characters in order with the spaces left out
+  (`holds`), and waits a second more per 1000 characters, up to a minute.
+  Backticks, `---`, `**`, quotes and backslashes written with insertText stay
+  as they are (checked live).
 - **Turns** are `[data-turn-key]`, each the prompt and its answer, with
   `data-talvt-turn-state` in_progress, then complete. A new turn reads
   complete for a moment before the answer starts, so the service waits for
   answer text that holds still with no Stop button.
+- **A long chat shows only its last 6 turns** (2026-10-28, found with a
+  tower Remote Shell chat): their count stops growing, so an ask that waited
+  for one more turn waited until Wait with the answer on the page. A new
+  turn is now told by the last turn's `data-turn-key` changing too
+  (`state.lastTurn`, `newTurn`).
 - **The answer's markdown** comes from its Copy button: in the page's own
   world, `navigator.clipboard.write` and `writeText` are caught for that one
   press (ChatGPT writes a ClipboardItem with text/plain and text/html) and put

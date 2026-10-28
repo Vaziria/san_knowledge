@@ -151,7 +151,9 @@ func runScript(ctx context.Context, script, input, dir string, timeout time.Dura
 	case err != nil:
 		return res, err
 	}
-	res.stdout, res.stderr = stdout.String(), stderr.String()
+	// Output that is not UTF-8 (a Windows program in its console code page)
+	// has U+FFFD for its bytes: proto strings must be UTF-8 (2026-10-28).
+	res.stdout, res.stderr = strings.ToValidUTF8(stdout.String(), "�"), strings.ToValidUTF8(stderr.String(), "�")
 	return res, nil
 }
 

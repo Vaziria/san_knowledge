@@ -111,6 +111,15 @@ func remoteShell(c *call) error {
 	c.outputs["Commands"] = stringValue("0")
 	for {
 		res, err := sc.send(prompt + webchatJSON(req))
+		if errors.Is(err, errChatGone) && commands == 0 && sc.chat != "" {
+			// The kept chat was deleted on the site (the user, 2026-10-28:
+			// "can it refresh when I delete session"): the user's message
+			// starts a new one, which learns the protocol, and the session
+			// keeps it instead.
+			c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "the chat %s is not there (deleted on the site?): starting a new one", sc.chat)
+			sc.chat = ""
+			res, err = sc.send(shellProtocol(dir, timeout) + "\n\n" + webchatJSON(req))
+		}
 		c.outputs["Chat Link"] = stringValue(sc.chat)
 		if err != nil {
 			return err
@@ -127,6 +136,14 @@ func remoteShell(c *call) error {
 		}
 		script := res.GetExecute()
 		if strings.TrimSpace(script) == "" {
+			break
+		}
+		if printsOnly(script) {
+			// A chat that has nothing left to do may run echo "Done" rather
+			// than leave execute empty, and answer each result with another
+			// (2026-10-28: echo OK, echo Selesai, echo Siap... without end).
+			// Text it already knows tells it nothing: its turn is over.
+			c.logf(v1.LogLevel_LOG_LEVEL_INFO, "not run, it only prints text: the chat's turn is over:\n%s", clip(strings.TrimSpace(script), 300))
 			break
 		}
 		if most > 0 && commands == most {
@@ -191,6 +208,9 @@ func (s *shellChat) say(prompt string) (string, error) {
 	s.c.logf(v1.LogLevel_LOG_LEVEL_DEBUG, "waiting for %s's answer", s.site)
 	answer, link, err := s.ask(s.c, s.r, prompt, s.wait, s.chat, true, false, shellTabIdle)
 	if err != nil {
+		if chatGone(err) {
+			return "", fmt.Errorf("%w: %v", errChatGone, remoteErr(err))
+		}
 		return "", remoteErr(err)
 	}
 	if err := s.c.keepChat(s.session, s.site, s.chat, link); err != nil {
@@ -226,9 +246,32 @@ func (s *shellChat) send(prompt string) (*v1.WebchatResponse, error) {
 	return res, nil
 }
 
-const shellReminder = `(Web Machine Shell Protocol: answer with only one JSON {"execute": "...", "chat": "..."}, nothing else.)`
+const shellReminder = "(Web Machine Shell Protocol: answer with only one JSON {\"execute\": \"...\", \"chat\": \"...\"} in a ```json code block, escaped as JSON only, nothing else. execute is only for the machine's shell, for work the user asked you to do; conversation, and commands the user asked how to run themselves, go in chat. When done or waiting for the user, leave execute empty; never run a server or anything that does not end in the foreground.)"
 
-const notWebchatResponse = `Your last answer was not one JSON WebchatResponse. Answer it again as {"execute": "...", "chat": "..."}, with nothing before or after it.`
+// printsOnly says whether script only prints text it holds: echo or printf
+// commands of plain words, with no variable, substitution, redirection or
+// pipe, which can tell the chat nothing it did not know.
+func printsOnly(script string) bool {
+	if strings.ContainsAny(script, "$`<>|") {
+		return false
+	}
+	printed := false
+	for _, line := range strings.Split(script, "\n") {
+		for _, part := range strings.FieldsFunc(line, func(r rune) bool { return r == ';' || r == '&' }) {
+			words := strings.Fields(part)
+			if len(words) == 0 || strings.HasPrefix(words[0], "#") {
+				continue
+			}
+			if words[0] != "echo" && words[0] != "printf" {
+				return false
+			}
+			printed = true
+		}
+	}
+	return printed
+}
+
+const notWebchatResponse = "Your last answer was not one JSON WebchatResponse. Answer it again as {\"execute\": \"...\", \"chat\": \"...\"} in a ```json code block, escaped as JSON only, with nothing before or after it."
 
 // shellProtocol is the start of a new chat's first message: the protocol,
 // with the shell, the folder it works in, and how long a script may run.
@@ -246,40 +289,115 @@ Every message you get is one JSON WebchatRequest:
 - from FROM_TYPE_USER: chat is the user's message.
 - from FROM_TYPE_EXECUTE: execute_result is what the machine's shell gave for your last execute: its exit code, stdout and stderr.
 
-Answer every message with one JSON WebchatResponse, with nothing before or after it:
+Answer every message with one JSON WebchatResponse in a `+"```json"+` code block, with nothing before or after it:
 {"execute": "...", "chat": "..."}
-- execute: a bash script for the machine to run now. What it gives comes back to you in the next message. Leave it empty when nothing is to be run. Each script runs in a new shell that starts in %[2]s: a cd or a variable from the last one does not carry over. A script may run up to %[3]s; start a longer job in the background, writing to a log file, and check on it with later scripts.
-- chat: what to tell the user. Leave it empty when there is nothing to say.
-When both are set, the user gets chat, then the machine runs execute. When execute is empty, your turn is over until the user writes again: ask the user in chat for what you need, and before running anything that deletes or changes what cannot be undone.
+In the code block the JSON is escaped as JSON only, not again as markdown: a quote in a string is \", a line break \n, a backslash \\.
+- execute: only for the machine's shell: a bash script for the machine to run now, never a way to talk to the user. Run one only for work the user asked you to do, or that it needs. When the user asks how to do something themselves, explain it in chat, commands included, and leave execute empty: do not run it for them. What a script gives comes back to you in the next message. Leave it empty when nothing is to be run. Each script runs in a new shell that starts in %[2]s: a cd or a variable from the last one does not carry over. A script may run up to %[3]s; start a longer job in the background, writing to a log file, and check on it with later scripts. Never run in the foreground a command that does not end by itself (a preview or dev server, a watcher, anything waiting for input): start it in the background, or tell the user how to run it.
+- chat: what to tell the user: all the conversation goes here. Leave it empty when there is nothing to say.
+When both are set, the user gets chat, then the machine runs execute. When execute is empty, your turn is over until the user writes again: ask the user in chat for what you need, and before running anything that deletes or changes what cannot be undone. When the work is done, or you wait for the user, leave execute empty; never run a script only to say something (such as echo "Done"): say it in chat. A script that only prints text is not run, and ends your turn.
 
 The first message:`, shell, filepath.ToSlash(dir), timeout)
 }
 
 // webchatJSON is req as the chat reads it, with the protocol's field names
 // and every field, empty or not.
+// Its strings are made UTF-8 first: protojson refuses anything else, and
+// gave nothing, so the chat got an empty message (2026-10-28: "the prompt
+// is empty").
 func webchatJSON(req *v1.WebchatRequest) string {
-	b, _ := protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: true}.Marshal(req)
+	req.Chat = strings.ToValidUTF8(req.Chat, "�")
+	req.ExecuteResult = strings.ToValidUTF8(req.ExecuteResult, "�")
+	b, err := protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: true}.Marshal(req)
+	if err != nil {
+		return fmt.Sprintf(`{"execute_result": "", "chat": "", "from": %q, "error": %q}`, req.GetFrom().String(), err.Error())
+	}
 	return string(b)
 }
 
 // parseWebchat reads a web chat's answer as a WebchatResponse: the JSON
-// object in it, from its first { to its last }, so that a code fence or a
+// object in its first code block when it has one, else, or when that is
+// not one, in the whole answer, from its first { to its last }, so that a
 // line around it does no harm. Fields it does not know are left out. An
-// object that is not JSON as it is is read again repaired (repairJSON).
+// object that is not JSON as it is is read again repaired: markdown's
+// escapes dropped (repairJSON), then, as written in markdown, unescaped
+// once (unmarkdown).
 func parseWebchat(answer string) (*v1.WebchatResponse, error) {
-	i, j := strings.Index(answer, "{"), strings.LastIndex(answer, "}")
+	var first error
+	for _, text := range []string{codeBlock(answer), answer} {
+		res, err := parseObject(text)
+		if err == nil {
+			return res, nil
+		}
+		if first == nil && strings.Contains(text, "{") {
+			first = err
+		}
+	}
+	if first == nil {
+		first = errors.New("no JSON object in it")
+	}
+	return nil, first
+}
+
+// parseObject reads the JSON object in text, from its first { to its last
+// }, repaired when it is not JSON as it is.
+func parseObject(text string) (*v1.WebchatResponse, error) {
+	i, j := strings.Index(text, "{"), strings.LastIndex(text, "}")
 	if i < 0 || j < i {
 		return nil, errors.New("no JSON object in it")
 	}
-	obj := answer[i : j+1]
+	obj := text[i : j+1]
 	res := &v1.WebchatResponse{}
 	opts := protojson.UnmarshalOptions{DiscardUnknown: true}
-	if err := opts.Unmarshal([]byte(obj), res); err != nil {
-		if opts.Unmarshal([]byte(repairJSON(obj)), res) != nil {
-			return nil, err
+	err := opts.Unmarshal([]byte(obj), res)
+	if err == nil {
+		return res, nil
+	}
+	for _, try := range []string{repairJSON(obj), repairJSON(unmarkdown(obj))} {
+		if opts.Unmarshal([]byte(try), res) == nil {
+			return res, nil
 		}
 	}
-	return res, nil
+	return nil, err
+}
+
+// codeBlock is the text of an answer's first fenced code block, or "" when
+// it has none, as markdown reads fences: a line that starts with three or
+// more backticks opens one, and a line of at least as many backticks and
+// nothing else closes it. So a ``` inside the JSON's strings, which are on
+// its one line, ends nothing, nor a ``` line inside a longer fence: a chat
+// whose text holds a code block fences the JSON with four (2026-10-28).
+func codeBlock(answer string) string {
+	lines := strings.Split(answer, "\n")
+	for i, l := range lines {
+		t := strings.TrimSpace(l)
+		n := len(t) - len(strings.TrimLeft(t, "`"))
+		if n < 3 {
+			continue
+		}
+		for j := i + 1; j < len(lines); j++ {
+			if c := strings.TrimSpace(lines[j]); len(c) >= n && strings.Trim(c, "`") == "" {
+				return strings.Join(lines[i+1:j], "\n")
+			}
+		}
+		return strings.Join(lines[i+1:], "\n")
+	}
+	return ""
+}
+
+// unmarkdown reads s as markdown source would show: a backslash before
+// ASCII punctuation shows only the punctuation. ChatGPT writes its answer
+// as markdown, and JSON written as text comes with its backslashes
+// doubled for markdown (2026-10-28: \\"$f\\" for \"$f\", which ends the
+// string early).
+func unmarkdown(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) && strings.IndexByte("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~", s[i+1]) >= 0 {
+			i++
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
 }
 
 // repairJSON undoes what an answer goes through on its way: San Remote

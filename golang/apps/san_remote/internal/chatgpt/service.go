@@ -74,6 +74,7 @@ type state struct {
 	Temporary       bool   `json:"temporary"`
 	TemporaryButton bool   `json:"temporaryButton"`
 	Turns           int    `json:"turns"`
+	LastTurn        string `json:"lastTurn"`
 	TurnState       string `json:"turnState"`
 	Answered        bool   `json:"answered"`
 	Chars           int    `json:"chars"`
@@ -85,6 +86,14 @@ func (t *session) state(ctx context.Context) (state, error) {
 	var st state
 	err := t.Call(ctx, &st, "state")
 	return st, err
+}
+
+// newTurn says whether the page shows a turn that before did not: one more
+// turn, or another last one. A long chat shows only its last 6 turns, so
+// in it the count stays the same (2026-10-28: an ask in a long chat waited
+// for its answer until Wait, with the answer there).
+func (st state) newTurn(before state) bool {
+	return st.Turns > before.Turns || (st.LastTurn != "" && st.LastTurn != before.LastTurn)
 }
 
 // waitState waits until the page's state passes ok. A call that lands while
@@ -238,7 +247,7 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 			return nil, err
 		}
 		if _, err := t.waitState(ctx, "the chat's turns", 30*time.Second, func(st state) bool { return st.Turns > 0 }); err != nil {
-			return nil, fmt.Errorf("%w; is %s a chat of this account?", err, a.Chat)
+			return nil, fmt.Errorf("%w: %s, deleted or not this account's (%w)", ErrChatGone, a.Chat, err)
 		}
 	case !a.Keep && !st.Temporary:
 		t.Log("starting a Temporary chat")
@@ -253,7 +262,7 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := t.send(ctx, a.Prompt, st.Turns); err != nil {
+	if err := t.send(ctx, a.Prompt, st); err != nil {
 		return nil, err
 	}
 	wait := a.Wait
@@ -261,7 +270,7 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 		wait = DefaultWait
 	}
 	t.Log("waiting for the answer")
-	if err := t.settled(ctx, st.Turns, wait); err != nil {
+	if err := t.settled(ctx, st, wait); err != nil {
 		return nil, err
 	}
 	text, err := t.answer(ctx)
@@ -282,10 +291,10 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 }
 
 // send writes the prompt and presses Send, then waits for its turn to show:
-// turns is how many the chat had before. ChatGPT now and then empties the
+// before is the page as it was before (newTurn). ChatGPT now and then empties the
 // composer and starts nothing when Send comes right after the text
 // (2026-10-25); then the prompt is written and sent once more.
-func (t *session) send(ctx context.Context, prompt string, turns int) error {
+func (t *session) send(ctx context.Context, prompt string, before state) error {
 	for try := 1; ; try++ {
 		t.Log("writing the prompt")
 		if err := t.Front(ctx); err != nil {
@@ -295,11 +304,15 @@ func (t *session) send(ctx context.Context, prompt string, turns int) error {
 			return err
 		}
 		var got *string
-		if err := t.Until(ctx, "the prompt in the composer", 10*time.Second, func() (bool, error) {
+		if err := t.Until(ctx, "the prompt in the composer", composerWait(prompt), func() (bool, error) {
 			err := t.Call(ctx, &got, "prompt")
-			return got != nil && words(*got) == words(prompt), err
+			return got != nil && holds(*got, prompt), err
 		}); err != nil {
-			return err
+			held := 0
+			if got != nil {
+				held = len(squash(*got))
+			}
+			return fmt.Errorf("%w (the composer holds %d characters, the prompt has %d)", err, held, len(squash(prompt)))
 		}
 		if _, err := t.waitState(ctx, "Send", 10*time.Second, func(st state) bool { return st.Send }); err != nil {
 			return err
@@ -308,7 +321,7 @@ func (t *session) send(ctx context.Context, prompt string, turns int) error {
 		if err := t.Press(ctx, "Send", "send"); err != nil {
 			return err
 		}
-		st, err := t.waitState(ctx, "the prompt's turn", 15*time.Second, func(st state) bool { return st.Turns > turns || st.Busy })
+		st, err := t.waitState(ctx, "the prompt's turn", 15*time.Second, func(st state) bool { return st.newTurn(before) || st.Busy })
 		if err == nil {
 			return nil
 		}
@@ -326,15 +339,15 @@ func (t *session) send(ctx context.Context, prompt string, turns int) error {
 	}
 }
 
-// settled waits until the prompt's turn (the chat had turns before it) holds
+// settled waits until the prompt's turn (new since before) holds
 // an answer that is done: the turn complete, no Stop button, and its text
 // unchanged for a moment. A turn that stays done without any answer for 10
 // seconds is let through too, for answer to report what ChatGPT said instead.
-func (t *session) settled(ctx context.Context, turns int, wait time.Duration) error {
+func (t *session) settled(ctx context.Context, before state, wait time.Duration) error {
 	var last int
 	var since time.Time
 	_, err := t.waitState(ctx, "the answer", wait, func(st state) bool {
-		done := st.Turns > turns && st.TurnState == "complete" && !st.Busy
+		done := st.newTurn(before) && st.TurnState == "complete" && !st.Busy
 		if !done || (st.Answered && st.Chars == 0) || st.Chars != last {
 			last, since = st.Chars, time.Time{}
 			return false

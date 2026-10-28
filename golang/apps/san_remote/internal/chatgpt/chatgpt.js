@@ -51,6 +51,10 @@ globalThis.__sanChatGPT = (() => {
         temporary: new URL(location.href).searchParams.get('temporary-chat') === 'true',
         temporaryButton: !!label('Temporary chat'),
         turns: turns().length,
+        // lastTurn is the last turn's key. A long chat shows only its last
+        // turns (6, 2026-10-28), so their count stops growing; a new turn
+        // is told by its key.
+        lastTurn: t?.dataset.turnKey ?? '',
         turnState: t?.querySelector('[data-talvt-turn-state]')?.dataset.talvtTurnState ?? '',
         answered: !!answerOf(t),
         // chars is how long the answer is so far: a new turn reads complete

@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"connectrpc.com/connect"
+
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/store"
 )
@@ -59,6 +61,12 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 			c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_INFO)
 		}
 		answer, link, err := ask(c, r, prompt, wait, chat, keep, c.setting("Chat") == "Stay", 0)
+		if err != nil && session != "" && chat != "" && chatGone(err) {
+			// The session's chat was deleted on the site: a new one.
+			c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "the chat %s is not there (deleted on the site?): starting a new one", chat)
+			chat = ""
+			answer, link, err = ask(c, r, prompt, wait, chat, keep, c.setting("Chat") == "Stay", 0)
+		}
 		if err != nil {
 			return remoteErr(err)
 		}
@@ -70,6 +78,17 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 		c.fire("Done")
 		return nil
 	}
+}
+
+// errChatGone is an ask whose chat link opened no chat.
+var errChatGone = errors.New("the chat is not there")
+
+// chatGone says whether San Remote found no chat at an ask's link: it was
+// deleted on the site, or is another account's (san_remote's ErrChatGone,
+// NotFound).
+func chatGone(err error) bool {
+	var ce *connect.Error
+	return errors.As(err, &ce) && ce.Code() == connect.CodeNotFound && strings.Contains(ce.Message(), "the chat is not there")
 }
 
 // chatLink reads the step's Chat Link on site: the chat to go on in, empty

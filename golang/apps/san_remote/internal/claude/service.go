@@ -237,7 +237,7 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 			return nil, err
 		}
 		if _, err := t.waitState(ctx, "the chat's turns", 30*time.Second, func(st state) bool { return st.Answers > 0 && st.Composer }); err != nil {
-			return nil, fmt.Errorf("%w; is %s a chat of this account?", err, a.Chat)
+			return nil, fmt.Errorf("%w: %s, deleted or not this account's (%w)", ErrChatGone, a.Chat, err)
 		}
 	case !a.Keep && !st.Incognito:
 		t.Log("starting an incognito chat")

@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/store"
@@ -80,7 +81,7 @@ func (c *call) log(level v1.LogLevel, line string) {
 	for len(c.levels) < len(c.logs) { // lines appended without a type
 		c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_UNSPECIFIED)
 	}
-	line = clip(line, store.MaxLineLen) // all the store keeps of a line
+	line = clip(strings.ToValidUTF8(line, "�"), store.MaxLineLen) // UTF-8, and all the store keeps of a line
 	c.logs = append(c.logs, line)
 	c.levels = append(c.levels, level)
 	if len(c.logs) > maxCallLines {

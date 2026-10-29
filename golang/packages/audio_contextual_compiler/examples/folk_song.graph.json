@@ -1,0 +1,136 @@
+{
+  "spec_sha256": "cf0a995ca18967f82c41af87aca0cc00f39809675f6d2708aa35b730ca4600be",
+  "nodes": [
+    {
+      "id": "song",
+      "type": "song",
+      "name": "FolkSong",
+      "props": {
+        "duration": "5min",
+        "mood": "relaxing",
+        "notes": "An example prompt spec context: a slow, relaxing folk song that mixes a gamelan with a guitar, for a coffee shop in the morning. Scale \"pelog\": the guitar is tuned to match.",
+        "scale": "pelog",
+        "tempo": "slow"
+      }
+    },
+    {
+      "id": "intro",
+      "type": "section",
+      "name": "Intro",
+      "props": {
+        "length": "1min",
+        "mood": "spacious",
+        "notes": "tempo from the song unless set",
+        "tempo": "slow"
+      }
+    },
+    {
+      "id": "climax",
+      "type": "section",
+      "name": "Climax",
+      "props": {
+        "length": "4min",
+        "notes": "tempo \"medium\" overrides the song's \"slow\"",
+        "tempo": "medium"
+      }
+    },
+    {
+      "id": "intro.gong",
+      "type": "instrument",
+      "name": "Gong",
+      "props": {
+        "role": "one stroke at the end of each cycle"
+      }
+    },
+    {
+      "id": "intro.guitar",
+      "type": "instrument",
+      "name": "Guitar",
+      "props": {
+        "notes": "the guitar is tuned to match the song's scale \"pelog\"",
+        "role": "soft fingerpicked melody"
+      }
+    },
+    {
+      "id": "climax.gong",
+      "type": "instrument",
+      "name": "Gong",
+      "props": {
+        "role": "marks each cycle"
+      }
+    },
+    {
+      "id": "climax.bonang",
+      "type": "instrument",
+      "name": "Bonang",
+      "props": {
+        "role": "interlocking pattern"
+      }
+    },
+    {
+      "id": "climax.kendang",
+      "type": "instrument",
+      "name": "Kendang",
+      "props": {
+        "role": "leads the tempo"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "song",
+      "rel": "contains",
+      "to": "intro",
+      "order": 1
+    },
+    {
+      "from": "song",
+      "rel": "contains",
+      "to": "climax",
+      "order": 2
+    },
+    {
+      "from": "intro",
+      "rel": "contains",
+      "to": "intro.gong"
+    },
+    {
+      "from": "intro",
+      "rel": "contains",
+      "to": "intro.guitar"
+    },
+    {
+      "from": "climax",
+      "rel": "contains",
+      "to": "climax.gong"
+    },
+    {
+      "from": "climax",
+      "rel": "contains",
+      "to": "climax.bonang"
+    },
+    {
+      "from": "climax",
+      "rel": "contains",
+      "to": "climax.kendang"
+    },
+    {
+      "from": "climax.kendang",
+      "rel": "signals",
+      "to": "climax",
+      "detail": "on Kendang.signal -> all.speedUp (signal: speed up)"
+    },
+    {
+      "from": "climax.gong",
+      "rel": "follows",
+      "to": "climax.kendang",
+      "detail": "Kendang leads the tempo"
+    },
+    {
+      "from": "climax.bonang",
+      "rel": "follows",
+      "to": "climax.kendang",
+      "detail": "Kendang leads the tempo"
+    }
+  ]
+}

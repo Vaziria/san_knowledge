@@ -27,6 +27,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/hub"
+	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/telegram"
@@ -50,14 +51,15 @@ type Server struct {
 	// Medium, LinkedIn, TikTok and ChatGPT run the medium_*, linkedin_*,
 	// tiktok_*, chatgpt_*, gemini_* and claude_* tools in this process, through
 	// Client.
-	Medium   *medium.Service
-	LinkedIn *linkedin.Service
-	TikTok   *tiktok.Service
-	YouTube  *youtube.Service
-	Telegram *telegram.Service
-	ChatGPT  *chatgpt.Service
-	Gemini   *gemini.Service
-	Claude   *claude.Service
+	Medium    *medium.Service
+	LinkedIn  *linkedin.Service
+	TikTok    *tiktok.Service
+	YouTube   *youtube.Service
+	Telegram  *telegram.Service
+	Instagram *instagram.Service
+	ChatGPT   *chatgpt.Service
+	Gemini    *gemini.Service
+	Claude    *claude.Service
 	// Server is the URL Client talks to, for error messages.
 	Server  string
 	Version string
@@ -434,6 +436,10 @@ type args struct {
 	Keep         bool     `json:"keep"`
 	Chat         string   `json:"chat"`
 	WaitSeconds  int32    `json:"wait_seconds"`
+	// instagram_*
+	Rehearse bool   `json:"rehearse"`
+	AILabel  bool   `json:"ai_label"`
+	Post     string `json:"post"`
 	// telegram_*
 	Name     string `json:"name"`
 	Username string `json:"username"`
@@ -476,6 +482,8 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.tiktok(ctx, name, a)
 	case strings.HasPrefix(name, "youtube_"):
 		text, err = s.youtube(ctx, name, a)
+	case strings.HasPrefix(name, "instagram_"):
+		text, err = s.instagram(ctx, name, a)
 	case strings.HasPrefix(name, "telegram_"):
 		text, err = s.telegram(ctx, name, a)
 	case strings.HasPrefix(name, "chatgpt_"):

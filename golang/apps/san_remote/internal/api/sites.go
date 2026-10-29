@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	chatgptv1 "github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1"
+	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
 	telegramv1 "github.com/wargasipil/san_remote/gen/san/remote/telegram/v1"
@@ -20,6 +21,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/telegram"
@@ -28,7 +30,8 @@ import (
 )
 
 // The site services added on 2026-10-25: Medium, LinkedIn, TikTok and
-// ChatGPT; YouTube on 2026-10-26; Telegram on 2026-10-27.
+// ChatGPT; YouTube on 2026-10-26; Telegram on 2026-10-27; Instagram on
+// 2026-10-29.
 
 // absolute refuses a relative path: it would be inside wherever `san_remote
 // api` was started.
@@ -239,6 +242,88 @@ func (s tiktokAPI) ListPosts(ctx context.Context, req *connect.Request[tiktokv1.
 	return reply(res, nil)
 }
 
+// ---- Instagram -----------------------------------------------------------------------
+
+type instagramAPI struct{ a *API }
+
+func (s instagramAPI) GetStatus(ctx context.Context, req *connect.Request[instagramv1.GetStatusRequest]) (*connect.Response[instagramv1.GetStatusResponse], error) {
+	st, err := s.a.Instagram.Status(ctx, req.Msg.Browser)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&instagramv1.GetStatusResponse{Status: &instagramv1.Status{SignedIn: st.SignedIn, Handle: st.Handle, Name: st.Name}}, nil)
+}
+
+// CreatePost schedules a post with at in Meta Business Suite, or shares it
+// at once with now on instagram.com, which has no schedule (the user,
+// 2026-10-29: "both, chosen by at", the exception to "the API only
+// schedules").
+func (s instagramAPI) CreatePost(ctx context.Context, req *connect.Request[instagramv1.CreatePostRequest]) (*connect.Response[instagramv1.CreatePostResponse], error) {
+	p, err := instagramPostOf(req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	if err := p.Check(time.Now()); err != nil {
+		return nil, s.a.fail(err)
+	}
+	r, err := s.a.Instagram.Post(ctx, *p)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	res := &instagramv1.CreatePostResponse{Kind: r.Kind, Scheduled: r.Scheduled}
+	if r.Scheduled {
+		res.At = stamp(r.At)
+	}
+	if r.Link != "" {
+		res.Post = &instagramv1.Post{Url: r.Link, Code: r.Code, Kind: r.Kind, Caption: p.Caption, At: stamp(r.At)}
+	}
+	return reply(res, nil)
+}
+
+func (s instagramAPI) ListPosts(ctx context.Context, req *connect.Request[instagramv1.ListPostsRequest]) (*connect.Response[instagramv1.ListPostsResponse], error) {
+	list, err := s.a.Instagram.Posts(ctx, req.Msg.Browser, int(req.Msg.Limit))
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	res := &instagramv1.ListPostsResponse{}
+	for _, l := range list {
+		res.Posts = append(res.Posts, &instagramv1.Post{Url: l.Link, Code: l.Code, Kind: l.Kind, Caption: l.Caption, At: stamp(l.At), Pinned: l.Pinned})
+	}
+	return reply(res, nil)
+}
+
+func (s instagramAPI) ListScheduled(ctx context.Context, req *connect.Request[instagramv1.ListScheduledRequest]) (*connect.Response[instagramv1.ListScheduledResponse], error) {
+	list, err := s.a.Instagram.Scheduled(ctx, req.Msg.Browser)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	res := &instagramv1.ListScheduledResponse{}
+	for _, l := range list {
+		res.Posts = append(res.Posts, &instagramv1.Post{Kind: l.Kind, Caption: l.Caption, At: stamp(l.At), When: l.When})
+	}
+	return reply(res, nil)
+}
+
+// DeletePost checks the link before a tab opens.
+func (s instagramAPI) DeletePost(ctx context.Context, req *connect.Request[instagramv1.DeletePostRequest]) (*connect.Response[instagramv1.DeletePostResponse], error) {
+	if _, err := instagram.PostCode(req.Msg.Post); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	l, err := s.a.Instagram.Delete(ctx, req.Msg.Browser, req.Msg.Post)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&instagramv1.DeletePostResponse{Post: &instagramv1.Post{Url: l.Link, Code: l.Code, Kind: l.Kind, Caption: l.Caption, At: stamp(l.At)}}, nil)
+}
+
+func (s instagramAPI) DeleteScheduled(ctx context.Context, req *connect.Request[instagramv1.DeleteScheduledRequest]) (*connect.Response[instagramv1.DeleteScheduledResponse], error) {
+	l, err := s.a.Instagram.DeleteScheduled(ctx, req.Msg.Browser, req.Msg.Caption, optionalAt(req.Msg.At))
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&instagramv1.DeleteScheduledResponse{Post: &instagramv1.Post{Kind: l.Kind, Caption: l.Caption, At: stamp(l.At), When: l.When}}, nil)
+}
+
 // ---- YouTube -------------------------------------------------------------------------
 
 type youtubeAPI struct{ a *API }
@@ -404,6 +489,7 @@ func siteCode(err error) (connect.Code, bool) {
 		medium.ErrInvalid, medium.ErrTooSoon, medium.ErrNoTitle, medium.ErrNotFound,
 		linkedin.ErrInvalid, linkedin.ErrTooSoon, linkedin.ErrNoTitle, linkedin.ErrNotFound, linkedin.ErrAmbiguous,
 		tiktok.ErrInvalidPost, tiktok.ErrTooSoon, tiktok.ErrTooLate,
+		instagram.ErrInvalidPost, instagram.ErrTooSoon, instagram.ErrTooLate, instagram.ErrBadPost, instagram.ErrAmbiguous,
 		youtube.ErrInvalidPost, youtube.ErrTooSoon, youtube.ErrNoMatch,
 		telegram.ErrInvalid, telegram.ErrNotFound, telegram.ErrAmbiguous,
 		chatgpt.ErrInvalidPrompt,
@@ -418,6 +504,7 @@ func siteCode(err error) (connect.Code, bool) {
 		medium.ErrNotSignedIn, medium.ErrBlocked,
 		linkedin.ErrNotSignedIn, linkedin.ErrLanguage,
 		tiktok.ErrNotSignedIn, tiktok.ErrLanguage, tiktok.ErrNeedsHuman,
+		instagram.ErrNotSignedIn, instagram.ErrLanguage, instagram.ErrNoBusinessSuite, instagram.ErrBusinessLanguage, instagram.ErrNotOwn,
 		youtube.ErrNotSignedIn, youtube.ErrLanguage, youtube.ErrNotShort, youtube.ErrPublic,
 		telegram.ErrNotSignedIn, telegram.ErrLanguage, telegram.ErrRefused,
 		chatgpt.ErrNotSignedIn, chatgpt.ErrLanguage, chatgpt.ErrRefused,

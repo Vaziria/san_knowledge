@@ -20,6 +20,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
@@ -42,6 +44,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/hubtest"
+	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/page"
@@ -57,18 +60,19 @@ func start(t *testing.T, server string) *httptest.Server {
 	c := hub.NewClient(server)
 	b := page.Remote{C: c}
 	a := &API{
-		Client:   c,
-		Server:   server,
-		Threads:  &threads.Service{B: b},
-		X:        &x.Service{B: b},
-		Facebook: &facebook.Service{B: b},
-		Vidara:   &vidara.Service{B: b},
-		Medium:   &medium.Service{B: b},
-		LinkedIn: &linkedin.Service{B: b},
-		TikTok:   &tiktok.Service{B: b},
-		ChatGPT:  &chatgpt.Service{B: b},
-		Gemini:   &gemini.Service{B: b},
-		Claude:   &claude.Service{B: b},
+		Client:    c,
+		Server:    server,
+		Threads:   &threads.Service{B: b},
+		X:         &x.Service{B: b},
+		Facebook:  &facebook.Service{B: b},
+		Vidara:    &vidara.Service{B: b},
+		Medium:    &medium.Service{B: b},
+		LinkedIn:  &linkedin.Service{B: b},
+		TikTok:    &tiktok.Service{B: b},
+		Instagram: &instagram.Service{B: b},
+		ChatGPT:   &chatgpt.Service{B: b},
+		Gemini:    &gemini.Service{B: b},
+		Claude:    &claude.Service{B: b},
 	}
 	ts := httptest.NewServer(a.Handler())
 	t.Cleanup(ts.Close)
@@ -127,6 +131,12 @@ func TestRefused(t *testing.T) {
 	gm := geminiv1connect.NewGeminiServiceClient(ts.Client(), ts.URL)
 	cl := claudev1connect.NewClaudeServiceClient(ts.Client(), ts.URL)
 	yt := youtubev1connect.NewYouTubeServiceClient(ts.Client(), ts.URL)
+	ig := instagramv1connect.NewInstagramServiceClient(ts.Client(), ts.URL)
+	photo := filepath.Join(dir, "p.jpg")
+	if err := os.WriteFile(photo, make([]byte, 4096), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	photos := []*instagramv1.Media{{File: photo}}
 	post := []*threadsv1.Post{{Text: "hello"}}
 
 	for name, err := range map[string]error{
@@ -158,6 +168,11 @@ func TestRefused(t *testing.T) {
 		"tiktok too late":          second(tt.SchedulePost(ctx, connect.NewRequest(&tiktokv1.SchedulePostRequest{Video: video, At: timestamppb.New(later.AsTime().AddDate(0, 2, 0))}))),
 		"youtube too soon":         second(yt.UploadVideo(ctx, connect.NewRequest(&youtubev1.UploadVideoRequest{Video: video, Title: "Uji", At: soon}))),
 		"youtube relative video":   second(yt.UploadVideo(ctx, connect.NewRequest(&youtubev1.UploadVideoRequest{Video: "v.mp4", Title: "Uji"}))),
+		"instagram without now":    second(ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Media: photos, Caption: "halo"}))),
+		"instagram no media":       second(ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Caption: "halo", Now: true}))),
+		"instagram relative media": second(ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Media: []*instagramv1.Media{{File: "p.jpg"}}, Now: true}))),
+		"instagram under 1KB":      second(ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Media: []*instagramv1.Media{{File: video}}, Now: true}))),
+		"instagram relative in md": second(ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Markdown: "halo\n\n![](p.jpg)", Now: true}))),
 		"chatgpt no prompt":        second(cg.Ask(ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: "  "}))),
 		"chatgpt bad chat":         second(cg.Ask(ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: "halo", Chat: "https://example.com/c/1"}))),
 		"gemini no prompt":         second(gm.Ask(ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: "   "}))),
@@ -171,6 +186,15 @@ func TestRefused(t *testing.T) {
 	// A call that gets to the browser fails when none is attached.
 	if _, err := th.GetStatus(ctx, connect.NewRequest(&threadsv1.GetStatusRequest{})); err == nil {
 		t.Error("status without a browser")
+	}
+	// An Instagram post with a time is scheduled in Business Suite, so it
+	// gets as far as the browser; one too soon, or with more files than
+	// Business Suite schedules, does not.
+	if _, err := ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Media: photos, At: later})); err == nil || connect.CodeOf(err) == connect.CodeInvalidArgument {
+		t.Errorf("instagram with at: %v", err)
+	}
+	if _, err := ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Media: photos, At: soon})); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Errorf("instagram too soon: %v", err)
 	}
 	// A video without at is not refused: it is saved as Private, so it gets
 	// as far as the browser.

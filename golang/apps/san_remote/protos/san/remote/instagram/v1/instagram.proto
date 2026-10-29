@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package san.remote.instagram.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// InstagramService is the Instagram service (internal/instagram) over
+// Connect, served by `san_remote api` for other programs (the tower's
+// workflows). Like the CLI, it works in a tab of the user's browser, the way
+// a person does on instagram.com. instagram.com has no schedule: a post is
+// shared there at once, and only when the request says now; a post with at
+// is scheduled in Meta Business Suite instead (the user, 2026-10-29: "both,
+// chosen by at").
+service InstagramService {
+  // GetStatus says whether the browser is signed in to Instagram, and as
+  // whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // CreatePost shares photos, a carousel or a Reel with a caption now, or
+  // schedules it with at: it works in a tab brought to the front, for a
+  // minute or more.
+  rpc CreatePost(CreatePostRequest) returns (CreatePostResponse);
+  // ListPosts lists the profile's latest posts, as its grid shows them.
+  rpc ListPosts(ListPostsRequest) returns (ListPostsResponse);
+  // ListScheduled lists the posts scheduled in Meta Business Suite (its
+  // Content page's Dijadwalkan tab).
+  rpc ListScheduled(ListScheduledRequest) returns (ListScheduledResponse);
+  // DeletePost deletes a published post of the account, by its link or code
+  // (Instagram keeps it in Recently deleted for 30 days). It brings Chrome to
+  // the front.
+  rpc DeletePost(DeletePostRequest) returns (DeletePostResponse);
+  // DeleteScheduled deletes the one post scheduled in Business Suite that
+  // matches; it cannot be undone. It brings Chrome to the front.
+  rpc DeleteScheduled(DeleteScheduledRequest) returns (DeleteScheduledResponse);
+}
+
+// Status is the browser's Instagram session.
+message Status {
+  bool signed_in = 1;
+  // The @name, without the @.
+  string handle = 2;
+  // The name the profile shows.
+  string name = 3;
+}
+
+// Post is a post of the profile.
+message Post {
+  // https://www.instagram.com/p/<code>/, or /reel/<code>/.
+  string url = 1;
+  string code = 2;
+  // "post" or "reel".
+  string kind = 3;
+  string caption = 4;
+  // When it was posted.
+  google.protobuf.Timestamp at = 5;
+  // Pinned posts are shown first in the grid, whatever their time.
+  bool pinned = 6;
+  // A scheduled post's time as Business Suite lists it, "26 November 09:00";
+  // at is that time.
+  string when = 7;
+}
+
+// Media is a photo or video of a post.
+message Media {
+  // An absolute path of a file on this computer: jpg, png, avif, heic,
+  // heif, mp4 or mov, 1KB or more.
+  string file = 1;
+  // Alt text, for a photo; a video's is not used.
+  string alt = 2;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message CreatePostRequest {
+  string browser = 1;
+  // The photos and videos, in the order the post shows them, up to 20: one
+  // video is a Reel, anything else a feed post (a carousel when there are
+  // several). With file or markdown it may be empty, for their images.
+  repeated Media media = 2;
+  // Plain text, newlines kept, up to 2200 characters and 30 #hashtags.
+  string caption = 3;
+  // Shares it now on instagram.com, which publishes it as soon as Share is
+  // pressed. One of now and at is required.
+  bool now = 4;
+  // Schedules it in Meta Business Suite (signed in, in Indonesian): a whole
+  // minute, 15 minutes to 29 days ahead, up to 10 files, no AI label; alt
+  // text is not set.
+  google.protobuf.Timestamp at = 5;
+  // Turns on "Add AI label", for realistic photos and videos made with AI;
+  // only with now.
+  bool ai_label = 6;
+  // Instead of caption: the post's markdown file, an absolute path on this
+  // computer, read as `san_remote instagram post` reads one (![alt](file)
+  // images, relative to it, are the media; the rest is the caption, its
+  // markdown written as plain text).
+  string file = 7;
+  // Instead of caption: the post as markdown text, read as a file is; the
+  // files it names need absolute paths.
+  string markdown = 8;
+}
+
+message CreatePostResponse {
+  // The post as the profile then shows it; unset when it did not show it
+  // yet, and for a scheduled post.
+  Post post = 1;
+  // "post" or "reel".
+  string kind = 2;
+  // Scheduled in Business Suite, for at.
+  bool scheduled = 3;
+  google.protobuf.Timestamp at = 4;
+}
+
+message ListPostsRequest {
+  string browser = 1;
+  // How many posts to read, each on its own page; 0 is 10.
+  uint32 limit = 2;
+}
+
+message ListPostsResponse {
+  repeated Post posts = 1;
+}
+
+message ListScheduledRequest {
+  string browser = 1;
+}
+
+message ListScheduledResponse {
+  // Their caption, kind, at and when; no url or code before they go out.
+  repeated Post posts = 1;
+}
+
+message DeletePostRequest {
+  string browser = 1;
+  // The post's link (https://www.instagram.com/p/<code>/, /reel/<code>/) or
+  // its code.
+  string post = 2;
+}
+
+message DeletePostResponse {
+  // The post as its page showed it.
+  Post post = 1;
+}
+
+message DeleteScheduledRequest {
+  string browser = 1;
+  // The post's caption, or its start (spaces aside).
+  string caption = 2;
+  // When it goes out; with caption, or alone. One post must match.
+  google.protobuf.Timestamp at = 3;
+}
+
+message DeleteScheduledResponse {
+  // The post as Dijadwalkan listed it.
+  Post post = 1;
+}

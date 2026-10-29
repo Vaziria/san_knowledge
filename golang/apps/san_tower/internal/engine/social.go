@@ -18,6 +18,7 @@ import (
 	facebookv1 "github.com/wargasipil/san_remote/gen/san/remote/facebook/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/telegram/v1/telegramv1connect"
@@ -39,17 +40,18 @@ import (
 )
 
 // The san_remote steps post, upload and read on the user's Threads, X,
-// Facebook and Vidara (and Medium, LinkedIn, TikTok and ChatGPT: sites.go)
-// through `san_remote api`, at the URL of the connection
+// Facebook and Vidara (and Medium, LinkedIn, TikTok, Instagram and ChatGPT:
+// sites.go) through `san_remote api`, at the URL of the connection
 // they name (a san_remote connection). Posts are only scheduled (the user's
 // choice, 2026-10-24): At is a time, picked or linked (Now, Datetime
-// Operation), or a delay from the run linked as text ("+1d"). A post or an
-// upload works in a tab of the user's browser brought to the front, for a
-// minute or two.
+// Operation), or a delay from the run linked as text ("+1d"). Instagram is
+// the exception (2026-10-29): instagram.com cannot schedule, so an Instagram
+// Post without At is shared at once. A post or an upload works in a tab of
+// the user's browser brought to the front, for a minute or two.
 
 // Sites a Social Posts step reads; a Social Status step reads them and
 // ChatGPT (statusSites, sites.go).
-var sites = []string{"Threads", "X", "Facebook", "Vidara", "Medium", "LinkedIn", "TikTok", "YouTube"}
+var sites = []string{"Threads", "X", "Facebook", "Vidara", "Medium", "LinkedIn", "TikTok", "YouTube", "Instagram"}
 
 // The times each site's scheduler offers, onto which At is rounded up:
 // Threads, X and Medium take any minute, Facebook and TikTok 5-minute marks,
@@ -318,7 +320,7 @@ var socialKinds = []*kind{
 }
 
 // scheduleSites are the sites with scheduled posts.
-var scheduleSites = []string{"Threads", "X", "Facebook", "Medium", "LinkedIn", "TikTok", "YouTube"}
+var scheduleSites = []string{"Threads", "X", "Facebook", "Medium", "LinkedIn", "TikTok", "YouTube", "Instagram"}
 
 // socialPosts lists a site's scheduled or published posts, or drafts
 // (Vidara: the account's videos). Last is the last scheduled one (the latest
@@ -466,7 +468,7 @@ func (c *call) listPostsUpTo(site, kind string, limit int) ([]proto.Message, fun
 				items = append(items, v)
 			}
 		}
-	case "Medium", "LinkedIn", "TikTok", "YouTube":
+	case "Medium", "LinkedIn", "TikTok", "YouTube", "Instagram":
 		items, at, err = c.listSitePosts(r, site, kind)
 		if errors.Is(err, errNoList) {
 			return nil, nil, err
@@ -567,20 +569,11 @@ func xPost(c *call) error {
 func (c *call) xMedia() ([]string, error) {
 	var media []string
 	add := func(input, raw string) error {
-		full, err := place(c, input, raw)
-		if err != nil {
-			return err
+		full, err := c.localFile(input, raw)
+		if err == nil {
+			media = append(media, full)
 		}
-		switch fi, err := os.Stat(filepath.FromSlash(full)); {
-		case errors.Is(err, fs.ErrNotExist):
-			return fmt.Errorf("%s %s is not there", input, full)
-		case err != nil:
-			return err
-		case fi.IsDir():
-			return fmt.Errorf("%s %s is a folder: give a file", input, full)
-		}
-		media = append(media, filepath.FromSlash(full))
-		return nil
+		return err
 	}
 	for _, l := range strings.Split(c.text("Image"), "\n") {
 		if l = strings.TrimSpace(l); l != "" {
@@ -601,6 +594,24 @@ func (c *call) xMedia() ([]string, error) {
 		}
 	}
 	return media, nil
+}
+
+// localFile is a media file an input names, raw: a relative path is in the
+// tower's data folder, and the file must be there.
+func (c *call) localFile(input, raw string) (string, error) {
+	full, err := place(c, input, raw)
+	if err != nil {
+		return "", err
+	}
+	switch fi, err := os.Stat(filepath.FromSlash(full)); {
+	case errors.Is(err, fs.ErrNotExist):
+		return "", fmt.Errorf("%s %s is not there", input, full)
+	case err != nil:
+		return "", err
+	case fi.IsDir():
+		return "", fmt.Errorf("%s %s is a folder: give a file", input, full)
+	}
+	return filepath.FromSlash(full), nil
 }
 
 // markdownNote is what Markdown is, in a post step's description.
@@ -650,18 +661,19 @@ func (c *call) postOf(text string, required bool) (post, error) {
 
 // remoteClients are `san_remote api`'s services at one connection's URL.
 type remoteClients struct {
-	threads  threadsv1connect.ThreadsServiceClient
-	x        xv1connect.XServiceClient
-	facebook facebookv1connect.FacebookServiceClient
-	vidara   vidarav1connect.VidaraServiceClient
-	medium   mediumv1connect.MediumServiceClient
-	linkedin linkedinv1connect.LinkedInServiceClient
-	tiktok   tiktokv1connect.TikTokServiceClient
-	youtube  youtubev1connect.YouTubeServiceClient
-	telegram telegramv1connect.TelegramServiceClient
-	chatgpt  chatgptv1connect.ChatGPTServiceClient
-	gemini   geminiv1connect.GeminiServiceClient
-	claude   claudev1connect.ClaudeServiceClient
+	threads   threadsv1connect.ThreadsServiceClient
+	x         xv1connect.XServiceClient
+	facebook  facebookv1connect.FacebookServiceClient
+	vidara    vidarav1connect.VidaraServiceClient
+	medium    mediumv1connect.MediumServiceClient
+	linkedin  linkedinv1connect.LinkedInServiceClient
+	tiktok    tiktokv1connect.TikTokServiceClient
+	youtube   youtubev1connect.YouTubeServiceClient
+	instagram instagramv1connect.InstagramServiceClient
+	telegram  telegramv1connect.TelegramServiceClient
+	chatgpt   chatgptv1connect.ChatGPTServiceClient
+	gemini    geminiv1connect.GeminiServiceClient
+	claude    claudev1connect.ClaudeServiceClient
 }
 
 // sanRemote is the san_remote connection the step names.
@@ -691,18 +703,19 @@ func (c *call) sanRemote() (remoteClients, error) {
 	// it when the tower stops.
 	hc, url := http.DefaultClient, conn.Settings.GetSanRemote().GetUrl()
 	return remoteClients{
-		threads:  threadsv1connect.NewThreadsServiceClient(hc, url),
-		x:        xv1connect.NewXServiceClient(hc, url),
-		facebook: facebookv1connect.NewFacebookServiceClient(hc, url),
-		vidara:   vidarav1connect.NewVidaraServiceClient(hc, url),
-		medium:   mediumv1connect.NewMediumServiceClient(hc, url),
-		linkedin: linkedinv1connect.NewLinkedInServiceClient(hc, url),
-		tiktok:   tiktokv1connect.NewTikTokServiceClient(hc, url),
-		youtube:  youtubev1connect.NewYouTubeServiceClient(hc, url),
-		telegram: telegramv1connect.NewTelegramServiceClient(hc, url),
-		chatgpt:  chatgptv1connect.NewChatGPTServiceClient(hc, url),
-		gemini:   geminiv1connect.NewGeminiServiceClient(hc, url),
-		claude:   claudev1connect.NewClaudeServiceClient(hc, url),
+		threads:   threadsv1connect.NewThreadsServiceClient(hc, url),
+		x:         xv1connect.NewXServiceClient(hc, url),
+		facebook:  facebookv1connect.NewFacebookServiceClient(hc, url),
+		vidara:    vidarav1connect.NewVidaraServiceClient(hc, url),
+		medium:    mediumv1connect.NewMediumServiceClient(hc, url),
+		linkedin:  linkedinv1connect.NewLinkedInServiceClient(hc, url),
+		tiktok:    tiktokv1connect.NewTikTokServiceClient(hc, url),
+		youtube:   youtubev1connect.NewYouTubeServiceClient(hc, url),
+		instagram: instagramv1connect.NewInstagramServiceClient(hc, url),
+		telegram:  telegramv1connect.NewTelegramServiceClient(hc, url),
+		chatgpt:   chatgptv1connect.NewChatGPTServiceClient(hc, url),
+		gemini:    geminiv1connect.NewGeminiServiceClient(hc, url),
+		claude:    claudev1connect.NewClaudeServiceClient(hc, url),
 	}, nil
 }
 

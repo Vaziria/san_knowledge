@@ -16,6 +16,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/hub"
+	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/page"
@@ -59,9 +60,9 @@ func (h *Hub) Browsers() []*v1.Browser { return h.h.Browsers() }
 func (h *Hub) Close() { h.h.Close() }
 
 // API serves the site services (Threads, X, Facebook, Vidara, Medium,
-// LinkedIn, TikTok, YouTube, Telegram, ChatGPT, Gemini, Claude), reaching the
-// browser through the hub at hubURL, as `san_remote api --server hubURL`
-// does. The sites' steps go to log as debug lines.
+// LinkedIn, TikTok, YouTube, Instagram, Telegram, ChatGPT, Gemini, Claude),
+// reaching the browser through the hub at hubURL, as `san_remote api
+// --server hubURL` does. The sites' steps go to log as debug lines.
 func API(hubURL string, log *slog.Logger) http.Handler { return newAPI(hubURL, log).Handler() }
 
 // LANAPI serves the site services as API does, but takes calls from the
@@ -80,20 +81,21 @@ func newAPI(hubURL string, log *slog.Logger) *api.API {
 		return func(step string) { log.Debug(site, "step", step) }
 	}
 	a := &api.API{
-		Client:   c,
-		Server:   hubURL,
-		Threads:  &threads.Service{B: b, Progress: progress("threads")},
-		X:        &x.Service{B: b, Progress: progress("x")},
-		Facebook: &facebook.Service{B: b, Progress: progress("facebook")},
-		Vidara:   &vidara.Service{B: b, Progress: progress("vidara")},
-		Medium:   &medium.Service{B: b, Progress: progress("medium")},
-		LinkedIn: &linkedin.Service{B: b, Progress: progress("linkedin")},
-		TikTok:   &tiktok.Service{B: b, Progress: progress("tiktok")},
-		YouTube:  &youtube.Service{B: b, Progress: progress("youtube")},
-		Telegram: &telegram.Service{B: b, Progress: progress("telegram")},
-		ChatGPT:  &chatgpt.Service{B: b, Progress: progress("chatgpt")},
-		Gemini:   &gemini.Service{B: b, Progress: progress("gemini")},
-		Claude:   &claude.Service{B: b, Progress: progress("claude")},
+		Client:    c,
+		Server:    hubURL,
+		Threads:   &threads.Service{B: b, Progress: progress("threads")},
+		X:         &x.Service{B: b, Progress: progress("x")},
+		Facebook:  &facebook.Service{B: b, Progress: progress("facebook")},
+		Vidara:    &vidara.Service{B: b, Progress: progress("vidara")},
+		Medium:    &medium.Service{B: b, Progress: progress("medium")},
+		LinkedIn:  &linkedin.Service{B: b, Progress: progress("linkedin")},
+		TikTok:    &tiktok.Service{B: b, Progress: progress("tiktok")},
+		YouTube:   &youtube.Service{B: b, Progress: progress("youtube")},
+		Telegram:  &telegram.Service{B: b, Progress: progress("telegram")},
+		Instagram: &instagram.Service{B: b, Progress: progress("instagram")},
+		ChatGPT:   &chatgpt.Service{B: b, Progress: progress("chatgpt")},
+		Gemini:    &gemini.Service{B: b, Progress: progress("gemini")},
+		Claude:    &claude.Service{B: b, Progress: progress("claude")},
 	}
 	return a
 }

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,6 +15,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
@@ -401,5 +404,140 @@ func TestYouTubeList(t *testing.T) {
 	}
 	if d := youtubeDay("Draft"); !d.IsZero() {
 		t.Errorf("no day: %v", d)
+	}
+}
+
+type fakeInstagram struct {
+	instagramv1connect.UnimplementedInstagramServiceHandler
+	*fakeRemote
+}
+
+// A post now is shared and found on the profile; one with a time is
+// scheduled.
+func (f fakeInstagram) CreatePost(_ context.Context, req *connect.Request[instagramv1.CreatePostRequest]) (*connect.Response[instagramv1.CreatePostResponse], error) {
+	f.ig = req.Msg
+	if req.Msg.At != nil {
+		return connect.NewResponse(&instagramv1.CreatePostResponse{Kind: "post", Scheduled: true, At: req.Msg.At}), nil
+	}
+	return connect.NewResponse(&instagramv1.CreatePostResponse{Kind: "post", Post: &instagramv1.Post{Url: "https://www.instagram.com/p/DXe0abc/", Code: "DXe0abc", Kind: "post", Caption: req.Msg.Caption}}), nil
+}
+
+// One post scheduled in Business Suite.
+func (fakeInstagram) ListScheduled(context.Context, *connect.Request[instagramv1.ListScheduledRequest]) (*connect.Response[instagramv1.ListScheduledResponse], error) {
+	return connect.NewResponse(&instagramv1.ListScheduledResponse{Posts: []*instagramv1.Post{
+		{Kind: "post", Caption: "Besok pagi", When: "26 November 09:00", At: timestamppb.New(time.Date(2026, 11, 26, 2, 0, 0, 0, time.UTC))},
+	}}), nil
+}
+
+func (f fakeInstagram) DeletePost(_ context.Context, req *connect.Request[instagramv1.DeletePostRequest]) (*connect.Response[instagramv1.DeletePostResponse], error) {
+	f.igDelete = req.Msg
+	return connect.NewResponse(&instagramv1.DeletePostResponse{Post: &instagramv1.Post{Url: "https://www.instagram.com/p/DXe0abc/", Code: "DXe0abc", Caption: "Senja"}}), nil
+}
+
+func (f fakeInstagram) DeleteScheduled(_ context.Context, req *connect.Request[instagramv1.DeleteScheduledRequest]) (*connect.Response[instagramv1.DeleteScheduledResponse], error) {
+	f.igUnsched = req.Msg
+	return connect.NewResponse(&instagramv1.DeleteScheduledResponse{Post: &instagramv1.Post{Caption: req.Msg.Caption, When: "26 November 09:00"}}), nil
+}
+
+func (fakeInstagram) ListPosts(context.Context, *connect.Request[instagramv1.ListPostsRequest]) (*connect.Response[instagramv1.ListPostsResponse], error) {
+	day := time.Date(2026, 10, 20, 9, 0, 0, 0, time.UTC)
+	return connect.NewResponse(&instagramv1.ListPostsResponse{Posts: []*instagramv1.Post{
+		{Code: "pinned", Caption: "Pinned, older", At: timestamppb.New(day.Add(-30 * 24 * time.Hour)), Pinned: true},
+		{Code: "new", Caption: "Newest", At: timestamppb.New(day)},
+		{Code: "old", Caption: "Older", At: timestamppb.New(day.Add(-24 * time.Hour))},
+	}}), nil
+}
+
+// Instagram Post sends Media with the Caption and now when At is empty, a
+// markdown Text with no Media, and At, on the minute, when there is one: it
+// is then scheduled, and has no Link yet.
+func TestInstagramPost(t *testing.T) {
+	f, env := remote(t)
+	dir := t.TempDir()
+	one, two := filepath.Join(dir, "1.jpg"), filepath.Join(dir, "2.mp4")
+	for _, p := range []string{one, two} {
+		if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	steps, err := run(t, env, "instagram-post", "Connection", "1", "Media", one+"\n\n"+two+"\n", "Caption", "Senja #fotografi", "AI Label", "Yes")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := f.ig; len(r.GetMedia()) != 2 || r.GetMedia()[1].GetFile() != two || r.GetCaption() != "Senja #fotografi" || !r.GetNow() || r.GetAt() != nil || !r.GetAiLabel() {
+		t.Errorf("request = %v", r)
+	}
+	if got := textOut(t, steps[1], "Link"); got != "https://www.instagram.com/p/DXe0abc/" {
+		t.Errorf("Link = %q", got)
+	}
+	if _, err := run(t, env, "instagram-post", "Connection", "1", "Caption", "no media"); err == nil || !strings.Contains(err.Error(), "Media") {
+		t.Errorf("no media: %v", err)
+	}
+	if _, err := run(t, env, "instagram-post", "Connection", "1", "Media", filepath.Join(dir, "gone.jpg")); err == nil || !strings.Contains(err.Error(), "not there") {
+		t.Errorf("a missing file: %v", err)
+	}
+	md := "Senja\n\n![Laut](" + filepath.ToSlash(one) + ")"
+	if _, err := run(t, env, "instagram-post", "Connection", "1", "Format", "Markdown", "Text", md); err != nil {
+		t.Fatal(err)
+	}
+	if r := f.ig; r.GetMarkdown() != md || len(r.GetMedia()) != 0 || !r.GetNow() {
+		t.Errorf("markdown request = %v", r)
+	}
+	before := time.Now()
+	steps, err = run(t, env, "instagram-post", "Connection", "1", "Media", one, "At", "+1d")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if at := f.ig.GetAt().AsTime(); f.ig.GetNow() || at.Before(before.Add(24*time.Hour)) || at.Second() != 0 {
+		t.Errorf("with At, the request = %v", f.ig)
+	}
+	if !objectOut(t, steps[1], "Post").GetStructValue().Fields["scheduled"].GetBoolValue() || textOut(t, steps[1], "Link") != "" {
+		t.Errorf("with At: Post %v, Link %q", objectOut(t, steps[1], "Post"), textOut(t, steps[1], "Link"))
+	}
+}
+
+// Social Posts lists Instagram's published posts; Last is the newest, not the
+// pinned one on top. Instagram has nothing scheduled.
+func TestInstagramLists(t *testing.T) {
+	_, env := remote(t)
+	steps, err := run(t, env, "social-posts", "Connection", "1", "Site", "Instagram", "List", "Published")
+	if err != nil || len(objectOut(t, steps[1], "Posts").GetListValue().Values) != 3 {
+		t.Fatalf("instagram published: %s, %v", ran(steps), err)
+	}
+	if v := objectOut(t, steps[1], "Last").GetStructValue().Fields["code"].GetStringValue(); v != "new" {
+		t.Errorf("Last = %q", v)
+	}
+	if _, err := run(t, env, "social-posts", "Connection", "1", "Site", "Instagram", "List", "Drafts"); err == nil || !strings.Contains(err.Error(), "no drafts") {
+		t.Errorf("instagram drafts: %v", err)
+	}
+	// Business Suite's scheduled posts: Last Scheduled Post finds them.
+	steps, err = run(t, env, "last-scheduled-post", "Connection", "1", "Site", "Instagram")
+	if err != nil || strings.Join(steps[1].Fired, ",") != "Found,Done" || textOut(t, steps[1], "Text") != "Besok pagi" {
+		t.Fatalf("instagram last scheduled: %s, %v", ran(steps), err)
+	}
+}
+
+// Instagram Delete sends a published post's link, or a scheduled post's
+// caption and time; it needs one or the other.
+func TestInstagramDelete(t *testing.T) {
+	f, env := remote(t)
+	steps, err := run(t, env, "instagram-delete", "Connection", "1", "Post", "https://www.instagram.com/p/DXe0abc/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f.igDelete.GetPost() != "https://www.instagram.com/p/DXe0abc/" || objectOut(t, steps[1], "Post").GetStructValue().Fields["code"].GetStringValue() != "DXe0abc" {
+		t.Errorf("published: request %v, Post %v", f.igDelete, objectOut(t, steps[1], "Post"))
+	}
+	if _, err := run(t, env, "instagram-delete", "Connection", "1"); err == nil || !strings.Contains(err.Error(), "Post") {
+		t.Errorf("no post: %v", err)
+	}
+	if _, err := run(t, env, "instagram-delete", "Connection", "1", "List", "Scheduled", "Caption", "Besok", "At", "2026-11-26T09:00"); err != nil {
+		t.Fatal(err)
+	}
+	if r := f.igUnsched; r.GetCaption() != "Besok" || !r.GetAt().AsTime().Equal(time.Date(2026, 11, 26, 9, 0, 0, 0, time.Local)) {
+		t.Errorf("scheduled: request %v", r)
+	}
+	if _, err := run(t, env, "instagram-delete", "Connection", "1", "List", "Scheduled"); err == nil || !strings.Contains(err.Error(), "Caption") {
+		t.Errorf("no caption or time: %v", err)
 	}
 }

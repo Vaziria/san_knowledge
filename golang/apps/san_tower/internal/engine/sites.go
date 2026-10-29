@@ -13,6 +13,7 @@ import (
 	chatgptv1 "github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1"
 	claudev1 "github.com/wargasipil/san_remote/gen/san/remote/claude/v1"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
+	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
 	tiktokv1 "github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1"
@@ -137,6 +138,41 @@ var siteKinds = []*kind{
 		},
 	},
 	{
+		// The user, 2026-10-29: an Instagram node, photos, carousels and
+		// Reels, "Both, chosen by At": with At it is scheduled in Meta
+		// Business Suite; without, it is shared at once on instagram.com,
+		// which cannot schedule.
+		StepKind: &v1.StepKind{
+			Kind: "instagram-post", Title: "Instagram Post", Category: "Social",
+			Group:       "Instagram",
+			Description: "Posts photos, a carousel or a Reel to Instagram through San Remote: as Plain text, Media (photos and videos, one per line, up to 20; one video is a Reel) with a Caption or a File, or as Markdown, Text or a File (its ![alt](file) images are the media, with their alt text). With At it is scheduled in Meta Business Suite (up to 10 files, 15 minutes to 29 days ahead; no AI label, and alt text is not set). With At empty it is shared at once on instagram.com, which cannot schedule: Instagram publishes it as soon as Share is pressed. AI Label Yes turns on Add AI label (shared now only). Link is the post's, for one shared now.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Post", Object), sock("Link", Text)},
+			Settings:    append([]*v1.Setting{connectionSetting(), {Name: "AI Label", Options: []string{"No", "Yes"}}}, formatSettings()...),
+			Inputs: []*v1.Socket{sock("Event", Event),
+				only("Format=Plain,Source=Text", field("Caption")),
+				only("Format=Markdown,Source=Text", field("Text")),
+				only("Source=File", field("File")),
+				only("Format=Plain", field("Media")),
+				atPicker()},
+		},
+		run: instagramPost,
+	},
+	{
+		// The user, 2026-10-29: "dont forget instagram delete node".
+		StepKind: &v1.StepKind{
+			Kind: "instagram-delete", Title: "Instagram Delete", Category: "Social",
+			Group:       "Instagram",
+			Description: "Deletes an Instagram post through San Remote. List Published: Post is a post's link or code (an Instagram Post's Link), deleted from its page on instagram.com; Instagram keeps it in Recently deleted for 30 days. List Scheduled: the one post scheduled in Meta Business Suite whose caption starts with Caption and, when given, goes out at At (a Last Scheduled Post's Text and Datetime); it cannot be undone. Post out is the post as it was listed.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Post", Object)},
+			Settings:    []*v1.Setting{connectionSetting(), {Name: "List", Options: []string{"Published", "Scheduled"}}},
+			Inputs: []*v1.Socket{sock("Event", Event),
+				only("List=Published", field("Post")),
+				only("List=Scheduled", field("Caption")),
+				only("List=Scheduled", atPicker())},
+		},
+		run: instagramDelete,
+	},
+	{
 		StepKind: &v1.StepKind{
 			Kind: "youtube-upload", Title: "YouTube Upload", Category: "Social",
 			Group:       "YouTube",
@@ -257,6 +293,102 @@ var siteKinds = []*kind{
 		},
 		run: askStep("Claude", askClaude),
 	},
+}
+
+// instagramPost runs Instagram Post. A plain post's files are Media, one per
+// line (a relative path is in the tower's data folder), and its caption is
+// Caption or a plain File; a markdown one's are its ![alt](file) images. At
+// schedules it in Business Suite (on the minute, as its fields take); an
+// empty At shares it now.
+func instagramPost(c *call) error {
+	plain := c.setting("Format") != "Markdown"
+	text := "Caption"
+	if !plain {
+		text = "Text"
+	}
+	r, err := c.sanRemote()
+	if err != nil {
+		return err
+	}
+	p, err := c.postOf(text, !plain)
+	if err != nil {
+		return err
+	}
+	req := &instagramv1.CreatePostRequest{Caption: strings.TrimSpace(p.plain), File: p.file, Markdown: p.markdown, AiLabel: c.setting("AI Label") == "Yes"}
+	if plain {
+		for _, l := range strings.Split(c.text("Media"), "\n") {
+			if l = strings.TrimSpace(l); l == "" {
+				continue
+			}
+			f, err := c.localFile("Media", l)
+			if err != nil {
+				return err
+			}
+			req.Media = append(req.Media, &instagramv1.Media{File: f})
+		}
+		if len(req.Media) == 0 {
+			return fmt.Errorf("Media %w: give a photo or video file, one per line", errEmpty)
+		}
+	}
+	if strings.TrimSpace(c.text("At")) == "" {
+		req.Now = true
+	} else {
+		at, err := when(c.text("At"), time.Now(), minuteGrid)
+		if err != nil {
+			return err
+		}
+		req.At = timestamppb.New(at)
+	}
+	res, err := r.instagram.CreatePost(c.ctx, connect.NewRequest(req))
+	if err != nil {
+		return remoteErr(err)
+	}
+	c.outputs["Post"] = toValue(res.Msg)
+	c.outputs["Link"] = stringValue(res.Msg.GetPost().GetUrl())
+	c.fire("Done")
+	return nil
+}
+
+// instagramDelete runs Instagram Delete: a published post by its link or
+// code, or a scheduled one by its caption's start and its time.
+func instagramDelete(c *call) error {
+	r, err := c.sanRemote()
+	if err != nil {
+		return err
+	}
+	var post proto.Message
+	if c.setting("List") == "Scheduled" {
+		caption, req := strings.TrimSpace(c.text("Caption")), &instagramv1.DeleteScheduledRequest{}
+		req.Caption = caption
+		if strings.TrimSpace(c.text("At")) != "" {
+			at, err := when(c.text("At"), time.Now(), minuteGrid)
+			if err != nil {
+				return err
+			}
+			req.At = timestamppb.New(at)
+		}
+		if caption == "" && req.At == nil {
+			return fmt.Errorf("Caption and At %w: give the scheduled post's caption (its start will do), its time, or both", errEmpty)
+		}
+		res, err := r.instagram.DeleteScheduled(c.ctx, connect.NewRequest(req))
+		if err != nil {
+			return remoteErr(err)
+		}
+		post = res.Msg.GetPost()
+	} else {
+		link := strings.TrimSpace(c.text("Post"))
+		if link == "" {
+			return fmt.Errorf("Post %w: give the post's link or code (an Instagram Post's Link)", errEmpty)
+		}
+		res, err := r.instagram.DeletePost(c.ctx, connect.NewRequest(&instagramv1.DeletePostRequest{Post: link}))
+		if err != nil {
+			return remoteErr(err)
+		}
+		post = res.Msg.GetPost()
+	}
+	c.outputs["Post"] = toValue(post)
+	c.fire("Done")
+	return nil
 }
 
 // browserAsks are the sites of the browser ask steps, and how each asks.
@@ -412,6 +544,12 @@ func (c *call) siteStatus(r remoteClients, site string) (proto.Message, error) {
 			return nil, err
 		}
 		return res.Msg.GetStatus(), nil
+	case "Instagram":
+		res, err := r.instagram.GetStatus(c.ctx, connect.NewRequest(&instagramv1.GetStatusRequest{}))
+		if err != nil {
+			return nil, err
+		}
+		return res.Msg.GetStatus(), nil
 	case "ChatGPT":
 		res, err := r.chatgpt.GetStatus(c.ctx, connect.NewRequest(&chatgptv1.GetStatusRequest{}))
 		if err != nil {
@@ -503,6 +641,25 @@ func (c *call) listSitePosts(r remoteClients, site, kind string) ([]proto.Messag
 			if youtubeList(v.GetVisibility()) == kind {
 				items, at = append(items, v), append(at, youtubeDay(v.GetDate()))
 			}
+		}
+	case "Instagram/Scheduled":
+		// Business Suite's Dijadwalkan tab.
+		res, err := r.instagram.ListScheduled(c.ctx, connect.NewRequest(&instagramv1.ListScheduledRequest{}))
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, p := range res.Msg.Posts {
+			items, at = append(items, p), append(at, p.GetAt().AsTime())
+		}
+	case "Instagram/Published":
+		// The profile's latest posts (San Remote's default, 10), each read on
+		// its own page.
+		res, err := r.instagram.ListPosts(c.ctx, connect.NewRequest(&instagramv1.ListPostsRequest{}))
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, p := range res.Msg.Posts {
+			items, at = append(items, p), append(at, p.GetAt().AsTime())
 		}
 	default:
 		return nil, nil, fmt.Errorf("%s %w (%s)", site, errNoList, kind)

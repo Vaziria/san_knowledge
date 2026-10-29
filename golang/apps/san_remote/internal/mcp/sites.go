@@ -10,6 +10,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/tiktok"
@@ -18,13 +19,14 @@ import (
 
 // The tools of the sites added on 2026-10-25: medium_*, linkedin_*, tiktok_*,
 // chatgpt_*, gemini_* and claude_*; youtube_* on 2026-10-26, telegram_* on
-// 2026-10-27.
+// 2026-10-27, instagram_* on 2026-10-29.
 
 const sitesInstructions = `
 medium_* write the user's markdown articles into Medium (interface in English) through that browser, as a person does in Medium's editor: medium_draft makes a draft from an article file (title, subtitle, text, images with alt text and captions) and, with at, schedules it; medium_schedule schedules a draft, medium_unschedule cancels its time; medium_drafts, medium_scheduled, medium_get and medium_status read. Nothing is published at once. medium_delete deletes a draft (it cannot be undone: ask the user first).
 linkedin_* do the same for the user's LinkedIn articles (interface in English), in LinkedIn's article editor: linkedin_draft (with a cover, and with at a schedule on a quarter hour, shared with text), linkedin_schedule, linkedin_unschedule (by title), linkedin_drafts, linkedin_scheduled, linkedin_get, linkedin_status; linkedin_delete deletes a draft (ask the user first). Each brings Chrome to the front for a minute or more.
 tiktok_* post the user's videos to TikTok (interface in English) through TikTok Studio in that browser: tiktok_post schedules a video for Everyone (15 minutes to 30 days ahead, on a 5-minute step) or, with now, posts it for Only you; tiktok_posts lists Studio's posts; tiktok_delete deletes one (it cannot be undone: ask the user first); tiktok_status reads. Post only what the user asked for.
 youtube_* upload the user's videos to YouTube (interface in English) through YouTube Studio in that browser: youtube_upload uploads a video (title, description, tags; short for a Short, a vertical or square video of at most 3 minutes) and schedules it at at (at least 15 minutes ahead), or without at saves it as Private: never public at once; youtube_videos lists Studio's Videos and Shorts; youtube_private makes a video Private (a scheduled one loses its schedule); youtube_delete deletes one for good (a Public one only with allow_public; it cannot be undone: ask the user first); youtube_status reads. Upload only what the user asked for. An upload brings Chrome to the front for as long as the file takes to go up.
+instagram_* post the user's photos and videos to Instagram through that browser: instagram_post with at schedules photos or one video (a Reel) with a caption in Meta Business Suite (interface in Indonesian; up to 10 files, 15 minutes to 29 days ahead); with now it shares them at once on instagram.com (interface in English; up to 20 files), which cannot schedule, so use now only for a post the user asked to publish now. rehearse does every step but the last. instagram_scheduled lists what is scheduled in Business Suite, instagram_posts the profile's latest posts; instagram_delete deletes a published post (kept in Recently deleted for 30 days) and instagram_delete_scheduled a scheduled one (it cannot be undone): ask the user first; instagram_status reads.
 telegram_* work in Telegram Web (interface in English) in that browser, as the user's own account: telegram_create_bot asks @BotFather for a new bot and returns its token (a secret: hand it to what needs it, never repeat it in chat); telegram_delete_bot deletes one of the account's bots; telegram_create_group makes a group with no other members yet and returns its id; telegram_delete_group deletes a group for all its members; telegram_add_member and telegram_remove_member add and remove a user by username; telegram_status reads. Deletes and removals cannot be undone, and adding someone to a group is seen by them: ask the user first. Each brings Chrome to the front with a tab of its own for a minute or so.
 chatgpt_* ask ChatGPT (interface in English) through that browser: chatgpt_ask sends a prompt and returns the answer as markdown, in a Temporary chat unless keep is set; chat continues a kept chat by its link. chatgpt_status reads the account and plan.
 gemini_* ask Gemini (gemini.google.com, interface in English) through that browser: gemini_ask sends a prompt and returns the answer, in a Temporary chat unless keep is set; it brings Chrome to the front while it asks, since Gemini sends only from a shown page. gemini_status reads the Google account's name.
@@ -132,6 +134,41 @@ func siteToolDefs() []any {
 				"when":    str(`Its date as tiktok_posts shows it, "Nov 3, 7:00 PM"`),
 				"browser": browserProp,
 			}, "caption", "when"), false, true),
+
+		tool("instagram_status", "Instagram: who is signed in",
+			"Whether the browser is signed in to Instagram, and as whom (@handle and name).",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("instagram_post", "Instagram: schedule a post, or share it now",
+			"With at, schedule photos (a carousel of up to 10) or one video (a Reel) with a caption in Meta Business Suite's composer, for the Instagram account only. With now, share them (up to 20) on instagram.com at once, in the Original crop, with the photos' alt text, Share to Threads and Facebook off: instagram.com cannot schedule, so give now only for a post the user asked to publish now. rehearse does every step but the last and discards it. Give a post file (frontmatter at: and ai_label:, the caption, and ![alt](file) for each photo or video, in order) or media and caption. Brings Chrome to the front for a few minutes.",
+			schema(map[string]any{
+				"file":     str("A post markdown file: the caption, and ![alt](file) for each photo or video, relative to it"),
+				"media":    strs("The photo and video files, in order, instead of a post file"),
+				"caption":  str("The caption, with media: plain text, up to 2200 characters and 30 #hashtags"),
+				"at":       timeProp("Schedule it in Meta Business Suite for this time: a whole minute, 15 minutes to 29 days ahead"),
+				"now":      flag("Share it now: Instagram publishes it at once"),
+				"rehearse": flag("Do every step but Share, then discard the post"),
+				"ai_label": flag(`Turn on "Add AI label", for realistic photos and videos made with AI`),
+				"browser":  browserProp,
+			}), false, false),
+		tool("instagram_scheduled", "Instagram: scheduled posts",
+			"The posts scheduled in Meta Business Suite (Konten, Dijadwalkan): when each goes out, post or reel, caption.",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("instagram_delete", "Instagram: delete a post",
+			"Delete a published post of the account, by its link or code: its page's More Options, Delete. Instagram keeps it in Recently deleted for 30 days. Ask the user first.",
+			schema(map[string]any{
+				"post":    str("The post's link (https://www.instagram.com/p/<code>/) or its code"),
+				"browser": browserProp,
+			}, "post"), false, true),
+		tool("instagram_delete_scheduled", "Instagram: delete a scheduled post",
+			"Delete the one post scheduled in Meta Business Suite whose caption starts with caption and, when given, goes out at at, as instagram_scheduled shows it. It cannot be undone: ask the user first.",
+			schema(map[string]any{
+				"caption": str("The post's caption, or its start"),
+				"at":      timeProp("When it goes out, as scheduled"),
+				"browser": browserProp,
+			}), false, true),
+		tool("instagram_posts", "Instagram: the profile's posts",
+			"The profile's latest posts as its grid shows them, pinned ones first: when, post or reel, link, caption. Each is read on its own page.",
+			schema(map[string]any{"limit": intg("How many (default 10)"), "browser": browserProp}), true, false),
 
 		tool("youtube_status", "YouTube: who is signed in",
 			"Whether the browser is signed in to YouTube, and as whom (name and @handle).",
@@ -514,6 +551,121 @@ func (s *Server) tiktok(ctx context.Context, name string, a args) (string, error
 			return "", err
 		}
 		return "Deleted: " + l.Row, nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) instagram(ctx context.Context, name string, a args) (string, error) {
+	ig := s.Instagram
+	switch name {
+	case "instagram_status":
+		st, err := ig.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to Instagram.", nil
+		}
+		who := "@" + st.Handle
+		if st.Name != "" {
+			who = st.Name + " (" + who + ")"
+		}
+		return "Signed in to Instagram as " + who + ".", nil
+	case "instagram_post":
+		var p *instagram.Post
+		switch {
+		case a.File != "" && len(a.Media) > 0:
+			return "", errors.New("give file or media, not both")
+		case a.File != "":
+			var err error
+			if p, err = instagram.ParseFile(a.File); err != nil {
+				return "", err
+			}
+		case len(a.Media) > 0:
+			p = &instagram.Post{Caption: a.Caption}
+			for _, f := range a.Media {
+				p.Media = append(p.Media, instagram.Media{File: f})
+			}
+		default:
+			return "", errors.New("file or media is required")
+		}
+		if a.At != "" {
+			at, err := instagram.ParseTime(a.At)
+			if err != nil {
+				return "", err
+			}
+			p.At = at
+		}
+		p.Now, p.Rehearse, p.Browser = a.Now, a.Rehearse, a.Browser
+		p.AILabel = p.AILabel || a.AILabel
+		r, err := ig.Post(ctx, *p)
+		if err != nil {
+			return "", err
+		}
+		switch {
+		case p.Rehearse && r.Scheduled:
+			return "Rehearsed a scheduled " + r.Kind + " in Meta Business Suite: every step but Jadwalkan; nothing was scheduled.", nil
+		case r.Scheduled:
+			return "Scheduled a " + r.Kind + " in Meta Business Suite for " + r.At.Format("Mon 2 Jan 2006 15:04 MST") + ".", nil
+		case p.Rehearse:
+			return "Rehearsed a " + r.Kind + ": every step but Share; nothing was shared.", nil
+		case r.Link != "":
+			return "Shared a " + r.Kind + ": " + r.Link, nil
+		}
+		return "Shared a " + r.Kind + "; the profile does not show it yet.", nil
+	case "instagram_delete":
+		l, err := ig.Delete(ctx, a.Browser, a.Post)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted %s (%s): %s", l.Link, l.At.Format(time.RFC3339), l.Caption), nil
+	case "instagram_delete_scheduled":
+		var at time.Time
+		if a.At != "" {
+			var err error
+			if at, err = instagram.ParseTime(a.At); err != nil {
+				return "", err
+			}
+		}
+		l, err := ig.DeleteScheduled(ctx, a.Browser, a.Caption, at)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Deleted the post scheduled %s: %s", l.When, l.Caption), nil
+	case "instagram_scheduled":
+		list, err := ig.Scheduled(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if len(list) == 0 {
+			return "Nothing is scheduled.", nil
+		}
+		var b strings.Builder
+		for _, l := range list {
+			when := l.When
+			if !l.At.IsZero() {
+				when = l.At.Format(time.RFC3339)
+			}
+			fmt.Fprintf(&b, "%s | %s | %s\n", when, l.Kind, l.Caption)
+		}
+		return b.String(), nil
+	case "instagram_posts":
+		list, err := ig.Posts(ctx, a.Browser, int(a.Limit))
+		if err != nil {
+			return "", err
+		}
+		if len(list) == 0 {
+			return "No posts.", nil
+		}
+		var b strings.Builder
+		for _, l := range list {
+			kind := l.Kind
+			if l.Pinned {
+				kind += " (pinned)"
+			}
+			fmt.Fprintf(&b, "%s | %s | %s | %s\n", l.At.Format(time.RFC3339), kind, l.Link, l.Caption)
+		}
+		return b.String(), nil
 	}
 	return "", fmt.Errorf("unknown tool %q", name)
 }

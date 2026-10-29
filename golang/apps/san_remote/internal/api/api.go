@@ -6,7 +6,9 @@
 // Like the CLI and the MCP server, it runs the site steps in its own process
 // and reaches the browser through serve's RemoteService (page.Remote), so
 // serve stays generic and a fix to a site needs only an api restart. It only
-// schedules posts: the site publishes them at their time.
+// schedules posts: the site publishes them at their time. Instagram is the
+// exception (the user, 2026-10-29): instagram.com cannot schedule, so its
+// posts are shared at once, when the request says now.
 package api
 
 import (
@@ -26,6 +28,7 @@ import (
 	facebookv1 "github.com/wargasipil/san_remote/gen/san/remote/facebook/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/telegram/v1/telegramv1connect"
@@ -44,6 +47,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/hub"
+	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/telegram"
@@ -61,20 +65,21 @@ const DefaultAddr = "127.0.0.1:7478"
 // API serves the site services. Client is serve's RemoteService, which the
 // services and the pass-through use; Server is its URL, for errors.
 type API struct {
-	Client   remotev1connect.RemoteServiceClient
-	Server   string
-	Threads  *threads.Service
-	X        *x.Service
-	Facebook *facebook.Service
-	Vidara   *vidara.Service
-	Medium   *medium.Service
-	LinkedIn *linkedin.Service
-	TikTok   *tiktok.Service
-	YouTube  *youtube.Service
-	Telegram *telegram.Service
-	ChatGPT  *chatgpt.Service
-	Gemini   *gemini.Service
-	Claude   *claude.Service
+	Client    remotev1connect.RemoteServiceClient
+	Server    string
+	Threads   *threads.Service
+	X         *x.Service
+	Facebook  *facebook.Service
+	Vidara    *vidara.Service
+	Medium    *medium.Service
+	LinkedIn  *linkedin.Service
+	TikTok    *tiktok.Service
+	YouTube   *youtube.Service
+	Telegram  *telegram.Service
+	Instagram *instagram.Service
+	ChatGPT   *chatgpt.Service
+	Gemini    *gemini.Service
+	Claude    *claude.Service
 	// LAN takes calls from the local network too (hub.GuardLAN), for a
 	// server that listens there.
 	LAN bool
@@ -95,6 +100,7 @@ func (a *API) Handler() http.Handler {
 	mux.Handle(tiktokv1connect.NewTikTokServiceHandler(tiktokAPI{a}))
 	mux.Handle(youtubev1connect.NewYouTubeServiceHandler(youtubeAPI{a}))
 	mux.Handle(telegramv1connect.NewTelegramServiceHandler(telegramAPI{a}))
+	mux.Handle(instagramv1connect.NewInstagramServiceHandler(instagramAPI{a}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatgptAPI{a}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAPI{a}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeAPI{a}))
@@ -123,7 +129,8 @@ func (a *API) fail(err error) error {
 		errors.Is(err, facebook.ErrNotSignedIn), errors.Is(err, facebook.ErrLanguage), errors.Is(err, vidara.ErrNotSignedIn):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
 	case errors.Is(err, x.ErrNotFound), errors.Is(err, vidara.ErrNoFolder),
-		errors.Is(err, chatgpt.ErrChatGone), errors.Is(err, gemini.ErrChatGone), errors.Is(err, claude.ErrChatGone):
+		errors.Is(err, chatgpt.ErrChatGone), errors.Is(err, gemini.ErrChatGone), errors.Is(err, claude.ErrChatGone),
+		errors.Is(err, instagram.ErrNoMatch):
 		return connect.NewError(connect.CodeNotFound, err)
 	}
 	if code, ok := siteCode(err); ok {

@@ -531,7 +531,7 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   runs again on each event it publishes.
 - Social steps (category Social, and AI for ChatGPT, Gemini and Claude)
   work on the user's Threads, X, Facebook, Vidara, Medium, LinkedIn, TikTok,
-  ChatGPT, Gemini and claude.ai through
+  YouTube, Instagram, ChatGPT, Gemini and claude.ai through
   `san_remote api`, the San Remote connection their Connection setting names:
   - Threads Post, X Post, Facebook Post schedule a post: Text (lines that
     are only `---` split a thread into posts; Facebook takes one) and At.
@@ -616,6 +616,37 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   - TikTok Post (Social › TikTok) schedules Video (an absolute path) with
     Caption for Everyone at At, on a 5-minute step up to 30 days ahead;
     `#hashtags` are picked from TikTok's suggestions.
+  - Instagram Post (Social › Instagram; the user, 2026-10-29: an Instagram
+    node, photos, carousels and Reels, "both, chosen by At") posts through
+    San Remote's InstagramService. With Format Plain,
+    Media is the files, one per line (up to 20, photos and videos mixed; a
+    relative path is in the tower's data folder, and a file not there fails
+    the step), with Caption or a File. With Markdown, Text or a File is a
+    post file, whose `![alt](file)` images are the media with their alt
+    text, so X Post Download's Markdown is a post as it is. One video is a
+    Reel, anything else a feed post. With At (on the minute, 15 minutes to
+    29 days ahead) it is scheduled in Meta Business Suite, where
+    @archetipe__, a creator account, is signed in: up to 10 files, no AI
+    label, and alt text is not set. **An empty At shares it at once** on
+    instagram.com, which has no schedule: Instagram publishes the post as
+    soon as Share is pressed. This is the one post step that does not only
+    schedule. AI Label Yes turns on Add AI label there. Share to Threads and
+    Facebook are always off. Post is the response (`scheduled` and `at` for
+    a scheduled one), and Link the post's (https://www.instagram.com/p/<code>/)
+    when shared now, found on the profile after Share (empty when the
+    profile does not show it yet, and for a scheduled post). Social
+    Status reads Instagram, and Social Posts lists its Published posts (the
+    latest 10, pinned ones included; Last is the newest by time) or its
+    Scheduled ones (Business Suite's Dijadwalkan), which Last Scheduled Post
+    reads too; Post Count leaves it out.
+  - Instagram Delete (Social › Instagram; the user, 2026-10-29: "dont
+    forget instagram delete node") deletes a post. List Published: Post is
+    its link or code (an Instagram Post's Link), deleted from its page on
+    instagram.com, which keeps it in Recently deleted for 30 days. List
+    Scheduled: the one post scheduled in Business Suite whose caption starts
+    with Caption and, when given, goes out at At, such as a Last Scheduled
+    Post's Text and Datetime; it cannot be undone. Several or no posts
+    matching fail the step. Post is the post as it was listed.
   - YouTube Upload (Social › YouTube; the user, 2026-10-26: YouTube in San
     Remote, Shorts too) uploads Video (an absolute path) through YouTube
     Studio (San Remote's YouTubeService) with Title, Description and Tags
@@ -1455,7 +1486,8 @@ second fails to listen before it opens the broker.
 - `internal/engine`: `kinds.go` the kinds of step and how each runs,
   `actions.go` HTTP Request and Publish to Topic, `social.go` the San Remote
   steps (clients of `san_remote api`, the At times), `sites.go` the Medium,
-  LinkedIn, TikTok, ChatGPT, Gemini and Claude (Browser) steps, `claude.go`
+  LinkedIn, TikTok, Instagram, YouTube, ChatGPT, Gemini and Claude (Browser)
+  steps, `claude.go`
   Claude Ask (CLI), `run.go` running a
   graph (`Execute`, with an `Env` for connections, storages and publishing), `expr.go`
   CEL, `engine.go` runs (recorded in the store), the triggers' pull

@@ -15,11 +15,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	facebookv1 "github.com/wargasipil/san_remote/gen/san/remote/facebook/v1"
+	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	tiktokv1 "github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1"
 	xv1 "github.com/wargasipil/san_remote/gen/san/remote/x/v1"
 	youtubev1 "github.com/wargasipil/san_remote/gen/san/remote/youtube/v1"
 	"github.com/wargasipil/san_remote/internal/facebook"
+	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/x"
@@ -230,6 +232,50 @@ func tiktokPostOf(m *tiktokv1.SchedulePostRequest) (*tiktok.Post, error) {
 	p.Browser = m.Browser
 	if p.At, err = atOr(m.At, p.At); err != nil {
 		return nil, err
+	}
+	return p, nil
+}
+
+// instagramPostOf reads a CreatePost request: its media and caption, or a
+// markdown file or text, whose ![alt](file) images are the media; media
+// given in the request win over the markdown's.
+func instagramPostOf(m *instagramv1.CreatePostRequest) (*instagram.Post, error) {
+	md, err := markdownOf(m.File, m.Markdown, strings.TrimSpace(m.Caption) != "")
+	if err != nil {
+		return nil, err
+	}
+	var media []instagram.Media
+	for _, f := range m.Media {
+		if err := absolute("media", f.GetFile()); err != nil {
+			return nil, err
+		}
+		media = append(media, instagram.Media{File: strings.TrimSpace(f.GetFile()), Alt: strings.TrimSpace(f.GetAlt())})
+	}
+	p := &instagram.Post{Caption: strings.TrimSpace(m.Caption)}
+	switch file := strings.TrimSpace(m.File); {
+	case !md:
+	case file != "":
+		if p, err = instagram.ParseFile(file); err != nil {
+			return nil, parsed(err)
+		}
+	default:
+		if p, err = instagram.Parse([]byte(m.Markdown)); err != nil {
+			return nil, parsed(err)
+		}
+		if len(media) == 0 {
+			for _, f := range p.Media {
+				if err := absoluteIn("media", f.File); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	if len(media) > 0 {
+		p.Media = media
+	}
+	p.Browser, p.Now, p.AILabel = m.Browser, m.Now, p.AILabel || m.AiLabel
+	if m.At != nil {
+		p.At = m.At.AsTime().Local()
 	}
 	return p, nil
 }

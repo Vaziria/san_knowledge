@@ -90,6 +90,7 @@ bin\san_remote.exe x ...                          # X: see "X" below
 bin\san_remote.exe medium ...                     # Medium: see "Medium" below
 bin\san_remote.exe linkedin ...                   # LinkedIn: see "LinkedIn" below
 bin\san_remote.exe tiktok ...                     # TikTok: see "TikTok" below
+bin\san_remote.exe instagram ...                  # Instagram: see "Instagram" below
 bin\san_remote.exe chatgpt ...                    # ChatGPT: see "ChatGPT" below
 bin\san_remote.exe gemini ...                     # Gemini: see "Gemini" below
 bin\san_remote.exe claude ...                     # claude.ai: see "Claude" below
@@ -181,6 +182,12 @@ rebuilding, reconnect with `/mcp`.
 | `tiktok_status`, `tiktok_posts` | browser |
 | `tiktok_post` | file, or video with caption; at or now, browser |
 | `tiktok_delete` | caption, when, browser |
+| `instagram_status` | browser |
+| `instagram_post` | file, or media with caption; at (scheduled in Business Suite) or now (published at once), rehearse, ai_label, browser |
+| `instagram_posts` | limit, browser |
+| `instagram_scheduled` | browser |
+| `instagram_delete` | post (link or code), browser |
+| `instagram_delete_scheduled` | caption, at, browser |
 | `youtube_status`, `youtube_videos` | browser |
 | `youtube_upload` | file, or video with title; description, tags, at, short, browser |
 | `youtube_private` | video (id or link), browser |
@@ -207,7 +214,10 @@ an ad. For Facebook they say to post only what you asked for, where you
 asked, and to ask before a delete. For X, as for Threads, they say to
 schedule or post only what you asked for, and never now unless you asked.
 For Medium, LinkedIn and TikTok they say that nothing is published at once,
-to post only what you asked for, and to ask before a delete. For Telegram
+to post only what you asked for, and to ask before a delete. For Instagram
+they say `at` schedules in Business Suite and `now` publishes at once, since
+instagram.com cannot schedule, so to use `now` only for a post you asked to
+publish now. For Telegram
 they say the bot token is a secret not to repeat in chat, and to ask before
 a delete, a removal or adding someone to a group. For ChatGPT
 and Gemini they say a new chat is a Temporary chat unless `keep` is set, and
@@ -236,6 +246,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.medium.v1.MediumService` | GetStatus, CreateDraft (an absolute article file, or its markdown; with `at`, scheduled too, with topics), ScheduleDraft, ListDrafts, ListScheduled |
 | `san.remote.linkedin.v1.LinkedInService` | GetStatus, CreateDraft (an absolute article file, or its markdown, and cover; with `at`, scheduled too, shared with `text`), ScheduleDraft, ListDrafts, ListScheduled |
 | `san.remote.tiktok.v1.TikTokService` | GetStatus, SchedulePost (an absolute video file, for Everyone; the caption, or a markdown file or text), ListPosts |
+| `san.remote.instagram.v1.InstagramService` | GetStatus, CreatePost (photos, a carousel or a Reel by absolute paths, with alt text; the caption, or a markdown file or text; `at` schedules it in Business Suite, `now` shares it at once), ListPosts (the profile's latest, `limit`), ListScheduled (Business Suite's Dijadwalkan), DeletePost (by link or code), DeleteScheduled (by caption and/or `at`; one must match) |
 | `san.remote.youtube.v1.YouTubeService` | GetStatus, UploadVideo (an absolute video file; scheduled, or saved as Private; `short`), ListVideos, DeleteVideo (never a Public one unless `allow_public`), MakePrivate |
 | `san.remote.telegram.v1.TelegramService` | GetStatus, CreateBot (through @BotFather; the bot with its token), DeleteBot, CreateGroup (the group's id), DeleteGroup, AddMember, RemoveMember (a group by id or title, a user by username) |
 | `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
@@ -248,7 +259,10 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
   post on Facebook, which cannot be scheduled, is refused. A Medium or
   LinkedIn article without `at` stays a draft, and a YouTube video without
   it is saved as Private (2026-10-27: the tower's YouTube Upload sends none
-  when At is empty); nobody else sees either.
+  when At is empty); nobody else sees either. Instagram is the exception
+  (the user, 2026-10-29): CreatePost schedules with `at`, in Business
+  Suite, or with `now` shares at once on instagram.com, which cannot
+  schedule.
 - **Files are absolute paths** (articles, covers, videos): a relative one
   would be inside wherever the api was started.
 - **Markdown posts** (the user, 2026-10-25, for the tower's post steps'
@@ -918,6 +932,173 @@ person does);
 `status` reads in a background tab. A failed step stops with a screenshot:
 `san_remote-youtube-150405.png`.
 
+## Instagram
+
+`san_remote instagram` posts your photos, carousels and Reels to Instagram
+(2026-10-29). It schedules them in Meta Business Suite, or shares them at
+once on instagram.com, in your browser's sessions, the way you would there:
+- **post --at** schedules the post in Business Suite's composer (see
+  "Scheduling" below).
+- **post --now** presses New post on instagram.com and gives the dialog's file input the files, in
+  order. It picks the Original crop (Instagram picks 1:1 at first, which
+  cuts a portrait or landscape photo) and presses Next through Edit. Then it
+  pastes the caption (and takes the focus off it, which is when Instagram
+  takes it), writes each photo's alt text under Accessibility, and
+  sets the switches: Add AI label as asked, Share to Threads and Share to
+  Facebook off. It reads all of that back, then presses Share.
+- **posts** lists the profile's latest posts, each read on its own page for
+  its time and caption; **scheduled** lists what is scheduled in Business
+  Suite (Konten, Dijadwalkan).
+- **delete** deletes a published post, by its link or code: its page's More
+  Options, Delete, then Delete when Instagram asks "Delete post?". Instagram
+  keeps it in Recently deleted for 30 days. **delete-scheduled** deletes a
+  scheduled post in Business Suite (see "Scheduling").
+- **status** says who is signed in.
+
+```powershell
+bin\san_remote.exe instagram status                         # signed in as Resan (@archetipe__)
+bin\san_remote.exe instagram post --dry-run --at "2026-11-03 19:00" post.md   # the kind, when, the files, the caption; opens nothing
+bin\san_remote.exe instagram post --at "2026-11-03 19:00" post.md             # scheduled a post for Tue 3 Nov 2026 19:00
+bin\san_remote.exe instagram post --rehearse --at "2026-11-03 19:00" post.md  # every step but Jadwalkan
+bin\san_remote.exe instagram post --now post.md             # https://www.instagram.com/p/<code>/
+bin\san_remote.exe instagram post --rehearse --now post.md  # every step but Share, then Discard
+bin\san_remote.exe instagram post --now --media a.jpg --media b.jpg --caption "Senja #fotografi"
+bin\san_remote.exe instagram posts --limit 5                # WHEN, KIND, LINK, CAPTION
+bin\san_remote.exe instagram scheduled                      # WHEN, KIND, CAPTION
+bin\san_remote.exe instagram delete https://www.instagram.com/p/<code>/
+bin\san_remote.exe instagram delete-scheduled --caption "Senja" --at "2026-11-03 19:00"
+```
+
+**Now or scheduled.** instagram.com has no schedule: Share is its only
+button, and the post is public as soon as it is pressed (seen 2026-10-29).
+So a post says `--at` (or `at:`), which schedules it in Business Suite, or
+`--now`, which shares it there and then; it is refused with neither.
+`--rehearse` does every step but the last (Share, or Jadwalkan) and
+discards the post, to check a post, or the tool after a site changes,
+without publishing anything.
+
+**Scheduling** (the user, 2026-10-29: "both, chosen by at") goes through
+Meta Business Suite, which schedules Instagram posts for a professional
+(creator or business) account. @archetipe__ became a creator account and
+was signed in to business.facebook.com with Instagram for it. The tool:
+1. opens business.facebook.com/latest/home (signed in, in Indonesian) and
+   presses Buat postingan;
+2. checks that the composer posts to that Instagram account only ("Posting
+   ke", and "Bagikan foto dan video di Instagram");
+3. presses Tambahkan foto/video and gives the file input it makes the
+   files;
+4. pastes the caption and takes the focus off it;
+5. turns Atur tanggal dan waktu on and types the date (dd/mm/yyyy) and the
+   time, which must then read back ("30 Oktober 2026", 9:00);
+6. reads the files, caption and time back, and presses Jadwalkan.
+
+- Limits, checked first: up to 10 files ("Postingan tidak boleh melebihi
+  10 foto atau video"), a whole minute 15 minutes to 29 days ahead, and no
+  AI label (the composer has none). Alt text is not set on a scheduled
+  post: the composer has its own, under Edit foto.
+- **The files.** "Tambahkan foto/video" makes its file input in code and
+  calls its `click()`, which opens no dialog for a script. So, just
+  before, the tool patches `click()` in the page's own world to mark that
+  input and put it in the document instead, and undoes it after. The input
+  takes the files on an `input` event: `change` alone took none.
+- What Jadwalkan sends was checked with the page's requests blocked:
+  `BusinessComposerStoryCreationMutation` with the caption, the photos,
+  `channels: ["INSTAGRAM_POST"]`, `share_to_threads: false` and the
+  `scheduled_publish_time`. A rehearsal leaves no draft (Draf stays
+  empty).
+- **The scheduled list** is the Content page's Dijadwalkan tab
+  (/latest/posts/scheduled_posts): a row per post, whose checkbox is named
+  'Centang item dengan keterangan "<the whole caption>"', with the type
+  ("Foto ·") and the time as "26 November 09:00" (no year: the next such
+  day).
+- **delete-scheduled** finds the one row whose caption starts as given
+  (spaces aside) and, with `--at`, goes out then; several or none is an
+  error. Its checkbox opens the Detail Postingan panel, which must be that
+  post's, then Tindakan, Hapus postingan, and Hapus when Business Suite asks
+  "Hapus Postingan?"; the list is read again until it is gone. The row's own
+  menu (Buka Menu Pilihan) has only Kelola postingan and Salin ID postingan,
+  and the panel's Terbitkan sekarang, which publishes at once, is never
+  pressed.
+- **Live-tested** on 2026-10-29: a captioned carousel scheduled for 26
+  November 09:00 (`scheduled a post for Thu 26 Nov 2026 09:00`), listed by
+  `scheduled` as "2026-11-26 09:00 post Uji otomatis …", then deleted with
+  `delete-scheduled --caption … --at …`, after which Dijadwalkan was empty.
+  The Detail Postingan panel's preview took more than 15 seconds to load
+  ("Memuat cuplikan"), so the post is told by the row ticked, whose checkbox
+  holds its whole caption. `delete` deleted two published test posts, the
+  profile then not showing them; a single photo shared with the fix had its
+  caption (checked in `/api/v1/media/<id>/info/`).
+
+**The post file** reads like an X post file:
+
+```markdown
+---
+at: 2026-11-03 19:00
+---
+
+Senja di Parangtritis. #fotografi #jogja
+
+![Matahari terbenam di atas laut](photos/1.jpg)
+![](photos/2.mp4)
+```
+
+- Each `![alt](file)` is a photo or video of the post, in the order they
+  come, relative to the file. Everything else is the caption, its markdown
+  written as plain text. X Post Download's Markdown is a post file as it
+  is.
+- **What it makes:** one video is a Reel (instagram.com shares every video
+  post as one, after "Video posts are now shared as reels", which the tool
+  answers OK). Photos, or several files, make a feed post, a carousel when
+  there are several (photos and videos may be mixed).
+- **Limits**, checked before a tab opens: up to 20 files (the file input
+  took 20 and dropped a 21st with a note that says 10); jpg, png, avif,
+  heic, heif, mp4, mov; 1KB or more ("Files must be 1KB or more"); a
+  caption of up to 2,200 characters and 30 hashtags.
+- **Alt text** is for photos only; a video's is not used.
+- `#hashtags` and `@mentions` are written as they are; Instagram links them.
+
+How it was found (2026-10-29, `instagram.js`): the dialog's file input
+takes a DataTransfer, the crop options are plain clicks, the Lexical caption
+takes a paste event with its line breaks, and an alt text input keeps a
+value set through its own setter plus an input event. The switches are
+`role=switch` inputs with `aria-checked`. A post's time is the
+`time[datetime]` inside the link to the post itself (another is when its
+caption was edited), and its caption is in `og:title`. React does not render
+a hidden page, and Chrome does not even load a video in a tab that was never
+shown, so `post` brings Chrome to the front with a tab of its own (as
+TikTok does) and waits for it to be shown.
+
+- **The caption is taken on blur.** Instagram's counter counts a pasted
+  caption at once, but Instagram takes the caption for the post only when
+  the box loses focus, as it does when a person clicks Share. The first live
+  post went out with no caption. With POSTs blocked in the page,
+  `/api/v1/media/configure/` showed `caption=` empty after a paste and
+  `caption=…` after a blur. It is the box's blur event that counts, which
+  `blur()` fires only while the window has the focus: with Chrome shown but
+  the user typing in another window, two more posts went out with none. So
+  the tool blurs the box after pasting and sends it the blur and focusout
+  events too, will not press Share while it has the focus, and checks the
+  caption in the request Share makes: a page-world guard watches
+  `/api/v1/media/configure…` and stops the request when its caption is not
+  the one given ("Instagram was about to share it with the caption …;
+  nothing was shared"), and is removed once sharing is over. A carousel goes
+  to `configure_sidecar`, with each photo's `custom_accessibility_caption`.
+- **Instagram's clock.** After Share the tool finds the post as the newest
+  unpinned one on the profile whose caption starts the same way, posted
+  since Share. "Since" is on Instagram's clock, the `Date` of a request from
+  the page: this computer's was 4.5 minutes fast, and the first post looked
+  older than its own Share.
+
+Live-tested on 2026-10-29 on @archetipe__: a carousel of 2 photos and a
+24-second vertical Reel rehearsed (every step, then Discard). Then a
+captioned carousel with alt text was shared, found on the profile (its link
+returned), and checked in `/api/v1/media/<id>/info/` (caption with its line
+break, both alt texts). The test posts were then deleted from the post's
+More Options menu, Delete.
+
+`post` brings Chrome to the front; `status` and `posts` read in a background
+tab. A failed step stops with a screenshot: `san_remote-instagram-150405.png`.
+
 ## Telegram
 
 `san_remote telegram` works in Telegram Web (web.telegram.org/k) in your
@@ -1190,6 +1371,12 @@ need a token and TLS first.
 | linkedin: `the browser is not signed in to LinkedIn` | Sign in to linkedin.com in that browser. |
 | tiktok: `Studio shows "Something went wrong"` | Studio's page broke; press Retry in that tab, and run the post again. |
 | tiktok: `after Schedule Studio asks: …` | Studio's question is left to you; answer it in the tab. |
+| instagram: `Instagram says "File couldn't be uploaded …"` | Instagram's own reason for a file, such as one under 1KB. |
+| instagram: `the browser is not signed in to Meta Business Suite` | Sign in at business.facebook.com in that browser (Continue with Instagram, or Facebook), with the Instagram account a professional one. |
+| instagram: `Meta Business Suite's interface is not in Indonesian` | The scheduling steps read it in Indonesian, as the Facebook ones do: switch Business Suite's language. |
+| instagram: `Instagram was about to share it with the caption …` | The caption guard stopped Share: Instagram would have posted without the caption given. Nothing was shared; run it again with Chrome in front. |
+| instagram: `waited … for the composer to hold the … files` | Business Suite did not take the files; run it again with Chrome in front. |
+| instagram: `waited … for Instagram to take the files` | A video in a tab that was never on screen is not loaded: click Chrome's flashing taskbar button, and run it again. |
 | chatgpt: `ChatGPT gave no answer: …` | ChatGPT's own words, such as a usage limit. |
 | gemini: `Gemini gave no answer: …` | Gemini's own words, such as a usage limit. |
 | claude: `the browser is not signed in to claude.ai` | Sign in to claude.ai in that browser (a lapsed session lands on the sign-in page). |
@@ -1328,6 +1515,12 @@ The layout of the code is in the design doc.
 - **TikTok:** not done: Studio's other settings (sound, cover, comments,
   duet), drafts, photos, and editing a scheduled post. `--now` (Only you) has
   not been run live.
+- **Instagram:** instagram.com's interface must be in English, and Meta
+  Business Suite's in Indonesian. Not done: Stories, filters and
+  edits, a Reel's cover, trim and sound, location, collaborators, tagging
+  people, hiding likes, turning comments off, and rescheduling. A Reel was rehearsed
+  live but not shared, and "Video posts are now shared as reels", which the
+  tool answers OK, did not show then (Instagram shows it once).
 - **ChatGPT:** text prompts only; no files, images, model choice or
   regenerate. `--keep` and `--chat` have not been run live.
 - **Gemini:** text prompts only; no files, images, mode choice, continuing a

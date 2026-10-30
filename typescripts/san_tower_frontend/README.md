@@ -66,22 +66,43 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     the knowledge tool's view shows one (`src/knowledge/GraphCanvas.tsx`),
     with a link back to its folder. Opening it syncs the graph with the
     files first (no AI), as the view does when it starts; Sync does it again
-    and toasts what changed. Summarize (when something waits) asks first,
-    saying how many nodes in how many docs, that Claude writes them on this
-    computer's login and that it can take minutes, then waits for the
-    summaries and toasts how many were written and why a doc failed. The
-    line under the header counts docs, sections, domains and the nodes
-    waiting; the search box (title, keyword, summary, key) marks the nodes
+    and toasts what changed. The summaries are a workflow's to write
+    (Knowledge Summarize; the user, 2026-10-29, dropped the page's Summarize
+    button, a weaker copy of the step): when nodes wait for one, a line
+    under the header says how many and links the workflows that write them,
+    those with a Knowledge Summarize step whose Knowledge comes from a
+    Knowledge Base picking this knowledge (each workflow read once), or
+    says how to make one. Sync workflow (the user's ask, 2026-10-29: a
+    sample) makes one for this knowledge and opens it in the editor
+    (`src/knowledge/syncSample.ts`): "sync <name>" (a number added when
+    the name is taken), Manual → Knowledge Sync → Knowledge Summarize
+    (Limit 3) with Gemini Ask on the first San Remote connection, its
+    answer linked back, or with Claude Code itself when there is no such
+    connection, and a Log for each outcome. The line under the search counts docs, sections
+    and domains; the search box (title, keyword, summary, key) marks the nodes
     it matches and fades the rest, and Enter selects the first. The graph
-    takes the page's width (the user, 2026-10-28: no panel beside it). A
-    click on a node selects it (`?node=<key>`), marking it and labelling
-    its links; a right-click selects it and opens its menu at the pointer
-    (as the workflow editor's), whose View opens a dialog with its type,
+    takes the page's width (the user, 2026-10-28: no panel beside it). It
+    starts with the 30 most-connected nodes and the links between them
+    (`src/knowledge/fold.ts`; the user, 2026-10-29: Research Marketing,
+    2,435 nodes, left the page blank and lagging while every node was laid
+    out at once, then "load with biggest connection, and when right click,
+    we can expand or collapse"). A node with neighbours not shown has a
+    double border and "(+N)". A click on a node selects it (`?node=<key>`),
+    marking it and labelling its links, and expands nothing. A right-click
+    selects it and opens its menu at the pointer (as the workflow
+    editor's): Expand shows 30 more of its neighbours that are not shown
+    yet, the most-connected first (Expand more after the first), Collapse
+    hides what it opened unless something else still shows it, and View
+    opens a dialog with its type,
     title, file:line, summary (and whether Claude or frontmatter wrote it),
     keywords, its links grouped (Domain, Part of, Sections, Links to,
     Linked from, In this domain; each views that node in the dialog and
-    selects it) and its text in the file. The legend sits on the graph, a
-    button fits it in view, and a line under it says what the mouse does.
+    selects it) and its text in the file. The selected node and the first
+    30 matches of a search are shown with the path to them (a section by
+    its parents, a doc by its first domain), and the line under the header
+    says how many nodes are shown. The legend sits on the graph, buttons
+    collapse all (back to the 30) and fit it in view, and a line under it
+    says what the mouse does.
   - `MessageBroker.tsx`: the San Message broker the tower uses. A status
     bar on top (BrokerService.GetBrokerStatus): Running or Not answering,
     inside the tower or a separate server and since when, topics and events
@@ -224,9 +245,15 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   orange rectangles, sections green circles (the view's first three
   palette slots, light and dark from the `.dark` class, since cytoscape
   cannot read CSS variables), sized by their links, dashed while waiting
-  for a summary; domain links dashed, references dotted. A cose layout,
-  sections close to their doc; on a reload nodes keep their places and
-  only new ones are laid out. The selected node's links are labelled. A
+  for a summary; domain links dashed, references dotted. It draws only
+  the nodes it is given (what is shown). A cose layout, sections close to
+  their doc, runs on the first load; after that nodes keep their places,
+  and new ones start in a ring around the node they were opened from
+  (`anchors`) and an animated layout spreads only them, with that node
+  held still. Links are hidden while the view pans or zooms; over 300
+  nodes and links they are plain straight lines without arrows (curves
+  with arrow heads are what cytoscape draws slowest) and labels too small
+  to read are not drawn. The selected node's links are labelled. A
   right-click on a node asks for its menu (`onMenu`, at the pointer); the
   browser's own menu is kept off the graph.
 - `src/workflow/`: `catalog.ts`, the step kinds (loaded once from the

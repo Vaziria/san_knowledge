@@ -31,6 +31,8 @@ type (
 	ClaudeCLI  = kb.ClaudeCLI
 	// What an Annotator gets and gives, for one doc.
 	AnnotateRequest = kb.AnnotateRequest
+	SectionBrief    = kb.SectionBrief
+	DomainBrief     = kb.DomainBrief
 	AnnotateResult  = kb.AnnotateResult
 	SectionResult   = kb.SectionResult
 	// What Store.Search and Store.Explain give.

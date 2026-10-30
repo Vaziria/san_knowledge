@@ -87,6 +87,7 @@ graph              public face of internal/kb for other modules (the tower's Kno
 - The DB is opened only to build requests and to apply results, never during the call, so view/mcp/CLI keep working.
 - `IsHumanAuthor`: summaries written by anyone other than `sync`/`ai` (e.g. `user`, `frontmatter`) are never overwritten.
 - A failed doc stays pending and is retried on the next sync.
+- `AIOptions.MaxDocs` caps a run (the rest stay pending, `AIReport.Left`), and `Parallel: 1` goes through the docs in name order: the tower's Knowledge Summarize step, whose annotator runs a workflow loop per doc.
 - `kb.Annotator` is the seam for tests: `fakeAI` / `fakeAnnotator`, and `newAnnotator` in `cmd/knowledge`.
 
 **Web sources (`kb/web.go`).**

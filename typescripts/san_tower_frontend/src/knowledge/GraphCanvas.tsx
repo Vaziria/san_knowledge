@@ -59,6 +59,10 @@ export function useDark() {
   return dark;
 }
 
+// PLAIN_FROM is how many nodes and links make a graph big enough for plain
+// links.
+const PLAIN_FROM = 300;
+
 // A force layout: a section close to its doc, docs further from their
 // domain, references loose.
 const idealLength = (e: EdgeSingular) => ({ section_of: 50, domain_of: 150 })[e.data('rel') as string] ?? 120;
@@ -105,6 +109,7 @@ function graphStyle(p: Colors): StylesheetJson {
     { selector: 'node[type = "doc"]', style: { 'background-color': p.doc } },
     { selector: 'node[type = "doc_section"]', style: { 'font-size': 10, 'font-weight': 400, color: p.ink2 } },
     { selector: 'node.pending', style: { 'border-style': 'dashed', 'border-color': p.muted } },
+    { selector: 'node.folded', style: { 'border-style': 'double', 'border-width': 5, 'border-color': p.ink2 } },
     {
       selector: 'edge',
       style: {
@@ -125,6 +130,11 @@ function graphStyle(p: Colors): StylesheetJson {
     },
     { selector: 'edge[rel = "domain_of"]', style: { 'line-style': 'dashed' } },
     { selector: 'edge[rel = "reference"]', style: { 'line-style': 'dotted', width: 2 } },
+    // A big graph's links are straight, without arrows: curves with arrow
+    // heads are what cytoscape draws slowest.
+    { selector: 'edge.plain', style: { 'curve-style': 'haystack', 'haystack-radius': 0, 'target-arrow-shape': 'none' } },
+    // and its labels too small to read are not drawn.
+    { selector: 'node.dense', style: { 'min-zoomed-font-size': 8 } },
     {
       selector: 'edge.linked',
       style: { label: 'data(rel)', 'line-color': p.ink2, 'target-arrow-color': p.ink2, width: 2 },
@@ -145,13 +155,19 @@ function graphStyle(p: Colors): StylesheetJson {
 // background nothing; a right-click selects it and asks for its menu at the
 // pointer (onMenu). selected is marked and its links labelled; matches,
 // when given, stand out and the rest fade. A new fit number fits the view.
-// Nodes keep their places across reloads; new ones are laid out.
+// A folded node (folded: how many it holds that are not shown) has a double
+// border and "(+N)". Nodes keep their places; new ones start in a ring
+// around the node they were opened from (anchors), and a short animated
+// layout spreads only them, around it. Links are hidden while the view
+// pans or zooms, and a big graph's are plain lines.
 export function GraphCanvas({
   nodes,
   links,
   selected,
   matches,
   fit,
+  folded,
+  anchors,
   onSelect,
   onMenu,
 }: {
@@ -160,6 +176,8 @@ export function GraphCanvas({
   selected?: string;
   matches?: Set<string>;
   fit: number;
+  folded?: Map<string, number>;
+  anchors?: Map<string, string[]>;
   onSelect: (key?: string) => void;
   onMenu?: (key: string, at: { x: number; y: number }) => void;
 }) {
@@ -172,7 +190,7 @@ export function GraphCanvas({
   const dark = useDark();
 
   useEffect(() => {
-    const c = cytoscape({ container: box.current, minZoom: 0.1, maxZoom: 3 });
+    const c = cytoscape({ container: box.current, minZoom: 0.1, maxZoom: 3, hideEdgesOnViewport: true });
     c.on('tap', 'node', (e) => select.current(e.target.id()));
     c.on('tap', (e) => {
       if (e.target === c) select.current(undefined);
@@ -205,19 +223,21 @@ export function GraphCanvas({
       degree.set(l.to, (degree.get(l.to) ?? 0) + 1);
     }
     const keys = new Set(nodes.map((n) => n.key));
+    const big = nodes.length + links.length > PLAIN_FROM;
     const els: ElementDefinition[] = [
       ...nodes.map((n) => {
         const t = typeOf(n.type);
+        const more = folded?.get(n.key);
         return {
           group: 'nodes' as const,
           data: {
             id: n.key,
-            label: n.title || n.key,
+            label: (n.title || n.key) + (more ? ` (+${more})` : ''),
             type: n.type,
             shape: t.shape,
             size: Math.round(t.base + Math.min(degree.get(n.key) ?? 0, 12) * 2),
           },
-          classes: n.needsSummary ? 'pending' : '',
+          classes: [n.needsSummary ? 'pending' : '', more ? 'folded' : '', big ? 'dense' : ''].join(' ').trim(),
         };
       }),
       ...links
@@ -225,9 +245,16 @@ export function GraphCanvas({
         .map((l) => ({
           group: 'edges' as const,
           data: { id: `${l.from}|${l.rel}|${l.to}`, source: l.from, target: l.to, rel: l.rel },
+          classes: big ? 'plain' : '',
         })),
     ];
     const had = new Map(c.nodes().map((n) => [n.id(), { ...n.position() }]));
+    // The new nodes of each anchor, to share its ring.
+    const ring = new Map<string, string[]>();
+    for (const n of nodes) {
+      const a = anchors?.get(n.key)?.find((k) => had.has(k));
+      if (!had.has(n.key) && a) ring.set(a, [...(ring.get(a) ?? []), n.key]);
+    }
     c.batch(() => {
       c.elements().remove();
       c.add(els);
@@ -235,12 +262,30 @@ export function GraphCanvas({
         const p = had.get(n.id());
         if (p) n.position(p);
       });
+      for (const [a, keys] of ring) {
+        const at = had.get(a)!;
+        const r = 70 + keys.length * 4;
+        keys.forEach((k, i) => {
+          const angle = (2 * Math.PI * i) / keys.length;
+          c.getElementById(k).position({ x: at.x + r * Math.cos(angle), y: at.y + r * Math.sin(angle) });
+        });
+      }
     });
     const first = had.size === 0;
-    if (first || c.nodes().filter((n) => !had.has(n.id())).nonempty()) {
-      c.layout({ ...COSE, randomize: first, animate: !first, fit: first }).run();
+    const fresh = c.nodes().filter((n) => !had.has(n.id()));
+    if (first) {
+      c.layout({ ...COSE, numIter: c.nodes().length > 150 ? 1200 : 2500, randomize: true, animate: false, fit: true }).run();
+    } else if (fresh.nonempty()) {
+      // Only the new nodes move, around the nodes they came from, which
+      // stay put; animated, it runs a frame at a time.
+      const from = c.nodes().filter((n) => ring.has(n.id()));
+      const part = fresh.union(from);
+      from.lock();
+      const l = part.union(part.edgesWith(part)).layout({ ...COSE, numIter: 500, randomize: false, animate: true, fit: false });
+      l.one('layoutstop', () => from.unlock());
+      l.run();
     }
-  }, [nodes, links]);
+  }, [nodes, links, folded, anchors]);
 
   useEffect(() => {
     const c = cy.current;

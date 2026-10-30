@@ -16,10 +16,20 @@ import {
   Text,
   Wrap,
 } from '@chakra-ui/react';
-import { ArrowLeftIcon, EyeIcon, RefreshCwIcon, ScanIcon, SearchIcon, SparklesIcon } from 'lucide-react';
+import {
+  ArrowLeftIcon,
+  EyeIcon,
+  FoldVerticalIcon,
+  RefreshCwIcon,
+  ScanIcon,
+  SearchIcon,
+  ShrinkIcon,
+  UnfoldVerticalIcon,
+  WorkflowIcon,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Link as RouterLink, useParams, useSearchParams } from 'react-router';
-import { errorText, knowledge } from '../api';
+import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router';
+import { errorText, knowledge, workflows } from '../api';
 import type {
   GetKnowledgeNodeResponse,
   Knowledge,
@@ -27,20 +37,37 @@ import type {
   KnowledgeNode,
   SyncKnowledgeResponse,
 } from '../gen/san/tower/v1/knowledge_pb';
+import { BATCH, CORE, buildNet, pruned, shownNodes } from '../knowledge/fold';
 import { GraphCanvas, graphColors, nodeTypes, typeOf, useDark } from '../knowledge/GraphCanvas';
-import { FormDialog, toast } from '../ui';
+import { createSyncWorkflow } from '../knowledge/syncSample';
+import { toast } from '../ui';
 
 type Graph = { nodes: KnowledgeNode[]; links: KnowledgeLink[]; byKey: Map<string, KnowledgeNode> };
+
+// MAX_MATCHES_SHOWN is how many of a search's matches are shown with the
+// path to them: a common word matches hundreds.
+const MAX_MATCHES_SHOWN = 30;
 
 // KnowledgeGraph is a knowledge's page (/knowledge/<id>; the user,
 // 2026-10-28): the graph of its folder's docs, as the knowledge tool's view
 // shows one, the whole width of the page. Opening it brings the graph in
 // line with the files (a sync, no AI), as the view does when it starts; Sync
-// does it again. Summarize has Claude write the summaries that are missing,
-// after asking. A click on a node marks it and its links (?node=<key>); a
+// does it again. The summaries that are missing are a workflow's to write
+// (Knowledge Summarize; the user, 2026-10-29, dropped the page's Summarize
+// button, a weaker copy of the step): the page names the workflows that do
+// it for this knowledge. A click on a node marks it and its links (?node=<key>); a
 // right-click opens its menu, whose View shows it in a dialog (the user,
 // 2026-10-28, in place of a panel beside the graph): its summary, keywords,
 // links and text. The search box marks the nodes it matches.
+//
+// The graph starts with its core, the most-connected nodes
+// (knowledge/fold.ts; the user, 2026-10-29: a knowledge of 2,435 nodes left
+// the page blank and lagging, drawing and laying out every node at once,
+// then "load with biggest connection, and when right click, we can expand
+// or collapse"). A node's menu Expands it, its neighbours, the
+// most-connected first, a batch at a time (Expand more), and Collapses it
+// again; Collapse all goes back to the core. The selected node, and the
+// first matches of a search, are shown with the path to them.
 export function KnowledgeGraph() {
   const id = Number(useParams().id) || 0;
   const [params, setParams] = useSearchParams();
@@ -50,11 +77,30 @@ export function KnowledgeGraph() {
   const [version, setVersion] = useState(0);
   const [error, setError] = useState('');
   const [syncing, setSyncing] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  // The workflows whose Knowledge Summarize writes this knowledge's
+  // summaries (Knowledge Base picks it, linked to the step's Knowledge).
+  const [summarizers, setSummarizers] = useState<{ id: number; name: string }[]>();
+  const [creating, setCreating] = useState(false);
+  const navigate = useNavigate();
+  // Sync workflow makes the sample sync workflow for this knowledge and
+  // opens it in the editor.
+  const createSync = async () => {
+    if (!k) return;
+    setCreating(true);
+    try {
+      const w = await createSyncWorkflow(id, k.name);
+      toast(`Created workflow ${w.name}: press Run to sync`);
+      navigate(`/workflow/${w.id}`);
+    } catch (err) {
+      toast(`Not created: ${errorText(err)}`, true);
+      setCreating(false);
+    }
+  };
   const [query, setQuery] = useState('');
   const [fit, setFit] = useState(0);
   const [menu, setMenu] = useState<{ key: string; at: { x: number; y: number } }>();
   const [viewing, setViewing] = useState<string>();
+  const [opened, setOpened] = useState<Map<string, number>>(new Map());
 
   const select = (key?: string) =>
     setParams(
@@ -80,6 +126,7 @@ export function KnowledgeGraph() {
   useEffect(() => {
     let stale = false;
     setGraph(undefined);
+    setOpened(new Map());
     (async () => {
       try {
         const { knowledge: got } = await knowledge.getKnowledge({ id });
@@ -90,6 +137,34 @@ export function KnowledgeGraph() {
         if (!stale) setError('');
       } catch (err) {
         if (!stale) setError(errorText(err));
+      }
+    })();
+    return () => {
+      stale = true;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    let stale = false;
+    (async () => {
+      try {
+        const { workflows: list } = await workflows.listWorkflows({ allFolders: true, limit: 500 });
+        const found = [];
+        for (const w of list) {
+          const { workflow } = await workflows.getWorkflow({ id: w.id });
+          const steps = new Map((workflow?.steps ?? []).map((st) => [st.id, st]));
+          const writes = (workflow?.links ?? []).some(
+            (l) =>
+              l.targetSocket === 'Knowledge' &&
+              steps.get(l.target)?.kind === 'knowledge-summarize' &&
+              steps.get(l.source)?.kind === 'knowledge-base' &&
+              steps.get(l.source)?.values.Knowledge === String(id),
+          );
+          if (writes) found.push({ id: w.id, name: w.name });
+        }
+        if (!stale) setSummarizers(found);
+      } catch {
+        if (!stale) setSummarizers([]);
       }
     })();
     return () => {
@@ -111,11 +186,7 @@ export function KnowledgeGraph() {
   const stats = useMemo(() => {
     const count = (t: string) => graph?.nodes.filter((n) => n.type === t).length ?? 0;
     const pending = graph?.nodes.filter((n) => n.needsSummary) ?? [];
-    // Docs the AI step takes: those with a node waiting, or without a domain.
-    const withDomain = new Set(graph?.links.filter((l) => l.rel === 'domain_of').map((l) => l.from));
-    const docs = new Set(pending.map((n) => n.loc));
-    for (const n of graph?.nodes ?? []) if (n.type === 'doc' && !withDomain.has(n.key)) docs.add(n.loc);
-    return { domains: count('domain'), docs: count('doc'), sections: count('doc_section'), pending: pending.length, aiDocs: docs.size };
+    return { domains: count('domain'), docs: count('doc'), sections: count('doc_section'), pending: pending.length };
   }, [graph]);
 
   const matches = useMemo(() => {
@@ -127,6 +198,38 @@ export function KnowledgeGraph() {
         .map((n) => n.key),
     );
   }, [query, graph]);
+
+  // What is shown: the core, what is opened, and the selected node and the
+  // first matches with the paths to them.
+  const net = useMemo(() => graph && buildNet(graph.nodes, graph.links), [graph]);
+  const shown = useMemo(() => {
+    if (!graph || !net) return undefined;
+    const pinned = [...(selected ? [selected] : []), ...[...(matches ?? [])].slice(0, MAX_MATCHES_SHOWN)];
+    const s = shownNodes(net, opened, pinned.filter((k) => graph.byKey.has(k)));
+    return {
+      ...s,
+      nodes: graph.nodes.filter((n) => s.keys.has(n.key)),
+      links: graph.links.filter((l) => s.keys.has(l.from) && s.keys.has(l.to)),
+    };
+  }, [graph, net, opened, selected, matches]);
+  // Expand shows a batch more of a node's neighbours; Collapse hides what it
+  // opened, unless something else shows it too.
+  const expand = (key: string) => {
+    if (!net || !shown) return;
+    // Far enough down its neighbours for BATCH that are not shown yet:
+    // some are shown already, by the core or another node.
+    const list = net.neighbours.get(key) ?? [];
+    let n = opened.get(key) ?? 0;
+    for (let added = 0; n < list.length && added < BATCH; n++) if (!shown.keys.has(list[n])) added++;
+    setOpened((o) => new Map(o).set(key, n));
+  };
+  const collapse = (key: string) => {
+    if (!net || !graph) return;
+    const next = new Map(opened);
+    next.delete(key);
+    const pinned = selected && graph.byKey.has(selected) ? [selected] : [];
+    setOpened(pruned(next, shownNodes(net, next, pinned).keys));
+  };
 
   const back = k?.folderId ? `/knowledge?folder=${k.folderId}` : '/knowledge';
   return (
@@ -157,16 +260,39 @@ export function KnowledgeGraph() {
               </Button>
               <Button
                 size="sm"
-                colorPalette="blue"
-                disabled={stats.aiDocs === 0}
-                title={stats.aiDocs ? 'Have Claude write the missing summaries' : 'Every node has its summary'}
-                onClick={() => setConfirming(true)}
+                variant="outline"
+                loading={creating}
+                onClick={() => void createSync()}
+                title="Create a sample workflow that syncs this knowledge and writes its summaries, and open it"
               >
-                <SparklesIcon />
-                Summarize
+                <WorkflowIcon />
+                Sync workflow
               </Button>
             </HStack>
           </HStack>
+          {stats.pending > 0 && summarizers && (
+            <Text textStyle="sm" color="fg.muted">
+              {stats.pending} nodes wait for a summary.{' '}
+              {summarizers.length > 0 ? (
+                <>
+                  A workflow writes them:{' '}
+                  {summarizers.map((w, i) => (
+                    <span key={w.id}>
+                      {i > 0 && ', '}
+                      <Link asChild color="fg">
+                        <RouterLink to={`/workflow/${w.id}`}>{w.name}</RouterLink>
+                      </Link>
+                    </span>
+                  ))}
+                  .
+                </>
+              ) : (
+                <>
+                  A workflow with a Knowledge Summarize step writes them: Sync workflow makes one.
+                </>
+              )}
+            </Text>
+          )}
           <HStack gap="3" wrap="wrap">
             <InputGroup maxW="xs" startElement={<SearchIcon size="16" />}>
               <Input
@@ -182,9 +308,9 @@ export function KnowledgeGraph() {
             </InputGroup>
             <Text textStyle="sm" color="fg.muted">
               {matches
-                ? `${matches.size} found`
+                ? `${matches.size} found` + (matches.size > MAX_MATCHES_SHOWN ? `, the first ${MAX_MATCHES_SHOWN} shown` : '')
                 : `${stats.docs} docs, ${stats.sections} sections, ${stats.domains} domains` +
-                  (stats.pending ? `; ${stats.pending} waiting for a summary` : '')}
+                  (shown && shown.nodes.length < graph.nodes.length ? ` · ${shown.nodes.length} shown` : '')}
             </Text>
           </HStack>
           <Box flex="1" minH="80" position="relative" borderWidth="1px" rounded="md" bg="bg.panel" overflow="hidden">
@@ -195,33 +321,48 @@ export function KnowledgeGraph() {
             ) : (
               <>
                 <GraphCanvas
-                  nodes={graph.nodes}
-                  links={graph.links}
+                  nodes={shown?.nodes ?? []}
+                  links={shown?.links ?? []}
                   selected={selected}
                   matches={matches}
                   fit={fit}
+                  folded={shown?.hidden}
+                  anchors={shown?.anchors}
                   onSelect={select}
                   onMenu={(key, at) => setMenu({ key, at })}
                 />
-                <IconButton
-                  aria-label="Fit the graph in view"
-                  title="Fit"
-                  size="xs"
-                  variant="outline"
-                  bg="bg.panel"
-                  position="absolute"
-                  top="2"
-                  right="2"
-                  onClick={() => setFit((n) => n + 1)}
-                >
-                  <ScanIcon />
-                </IconButton>
+                <HStack position="absolute" top="2" right="2" gap="1">
+                  <IconButton
+                    aria-label="Collapse all"
+                    title={`Collapse all: back to the ${CORE} most-connected nodes`}
+                    size="xs"
+                    variant="outline"
+                    bg="bg.panel"
+                    onClick={() => {
+                      setOpened(new Map());
+                      select(undefined);
+                      setQuery('');
+                    }}
+                  >
+                    <ShrinkIcon />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Fit the graph in view"
+                    title="Fit"
+                    size="xs"
+                    variant="outline"
+                    bg="bg.panel"
+                    onClick={() => setFit((n) => n + 1)}
+                  >
+                    <ScanIcon />
+                  </IconButton>
+                </HStack>
                 <Legend />
               </>
             )}
           </Box>
           <Text fontSize="xs" color="fg.muted">
-            Click a node to mark its links · right-click it for its menu · drag to pan · wheel to zoom
+            The most-connected nodes first · click a node to mark its links · right-click it to expand (+N) or collapse it · drag to pan · wheel to zoom
           </Text>
         </>
       )}
@@ -234,7 +375,11 @@ export function KnowledgeGraph() {
           open
           positioning={{ placement: 'bottom-start', gutter: 2 }}
           onOpenChange={(e) => !e.open && setMenu(undefined)}
-          onSelect={(e) => e.value === 'view' && view(menu.key)}
+          onSelect={(e) => {
+            if (e.value === 'view') view(menu.key);
+            if (e.value === 'expand') expand(menu.key);
+            if (e.value === 'collapse') collapse(menu.key);
+          }}
         >
           <Menu.Trigger asChild>
             <Box position="fixed" left={`${menu.at.x}px`} top={`${menu.at.y}px`} w="0" h="0" pointerEvents="none" />
@@ -250,6 +395,18 @@ export function KnowledgeGraph() {
                     <EyeIcon />
                     View
                   </Menu.Item>
+                  {(shown?.hidden.get(menu.key) ?? 0) > 0 && (
+                    <Menu.Item value="expand">
+                      <UnfoldVerticalIcon />
+                      {`${opened.has(menu.key) ? 'Expand more' : 'Expand'} (${Math.min(BATCH, shown?.hidden.get(menu.key) ?? 0)} of ${shown?.hidden.get(menu.key)})`}
+                    </Menu.Item>
+                  )}
+                  {opened.has(menu.key) && (
+                    <Menu.Item value="collapse">
+                      <FoldVerticalIcon />
+                      Collapse
+                    </Menu.Item>
+                  )}
                 </Menu.ItemGroup>
               </Menu.Content>
             </Menu.Positioner>
@@ -258,29 +415,6 @@ export function KnowledgeGraph() {
       )}
       {viewing && graph?.byKey.has(viewing) && (
         <NodeDialog id={id} nodeKey={viewing} graph={graph} version={version} onView={view} onClose={() => setViewing(undefined)} />
-      )}
-      {confirming && (
-        <FormDialog
-          title="Write the summaries with Claude?"
-          submitText="Summarize"
-          onClose={() => setConfirming(false)}
-          onSubmit={async () => {
-            const r = await knowledge.summarizeKnowledge({ id });
-            const failed = Object.keys(r.failed).length;
-            toast(
-              `Summarized ${r.summarized} nodes in ${r.docs.length - failed} docs` +
-                (failed ? `; ${failed} failed (${Object.values(r.failed)[0]})` : ''),
-              failed > 0,
-            );
-            await load();
-          }}
-        >
-          <Text>
-            {stats.pending} nodes in {stats.aiDocs} docs wait for a summary, keywords or a domain. Claude (claude -p, on
-            this computer's Claude Code login) writes them, one call per doc, which can take a few minutes. A summary a
-            person wrote, or a file's frontmatter gave, stays as it is.
-          </Text>
-        </FormDialog>
       )}
     </Stack>
   );
@@ -452,7 +586,7 @@ function NodeDialog({
                   )}
                 </Stack>
               ) : (
-                <Text color="fg.muted">No summary yet: Summarize has Claude write one.</Text>
+                <Text color="fg.muted">No summary yet: a workflow’s Knowledge Summarize writes one.</Text>
               )}
               {n.keywords.length > 0 && (
                 <Wrap gap="1">

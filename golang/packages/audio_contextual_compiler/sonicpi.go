@@ -225,15 +225,17 @@ func (sp *SonicPi) unknownNames(code string) []string {
 }
 
 // Record plays the Sonic Pi code in codePath without Sonic Pi's GUI and
-// records its first d to a WAV file. Recording is real time, and the music is
-// audible while it runs. Sonic Pi's output goes to log.
+// records its first d to a WAV file. Recording is real time. Unless audible,
+// nothing is heard: Sonic Pi's engine is muted in the volume mixer while it
+// records (muteEngine), which does not change the take. Sonic Pi's output
+// goes to log.
 //
 // The code runs in the headless recorder Sonic Pi 5 ships, which keeps the
 // mixer on, but the recording is made by Sonic Pi's own recording_start and
 // recording_save: on Windows the recorder's record tap writes nothing (Sonic
 // Pi 5.0.0), and recording_save needs a moment after recording_stop, or the
 // file is still in use.
-func (sp *SonicPi) Record(ctx context.Context, codePath, wavPath string, d time.Duration, log io.Writer) error {
+func (sp *SonicPi) Record(ctx context.Context, codePath, wavPath string, d time.Duration, audible bool, log io.Writer) error {
 	recorder := filepath.Join(sp.Dir, "app", "server", "ruby", "bin", "headless-record.rb")
 	if _, err := os.Stat(recorder); err != nil {
 		return fmt.Errorf("Sonic Pi %s has no headless recorder (Sonic Pi 5 has app/server/ruby/bin/headless-record.rb)", sp.Version)
@@ -263,8 +265,34 @@ func (sp *SonicPi) Record(ctx context.Context, codePath, wavPath string, d time.
 	}
 	defer os.RemoveAll(tmp)
 	script := filepath.Join(tmp, "take.rb")
-	if err := os.WriteFile(script, []byte(recordingScript(string(code), take, d)), 0o644); err != nil {
+	if err := os.WriteFile(script, []byte(recordingScript(string(code), take, d, !audible)), 0o644); err != nil {
 		return err
+	}
+	if !audible {
+		unmute, err := muteEngine(time.Now(), log)
+		if err != nil {
+			return fmt.Errorf("silent rendering: %w (render with --audible to hear it as it records)", err)
+		}
+		defer unmute()
+		// Unmute once the take is saved, while the engine still runs (the
+		// script has turned Sonic Pi's own volume down by then): Windows
+		// remembers an app's mute for the next time it starts.
+		saved := make(chan struct{})
+		defer close(saved)
+		go func() {
+			for {
+				select {
+				case <-saved:
+					return
+				case <-time.After(250 * time.Millisecond):
+				}
+				if info, err := os.Stat(take); err == nil && info.Size() > 0 {
+					time.Sleep(time.Second)
+					unmute()
+					return
+				}
+			}
+		}()
 	}
 	// The recorder stops everything after its -d: leave time to save.
 	run := d + 10*time.Second
@@ -291,8 +319,13 @@ func (sp *SonicPi) Record(ctx context.Context, codePath, wavPath string, d time.
 
 // recordingScript puts a recording of the first d around code, saved to wav.
 // Its thread keeps its own tempo, so its sleep is in seconds whatever tempo
-// the code uses.
-func recordingScript(code, wav string, d time.Duration) string {
+// the code uses. A silent take then turns Sonic Pi's volume down, so the rest
+// of the code plays unheard once its engine is unmuted.
+func recordingScript(code, wav string, d time.Duration, silent bool) string {
+	quiet := ""
+	if silent {
+		quiet = "  set_volume! 0\n"
+	}
 	return fmt.Sprintf(`recording_start
 in_thread do
   use_bpm 60
@@ -300,9 +333,9 @@ in_thread do
   recording_stop
   sleep 3
   recording_save %q
-end
+%send
 
-`, strconv.FormatFloat(d.Seconds(), 'f', -1, 64), filepath.ToSlash(wav)) + code
+`, strconv.FormatFloat(d.Seconds(), 'f', -1, 64), filepath.ToSlash(wav), quiet) + code
 }
 
 // syntax runs Ruby's syntax check on code. Sonic Pi code is Ruby, so a

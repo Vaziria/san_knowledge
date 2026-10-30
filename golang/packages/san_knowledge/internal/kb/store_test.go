@@ -487,6 +487,13 @@ func TestRunAI(t *testing.T) {
 		return nil
 	})
 
+	// MaxDocs: the first docs in order, the rest left pending.
+	ai.calls = nil
+	part, err := RunAI(context.Background(), dir, ai, AIOptions{DryRun: true, MaxDocs: 2})
+	if err != nil || len(ai.calls) != 2 || part.Left != 1 || part.Docs[0] != "docs/ads.md" || part.Docs[1] != "docs/bad.md" {
+		t.Fatalf("max docs: %v %d calls %+v", err, len(ai.calls), part)
+	}
+
 	ai.calls = nil
 	rep, err := RunAI(context.Background(), dir, ai, AIOptions{})
 	if err != nil {

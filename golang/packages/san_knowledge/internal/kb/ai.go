@@ -174,6 +174,7 @@ type AIOptions struct {
 	DryRun      bool
 	Parallel    int // concurrent AI calls, default 3
 	MaxDocChars int // document text sent to the AI, default 60000
+	MaxDocs     int // docs annotated in this run, 0 for all; the rest stay pending
 	Progress    func(loc string, err error)
 }
 
@@ -184,6 +185,7 @@ type AIReport struct {
 	DomainsCreated []string                   `json:"domains_created"`
 	DomainsLinked  map[string][]string        `json:"domains_linked"`
 	Failed         map[string]string          `json:"failed"`
+	Left           int                        `json:"docs_left,omitempty"` // over MaxDocs, still pending
 	Proposals      map[string]*AnnotateResult `json:"proposals,omitempty"` // dry run only
 }
 
@@ -210,48 +212,61 @@ func RunAI(ctx context.Context, dir string, ann Annotator, opt AIOptions) (*AIRe
 	}); err != nil {
 		return nil, err
 	}
+	if opt.MaxDocs > 0 && len(locs) > opt.MaxDocs {
+		rep.Left = len(locs) - opt.MaxDocs
+		locs = locs[:opt.MaxDocs]
+	}
 
 	var mu sync.Mutex
-	var wg sync.WaitGroup
-	sem := make(chan struct{}, opt.Parallel)
-	for _, loc := range locs {
-		wg.Add(1)
-		go func(loc string) {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-
-			var req *AnnotateRequest
-			err := With(dir, func(s *Store) error {
-				var err error
-				req, err = s.buildRequest(loc, opt.MaxDocChars)
-				return err
-			})
-			var res *AnnotateResult
-			if err == nil && req != nil {
-				res, err = ann.Annotate(ctx, req)
+	one := func(loc string) {
+		var req *AnnotateRequest
+		err := With(dir, func(s *Store) error {
+			var err error
+			req, err = s.buildRequest(loc, opt.MaxDocChars)
+			return err
+		})
+		var res *AnnotateResult
+		if err == nil && req != nil {
+			res, err = ann.Annotate(ctx, req)
+		}
+		if err == nil && req != nil {
+			if opt.DryRun {
+				mu.Lock()
+				rep.Proposals[loc] = res
+				mu.Unlock()
+			} else {
+				err = With(dir, func(s *Store) error { return s.applyResult(req, res, rep, &mu) })
 			}
-			if err == nil && req != nil {
-				if opt.DryRun {
-					mu.Lock()
-					rep.Proposals[loc] = res
-					mu.Unlock()
-				} else {
-					err = With(dir, func(s *Store) error { return s.applyResult(req, res, rep, &mu) })
-				}
-			}
-			mu.Lock()
-			rep.Docs = append(rep.Docs, loc)
-			if err != nil {
-				rep.Failed[loc] = err.Error()
-			}
-			mu.Unlock()
-			if opt.Progress != nil {
-				opt.Progress(loc, err)
-			}
-		}(loc)
+		}
+		mu.Lock()
+		rep.Docs = append(rep.Docs, loc)
+		if err != nil {
+			rep.Failed[loc] = err.Error()
+		}
+		mu.Unlock()
+		if opt.Progress != nil {
+			opt.Progress(loc, err)
+		}
 	}
-	wg.Wait()
+	if opt.Parallel == 1 {
+		// One at a time, in order (the tower's Knowledge Summarize loop).
+		for _, loc := range locs {
+			one(loc)
+		}
+	} else {
+		var wg sync.WaitGroup
+		sem := make(chan struct{}, opt.Parallel)
+		for _, loc := range locs {
+			wg.Add(1)
+			go func(loc string) {
+				defer wg.Done()
+				sem <- struct{}{}
+				defer func() { <-sem }()
+				one(loc)
+			}(loc)
+		}
+		wg.Wait()
+	}
 	sort.Strings(rep.Docs)
 	sort.Strings(rep.DomainsCreated)
 	return rep, nil

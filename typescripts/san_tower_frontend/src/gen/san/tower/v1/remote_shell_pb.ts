@@ -10,11 +10,12 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/remote_shell.proto.
  */
 export const file_san_tower_v1_remote_shell: GenFile = /*@__PURE__*/
-  fileDesc("Ch9zYW4vdG93ZXIvdjEvcmVtb3RlX3NoZWxsLnByb3RvEgxzYW4udG93ZXIudjEiMAoPV2ViY2hhdFJlc3BvbnNlEg8KB2V4ZWN1dGUYASABKAkSDAoEY2hhdBgCIAEoCSJcCg5XZWJjaGF0UmVxdWVzdBIWCg5leGVjdXRlX3Jlc3VsdBgBIAEoCRIMCgRjaGF0GAIgASgJEiQKBGZyb20YAyABKA4yFi5zYW4udG93ZXIudjEuRnJvbVR5cGUqUAoIRnJvbVR5cGUSGQoVRlJPTV9UWVBFX1VOU1BFQ0lGSUVEEAASFQoRRlJPTV9UWVBFX0VYRUNVVEUQARISCg5GUk9NX1RZUEVfVVNFUhACQrABChBjb20uc2FuLnRvd2VyLnYxQhBSZW1vdGVTaGVsbFByb3RvUAFaOGdpdGh1Yi5jb20vd2FyZ2FzaXBpbC9zYW5fdG93ZXIvZ2VuL3Nhbi90b3dlci92MTt0b3dlcnYxogIDU1RYqgIMU2FuLlRvd2VyLlYxygIMU2FuXFRvd2VyXFYx4gIYU2FuXFRvd2VyXFYxXEdQQk1ldGFkYXRh6gIOU2FuOjpUb3dlcjo6VjFiBnByb3RvMw");
+  fileDesc("Ch9zYW4vdG93ZXIvdjEvcmVtb3RlX3NoZWxsLnByb3RvEgxzYW4udG93ZXIudjEiVwoPV2ViY2hhdFJlc3BvbnNlEg8KB2V4ZWN1dGUYASABKAkSDAoEY2hhdBgCIAEoCRIlCgV0b29scxgDIAEoCzIWLnNhbi50b3dlci52MS5Ub29sQ2FsbCJBCghUb29sQ2FsbBIRCgl0b29sX25hbWUYASABKAkSDwoHY29tbWFuZBgCIAEoCRIRCglhcmd1bWVudHMYAyADKAkicgoOV2ViY2hhdFJlcXVlc3QSFgoOZXhlY3V0ZV9yZXN1bHQYASABKAkSDAoEY2hhdBgCIAEoCRIkCgRmcm9tGAMgASgOMhYuc2FuLnRvd2VyLnYxLkZyb21UeXBlEhQKDHRvb2xzX3Jlc3VsdBgEIAEoCSplCghGcm9tVHlwZRIZChVGUk9NX1RZUEVfVU5TUEVDSUZJRUQQABIVChFGUk9NX1RZUEVfRVhFQ1VURRABEhIKDkZST01fVFlQRV9VU0VSEAISEwoPRlJPTV9UWVBFX1RPT0xTEANCsAEKEGNvbS5zYW4udG93ZXIudjFCEFJlbW90ZVNoZWxsUHJvdG9QAVo4Z2l0aHViLmNvbS93YXJnYXNpcGlsL3Nhbl90b3dlci9nZW4vc2FuL3Rvd2VyL3YxO3Rvd2VydjGiAgNTVFiqAgxTYW4uVG93ZXIuVjHKAgxTYW5cVG93ZXJcVjHiAhhTYW5cVG93ZXJcVjFcR1BCTWV0YWRhdGHqAg5TYW46OlRvd2VyOjpWMWIGcHJvdG8z");
 
 /**
  * WebchatResponse is each answer of the web chat: execute is a script for
- * the machine to run, chat is what to tell the user; either may be empty.
+ * the machine to run, chat is what to tell the user, and tools a call to
+ * one of the machine's tools, when it has any; each may be empty.
  *
  * @generated from message san.tower.v1.WebchatResponse
  */
@@ -28,6 +29,11 @@ export type WebchatResponse = Message<"san.tower.v1.WebchatResponse"> & {
    * @generated from field: string chat = 2;
    */
   chat: string;
+
+  /**
+   * @generated from field: san.tower.v1.ToolCall tools = 3;
+   */
+  tools?: ToolCall;
 };
 
 /**
@@ -36,6 +42,39 @@ export type WebchatResponse = Message<"san.tower.v1.WebchatResponse"> & {
  */
 export const WebchatResponseSchema: GenMessage<WebchatResponse> = /*@__PURE__*/
   messageDesc(file_san_tower_v1_remote_shell, 0);
+
+/**
+ * ToolCall is a call to a tool of the machine (the user, 2026-10-29), like a
+ * command line: tool_name the tool, command what it does, arguments its
+ * words. The tools are the tool steps linked to Remote Shell's Tools
+ * (engine/tools.go): a Knowledge Tool's explain, search and get, a
+ * Telegram Tool's send.
+ *
+ * @generated from message san.tower.v1.ToolCall
+ */
+export type ToolCall = Message<"san.tower.v1.ToolCall"> & {
+  /**
+   * @generated from field: string tool_name = 1;
+   */
+  toolName: string;
+
+  /**
+   * @generated from field: string command = 2;
+   */
+  command: string;
+
+  /**
+   * @generated from field: repeated string arguments = 3;
+   */
+  arguments: string[];
+};
+
+/**
+ * Describes the message san.tower.v1.ToolCall.
+ * Use `create(ToolCallSchema)` to create a new message.
+ */
+export const ToolCallSchema: GenMessage<ToolCall> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_remote_shell, 1);
 
 /**
  * WebchatRequest is each message to the web chat.
@@ -57,6 +96,11 @@ export type WebchatRequest = Message<"san.tower.v1.WebchatRequest"> & {
    * @generated from field: san.tower.v1.FromType from = 3;
    */
   from: FromType;
+
+  /**
+   * @generated from field: string tools_result = 4;
+   */
+  toolsResult: string;
 };
 
 /**
@@ -64,11 +108,13 @@ export type WebchatRequest = Message<"san.tower.v1.WebchatRequest"> & {
  * Use `create(WebchatRequestSchema)` to create a new message.
  */
 export const WebchatRequestSchema: GenMessage<WebchatRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_remote_shell, 1);
+  messageDesc(file_san_tower_v1_remote_shell, 2);
 
 /**
  * FromType says who a WebchatRequest is from: the machine, with the result
- * of the last execute, or the user, with a chat.
+ * of the last execute (and of its tools call, when it had one too), the
+ * user, with a chat, or the machine's tools, with the result of a tools
+ * call alone.
  *
  * @generated from enum san.tower.v1.FromType
  */
@@ -87,6 +133,11 @@ export enum FromType {
    * @generated from enum value: FROM_TYPE_USER = 2;
    */
   USER = 2,
+
+  /**
+   * @generated from enum value: FROM_TYPE_TOOLS = 3;
+   */
+  TOOLS = 3,
 }
 
 /**

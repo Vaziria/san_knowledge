@@ -29,7 +29,7 @@ bin\ctxcompiler.exe compile audiospec.md -o sonicpicode.rb # both passes
 bin\ctxcompiler.exe graph audiospec.md                     # pass 1 only: audiospec.graph.json
 bin\ctxcompiler.exe compile audiospec.graph.json           # pass 2 only, from a graph you checked or edited
 bin\ctxcompiler.exe check audiospec.graph.json audiospec.rb   # the checks, without Claude
-bin\ctxcompiler.exe render audiospec.rb -d 5m              # record the first 5 minutes to audiospec.wav (Sonic Pi 5)
+bin\ctxcompiler.exe render audiospec.rb -d 5m              # record the first 5 minutes to audiospec.wav, silently (Sonic Pi 5; --audible to hear it)
 ```
 
 - `compile` saves the graph next to the spec (`--graph` to choose the file).
@@ -106,7 +106,20 @@ times; a graph is saved and code is written only once it passes.
 
 `render` plays the code in Sonic Pi 5 without its GUI and records the first
 `-d` of it (stereo, 48 kHz, 24-bit). It is real time, so a 5-minute song takes
-a little over 5 minutes, and **the music plays out loud** while it records.
+a little over 5 minutes.
+
+It is **silent** (2026-10-29): Sonic Pi records inside its audio engine,
+before the sound device, so `render` mutes the engine's audio session in
+Windows' volume mixer (`mute_windows.ps1`, through PowerShell) and the WAV is
+the same. Only the engine process the render starts ("Sonic Pi -
+SuperSonic", started since the render began) is muted, not a Sonic Pi you
+have open; it is muted as soon as it opens the sound device, before the code
+plays. Windows remembers an app's mute, so once the take is saved the code
+turns Sonic Pi's own volume down (`set_volume! 0`) and the engine is unmuted
+while it still runs. `--audible` lets you hear it instead. Elsewhere than
+Windows, silent rendering is not done yet: use `--audible`. If a render is
+killed while muted and Sonic Pi stays silent afterwards, unmute "Sonic Pi -
+SuperSonic" in the volume mixer.
 
 It uses `app/server/ruby/bin/headless-record.rb`, which Sonic Pi 5 ships, to
 run the code. That script's own record tap writes nothing on Windows (Sonic
@@ -118,7 +131,10 @@ seconds first. The take is saved as `<name>.recording.wav` and renamed when it
 is complete, so a failed take leaves an older WAV as it was.
 
 Checked on the example: 20 seconds of `folk_song.rb` gave a 19.75 s WAV with
-real signal (peak 0.23, RMS 0.034).
+real signal (peak 0.23, RMS 0.034). Silent, 8 seconds of it gave a 7.79 s
+WAV with real signal (mean -38.7 dB, peak -20.3 dB); the engine was muted
+before Sonic Pi was ready and unmuted, with its one session, before it
+stopped.
 
 ## Not done yet
 

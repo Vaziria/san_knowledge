@@ -15,13 +15,15 @@ export type { Setting, Socket, StepKind } from '../gen/san/tower/v1/workflow_pb'
 
 // socketColor follows Blender's socket colours: the flow (event) is green
 // like geometry, structured data (object) purple like a vector, text blue
-// like a string, a knowledge (Knowledge Base's) orange like an object. A
-// type the UI does not know yet is grey.
+// like a string, a knowledge (Knowledge Base's) orange like an object, a
+// tool (a tool step's, for an AI step's Tools) pink like a texture. A type
+// the UI does not know yet is grey.
 const socketColors: Record<string, string> = {
   event: '#00d6a3',
   object: '#6363c7',
   text: '#70b2ff',
   knowledge: '#ed9e5c',
+  tool: '#e66ae6',
 };
 export const socketColor = (type: string) => socketColors[type] ?? '#a1a1a1';
 
@@ -146,6 +148,11 @@ export type Step = Node<StepData, 'step'>;
 // from the ids alone.
 export const handleId = (s: Socket) => `${s.type}:${s.name}`;
 const handleType = (id?: string | null) => id?.split(':')[0];
+
+// manyLinks says whether an input keeps every link drawn into it: a tool
+// input takes any number of tools (the user, 2026-10-29), any other input
+// one link, which a new link replaces.
+export const manyLinks = (handle?: string | null) => handleType(handle) === 'tool';
 const socketName = (id?: string | null) => id?.slice(id.indexOf(':') + 1) ?? '';
 
 export const canLink = (c: Connection | Edge) =>

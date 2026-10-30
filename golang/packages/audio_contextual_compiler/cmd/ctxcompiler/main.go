@@ -99,10 +99,11 @@ func run(ctx context.Context, argv []string, out, errOut io.Writer, claude acc.C
 			},
 			{
 				Name: "render", ArgsUsage: "<code.rb>",
-				Usage: "record Sonic Pi code to a WAV with Sonic Pi 5's headless recorder (real time, and audible while it runs)",
+				Usage: "record Sonic Pi code to a WAV with Sonic Pi 5's headless recorder (real time; silent unless --audible)",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: "WAV file (default: <code>.wav)"},
 					&cli.DurationFlag{Name: "duration", Aliases: []string{"d"}, Usage: "how much to record, e.g. 5m or 90s (required)"},
+					&cli.BoolFlag{Name: "audible", Usage: "let the music play out loud as it records; by default Sonic Pi's engine is muted in the volume mixer (Windows), which does not change the WAV"},
 					sonicPiFlags()[0],
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -118,7 +119,7 @@ func run(ctx context.Context, argv []string, out, errOut io.Writer, claude acc.C
 						return fmt.Errorf("Sonic Pi not found (--sonic-pi <folder>)")
 					}
 					wav := orDefault(cmd.String("output"), base(src)+".wav")
-					if err := sp.Record(ctx, src, wav, cmd.Duration("duration"), errOut); err != nil {
+					if err := sp.Record(ctx, src, wav, cmd.Duration("duration"), cmd.Bool("audible"), errOut); err != nil {
 						return err
 					}
 					fmt.Fprintln(out, "wrote", wav)

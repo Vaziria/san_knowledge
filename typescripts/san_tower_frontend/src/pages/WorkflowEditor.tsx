@@ -56,6 +56,7 @@ import {
 import { FormDialog, FormField, toast } from '../ui';
 import {
   canLink,
+  manyLinks,
   fromFlow,
   isTrigger,
   link,
@@ -326,7 +327,14 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
 
   const onConnect = useCallback(
     (c: Connection) =>
-      setEdges((es) => [...es.filter((e) => !(e.target === c.target && e.targetHandle === c.targetHandle)), link(c)]),
+      setEdges((es) => [
+        ...es.filter(
+          (e) =>
+            !(e.target === c.target && e.targetHandle === c.targetHandle) ||
+            (manyLinks(c.targetHandle) && e.source !== c.source),
+        ),
+        link(c),
+      ]),
     [setEdges],
   );
 

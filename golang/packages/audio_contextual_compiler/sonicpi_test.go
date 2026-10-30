@@ -187,14 +187,14 @@ func TestRecordNeedsTheRecorder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = sp.Record(context.Background(), "x.rb", "x.wav", time.Second, io.Discard)
+	err = sp.Record(context.Background(), "x.rb", "x.wav", time.Second, true, io.Discard)
 	if err == nil || !strings.Contains(err.Error(), "Sonic Pi 5.0.0 has no headless recorder") {
 		t.Errorf("got %v", err)
 	}
 }
 
 func TestRecordingScript(t *testing.T) {
-	got := recordingScript("use_bpm 90\nplay 60\n", `D:\music\song.recording.wav`, 90*time.Second)
+	got := recordingScript("use_bpm 90\nplay 60\n", `D:\music\song.recording.wav`, 90*time.Second, false)
 	want := `recording_start
 in_thread do
   use_bpm 60
@@ -209,5 +209,11 @@ play 60
 `
 	if got != want {
 		t.Errorf("got\n%s", got)
+	}
+	// A silent take turns Sonic Pi down once it is saved, before its engine
+	// is unmuted.
+	silent := recordingScript("play 60\n", `D:\music\song.recording.wav`, 90*time.Second, true)
+	if !strings.Contains(silent, "  recording_save \"D:/music/song.recording.wav\"\n  set_volume! 0\nend\n") {
+		t.Errorf("silent:\n%s", silent)
 	}
 }

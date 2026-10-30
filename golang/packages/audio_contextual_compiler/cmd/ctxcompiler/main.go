@@ -39,7 +39,7 @@ func run(ctx context.Context, argv []string, out, errOut io.Writer, claude acc.C
 	}
 	claudeFlags := func() []cli.Flag {
 		return append([]cli.Flag{
-			&cli.StringFlag{Name: "model", Value: "opus", Usage: "Claude model for both passes"},
+			&cli.StringFlag{Name: "model", Value: "opus", Usage: "Claude model for the Claude calls"},
 			&cli.DurationFlag{Name: "timeout", Value: 10 * time.Minute, Usage: "time limit of one Claude call"},
 			&cli.IntFlag{Name: "retries", Value: 2, Usage: "how many more times to ask when an answer fails the checks"},
 			&cli.BoolFlag{Name: "fresh", Usage: "build the graph again even if the spec is unchanged, without the old graph's ids"},
@@ -104,7 +104,8 @@ func run(ctx context.Context, argv []string, out, errOut io.Writer, claude acc.C
 					&cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: "WAV file (default: <code>.wav)"},
 					&cli.DurationFlag{Name: "duration", Aliases: []string{"d"}, Usage: "how much to record, e.g. 5m or 90s (required)"},
 					&cli.BoolFlag{Name: "audible", Usage: "let the music play out loud as it records; by default Sonic Pi's engine is muted in the volume mixer (Windows), which does not change the WAV"},
-					sonicPiFlags()[0],
+					&cli.StringFlag{Name: "sonic-pi", Sources: cli.EnvVars("SONIC_PI_HOME"),
+						Usage: "Sonic Pi 5 folder to record with (default: the usual install folder)"},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					src, err := oneArg(cmd)

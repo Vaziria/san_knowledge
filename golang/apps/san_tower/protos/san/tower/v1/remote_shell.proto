@@ -9,18 +9,34 @@ package san.tower.v1;
 // to and from the chat as protojson, with the field names as written here.
 
 // WebchatResponse is each answer of the web chat: execute is a script for
-// the machine to run, chat is what to tell the user; either may be empty.
+// the machine to run, chat is what to tell the user, and tools a call to
+// one of the machine's tools, when it has any; each may be empty.
 message WebchatResponse {
   string execute = 1;
   string chat = 2;
+  ToolCall tools = 3;
+}
+
+// ToolCall is a call to a tool of the machine (the user, 2026-10-29), like a
+// command line: tool_name the tool, command what it does, arguments its
+// words. The tools are the tool steps linked to Remote Shell's Tools
+// (engine/tools.go): a Knowledge Tool's explain, search and get, a
+// Telegram Tool's send.
+message ToolCall {
+  string tool_name = 1;
+  string command = 2;
+  repeated string arguments = 3;
 }
 
 // FromType says who a WebchatRequest is from: the machine, with the result
-// of the last execute, or the user, with a chat.
+// of the last execute (and of its tools call, when it had one too), the
+// user, with a chat, or the machine's tools, with the result of a tools
+// call alone.
 enum FromType {
   FROM_TYPE_UNSPECIFIED = 0;
   FROM_TYPE_EXECUTE = 1;
   FROM_TYPE_USER = 2;
+  FROM_TYPE_TOOLS = 3;
 }
 
 // WebchatRequest is each message to the web chat.
@@ -28,4 +44,5 @@ message WebchatRequest {
   string execute_result = 1;
   string chat = 2;
   FromType from = 3;
+  string tools_result = 4;
 }

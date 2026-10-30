@@ -81,6 +81,39 @@ func (s *Store) RunHeads(ids []uint32) ([]Run, error) {
 	return list, s.db.Omit("Steps", "Summary").Where("id IN ?", ids).Order("id").Find(&list).Error
 }
 
+// RunBatch counts the batch run is in (the Queue Progress step): the runs
+// of its workflow each started, as a one-at-a-time workflow queues them,
+// before the one before it ended. done is how many of the batch before run
+// ended, waiting how many after it are still going or waiting. A run the
+// tower stopped (interrupted) ends a batch: its event runs again as a new
+// run.
+func (s *Store) RunBatch(workflowID, runID uint32) (done, waiting int, err error) {
+	var cur Run
+	if err := s.db.Omit("Steps", "Summary").First(&cur, runID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, 0, fail(ErrNotFound, "no run %d", runID)
+		}
+		return 0, 0, err
+	}
+	var n int64
+	if err := s.db.Model(&Run{}).Where("workflow_id = ? AND id > ? AND status = ?", workflowID, runID, v1.RunStatus_RUN_STATUS_RUNNING).Count(&n).Error; err != nil {
+		return 0, 0, err
+	}
+	var before []Run
+	if err := s.db.Omit("Steps", "Summary").Where("workflow_id = ? AND id < ?", workflowID, runID).Order("id DESC").Limit(MaxRunsKept).Find(&before).Error; err != nil {
+		return 0, 0, err
+	}
+	next := cur
+	for _, r := range before {
+		if r.Status == v1.RunStatus_RUN_STATUS_INTERRUPTED || (r.FinishedAt != nil && !r.FinishedAt.After(next.StartedAt)) {
+			break
+		}
+		done++
+		next = r
+	}
+	return done, int(n), nil
+}
+
 // CountRunning is how many runs are still going.
 func (s *Store) CountRunning() (int64, error) {
 	var n int64

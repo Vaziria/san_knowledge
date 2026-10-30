@@ -34,6 +34,10 @@ const (
 	// id: Knowledge Base's output, which the knowledge steps look in
 	// (knowledge.go).
 	Knowledge = "knowledge"
+	// Tool is a tool an AI step may use, a Value object a tool step gives
+	// (Knowledge Tool, Telegram Tool; tools.go). An input of this type takes
+	// any number of links, and gets their tools as a list.
+	Tool = "tool"
 )
 
 // TopicEvent is the kind of the step that starts a run when an event comes
@@ -53,6 +57,10 @@ type kind struct {
 	*v1.StepKind
 	trigger func(st *v1.Step, data []byte) (outputs map[string]proto.Message, fired []string, err error)
 	run     func(c *call) error
+	// back are a loop step's inputs that come back from a step in its own
+	// loop (Knowledge Summarize's Answer, from the AI step its Each runs):
+	// not read before the step runs, but by call.back after each item.
+	back []string
 }
 
 func (k *kind) pure() bool {
@@ -75,7 +83,7 @@ func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ
 // sites.go), then the Tower Chat ones (towerchat.go), the Telegram ones
 // (telegram.go), the WhatsApp ones (whatsapp.go) and the knowledge ones
 // (knowledge.go).
-var kinds = slices.Concat(coreKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, knowledgeKinds)
+var kinds = slices.Concat(coreKinds, progressKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, knowledgeKinds, toolKinds, moreToolKinds, indicatorKinds, tradingKinds)
 
 var coreKinds = []*kind{
 	{
@@ -517,6 +525,11 @@ type call struct {
 	// linked says whether an output of the step links to a step. Nil
 	// outside a run.
 	linked func(output string) bool
+	// inLinked says whether an input of the step has a link, and back
+	// reads one of the kind's back inputs, as the item each just ran left
+	// it: nil when it has no link. Nil outside a run.
+	inLinked func(input string) bool
+	back     func(input string) (proto.Message, error)
 	// failed is the error of the run's last step whose Failed output fired
 	// (Fail Run).
 	failed error

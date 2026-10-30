@@ -110,6 +110,11 @@ func (c *call) telegramOf(setting string) (*telegram.Client, uint32, error) {
 	if id == "" {
 		return nil, 0, fmt.Errorf("%s: pick a Telegram Bot connection (Connections page)", setting)
 	}
+	return c.telegramByID(id)
+}
+
+// telegramByID is the client of Telegram Bot connection id, and its id.
+func (c *call) telegramByID(id string) (*telegram.Client, uint32, error) {
 	n, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Connection %q is not a connection's id", id)

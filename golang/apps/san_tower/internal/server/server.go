@@ -14,7 +14,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -57,10 +56,6 @@ type Server struct {
 	// OnRestart, when set, stops the tower and starts it again; the Restart
 	// RPC calls it once it has answered.
 	OnRestart func()
-
-	// summarizing holds the ids of the knowledge whose summaries are being
-	// written (SummarizeKnowledge), one run each.
-	summarizing sync.Map
 }
 
 var (
@@ -101,6 +96,10 @@ func (s *Server) Handler() http.Handler {
 	// is not always installed on contributors' machines (2026-10-27). The
 	// engine probes `claude --version` once and caches it.
 	mux.HandleFunc("/api/claude-health", s.claudeHealth)
+	// /api/tools/<token> is a Claude Ask (CLI) step's tools, for the MCP
+	// server its claude starts (san_tower tool-mcp; engine/toolserver.go):
+	// GET lists them, POST runs a call.
+	mux.HandleFunc("/api/tools/", s.tools)
 	mux.Handle("/", web.Handler(web.Dist()))
 	if s.LAN {
 		return GuardLAN(mux)

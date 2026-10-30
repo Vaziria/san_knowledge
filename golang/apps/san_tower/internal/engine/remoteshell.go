@@ -30,7 +30,7 @@ import (
 var remoteShellKinds = []*kind{{
 	StepKind: &v1.StepKind{
 		Kind: "remote-shell", Title: "Remote Shell", Category: "AI",
-		Description: "The Web Machine Shell Protocol: the user's Message goes to a web chat (ChatGPT, Gemini or Claude on claude.ai, through San Remote), which answers in JSON with a chat for the user and a bash script to execute on this computer. Chat fires for each chat, with Reply its text; each script runs in a storage's folder when one is picked, else in the tower's data folder, and what it gave goes back to the chat, until an answer has nothing to execute. The chat is a kept one: Chat Link goes on in a chat, a chat's link or a Browser Chat Session's, and the output is its link. Commands counts the scripts run; there is no limit unless Max Commands sets one, past which the step fails. The step fails too when the chat looks stuck: the same script with the same result 3 times in a row. The web chat runs whatever it wants with the tower's rights: give it a storage to work in.",
+		Description: "The Web Machine Shell Protocol: the user's Message goes to a web chat (ChatGPT, Gemini or Claude on claude.ai, through San Remote), which answers in JSON with a chat for the user and a bash script to execute on this computer. Chat fires for each chat, with Reply its text; each script runs in a storage's folder when one is picked, else in the tower's data folder, and what it gave goes back to the chat, until an answer has nothing to execute. The chat is a kept one: Chat Link goes on in a chat, a chat's link or a Browser Chat Session's, and the output is its link. Commands counts the scripts run; there is no limit unless Max Commands sets one, past which the step fails. The step fails too when the chat looks stuck: the same script with the same result 3 times in a row. The web chat runs whatever it wants with the tower's rights: give it a storage to work in. With Shell Off, the chat has no shell, only its tools: an AI chat that can use tools. Tools takes the tool steps (Knowledge Tool, Telegram Tool) whose tools the chat may use, any number; a call to one counts as a command.",
 		Outputs:     []*v1.Socket{sock("Done", Event), sock("Chat", Event), sock("Reply", Text), sock("Chat Link", Text), sock("Commands", Text)},
 		Settings: []*v1.Setting{
 			connectionSetting(),
@@ -39,8 +39,9 @@ var remoteShellKinds = []*kind{{
 			{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"},
 			{Name: "Timeout", Placeholder: "5m: how long each script may run"},
 			{Name: "Max Commands", Placeholder: "No limit"},
+			{Name: "Shell", Options: []string{"On", "Off"}},
 		},
-		Inputs: []*v1.Socket{sock("Event", Event), field("Message"), field("Chat Link")},
+		Inputs: []*v1.Socket{sock("Event", Event), field("Message"), field("Chat Link"), sock("Tools", Tool)},
 	},
 	run: remoteShell,
 }}
@@ -95,15 +96,28 @@ func remoteShell(c *call) error {
 	if err != nil {
 		return err
 	}
-	sc := &shellChat{c: c, r: r, ask: ask, site: site, session: session, chat: chat, wait: wait}
+	tools, err := c.linkedTools("Tools") // nil when none is linked
+	if err != nil {
+		return err
+	}
+	shellOn := c.setting("Shell") != "Off"
+	sc := &shellChat{c: c, r: r, ask: ask, site: site, session: session, chat: chat, wait: wait, again: notWebchatResponse(tools != nil)}
+	// The protocol, and its reminder, with the shell or without it.
+	protocol := func() string { return shellProtocol(dir, timeout, tools) }
+	reminder := shellReminder(tools)
+	if !shellOn {
+		protocol = func() string { return chatProtocol(tools) }
+		reminder = chatReminder(tools)
+		sc.again = "Your last answer was not one JSON WebchatResponse. Answer it again as " + chatShape(tools != nil) + " in a ```json code block, escaped as JSON only, with nothing before or after it."
+	}
 
 	// A new chat learns the protocol first, in the same message; a chat that
 	// goes on is reminded of it with the user's message (the user, 2026-10-27:
 	// a chat picked up hours later may have drifted from it), not with a
 	// script's result, which comes seconds after the last answer.
-	prompt := shellReminder + "\n"
+	prompt := reminder + "\n"
 	if chat == "" {
-		prompt = shellProtocol(dir, timeout) + "\n\n"
+		prompt = protocol() + "\n\n"
 	}
 	req := &v1.WebchatRequest{Chat: message, From: v1.FromType_FROM_TYPE_USER}
 	commands, repeats, last := 0, 0, ""
@@ -118,7 +132,7 @@ func remoteShell(c *call) error {
 			// keeps it instead.
 			c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "the chat %s is not there (deleted on the site?): starting a new one", sc.chat)
 			sc.chat = ""
-			res, err = sc.send(shellProtocol(dir, timeout) + "\n\n" + webchatJSON(req))
+			res, err = sc.send(protocol() + "\n\n" + webchatJSON(req))
 		}
 		c.outputs["Chat Link"] = stringValue(sc.chat)
 		if err != nil {
@@ -134,51 +148,92 @@ func remoteShell(c *call) error {
 				}
 			}
 		}
-		script := res.GetExecute()
-		if strings.TrimSpace(script) == "" {
-			break
+		script := strings.TrimSpace(res.GetExecute())
+		// A tools call, when the chat has tools (one a chat without them
+		// writes anyway is not answered).
+		var call *v1.ToolCall
+		if tools != nil && (res.GetTools().GetToolName() != "" || res.GetTools().GetCommand() != "") {
+			call = res.GetTools()
 		}
-		if printsOnly(script) {
+		if script != "" && !shellOn {
+			// Shell Off: the machine has no shell to run it.
+			c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "not run, the machine has no shell (Shell Off):\n%s", clip(script, 300))
+			script = ""
+		}
+		if script != "" && printsOnly(script) {
 			// A chat that has nothing left to do may run echo "Done" rather
 			// than leave execute empty, and answer each result with another
 			// (2026-10-28: echo OK, echo Selesai, echo Siap... without end).
-			// Text it already knows tells it nothing: its turn is over.
-			c.logf(v1.LogLevel_LOG_LEVEL_INFO, "not run, it only prints text: the chat's turn is over:\n%s", clip(strings.TrimSpace(script), 300))
+			// Text it already knows tells it nothing: its turn is over,
+			// unless it calls a tool too.
+			why := "the chat's turn is over"
+			if call != nil {
+				why = "its tools call is answered"
+			}
+			c.logf(v1.LogLevel_LOG_LEVEL_INFO, "not run, it only prints text (%s):\n%s", why, clip(script, 300))
+			script = ""
+		}
+		if script == "" && call == nil {
 			break
 		}
-		if most > 0 && commands == most {
-			return fmt.Errorf("the chat asks for a script after Max Commands, %d: %s", most, clip(script, 300))
-		}
 		if sc.chat == "" {
-			return errors.New("the chat has no link, so the script's result cannot go back to it")
+			return errors.New("the chat has no link, so what the machine did cannot go back to it")
 		}
-		commands++
-		c.outputs["Commands"] = stringValue(strconv.Itoa(commands))
-		// The script, each line it prints as it comes (the Logs pages show
-		// them while the run goes on; live.go), then how it ended.
-		c.logf(v1.LogLevel_LOG_LEVEL_INFO, "script %d:\n%s", commands, clip(strings.TrimSpace(script), 2000))
-		out, err := runScript(c.ctx, script, "", dir, timeout, func(line string) { c.log(v1.LogLevel_LOG_LEVEL_DEBUG, line) })
-		if err != nil {
-			return err
+		next := &v1.WebchatRequest{From: v1.FromType_FROM_TYPE_TOOLS}
+		ran, status := "", ""
+		if call != nil {
+			if most > 0 && commands == most {
+				return fmt.Errorf("the chat calls a tool after Max Commands, %d: %s %s", most, call.GetToolName(), call.GetCommand())
+			}
+			commands++
+			c.outputs["Commands"] = stringValue(strconv.Itoa(commands))
+			c.logf(v1.LogLevel_LOG_LEVEL_INFO, "tool %d: %s %s %q", commands, call.GetToolName(), call.GetCommand(), call.GetArguments())
+			next.ToolsResult = tools.run(c, call)
+			level := v1.LogLevel_LOG_LEVEL_DEBUG
+			if strings.HasPrefix(next.ToolsResult, "error: ") {
+				level = v1.LogLevel_LOG_LEVEL_WARNING
+			}
+			c.logf(level, "tool %d: %s", commands, clip(next.ToolsResult, 300))
+			ran = fmt.Sprintf("%s %s %q\x00%s", call.GetToolName(), call.GetCommand(), call.GetArguments(), next.ToolsResult)
 		}
-		status, level := fmt.Sprintf("exit %d", out.code), v1.LogLevel_LOG_LEVEL_INFO
-		if out.timedOut {
-			status = "stopped after the Timeout, " + timeout.String()
+		if script != "" {
+			if most > 0 && commands == most {
+				return fmt.Errorf("the chat asks for a script after Max Commands, %d: %s", most, clip(script, 300))
+			}
+			commands++
+			c.outputs["Commands"] = stringValue(strconv.Itoa(commands))
+			// The script, each line it prints as it comes (the Logs pages show
+			// them while the run goes on; live.go), then how it ended.
+			c.logf(v1.LogLevel_LOG_LEVEL_INFO, "script %d:\n%s", commands, clip(script, 2000))
+			out, err := runScript(c.ctx, script, "", dir, timeout, func(line string) { c.log(v1.LogLevel_LOG_LEVEL_DEBUG, line) })
+			if err != nil {
+				return err
+			}
+			level := v1.LogLevel_LOG_LEVEL_INFO
+			status = fmt.Sprintf("exit %d", out.code)
+			if out.timedOut {
+				status = "stopped after the Timeout, " + timeout.String()
+			}
+			if out.timedOut || out.code != 0 {
+				level = v1.LogLevel_LOG_LEVEL_WARNING
+			}
+			c.logf(level, "script %d: %s after %s", commands, status, out.took)
+			next.ExecuteResult = executeResult(out, status)
+			next.From = v1.FromType_FROM_TYPE_EXECUTE
+			ran += "\x00" + script + "\x00" + next.ExecuteResult
 		}
-		if out.timedOut || out.code != 0 {
-			level = v1.LogLevel_LOG_LEVEL_WARNING
-		}
-		c.logf(level, "script %d: %s after %s", commands, status, out.took)
-		result := executeResult(out, status)
-		if ran := strings.TrimSpace(script) + "\x00" + result; ran == last {
+		if ran == last {
 			repeats++
 		} else {
 			repeats, last = 1, ran
 		}
 		if repeats == shellStuck {
-			return fmt.Errorf("the chat looks stuck: it ran the same script %d times in a row, with the same result (%s): %s", shellStuck, status, clip(strings.TrimSpace(script), 300))
+			if script == "" {
+				return fmt.Errorf("the chat looks stuck: it made the same tools call %d times in a row, with the same result: %s %s %q", shellStuck, call.GetToolName(), call.GetCommand(), call.GetArguments())
+			}
+			return fmt.Errorf("the chat looks stuck: it ran the same script %d times in a row, with the same result (%s): %s", shellStuck, status, clip(script, 300))
 		}
-		req = &v1.WebchatRequest{ExecuteResult: result, From: v1.FromType_FROM_TYPE_EXECUTE}
+		req = next
 	}
 	c.fire("Done")
 	return nil
@@ -195,6 +250,7 @@ type shellChat struct {
 	session string
 	chat    string
 	wait    time.Duration
+	again   string // what asks again for an answer that is not a WebchatResponse
 }
 
 // shellTabIdle is how long San Remote keeps a Remote Shell chat's tab open
@@ -237,7 +293,7 @@ func (s *shellChat) send(prompt string) (*v1.WebchatResponse, error) {
 		return nil, fmt.Errorf("the answer is not a WebchatResponse (%v): %s", perr, clip(answer, 300))
 	}
 	s.c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "the answer is not a WebchatResponse (%v): asked again", perr)
-	if answer, err = s.say(notWebchatResponse); err != nil {
+	if answer, err = s.say(s.again); err != nil {
 		return nil, err
 	}
 	if res, perr = parseWebchat(answer); perr != nil {
@@ -246,7 +302,25 @@ func (s *shellChat) send(prompt string) (*v1.WebchatResponse, error) {
 	return res, nil
 }
 
-const shellReminder = "(Web Machine Shell Protocol: answer with only one JSON {\"execute\": \"...\", \"chat\": \"...\"} in a ```json code block, escaped as JSON only, nothing else. execute is only for the machine's shell, for work the user asked you to do; conversation, and commands the user asked how to run themselves, go in chat. When done or waiting for the user, leave execute empty; never run a server or anything that does not end in the foreground.)"
+// shellReminder reminds a chat that goes on of the protocol, and of its
+// tools when it has them, by name and command: a chat that began before
+// they were linked learns of them here (its first message, with the whole
+// protocol, had none).
+func shellReminder(tools *shellTools) string {
+	end := "When done or waiting for the user, leave execute empty; never run a server or anything that does not end in the foreground.)"
+	if tools != nil {
+		end = "tools calls one of the machine's tools, " + `{"tool_name": "...", "command": "...", "arguments": ["..."]}` + ", or is null; its result comes back as tools_result. " + tools.brief() + " When done or waiting for the user, leave execute empty and tools null; never run a server or anything that does not end in the foreground.)"
+	}
+	return "(Web Machine Shell Protocol: answer with only one JSON " + responseShape(tools != nil) + " in a ```json code block, escaped as JSON only, nothing else. execute is only for the machine's shell, for work the user asked you to do; conversation, and commands the user asked how to run themselves, go in chat. " + end
+}
+
+// responseShape is a WebchatResponse as the protocol shows it.
+func responseShape(tools bool) string {
+	if tools {
+		return `{"execute": "...", "chat": "...", "tools": null}`
+	}
+	return `{"execute": "...", "chat": "..."}`
+}
 
 // printsOnly says whether script only prints text it holds: echo or printf
 // commands of plain words, with no variable, substitution, redirection or
@@ -271,32 +345,89 @@ func printsOnly(script string) bool {
 	return printed
 }
 
-const notWebchatResponse = "Your last answer was not one JSON WebchatResponse. Answer it again as {\"execute\": \"...\", \"chat\": \"...\"} in a ```json code block, escaped as JSON only, with nothing before or after it."
+// chatShape is a WebchatResponse without a shell (Shell Off).
+func chatShape(tools bool) string {
+	if tools {
+		return `{"chat": "...", "tools": null}`
+	}
+	return `{"chat": "..."}`
+}
+
+// chatProtocol is a new chat's first message with Shell Off: the protocol
+// without the shell, the machine having only its tools (or none: a plain
+// chat in JSON).
+func chatProtocol(tools *shellTools) string {
+	requests := `{"chat": "...", "from": "FROM_TYPE_USER"}: chat is the user's message.`
+	toolsPart, end := "", "Your turn is over with each answer, until the user writes again."
+	if tools != nil {
+		requests = `{"tools_result": "...", "chat": "...", "from": "FROM_TYPE_USER" or "FROM_TYPE_TOOLS"}
+- from FROM_TYPE_USER: chat is the user's message.
+- from FROM_TYPE_TOOLS: tools_result is your last tools call's result.`
+		toolsPart = "\n" + tools.protocol()
+		end = "When tools is null, your turn is over until the user writes again."
+	}
+	return fmt.Sprintf(`This chat follows the Web Machine Shell Protocol, without a shell. Two parties talk with you in it: a user, and a machine%s.
+
+Every message you get is one JSON WebchatRequest:
+%s
+
+Answer every message with one JSON WebchatResponse in a `+"```json"+` code block, with nothing before or after it:
+%s
+In the code block the JSON is escaped as JSON only, not again as markdown: a quote in a string is \", a line break \n, a backslash \\.
+- chat: what to tell the user: all the conversation goes here.%s
+%s
+
+The first message:`, map[bool]string{true: ", which has tools you may call", false: ", which only passes the messages on"}[tools != nil], requests, chatShape(tools != nil), toolsPart, end)
+}
+
+// chatReminder reminds a chat that goes on, with Shell Off.
+func chatReminder(tools *shellTools) string {
+	end := "All the conversation goes in chat.)"
+	if tools != nil {
+		end = "All the conversation goes in chat; tools calls one of the machine's tools, " + `{"tool_name": "...", "command": "...", "arguments": ["..."]}` + ", or is null, and its result comes back as tools_result. " + tools.brief() + " When done or waiting for the user, leave tools null.)"
+	}
+	return "(Web Machine Shell Protocol, without a shell: answer with only one JSON " + chatShape(tools != nil) + " in a ```json code block, escaped as JSON only, nothing else. " + end
+}
+
+// notWebchatResponse asks again for an answer that was not one.
+func notWebchatResponse(tools bool) string {
+	return "Your last answer was not one JSON WebchatResponse. Answer it again as " + responseShape(tools) + " in a ```json code block, escaped as JSON only, with nothing before or after it."
+}
 
 // shellProtocol is the start of a new chat's first message: the protocol,
 // with the shell, the folder it works in, and how long a script may run.
 // Each script is a new bash in that folder (2026-10-27: the chat should
 // not count on a cd from the last one).
-func shellProtocol(dir string, timeout time.Duration) string {
+func shellProtocol(dir string, timeout time.Duration, tools *shellTools) string {
 	shell := "bash"
 	if runtime.GOOS == "windows" {
 		shell = "Git Bash on Windows"
 	}
+	requests := `{"execute_result": "...", "chat": "...", "from": "FROM_TYPE_USER" or "FROM_TYPE_EXECUTE"}
+- from FROM_TYPE_USER: chat is the user's message.
+- from FROM_TYPE_EXECUTE: execute_result is what the machine's shell gave for your last execute: its exit code, stdout and stderr.`
+	toolsPart, toolsEmpty := "", ""
+	if tools != nil {
+		requests = `{"execute_result": "...", "tools_result": "...", "chat": "...", "from": "FROM_TYPE_USER", "FROM_TYPE_EXECUTE" or "FROM_TYPE_TOOLS"}
+- from FROM_TYPE_USER: chat is the user's message.
+- from FROM_TYPE_EXECUTE: execute_result is what the machine's shell gave for your last execute: its exit code, stdout and stderr; tools_result is your last tools call's result, when you made one too.
+- from FROM_TYPE_TOOLS: tools_result is your last tools call's result.`
+		toolsPart = "\n" + tools.protocol()
+		toolsEmpty = " and tools null"
+	}
 	return fmt.Sprintf(`This chat follows the Web Machine Shell Protocol. Two parties talk with you in it: a user, and a machine, which is a %s shell on the user's computer, working in the folder %s.
 
 Every message you get is one JSON WebchatRequest:
-{"execute_result": "...", "chat": "...", "from": "FROM_TYPE_USER" or "FROM_TYPE_EXECUTE"}
-- from FROM_TYPE_USER: chat is the user's message.
-- from FROM_TYPE_EXECUTE: execute_result is what the machine's shell gave for your last execute: its exit code, stdout and stderr.
+%[4]s
 
 Answer every message with one JSON WebchatResponse in a `+"```json"+` code block, with nothing before or after it:
-{"execute": "...", "chat": "..."}
+%[5]s
 In the code block the JSON is escaped as JSON only, not again as markdown: a quote in a string is \", a line break \n, a backslash \\.
 - execute: only for the machine's shell: a bash script for the machine to run now, never a way to talk to the user. Run one only for work the user asked you to do, or that it needs. When the user asks how to do something themselves, explain it in chat, commands included, and leave execute empty: do not run it for them. What a script gives comes back to you in the next message. Leave it empty when nothing is to be run. Each script runs in a new shell that starts in %[2]s: a cd or a variable from the last one does not carry over. A script may run up to %[3]s; start a longer job in the background, writing to a log file, and check on it with later scripts. Never run in the foreground a command that does not end by itself (a preview or dev server, a watcher, anything waiting for input): start it in the background, or tell the user how to run it.
-- chat: what to tell the user: all the conversation goes here. Leave it empty when there is nothing to say.
-When both are set, the user gets chat, then the machine runs execute. When execute is empty, your turn is over until the user writes again: ask the user in chat for what you need, and before running anything that deletes or changes what cannot be undone. When the work is done, or you wait for the user, leave execute empty; never run a script only to say something (such as echo "Done"): say it in chat. A script that only prints text is not run, and ends your turn.
+- chat: what to tell the user: all the conversation goes here. Leave it empty when there is nothing to say.%[6]s
+When both are set, the user gets chat, then the machine runs execute. When execute is empty%[7]s, your turn is over until the user writes again: ask the user in chat for what you need, and before running anything that deletes or changes what cannot be undone. When the work is done, or you wait for the user, leave execute empty; never run a script only to say something (such as echo "Done"): say it in chat. A script that only prints text is not run, and ends your turn.
 
-The first message:`, shell, filepath.ToSlash(dir), timeout)
+The first message:`, shell, filepath.ToSlash(dir), timeout, requests, responseShape(tools != nil), toolsPart, toolsEmpty)
 }
 
 // webchatJSON is req as the chat reads it, with the protocol's field names
@@ -307,6 +438,7 @@ The first message:`, shell, filepath.ToSlash(dir), timeout)
 func webchatJSON(req *v1.WebchatRequest) string {
 	req.Chat = strings.ToValidUTF8(req.Chat, "�")
 	req.ExecuteResult = strings.ToValidUTF8(req.ExecuteResult, "�")
+	req.ToolsResult = strings.ToValidUTF8(req.ToolsResult, "�")
 	b, err := protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: true}.Marshal(req)
 	if err != nil {
 		return fmt.Sprintf(`{"execute_result": "", "chat": "", "from": %q, "error": %q}`, req.GetFrom().String(), err.Error())
@@ -348,12 +480,12 @@ func parseObject(text string) (*v1.WebchatResponse, error) {
 	obj := text[i : j+1]
 	res := &v1.WebchatResponse{}
 	opts := protojson.UnmarshalOptions{DiscardUnknown: true}
-	err := opts.Unmarshal([]byte(obj), res)
+	err := opts.Unmarshal([]byte(looseTools(obj)), res)
 	if err == nil {
 		return res, nil
 	}
 	for _, try := range []string{repairJSON(obj), repairJSON(unmarkdown(obj))} {
-		if opts.Unmarshal([]byte(try), res) == nil {
+		if opts.Unmarshal([]byte(looseTools(try)), res) == nil {
 			return res, nil
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/store"
@@ -67,9 +68,22 @@ type Env struct {
 	// Workflow is the id of the workflow the run is of: a Claude Chat
 	// Session step's conversation is its own in that workflow.
 	Workflow uint32
+	// Run is the run's id; RunBatch counts its batch (store.RunBatch, the
+	// Queue Progress step).
+	Run      uint32
+	RunBatch func(workflow, run uint32) (done, waiting int, err error)
 	// ChatSend keeps a Tower Chat Send's text in the chat of the Chat page
 	// that chat names, its id or its name, as this run's (towerchat.go).
 	ChatSend func(chat, text string, markdown bool) (chatMessage, error)
+	// FindWorkflow looks up a workflow by name, and RunWorkflow runs it
+	// from its trigger, Manual first, with data, waits for the run and
+	// records it (Workflow Tool).
+	FindWorkflow func(name string) (store.Workflow, error)
+	RunWorkflow  func(ctx context.Context, id uint32, data []byte) (store.Run, error)
+	// ServeTools makes tools reachable by a claude command it starts, over
+	// MCP (Claude Ask (CLI)'s Tools; toolserver.go): the --mcp-config to
+	// give claude, and done to call once claude has ended.
+	ServeTools func(c *call, tools *shellTools) (config string, done func(), err error)
 }
 
 // Execute runs a graph from its trigger step trigger, as if the trigger got
@@ -128,6 +142,7 @@ type execution struct {
 	env    Env
 	steps  map[string]*v1.Step
 	in     map[string]map[string]*v1.Link   // target step, input socket: the link into it
+	ins    map[string]map[string][]*v1.Link // the same, every link: a tool input takes several
 	out    map[string]map[string][]*v1.Link // source step, output socket: the links from it
 	values map[string]map[string]proto.Message
 	busy   map[string]bool // pure steps being run, against a loop of data links
@@ -144,6 +159,7 @@ func newExecution(ctx context.Context, g *v1.Graph, env Env) *execution {
 		env:    env,
 		steps:  make(map[string]*v1.Step),
 		in:     make(map[string]map[string]*v1.Link),
+		ins:    make(map[string]map[string][]*v1.Link),
 		out:    make(map[string]map[string][]*v1.Link),
 		values: make(map[string]map[string]proto.Message),
 		busy:   make(map[string]bool),
@@ -157,6 +173,10 @@ func newExecution(ctx context.Context, g *v1.Graph, env Env) *execution {
 			x.in[l.GetTarget()] = make(map[string]*v1.Link)
 		}
 		x.in[l.GetTarget()][l.GetTargetSocket()] = l
+		if x.ins[l.GetTarget()] == nil {
+			x.ins[l.GetTarget()] = make(map[string][]*v1.Link)
+		}
+		x.ins[l.GetTarget()][l.GetTargetSocket()] = append(x.ins[l.GetTarget()][l.GetTargetSocket()], l)
 		if x.out[l.GetSource()] == nil {
 			x.out[l.GetSource()] = make(map[string][]*v1.Link)
 		}
@@ -197,6 +217,21 @@ func (x *execution) call(id string) ([]string, error) {
 	}
 	c := &call{ctx: x.ctx, env: x.env, step: st, inputs: make(map[string]proto.Message), outputs: make(map[string]proto.Message), failed: x.failed}
 	c.linked = func(output string) bool { return len(x.out[id][output]) > 0 }
+	c.inLinked = func(input string) bool { return x.in[id][input] != nil }
+	c.back = func(input string) (proto.Message, error) {
+		l := x.in[id][input]
+		if l == nil {
+			return nil, nil
+		}
+		if _, ran := x.values[l.GetSource()]; !ran {
+			name := x.steps[l.GetSource()].GetKind()
+			if k := byKind[name]; k != nil {
+				name = k.Title
+			}
+			return nil, fmt.Errorf("input %s comes from %s, which did not run in this item's branch", input, name)
+		}
+		return x.values[l.GetSource()][l.GetSourceSocket()], nil
+	}
 	// A loop's outputs, and the error of a step in its branch, which ends
 	// the run as it would anywhere else: it is not this step's.
 	var looped []string
@@ -207,6 +242,12 @@ func (x *execution) call(id string) ([]string, error) {
 		}
 		x.values[id] = c.outputs
 		x.forget(id)
+		// What comes back is this item's, or nothing.
+		for _, input := range k.back {
+			if l := x.in[id][input]; l != nil {
+				delete(x.values, l.GetSource())
+			}
+		}
 		if err := x.drain(x.next(id, []string{output})); err != nil {
 			branchErr = err
 			return err
@@ -265,7 +306,15 @@ func (x *execution) run(k *kind, st *v1.Step, c *call) error {
 		return errors.New("this kind of step cannot run yet")
 	}
 	for _, s := range k.Inputs {
-		if s.Type == Event {
+		if s.Type == Event || slices.Contains(k.back, s.Name) {
+			continue
+		}
+		if s.Type == Tool {
+			v, err := x.tools(st, s)
+			if err != nil {
+				return err
+			}
+			c.inputs[s.Name] = v
 			continue
 		}
 		v, err := x.input(st, s)
@@ -288,6 +337,29 @@ func (x *execution) input(st *v1.Step, s *v1.Socket) (proto.Message, error) {
 		}
 		return nil, nil
 	}
+	return x.from(l, s)
+}
+
+// tools is a tool input's value: the tool of each step linked to it (the
+// user, 2026-10-29: the tools connected to an AI step are the ones it may
+// use), as a list, in the order of the links.
+func (x *execution) tools(st *v1.Step, s *v1.Socket) (proto.Message, error) {
+	list := &structpb.ListValue{}
+	for _, l := range x.ins[st.GetId()][s.Name] {
+		v, err := x.from(l, s)
+		if err != nil {
+			return nil, err
+		}
+		if tool, ok := v.(*structpb.Value); ok {
+			list.Values = append(list.Values, tool)
+		}
+	}
+	return structpb.NewListValue(list), nil
+}
+
+// from is the value link l brings to input s, with its step run first when
+// it is a pure one that has not run.
+func (x *execution) from(l *v1.Link, s *v1.Socket) (proto.Message, error) {
 	src := x.steps[l.GetSource()]
 	if src == nil {
 		return nil, nil

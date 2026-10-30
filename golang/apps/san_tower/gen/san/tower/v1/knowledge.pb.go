@@ -1560,120 +1560,6 @@ func (x *GetKnowledgeNodeResponse) GetText() string {
 	return ""
 }
 
-type SummarizeKnowledgeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SummarizeKnowledgeRequest) Reset() {
-	*x = SummarizeKnowledgeRequest{}
-	mi := &file_san_tower_v1_knowledge_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SummarizeKnowledgeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SummarizeKnowledgeRequest) ProtoMessage() {}
-
-func (x *SummarizeKnowledgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_knowledge_proto_msgTypes[28]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SummarizeKnowledgeRequest.ProtoReflect.Descriptor instead.
-func (*SummarizeKnowledgeRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *SummarizeKnowledgeRequest) GetId() uint32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-type SummarizeKnowledgeResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// docs are the docs it wrote for, and summarized how many nodes.
-	Docs           []string `protobuf:"bytes,1,rep,name=docs,proto3" json:"docs,omitempty"`
-	Summarized     uint32   `protobuf:"varint,2,opt,name=summarized,proto3" json:"summarized,omitempty"`
-	DomainsCreated []string `protobuf:"bytes,3,rep,name=domains_created,json=domainsCreated,proto3" json:"domains_created,omitempty"`
-	// failed says why a doc failed; it is tried again next time.
-	Failed        map[string]string `protobuf:"bytes,4,rep,name=failed,proto3" json:"failed,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SummarizeKnowledgeResponse) Reset() {
-	*x = SummarizeKnowledgeResponse{}
-	mi := &file_san_tower_v1_knowledge_proto_msgTypes[29]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SummarizeKnowledgeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SummarizeKnowledgeResponse) ProtoMessage() {}
-
-func (x *SummarizeKnowledgeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_knowledge_proto_msgTypes[29]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SummarizeKnowledgeResponse.ProtoReflect.Descriptor instead.
-func (*SummarizeKnowledgeResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *SummarizeKnowledgeResponse) GetDocs() []string {
-	if x != nil {
-		return x.Docs
-	}
-	return nil
-}
-
-func (x *SummarizeKnowledgeResponse) GetSummarized() uint32 {
-	if x != nil {
-		return x.Summarized
-	}
-	return 0
-}
-
-func (x *SummarizeKnowledgeResponse) GetDomainsCreated() []string {
-	if x != nil {
-		return x.DomainsCreated
-	}
-	return nil
-}
-
-func (x *SummarizeKnowledgeResponse) GetFailed() map[string]string {
-	if x != nil {
-		return x.Failed
-	}
-	return nil
-}
-
 var File_san_tower_v1_knowledge_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_knowledge_proto_rawDesc = "" +
@@ -1773,20 +1659,7 @@ const file_san_tower_v1_knowledge_proto_rawDesc = "" +
 	"\x04node\x18\x01 \x01(\v2\x1b.san.tower.v1.KnowledgeNodeR\x04node\x12-\n" +
 	"\x03out\x18\x02 \x03(\v2\x1b.san.tower.v1.KnowledgeLinkR\x03out\x12+\n" +
 	"\x02in\x18\x03 \x03(\v2\x1b.san.tower.v1.KnowledgeLinkR\x02in\x12\x12\n" +
-	"\x04text\x18\x04 \x01(\tR\x04text\"+\n" +
-	"\x19SummarizeKnowledgeRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id\"\x82\x02\n" +
-	"\x1aSummarizeKnowledgeResponse\x12\x12\n" +
-	"\x04docs\x18\x01 \x03(\tR\x04docs\x12\x1e\n" +
-	"\n" +
-	"summarized\x18\x02 \x01(\rR\n" +
-	"summarized\x12'\n" +
-	"\x0fdomains_created\x18\x03 \x03(\tR\x0edomainsCreated\x12L\n" +
-	"\x06failed\x18\x04 \x03(\v24.san.tower.v1.SummarizeKnowledgeResponse.FailedEntryR\x06failed\x1a9\n" +
-	"\vFailedEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xae\n" +
-	"\n" +
+	"\x04text\x18\x04 \x01(\tR\x04text2\xc5\t\n" +
 	"\x10KnowledgeService\x12X\n" +
 	"\rListKnowledge\x12\".san.tower.v1.ListKnowledgeRequest\x1a#.san.tower.v1.ListKnowledgeResponse\x12^\n" +
 	"\x0fCreateKnowledge\x12$.san.tower.v1.CreateKnowledgeRequest\x1a%.san.tower.v1.CreateKnowledgeResponse\x12^\n" +
@@ -1799,8 +1672,7 @@ const file_san_tower_v1_knowledge_proto_rawDesc = "" +
 	"\fGetKnowledge\x12!.san.tower.v1.GetKnowledgeRequest\x1a\".san.tower.v1.GetKnowledgeResponse\x12X\n" +
 	"\rSyncKnowledge\x12\".san.tower.v1.SyncKnowledgeRequest\x1a#.san.tower.v1.SyncKnowledgeResponse\x12d\n" +
 	"\x11GetKnowledgeGraph\x12&.san.tower.v1.GetKnowledgeGraphRequest\x1a'.san.tower.v1.GetKnowledgeGraphResponse\x12a\n" +
-	"\x10GetKnowledgeNode\x12%.san.tower.v1.GetKnowledgeNodeRequest\x1a&.san.tower.v1.GetKnowledgeNodeResponse\x12g\n" +
-	"\x12SummarizeKnowledge\x12'.san.tower.v1.SummarizeKnowledgeRequest\x1a(.san.tower.v1.SummarizeKnowledgeResponseB\xae\x01\n" +
+	"\x10GetKnowledgeNode\x12%.san.tower.v1.GetKnowledgeNodeRequest\x1a&.san.tower.v1.GetKnowledgeNodeResponseB\xae\x01\n" +
 	"\x10com.san.tower.v1B\x0eKnowledgeProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -1815,7 +1687,7 @@ func file_san_tower_v1_knowledge_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_knowledge_proto_rawDescData
 }
 
-var file_san_tower_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_san_tower_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_san_tower_v1_knowledge_proto_goTypes = []any{
 	(*Knowledge)(nil),                     // 0: san.tower.v1.Knowledge
 	(*KnowledgeFolder)(nil),               // 1: san.tower.v1.KnowledgeFolder
@@ -1845,16 +1717,13 @@ var file_san_tower_v1_knowledge_proto_goTypes = []any{
 	(*GetKnowledgeGraphResponse)(nil),     // 25: san.tower.v1.GetKnowledgeGraphResponse
 	(*GetKnowledgeNodeRequest)(nil),       // 26: san.tower.v1.GetKnowledgeNodeRequest
 	(*GetKnowledgeNodeResponse)(nil),      // 27: san.tower.v1.GetKnowledgeNodeResponse
-	(*SummarizeKnowledgeRequest)(nil),     // 28: san.tower.v1.SummarizeKnowledgeRequest
-	(*SummarizeKnowledgeResponse)(nil),    // 29: san.tower.v1.SummarizeKnowledgeResponse
-	nil,                                   // 30: san.tower.v1.SummarizeKnowledgeResponse.FailedEntry
-	(*Storage)(nil),                       // 31: san.tower.v1.Storage
-	(*timestamppb.Timestamp)(nil),         // 32: google.protobuf.Timestamp
+	(*Storage)(nil),                       // 28: san.tower.v1.Storage
+	(*timestamppb.Timestamp)(nil),         // 29: google.protobuf.Timestamp
 }
 var file_san_tower_v1_knowledge_proto_depIdxs = []int32{
-	31, // 0: san.tower.v1.Knowledge.storage:type_name -> san.tower.v1.Storage
-	32, // 1: san.tower.v1.Knowledge.created_at:type_name -> google.protobuf.Timestamp
-	32, // 2: san.tower.v1.Knowledge.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 0: san.tower.v1.Knowledge.storage:type_name -> san.tower.v1.Storage
+	29, // 1: san.tower.v1.Knowledge.created_at:type_name -> google.protobuf.Timestamp
+	29, // 2: san.tower.v1.Knowledge.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 3: san.tower.v1.ListKnowledgeResponse.knowledge:type_name -> san.tower.v1.Knowledge
 	0,  // 4: san.tower.v1.CreateKnowledgeResponse.knowledge:type_name -> san.tower.v1.Knowledge
 	1,  // 5: san.tower.v1.ListKnowledgeFoldersResponse.folders:type_name -> san.tower.v1.KnowledgeFolder
@@ -1866,38 +1735,35 @@ var file_san_tower_v1_knowledge_proto_depIdxs = []int32{
 	18, // 11: san.tower.v1.GetKnowledgeNodeResponse.node:type_name -> san.tower.v1.KnowledgeNode
 	19, // 12: san.tower.v1.GetKnowledgeNodeResponse.out:type_name -> san.tower.v1.KnowledgeLink
 	19, // 13: san.tower.v1.GetKnowledgeNodeResponse.in:type_name -> san.tower.v1.KnowledgeLink
-	30, // 14: san.tower.v1.SummarizeKnowledgeResponse.failed:type_name -> san.tower.v1.SummarizeKnowledgeResponse.FailedEntry
-	2,  // 15: san.tower.v1.KnowledgeService.ListKnowledge:input_type -> san.tower.v1.ListKnowledgeRequest
-	4,  // 16: san.tower.v1.KnowledgeService.CreateKnowledge:input_type -> san.tower.v1.CreateKnowledgeRequest
-	6,  // 17: san.tower.v1.KnowledgeService.DeleteKnowledge:input_type -> san.tower.v1.DeleteKnowledgeRequest
-	8,  // 18: san.tower.v1.KnowledgeService.MoveKnowledge:input_type -> san.tower.v1.MoveKnowledgeRequest
-	10, // 19: san.tower.v1.KnowledgeService.ListKnowledgeFolders:input_type -> san.tower.v1.ListKnowledgeFoldersRequest
-	12, // 20: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:input_type -> san.tower.v1.CreateKnowledgeFolderRequest
-	14, // 21: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:input_type -> san.tower.v1.UpdateKnowledgeFolderRequest
-	16, // 22: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:input_type -> san.tower.v1.DeleteKnowledgeFolderRequest
-	20, // 23: san.tower.v1.KnowledgeService.GetKnowledge:input_type -> san.tower.v1.GetKnowledgeRequest
-	22, // 24: san.tower.v1.KnowledgeService.SyncKnowledge:input_type -> san.tower.v1.SyncKnowledgeRequest
-	24, // 25: san.tower.v1.KnowledgeService.GetKnowledgeGraph:input_type -> san.tower.v1.GetKnowledgeGraphRequest
-	26, // 26: san.tower.v1.KnowledgeService.GetKnowledgeNode:input_type -> san.tower.v1.GetKnowledgeNodeRequest
-	28, // 27: san.tower.v1.KnowledgeService.SummarizeKnowledge:input_type -> san.tower.v1.SummarizeKnowledgeRequest
-	3,  // 28: san.tower.v1.KnowledgeService.ListKnowledge:output_type -> san.tower.v1.ListKnowledgeResponse
-	5,  // 29: san.tower.v1.KnowledgeService.CreateKnowledge:output_type -> san.tower.v1.CreateKnowledgeResponse
-	7,  // 30: san.tower.v1.KnowledgeService.DeleteKnowledge:output_type -> san.tower.v1.DeleteKnowledgeResponse
-	9,  // 31: san.tower.v1.KnowledgeService.MoveKnowledge:output_type -> san.tower.v1.MoveKnowledgeResponse
-	11, // 32: san.tower.v1.KnowledgeService.ListKnowledgeFolders:output_type -> san.tower.v1.ListKnowledgeFoldersResponse
-	13, // 33: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:output_type -> san.tower.v1.CreateKnowledgeFolderResponse
-	15, // 34: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:output_type -> san.tower.v1.UpdateKnowledgeFolderResponse
-	17, // 35: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:output_type -> san.tower.v1.DeleteKnowledgeFolderResponse
-	21, // 36: san.tower.v1.KnowledgeService.GetKnowledge:output_type -> san.tower.v1.GetKnowledgeResponse
-	23, // 37: san.tower.v1.KnowledgeService.SyncKnowledge:output_type -> san.tower.v1.SyncKnowledgeResponse
-	25, // 38: san.tower.v1.KnowledgeService.GetKnowledgeGraph:output_type -> san.tower.v1.GetKnowledgeGraphResponse
-	27, // 39: san.tower.v1.KnowledgeService.GetKnowledgeNode:output_type -> san.tower.v1.GetKnowledgeNodeResponse
-	29, // 40: san.tower.v1.KnowledgeService.SummarizeKnowledge:output_type -> san.tower.v1.SummarizeKnowledgeResponse
-	28, // [28:41] is the sub-list for method output_type
-	15, // [15:28] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	2,  // 14: san.tower.v1.KnowledgeService.ListKnowledge:input_type -> san.tower.v1.ListKnowledgeRequest
+	4,  // 15: san.tower.v1.KnowledgeService.CreateKnowledge:input_type -> san.tower.v1.CreateKnowledgeRequest
+	6,  // 16: san.tower.v1.KnowledgeService.DeleteKnowledge:input_type -> san.tower.v1.DeleteKnowledgeRequest
+	8,  // 17: san.tower.v1.KnowledgeService.MoveKnowledge:input_type -> san.tower.v1.MoveKnowledgeRequest
+	10, // 18: san.tower.v1.KnowledgeService.ListKnowledgeFolders:input_type -> san.tower.v1.ListKnowledgeFoldersRequest
+	12, // 19: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:input_type -> san.tower.v1.CreateKnowledgeFolderRequest
+	14, // 20: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:input_type -> san.tower.v1.UpdateKnowledgeFolderRequest
+	16, // 21: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:input_type -> san.tower.v1.DeleteKnowledgeFolderRequest
+	20, // 22: san.tower.v1.KnowledgeService.GetKnowledge:input_type -> san.tower.v1.GetKnowledgeRequest
+	22, // 23: san.tower.v1.KnowledgeService.SyncKnowledge:input_type -> san.tower.v1.SyncKnowledgeRequest
+	24, // 24: san.tower.v1.KnowledgeService.GetKnowledgeGraph:input_type -> san.tower.v1.GetKnowledgeGraphRequest
+	26, // 25: san.tower.v1.KnowledgeService.GetKnowledgeNode:input_type -> san.tower.v1.GetKnowledgeNodeRequest
+	3,  // 26: san.tower.v1.KnowledgeService.ListKnowledge:output_type -> san.tower.v1.ListKnowledgeResponse
+	5,  // 27: san.tower.v1.KnowledgeService.CreateKnowledge:output_type -> san.tower.v1.CreateKnowledgeResponse
+	7,  // 28: san.tower.v1.KnowledgeService.DeleteKnowledge:output_type -> san.tower.v1.DeleteKnowledgeResponse
+	9,  // 29: san.tower.v1.KnowledgeService.MoveKnowledge:output_type -> san.tower.v1.MoveKnowledgeResponse
+	11, // 30: san.tower.v1.KnowledgeService.ListKnowledgeFolders:output_type -> san.tower.v1.ListKnowledgeFoldersResponse
+	13, // 31: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:output_type -> san.tower.v1.CreateKnowledgeFolderResponse
+	15, // 32: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:output_type -> san.tower.v1.UpdateKnowledgeFolderResponse
+	17, // 33: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:output_type -> san.tower.v1.DeleteKnowledgeFolderResponse
+	21, // 34: san.tower.v1.KnowledgeService.GetKnowledge:output_type -> san.tower.v1.GetKnowledgeResponse
+	23, // 35: san.tower.v1.KnowledgeService.SyncKnowledge:output_type -> san.tower.v1.SyncKnowledgeResponse
+	25, // 36: san.tower.v1.KnowledgeService.GetKnowledgeGraph:output_type -> san.tower.v1.GetKnowledgeGraphResponse
+	27, // 37: san.tower.v1.KnowledgeService.GetKnowledgeNode:output_type -> san.tower.v1.GetKnowledgeNodeResponse
+	26, // [26:38] is the sub-list for method output_type
+	14, // [14:26] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_knowledge_proto_init() }
@@ -1912,7 +1778,7 @@ func file_san_tower_v1_knowledge_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_knowledge_proto_rawDesc), len(file_san_tower_v1_knowledge_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   31,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

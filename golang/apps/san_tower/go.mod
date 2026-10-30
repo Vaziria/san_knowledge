@@ -6,6 +6,7 @@ require (
 	cel.dev/cel-go v0.32.0
 	connectrpc.com/connect v1.21.1
 	github.com/glebarez/sqlite v1.11.0
+	github.com/mstrYoda/goraphdb v0.0.0-20260220134623-01eff165f35c
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/urfave/cli/v3 v3.14.0
 	github.com/wargasipil/san_message v0.0.0
@@ -23,7 +24,6 @@ require (
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/itlightning/dateparse v0.2.1 // indirect
-	github.com/mstrYoda/goraphdb v0.0.0-20260220134623-01eff165f35c // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.etcd.io/bbolt v1.4.0 // indirect

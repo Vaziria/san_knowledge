@@ -50,11 +50,6 @@ service KnowledgeService {
   rpc GetKnowledgeGraph(GetKnowledgeGraphRequest) returns (GetKnowledgeGraphResponse);
   // GetKnowledgeNode gives one node, its links, and its text from the file.
   rpc GetKnowledgeNode(GetKnowledgeNodeRequest) returns (GetKnowledgeNodeResponse);
-  // SummarizeKnowledge has Claude (claude -p, on this computer's Claude Code
-  // login) write the summaries, keywords and domains that are missing or
-  // out of date, one call per doc, and answers when all are done. A summary
-  // a person wrote is never replaced.
-  rpc SummarizeKnowledge(SummarizeKnowledgeRequest) returns (SummarizeKnowledgeResponse);
 }
 
 message Knowledge {
@@ -224,17 +219,4 @@ message GetKnowledgeNodeResponse {
   // text is its text in the file (a doc's whole text), cut
   // at 6000 characters.
   string text = 4;
-}
-
-message SummarizeKnowledgeRequest {
-  uint32 id = 1;
-}
-
-message SummarizeKnowledgeResponse {
-  // docs are the docs it wrote for, and summarized how many nodes.
-  repeated string docs = 1;
-  uint32 summarized = 2;
-  repeated string domains_created = 3;
-  // failed says why a doc failed; it is tried again next time.
-  map<string, string> failed = 4;
 }

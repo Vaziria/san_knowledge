@@ -118,6 +118,18 @@ func (s *Store) GetWorkflow(id uint32) (Workflow, error) {
 	return w, err
 }
 
+// GetWorkflowByName is the workflow named name, ignoring case: a Workflow
+// Tool's Workflow setting (names are unique, and stay the same across an
+// export, where ids do not).
+func (s *Store) GetWorkflowByName(name string) (Workflow, error) {
+	var w Workflow
+	err := s.db.Where("name = ? COLLATE NOCASE", strings.TrimSpace(name)).First(&w).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return w, fail(ErrNotFound, "no workflow named %q", name)
+	}
+	return w, err
+}
+
 // UpdateWorkflow replaces a workflow's name and graph, and returns it as
 // stored. It leaves Active as it is.
 func (s *Store) UpdateWorkflow(w Workflow) (Workflow, error) {

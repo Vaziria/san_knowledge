@@ -174,9 +174,36 @@ func (e *Engine) env() Env {
 		Storage:          e.store.GetStorage,
 		Knowledge:        e.store.GetKnowledge,
 		ChatLink:         e.store.ChatLink,
+		RunBatch:         e.store.RunBatch,
 		SetChatLink:      e.store.SetChatLink,
 		DataDir:          e.store.Dir(),
+		FindWorkflow:     e.store.GetWorkflowByName,
+		RunWorkflow:      e.runForTool,
+		ServeTools:       e.serveTools,
 	}
+}
+
+// runForTool runs workflow id from its trigger, a Manual one first, as a
+// Workflow Tool's run command asks, and waits for it.
+func (e *Engine) runForTool(ctx context.Context, id uint32, data []byte) (store.Run, error) {
+	w, err := e.store.GetWorkflow(id)
+	if err != nil {
+		return store.Run{}, err
+	}
+	start := ""
+	for _, st := range w.Graph.GetSteps() {
+		if st.GetKind() == Manual {
+			start = st.GetId()
+			break
+		}
+		if start == "" && IsTrigger(st.GetKind()) {
+			start = st.GetId()
+		}
+	}
+	if start == "" {
+		return store.Run{}, fmt.Errorf("workflow %s has no trigger to run it from: give it a Manual one", w.Name)
+	}
+	return e.Run(ctx, id, start, data, "tool")
 }
 
 // addConnection adds a connection and starts what it needs, such as a
@@ -691,6 +718,7 @@ func (e *Engine) execute(w store.Workflow, r store.Run, stepID string, data []by
 	env.Live = func(_ *v1.Step, line string, level v1.LogLevel) { e.addLive(r.ID, line, level) }
 	defer e.dropLive(r.ID) // once the run's record has its lines
 	env.Workflow = w.ID
+	env.Run = r.ID
 	env.Ack = ack
 	env.ChatSend = func(chat, text string, markdown bool) (chatMessage, error) {
 		return e.chatSend(w.ID, r.ID, chat, text, markdown)

@@ -282,6 +282,61 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   at No. Results (Search) and Matches (Explain) are the same nodes as an
   object list, and Count how many matched. They read the graph as last
   synced: the knowledge's page, its Sync, or Knowledge Base's Sync.
+- Knowledge Query (Knowledge; `engine/knowledge.go`; the user, 2026-10-29:
+  "Don't make read only, it's full access allowed") runs Query, raw Cypher,
+  on the linked knowledge's graph (goraphdb's Cypher, as the knowledge
+  tool's `query` command), writes included: MATCH … RETURN, CREATE, MERGE,
+  MATCH … SET and MATCH … DELETE. Since it can write, it is not pure but
+  runs when an event reaches it (Event, then Done or Failed), each time.
+  Text is the table it returns, a row per line between tabs, as `query`
+  prints it (a node `key [node_type] "title"`, a link `from -rel-> to`),
+  then "N rows"; Rows is the same as an object list, one object per row by
+  column, a node as its properties plus `id` and `labels`, a link as its
+  properties plus `id`, `from`, `rel` and `to` (node keys); Count is the
+  number of rows. It gives up after 30 s. A node's label is its title made
+  Cypher-safe ("Internet Marketing" → `InternetMarketing`; no backtick
+  quoting), so a query matches by property: `MATCH (s)-[r:section_of]->(d
+  {key: 'docs/x.md'}) RETURN s, r, d`. Writes go straight to the graph,
+  with goraphdb's own rules: SET on a title leaves the old label, and docs
+  and sections still follow their files on the next sync (a summary set by
+  hand is kept until the text changes).
+- Knowledge Sync and Knowledge Summarize (Knowledge; `engine/knowledgeai.go`;
+  the user, 2026-10-29: "2 new node, 1 sync, and 2. Summaries with ai (and
+  can chose what node ai handle it)") are the Knowledge page's Sync and
+  summaries as steps, so a workflow keeps a knowledge up to date (Schedule
+  nightly → Knowledge Sync → Knowledge Summarize → an AI step, Text to
+  Telegram). Both run when an event reaches them and take the Knowledge of
+  a Knowledge Base step. Knowledge Sync reads the files again (no AI): Text
+  is what changed in a line ("Guide: 2 docs added, 1 section updated. 4
+  nodes need a summary."), Report the knowledge tool's sync report as data,
+  Needs Summary the number of nodes waiting for one. Knowledge Summarize
+  writes the summaries, keywords and domains of the docs that need them
+  (`graph.RunAI`), with the AI you choose: for each doc, in name order,
+  Each fires with Prompt and Doc (its path); you link Each to any AI step
+  (Claude Ask (CLI), ChatGPT Ask, Gemini Ask, …) with Prompt as its prompt,
+  and its answer back into Summarize's Answer. Prompt holds the rules of
+  Claude's own summaries, the JSON to answer with (in a ```json code block),
+  what is needed (the doc's summary, a domain, which section keys), the
+  existing domains to reuse, and the doc's text, cut at 40,000 bytes (then
+  with each section's own text). The answer is read like Remote Shell's
+  (its code block, else the whole answer; a chat site's markdown escapes
+  repaired) and checked: a summary when one is needed, a domain when the
+  doc has none, every given section key and no other. One that fails is
+  asked again once, with what is wrong put before the prompt; if that one
+  is still not right, what is usable in it is kept and the rest stays
+  pending, and a doc with no usable answer stays pending, for the next run.
+  With Each linked nowhere, Claude Code writes them itself (claude -p,
+  `SummarizePrompt`, Model, 3 docs at once), as the page's button does.
+  Limit is how many docs a run does (empty: all), the rest left for the
+  next. Text says what was done ("Guide: 2 docs, 4 summaries, new domain
+  Basics; 1 failed (still pending)"), Report is `AIReport` as data,
+  Summarized the number of nodes. When every doc failed, the step fails.
+
+  Answer is a link back into the loop: the engine's kinds can name inputs
+  (`kind.back`) that come from a step in their own loop. Those are not read
+  before the step runs; `call.back` reads one after each item, and before
+  each item the value of its step is dropped, so an item whose AI step did
+  not run gives no answer rather than the one before.
 - Storage (Storage), UUID and MD5 Hash (Data; the user's ask, 2026-10-25) are pure
   steps: they run when a step takes one of their outputs, once per run.
   Storage gives the storage its Storage setting picks (Storage below): Path
@@ -749,6 +804,86 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     changes goes on). A script that only prints text it holds (echo or printf of plain words, no variable, substitution, redirection or pipe) is not run and ends the chat's turn (Done): a chat with nothing left to do ran echo OK, echo Selesai, echo Siap... one after another without end (2026-10-28); the protocol and its reminder say execute is only for the machine's shell, for work the user asked for, never for conversation, which goes in chat; a command the user asked how to run themselves is explained in chat, not run (2026-10-28: "how do I preview HyperFrames" ran `npx hyperframes preview`), and a command that does not end by itself (a preview or dev server, a watcher) is started in the background, never in the foreground. The step logs, as it goes (see the Logs below), the chat's answers, each script, what it prints and how it ended; each script runs in a new bash in the storage's folder (a cd does not carry over), which the protocol tells the chat, with the Timeout. The web chat runs any script it wants with the tower's rights
     (the protocol asks it to ask the user first before what cannot be
     undone, which it may not do): give it a storage to work in.
+  - Tools (`engine/tools.go`; the user, 2026-10-29: "we have Tool meta, like
+    if telegram we have Telegram Tool Meta, and in ai remote shell have input
+    tool ... tool meta that connected to remote shell mean remote shell can
+    use that tools"). A tool step gives a tool, on a socket of its own type,
+    `tool` (pink in the editor), and Remote Shell's Tools input takes any
+    number of them: an input of that type keeps every link drawn into it
+    (the engine gives the step the list, `execution.tools`; the editor's
+    `manyLinks`), while any other input keeps one. A tool that is not linked
+    does not exist for the chat. Knowledge Tool gives the knowledge of a
+    Knowledge Base step, with explain (Knowledge Explain's AI block), search
+    (the nodes holding every word, the first 10) and get (one doc or section
+    by key: loc, keywords, summary, links and its text, up to 8,000
+    characters). Telegram Tool gives a bot (Connection) and the one Chat it
+    may write to, with send (plain text, split like Telegram Send's). Each
+    has a Name, the tool's name for the chat (knowledge, telegram): two
+    tools of one name fail the step. With tools linked, the protocol grows a
+    key (the user's design, 2026-10-29): an answer's `tools` is one call,
+    `{"tool_name": "knowledge", "command": "explain", "arguments":
+    ["..."]}`, or null; the tower runs it and the next request carries its
+    result as `tools_result`, from `FROM_TYPE_TOOLS`, or with a script's
+    result from `FROM_TYPE_EXECUTE` when the answer had both
+    (`remote_shell.proto`: `ToolCall`, `tools_result`). The protocol's first
+    message lists the tools and their commands, and the reminder says tools
+    is null when done. A call to a tool that is not there, an unknown
+    command or a missing argument is answered with an error in
+    `tools_result`, for the chat to correct. A tool call counts as a
+    command (Commands, Max Commands), and the same call with the same
+    result 3 times in a row is stuck. A chat that writes `"tools": ""`, `[]`
+    or `{}`, or an argument as a string, is read as meant (`looseTools`).
+    Without tools linked, the protocol is as it was.
+  - More tools (`engine/toolsmore.go`; the user, 2026-10-29: "Implement all
+    rest"). Most commands run the step that does the same in a workflow
+    (`call.runStep`), so a tool checks and does what that step does, and
+    its lines go to the AI step's log:
+    - Telegram Tool, besides send: send_file and send_photo [path or link,
+      caption] (Telegram Send with Media Document or Photo; a relative path
+      is in the AI step's folder, a Remote Shell's storage), and read [how
+      many] (its chat's latest messages the tower kept, 10 by default).
+    - Workflow Tool: a workflow by its Name (names are unique and survive an
+      export, ids do not; `store.GetWorkflowByName`), run [input]: its
+      Manual trigger, else its first, gets the input as its payload, the run
+      is recorded (trigger "tool") and the AI gets how it ended and what its
+      steps logged. Its description tells the AI what the workflow is for. A
+      workflow cannot be its own tool (one at a time, it would wait for
+      itself).
+    - WhatsApp Tool: send [text] and send_file [path, caption], to its one
+      Chat (WhatsApp Send).
+    - Binance Tool, read only: indicators [symbol, intervals] (Binance
+      Indicators' text), candles [symbol, interval, limit] (1h and 50 by
+      default), portfolio, positions [symbol], orders [symbol, open |
+      history | stops]; market data from the connection's network (only
+      the test network answers from this PC). No order command: orders go
+      through a workflow (Workflow Tool) whose Binance Order has limits.
+    - Social Tool: draft [markdown article] on Medium or LinkedIn (Site),
+      through San Remote (Medium Article, LinkedIn Article); never
+      published.
+    - File Tool: a storage's files, read only: list [pattern] (the first
+      200) and read [path] (up to 12,000 characters), inside the storage.
+    - HTTP Tool: get [url], GET only, a page as text (script, style and
+      markup dropped, a line per block), up to 12,000 characters; with
+      Allowed set, only URLs that start with it.
+  - Remote Shell's Shell (On, Off): Off gives the chat no shell, only its
+    tools: the protocol (`chatProtocol`, `chatReminder`) has no execute, an
+    answer is `{"chat": "...", "tools": null}`, and an execute written
+    anyway is logged and not run. With no tools either, it is a plain chat
+    in JSON.
+  - Claude Ask (CLI) takes Tools too, natively over MCP
+    (`engine/toolserver.go`, `internal/toolmcp`): the step registers its
+    tools under a random token, writes a `--mcp-config` file naming the
+    tower's own executable as the server (`san_tower tool-mcp --url <the
+    tower> --token <token>`, a hidden command), and runs claude with
+    `--allowedTools mcp__tower`; with Tools None (`--tools ""
+    --strict-mcp-config`) those are all it may use. The MCP server (JSON-RPC
+    over stdio) lists each tool with a command and arguments to give, and
+    passes each call to the tower (`GET`/`POST /api/tools/<token>`), which
+    runs it as the step's, one at a time, logging each. The token and the
+    file go once claude ends. Checked with the real claude (2026-10-29,
+    Haiku): it listed the tool, called it and answered from its result. Not
+    with a Session ID yet (a Claude Chat Session's process outlives the
+    step): the step says so and asks without them.
   - Social Status says who is signed in on a Site (ChatGPT too). Social Posts
     lists a Site's Scheduled or Published posts, or Drafts (Facebook, Medium,
     LinkedIn); Vidara lists its videos, and TikTok's scheduled posts are the
@@ -1077,6 +1212,18 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     recorded as failed. Switching the setting off leaves a queue that
     still holds runs being read until it is empty; deleting the workflow
     deletes its queue. Runs of other workflows are not held up.
+  - Queue Progress (Data; the user, 2026-10-29: "add progress state node,
+    so underground flow can chat me 1/2 completed"; `engine/progress.go`,
+    `store.RunBatch`) says how far the run's batch has got: the runs of
+    the workflow each started (queued) before the one before it ended, so
+    a batch starts again once the queue has emptied, and a run the tower
+    stopped ends one. Done counts this run and those of the batch that
+    ended before it (failed or not), Total adds the runs still waiting,
+    Left is those, and Text is Done/Total, such as 1/2. It counts this run
+    as done, so it goes where the run's work is over: Underground Flow
+    sends "1/2 completed" after its last step, or "1/2 completed (this one
+    failed)" before Fail. It reads the runs' records, so it holds after a
+    restart.
 - Folders (the user, 2026-10-27: "In workflow, add folder like. So I can
   manage workflow easily"; `store/folder.go`): a workflow is in one folder
   or at the top, and folders nest (WorkflowService's ListFolders,
@@ -1225,6 +1372,60 @@ says whether it traded for real.
   still waiting; None when there is no position. Order is the closing
   order, Position the position as it was.
 
+For an AI trading through workflows (the user, 2026-10-29: "create like
+autotrade but workflow style"; `engine/trading.go`, `engine/indicators.go`):
+
+- **Binance Order** takes an **Order** object too, the whole order an AI
+  gave (symbol, side buy or sell, type market or limit, quantity, price,
+  stop_loss, take_profit, leverage, time_in_force), over its settings and
+  fields. Its own limits, checked before anything is placed at the price
+  the order gets (the book's best for a market order, the limit price):
+  **Require Stop**, **Max Notional** (quantity × price, USDT) and **Max
+  Loss** (lost at the stop, USDT; it needs a stop), each refusal saying the
+  most that fits; reduce-only orders are not held to them. **Testnet Only**
+  refuses a live connection. The limits are where the order is placed, so a
+  prompt cannot get past them.
+- **Binance Move Stop** moves the stop loss, and the take profit, of
+  Symbol's open position: the new one first (reduce-only, the whole
+  position, on the mark price), then the old one cancelled, so the position
+  is never without a stop. A stop loss only ever moves closer (up for a
+  long, down for a short) and stays on the right side of the mark price.
+  An Order object can give symbol, stop_loss and take_profit.
+- **Binance Indicators**: what autotrade's snapshot reads from candles, for
+  each of Intervals (15m,1h,4h) from the closed candles of 300: EMA 20, 50,
+  200 and the trend they make, RSI 14 (Wilder), MACD 12/26/9, ATR 14 (also
+  as % of the price), Bollinger 20/2 and where the price is in it, volume
+  against its 20-candle average, the last candle's change, the prior
+  candle's high and low, and the 3 nearest swing highs above and lows below
+  (beyond 3 candles each side); then the 24h high and low and the price.
+  Text for a person or an AI, Indicators as data. From the connection's
+  network: the test network's prices follow the real market, its volumes
+  are its own.
+
+The trading workflows (`data/add-trading-workflows.ps1`, 2026-10-29), all
+on the testnet connection and switched off until switched on:
+
+- **trade tick**: every 15 minutes, 1 minute after each close (`1,16,31,46
+  * * * *`; one at a time), or by hand, the trader, Remote Shell with
+  ChatGPT and Shell Off, gets the tick message (BTCUSDT, ETHUSDT, BNBUSDT:
+  look, then one action per pair, the lessons of positions that closed)
+  in its kept chat (Browser Chat Session), with six tools: journal (the
+  Trading Journal knowledge), binance (Binance Tool, read only), and open,
+  close, protect and lesson (Workflow Tools for the four below). Its chat
+  goes to Telegram, a failure too.
+- **trade open**: an order as JSON, market only (a Filter, else Fail Run),
+  Binance Order with Require Stop, Max Notional 1000, Max Loss 100,
+  Testnet Only and leverage 5, then Telegram.
+- **trade close**: Binance Close Position, then Telegram (a log when there
+  was nothing to close).
+- **trade protect**: Binance Move Stop, then Telegram.
+- **trade journal**: Bash appends the lesson to `lessons/<month>.md` in the
+  journal's storage, then Knowledge Sync, so the next tick can search it.
+
+The Trading Journal knowledge is `data/trading-journal`: `rules.md` (the
+trading rules, from autotrade's `tick.md`, cut down to these tools) and
+`lessons/`.
+
 Tested against a fake Binance (`finance_test.go`, and the client's own
 tests from autotrade), and live on the test network on 2026-10-27: a
 workflow of the six steps through the tower's Binance connection (candles,
@@ -1287,13 +1488,13 @@ frontmatter `domain:`, `keyword:` and `summary:` are applied as written.
 SyncKnowledge brings it in line with the files (no AI; a changed section
 keeps its summary and needs a new one), GetKnowledgeGraph gives every node
 and link, and GetKnowledgeNode one node with its links and its text from
-the file (6000 characters at most). SummarizeKnowledge runs the AI step:
-`claude -p` on this computer's Claude Code login, one call per doc with a
-node waiting or without a domain, three at a time, with a system prompt
-for knowledge about anything (the knowledge tool's own is about its
-marketing research); it answers once all are done, a doc that failed is
-tried again next time, a summary a person or frontmatter wrote stays, and
-one run per knowledge at a time. The graph is opened per call (bbolt lets
+the file (6000 characters at most). Summaries are written by a workflow's
+Knowledge Summarize step (with the AI you choose, or `claude -p` with
+`engine.SummarizePrompt`, a system prompt for knowledge about anything):
+the SummarizeKnowledge call behind the page's old Summarize button is gone
+(the user, 2026-10-29: the button was a weaker copy of the step, always
+Claude, no limit, the page waiting for minutes). The graph is opened per
+call (bbolt lets
 one process at a time; a call that meets it busy says to try again), so
 the knowledge tool (`knowledge --data <folder>/knowledge_data`) can use the
 same graph between calls.

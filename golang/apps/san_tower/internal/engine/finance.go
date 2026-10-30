@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,15 +29,19 @@ var financeKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "binance-order", Title: "Binance Order", Category: "Finance", Group: "Binance",
-			Description: "Places a USD-M futures order on a Binance connection: Market, or Limit at Price (Time In Force: GTC, Post Only, IOC or FOK), to Buy (long) or Sell (short) Quantity of Symbol (BTCUSDT; rounded down to its step), with an optional Stop Loss and Take Profit (trigger prices on the mark price, reduce-only, for the order's quantity), and Leverage set first when given. When a stop loss or take profit is refused, the order is undone (a market order closed, a limit order cancelled) and the step fails. The account must be in one-way mode.",
+			Description: "Places a USD-M futures order on a Binance connection: Market, or Limit at Price (Time In Force: GTC, Post Only, IOC or FOK), to Buy (long) or Sell (short) Quantity of Symbol (BTCUSDT; rounded down to its step), with an optional Stop Loss and Take Profit (trigger prices on the mark price, reduce-only, for the order's quantity), and Leverage set first when given. When a stop loss or take profit is refused, the order is undone (a market order closed, a limit order cancelled) and the step fails. The account must be in one-way mode. Order, when linked, gives all of it as one object (symbol, side buy or sell, type market or limit, quantity, price, stop_loss, take_profit, leverage, time_in_force), as an AI's order through a Workflow Tool: what it gives wins over the settings. Limits, checked before anything is placed, at the price the order gets (the book's best for a market order): Require Stop, Max Notional (quantity × price, USDT) and Max Loss (lost at the stop, USDT; it needs a stop); a refusal says the most that fits. Testnet Only refuses a live connection.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Order", Object), sock("Order ID", Text), sock("Stop Loss Order", Object), sock("Take Profit Order", Object)},
 			Settings: []*v1.Setting{binanceSetting(),
 				{Name: "Type", Options: []string{"Market", "Limit"}},
 				{Name: "Side", Options: []string{"Buy", "Sell"}},
 				{Name: "Time In Force", Options: []string{"GTC", "Post Only", "IOC", "FOK"}},
-				{Name: "Reduce Only", Options: []string{"No", "Yes"}}},
+				{Name: "Reduce Only", Options: []string{"No", "Yes"}},
+				{Name: "Require Stop", Options: []string{"No", "Yes"}},
+				{Name: "Max Notional", Placeholder: "No limit: USDT"},
+				{Name: "Max Loss", Placeholder: "No limit: USDT lost at the stop"},
+				{Name: "Testnet Only", Options: []string{"No", "Yes"}}},
 			Inputs: []*v1.Socket{sock("Event", Event), field("Symbol"), field("Quantity"), only("Type=Limit", field("Price")),
-				field("Stop Loss"), field("Take Profit"), field("Leverage")},
+				field("Stop Loss"), field("Take Profit"), field("Leverage"), sock("Order", Object)},
 		},
 		run: binanceOrder,
 	},
@@ -194,22 +199,31 @@ func binanceOrder(c *call) error {
 	if err != nil {
 		return err
 	}
+	if c.setting("Testnet Only") == "Yes" && network != store.BinanceTestnet && network != store.BinanceDemo {
+		return fmt.Errorf("Testnet Only: the connection is on the %s network", network)
+	}
+	// An Order object gives the order's fields, and its side, type and time
+	// in force, over the settings.
+	sideSet, typeSet, tifSet, err := c.orderObject()
+	if err != nil {
+		return err
+	}
 	symbol, err := c.symbol(true)
 	if err != nil {
 		return err
 	}
 	side := "BUY"
-	if c.setting("Side") == "Sell" {
+	if cmp.Or(sideSet, c.setting("Side")) == "Sell" {
 		side = "SELL"
 	}
 	closeSide := map[string]string{"BUY": "SELL", "SELL": "BUY"}[side]
 	typ := "MARKET"
-	if c.setting("Type") == "Limit" {
+	if cmp.Or(typeSet, c.setting("Type")) == "Limit" {
 		typ = "LIMIT"
 	}
-	tif, ok := tifs[c.setting("Time In Force")]
+	tif, ok := tifs[cmp.Or(tifSet, c.setting("Time In Force"))]
 	if !ok {
-		return fmt.Errorf("Time In Force %q: give GTC, Post Only, IOC or FOK", c.setting("Time In Force"))
+		return fmt.Errorf("Time In Force %q: give GTC, Post Only, IOC or FOK", cmp.Or(tifSet, c.setting("Time In Force")))
 	}
 	reduceOnly := c.setting("Reduce Only") == "Yes"
 	qty, err := c.amount("Quantity", true)
@@ -255,9 +269,13 @@ func binanceOrder(c *call) error {
 		price = info.RoundPrice(price)
 	}
 	sl, tp = info.RoundPrice(sl), info.RoundPrice(tp)
-	// A stop on the wrong side of the entry would trigger at once: refused
-	// before anything is placed.
-	if sl > 0 || tp > 0 {
+	limits, err := c.orderLimits()
+	if err != nil {
+		return err
+	}
+	// A stop on the wrong side of the entry would trigger at once, and an
+	// order over the limits is too big: refused before anything is placed.
+	if sl > 0 || tp > 0 || limits.any() {
 		ref := price
 		if typ == "MARKET" {
 			book, err := cl.BookTicker(c.ctx, symbol)
@@ -265,6 +283,9 @@ func binanceOrder(c *call) error {
 				return err
 			}
 			ref = map[string]float64{"BUY": book.Ask, "SELL": book.Bid}[side]
+		}
+		if err := limits.check(info, q, ref, sl, reduceOnly); err != nil {
+			return err
 		}
 		long := side == "BUY"
 		if sl > 0 && (long && sl >= ref || !long && sl <= ref) {

@@ -47,6 +47,7 @@ import (
 	"github.com/wargasipil/san_tower/internal/engine"
 	"github.com/wargasipil/san_tower/internal/server"
 	"github.com/wargasipil/san_tower/internal/store"
+	"github.com/wargasipil/san_tower/internal/toolmcp"
 	"github.com/wargasipil/san_tower/internal/update"
 )
 
@@ -77,7 +78,7 @@ func root(out io.Writer) *cli.Command {
 				Sources: cli.EnvVars("SAN_TOWER_SERVER"),
 			},
 		},
-		Commands: []*cli.Command{serveCommand(), devCommand(), statusCommand(), updateCommand(), restartCommand()},
+		Commands: []*cli.Command{serveCommand(), devCommand(), statusCommand(), updateCommand(), restartCommand(), toolMCPCommand()},
 	}
 }
 
@@ -349,6 +350,26 @@ func findFrontend() (string, error) {
 			return "", errors.New("typescripts/san_tower_frontend is not in this folder or above it: run from the repository, or pass --frontend")
 		}
 		dir = parent
+	}
+}
+
+// ------------------------------------------------------------- tool-mcp ---
+
+// toolMCPCommand is the MCP server a Claude Ask (CLI) step's claude starts
+// for the step's tools (package toolmcp): not for people, so hidden.
+func toolMCPCommand() *cli.Command {
+	return &cli.Command{
+		Name:   "tool-mcp",
+		Usage:  "serve a Claude Ask (CLI) step's tools to its claude over MCP (stdio)",
+		Hidden: true,
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "url", Required: true, Usage: "the tower's address"},
+			&cli.StringFlag{Name: "token", Required: true, Usage: "the step's tools"},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			s := &toolmcp.Server{URL: cmd.String("url"), Token: cmd.String("token"), Version: version}
+			return s.Serve(ctx, os.Stdin, os.Stdout)
+		},
 	}
 }
 

@@ -22,13 +22,16 @@ const (
 )
 
 // FromType says who a WebchatRequest is from: the machine, with the result
-// of the last execute, or the user, with a chat.
+// of the last execute (and of its tools call, when it had one too), the
+// user, with a chat, or the machine's tools, with the result of a tools
+// call alone.
 type FromType int32
 
 const (
 	FromType_FROM_TYPE_UNSPECIFIED FromType = 0
 	FromType_FROM_TYPE_EXECUTE     FromType = 1
 	FromType_FROM_TYPE_USER        FromType = 2
+	FromType_FROM_TYPE_TOOLS       FromType = 3
 )
 
 // Enum value maps for FromType.
@@ -37,11 +40,13 @@ var (
 		0: "FROM_TYPE_UNSPECIFIED",
 		1: "FROM_TYPE_EXECUTE",
 		2: "FROM_TYPE_USER",
+		3: "FROM_TYPE_TOOLS",
 	}
 	FromType_value = map[string]int32{
 		"FROM_TYPE_UNSPECIFIED": 0,
 		"FROM_TYPE_EXECUTE":     1,
 		"FROM_TYPE_USER":        2,
+		"FROM_TYPE_TOOLS":       3,
 	}
 )
 
@@ -73,11 +78,13 @@ func (FromType) EnumDescriptor() ([]byte, []int) {
 }
 
 // WebchatResponse is each answer of the web chat: execute is a script for
-// the machine to run, chat is what to tell the user; either may be empty.
+// the machine to run, chat is what to tell the user, and tools a call to
+// one of the machine's tools, when it has any; each may be empty.
 type WebchatResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Execute       string                 `protobuf:"bytes,1,opt,name=execute,proto3" json:"execute,omitempty"`
 	Chat          string                 `protobuf:"bytes,2,opt,name=chat,proto3" json:"chat,omitempty"`
+	Tools         *ToolCall              `protobuf:"bytes,3,opt,name=tools,proto3" json:"tools,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,19 +133,92 @@ func (x *WebchatResponse) GetChat() string {
 	return ""
 }
 
+func (x *WebchatResponse) GetTools() *ToolCall {
+	if x != nil {
+		return x.Tools
+	}
+	return nil
+}
+
+// ToolCall is a call to a tool of the machine (the user, 2026-10-29), like a
+// command line: tool_name the tool, command what it does, arguments its
+// words. The tools are the tool steps linked to Remote Shell's Tools
+// (engine/tools.go): a Knowledge Tool's explain, search and get, a
+// Telegram Tool's send.
+type ToolCall struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ToolName      string                 `protobuf:"bytes,1,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
+	Command       string                 `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`
+	Arguments     []string               `protobuf:"bytes,3,rep,name=arguments,proto3" json:"arguments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolCall) Reset() {
+	*x = ToolCall{}
+	mi := &file_san_tower_v1_remote_shell_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolCall) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolCall) ProtoMessage() {}
+
+func (x *ToolCall) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_remote_shell_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolCall.ProtoReflect.Descriptor instead.
+func (*ToolCall) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_remote_shell_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ToolCall) GetToolName() string {
+	if x != nil {
+		return x.ToolName
+	}
+	return ""
+}
+
+func (x *ToolCall) GetCommand() string {
+	if x != nil {
+		return x.Command
+	}
+	return ""
+}
+
+func (x *ToolCall) GetArguments() []string {
+	if x != nil {
+		return x.Arguments
+	}
+	return nil
+}
+
 // WebchatRequest is each message to the web chat.
 type WebchatRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ExecuteResult string                 `protobuf:"bytes,1,opt,name=execute_result,json=executeResult,proto3" json:"execute_result,omitempty"`
 	Chat          string                 `protobuf:"bytes,2,opt,name=chat,proto3" json:"chat,omitempty"`
 	From          FromType               `protobuf:"varint,3,opt,name=from,proto3,enum=san.tower.v1.FromType" json:"from,omitempty"`
+	ToolsResult   string                 `protobuf:"bytes,4,opt,name=tools_result,json=toolsResult,proto3" json:"tools_result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WebchatRequest) Reset() {
 	*x = WebchatRequest{}
-	mi := &file_san_tower_v1_remote_shell_proto_msgTypes[1]
+	mi := &file_san_tower_v1_remote_shell_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -150,7 +230,7 @@ func (x *WebchatRequest) String() string {
 func (*WebchatRequest) ProtoMessage() {}
 
 func (x *WebchatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_remote_shell_proto_msgTypes[1]
+	mi := &file_san_tower_v1_remote_shell_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -163,7 +243,7 @@ func (x *WebchatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WebchatRequest.ProtoReflect.Descriptor instead.
 func (*WebchatRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_remote_shell_proto_rawDescGZIP(), []int{1}
+	return file_san_tower_v1_remote_shell_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *WebchatRequest) GetExecuteResult() string {
@@ -187,22 +267,36 @@ func (x *WebchatRequest) GetFrom() FromType {
 	return FromType_FROM_TYPE_UNSPECIFIED
 }
 
+func (x *WebchatRequest) GetToolsResult() string {
+	if x != nil {
+		return x.ToolsResult
+	}
+	return ""
+}
+
 var File_san_tower_v1_remote_shell_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_remote_shell_proto_rawDesc = "" +
 	"\n" +
-	"\x1fsan/tower/v1/remote_shell.proto\x12\fsan.tower.v1\"?\n" +
+	"\x1fsan/tower/v1/remote_shell.proto\x12\fsan.tower.v1\"m\n" +
 	"\x0fWebchatResponse\x12\x18\n" +
 	"\aexecute\x18\x01 \x01(\tR\aexecute\x12\x12\n" +
-	"\x04chat\x18\x02 \x01(\tR\x04chat\"w\n" +
+	"\x04chat\x18\x02 \x01(\tR\x04chat\x12,\n" +
+	"\x05tools\x18\x03 \x01(\v2\x16.san.tower.v1.ToolCallR\x05tools\"_\n" +
+	"\bToolCall\x12\x1b\n" +
+	"\ttool_name\x18\x01 \x01(\tR\btoolName\x12\x18\n" +
+	"\acommand\x18\x02 \x01(\tR\acommand\x12\x1c\n" +
+	"\targuments\x18\x03 \x03(\tR\targuments\"\x9a\x01\n" +
 	"\x0eWebchatRequest\x12%\n" +
 	"\x0eexecute_result\x18\x01 \x01(\tR\rexecuteResult\x12\x12\n" +
 	"\x04chat\x18\x02 \x01(\tR\x04chat\x12*\n" +
-	"\x04from\x18\x03 \x01(\x0e2\x16.san.tower.v1.FromTypeR\x04from*P\n" +
+	"\x04from\x18\x03 \x01(\x0e2\x16.san.tower.v1.FromTypeR\x04from\x12!\n" +
+	"\ftools_result\x18\x04 \x01(\tR\vtoolsResult*e\n" +
 	"\bFromType\x12\x19\n" +
 	"\x15FROM_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11FROM_TYPE_EXECUTE\x10\x01\x12\x12\n" +
-	"\x0eFROM_TYPE_USER\x10\x02B\xb0\x01\n" +
+	"\x0eFROM_TYPE_USER\x10\x02\x12\x13\n" +
+	"\x0fFROM_TYPE_TOOLS\x10\x03B\xb0\x01\n" +
 	"\x10com.san.tower.v1B\x10RemoteShellProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -218,19 +312,21 @@ func file_san_tower_v1_remote_shell_proto_rawDescGZIP() []byte {
 }
 
 var file_san_tower_v1_remote_shell_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_san_tower_v1_remote_shell_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_san_tower_v1_remote_shell_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_san_tower_v1_remote_shell_proto_goTypes = []any{
 	(FromType)(0),           // 0: san.tower.v1.FromType
 	(*WebchatResponse)(nil), // 1: san.tower.v1.WebchatResponse
-	(*WebchatRequest)(nil),  // 2: san.tower.v1.WebchatRequest
+	(*ToolCall)(nil),        // 2: san.tower.v1.ToolCall
+	(*WebchatRequest)(nil),  // 3: san.tower.v1.WebchatRequest
 }
 var file_san_tower_v1_remote_shell_proto_depIdxs = []int32{
-	0, // 0: san.tower.v1.WebchatRequest.from:type_name -> san.tower.v1.FromType
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 0: san.tower.v1.WebchatResponse.tools:type_name -> san.tower.v1.ToolCall
+	0, // 1: san.tower.v1.WebchatRequest.from:type_name -> san.tower.v1.FromType
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_remote_shell_proto_init() }
@@ -244,7 +340,7 @@ func file_san_tower_v1_remote_shell_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_remote_shell_proto_rawDesc), len(file_san_tower_v1_remote_shell_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

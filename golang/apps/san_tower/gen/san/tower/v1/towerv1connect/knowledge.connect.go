@@ -69,9 +69,6 @@ const (
 	// KnowledgeServiceGetKnowledgeNodeProcedure is the fully-qualified name of the KnowledgeService's
 	// GetKnowledgeNode RPC.
 	KnowledgeServiceGetKnowledgeNodeProcedure = "/san.tower.v1.KnowledgeService/GetKnowledgeNode"
-	// KnowledgeServiceSummarizeKnowledgeProcedure is the fully-qualified name of the KnowledgeService's
-	// SummarizeKnowledge RPC.
-	KnowledgeServiceSummarizeKnowledgeProcedure = "/san.tower.v1.KnowledgeService/SummarizeKnowledge"
 )
 
 // KnowledgeServiceClient is a client for the san.tower.v1.KnowledgeService service.
@@ -110,11 +107,6 @@ type KnowledgeServiceClient interface {
 	GetKnowledgeGraph(context.Context, *connect.Request[v1.GetKnowledgeGraphRequest]) (*connect.Response[v1.GetKnowledgeGraphResponse], error)
 	// GetKnowledgeNode gives one node, its links, and its text from the file.
 	GetKnowledgeNode(context.Context, *connect.Request[v1.GetKnowledgeNodeRequest]) (*connect.Response[v1.GetKnowledgeNodeResponse], error)
-	// SummarizeKnowledge has Claude (claude -p, on this computer's Claude Code
-	// login) write the summaries, keywords and domains that are missing or
-	// out of date, one call per doc, and answers when all are done. A summary
-	// a person wrote is never replaced.
-	SummarizeKnowledge(context.Context, *connect.Request[v1.SummarizeKnowledgeRequest]) (*connect.Response[v1.SummarizeKnowledgeResponse], error)
 }
 
 // NewKnowledgeServiceClient constructs a client for the san.tower.v1.KnowledgeService service. By
@@ -200,12 +192,6 @@ func NewKnowledgeServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(knowledgeServiceMethods.ByName("GetKnowledgeNode")),
 			connect.WithClientOptions(opts...),
 		),
-		summarizeKnowledge: connect.NewClient[v1.SummarizeKnowledgeRequest, v1.SummarizeKnowledgeResponse](
-			httpClient,
-			baseURL+KnowledgeServiceSummarizeKnowledgeProcedure,
-			connect.WithSchema(knowledgeServiceMethods.ByName("SummarizeKnowledge")),
-			connect.WithClientOptions(opts...),
-		),
 	}
 }
 
@@ -223,7 +209,6 @@ type knowledgeServiceClient struct {
 	syncKnowledge         *connect.Client[v1.SyncKnowledgeRequest, v1.SyncKnowledgeResponse]
 	getKnowledgeGraph     *connect.Client[v1.GetKnowledgeGraphRequest, v1.GetKnowledgeGraphResponse]
 	getKnowledgeNode      *connect.Client[v1.GetKnowledgeNodeRequest, v1.GetKnowledgeNodeResponse]
-	summarizeKnowledge    *connect.Client[v1.SummarizeKnowledgeRequest, v1.SummarizeKnowledgeResponse]
 }
 
 // ListKnowledge calls san.tower.v1.KnowledgeService.ListKnowledge.
@@ -286,11 +271,6 @@ func (c *knowledgeServiceClient) GetKnowledgeNode(ctx context.Context, req *conn
 	return c.getKnowledgeNode.CallUnary(ctx, req)
 }
 
-// SummarizeKnowledge calls san.tower.v1.KnowledgeService.SummarizeKnowledge.
-func (c *knowledgeServiceClient) SummarizeKnowledge(ctx context.Context, req *connect.Request[v1.SummarizeKnowledgeRequest]) (*connect.Response[v1.SummarizeKnowledgeResponse], error) {
-	return c.summarizeKnowledge.CallUnary(ctx, req)
-}
-
 // KnowledgeServiceHandler is an implementation of the san.tower.v1.KnowledgeService service.
 type KnowledgeServiceHandler interface {
 	// ListKnowledge lists the knowledge right in a folder, by name.
@@ -327,11 +307,6 @@ type KnowledgeServiceHandler interface {
 	GetKnowledgeGraph(context.Context, *connect.Request[v1.GetKnowledgeGraphRequest]) (*connect.Response[v1.GetKnowledgeGraphResponse], error)
 	// GetKnowledgeNode gives one node, its links, and its text from the file.
 	GetKnowledgeNode(context.Context, *connect.Request[v1.GetKnowledgeNodeRequest]) (*connect.Response[v1.GetKnowledgeNodeResponse], error)
-	// SummarizeKnowledge has Claude (claude -p, on this computer's Claude Code
-	// login) write the summaries, keywords and domains that are missing or
-	// out of date, one call per doc, and answers when all are done. A summary
-	// a person wrote is never replaced.
-	SummarizeKnowledge(context.Context, *connect.Request[v1.SummarizeKnowledgeRequest]) (*connect.Response[v1.SummarizeKnowledgeResponse], error)
 }
 
 // NewKnowledgeServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -413,12 +388,6 @@ func NewKnowledgeServiceHandler(svc KnowledgeServiceHandler, opts ...connect.Han
 		connect.WithSchema(knowledgeServiceMethods.ByName("GetKnowledgeNode")),
 		connect.WithHandlerOptions(opts...),
 	)
-	knowledgeServiceSummarizeKnowledgeHandler := connect.NewUnaryHandler(
-		KnowledgeServiceSummarizeKnowledgeProcedure,
-		svc.SummarizeKnowledge,
-		connect.WithSchema(knowledgeServiceMethods.ByName("SummarizeKnowledge")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/san.tower.v1.KnowledgeService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case KnowledgeServiceListKnowledgeProcedure:
@@ -445,8 +414,6 @@ func NewKnowledgeServiceHandler(svc KnowledgeServiceHandler, opts ...connect.Han
 			knowledgeServiceGetKnowledgeGraphHandler.ServeHTTP(w, r)
 		case KnowledgeServiceGetKnowledgeNodeProcedure:
 			knowledgeServiceGetKnowledgeNodeHandler.ServeHTTP(w, r)
-		case KnowledgeServiceSummarizeKnowledgeProcedure:
-			knowledgeServiceSummarizeKnowledgeHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -502,8 +469,4 @@ func (UnimplementedKnowledgeServiceHandler) GetKnowledgeGraph(context.Context, *
 
 func (UnimplementedKnowledgeServiceHandler) GetKnowledgeNode(context.Context, *connect.Request[v1.GetKnowledgeNodeRequest]) (*connect.Response[v1.GetKnowledgeNodeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KnowledgeService.GetKnowledgeNode is not implemented"))
-}
-
-func (UnimplementedKnowledgeServiceHandler) SummarizeKnowledge(context.Context, *connect.Request[v1.SummarizeKnowledgeRequest]) (*connect.Response[v1.SummarizeKnowledgeResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KnowledgeService.SummarizeKnowledge is not implemented"))
 }

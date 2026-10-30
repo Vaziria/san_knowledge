@@ -1,11 +1,15 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/mstrYoda/goraphdb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"san_knowledge/graph"
 
@@ -16,7 +20,8 @@ import (
 // The knowledge steps (the user, 2026-10-28): Knowledge Base picks a
 // knowledge of the Knowledge page, and Knowledge Search and Knowledge
 // Explain look in it with the knowledge tool's own search and explain
-// (san_knowledge/graph). Their Text is for a person, or, with AI Format, a
+// (san_knowledge/graph); Knowledge Query runs raw Cypher on it, and
+// Knowledge Sync and Knowledge Summarize keep it up to date (knowledgeai.go). Their Text is for a person, or, with AI Format, a
 // context block made for an AI's prompt (file:line to cite, keywords,
 // domains); their object outputs are the same as data.
 var knowledgeKinds = []*kind{
@@ -28,6 +33,26 @@ var knowledgeKinds = []*kind{
 			Settings:    []*v1.Setting{{Name: "Knowledge", Knowledge: true}, {Name: "Sync", Options: []string{"No", "Yes"}}},
 		},
 		run: knowledgeBase,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "knowledge-sync", Title: "Knowledge Sync", Category: "Knowledge",
+			Description: "Reads a knowledge's files again, as the Knowledge page's Sync does (no AI): new and changed docs and sections are added or updated, gone ones removed, and changed text is marked as needing a summary. Text says what changed in a line, Report is the same as data, and Needs Summary how many nodes need one (Knowledge Summarize writes them).",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Text", Text), sock("Report", Object), sock("Needs Summary", Object)},
+			Inputs:      []*v1.Socket{sock("Event", Event), sock("Knowledge", Knowledge)},
+		},
+		run: knowledgeSync,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "knowledge-summarize", Title: "Knowledge Summarize", Category: "Knowledge",
+			Description: "Writes the summaries, keywords and domains of a knowledge's docs that need them, with the AI you choose: for each doc, Each fires with Prompt (the doc and the JSON to answer with) and Doc (its path); link Each to an AI step with Prompt as its prompt, and that step's answer back into Answer. An answer that cannot be used is asked again once; a doc that still fails stays pending for the next run. With Each linked nowhere, Claude Code writes them itself (claude -p, your login, Model), as the Knowledge page does. Limit is how many docs a run does (no limit when empty), the rest wait. Text says what was done, Report is the same as data, Summarized how many nodes.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Each", Event), sock("Prompt", Text), sock("Doc", Text), sock("Text", Text), sock("Report", Object), sock("Summarized", Object)},
+			Settings:    []*v1.Setting{{Name: "Limit", Placeholder: "No limit"}, {Name: "Model", Placeholder: "sonnet: Claude Code's, when Each links nowhere"}},
+			Inputs:      []*v1.Socket{sock("Event", Event), sock("Knowledge", Knowledge), sock("Answer", Text)},
+		},
+		run:  knowledgeSummarize,
+		back: []string{"Answer"},
 	},
 	{
 		StepKind: &v1.StepKind{
@@ -52,6 +77,15 @@ var knowledgeKinds = []*kind{
 			Inputs: []*v1.Socket{sock("Knowledge", Knowledge), field("Question")},
 		},
 		run: knowledgeExplain,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "knowledge-query", Title: "Knowledge Query", Category: "Knowledge",
+			Description: "Runs Query, in Cypher, on a knowledge's graph, reading or writing (MATCH … RETURN, CREATE, MERGE, MATCH … SET or DELETE): Text is the table it returns, Rows the same as data (a node as its properties with id and labels, a link as from, rel and to keys), Count how many rows. A node's label is its title without spaces or signs, so match by property: MATCH (d {node_type: 'doc'}) RETURN d. Writes go straight to the graph; docs and sections still follow their files on the next sync.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Text", Text), sock("Rows", Object), sock("Count", Object)},
+			Inputs:      []*v1.Socket{sock("Event", Event), sock("Knowledge", Knowledge), field("Query")},
+		},
+		run: knowledgeQuery,
 	},
 }
 
@@ -341,6 +375,157 @@ func knowledgeExplain(c *call) error {
 	}
 	c.logf(v1.LogLevel_LOG_LEVEL_INFO, "%d matches in %s for %q", len(matches), k.Name, question)
 	return nil
+}
+
+// queryTimeout bounds a Knowledge Query, as the knowledge tool's own query
+// command does.
+const queryTimeout = 30 * time.Second
+
+// knowledgeQuery runs raw Cypher on a knowledge's graph, writes included
+// (the user, 2026-10-29: "Don't make read only, it's full access allowed").
+func knowledgeQuery(c *call) error {
+	k, root, err := c.linkedKnowledge()
+	if err != nil {
+		return err
+	}
+	query := strings.TrimSpace(c.text("Query"))
+	if query == "" {
+		return errors.New("Query is empty")
+	}
+	ctx, cancel := context.WithTimeout(c.ctx, queryTimeout)
+	defer cancel()
+	var columns []string
+	var rows []map[string]any
+	var text string
+	err = graph.With(root, func(g *graph.Store) error {
+		res, err := g.Query(ctx, query)
+		if err != nil {
+			return err
+		}
+		columns = res.Columns
+		keys := keyCache{g: g, keys: map[graphdb.NodeID]string{}}
+		rows = make([]map[string]any, len(res.Rows))
+		for i, r := range res.Rows {
+			rows[i] = make(map[string]any, len(r))
+			for col, v := range r {
+				rows[i][col] = keys.value(v)
+			}
+		}
+		text = queryText(columns, res.Rows, &keys)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("knowledge %s: %w", k.Name, err)
+	}
+	c.outputs["Rows"] = jsonValue(rows)
+	c.outputs["Count"] = structpb.NewNumberValue(float64(len(rows)))
+	c.outputs["Text"] = stringValue(text)
+	c.logf(v1.LogLevel_LOG_LEVEL_INFO, "%d rows from %s", len(rows), k.Name)
+	c.fire("Done")
+	return nil
+}
+
+// keyCache finds the keys of the nodes a query's links join, once each.
+type keyCache struct {
+	g    *graph.Store
+	keys map[graphdb.NodeID]string
+}
+
+// key is node id's key, else #id.
+func (k *keyCache) key(id graphdb.NodeID) string {
+	if s, ok := k.keys[id]; ok {
+		return s
+	}
+	s := fmt.Sprintf("#%d", id)
+	if n, err := k.g.DB().GetNode(id); err == nil && n != nil && n.GetString("key") != "" {
+		s = n.GetString("key")
+	}
+	k.keys[id] = s
+	return s
+}
+
+// value is a query's value as Rows gives it: a node as its properties with
+// id and labels, a link as its properties with id, from, rel and to.
+func (k *keyCache) value(v any) any {
+	switch x := v.(type) {
+	case *graphdb.Node:
+		if x == nil {
+			return nil
+		}
+		m := make(map[string]any, len(x.Props)+2)
+		maps.Copy(m, x.Props)
+		m["id"], m["labels"] = x.ID, x.Labels
+		return m
+	case *graphdb.Edge:
+		if x == nil {
+			return nil
+		}
+		m := make(map[string]any, len(x.Props)+4)
+		maps.Copy(m, x.Props)
+		m["id"], m["from"], m["rel"], m["to"] = x.ID, k.key(x.From), x.Label, k.key(x.To)
+		return m
+	case []any:
+		out := make([]any, len(x))
+		for i, e := range x {
+			out[i] = k.value(e)
+		}
+		return out
+	case map[string]any:
+		out := make(map[string]any, len(x))
+		for p, e := range x {
+			out[p] = k.value(e)
+		}
+		return out
+	}
+	return v
+}
+
+// cell is a query's value in Text, as the knowledge tool's query command
+// prints it: a node as key [node_type] "title", a link as from -rel-> to.
+func (k *keyCache) cell(v any) string {
+	switch x := v.(type) {
+	case nil:
+		return "null"
+	case *graphdb.Node:
+		if x == nil {
+			return "null"
+		}
+		return fmt.Sprintf("%s [%s] %q", k.key(x.ID), x.GetString("node_type"), x.GetString("title"))
+	case *graphdb.Edge:
+		if x == nil {
+			return "null"
+		}
+		return fmt.Sprintf("%s -%s-> %s", k.key(x.From), x.Label, k.key(x.To))
+	case []any:
+		parts := make([]string, len(x))
+		for i, e := range x {
+			parts[i] = k.cell(e)
+		}
+		return strings.Join(parts, ", ")
+	}
+	return fmt.Sprint(v)
+}
+
+// queryText is a query's result as a table, a row per line, its cells
+// between tabs.
+func queryText(columns []string, rows []map[string]any, k *keyCache) string {
+	var b strings.Builder
+	if len(columns) > 0 {
+		b.WriteString(strings.Join(columns, "\t") + "\n")
+	}
+	for _, r := range rows {
+		cells := make([]string, len(columns))
+		for i, col := range columns {
+			cells[i] = k.cell(r[col])
+		}
+		b.WriteString(strings.Join(cells, "\t") + "\n")
+	}
+	if len(rows) == 1 {
+		b.WriteString("1 row")
+	} else {
+		fmt.Fprintf(&b, "%d rows", len(rows))
+	}
+	return b.String()
 }
 
 // explainText is what Knowledge Explain gathered, for a person.

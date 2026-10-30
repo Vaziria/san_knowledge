@@ -161,7 +161,7 @@ var claudeKinds = []*kind{
 				{Name: "Status Bot", ConnectionType: store.TelegramBot},
 			},
 			Inputs: []*v1.Socket{sock("Event", Event), field("Prompt"), field("Directory"), field("Session ID"), field("Status Chat"),
-				only("Model=Custom", field("Custom Model")), only("Effort=Custom", field("Custom Effort"))},
+				only("Model=Custom", field("Custom Model")), only("Effort=Custom", field("Custom Effort")), sock("Tools", Tool)},
 		},
 		run: claudeAskCLI,
 	},
@@ -325,11 +325,31 @@ func claudeAskCLI(c *call) error {
 	if effort != "" {
 		args = append(args, "--effort", effort)
 	}
+	// The tool steps linked to Tools, which claude gets over MCP
+	// (toolserver.go), with Tools None too: they are all it may use.
+	toolset, err := c.linkedTools("Tools")
+	if err != nil {
+		return err
+	}
+	if toolset != nil && session != "" {
+		c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "Tools are not given to a Claude Chat Session yet: this ask goes on without them")
+	}
 	if session != "" {
 		// The session's live process: stream-json both ways (claudelive.go).
 		live := slices.Concat([]string{"-p", "--input-format", "stream-json", "--output-format", "stream-json",
 			"--verbose", "--replay-user-messages", "--json-schema", claudeReply}, args[5:])
 		return c.askClaudeLive(session, dir, live, prompt, wait)
+	}
+	if toolset != nil {
+		if c.env.ServeTools == nil {
+			return errors.New("this run cannot give Claude tools")
+		}
+		config, done, err := c.env.ServeTools(c, toolset)
+		if err != nil {
+			return err
+		}
+		defer done()
+		args = append(args, "--mcp-config", config, "--allowedTools", "mcp__tower")
 	}
 	ctx, cancel := context.WithTimeout(c.ctx, wait)
 	defer cancel()

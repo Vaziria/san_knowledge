@@ -99,4 +99,44 @@ func TestKnowledgeSteps(t *testing.T) {
 	if _, err := runStep("knowledge-explain", map[string]string{"Knowledge": "1", "Question": "x"}, "Depth", "7"); err == nil || !strings.Contains(err.Error(), "Depth") {
 		t.Errorf("a depth too deep: %v", err)
 	}
+
+	// Knowledge Query runs any Cypher: nodes and links come out by key.
+	query := func(q string) *call {
+		t.Helper()
+		c, err := runStep("knowledge-query", map[string]string{"Knowledge": "1", "Query": q})
+		if err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+		return c
+	}
+	rows := func(c *call) []*structpb.Value { return c.outputs["Rows"].(*structpb.Value).GetListValue().GetValues() }
+	q := query("MATCH (s)-[r:section_of]->(d {key: 'usage.md'}) RETURN s, r, d")
+	if got := text(q, "Text"); count(q) != 1 || got != "s\tr\td\nusage.md#run [doc_section] \"Run\"\tusage.md#run -section_of-> usage.md\tusage.md [doc] \"Usage\"\n1 row" {
+		t.Errorf("query text: %v %q", count(q), got)
+	}
+	row := rows(q)[0].GetStructValue().GetFields()
+	if s := row["s"].GetStructValue().GetFields(); s["key"].GetStringValue() != "usage.md#run" || s["title"].GetStringValue() != "Run" || len(s["labels"].GetListValue().GetValues()) == 0 {
+		t.Errorf("a node in Rows: %v", s)
+	}
+	if r := row["r"].GetStructValue().GetFields(); r["from"].GetStringValue() != "usage.md#run" || r["rel"].GetStringValue() != "section_of" || r["to"].GetStringValue() != "usage.md" {
+		t.Errorf("a link in Rows: %v", r)
+	}
+	// Full access: a write stays in the graph for the next step.
+	query("MATCH (d {key: 'usage.md'}) SET d.summary = 'How to run it.' RETURN d")
+	if got := text(query("MATCH (d {key: 'usage.md'}) RETURN d.summary"), "Text"); got != "d.summary\nHow to run it.\n1 row" {
+		t.Errorf("after SET: %q", got)
+	}
+	query("CREATE (n:Note {title: 'A note'})")
+	if q := query("MATCH (n:Note) RETURN n.title"); count(q) != 1 || !strings.Contains(text(q, "Text"), "A note") {
+		t.Errorf("after CREATE: %q", text(q, "Text"))
+	}
+	if q := query("MATCH (n:Nothing) RETURN n"); count(q) != 0 || text(q, "Text") != "n\n0 rows" {
+		t.Errorf("no rows: %q", text(q, "Text"))
+	}
+	if _, err := runStep("knowledge-query", map[string]string{"Knowledge": "1", "Query": " "}); err == nil || !strings.Contains(err.Error(), "Query is empty") {
+		t.Errorf("an empty query: %v", err)
+	}
+	if _, err := runStep("knowledge-query", map[string]string{"Knowledge": "1", "Query": "MATCH (n RETURN n"}); err == nil || !strings.HasPrefix(err.Error(), "knowledge Guide: ") {
+		t.Errorf("a broken query: %v", err)
+	}
 }

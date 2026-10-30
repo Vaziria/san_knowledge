@@ -178,7 +178,7 @@ func TestRemoteShellSession(t *testing.T) {
 		t.Errorf("kept %q", got)
 	}
 	second := f.asks[1]
-	if second.Chat != "https://chatgpt.com/c/new" || !strings.HasPrefix(second.Prompt, shellReminder+"\n{") || strings.Contains(second.Prompt, "This chat follows") {
+	if second.Chat != "https://chatgpt.com/c/new" || !strings.HasPrefix(second.Prompt, shellReminder(nil)+"\n{") || strings.Contains(second.Prompt, "This chat follows") {
 		t.Errorf("second run: %+v", second)
 	}
 	if req := request(t, second.Prompt); req.Chat != "hi" || req.From != v1.FromType_FROM_TYPE_USER {
@@ -252,7 +252,7 @@ func TestRemoteShellFails(t *testing.T) {
 	if _, err := run(t, env, "remote-shell", "Connection", "1", "Message", "hi"); err != nil {
 		t.Fatal(err)
 	}
-	if len(f.asks) != 2 || f.asks[1].Prompt != notWebchatResponse {
+	if len(f.asks) != 2 || f.asks[1].Prompt != notWebchatResponse(false) {
 		t.Errorf("asks: %v", f.asks)
 	}
 

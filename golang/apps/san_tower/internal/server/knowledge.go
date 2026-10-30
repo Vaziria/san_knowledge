@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"unicode/utf8"
 
+	"san_knowledge/graph"
+
 	"connectrpc.com/connect"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"san_knowledge/graph"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/store"
@@ -192,36 +193,6 @@ func (s *Server) GetKnowledgeNode(_ context.Context, req *connect.Request[v1.Get
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(res), nil
-}
-
-// summarizePrompt is the AI step's system prompt for the tower's knowledge,
-// which is about anything (the knowledge tool's own is about its marketing
-// research).
-const summarizePrompt = `You annotate markdown documents for a knowledge graph.
-Write concise, factual summaries (1-3 sentences) in the document's language. Keywords: 3-8 short lowercase terms, most important first.
-Domains are broad knowledge areas such as "Automation", "Operations", "Business". Reuse an existing domain whenever it fits; only propose a new, broad domain when none fits. Give 1 domain, at most 2.
-Only annotate the section keys you are given, using the keys exactly. Answer only through the structured output.`
-
-// annotator writes the summaries for SummarizeKnowledge; tests replace it.
-var annotator graph.Annotator = graph.ClaudeCLI{SystemPrompt: summarizePrompt}
-
-func (s *Server) SummarizeKnowledge(ctx context.Context, req *connect.Request[v1.SummarizeKnowledgeRequest]) (*connect.Response[v1.SummarizeKnowledgeResponse], error) {
-	id := req.Msg.GetId()
-	root, err := s.knowledgeRoot(id)
-	if err != nil {
-		return nil, err
-	}
-	if _, busy := s.summarizing.LoadOrStore(id, true); busy {
-		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("its summaries are being written already"))
-	}
-	defer s.summarizing.Delete(id)
-	// The page may close: the calls already paid for still land.
-	r, err := graph.RunAI(context.WithoutCancel(ctx), root, annotator, graph.AIOptions{})
-	if err != nil {
-		return nil, graphError(err)
-	}
-	res := &v1.SummarizeKnowledgeResponse{Docs: r.Docs, Summarized: uint32(r.Summarized), DomainsCreated: r.DomainsCreated, Failed: r.Failed}
 	return connect.NewResponse(res), nil
 }
 

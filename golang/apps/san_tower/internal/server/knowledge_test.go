@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	"san_knowledge/graph"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/gen/san/tower/v1/towerv1connect"
@@ -97,25 +96,9 @@ func TestKnowledgeService(t *testing.T) {
 	}
 }
 
-// fakeAnnotator summarizes every doc and section it is asked for, without
-// Claude.
-type fakeAnnotator struct{}
-
-func (fakeAnnotator) Annotate(_ context.Context, req *graph.AnnotateRequest) (*graph.AnnotateResult, error) {
-	res := &graph.AnnotateResult{Domains: []string{"Testing"}, Summary: "About " + req.Title + ".", Keyword: []string{"test"}}
-	for _, s := range req.Sections {
-		res.Sections = append(res.Sections, graph.SectionResult{Key: s.Key, Summary: "About " + s.Title + ".", Keyword: []string{"part"}})
-	}
-	return res, nil
-}
-
-// A knowledge's graph: its folder's docs after a sync, a node with its links
-// and text, and the summaries the AI step writes.
+// A knowledge's graph: its folder's docs after a sync, and a node with its
+// links and text. Summaries are a workflow's (Knowledge Summarize).
 func TestKnowledgeGraph(t *testing.T) {
-	old := annotator
-	annotator = fakeAnnotator{}
-	t.Cleanup(func() { annotator = old })
-
 	ts := tower(t)
 	ctx := context.Background()
 	c := towerv1connect.NewKnowledgeServiceClient(ts.Client(), ts.URL)
@@ -172,17 +155,6 @@ func TestKnowledgeGraph(t *testing.T) {
 		t.Errorf("a node that is not there: %v", err)
 	}
 
-	sum, err := c.SummarizeKnowledge(ctx, connect.NewRequest(&v1.SummarizeKnowledgeRequest{Id: id}))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(sum.Msg.Docs) != 2 || sum.Msg.Summarized == 0 || len(sum.Msg.Failed) != 0 {
-		t.Errorf("summarize: %v", sum.Msg)
-	}
-	n, err = c.GetKnowledgeNode(ctx, connect.NewRequest(&v1.GetKnowledgeNodeRequest{Id: id, Key: "usage.md#run"}))
-	if err != nil || n.Msg.Node.Summary != "About Run." || n.Msg.Node.NeedsSummary {
-		t.Errorf("summarized node: %v, %v", n, err)
-	}
 	if _, err := c.GetKnowledgeGraph(ctx, connect.NewRequest(&v1.GetKnowledgeGraphRequest{Id: 999})); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Errorf("a knowledge that is not there: %v", err)
 	}

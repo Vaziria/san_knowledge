@@ -1,0 +1,1233 @@
+{
+  "format": "san_tower.workflows",
+  "version": 1,
+  "exportedAt": "2026-10-30T00:00:00Z",
+  "tower": "trading workflows (workflows/trading)",
+  "workflows": [
+    {
+      "name": "trade open",
+      "description": "Opens a position, or places a limit entry that waits, on the Binance test network, for the trade tick. Run with a JSON object: {\"symbol\": \"BTCUSDT\", \"side\": \"buy\" or \"sell\", \"type\": \"limit\" or \"market\", \"quantity\": 0.012 (in the coin), \"price\": 80000 (a limit's), \"stop_loss\": 79500, \"take_profit\": 81200, \"expires_min\": 15 (a limit's, 15 by default), \"approaches\": \"big_trend,positioning\", \"reason\": \"thesis: ...; trigger: ...; invalid if: ...; target: ...\"}. Pairs: BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT. Refused, with the reason: no stop loss, over 1000 USDT of notional or 100 USDT lost at the stop (the most that fits is said), a pair that already has a position or an entry waiting, a stop or target on the wrong side. A limit is post-only (a maker or nothing). The order is kept in the journal's trades/<month>.md.",
+      "steps": [
+        {
+          "id": "go",
+          "kind": "manual",
+          "x": 0,
+          "y": 0,
+          "values": {}
+        },
+        {
+          "id": "check",
+          "kind": "filter",
+          "x": 260,
+          "y": 0,
+          "values": {
+            "If": "has(payload.symbol) && payload.symbol in [\"BTCUSDT\", \"ETHUSDT\", \"BNBUSDT\", \"BCHUSDT\"] && has(payload.side) && has(payload.type) && has(payload.quantity) && has(payload.stop_loss) && has(payload.approaches) && has(payload.reason) && payload.reason != \"\""
+          }
+        },
+        {
+          "id": "bad",
+          "kind": "fail",
+          "x": 520,
+          "y": 160,
+          "values": {
+            "Message": "open needs a JSON object with symbol (BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT), side, type, quantity, stop_loss, approaches and reason (and price for a limit)"
+          }
+        },
+        {
+          "id": "order",
+          "kind": "binance-order",
+          "x": 520,
+          "y": 0,
+          "values": {
+            "Connection": "b1",
+            "Type": "Market",
+            "Side": "Buy",
+            "Time In Force": "Post Only",
+            "Reduce Only": "No",
+            "Require Stop": "Yes",
+            "Max Notional": "1000",
+            "Max Loss": "100",
+            "Testnet Only": "Yes",
+            "One Per Symbol": "Yes",
+            "Max Leverage": "5",
+            "Limit Expiry": "15"
+          }
+        },
+        {
+          "id": "entry",
+          "kind": "template",
+          "x": 780,
+          "y": 160,
+          "values": {
+            "Text": "{{payload.symbol}}\n{{payload.approaches}}\nopen {{payload.side}} {{payload.type}} {{payload.quantity}} at {{has(payload.price) ? payload.price : \"market\"}}, stop loss {{payload.stop_loss}}, take profit {{has(payload.take_profit) ? payload.take_profit : \"none\"}}; approaches {{payload.approaches}}\n{{payload.reason}}"
+          }
+        },
+        {
+          "id": "keep",
+          "kind": "bash",
+          "x": 780,
+          "y": 0,
+          "values": {
+            "Storage": "s1",
+            "Timeout": "1m",
+            "Non-zero Exit": "Fails",
+            "Script": "set -eu\nexport LC_ALL=C\n# Line 1 the symbol, line 2 the approaches (a,b), the rest the entry.\nIFS= read -r symbol\nIFS= read -r approaches || true\nbody=$(cat)\n[[ $symbol =~ ^[A-Z0-9]{3,30}$ ]] || { echo \"not a symbol: $symbol\" >&2; exit 1; }\nnow=$(date -u '+%Y-%m-%d %H:%M UTC')\nmonth=$(date -u +%Y-%m)\nmkdir -p trades approaches\nf=\"trades/$month.md\"\n[ -f \"$f\" ] || printf '# Trades %s\\n' \"$month\" > \"$f\"\nprintf '\\n## %s %s\\n\\n%s\\n' \"$now\" \"$symbol\" \"$body\" >> \"$f\"\nfirst=$(printf '%s\\n' \"$body\" | head -n 1)\nfor a in $(printf '%s' \"$approaches\" | tr -d '[]\" ' | tr ',' ' '); do\n  [[ $a =~ ^[a-z0-9_]{2,40}$ ]] || { echo \"skipped the approach name $a\" >&2; continue; }\n  p=\"approaches/$a.md\"\n  [ -f \"$p\" ] || printf '# %s (`%s`)\\n\\nNot described yet: describe it with the approach workflow.\\n\\n## Trades and lessons\\n\\n' \"$a\" \"$a\" > \"$p\"\n  printf -- '- %s %s: %s ([trades/%s.md](../trades/%s.md))\\n' \"$now\" \"$symbol\" \"$first\" \"$month\" \"$month\" >> \"$p\"\ndone\necho \"kept in $f\""
+          }
+        },
+        {
+          "id": "kb",
+          "kind": "knowledge-base",
+          "x": 1040,
+          "y": 160,
+          "values": {
+            "Knowledge": "k1",
+            "Sync": "No"
+          }
+        },
+        {
+          "id": "sync",
+          "kind": "knowledge-sync",
+          "x": 1040,
+          "y": 0,
+          "values": {}
+        },
+        {
+          "id": "say",
+          "kind": "template",
+          "x": 1300,
+          "y": 160,
+          "values": {
+            "Text": "trade {{payload.symbol}} open {{payload.side}} {{payload.type}} {{payload.quantity}} at {{has(payload.price) ? payload.price : \"market\"}}, stop loss {{payload.stop_loss}}, take profit {{has(payload.take_profit) ? payload.take_profit : \"none\"}}; approaches {{payload.approaches}}\n{{payload.reason}}"
+          }
+        },
+        {
+          "id": "tell",
+          "kind": "telegram-send",
+          "x": 1300,
+          "y": 0,
+          "values": {
+            "Connection": "t1",
+            "Chat": "1108826443",
+            "Format": "Plain",
+            "Media": "None"
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "go",
+          "sourceSocket": "Event",
+          "target": "check",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "check",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Else",
+          "target": "bad",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Match",
+          "target": "order",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "order",
+          "targetSocket": "Order"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "entry",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "order",
+          "sourceSocket": "Done",
+          "target": "keep",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "entry",
+          "sourceSocket": "Text",
+          "target": "keep",
+          "targetSocket": "Input"
+        },
+        {
+          "source": "keep",
+          "sourceSocket": "Done",
+          "target": "sync",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "kb",
+          "sourceSocket": "Knowledge",
+          "target": "sync",
+          "targetSocket": "Knowledge"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "say",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "sync",
+          "sourceSocket": "Done",
+          "target": "tell",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "say",
+          "sourceSocket": "Text",
+          "target": "tell",
+          "targetSocket": "Text"
+        }
+      ],
+      "oneAtATime": true
+    },
+    {
+      "name": "trade close",
+      "description": "Closes a pair's position at market on the Binance test network, for the trade tick; with no position, cancels its limit entry waiting (and its stops). Run with {\"symbol\": \"BTCUSDT\", \"reason\": \"...\"}. Pairs: BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT. Kept in the journal's trades/<month>.md.",
+      "steps": [
+        {
+          "id": "go",
+          "kind": "manual",
+          "x": 0,
+          "y": 0,
+          "values": {}
+        },
+        {
+          "id": "check",
+          "kind": "filter",
+          "x": 260,
+          "y": 0,
+          "values": {
+            "If": "has(payload.symbol) && payload.symbol in [\"BTCUSDT\", \"ETHUSDT\", \"BNBUSDT\", \"BCHUSDT\"] && has(payload.reason)"
+          }
+        },
+        {
+          "id": "bad",
+          "kind": "fail",
+          "x": 520,
+          "y": 160,
+          "values": {
+            "Message": "close needs {\"symbol\": one of BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT, \"reason\": \"...\"}"
+          }
+        },
+        {
+          "id": "symbol",
+          "kind": "template",
+          "x": 260,
+          "y": 160,
+          "values": {
+            "Text": "{{payload.symbol}}"
+          }
+        },
+        {
+          "id": "close",
+          "kind": "binance-close-position",
+          "x": 520,
+          "y": 0,
+          "values": {
+            "Connection": "b1"
+          }
+        },
+        {
+          "id": "entry",
+          "kind": "template",
+          "x": 780,
+          "y": 160,
+          "values": {
+            "Text": "{{payload.symbol}}\n\nclose: {{payload.reason}}"
+          }
+        },
+        {
+          "id": "keep",
+          "kind": "bash",
+          "x": 780,
+          "y": 0,
+          "values": {
+            "Storage": "s1",
+            "Timeout": "1m",
+            "Non-zero Exit": "Fails",
+            "Script": "set -eu\nexport LC_ALL=C\n# Line 1 the symbol, line 2 the approaches (a,b), the rest the entry.\nIFS= read -r symbol\nIFS= read -r approaches || true\nbody=$(cat)\n[[ $symbol =~ ^[A-Z0-9]{3,30}$ ]] || { echo \"not a symbol: $symbol\" >&2; exit 1; }\nnow=$(date -u '+%Y-%m-%d %H:%M UTC')\nmonth=$(date -u +%Y-%m)\nmkdir -p trades approaches\nf=\"trades/$month.md\"\n[ -f \"$f\" ] || printf '# Trades %s\\n' \"$month\" > \"$f\"\nprintf '\\n## %s %s\\n\\n%s\\n' \"$now\" \"$symbol\" \"$body\" >> \"$f\"\nfirst=$(printf '%s\\n' \"$body\" | head -n 1)\nfor a in $(printf '%s' \"$approaches\" | tr -d '[]\" ' | tr ',' ' '); do\n  [[ $a =~ ^[a-z0-9_]{2,40}$ ]] || { echo \"skipped the approach name $a\" >&2; continue; }\n  p=\"approaches/$a.md\"\n  [ -f \"$p\" ] || printf '# %s (`%s`)\\n\\nNot described yet: describe it with the approach workflow.\\n\\n## Trades and lessons\\n\\n' \"$a\" \"$a\" > \"$p\"\n  printf -- '- %s %s: %s ([trades/%s.md](../trades/%s.md))\\n' \"$now\" \"$symbol\" \"$first\" \"$month\" \"$month\" >> \"$p\"\ndone\necho \"kept in $f\""
+          }
+        },
+        {
+          "id": "say",
+          "kind": "template",
+          "x": 1040,
+          "y": 160,
+          "values": {
+            "Text": "trade {{payload.symbol}} close: {{payload.reason}}"
+          }
+        },
+        {
+          "id": "tell",
+          "kind": "telegram-send",
+          "x": 1040,
+          "y": 0,
+          "values": {
+            "Connection": "t1",
+            "Chat": "1108826443",
+            "Format": "Plain",
+            "Media": "None"
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "go",
+          "sourceSocket": "Event",
+          "target": "check",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "check",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Else",
+          "target": "bad",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "symbol",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Match",
+          "target": "close",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "symbol",
+          "sourceSocket": "Text",
+          "target": "close",
+          "targetSocket": "Symbol"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "entry",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "close",
+          "sourceSocket": "Done",
+          "target": "keep",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "entry",
+          "sourceSocket": "Text",
+          "target": "keep",
+          "targetSocket": "Input"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "say",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "keep",
+          "sourceSocket": "Done",
+          "target": "tell",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "say",
+          "sourceSocket": "Text",
+          "target": "tell",
+          "targetSocket": "Text"
+        }
+      ],
+      "oneAtATime": true
+    },
+    {
+      "name": "trade protect",
+      "description": "Moves a pair's stop loss toward profit, and its take profit, on the Binance test network, for the trade tick: the new stop is placed before the old one goes, and a stop only moves closer to the price. Run with {\"symbol\": \"BTCUSDT\", \"stop_loss\": 80100, \"take_profit\": 81500, \"reason\": \"...\"} (stop_loss, take_profit or both). Pairs: BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT. Kept in the journal's trades/<month>.md.",
+      "steps": [
+        {
+          "id": "go",
+          "kind": "manual",
+          "x": 0,
+          "y": 0,
+          "values": {}
+        },
+        {
+          "id": "check",
+          "kind": "filter",
+          "x": 260,
+          "y": 0,
+          "values": {
+            "If": "has(payload.symbol) && payload.symbol in [\"BTCUSDT\", \"ETHUSDT\", \"BNBUSDT\", \"BCHUSDT\"] && (has(payload.stop_loss) || has(payload.take_profit)) && has(payload.reason)"
+          }
+        },
+        {
+          "id": "bad",
+          "kind": "fail",
+          "x": 520,
+          "y": 160,
+          "values": {
+            "Message": "protect needs {\"symbol\": one of BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT, \"stop_loss\" and/or \"take_profit\", \"reason\": \"...\"}"
+          }
+        },
+        {
+          "id": "move",
+          "kind": "binance-move-stop",
+          "x": 520,
+          "y": 0,
+          "values": {
+            "Connection": "b1"
+          }
+        },
+        {
+          "id": "entry",
+          "kind": "template",
+          "x": 780,
+          "y": 160,
+          "values": {
+            "Text": "{{payload.symbol}}\n\nprotect: stop loss {{has(payload.stop_loss) ? payload.stop_loss : \"kept\"}}, take profit {{has(payload.take_profit) ? payload.take_profit : \"kept\"}}; {{payload.reason}}"
+          }
+        },
+        {
+          "id": "keep",
+          "kind": "bash",
+          "x": 780,
+          "y": 0,
+          "values": {
+            "Storage": "s1",
+            "Timeout": "1m",
+            "Non-zero Exit": "Fails",
+            "Script": "set -eu\nexport LC_ALL=C\n# Line 1 the symbol, line 2 the approaches (a,b), the rest the entry.\nIFS= read -r symbol\nIFS= read -r approaches || true\nbody=$(cat)\n[[ $symbol =~ ^[A-Z0-9]{3,30}$ ]] || { echo \"not a symbol: $symbol\" >&2; exit 1; }\nnow=$(date -u '+%Y-%m-%d %H:%M UTC')\nmonth=$(date -u +%Y-%m)\nmkdir -p trades approaches\nf=\"trades/$month.md\"\n[ -f \"$f\" ] || printf '# Trades %s\\n' \"$month\" > \"$f\"\nprintf '\\n## %s %s\\n\\n%s\\n' \"$now\" \"$symbol\" \"$body\" >> \"$f\"\nfirst=$(printf '%s\\n' \"$body\" | head -n 1)\nfor a in $(printf '%s' \"$approaches\" | tr -d '[]\" ' | tr ',' ' '); do\n  [[ $a =~ ^[a-z0-9_]{2,40}$ ]] || { echo \"skipped the approach name $a\" >&2; continue; }\n  p=\"approaches/$a.md\"\n  [ -f \"$p\" ] || printf '# %s (`%s`)\\n\\nNot described yet: describe it with the approach workflow.\\n\\n## Trades and lessons\\n\\n' \"$a\" \"$a\" > \"$p\"\n  printf -- '- %s %s: %s ([trades/%s.md](../trades/%s.md))\\n' \"$now\" \"$symbol\" \"$first\" \"$month\" \"$month\" >> \"$p\"\ndone\necho \"kept in $f\""
+          }
+        },
+        {
+          "id": "say",
+          "kind": "template",
+          "x": 1040,
+          "y": 160,
+          "values": {
+            "Text": "trade {{payload.symbol}} protect: stop loss {{has(payload.stop_loss) ? payload.stop_loss : \"kept\"}}, take profit {{has(payload.take_profit) ? payload.take_profit : \"kept\"}}; {{payload.reason}}"
+          }
+        },
+        {
+          "id": "tell",
+          "kind": "telegram-send",
+          "x": 1040,
+          "y": 0,
+          "values": {
+            "Connection": "t1",
+            "Chat": "1108826443",
+            "Format": "Plain",
+            "Media": "None"
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "go",
+          "sourceSocket": "Event",
+          "target": "check",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "check",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Else",
+          "target": "bad",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Match",
+          "target": "move",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "move",
+          "targetSocket": "Order"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "entry",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "move",
+          "sourceSocket": "Done",
+          "target": "keep",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "entry",
+          "sourceSocket": "Text",
+          "target": "keep",
+          "targetSocket": "Input"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "say",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "keep",
+          "sourceSocket": "Done",
+          "target": "tell",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "say",
+          "sourceSocket": "Text",
+          "target": "tell",
+          "targetSocket": "Text"
+        }
+      ],
+      "oneAtATime": true
+    },
+    {
+      "name": "trade lesson",
+      "description": "Writes the lesson of a closed trade into the trading journal (lessons/<month>.md, and a line in each approach's file), for the trade tick. Run with {\"id\": \"BTCUSDT-20261030-130512\" (the id the tick lists), \"symbol\": \"BTCUSDT\", \"approaches\": \"big_trend,positioning\", \"result\": \"-1.04R, -3.26 USDT\", \"lesson\": \"What happened: ... Why: ... Lesson: ...\"}. A trade gets one lesson.",
+      "steps": [
+        {
+          "id": "go",
+          "kind": "manual",
+          "x": 0,
+          "y": 0,
+          "values": {}
+        },
+        {
+          "id": "check",
+          "kind": "filter",
+          "x": 260,
+          "y": 0,
+          "values": {
+            "If": "has(payload.id) && has(payload.symbol) && has(payload.approaches) && has(payload.result) && has(payload.lesson) && payload.lesson != \"\""
+          }
+        },
+        {
+          "id": "bad",
+          "kind": "fail",
+          "x": 520,
+          "y": 160,
+          "values": {
+            "Message": "lesson needs {\"id\", \"symbol\", \"approaches\", \"result\", \"lesson\"}"
+          }
+        },
+        {
+          "id": "entry",
+          "kind": "template",
+          "x": 260,
+          "y": 160,
+          "values": {
+            "Text": "{{payload.id}}\n{{payload.symbol}}\n{{payload.approaches}}\n{{payload.result}}\n{{payload.lesson}}"
+          }
+        },
+        {
+          "id": "keep",
+          "kind": "bash",
+          "x": 520,
+          "y": 0,
+          "values": {
+            "Storage": "s1",
+            "Timeout": "1m",
+            "Non-zero Exit": "Fails",
+            "Script": "set -eu\nexport LC_ALL=C\n# Lines: the trade's id, symbol, approaches (a,b), result; the rest the lesson.\nIFS= read -r id\nIFS= read -r symbol\nIFS= read -r approaches\nIFS= read -r result\nbody=$(cat)\n[[ $id =~ ^[A-Z0-9]{3,30}-[0-9]{8}-[0-9]{6}$ ]] || { echo \"not a trade id: $id (give the id listed, such as BTCUSDT-20261030-130512)\" >&2; exit 1; }\n[ -n \"$body\" ] || { echo \"the lesson is empty\" >&2; exit 1; }\nmkdir -p lessons approaches\nif grep -qx \"$id\" lessons/done.txt 2>/dev/null; then echo \"$id already has a lesson\" >&2; exit 1; fi\nmonth=$(date -u +%Y-%m)\nf=\"lessons/$month.md\"\n[ -f \"$f\" ] || printf '# Lessons %s\\n' \"$month\" > \"$f\"\nprintf '\\n## %s\\n\\n%s %s. %s\\n' \"$id\" \"$symbol\" \"$result\" \"$body\" >> \"$f\"\nprintf '%s\\n' \"$id\" >> lessons/done.txt\nfor a in $(printf '%s' \"$approaches\" | tr -d '[]\" ' | tr ',' ' '); do\n  [[ $a =~ ^[a-z0-9_]{2,40}$ ]] || continue\n  p=\"approaches/$a.md\"\n  [ -f \"$p\" ] || printf '# %s (`%s`)\\n\\nNot described yet: describe it with the approach workflow.\\n\\n## Trades and lessons\\n\\n' \"$a\" \"$a\" > \"$p\"\n  printf -- '- %s: %s. Its lesson: [lessons/%s.md](../lessons/%s.md), %s.\\n' \"$id\" \"$result\" \"$month\" \"$month\" \"$id\" >> \"$p\"\ndone\necho \"the lesson of $id is in $f\""
+          }
+        },
+        {
+          "id": "kb",
+          "kind": "knowledge-base",
+          "x": 780,
+          "y": 160,
+          "values": {
+            "Knowledge": "k1",
+            "Sync": "No"
+          }
+        },
+        {
+          "id": "sync",
+          "kind": "knowledge-sync",
+          "x": 780,
+          "y": 0,
+          "values": {}
+        },
+        {
+          "id": "say",
+          "kind": "template",
+          "x": 1040,
+          "y": 160,
+          "values": {
+            "Text": "trade lesson {{payload.id}} ({{payload.result}}): {{payload.lesson}}"
+          }
+        },
+        {
+          "id": "tell",
+          "kind": "telegram-send",
+          "x": 1040,
+          "y": 0,
+          "values": {
+            "Connection": "t1",
+            "Chat": "1108826443",
+            "Format": "Plain",
+            "Media": "None"
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "go",
+          "sourceSocket": "Event",
+          "target": "check",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "check",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Else",
+          "target": "bad",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "entry",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Match",
+          "target": "keep",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "entry",
+          "sourceSocket": "Text",
+          "target": "keep",
+          "targetSocket": "Input"
+        },
+        {
+          "source": "keep",
+          "sourceSocket": "Done",
+          "target": "sync",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "kb",
+          "sourceSocket": "Knowledge",
+          "target": "sync",
+          "targetSocket": "Knowledge"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "say",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "sync",
+          "sourceSocket": "Done",
+          "target": "tell",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "say",
+          "sourceSocket": "Text",
+          "target": "tell",
+          "targetSocket": "Text"
+        }
+      ],
+      "oneAtATime": true
+    },
+    {
+      "name": "trade approach",
+      "description": "Defines a trading approach, or rewrites its description, in the trading journal (approaches/<name>.md; its trades and lessons stay). Run with {\"name\": \"breakout_retest\", \"title\": \"Breakout Retest\", \"description\": \"what it reads and when it says to act, with what the lessons taught\"}. Reuse names, so each approach's record builds up.",
+      "steps": [
+        {
+          "id": "go",
+          "kind": "manual",
+          "x": 0,
+          "y": 0,
+          "values": {}
+        },
+        {
+          "id": "check",
+          "kind": "filter",
+          "x": 260,
+          "y": 0,
+          "values": {
+            "If": "has(payload.name) && has(payload.title) && has(payload.description) && payload.description != \"\""
+          }
+        },
+        {
+          "id": "bad",
+          "kind": "fail",
+          "x": 520,
+          "y": 160,
+          "values": {
+            "Message": "approach needs {\"name\", \"title\", \"description\"}"
+          }
+        },
+        {
+          "id": "entry",
+          "kind": "template",
+          "x": 260,
+          "y": 160,
+          "values": {
+            "Text": "{{payload.name}}\n{{payload.title}}\n{{payload.description}}"
+          }
+        },
+        {
+          "id": "keep",
+          "kind": "bash",
+          "x": 520,
+          "y": 0,
+          "values": {
+            "Storage": "s1",
+            "Timeout": "1m",
+            "Non-zero Exit": "Fails",
+            "Script": "set -eu\nexport LC_ALL=C\n# Line 1 the name, line 2 the title, the rest the description.\nIFS= read -r name\nIFS= read -r title\ndesc=$(cat)\n[[ $name =~ ^[a-z0-9_]{2,40}$ ]] || { echo \"a name is lowercase letters, digits and _ (big_trend), not $name\" >&2; exit 1; }\n[ -n \"$desc\" ] || { echo \"the description is empty\" >&2; exit 1; }\nmkdir -p approaches\np=\"approaches/$name.md\"\nrest=\"\"\n[ -f \"$p\" ] && rest=$(awk 'f || /^## /{f=1; print}' \"$p\")\n[ -n \"$rest\" ] || rest=$(printf '## Trades and lessons\\n')\n{ printf '# %s (`%s`)\\n\\n%s\\n\\n' \"$title\" \"$name\" \"$desc\"; printf '%s\\n' \"$rest\"; } > \"$p.tmp\"\nmv \"$p.tmp\" \"$p\"\necho \"described in $p\""
+          }
+        },
+        {
+          "id": "kb",
+          "kind": "knowledge-base",
+          "x": 780,
+          "y": 160,
+          "values": {
+            "Knowledge": "k1",
+            "Sync": "No"
+          }
+        },
+        {
+          "id": "sync",
+          "kind": "knowledge-sync",
+          "x": 780,
+          "y": 0,
+          "values": {}
+        }
+      ],
+      "links": [
+        {
+          "source": "go",
+          "sourceSocket": "Event",
+          "target": "check",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "check",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Else",
+          "target": "bad",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "go",
+          "sourceSocket": "Payload",
+          "target": "entry",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "check",
+          "sourceSocket": "Match",
+          "target": "keep",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "entry",
+          "sourceSocket": "Text",
+          "target": "keep",
+          "targetSocket": "Input"
+        },
+        {
+          "source": "keep",
+          "sourceSocket": "Done",
+          "target": "sync",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "kb",
+          "sourceSocket": "Knowledge",
+          "target": "sync",
+          "targetSocket": "Knowledge"
+        }
+      ],
+      "oneAtATime": true
+    },
+    {
+      "name": "trade tick",
+      "description": "autotrade as a workflow: every 5 minutes, just after a 5m candle closes, Gemini (Remote Shell, no shell) gets the snapshot of BTCUSDT, ETHUSDT, BNBUSDT, BCHUSDT (tidied first: expired entries cancelled), the closed trades without a lesson and its last decisions, and decides one action per pair with the trading journal's rules.md: open, close or protect through the trade workflows, whose limits it cannot get past, or hold. Its reply is kept in the journal's decisions/ and sent to Telegram, a failure too. One Gemini chat per hour. Run by hand for a tick now.",
+      "steps": [
+        {
+          "id": "every",
+          "kind": "schedule",
+          "x": 0,
+          "y": 0,
+          "values": {
+            "Every": "1-59/5 * * * *"
+          }
+        },
+        {
+          "id": "now",
+          "kind": "manual",
+          "x": 0,
+          "y": 160,
+          "values": {}
+        },
+        {
+          "id": "done",
+          "kind": "read-file",
+          "x": 0,
+          "y": 320,
+          "values": {
+            "Storage": "s1",
+            "Path": "lessons/done.txt"
+          }
+        },
+        {
+          "id": "closed",
+          "kind": "binance-closed-trades",
+          "x": 260,
+          "y": 0,
+          "values": {
+            "Connection": "b1",
+            "Symbols": "BTCUSDT,ETHUSDT,BNBUSDT,BCHUSDT",
+            "Hours": "72"
+          }
+        },
+        {
+          "id": "notes",
+          "kind": "bash",
+          "x": 520,
+          "y": 0,
+          "values": {
+            "Storage": "s1",
+            "Timeout": "1m",
+            "Non-zero Exit": "Fails",
+            "Script": "export LC_ALL=C\n# Standard input: the closed trades without a lesson.\nclosed=$(cat)\nprintf '### Closed trades without a lesson (the last 72h)\\n\\n%s\\n\\n### Your last decisions\\n\\n' \"$closed\"\nf=$(ls decisions/*.log 2>/dev/null | sort | tail -n 1)\nif [ -n \"$f\" ]; then\n  awk '/^### /{buf=\"\"} {buf=buf $0 \"\\n\"} END{printf \"%s\", buf}' \"$f\"\nelse\n  echo \"None yet: this is the first tick.\"\nfi"
+          }
+        },
+        {
+          "id": "snap",
+          "kind": "binance-snapshot",
+          "x": 780,
+          "y": 0,
+          "values": {
+            "Connection": "b1",
+            "Symbols": "BTCUSDT,ETHUSDT,BNBUSDT,BCHUSDT",
+            "Intervals": "5m,15m,1h,4h",
+            "Market": "Live",
+            "Positioning": "Yes",
+            "Candles": "6",
+            "Tidy": "Yes",
+            "Expiry": "15"
+          }
+        },
+        {
+          "id": "message",
+          "kind": "format-text",
+          "x": 1040,
+          "y": 160,
+          "values": {
+            "Format": "Trade tick. You are the strategy for the four pairs below, on the Binance test network.\nIf you have not read the trading rules in this chat yet, read them first: files, read rules.md. Follow them: Doing Analyze (a written view of each pair), Doing Action (one action per pair: open, close or protect with their tools, or hold, which needs no tool), then Updating Knowledge (a lesson for each closed trade listed under Notes, with the lesson tool).\nWhen done, answer with tools null and a chat of one line per pair (\"BTCUSDT: hold, watching: ...\") and one line on the knowledge.\n\n{{text}}"
+          }
+        },
+        {
+          "id": "session",
+          "kind": "browser-chat-session",
+          "x": 1040,
+          "y": 320,
+          "values": {
+            "New Chat": "Hourly"
+          }
+        },
+        {
+          "id": "ai",
+          "kind": "remote-shell",
+          "x": 1300,
+          "y": 0,
+          "values": {
+            "Connection": "r1",
+            "Site": "Gemini",
+            "Wait": "10m",
+            "Max Commands": "40",
+            "Shell": "Off"
+          }
+        },
+        {
+          "id": "kb",
+          "kind": "knowledge-base",
+          "x": 1040,
+          "y": 480,
+          "values": {
+            "Knowledge": "k1",
+            "Sync": "Yes"
+          }
+        },
+        {
+          "id": "journal",
+          "kind": "knowledge-tool",
+          "x": 1300,
+          "y": 480,
+          "values": {
+            "Name": "journal"
+          }
+        },
+        {
+          "id": "files",
+          "kind": "file-tool",
+          "x": 1300,
+          "y": 600,
+          "values": {
+            "Storage": "s1",
+            "Name": "files"
+          }
+        },
+        {
+          "id": "market",
+          "kind": "binance-tool",
+          "x": 1300,
+          "y": 720,
+          "values": {
+            "Connection": "b1",
+            "Name": "binance"
+          }
+        },
+        {
+          "id": "open",
+          "kind": "workflow-tool",
+          "x": 1560,
+          "y": 480,
+          "values": {
+            "Workflow": "trade open",
+            "Name": "open"
+          }
+        },
+        {
+          "id": "close",
+          "kind": "workflow-tool",
+          "x": 1560,
+          "y": 600,
+          "values": {
+            "Workflow": "trade close",
+            "Name": "close"
+          }
+        },
+        {
+          "id": "protect",
+          "kind": "workflow-tool",
+          "x": 1560,
+          "y": 720,
+          "values": {
+            "Workflow": "trade protect",
+            "Name": "protect"
+          }
+        },
+        {
+          "id": "lesson",
+          "kind": "workflow-tool",
+          "x": 1560,
+          "y": 840,
+          "values": {
+            "Workflow": "trade lesson",
+            "Name": "lesson"
+          }
+        },
+        {
+          "id": "approach",
+          "kind": "workflow-tool",
+          "x": 1560,
+          "y": 960,
+          "values": {
+            "Workflow": "trade approach",
+            "Name": "approach"
+          }
+        },
+        {
+          "id": "keep",
+          "kind": "bash",
+          "x": 1560,
+          "y": 0,
+          "values": {
+            "Storage": "s1",
+            "Timeout": "1m",
+            "Non-zero Exit": "Fails",
+            "Script": "set -eu\n# Standard input: the tick's reply.\nmkdir -p decisions\nf=\"decisions/$(date -u +%Y-%m-%d).log\"\n{ printf '### %s\\n\\n' \"$(date -u '+%Y-%m-%d %H:%M UTC')\"; cat; printf '\\n\\n'; } >> \"$f\"\necho \"kept in $f\""
+          }
+        },
+        {
+          "id": "tell",
+          "kind": "telegram-send",
+          "x": 1820,
+          "y": 0,
+          "values": {
+            "Connection": "t1",
+            "Chat": "1108826443",
+            "Format": "Plain",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "why",
+          "kind": "format-text",
+          "x": 1560,
+          "y": 240,
+          "values": {
+            "Format": "trade tick failed: {{text}}"
+          }
+        },
+        {
+          "id": "warn",
+          "kind": "telegram-send",
+          "x": 1820,
+          "y": 240,
+          "values": {
+            "Connection": "t1",
+            "Chat": "1108826443",
+            "Format": "Plain",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "fail",
+          "kind": "fail",
+          "x": 2080,
+          "y": 240,
+          "values": {}
+        }
+      ],
+      "links": [
+        {
+          "source": "every",
+          "sourceSocket": "Event",
+          "target": "closed",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "now",
+          "sourceSocket": "Event",
+          "target": "closed",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "done",
+          "sourceSocket": "Text",
+          "target": "closed",
+          "targetSocket": "Leave Out"
+        },
+        {
+          "source": "closed",
+          "sourceSocket": "Done",
+          "target": "notes",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "closed",
+          "sourceSocket": "Text",
+          "target": "notes",
+          "targetSocket": "Input"
+        },
+        {
+          "source": "notes",
+          "sourceSocket": "Done",
+          "target": "snap",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "notes",
+          "sourceSocket": "Stdout",
+          "target": "snap",
+          "targetSocket": "Notes"
+        },
+        {
+          "source": "snap",
+          "sourceSocket": "Text",
+          "target": "message",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "snap",
+          "sourceSocket": "Done",
+          "target": "ai",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "message",
+          "sourceSocket": "Text",
+          "target": "ai",
+          "targetSocket": "Message"
+        },
+        {
+          "source": "session",
+          "sourceSocket": "Chat Link",
+          "target": "ai",
+          "targetSocket": "Chat Link"
+        },
+        {
+          "source": "kb",
+          "sourceSocket": "Knowledge",
+          "target": "journal",
+          "targetSocket": "Knowledge"
+        },
+        {
+          "source": "journal",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "files",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "market",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "open",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "close",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "protect",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "lesson",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "approach",
+          "sourceSocket": "Tool",
+          "target": "ai",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "ai",
+          "sourceSocket": "Done",
+          "target": "keep",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "ai",
+          "sourceSocket": "Reply",
+          "target": "keep",
+          "targetSocket": "Input"
+        },
+        {
+          "source": "keep",
+          "sourceSocket": "Done",
+          "target": "tell",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "ai",
+          "sourceSocket": "Reply",
+          "target": "tell",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "ai",
+          "sourceSocket": "Error",
+          "target": "why",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "ai",
+          "sourceSocket": "Failed",
+          "target": "warn",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "why",
+          "sourceSocket": "Text",
+          "target": "warn",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "warn",
+          "sourceSocket": "Done",
+          "target": "fail",
+          "targetSocket": "Event"
+        }
+      ],
+      "oneAtATime": true
+    }
+  ],
+  "connections": {
+    "b1": {
+      "name": "Binance Tesnet",
+      "type": "binance"
+    },
+    "t1": {
+      "name": "Developer Bot",
+      "type": "telegram_bot"
+    },
+    "r1": {
+      "name": "Tower Local",
+      "type": "san_remote"
+    }
+  },
+  "storages": {
+    "s1": {
+      "name": "Trading Journal"
+    }
+  },
+  "knowledge": {
+    "k1": {
+      "name": "Trading Journal"
+    }
+  }
+}

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	chatgptv1 "github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1"
@@ -14,6 +15,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/store"
@@ -142,5 +145,14 @@ func TestBrowserChatSession(t *testing.T) {
 	}
 	if len(kept) != 3 {
 		t.Errorf("kept %v", kept)
+	}
+
+	// New Chat Hourly: a session of its own each hour.
+	c := &call{ctx: context.Background(), env: env, step: step("session", "browser-chat-session", "New Chat", "Hourly"), outputs: map[string]proto.Message{}}
+	if err := byKind["browser-chat-session"].run(c); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := c.outputs["Chat Link"].(*wrapperspb.StringValue).GetValue(), store.ChatSessionKey(7, "session")+"@"+time.Now().UTC().Format("2006-01-02T15"); got != want {
+		t.Errorf("hourly: %q, want %q", got, want)
 	}
 }

@@ -23,6 +23,19 @@ type fakeBinance struct {
 	positions string // positionRisk's answer
 	refuseTP  bool   // a take profit is refused
 	klines    string
+	// The answers of these, when set (tradeloop_test.go): open orders,
+	// open stop orders, a cancelled order, and the account's fills.
+	open, algos, cancelled, fills string
+	// lag is how far the exchange's clock is behind this computer's.
+	lag time.Duration
+}
+
+// or is the answer set, else def.
+func or(set, def string) string {
+	if set != "" {
+		return set
+	}
+	return def
 }
 
 func (f *fakeBinance) did(prefix string) []string {
@@ -47,7 +60,7 @@ func (f *fakeBinance) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f.mu.Unlock()
 	switch r.Method + " " + r.URL.Path {
 	case "GET /fapi/v1/time":
-		fmt.Fprintf(w, `{"serverTime":%d}`, time.Now().UnixMilli())
+		fmt.Fprintf(w, `{"serverTime":%d}`, time.Now().Add(-f.lag).UnixMilli())
 	case "GET /fapi/v1/positionSide/dual":
 		fmt.Fprintf(w, `{"dualSidePosition":%v}`, f.hedge)
 	case "GET /fapi/v1/exchangeInfo":
@@ -67,7 +80,7 @@ func (f *fakeBinance) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `{"orderId":11,"symbol":"%s","status":"%s","side":"%s","type":"%s","price":"%s","origQty":"%s","executedQty":"%s","avgPrice":"%s","reduceOnly":%v}`,
 			q.Get("symbol"), status, q.Get("side"), q.Get("type"), q.Get("price"), q.Get("quantity"), exec, avg, q.Get("reduceOnly") == "true")
 	case "DELETE /fapi/v1/order":
-		fmt.Fprint(w, `{"orderId":11,"symbol":"BTCUSDT","status":"CANCELED","type":"LIMIT","executedQty":"0"}`)
+		fmt.Fprint(w, or(f.cancelled, `{"orderId":11,"symbol":"BTCUSDT","status":"CANCELED","type":"LIMIT","executedQty":"0"}`))
 	case "POST /fapi/v1/algoOrder":
 		if f.refuseTP && q.Get("type") == "TAKE_PROFIT_MARKET" {
 			w.WriteHeader(400)
@@ -86,10 +99,30 @@ func (f *fakeBinance) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `[{"asset":"USDT","balance":"5000","availableBalance":"4900","crossUnPnl":"10"}]`)
 	case "GET /fapi/v3/positionRisk":
 		fmt.Fprint(w, f.positions)
-	case "GET /fapi/v1/allOrders", "GET /fapi/v1/openOrders":
+	case "GET /fapi/v1/allOrders":
 		fmt.Fprint(w, `[{"orderId":1,"symbol":"BTCUSDT","status":"FILLED","time":1791621000000},{"orderId":2,"symbol":"BTCUSDT","status":"NEW","time":1791622000000}]`)
+	case "GET /fapi/v1/openOrders":
+		fmt.Fprint(w, or(f.open, `[{"orderId":1,"symbol":"BTCUSDT","status":"FILLED","time":1791621000000},{"orderId":2,"symbol":"BTCUSDT","status":"NEW","time":1791622000000}]`))
 	case "GET /fapi/v1/openAlgoOrders":
-		fmt.Fprint(w, `[{"algoId":21,"symbol":"BTCUSDT","orderType":"STOP_MARKET","triggerPrice":"79000"}]`)
+		fmt.Fprint(w, or(f.algos, `[{"algoId":21,"symbol":"BTCUSDT","orderType":"STOP_MARKET","triggerPrice":"79000"}]`))
+	case "GET /fapi/v1/premiumIndex":
+		fmt.Fprint(w, `{"markPrice":"80000.5","indexPrice":"80001","lastFundingRate":"0.0001","nextFundingTime":1791648000000}`)
+	case "GET /fapi/v1/commissionRate":
+		fmt.Fprint(w, `{"makerCommissionRate":"0.0002","takerCommissionRate":"0.0004"}`)
+	case "GET /fapi/v1/userTrades":
+		fmt.Fprint(w, or(f.fills, `[]`))
+	case "GET /fapi/v1/fundingRate":
+		fmt.Fprint(w, `[{"fundingRate":"0.0001","fundingTime":1791619200000},{"fundingRate":"-0.00005","fundingTime":1791648000000}]`)
+	case "GET /futures/data/openInterestHist":
+		var rows []string
+		for i := range 25 {
+			rows = append(rows, fmt.Sprintf(`{"sumOpenInterest":"%d","sumOpenInterestValue":"1","timestamp":%d}`, 1000+i*10, 1791600000000+int64(i)*3600000))
+		}
+		fmt.Fprint(w, "["+strings.Join(rows, ",")+"]")
+	case "GET /futures/data/takerlongshortRatio":
+		fmt.Fprint(w, `[{"buySellRatio":"0.8","buyVol":"80","sellVol":"100","timestamp":1791600000000},{"buySellRatio":"1.5","buyVol":"150","sellVol":"100","timestamp":1791603600000}]`)
+	case "GET /futures/data/globalLongShortAccountRatio", "GET /futures/data/topLongShortPositionRatio":
+		fmt.Fprint(w, `[{"longShortRatio":"1.2","timestamp":1791600000000},{"longShortRatio":"2.4","timestamp":1791603600000}]`)
 	default:
 		w.WriteHeader(404)
 		fmt.Fprintf(w, `{"code":-1,"msg":"no %s %s"}`, r.Method, r.URL.Path)

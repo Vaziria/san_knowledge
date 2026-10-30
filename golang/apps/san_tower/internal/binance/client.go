@@ -108,6 +108,16 @@ func (c *Client) Offset() time.Duration {
 // is the local time.
 func (c *Client) Now() time.Time { return time.Now().Add(c.Offset()) }
 
+// ServerNow is the server's time now, the offset measured on first use: a
+// candle is still forming by the exchange's clock, not this computer's,
+// which can be minutes off.
+func (c *Client) ServerNow(ctx context.Context) (time.Time, error) {
+	if err := c.ensureSynced(ctx); err != nil {
+		return time.Time{}, err
+	}
+	return c.Now(), nil
+}
+
 func (c *Client) ensureSynced(ctx context.Context) error {
 	c.mu.Lock()
 	ok := c.synced

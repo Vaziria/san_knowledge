@@ -1,0 +1,1 @@
+# The ids of the trades that have a lesson, one per line (the lesson workflow adds them).

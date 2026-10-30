@@ -55,7 +55,7 @@ var moreToolKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "binance-tool", Title: "Binance Tool", Category: "Finance", Group: "Binance",
-			Description: "A tool for an AI step: a Binance futures account the AI may read, never trade: indicators [symbol, intervals] (Binance Indicators), candles [symbol, interval, limit], portfolio, positions [symbol] and orders [symbol, open, history or stops]. The market data is the connection's network's. Name is the tool's name for the AI (binance); two tools need two names.",
+			Description: "A tool for an AI step: a Binance futures account the AI may read, never trade: indicators [symbol, intervals] (Binance Indicators), candles [symbol, interval, limit], portfolio, positions [symbol], orders [symbol, open, history or stops], snapshot [symbols] (Binance Snapshot) and closed [symbol, hours] (Binance Closed Trades). The market data is the connection's network's, the snapshot's candles and positioning the real market's. Name is the tool's name for the AI (binance); two tools need two names.",
 			Outputs:     []*v1.Socket{sock("Tool", Tool)},
 			Settings:    []*v1.Setting{binanceSetting(), {Name: "Name", Placeholder: "binance"}},
 		},
@@ -379,11 +379,13 @@ func (t *binanceTool) describe(name string) string {
     - candles, arguments [symbol, interval, limit]: the latest candles, oldest first (interval %s, 1h by default; limit 50 by default, up to 500).
     - portfolio: the account's totals, assets and open positions.
     - positions, arguments [symbol]: open positions, of the symbol or of all.
-    - orders, arguments [symbol, open, history or stops]: orders that can still fill (open, the default), the symbol's latest of any status (history), or the stop losses and take profits waiting (stops).`, name, strings.Join(binance.Intervals, ", "))
+    - orders, arguments [symbol, open, history or stops]: orders that can still fill (open, the default), the symbol's latest of any status (history), or the stop losses and take profits waiting (stops).
+    - snapshot, arguments [symbols]: everything a trader reads before deciding, per symbol (BTCUSDT,ETHUSDT): the position or the entry waiting with its stops, book, funding and fees, the indicators on 5m, 15m, 1h and 4h from the real market's candles, the last 5m candles, and the positioning (open interest, taker flow, long/short, funding).
+    - closed, arguments [symbol, hours]: the trades that closed in the last hours (24 by default, up to 168), each with its id, side, size, entry, exit, times, PnL, fees and net.`, name, strings.Join(binance.Intervals, ", "))
 }
 
 func (t *binanceTool) brief(name string) string {
-	return fmt.Sprintf("%s (a Binance account, read only): indicators [symbol, intervals], candles [symbol, interval, limit], portfolio, positions [symbol], orders [symbol, open|history|stops]", name)
+	return fmt.Sprintf("%s (a Binance account, read only): indicators [symbol, intervals], candles [symbol, interval, limit], portfolio, positions [symbol], orders [symbol, open|history|stops], snapshot [symbols], closed [symbol, hours]", name)
 }
 
 func (t *binanceTool) run(c *call, command string, args []string) string {
@@ -393,6 +395,18 @@ func (t *binanceTool) run(c *call, command string, args []string) string {
 	switch command {
 	case "indicators":
 		out, err := c.runStep("binance-indicators", map[string]string{"Connection": t.connection, "Symbol": strings.ToUpper(arg(args, 0)), "Intervals": strings.Join(args[min(1, len(args)):], ",")})
+		if err != nil {
+			return "error: " + err.Error()
+		}
+		return outputText(out["Text"])
+	case "snapshot", "closed":
+		values := map[string]string{"Connection": t.connection, "Symbols": strings.Join(args, ",")}
+		kind := "binance-snapshot"
+		if command == "closed" {
+			kind = "binance-closed-trades"
+			values["Symbols"], values["Hours"] = arg(args, 0), arg(args, 1)
+		}
+		out, err := c.runStep(kind, values)
 		if err != nil {
 			return "error: " + err.Error()
 		}
@@ -427,7 +441,7 @@ func (t *binanceTool) run(c *call, command string, args []string) string {
 		kind, outputs = "binance-orders", []string{"Orders"}
 		values = map[string]string{"Connection": t.connection, "Symbol": strings.ToUpper(arg(args, 0)), "Show": show}
 	default:
-		return fmt.Sprintf("error: no command %q: use candles, portfolio, positions or orders", command)
+		return fmt.Sprintf("error: no command %q: use indicators, candles, portfolio, positions, orders, snapshot or closed", command)
 	}
 	out, err := c.runStep(kind, values)
 	if err != nil {

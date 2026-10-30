@@ -1,9 +1,11 @@
 package binance
 
 import (
+	"cmp"
 	"context"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -139,4 +141,54 @@ func (c *Client) DualSide(ctx context.Context) (bool, error) {
 func (c *Client) SetLeverage(ctx context.Context, symbol string, leverage int) error {
 	q := url.Values{"symbol": {symbol}, "leverage": {strconv.Itoa(leverage)}}
 	return c.signed(ctx, http.MethodPost, "/fapi/v1/leverage", q, nil)
+}
+
+// Fill is one of the account's trades: a part of an order that filled.
+// RealizedPnL is what it closed made before fees; Commission is its fee, in
+// CommissionAsset (USDT unless the account pays with BNB).
+type Fill struct {
+	ID              int64     `json:"id"`
+	OrderID         int64     `json:"order_id"`
+	Symbol          string    `json:"symbol"`
+	Side            string    `json:"side"` // BUY or SELL
+	Price           float64   `json:"price"`
+	Qty             float64   `json:"qty"`
+	RealizedPnL     float64   `json:"realized_pnl"`
+	Commission      float64   `json:"commission"`
+	CommissionAsset string    `json:"commission_asset"`
+	Maker           bool      `json:"maker"`
+	Time            time.Time `json:"time"`
+}
+
+// MaxFillWindow is the longest span Fills reads in one call.
+const MaxFillWindow = 7 * 24 * time.Hour
+
+// Fills returns the symbol's fills from start on (up to 7 days before end),
+// oldest first, at most 1000.
+func (c *Client) Fills(ctx context.Context, symbol string, start, end time.Time) ([]Fill, error) {
+	var rows []struct {
+		ID              int64  `json:"id"`
+		OrderID         int64  `json:"orderId"`
+		Symbol          string `json:"symbol"`
+		Side            string `json:"side"`
+		Price           num    `json:"price"`
+		Qty             num    `json:"qty"`
+		RealizedPnl     num    `json:"realizedPnl"`
+		Commission      num    `json:"commission"`
+		CommissionAsset string `json:"commissionAsset"`
+		Maker           bool   `json:"maker"`
+		Time            int64  `json:"time"`
+	}
+	q := url.Values{"symbol": {symbol}, "startTime": {strconv.FormatInt(start.UnixMilli(), 10)},
+		"endTime": {strconv.FormatInt(end.UnixMilli(), 10)}, "limit": {"1000"}}
+	if err := c.signed(ctx, http.MethodGet, "/fapi/v1/userTrades", q, &rows); err != nil {
+		return nil, err
+	}
+	out := make([]Fill, len(rows))
+	for i, r := range rows {
+		out[i] = Fill{ID: r.ID, OrderID: r.OrderID, Symbol: r.Symbol, Side: r.Side, Price: float64(r.Price), Qty: float64(r.Qty),
+			RealizedPnL: float64(r.RealizedPnl), Commission: float64(r.Commission), CommissionAsset: r.CommissionAsset, Maker: r.Maker, Time: ms(r.Time)}
+	}
+	slices.SortStableFunc(out, func(a, b Fill) int { return cmp.Or(a.Time.Compare(b.Time), cmp.Compare(a.ID, b.ID)) })
+	return out, nil
 }

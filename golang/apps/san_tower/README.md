@@ -753,6 +753,10 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     holds a chat per site, so the same session can go to ChatGPT, Gemini
     and Claude. San Remote opens the chat by its link, as a person opens one
     they kept. A session's chat deleted on the site (the user, 2026-10-28: "can it refresh when I delete session"; san_remote says NotFound, "the chat is not there") is started again: the ask goes to a new kept chat, the session keeps it, and the step logs a warning; Remote Shell does so for the user's message at the start of a run, the new chat getting the protocol. A chat's link typed in, not a session's, still fails.
+    New Chat (Never, Hourly, Daily; the user, 2026-10-30, for the trading
+    tick every 5 minutes, whose one chat would soon be too long) makes the
+    session one per hour or day (UTC): its Chat Link is the session's key
+    with the hour or day after `@`, so a new hour starts a new kept chat.
   - Remote Shell (AI; the user, 2026-10-27: "Implement
     remote_shell_protocol.md. it to be node"; `engine/remoteshell.go`) is
     the Web Machine Shell Protocol of
@@ -1369,8 +1373,16 @@ says whether it traded for real.
   mark and liquidation price, unrealized PnL, notional.
 - **Binance Close Position** closes Symbol's position at market
   (reduce-only, its whole amount), then cancels the symbol's stop orders
-  still waiting; None when there is no position. Order is the closing
-  order, Position the position as it was.
+  still waiting. An entry waiting (a limit order that opens, not
+  reduce-only) is cancelled first, with its stops, so it cannot fill after
+  the close; what it filled is closed with the rest (2026-10-30). None when
+  there was neither a position nor an entry. Order is the closing order,
+  Position the position as it was, Cancelled the entries cancelled.
+- Which candle is still forming is decided by the exchange's clock
+  (`binance.Client.ServerNow`, measured once per client), not this PC's:
+  it ran about 4 minutes fast, which made a forming 5m candle look closed
+  for most of its 5 minutes (Binance Indicators, Snapshot and Candles' Last
+  Closed; 2026-10-30).
 
 For an AI trading through workflows (the user, 2026-10-29: "create like
 autotrade but workflow style"; `engine/trading.go`, `engine/indicators.go`):
@@ -1384,7 +1396,14 @@ autotrade but workflow style"; `engine/trading.go`, `engine/indicators.go`):
   Loss** (lost at the stop, USDT; it needs a stop), each refusal saying the
   most that fits; reduce-only orders are not held to them. **Testnet Only**
   refuses a live connection. The limits are where the order is placed, so a
-  prompt cannot get past them.
+  prompt cannot get past them. Since 2026-10-30 (autotrade's rules, "closer
+  to autotrade"): **One Per Symbol** refuses an order while Symbol has a
+  position or an entry waiting, and before placing one cancels the stop
+  orders left from a closed position, which would act on the new one;
+  **Max Leverage** refuses a higher Leverage and sets it when none is
+  given; and a limit order that opens waits **Expires** minutes (the
+  object's `expires_min`, else **Limit Expiry**), written into its client
+  order id (`twx-<unix>-<random>`), for Binance Tidy to cancel it after.
 - **Binance Move Stop** moves the stop loss, and the take profit, of
   Symbol's open position: the new one first (reduce-only, the whole
   position, on the mark price), then the old one cancelled, so the position
@@ -1402,29 +1421,60 @@ autotrade but workflow style"; `engine/trading.go`, `engine/indicators.go`):
   network: the test network's prices follow the real market, its volumes
   are its own.
 
-The trading workflows (`data/add-trading-workflows.ps1`, 2026-10-29), all
-on the testnet connection and switched off until switched on:
+The trading loop's steps (the user, 2026-10-30: "can we have autotrade, to
+workflow version?", closer to autotrade: limit entries and positioning;
+`engine/tradeloop.go`). autotrade keeps a journal of its limit entry; these
+read everything from the exchange, where an entry is a symbol's open limit
+order that is not reduce-only:
 
-- **trade tick**: every 15 minutes, 1 minute after each close (`1,16,31,46
-  * * * *`; one at a time), or by hand, the trader, Remote Shell with
-  ChatGPT and Shell Off, gets the tick message (BTCUSDT, ETHUSDT, BNBUSDT:
-  look, then one action per pair, the lessons of positions that closed)
-  in its kept chat (Browser Chat Session), with six tools: journal (the
-  Trading Journal knowledge), binance (Binance Tool, read only), and open,
-  close, protect and lesson (Workflow Tools for the four below). Its chat
-  goes to Telegram, a failure too.
-- **trade open**: an order as JSON, market only (a Filter, else Fail Run),
-  Binance Order with Require Stop, Max Notional 1000, Max Loss 100,
-  Testnet Only and leverage 5, then Telegram.
-- **trade close**: Binance Close Position, then Telegram (a log when there
-  was nothing to close).
-- **trade protect**: Binance Move Stop, then Telegram.
-- **trade journal**: Bash appends the lesson to `lessons/<month>.md` in the
-  journal's storage, then Knowledge Sync, so the next tick can search it.
+- **Binance Tidy** is autotrade's reconcile, for each of Symbols: an entry
+  past its expiry (its client order id's, else Expiry minutes from when it
+  was placed), one whose take profit the mark price reached before it
+  filled, or one whose stop loss is gone is cancelled with its stops; a
+  partly filled one keeps what filled (and its stops) and the rest is
+  cancelled; stop orders with neither a position nor an entry are
+  cancelled. Text says what was done ("nothing to tidy"), Actions the same
+  as data.
+- **Binance Snapshot** is autotrade's snapshot for several Symbols. First
+  the account: wallet, available, unrealized PnL, and what the positions
+  lose together at their stops (a position without a stop is said first).
+  Then for each pair: what Tidy did (with Tidy Yes, it tidies first, as
+  autotrade's snapshot reconciles first), the position (size, entry, mark,
+  PnL, liquidation, its stop loss and take profit as % from the entry) or
+  the entry waiting (price, stops, expiry), the book, mark price, funding
+  and fee rates on the connection's network, Binance Indicators on each of
+  Intervals (5m,15m,1h,4h; the first is the trading interval, whose next
+  close is said and whose last Candles, 6, are a table with their taker buy
+  share) from Market's candles (Live, the default: the real market's, as
+  autotrade reads them; Connection: the connection's network's), and with
+  Positioning (Yes) the real market's open interest (now, over 4h and
+  24h), taker buy/sell volume (last hour, 24h), long/short ratios of all
+  accounts and of top traders' positions (now and 24h ago) and the last
+  funding rates, as autotrade has them (`binance/positioning.go`, adopted
+  from autotrade: the `/futures/data` endpoints, which only the mainnet
+  serves; fapi.binance.com answered from this PC again on 2026-10-30). A
+  part that cannot be read says "Unavailable" and the rest goes on. Notes
+  close it. Text for an AI, Snapshot as data.
+- **Binance Closed Trades** rebuilds the trades that closed in the last
+  Hours (24, at most 168) from the account's fills (`/fapi/v1/userTrades`)
+  of each of Symbols: from flat to flat (a flip from long to short in one
+  fill ends one trade and starts the next), its side, size, average entry
+  and exit, times, PnL, fees and net (USDT). A trade under way before the
+  Hours is left out, its entry unknown. Its id is its symbol and close time
+  (`BTCUSDT-20261030-130512`); those in Leave Out are left out (the ids of
+  the lessons written). Found or None, then Done.
+- The **Binance Tool** has `snapshot [symbols]` and `closed [symbol,
+  hours]` too.
 
-The Trading Journal knowledge is `data/trading-journal`: `rules.md` (the
-trading rules, from autotrade's `tick.md`, cut down to these tools) and
-`lessons/`.
+The trading workflows are in [workflows/trading](workflows/trading)
+(2026-10-30; the 10-29 set, made by a script in the git-ignored `data/`,
+was not on this PC): **trade tick** every 5 minutes with Gemini in Remote
+Shell (Shell Off, one chat per hour), and **trade open**, **trade close**,
+**trade protect**, **trade lesson** and **trade approach**, which it runs
+through Workflow Tools, on the Trading Journal knowledge (`rules.md`,
+`approaches/`, `trades/`, `lessons/`, `decisions/`). Its README says how
+they map to autotrade and how to set them up (`setup.ps1`). They import
+switched off.
 
 Tested against a fake Binance (`finance_test.go`, and the client's own
 tests from autotrade), and live on the test network on 2026-10-27: a
@@ -1438,7 +1488,13 @@ each with its stops and closed, a post-only order that would have taken and
 a stop on the wrong side refused, nothing left open. XRPUSDT, because
 autotrade trades BTC, ETH, BNB and BCH with the same key. The test network
 answers a market order with an average price of 0; the order is read back
-for its price.
+for its price. On 2026-10-30, `TestTradeLoopLive` (same switch): a snapshot
+of XRPUSDT and BTCUSDT with the real market's positioning, the closed XRP
+trades rebuilt from the fills, and a post-only XRP entry under the price
+that One Per Symbol then guarded and Binance Tidy cancelled, with its
+stops, once it expired. A take profit already passed by the mark price is
+refused by the exchange ("would immediately trigger"), and Binance Order
+then cancels the entry.
 
 ## Storage
 

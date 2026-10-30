@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"slices"
@@ -81,39 +82,13 @@ func binanceIndicators(c *call) error {
 	if err != nil {
 		return err
 	}
-	intervals := strings.FieldsFunc(c.text("Intervals"), func(r rune) bool { return r == ',' || r == ' ' })
-	if len(intervals) == 0 {
-		intervals = []string{"15m", "1h", "4h"}
-	}
-	s := snapshot{Symbol: symbol, Network: network, At: time.Now().UTC()}
-	for _, iv := range intervals {
-		if !slices.Contains(binance.Intervals, iv) {
-			return fmt.Errorf("Intervals: %q is none of %s", iv, strings.Join(binance.Intervals, ", "))
-		}
-		ks, err := cl.Klines(c.ctx, symbol, iv, indicatorCandles)
-		if err != nil {
-			return fmt.Errorf("%s %s candles: %w", symbol, iv, err)
-		}
-		if s.Price == 0 && len(ks) > 0 {
-			s.Price = ks[len(ks)-1].Close // the forming candle's: the price now
-		}
-		f, err := frameOf(iv, closedCandles(ks))
-		if err != nil {
-			return err
-		}
-		s.Frames = append(s.Frames, f)
-	}
-	day, err := cl.Klines(c.ctx, symbol, "1h", 24)
+	intervals, err := intervalList(c.text("Intervals"), []string{"15m", "1h", "4h"})
 	if err != nil {
-		return fmt.Errorf("%s 24h: %w", symbol, err)
+		return err
 	}
-	for i, k := range day {
-		if i == 0 || k.High > s.High24h {
-			s.High24h = k.High
-		}
-		if i == 0 || k.Low < s.Low24h {
-			s.Low24h = k.Low
-		}
+	s, _, err := readIndicators(c.ctx, cl, network, symbol, intervals)
+	if err != nil {
+		return err
 	}
 	text := s.text()
 	c.outputs["Indicators"] = jsonValue(s)
@@ -123,9 +98,68 @@ func binanceIndicators(c *call) error {
 	return nil
 }
 
-// closedCandles drops the forming candle.
-func closedCandles(ks []binance.Candle) []binance.Candle {
-	if n := len(ks); n > 0 && ks[n-1].CloseTime.After(time.Now()) {
+// intervalList reads a list of intervals (15m,1h or 15m 1h): def when empty.
+func intervalList(s string, def []string) ([]string, error) {
+	list := strings.FieldsFunc(s, func(r rune) bool { return r == ',' || r == ' ' })
+	if len(list) == 0 {
+		return def, nil
+	}
+	for _, iv := range list {
+		if !slices.Contains(binance.Intervals, iv) {
+			return nil, fmt.Errorf("Intervals: %q is none of %s", iv, strings.Join(binance.Intervals, ", "))
+		}
+	}
+	return list, nil
+}
+
+// readIndicators works out symbol's indicators on each interval from cl's
+// candles, network naming where they come from, and the 24h range. It also
+// gives the closed candles of the first interval.
+func readIndicators(ctx context.Context, cl *binance.Client, network, symbol string, intervals []string) (snapshot, []binance.Candle, error) {
+	now, err := cl.ServerNow(ctx)
+	if err != nil {
+		return snapshot{}, nil, err
+	}
+	s := snapshot{Symbol: symbol, Network: network, At: now.UTC()}
+	var first []binance.Candle
+	for _, iv := range intervals {
+		ks, err := cl.Klines(ctx, symbol, iv, indicatorCandles)
+		if err != nil {
+			return s, nil, fmt.Errorf("%s %s candles: %w", symbol, iv, err)
+		}
+		if s.Price == 0 && len(ks) > 0 {
+			s.Price = ks[len(ks)-1].Close // the forming candle's: the price now
+		}
+		closed := closedCandles(ks, now)
+		if first == nil {
+			first = closed
+		}
+		f, err := frameOf(iv, closed)
+		if err != nil {
+			return s, nil, err
+		}
+		s.Frames = append(s.Frames, f)
+	}
+	day, err := cl.Klines(ctx, symbol, "1h", 24)
+	if err != nil {
+		return s, nil, fmt.Errorf("%s 24h: %w", symbol, err)
+	}
+	for i, k := range day {
+		if i == 0 || k.High > s.High24h {
+			s.High24h = k.High
+		}
+		if i == 0 || k.Low < s.Low24h {
+			s.Low24h = k.Low
+		}
+	}
+	return s, first, nil
+}
+
+// closedCandles drops the forming candle, by the exchange's time now (this
+// PC's clock ran 4 minutes fast, which made a forming 5m candle look closed
+// for most of its 5 minutes).
+func closedCandles(ks []binance.Candle, now time.Time) []binance.Candle {
+	if n := len(ks); n > 0 && ks[n-1].CloseTime.After(now) {
 		return ks[:n-1]
 	}
 	return ks

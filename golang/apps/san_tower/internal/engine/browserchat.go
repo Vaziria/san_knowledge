@@ -22,11 +22,21 @@ import (
 var browserChatKinds = []*kind{{
 	StepKind: &v1.StepKind{
 		Kind: "browser-chat-session", Title: "Browser Chat Session", Category: "AI",
-		Description: "A chat with ChatGPT, Gemini or Claude on claude.ai that goes on from run to run: link Chat Link to the Chat Link of their Ask steps. The first ask starts a chat kept in the history, whose link the session keeps; each later ask, in this run or another, goes on in it. A session keeps one chat per site.",
+		Description: "A chat with ChatGPT, Gemini or Claude on claude.ai that goes on from run to run: link Chat Link to the Chat Link of their Ask steps. The first ask starts a chat kept in the history, whose link the session keeps; each later ask, in this run or another, goes on in it. A session keeps one chat per site. New Chat Hourly or Daily starts a new one each hour or day (UTC), for a workflow that runs often, whose chat would grow too long.",
 		Outputs:     []*v1.Socket{sock("Chat Link", Text)},
+		Settings:    []*v1.Setting{{Name: "New Chat", Options: []string{"Never", "Hourly", "Daily"}}},
 	},
 	run: func(c *call) error {
-		c.outputs["Chat Link"] = stringValue(store.ChatSessionKey(c.env.Workflow, c.step.GetId()))
+		key := store.ChatSessionKey(c.env.Workflow, c.step.GetId())
+		// A session per hour or day (the user, 2026-10-30: a trading tick
+		// every 5 minutes, whose one chat would soon be too long).
+		switch now := time.Now().UTC(); c.setting("New Chat") {
+		case "Hourly":
+			key += "@" + now.Format("2006-01-02T15")
+		case "Daily":
+			key += "@" + now.Format("2006-01-02")
+		}
+		c.outputs["Chat Link"] = stringValue(key)
 		return nil
 	},
 }}

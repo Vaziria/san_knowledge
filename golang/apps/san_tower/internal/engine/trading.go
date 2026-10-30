@@ -21,7 +21,7 @@ import (
 // orderFields are an Order object's fields and the inputs they fill.
 var orderFields = map[string]string{
 	"symbol": "Symbol", "quantity": "Quantity", "price": "Price",
-	"stop_loss": "Stop Loss", "take_profit": "Take Profit", "leverage": "Leverage",
+	"stop_loss": "Stop Loss", "take_profit": "Take Profit", "leverage": "Leverage", "expires_min": "Expires",
 }
 
 // orderObject puts a linked Order object's fields in the step's inputs, and

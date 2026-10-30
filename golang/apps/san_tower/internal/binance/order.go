@@ -13,6 +13,7 @@ import (
 // Order is an order as the exchange reports it.
 type Order struct {
 	OrderID     int64     `json:"order_id"`
+	ClientID    string    `json:"client_order_id,omitempty"`
 	Symbol      string    `json:"symbol"`
 	Status      string    `json:"status"` // NEW, PARTIALLY_FILLED, FILLED, CANCELED, EXPIRED, ...
 	Side        string    `json:"side"`   // BUY or SELL
@@ -30,6 +31,7 @@ type Order struct {
 
 type orderJSON struct {
 	OrderID     int64  `json:"orderId"`
+	ClientID    string `json:"clientOrderId"`
 	Symbol      string `json:"symbol"`
 	Status      string `json:"status"`
 	Side        string `json:"side"`
@@ -46,7 +48,7 @@ type orderJSON struct {
 }
 
 func (r orderJSON) order() Order {
-	return Order{OrderID: r.OrderID, Symbol: r.Symbol, Status: r.Status, Side: r.Side, Type: r.Type, TimeInForce: r.TimeInForce,
+	return Order{OrderID: r.OrderID, ClientID: r.ClientID, Symbol: r.Symbol, Status: r.Status, Side: r.Side, Type: r.Type, TimeInForce: r.TimeInForce,
 		ReduceOnly: r.ReduceOnly, Price: float64(r.Price), StopPrice: float64(r.StopPrice), OrigQty: float64(r.OrigQty),
 		ExecutedQty: float64(r.ExecutedQty), AvgPrice: float64(r.AvgPrice), Time: ms(r.Time), Updated: ms(r.UpdateTime)}
 }
@@ -70,6 +72,9 @@ type NewOrder struct {
 	Price       string
 	TimeInForce string
 	ReduceOnly  bool
+	// ClientID is the order's own id when given: up to 36 of A-Z a-z 0-9
+	// . : / _ -, unique among the account's open orders.
+	ClientID string
 }
 
 // PlaceOrder places a MARKET or LIMIT order and returns it as the exchange
@@ -88,6 +93,9 @@ func (c *Client) PlaceOrder(ctx context.Context, o NewOrder) (Order, error) {
 	}
 	if o.ReduceOnly {
 		q.Set("reduceOnly", "true")
+	}
+	if o.ClientID != "" {
+		q.Set("newClientOrderId", o.ClientID)
 	}
 	var r orderJSON
 	if err := c.signed(ctx, http.MethodPost, "/fapi/v1/order", q, &r); err != nil {

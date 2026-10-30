@@ -15,6 +15,7 @@ import {
   BrainIcon,
   BracesIcon,
   BriefcaseIcon,
+  BrushCleaningIcon,
   CalendarClockIcon,
   CalendarIcon,
   CalendarPlusIcon,
@@ -70,8 +71,10 @@ import {
   OctagonXIcon,
   PlayIcon,
   RadioTowerIcon,
+  ReceiptTextIcon,
   RefreshCwIcon,
   RegexIcon,
+  ScanEyeIcon,
   ScissorsIcon,
   ScrollTextIcon,
   SearchIcon,
@@ -215,6 +218,9 @@ const kindIcons: Record<string, LucideIcon> = {
   'http-tool': GlobeIcon,
   'binance-indicators': ActivityIcon,
   'binance-move-stop': ChevronsUpIcon,
+  'binance-tidy': BrushCleaningIcon,
+  'binance-snapshot': ScanEyeIcon,
+  'binance-closed-trades': ReceiptTextIcon,
 };
 const iconOf = (k: StepKind) => kindIcons[k.kind] ?? categoryIcons[k.category] ?? BoxIcon;
 

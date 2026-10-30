@@ -9,7 +9,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"google.golang.org/protobuf/types/known/structpb"
 
@@ -29,7 +28,7 @@ var financeKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "binance-order", Title: "Binance Order", Category: "Finance", Group: "Binance",
-			Description: "Places a USD-M futures order on a Binance connection: Market, or Limit at Price (Time In Force: GTC, Post Only, IOC or FOK), to Buy (long) or Sell (short) Quantity of Symbol (BTCUSDT; rounded down to its step), with an optional Stop Loss and Take Profit (trigger prices on the mark price, reduce-only, for the order's quantity), and Leverage set first when given. When a stop loss or take profit is refused, the order is undone (a market order closed, a limit order cancelled) and the step fails. The account must be in one-way mode. Order, when linked, gives all of it as one object (symbol, side buy or sell, type market or limit, quantity, price, stop_loss, take_profit, leverage, time_in_force), as an AI's order through a Workflow Tool: what it gives wins over the settings. Limits, checked before anything is placed, at the price the order gets (the book's best for a market order): Require Stop, Max Notional (quantity × price, USDT) and Max Loss (lost at the stop, USDT; it needs a stop); a refusal says the most that fits. Testnet Only refuses a live connection.",
+			Description: "Places a USD-M futures order on a Binance connection: Market, or Limit at Price (Time In Force: GTC, Post Only, IOC or FOK), to Buy (long) or Sell (short) Quantity of Symbol (BTCUSDT; rounded down to its step), with an optional Stop Loss and Take Profit (trigger prices on the mark price, reduce-only, for the order's quantity), and Leverage set first when given. When a stop loss or take profit is refused, the order is undone (a market order closed, a limit order cancelled) and the step fails. The account must be in one-way mode. Order, when linked, gives all of it as one object (symbol, side buy or sell, type market or limit, quantity, price, stop_loss, take_profit, leverage, time_in_force), as an AI's order through a Workflow Tool: what it gives wins over the settings. Limits, checked before anything is placed, at the price the order gets (the book's best for a market order): Require Stop, Max Notional (quantity × price, USDT) and Max Loss (lost at the stop, USDT; it needs a stop); a refusal says the most that fits. Testnet Only refuses a live connection. One Per Symbol refuses an order while Symbol has a position or an entry waiting, and first cancels stop orders left from a closed position. Max Leverage refuses more, and sets it when no Leverage is given. A limit order that opens waits Expires minutes (expires_min; Limit Expiry when not given), after which Binance Tidy cancels it.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Order", Object), sock("Order ID", Text), sock("Stop Loss Order", Object), sock("Take Profit Order", Object)},
 			Settings: []*v1.Setting{binanceSetting(),
 				{Name: "Type", Options: []string{"Market", "Limit"}},
@@ -39,9 +38,12 @@ var financeKinds = []*kind{
 				{Name: "Require Stop", Options: []string{"No", "Yes"}},
 				{Name: "Max Notional", Placeholder: "No limit: USDT"},
 				{Name: "Max Loss", Placeholder: "No limit: USDT lost at the stop"},
-				{Name: "Testnet Only", Options: []string{"No", "Yes"}}},
+				{Name: "Testnet Only", Options: []string{"No", "Yes"}},
+				{Name: "One Per Symbol", Options: []string{"No", "Yes"}},
+				{Name: "Max Leverage", Placeholder: "No limit: 1 to 125"},
+				{Name: "Limit Expiry", Placeholder: "No expiry: minutes a limit entry waits"}},
 			Inputs: []*v1.Socket{sock("Event", Event), field("Symbol"), field("Quantity"), only("Type=Limit", field("Price")),
-				field("Stop Loss"), field("Take Profit"), field("Leverage"), sock("Order", Object)},
+				field("Stop Loss"), field("Take Profit"), field("Leverage"), only("Type=Limit", field("Expires")), sock("Order", Object)},
 		},
 		run: binanceOrder,
 	},
@@ -93,8 +95,8 @@ var financeKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "binance-close-position", Title: "Binance Close Position", Category: "Finance", Group: "Binance",
-			Description: "Closes a Binance connection's open position in Symbol at market (reduce-only, its whole amount), then cancels the symbol's stop losses and take profits that are still waiting. None when there is no position, Done after either. Order is the closing order, Position the position as it was.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("None", Event), sock("Order", Object), sock("Position", Object)},
+			Description: "Closes a Binance connection's open position in Symbol at market (reduce-only, its whole amount), then cancels the symbol's stop losses and take profits that are still waiting. An entry waiting to fill (a limit order that opens) is cancelled first, with its stops; what it filled is closed with the rest. None when there was neither a position nor an entry, Done after either. Order is the closing order, Position the position as it was, Cancelled the entries cancelled.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("None", Event), sock("Order", Object), sock("Position", Object), sock("Cancelled", Object)},
 			Settings:    []*v1.Setting{binanceSetting()},
 			Inputs:      []*v1.Socket{sock("Event", Event), field("Symbol")},
 		},
@@ -251,11 +253,33 @@ func binanceOrder(c *call) error {
 			return fmt.Errorf("Leverage %q: give a whole number from 1 to 125", s)
 		}
 	}
+	if s := c.setting("Max Leverage"); s != "" {
+		most, err := strconv.Atoi(strings.TrimSuffix(strings.ToLower(s), "x"))
+		if err != nil || most < 1 || most > 125 {
+			return fmt.Errorf("Max Leverage %q: give a whole number from 1 to 125", s)
+		}
+		switch {
+		case lev > most:
+			return fmt.Errorf("Max Leverage: %dx is over %dx", lev, most)
+		case lev == 0 && !reduceOnly:
+			lev = most // else the symbol's leverage could be anything
+		}
+	}
+	expires, err := c.expiry(typ == "LIMIT" && !reduceOnly)
+	if err != nil {
+		return err
+	}
 
 	if hedge, err := cl.DualSide(c.ctx); err != nil {
 		return err
 	} else if hedge {
 		return errors.New("the account is in hedge mode: Binance Order needs one-way mode (Binance's Preferences, Position Mode)")
+	}
+	onePer := c.setting("One Per Symbol") == "Yes" && !reduceOnly
+	if onePer {
+		if err := onlyOne(c, cl, symbol); err != nil {
+			return err
+		}
 	}
 	info, err := cl.SymbolInfo(c.ctx, symbol)
 	if err != nil {
@@ -295,14 +319,29 @@ func binanceOrder(c *call) error {
 			return fmt.Errorf("Take Profit %s is on the wrong side of the entry, %s: above it for a buy, below it for a sell", info.FormatPrice(tp), info.FormatPrice(ref))
 		}
 	}
+	if onePer {
+		// Stops left from a closed position would act on the new one too.
+		if left, err := cl.OpenAlgoOrders(c.ctx, symbol); err != nil {
+			return fmt.Errorf("%s: %w", network, err)
+		} else if len(left) > 0 {
+			if err := cl.CancelAlgoOrders(c.ctx, symbol); err != nil {
+				return fmt.Errorf("%s: cancelling the %d stop orders left from a closed position: %w", network, len(left), err)
+			}
+			c.logs = append(c.logs, fmt.Sprintf("%s: cancelled %d stop orders left from a closed %s position", network, len(left), symbol))
+		}
+	}
 	if lev > 0 {
 		if err := cl.SetLeverage(c.ctx, symbol, lev); err != nil {
 			return err
 		}
 	}
 
+	var clientID string
+	if expires > 0 {
+		clientID = expiryID(cl.Now().Add(expires))
+	}
 	o, err := cl.PlaceOrder(c.ctx, binance.NewOrder{Symbol: symbol, Side: side, Type: typ, Quantity: info.FormatQty(q),
-		Price: info.FormatPrice(price), TimeInForce: tif, ReduceOnly: reduceOnly})
+		Price: info.FormatPrice(price), TimeInForce: tif, ReduceOnly: reduceOnly, ClientID: clientID})
 	if err != nil {
 		return fmt.Errorf("%s: %w", network, err)
 	}
@@ -313,7 +352,11 @@ func binanceOrder(c *call) error {
 			at += ", filled at " + info.FormatPrice(o.AvgPrice)
 		}
 	}
-	c.logs = append(c.logs, fmt.Sprintf("%s: %s %s %s %s at %s, order %d %s", network, side, info.FormatQty(q), symbol, typ, at, o.OrderID, o.Status))
+	line := fmt.Sprintf("%s: %s %s %s %s at %s, order %d %s", network, side, info.FormatQty(q), symbol, typ, at, o.OrderID, o.Status)
+	if expires > 0 && o.Working() {
+		line += ", expires in " + span(expires)
+	}
+	c.logs = append(c.logs, line)
 
 	// The stops protect what the order buys or sells: a market order's
 	// fill, a limit order's whole quantity from its first fill.
@@ -408,15 +451,20 @@ func binanceCandles(c *call) error {
 	if err != nil {
 		return err
 	}
-	ks, err := binance.New(url, "", "").Klines(c.ctx, symbol, interval, limit)
+	cl := binance.New(url, "", "")
+	ks, err := cl.Klines(c.ctx, symbol, interval, limit)
 	if err != nil {
 		return err
 	}
 	if len(ks) == 0 {
 		return fmt.Errorf("%s has no %s candles", symbol, interval)
 	}
+	now, err := cl.ServerNow(c.ctx)
+	if err != nil {
+		return err
+	}
 	last := ks[len(ks)-1]
-	if !last.CloseTime.Before(time.Now()) && len(ks) > 1 {
+	if !last.CloseTime.Before(now) && len(ks) > 1 {
 		last = ks[len(ks)-2]
 	}
 	c.outputs["Candles"] = jsonValue(ks)
@@ -538,12 +586,25 @@ func binanceClosePosition(c *call) error {
 	if err != nil {
 		return err
 	}
+	// An entry waiting goes first, so it cannot fill after the close.
+	cancelled, err := cancelEntries(c, cl, network, symbol)
+	c.outputs["Cancelled"] = jsonValue(orEmpty(cancelled))
+	if err != nil {
+		return err
+	}
 	ps, err := cl.Positions(c.ctx, symbol)
 	if err != nil {
 		return fmt.Errorf("%s: %w", network, err)
 	}
 	if len(ps) == 0 {
-		c.logs = append(c.logs, fmt.Sprintf("%s: no %s position to close", network, symbol))
+		if len(cancelled) > 0 {
+			if err := cl.CancelAlgoOrders(c.ctx, symbol); err != nil {
+				c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "%s: the %s stop orders were not cancelled: %v", network, symbol, err)
+			}
+			c.fire("Done")
+			return nil
+		}
+		c.logs = append(c.logs, fmt.Sprintf("%s: no %s position or entry to close", network, symbol))
 		c.fire("None")
 		c.fire("Done")
 		return nil

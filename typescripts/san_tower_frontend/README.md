@@ -124,11 +124,16 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     what it is; the tab is in the URL (`?type=telegramBot`), and its New
     connection starts the dialog on that type. New
     connection, or a row, opens a dialog: the type (San Remote,
-    Telegram Bot, WhatsApp or Binance; a saved connection keeps its type), a name, and the URL
-    of `san_remote api` (default http://127.0.0.1:7478) or the bot's token
-    (a password field), with Test, which shows what the other side answers
-    before anything is saved. A bot's address in the table is its id, the
-    token's part before the colon. A row's menu has Edit, Test (as a
+    Telegram Bot, WhatsApp, Binance, GitHub or SSH; a saved connection keeps its type), a name, and the URL
+    of `san_remote api` (default http://127.0.0.1:7478), the bot's token
+    or the GitHub token (password fields), with Test, which shows what the other side answers
+    before anything is saved. An SSH connection has Host and Port (empty
+    for 22), User, Private key (a text area whose text is shown as dots
+    once something is in it), then Passphrase when a key is given, else
+    Password, and Host key (empty until the first connect keeps it). A
+    bot's address in the table is its id, the
+    token's part before the colon; a GitHub token's is only its kind
+    (classic or fine-grained); a server's is user@host:port. A row's menu has Edit, Test (as a
     toast) and Delete (asks first). A change makes the editor's Connection
     selects ask again.
   - `Storage.tsx` (`/storage`, after Connections; the user's ask,

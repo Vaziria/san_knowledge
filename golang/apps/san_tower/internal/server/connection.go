@@ -16,6 +16,7 @@ import (
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/binance"
+	"github.com/wargasipil/san_tower/internal/sshshell"
 	"github.com/wargasipil/san_tower/internal/store"
 	"github.com/wargasipil/san_tower/internal/whatsapp"
 )
@@ -70,7 +71,7 @@ func (s *Server) DeleteConnection(ctx context.Context, req *connect.Request[v1.D
 // TestConnection asks the other side whether it answers. For san_remote:
 // `san_remote api` lists the browsers attached to serve behind it; nothing
 // is opened in them. For a Telegram bot: the Bot API says which bot the
-// token is (getMe), which reads no messages.
+// token is (getMe), which reads no messages. For GitHub: whose token it is.
 func (s *Server) TestConnection(ctx context.Context, req *connect.Request[v1.TestConnectionRequest]) (*connect.Response[v1.TestConnectionResponse], error) {
 	settings := req.Msg.GetSettings()
 	switch store.ConnectionType(settings) {
@@ -116,6 +117,10 @@ func (s *Server) TestConnection(ctx context.Context, req *connect.Request[v1.Tes
 		return connect.NewResponse(&v1.TestConnectionResponse{Ok: true, Message: fmt.Sprintf("connected as +%s (%s)", wa.GetPhone(), wa.GetName())}), nil
 	case store.Binance:
 		return connect.NewResponse(testBinance(ctx, settings.GetBinance())), nil
+	case store.GitHub:
+		return connect.NewResponse(s.testGitHub(ctx, settings.GetGithub())), nil
+	case store.SSH:
+		return connect.NewResponse(testSSH(ctx, settings.GetSsh())), nil
 	}
 	return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("a connection needs a type"))
 }
@@ -144,6 +149,66 @@ func testBinance(ctx context.Context, b *v1.BinanceSettings) *v1.TestConnectionR
 	msg := fmt.Sprintf("%s answers: wallet %.2f USD, available %.2f, unrealized PnL %.2f", network, acc.WalletBalance, acc.AvailableBalance, acc.UnrealizedPnL)
 	if hedge, err := c.DualSide(ctx); err == nil && hedge {
 		msg += "; the account is in hedge mode, and Binance Order needs one-way mode (Binance's Preferences, Position Mode)"
+	}
+	return &v1.TestConnectionResponse{Ok: true, Message: msg}
+}
+
+// testGitHub asks GitHub whose token it is (GET /user), which changes
+// nothing, and says what a classic token's scopes are and when the token
+// expires.
+func (s *Server) testGitHub(ctx context.Context, g *v1.GitHubSettings) *v1.TestConnectionResponse {
+	token := strings.TrimSpace(g.GetToken())
+	if token == "" {
+		return &v1.TestConnectionResponse{Message: "give a personal access token from GitHub (Settings › Developer settings › Personal access tokens)"}
+	}
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	u, err := s.engine.GitHub(token).User(ctx)
+	if err != nil {
+		return &v1.TestConnectionResponse{Message: err.Error()}
+	}
+	msg := "the token is @" + u.Login
+	if u.Name != "" {
+		msg += " (" + u.Name + ")"
+	}
+	switch {
+	case !u.Classic:
+		msg += "; fine-grained: its repositories and permissions are set on the token"
+	case len(u.Scopes) == 0:
+		msg += "; classic, with no scopes: it reads public data only"
+	default:
+		msg += "; classic, scopes: " + strings.Join(u.Scopes, ", ")
+	}
+	if u.Expires != "" {
+		msg += "; expires " + u.Expires
+	}
+	return &v1.TestConnectionResponse{Ok: true, Message: msg}
+}
+
+// testSSH logs in to a server, as the SSH steps do, and says what answered
+// (uname) and its host key: the one kept, or one the connection keeps the
+// first time a step connects.
+func testSSH(ctx context.Context, s *v1.SSHSettings) *v1.TestConnectionResponse {
+	l := sshshell.Login{Host: strings.TrimSpace(s.GetHost()), Port: int(s.GetPort()), User: strings.TrimSpace(s.GetUser()),
+		Password: s.GetPassword(), PrivateKey: s.GetPrivateKey(), Passphrase: s.GetPassphrase(), HostKey: strings.TrimSpace(s.GetHostKey())}
+	switch {
+	case l.Host == "" || l.User == "":
+		return &v1.TestConnectionResponse{Message: "give the server's host and the user to log in as"}
+	case strings.TrimSpace(l.PrivateKey) == "" && l.Password == "":
+		return &v1.TestConnectionResponse{Message: "give a private key or a password"}
+	}
+	key, uname, err := sshshell.Probe(ctx, l)
+	if err != nil {
+		return &v1.TestConnectionResponse{Message: err.Error()}
+	}
+	msg := l.String() + " answers"
+	if uname != "" {
+		msg += ": " + uname
+	}
+	if l.HostKey != "" {
+		msg += "; host key " + sshshell.Fingerprint(key) + ", the one kept"
+	} else {
+		msg += "; host key " + sshshell.Fingerprint(key) + ", kept the first time a step connects"
 	}
 	return &v1.TestConnectionResponse{Ok: true, Message: msg}
 }

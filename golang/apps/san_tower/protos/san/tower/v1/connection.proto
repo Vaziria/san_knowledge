@@ -8,8 +8,10 @@ import "google/protobuf/timestamp.proto";
 // workflow steps use, in its database. The types are san_remote:
 // `san_remote api`, which posts through the user's own browser,
 // telegram_bot: a Telegram bot, through the Bot API, whatsapp: a
-// WhatsApp account, as a device linked to it (PairWhatsApp), and binance: a
-// Binance USD-M futures account, through an API key.
+// WhatsApp account, as a device linked to it (PairWhatsApp), binance: a
+// Binance USD-M futures account, through an API key, github: a GitHub
+// account, through a personal access token, and ssh: a server's account,
+// through SSH.
 service ConnectionService {
   // ListConnections lists the connections by name.
   rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
@@ -47,7 +49,44 @@ message ConnectionSettings {
     TelegramBotSettings telegram_bot = 2;
     WhatsAppSettings whatsapp = 3;
     BinanceSettings binance = 4;
+    GitHubSettings github = 5;
+    SSHSettings ssh = 6;
   }
+}
+
+// SSHSettings is an account on a server, through SSH (the user,
+// 2026-10-31: "ssh session node and ssh execution node"): the SSH Session
+// steps open a shell with it. It logs in with the private key when one is
+// given, else with the password. The password, the key and its passphrase
+// stay in the tower, as a bot's token does: an export leaves connection
+// settings behind.
+message SSHSettings {
+  // host is the server's name or address, e.g. 192.168.1.5.
+  string host = 1;
+  // port is 22 when 0.
+  uint32 port = 2;
+  string user = 3;
+  string password = 4;
+  // private_key is the key's text, as its file has it (-----BEGIN OPENSSH
+  // PRIVATE KEY-----...), and passphrase the passphrase it is locked with,
+  // if any.
+  string private_key = 5;
+  string passphrase = 6;
+  // host_key is the server's key, as a line of known_hosts has it without
+  // the host (ssh-ed25519 AAAA...): kept the first time the tower connects,
+  // after which a server that gives another key is refused. Clear it when
+  // the server's key changed on purpose. A new host or port clears it.
+  string host_key = 7;
+}
+
+// GitHubSettings is a GitHub account, through a personal access token (the
+// user, 2026-10-31: "github connection with api key").
+message GitHubSettings {
+  // token is the token from GitHub (Settings › Developer settings ›
+  // Personal access tokens): classic, ghp_..., or fine-grained,
+  // github_pat_... Like a bot's token, it stays in the tower: an export
+  // leaves connection settings behind.
+  string token = 1;
 }
 
 // BinanceSettings is a Binance USD-M futures account, through an API key,

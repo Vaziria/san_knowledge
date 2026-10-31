@@ -2,6 +2,7 @@ package store
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
@@ -77,6 +78,84 @@ func TestBinanceConnection(t *testing.T) {
 	}
 	for _, bad := range []*v1.ConnectionSettings{binance("key", "", "testnet"), binance("", "secret", ""), binance("key", "secret", "mainnet")} {
 		if _, err := s.CreateConnection(Connection{Name: "bad", Settings: bad}); !errors.Is(err, ErrInvalid) {
+			t.Errorf("%v: %v, want ErrInvalid", bad, err)
+		}
+	}
+}
+
+// A GitHub connection is a token in GitHub's shape, trimmed.
+func TestGitHubConnection(t *testing.T) {
+	s := open(t)
+	github := func(token string) *v1.ConnectionSettings {
+		return &v1.ConnectionSettings{Type: &v1.ConnectionSettings_Github{Github: &v1.GitHubSettings{Token: token}}}
+	}
+	classic := "ghp_" + strings.Repeat("a1B2", 9)
+	c, err := s.CreateConnection(Connection{Name: "GitHub", Settings: github(" " + classic + "\n")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Type != GitHub || c.Settings.GetGithub().Token != classic {
+		t.Errorf("connection = %+v", c)
+	}
+	if list, err := s.ListConnections(GitHub); err != nil || len(list) != 1 {
+		t.Errorf("list: %v, %v", list, err)
+	}
+	if _, err := s.CreateConnection(Connection{Name: "fine", Settings: github("github_pat_" + strings.Repeat("x", 82))}); err != nil {
+		t.Errorf("fine-grained: %v", err)
+	}
+	for _, bad := range []string{"", "ghp_short", "ghp_" + strings.Repeat("a", 30) + " b", "Bearer ghp_" + strings.Repeat("a", 36)} {
+		if _, err := s.CreateConnection(Connection{Name: "bad", Settings: github(bad)}); !errors.Is(err, ErrInvalid) {
+			t.Errorf("%q: %v, want ErrInvalid", bad, err)
+		}
+	}
+}
+
+// An SSH connection needs a host, a user, and a key that reads or a
+// password; its port is 22 when not given. The host key is kept once, and
+// another host clears it.
+func TestSSHConnection(t *testing.T) {
+	s := open(t)
+	sshc := func(m *v1.SSHSettings) *v1.ConnectionSettings {
+		return &v1.ConnectionSettings{Type: &v1.ConnectionSettings_Ssh{Ssh: m}}
+	}
+	c, err := s.CreateConnection(Connection{Name: "Pi", Settings: sshc(&v1.SSHSettings{Host: " 192.168.1.5 ", User: "pi", Password: "secret"})})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m := c.Settings.GetSsh(); c.Type != SSH || m.Host != "192.168.1.5" || m.Port != 22 {
+		t.Errorf("connection = %+v", c)
+	}
+	const key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
+	if err := s.KeepSSHHostKey(c.ID, key); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.KeepSSHHostKey(c.ID, "ssh-ed25519 other"); err != nil {
+		t.Fatal(err)
+	}
+	c, _ = s.GetConnection(c.ID)
+	if got := c.Settings.GetSsh().HostKey; got != key {
+		t.Errorf("kept %q", got)
+	}
+	// A new name keeps it; a new host does not.
+	c.Name = "Raspberry Pi"
+	if c, err = s.UpdateConnection(c); err != nil || c.Settings.GetSsh().HostKey != key {
+		t.Errorf("renamed: %v, %v", c.Settings.GetSsh(), err)
+	}
+	c.Settings.GetSsh().Host = "raspi.local"
+	if c, err = s.UpdateConnection(c); err != nil || c.Settings.GetSsh().HostKey != "" {
+		t.Errorf("new host: %v, %v", c.Settings.GetSsh(), err)
+	}
+
+	for _, bad := range []*v1.SSHSettings{
+		{User: "pi", Password: "x"},
+		{Host: "pi@raspi", User: "pi", Password: "x"},
+		{Host: "raspi", Password: "x"},
+		{Host: "raspi", User: "pi"},
+		{Host: "raspi", User: "pi", Port: 70000, Password: "x"},
+		{Host: "raspi", User: "pi", PrivateKey: "not a key"},
+		{Host: "raspi", User: "pi", Password: "x", HostKey: "nonsense"},
+	} {
+		if _, err := s.CreateConnection(Connection{Name: "bad", Settings: sshc(bad)}); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%v: %v, want ErrInvalid", bad, err)
 		}
 	}

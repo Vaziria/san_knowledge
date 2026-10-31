@@ -8,9 +8,11 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
+	"github.com/wargasipil/san_tower/internal/sshshell"
 )
 
 // Connection is a connection to another program, which workflow steps use.
@@ -31,6 +33,8 @@ const (
 	TelegramBot = "telegram_bot"
 	WhatsApp    = "whatsapp"
 	Binance     = "binance"
+	GitHub      = "github"
+	SSH         = "ssh"
 )
 
 // Binance networks, a Binance connection's network.
@@ -47,6 +51,11 @@ var telegramToken = regexp.MustCompile(`^\d+:[\w-]+$`)
 // name (whatsapp.FileName): a name only, never a path out of its storage.
 var whatsappDatabase = regexp.MustCompile(`^[0-9a-f]{64}\.db$`)
 
+// githubToken is the shape of a GitHub token: ghp_ and 36 more for a
+// classic one, github_pat_ and 82 more for a fine-grained one, 40 hex
+// digits for an old one; letters, digits and _ in all.
+var githubToken = regexp.MustCompile(`^\w{20,}$`)
+
 // ConnectionType is the type the settings are for, "" when none is set.
 func ConnectionType(s *v1.ConnectionSettings) string {
 	switch s.GetType().(type) {
@@ -58,6 +67,10 @@ func ConnectionType(s *v1.ConnectionSettings) string {
 		return WhatsApp
 	case *v1.ConnectionSettings_Binance:
 		return Binance
+	case *v1.ConnectionSettings_Github:
+		return GitHub
+	case *v1.ConnectionSettings_Ssh:
+		return SSH
 	}
 	return ""
 }
@@ -121,6 +134,13 @@ func (s *Store) UpdateConnection(c Connection) (Connection, error) {
 			return fail(ErrInvalid, "a connection keeps its type")
 		case old.Type == WhatsApp:
 			c.Settings = old.Settings
+		case old.Type == SSH && c.Type == SSH:
+			// The host key kept is the old server's: another host or port
+			// is another server, whose key is kept anew.
+			o, n := old.Settings.GetSsh(), c.Settings.GetSsh()
+			if (o.Host != n.Host || o.Port != n.Port) && n.HostKey == o.HostKey {
+				n.HostKey = ""
+			}
 		}
 		if err := connectionNameFree(tx, c.Name, c.ID); err != nil {
 			return err
@@ -131,6 +151,26 @@ func (s *Store) UpdateConnection(c Connection) (Connection, error) {
 		return c, err
 	}
 	return s.GetConnection(c.ID)
+}
+
+// KeepSSHHostKey keeps key, a server's host key, in SSH connection id when
+// it has none yet: the first time the tower connects (the key is trusted on
+// first use). A key kept since stays.
+func (s *Store) KeepSSHHostKey(id uint32, key string) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		var c Connection
+		if err := tx.First(&c, id).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+			return fail(ErrNotFound, "no connection %d", id)
+		} else if err != nil {
+			return err
+		}
+		ssh := c.Settings.GetSsh()
+		if c.Type != SSH || ssh.HostKey != "" {
+			return nil
+		}
+		ssh.HostKey = key
+		return tx.Model(&Connection{ID: id}).Select("Settings").Updates(&c).Error
+	})
 }
 
 // DeleteConnection deletes a connection, and the Telegram messages it
@@ -199,8 +239,49 @@ func checkConnection(c *Connection) error {
 			return fail(ErrInvalid, "a Binance connection's network is testnet, demo or live, not %q", b.Network)
 		}
 		return nil
+	case GitHub:
+		g := c.Settings.GetGithub()
+		g.Token = strings.TrimSpace(g.Token)
+		if !githubToken.MatchString(g.Token) {
+			return fail(ErrInvalid, "the token is a personal access token from GitHub (Settings › Developer settings), such as ghp_... or github_pat_...")
+		}
+		return nil
+	case SSH:
+		return checkSSH(c.Settings.GetSsh())
 	}
 	return fail(ErrInvalid, "a connection needs a type")
+}
+
+// checkSSH trims an SSH connection's settings and checks them: a host, a
+// port, a user, and a private key that can be read (with its passphrase),
+// else a password.
+func checkSSH(s *v1.SSHSettings) error {
+	s.Host, s.User, s.HostKey = strings.TrimSpace(s.Host), strings.TrimSpace(s.User), strings.TrimSpace(s.HostKey)
+	s.PrivateKey = strings.TrimSpace(s.PrivateKey)
+	switch {
+	case s.Host == "" || strings.ContainsAny(s.Host, " /@"):
+		return fail(ErrInvalid, "an SSH connection's host is the server's name or address, such as 192.168.1.5")
+	case s.Port > 65535:
+		return fail(ErrInvalid, "an SSH connection's port is 1 to 65535 (22 when empty)")
+	case s.User == "":
+		return fail(ErrInvalid, "an SSH connection needs the user to log in as")
+	case s.PrivateKey == "" && s.Password == "":
+		return fail(ErrInvalid, "an SSH connection needs a private key or a password")
+	}
+	if s.Port == 0 {
+		s.Port = 22
+	}
+	if s.PrivateKey != "" {
+		if _, err := sshshell.Signer(s.PrivateKey, s.Passphrase); err != nil {
+			return fail(ErrInvalid, "%v", err)
+		}
+	}
+	if s.HostKey != "" {
+		if _, _, _, _, err := ssh.ParseAuthorizedKey([]byte(s.HostKey)); err != nil {
+			return fail(ErrInvalid, "the host key is a key as known_hosts has it, such as ssh-ed25519 AAAA..., or empty")
+		}
+	}
+	return nil
 }
 
 func connectionNameFree(tx *gorm.DB, name string, id uint32) error {

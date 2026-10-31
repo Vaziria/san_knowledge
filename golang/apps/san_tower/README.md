@@ -575,6 +575,40 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   Bash's bash (beside git, or where Git for Windows installs it), never the
   `bash.exe` of System32 or WindowsApps, which starts WSL and which a
   cmd.exe's PATH finds first; `SAN_TOWER_BASH` names another.
+- SSH Session and SSH Exec (Action › SSH; the user, 2026-10-31: "ssh
+  session node and ssh execution node"; `engine/ssh.go`,
+  `internal/sshshell` on golang.org/x/crypto/ssh) run commands in one shell
+  on a server, through an SSH connection (Connections, below), which goes
+  on from run to run, as a terminal left open does: a `cd` or an `export`
+  holds for the next command, in this run or a later one.
+  - SSH Session picks the connection and gives a Session, linked to the
+    Session of SSH Exec steps. As Claude Chat Session's ID, it is a UUID
+    (version 5) of the workflow's id and the step's, the same every run;
+    another SSH Session step, or this one in an imported copy, has another
+    shell. It opens nothing itself: the first SSH Exec does. Close After
+    (15m, up to 24h) closes the shell after that long with no command; the
+    tower stopping closes them all.
+  - SSH Exec runs Command in the session's shell, with Input on its
+    standard input (else nothing: a command never reads the next one).
+    Stdout, Stderr (each its first 1 MB, the last line break trimmed) and
+    Exit Code are its outputs, and it logs the exit code, how long it took
+    and user@host:port. An exit code other than 0 fails the step (Failed,
+    with Error the code and stderr's last lines) unless Non-zero Exit is
+    Goes On. One command runs at a time in a shell: a second SSH Exec on
+    the same session waits for the first.
+  - The shell is the user's login shell with no terminal, reading
+    commands on its standard input: each command goes in a `{ ... }` group,
+    then the exit code is printed after a random mark, so the server's
+    shell must be sh-like (sh, bash, dash, zsh), not cmd or PowerShell. A
+    program that needs a terminal (`sudo` asking for its password, `top`,
+    an editor) cannot get one. Without a terminal nothing stops a command,
+    so one still running after Timeout (5m, up to 24h) fails the step and
+    the shell is closed. A command that ends the shell (`exit`) is logged.
+    In both cases, and when the connection's settings changed since the
+    shell opened, the next command opens a new shell, in the login folder.
+  - The first shell on a connection without a host key keeps the server's
+    key in the connection, and logs its fingerprint; from then on a server
+    that gives another key is refused, the error naming both.
 - HTTP Request sends its Body (when linked) as JSON with its Method to its
   URL, whose `{{ expressions }}` read Body as `payload`; GET sends no body.
   Response is the answer: status, headers and body (JSON when it is JSON).
@@ -584,6 +618,21 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   object as JSON, text as it is, nothing when unlinked. Result is the topic
   and the event's id. A workflow that publishes to its own trigger's topic
   runs again on each event it publishes.
+- GitHub Create Issue (Action › GitHub; `engine/github.go`; the user,
+  2026-10-31: "github node, create issue") creates an issue on a GitHub
+  connection (Connections, below) in Repository: owner/name, or any
+  github.com link of it (`https://github.com/owner/name/issues/12` is
+  owner/name). Title is required; Body is Markdown, as GitHub shows it;
+  Labels and Assignees are lists separated by commas (or lines; an @
+  before a name is dropped), which GitHub keeps only when the token's
+  account can push to the repository and drops silently otherwise. Issue
+  is the issue as GitHub
+  answers it, Number its number and URL its page; the step logs both.
+  GitHub answers 404 for a repository the token cannot see as for one
+  that is not there, and 403 when the token may not write issues there;
+  the step's error says so (a fine-grained token needs the repository and
+  Issues: Read and write, a classic one the `repo` scope, or `public_repo`
+  for a public repository).
 - Social steps (category Social, and AI for ChatGPT, Gemini and Claude)
   work on the user's Threads, X, Facebook, Vidara, Medium, LinkedIn, TikTok,
   YouTube, Instagram, ChatGPT, Gemini and claude.ai through
@@ -1320,6 +1369,31 @@ connection is gone fails, saying so.
   Binance Order cannot trade. The secret is stored and listed as a bot's
   token is. From this PC only the test network answered: fapi.binance.com
   and demo-fapi.binance.com timed out (2026-10-27, likely the ISP).
+- **GitHub** (the user, 2026-10-31: "github connection with api key";
+  `internal/github`): a GitHub account through a personal access token
+  (GitHub › Settings › Developer settings › Personal access tokens),
+  fine-grained (`github_pat_...`, kept to the repositories and permissions
+  set on it) or classic (`ghp_...`, with scopes), checked for its shape
+  (letters, digits and `_`, 20 or more). Test asks GitHub whose token it
+  is (GET /user), which changes nothing, and says a classic token's scopes
+  and when the token expires. The token is stored and listed as a bot's
+  token is; the table shows only its kind. GitHub Create Issue (Action ›
+  GitHub, under Workflows) uses it.
+- **SSH** (the user, 2026-10-31; `internal/sshshell`): an account on a
+  server: its host (a name or address), port (22 when empty), the user,
+  and a private key (the key file's text, OpenSSH or PEM, with its
+  passphrase when it is locked) or else a password, which also answers a
+  keyboard-interactive login. Saving checks that the key can be read with
+  the passphrase given. Host Key is the server's key as a line of
+  known_hosts has it without the host (`ssh-ed25519 AAAA...`): empty, it
+  is kept the first time an SSH Exec connects (trusted on first use), and
+  a server that gives another one is refused from then on. Clear it when
+  the server's key changed on purpose; changing the host or the port
+  clears it. Test logs in and runs `uname -snrm`, which changes nothing,
+  and says the host key's fingerprint, without keeping it. Connecting and
+  logging in wait 20 s at most. The password, key and passphrase are
+  stored and listed as a bot's token is; the table shows user@host:port.
+  SSH Session and SSH Exec (Action › SSH, under Workflows) use it.
 
 ## Finance
 

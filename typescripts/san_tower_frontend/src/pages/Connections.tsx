@@ -14,6 +14,7 @@ import {
   Table,
   Tabs,
   Text,
+  Textarea,
 } from '@chakra-ui/react';
 import { EllipsisVerticalIcon, PencilIcon, PlugZapIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -31,8 +32,10 @@ const typeLabels: Record<string, string> = {
   telegramBot: 'Telegram Bot',
   whatsapp: 'WhatsApp',
   binance: 'Binance',
+  github: 'GitHub',
+  ssh: 'SSH',
 };
-type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance';
+type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance' | 'github' | 'ssh';
 
 // typeHelp says what a connection of each type is, over its tab's list.
 const typeHelp: Record<ConnectionType, string> = {
@@ -41,6 +44,8 @@ const typeHelp: Record<ConnectionType, string> = {
   telegramBot: 'A bot from @BotFather, which the tower reads and sends Telegram messages as.',
   whatsapp: 'Your WhatsApp account, linked by scanning a QR code as WhatsApp Web is.',
   binance: 'A Binance futures account, through an API key, which the Finance steps read and trade on.',
+  github: 'A GitHub account, through a personal access token, which GitHub Create Issue uses.',
+  ssh: 'An account on a server, through SSH: an SSH Session opens a shell there, which SSH Exec steps run commands in.',
 };
 
 // binanceNetworks are a Binance connection's networks; Live trades real money.
@@ -53,7 +58,8 @@ const binanceNetworks: Record<string, string> = {
 // address is what a connection points at, for the list: a bot by its id,
 // the part of its token before the colon, which is not secret; a WhatsApp
 // account by its number; a Binance account by its network and the start of
-// its API key.
+// its API key; a GitHub token by its kind only, since all of it is secret;
+// a server by user@host:port.
 const address = (s?: ConnectionSettings) => {
   switch (s?.type.case) {
     case 'sanRemote':
@@ -64,6 +70,10 @@ const address = (s?: ConnectionSettings) => {
       return `+${s.type.value.phone}`;
     case 'binance':
       return `${s.type.value.network || 'testnet'} · key ${s.type.value.apiKey.slice(0, 6)}…`;
+    case 'github':
+      return s.type.value.token.startsWith('github_pat_') ? 'fine-grained token' : 'classic token';
+    case 'ssh':
+      return `${s.type.value.user}@${s.type.value.host}:${s.type.value.port || 22}`;
   }
   return '';
 };
@@ -79,7 +89,8 @@ const pngURL = (png: Uint8Array) => {
 // (ConnectionService), which workflow steps use, and creates, edits, tests
 // and deletes them. The types are San Remote, `san_remote api`, which posts
 // through the user's own browser, Telegram Bot, a bot from @BotFather,
-// WhatsApp, and Binance, a futures account through an API key. A tab per
+// WhatsApp, Binance, a futures account through an API key, and GitHub, an
+// account through a personal access token. A tab per
 // type (the user, 2026-10-28), after All, lists that type's connections, and
 // its New connection makes one of it; the tab is in the URL (?type=binance).
 export function Connections() {
@@ -278,6 +289,27 @@ function ConnectionDialog({
   const [apiKey, setApiKey] = useState(old?.case === 'binance' ? old.value.apiKey : '');
   const [apiSecret, setApiSecret] = useState(old?.case === 'binance' ? old.value.apiSecret : '');
   const [network, setNetwork] = useState(old?.case === 'binance' ? old.value.network || 'testnet' : 'testnet');
+  const [githubToken, setGithubToken] = useState(old?.case === 'github' ? old.value.token : '');
+  // An SSH connection's fields, as typed; its port as text, empty for 22.
+  const [ssh, setSsh] = useState(() => {
+    const s = old?.case === 'ssh' ? old.value : undefined;
+    return {
+      host: s?.host ?? '',
+      port: s?.port && s.port !== 22 ? String(s.port) : '',
+      user: s?.user ?? '',
+      password: s?.password ?? '',
+      privateKey: s?.privateKey ?? '',
+      passphrase: s?.passphrase ?? '',
+      hostKey: s?.hostKey ?? '',
+    };
+  });
+  const sshInput = (field: keyof typeof ssh) => ({
+    value: ssh[field],
+    onChange: (e: { currentTarget: { value: string } }) => {
+      const value = e.currentTarget.value;
+      setSsh((s) => ({ ...s, [field]: value }));
+    },
+  });
   const [result, setResult] = useState<TestConnectionResponse>();
   const [testing, setTesting] = useState(false);
   const [qr, setQr] = useState<string>(); // the QR code to scan, as a data URL
@@ -301,7 +333,24 @@ function ConnectionDialog({
         ? { type: { case: 'telegramBot' as const, value: { token: token.trim() } } }
         : type === 'binance'
           ? { type: { case: 'binance' as const, value: { apiKey: apiKey.trim(), apiSecret: apiSecret.trim(), network } } }
-          : { type: { case: 'whatsapp' as const, value: old?.case === 'whatsapp' ? old.value : { jid: '' } } };
+          : type === 'github'
+            ? { type: { case: 'github' as const, value: { token: githubToken.trim() } } }
+            : type === 'ssh'
+              ? {
+                  type: {
+                    case: 'ssh' as const,
+                    value: {
+                      host: ssh.host.trim(),
+                      port: Number(ssh.port.trim()) || 0,
+                      user: ssh.user.trim(),
+                      password: ssh.password,
+                      privateKey: ssh.privateKey.trim(),
+                      passphrase: ssh.passphrase,
+                      hostKey: ssh.hostKey.trim(),
+                    },
+                  },
+                }
+              : { type: { case: 'whatsapp' as const, value: old?.case === 'whatsapp' ? old.value : { jid: '' } } };
   const close = () => {
     abort.current?.abort();
     onClose();
@@ -382,7 +431,7 @@ function ConnectionDialog({
           autoFocus
           value={name}
           onChange={(e) => setName(e.currentTarget.value)}
-          placeholder={({ sanRemote: 'My Chrome', telegramBot: 'My bot', whatsapp: 'My WhatsApp', binance: 'Binance testnet' } as Record<ConnectionType, string>)[type]}
+          placeholder={({ sanRemote: 'My Chrome', telegramBot: 'My bot', whatsapp: 'My WhatsApp', binance: 'Binance testnet', github: 'My GitHub', ssh: 'My server' } as Record<ConnectionType, string>)[type]}
         />
       </FormField>
       {type === 'whatsapp' ? (
@@ -477,6 +526,61 @@ function ConnectionDialog({
             />
           </FormField>
         </>
+      ) : type === 'ssh' ? (
+        <>
+          <HStack gap="3" align="flex-start">
+            <FormField label="Host" help="The server's name or address.">
+              <Input fontFamily="mono" placeholder="192.168.1.5" {...sshInput('host')} />
+            </FormField>
+            <FormField label="Port">
+              <Input fontFamily="mono" w="24" placeholder="22" inputMode="numeric" {...sshInput('port')} />
+            </FormField>
+          </HStack>
+          <FormField label="User" help="The account to log in as.">
+            <Input fontFamily="mono" placeholder="pi" {...sshInput('user')} />
+          </FormField>
+          <FormField
+            label="Private key"
+            help="The key's text, as its file has it (cat ~/.ssh/id_ed25519). It logs in when given; else the password does. It stays in the tower: an export leaves connection settings behind."
+          >
+            <Textarea
+              fontFamily="mono"
+              textStyle="xs"
+              rows={4}
+              placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
+              css={{ WebkitTextSecurity: ssh.privateKey ? 'disc' : 'none' }}
+              {...sshInput('privateKey')}
+            />
+          </FormField>
+          {ssh.privateKey.trim() ? (
+            <FormField label="Passphrase" help="Only when the key is locked with one.">
+              <Input type="password" fontFamily="mono" {...sshInput('passphrase')} />
+            </FormField>
+          ) : (
+            <FormField label="Password" help="The user's password on the server.">
+              <Input type="password" fontFamily="mono" {...sshInput('password')} />
+            </FormField>
+          )}
+          <FormField
+            label="Host key"
+            help="The server's key, kept the first time the tower connects; a server that gives another is refused from then on. Clear it when the server's key changed on purpose. A new host or port clears it."
+          >
+            <Input fontFamily="mono" textStyle="xs" placeholder="Kept on first connect" {...sshInput('hostKey')} />
+          </FormField>
+        </>
+      ) : type === 'github' ? (
+        <FormField
+          label="Token"
+          help="A personal access token: GitHub › Settings › Developer settings › Personal access tokens. A fine-grained one (github_pat_…) can be kept to some repositories and permissions; a classic one (ghp_…) has scopes. Test asks GitHub whose token it is; nothing is changed. It stays in the tower: an export leaves connection settings behind."
+        >
+          <Input
+            type="password"
+            fontFamily="mono"
+            value={githubToken}
+            onChange={(e) => setGithubToken(e.currentTarget.value)}
+            placeholder="github_pat_…"
+          />
+        </FormField>
       ) : type === 'sanRemote' ? (
         <FormField
           label="URL"

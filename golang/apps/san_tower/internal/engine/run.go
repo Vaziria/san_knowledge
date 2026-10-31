@@ -34,6 +34,13 @@ type Env struct {
 	Publish func(ctx context.Context, topic string, data []byte) (uint64, error)
 	// TelegramAPI is where the Bot API answers, telegram.API when empty.
 	TelegramAPI string
+	// GitHubAPI is where GitHub's REST API answers, github.API when empty.
+	GitHubAPI string
+	// SSH are the shells SSH Session steps keep open (ssh.go), and
+	// KeepHostKey keeps a server's host key in its SSH connection when the
+	// connection has none yet (store.KeepSSHHostKey).
+	SSH         *SSHShells
+	KeepHostKey func(connectionID uint32, key string) error
 	// BinanceURL is where Binance answers, whatever a connection's network:
 	// a fake in tests. Empty: the network's own.
 	BinanceURL string

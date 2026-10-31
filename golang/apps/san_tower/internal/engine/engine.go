@@ -100,9 +100,16 @@ type Engine struct {
 	queues  map[uint32]string
 	qbase   string
 
+	// ssh are the shells SSH Session steps keep open from run to run,
+	// closed when the engine closes.
+	ssh *SSHShells
+
 	// TelegramAPI is where the Bot API answers, telegram.API when empty;
 	// tests set a fake's before Start.
 	TelegramAPI string
+	// GitHubAPI is where GitHub's REST API answers, github.API when empty;
+	// tests set a fake's before Start.
+	GitHubAPI string
 	// Version is the tower's, for the Tower Restart steps (towerrestart.go).
 	Version string
 	// WhatsApp links the WhatsApp connections' devices (whatsapp.go); set
@@ -134,6 +141,7 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		logSteps: make(map[uint32][]logStep), chatSteps: make(map[uint32][]string),
 		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
 		waiting: make(map[uint32]*waiter), readers: make(map[uint32]context.CancelFunc), queues: make(map[uint32]string),
+		ssh: NewSSHShells(),
 	}
 }
 
@@ -145,6 +153,7 @@ func (e *Engine) Close() {
 	e.runMu.Unlock()
 	e.cancel()
 	e.runs.Wait()
+	e.ssh.Close()
 }
 
 // background runs f as a run of the engine, unless it is closing.
@@ -169,6 +178,9 @@ func (e *Engine) env() Env {
 		AddConnection:    e.addConnection,
 		Publish:          e.publish,
 		TelegramAPI:      e.TelegramAPI,
+		GitHubAPI:        e.GitHubAPI,
+		SSH:              e.ssh,
+		KeepHostKey:      e.store.KeepSSHHostKey,
 		TelegramMessages: e.store.TelegramMessages,
 		WhatsAppSend:     e.sendWhatsApp,
 		Storage:          e.store.GetStorage,

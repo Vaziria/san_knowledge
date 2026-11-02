@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -211,6 +212,12 @@ func (c *call) toolOf(typ string, f map[string]*structpb.Value) (shellTool, erro
 		return &fileTool{name: st.Name, root: filepath.FromSlash(st.Abs)}, nil
 	case "web":
 		return &webTool{allowed: get("allowed")}, nil
+	case "brain":
+		k, root, err := c.knowledge(get("knowledge"))
+		if err != nil {
+			return nil, err
+		}
+		return &brainTool{knowledge: k.Name, root: root, brain: get("brain"), verify: cmp.Or(get("verify_model"), "haiku")}, nil
 	}
 	return nil, fmt.Errorf("Tools: a tool of a kind this tower does not know (%q)", typ)
 }

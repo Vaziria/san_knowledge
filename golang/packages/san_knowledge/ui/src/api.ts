@@ -177,3 +177,112 @@ export async function explain(query: string): Promise<{ explanation: Explanation
   const matches = (data.explanation.matches ?? []).map((m) => ({ ...m, domains: m.domains ?? [], related: m.related ?? [] }));
   return { explanation: { query: data.explanation.query, matches }, markdown: data.markdown };
 }
+
+// Brains (docs/brain.md), read-only: internal/ownview/brain.go.
+export interface BrainStats {
+  brain: string;
+  grammar: number;
+  nodes: number;
+  links: number;
+  node_types: Record<string, number> | null;
+  status: Record<string, number> | null;
+  retired: number;
+  runs: number;
+  passed: number;
+  waiting: number;
+}
+
+export interface BrainInfo {
+  name: string;
+  grammar: number;
+  created: string;
+  forked_from?: string;
+  last_sleep?: string;
+  stats: BrainStats;
+}
+
+export interface SourceRow {
+  fact: string;
+  title: string;
+  loc: string;
+  quote?: string;
+}
+
+export interface ClaimRow {
+  key: string;
+  text: string;
+  status: string;
+  confidence: number;
+  uses: number;
+  wins: number;
+  weight: number;
+  retired?: string;
+  stale?: boolean;
+  about: string[];
+  applies_when: string[];
+  sources: SourceRow[];
+  against: SourceRow[];
+}
+
+export interface RunRow {
+  key: string;
+  task: string;
+  check: string;
+  author?: string;
+  created: string;
+  used: number;
+  passed: boolean | null;
+  score?: number;
+  detail?: string;
+}
+
+export interface RecallFact {
+  key: string;
+  title?: string;
+  loc?: string;
+  score: number;
+  claims: string[] | null;
+}
+
+export interface RecallNode {
+  node: { key: string; node_type: string; title: string; status?: string; uses: number; wins: number };
+  score: number;
+  seed?: boolean;
+}
+
+export interface BrainClaimQuery {
+  brain: string;
+  q?: string;
+  status?: string; // '' active, proposed, verified, confirmed, retired
+  sort?: 'weight' | 'uses' | 'new';
+  offset?: number;
+  limit?: number;
+}
+
+export async function brains(): Promise<{ brains: BrainInfo[]; default: string }> {
+  const data = await api<{ brains: BrainInfo[] | null; default: string }>('GET', '/api/brains');
+  return { brains: data.brains ?? [], default: data.default };
+}
+
+export async function brainClaims(query: BrainClaimQuery): Promise<{ total: number; claims: ClaimRow[] }> {
+  const params = new URLSearchParams({ brain: query.brain });
+  if (query.q) params.set('q', query.q);
+  if (query.status) params.set('status', query.status);
+  if (query.sort) params.set('sort', query.sort);
+  if (query.offset) params.set('offset', String(query.offset));
+  if (query.limit) params.set('limit', String(query.limit));
+  type Raw = Omit<ClaimRow, 'about' | 'applies_when' | 'sources' | 'against'> & { about: string[] | null; applies_when: string[] | null; sources: SourceRow[] | null; against: SourceRow[] | null };
+  const data = await api<{ total: number; claims: Raw[] | null }>('GET', `/api/brain/claims?${params}`);
+  const claims = (data.claims ?? []).map((c) => ({ ...c, about: c.about ?? [], applies_when: c.applies_when ?? [], sources: c.sources ?? [], against: c.against ?? [] }));
+  return { total: data.total, claims };
+}
+
+export async function brainRuns(brain: string, limit = 30): Promise<RunRow[]> {
+  const data = await api<{ runs: RunRow[] | null }>('GET', `/api/brain/runs?brain=${q(brain)}&limit=${limit}`);
+  return data.runs ?? [];
+}
+
+export async function brainRecall(brain: string, task: string): Promise<{ nodes: RecallNode[]; facts: RecallFact[]; markdown: string }> {
+  const data = await api<{ recall: { nodes: RecallNode[] | null; facts: RecallFact[] | null }; markdown: string }>('GET', `/api/brain/recall?brain=${q(brain)}&q=${q(task)}`);
+  return { nodes: data.recall.nodes ?? [], facts: data.recall.facts ?? [], markdown: data.markdown };
+}

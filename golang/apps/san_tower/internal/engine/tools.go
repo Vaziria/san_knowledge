@@ -40,6 +40,16 @@ var toolKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
+			Kind: "brain-tool", Title: "Brain Tool", Category: "Knowledge",
+			Description: "A tool for an AI step (Remote Shell's or Claude Ask's Tools): the brain of the knowledge linked to Knowledge (docs/brain.md), which the AI may recall from (claims and the docs to cite, for its task) and check its answer with before giving it: the citation check (Claude Code, your login, Verify Model) reads each doc it cites by file:line, and the task and answer are recorded as a run of the brain, the check its outcome. Name is the tool's name for the AI (brain).",
+			Outputs:     []*v1.Socket{sock("Tool", Tool)},
+			Settings:    []*v1.Setting{{Name: "Name", Placeholder: "brain"}, {Name: "Brain", Placeholder: "root"}, {Name: "Verify Model", Placeholder: "haiku: the citation check"}},
+			Inputs:      []*v1.Socket{sock("Knowledge", Knowledge)},
+		},
+		run: brainToolStep,
+	},
+	{
+		StepKind: &v1.StepKind{
 			Kind: "telegram-tool", Title: "Telegram Tool", Category: "Messengers", Group: "Telegram",
 			Description: "A tool for an AI step (Remote Shell's Tools): a Telegram bot the AI may send messages with, to Chat only (a chat's id or a channel's @username): its command send, with the text, plain; a long one goes as several messages. Name is the tool's name for the AI (telegram); two tools need two names.",
 			Outputs:     []*v1.Socket{sock("Tool", Tool)},

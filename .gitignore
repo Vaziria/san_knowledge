@@ -11,6 +11,9 @@ golang/packages/san_knowledge/internal/ownview/dist/*
 # Version knowledge through JSON exports instead: bin/knowledge.exe export knowledge_data/export.json
 **/knowledge_data/*.db
 **/knowledge_data/*.db.lock
+# Brains (docs/brain.md): a graph and JSON snapshots per brain, rewritten as it learns.
+# Version one with: bin/knowledge.exe brain export <file>.json
+**/knowledge_data/brains/
 
 # graphify's code graph: rebuilt from the code with `graphify update .`
 graphify-out/

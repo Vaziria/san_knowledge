@@ -320,3 +320,46 @@ func TestClaudeNeedsFeedback(t *testing.T) {
 		t.Errorf("a plain reply: fired %s, Answer %q", fired, answer)
 	}
 }
+
+// Project MCP gives Claude the servers of Directory's own .mcp.json, and
+// allows their tools, keeping --strict-mcp-config so no other server comes.
+func TestClaudeAskProjectMCP(t *testing.T) {
+	defer func(s string) { claudeCLI = s }(claudeCLI)
+	claudeCLI = os.Args[0]
+	t.Setenv("FAKE_CLAUDE", "ok")
+	dir := t.TempDir()
+	ask := func(values ...string) (string, error) {
+		t.Helper()
+		st := step("c", "claude-ask-cli", values...)
+		c := &call{ctx: context.Background(), step: st, inputs: map[string]proto.Message{}, outputs: map[string]proto.Message{}}
+		for k, v := range st.Values {
+			c.inputs[k] = wrapperspb.String(v)
+		}
+		if err := claudeAskCLI(c); err != nil {
+			return "", err
+		}
+		return c.outputs["Answer"].(*wrapperspb.StringValue).Value, nil
+	}
+	if _, err := ask("Prompt", "x", "Directory", dir, "Project MCP", "Yes"); err == nil || !strings.Contains(err.Error(), "has no .mcp.json") {
+		t.Errorf("no .mcp.json: %v", err)
+	}
+	if _, err := ask("Prompt", "x", "Project MCP", "Yes"); err == nil || !strings.Contains(err.Error(), "needs Directory") {
+		t.Errorf("no Directory: %v", err)
+	}
+	cfg := `{"mcpServers": {"notes": {"command": "notes"}, "knowledge": {"command": "knowledge", "args": ["mcp"]}}}`
+	if err := os.WriteFile(filepath.Join(dir, ".mcp.json"), []byte(cfg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	got, err := ask("Prompt", "x", "Directory", dir, "Project MCP", "Yes")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "--strict-mcp-config --no-session-persistence --mcp-config " + filepath.Join(dir, ".mcp.json") + " --allowedTools mcp__knowledge,mcp__notes"
+	if !strings.Contains(got, want) {
+		t.Errorf("args %q lack %q", got, want)
+	}
+	// No: the folder's servers are not loaded.
+	if got, _ := ask("Prompt", "x", "Directory", dir); strings.Contains(got, "--mcp-config") {
+		t.Errorf("Project MCP No loaded them: %q", got)
+	}
+}

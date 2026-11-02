@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/knowledge.proto.
  */
 export const file_san_tower_v1_knowledge: GenFile = /*@__PURE__*/
-  fileDesc("ChxzYW4vdG93ZXIvdjEva25vd2xlZGdlLnByb3RvEgxzYW4udG93ZXIudjEiwAEKCUtub3dsZWRnZRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhEKCWZvbGRlcl9pZBgDIAEoDRImCgdzdG9yYWdlGAQgASgLMhUuc2FuLnRvd2VyLnYxLlN0b3JhZ2USLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAibQoPS25vd2xlZGdlRm9sZGVyEgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSEQoJcGFyZW50X2lkGAMgASgNEhcKD2tub3dsZWRnZV9jb3VudBgEIAEoDRIUCgxmb2xkZXJfY291bnQYBSABKA0iPgoUTGlzdEtub3dsZWRnZVJlcXVlc3QSEQoJZm9sZGVyX2lkGAEgASgNEhMKC2FsbF9mb2xkZXJzGAIgASgIIlUKFUxpc3RLbm93bGVkZ2VSZXNwb25zZRIqCglrbm93bGVkZ2UYASADKAsyFy5zYW4udG93ZXIudjEuS25vd2xlZGdlEhAKCGRhdGFfZGlyGAIgASgJIkcKFkNyZWF0ZUtub3dsZWRnZVJlcXVlc3QSDAoEbmFtZRgBIAEoCRIMCgRwYXRoGAIgASgJEhEKCWZvbGRlcl9pZBgDIAEoDSJFChdDcmVhdGVLbm93bGVkZ2VSZXNwb25zZRIqCglrbm93bGVkZ2UYASABKAsyFy5zYW4udG93ZXIudjEuS25vd2xlZGdlIiQKFkRlbGV0ZUtub3dsZWRnZVJlcXVlc3QSCgoCaWQYASABKA0iGQoXRGVsZXRlS25vd2xlZGdlUmVzcG9uc2UiNgoUTW92ZUtub3dsZWRnZVJlcXVlc3QSCwoDaWRzGAEgAygNEhEKCWZvbGRlcl9pZBgCIAEoDSIXChVNb3ZlS25vd2xlZGdlUmVzcG9uc2UiHQobTGlzdEtub3dsZWRnZUZvbGRlcnNSZXF1ZXN0Ik4KHExpc3RLbm93bGVkZ2VGb2xkZXJzUmVzcG9uc2USLgoHZm9sZGVycxgBIAMoCzIdLnNhbi50b3dlci52MS5Lbm93bGVkZ2VGb2xkZXIiPwocQ3JlYXRlS25vd2xlZGdlRm9sZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhEKCXBhcmVudF9pZBgCIAEoDSJOCh1DcmVhdGVLbm93bGVkZ2VGb2xkZXJSZXNwb25zZRItCgZmb2xkZXIYASABKAsyHS5zYW4udG93ZXIudjEuS25vd2xlZGdlRm9sZGVyIksKHFVwZGF0ZUtub3dsZWRnZUZvbGRlclJlcXVlc3QSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIRCglwYXJlbnRfaWQYAyABKA0iTgodVXBkYXRlS25vd2xlZGdlRm9sZGVyUmVzcG9uc2USLQoGZm9sZGVyGAEgASgLMh0uc2FuLnRvd2VyLnYxLktub3dsZWRnZUZvbGRlciIqChxEZWxldGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0EgoKAmlkGAEgASgNIh8KHURlbGV0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlIp4BCg1Lbm93bGVkZ2VOb2RlEgsKA2tleRgBIAEoCRIMCgR0eXBlGAIgASgJEg0KBXRpdGxlGAMgASgJEg8KB3N1bW1hcnkYBCABKAkSEAoIa2V5d29yZHMYBSADKAkSCwoDbG9jGAYgASgJEgwKBGxpbmUYByABKA0SFQoNbmVlZHNfc3VtbWFyeRgIIAEoCBIOCgZhdXRob3IYCSABKAkiNgoNS25vd2xlZGdlTGluaxIMCgRmcm9tGAEgASgJEgsKA3JlbBgCIAEoCRIKCgJ0bxgDIAEoCSIhChNHZXRLbm93bGVkZ2VSZXF1ZXN0EgoKAmlkGAEgASgNIkIKFEdldEtub3dsZWRnZVJlc3BvbnNlEioKCWtub3dsZWRnZRgBIAEoCzIXLnNhbi50b3dlci52MS5Lbm93bGVkZ2UiIgoUU3luY0tub3dsZWRnZVJlcXVlc3QSCgoCaWQYASABKA0iygEKFVN5bmNLbm93bGVkZ2VSZXNwb25zZRISCgpkb2NzX2FkZGVkGAEgASgNEhQKDGRvY3NfdXBkYXRlZBgCIAEoDRIUCgxkb2NzX3JlbW92ZWQYAyABKA0SFgoOc2VjdGlvbnNfYWRkZWQYBCABKA0SGAoQc2VjdGlvbnNfdXBkYXRlZBgFIAEoDRIYChBzZWN0aW9uc19yZW1vdmVkGAYgASgNEhUKDW5lZWRzX3N1bW1hcnkYByABKA0SDgoGZXJyb3JzGAggAygJIiYKGEdldEtub3dsZWRnZUdyYXBoUmVxdWVzdBIKCgJpZBgBIAEoDSJzChlHZXRLbm93bGVkZ2VHcmFwaFJlc3BvbnNlEioKBW5vZGVzGAEgAygLMhsuc2FuLnRvd2VyLnYxLktub3dsZWRnZU5vZGUSKgoFbGlua3MYAiADKAsyGy5zYW4udG93ZXIudjEuS25vd2xlZGdlTGluayIyChdHZXRLbm93bGVkZ2VOb2RlUmVxdWVzdBIKCgJpZBgBIAEoDRILCgNrZXkYAiABKAkipgEKGEdldEtub3dsZWRnZU5vZGVSZXNwb25zZRIpCgRub2RlGAEgASgLMhsuc2FuLnRvd2VyLnYxLktub3dsZWRnZU5vZGUSKAoDb3V0GAIgAygLMhsuc2FuLnRvd2VyLnYxLktub3dsZWRnZUxpbmsSJwoCaW4YAyADKAsyGy5zYW4udG93ZXIudjEuS25vd2xlZGdlTGluaxIMCgR0ZXh0GAQgASgJMsUJChBLbm93bGVkZ2VTZXJ2aWNlElgKDUxpc3RLbm93bGVkZ2USIi5zYW4udG93ZXIudjEuTGlzdEtub3dsZWRnZVJlcXVlc3QaIy5zYW4udG93ZXIudjEuTGlzdEtub3dsZWRnZVJlc3BvbnNlEl4KD0NyZWF0ZUtub3dsZWRnZRIkLnNhbi50b3dlci52MS5DcmVhdGVLbm93bGVkZ2VSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLkNyZWF0ZUtub3dsZWRnZVJlc3BvbnNlEl4KD0RlbGV0ZUtub3dsZWRnZRIkLnNhbi50b3dlci52MS5EZWxldGVLbm93bGVkZ2VSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLkRlbGV0ZUtub3dsZWRnZVJlc3BvbnNlElgKDU1vdmVLbm93bGVkZ2USIi5zYW4udG93ZXIudjEuTW92ZUtub3dsZWRnZVJlcXVlc3QaIy5zYW4udG93ZXIudjEuTW92ZUtub3dsZWRnZVJlc3BvbnNlEm0KFExpc3RLbm93bGVkZ2VGb2xkZXJzEikuc2FuLnRvd2VyLnYxLkxpc3RLbm93bGVkZ2VGb2xkZXJzUmVxdWVzdBoqLnNhbi50b3dlci52MS5MaXN0S25vd2xlZGdlRm9sZGVyc1Jlc3BvbnNlEnAKFUNyZWF0ZUtub3dsZWRnZUZvbGRlchIqLnNhbi50b3dlci52MS5DcmVhdGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0Gisuc2FuLnRvd2VyLnYxLkNyZWF0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlEnAKFVVwZGF0ZUtub3dsZWRnZUZvbGRlchIqLnNhbi50b3dlci52MS5VcGRhdGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0Gisuc2FuLnRvd2VyLnYxLlVwZGF0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlEnAKFURlbGV0ZUtub3dsZWRnZUZvbGRlchIqLnNhbi50b3dlci52MS5EZWxldGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0Gisuc2FuLnRvd2VyLnYxLkRlbGV0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlElUKDEdldEtub3dsZWRnZRIhLnNhbi50b3dlci52MS5HZXRLbm93bGVkZ2VSZXF1ZXN0GiIuc2FuLnRvd2VyLnYxLkdldEtub3dsZWRnZVJlc3BvbnNlElgKDVN5bmNLbm93bGVkZ2USIi5zYW4udG93ZXIudjEuU3luY0tub3dsZWRnZVJlcXVlc3QaIy5zYW4udG93ZXIudjEuU3luY0tub3dsZWRnZVJlc3BvbnNlEmQKEUdldEtub3dsZWRnZUdyYXBoEiYuc2FuLnRvd2VyLnYxLkdldEtub3dsZWRnZUdyYXBoUmVxdWVzdBonLnNhbi50b3dlci52MS5HZXRLbm93bGVkZ2VHcmFwaFJlc3BvbnNlEmEKEEdldEtub3dsZWRnZU5vZGUSJS5zYW4udG93ZXIudjEuR2V0S25vd2xlZGdlTm9kZVJlcXVlc3QaJi5zYW4udG93ZXIudjEuR2V0S25vd2xlZGdlTm9kZVJlc3BvbnNlQq4BChBjb20uc2FuLnRvd2VyLnYxQg5Lbm93bGVkZ2VQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp, file_san_tower_v1_storage]);
+  fileDesc("ChxzYW4vdG93ZXIvdjEva25vd2xlZGdlLnByb3RvEgxzYW4udG93ZXIudjEiwAEKCUtub3dsZWRnZRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhEKCWZvbGRlcl9pZBgDIAEoDRImCgdzdG9yYWdlGAQgASgLMhUuc2FuLnRvd2VyLnYxLlN0b3JhZ2USLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAibQoPS25vd2xlZGdlRm9sZGVyEgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSEQoJcGFyZW50X2lkGAMgASgNEhcKD2tub3dsZWRnZV9jb3VudBgEIAEoDRIUCgxmb2xkZXJfY291bnQYBSABKA0iPgoUTGlzdEtub3dsZWRnZVJlcXVlc3QSEQoJZm9sZGVyX2lkGAEgASgNEhMKC2FsbF9mb2xkZXJzGAIgASgIIlUKFUxpc3RLbm93bGVkZ2VSZXNwb25zZRIqCglrbm93bGVkZ2UYASADKAsyFy5zYW4udG93ZXIudjEuS25vd2xlZGdlEhAKCGRhdGFfZGlyGAIgASgJIkcKFkNyZWF0ZUtub3dsZWRnZVJlcXVlc3QSDAoEbmFtZRgBIAEoCRIMCgRwYXRoGAIgASgJEhEKCWZvbGRlcl9pZBgDIAEoDSJFChdDcmVhdGVLbm93bGVkZ2VSZXNwb25zZRIqCglrbm93bGVkZ2UYASABKAsyFy5zYW4udG93ZXIudjEuS25vd2xlZGdlIiQKFkRlbGV0ZUtub3dsZWRnZVJlcXVlc3QSCgoCaWQYASABKA0iGQoXRGVsZXRlS25vd2xlZGdlUmVzcG9uc2UiNgoUTW92ZUtub3dsZWRnZVJlcXVlc3QSCwoDaWRzGAEgAygNEhEKCWZvbGRlcl9pZBgCIAEoDSIXChVNb3ZlS25vd2xlZGdlUmVzcG9uc2UiHQobTGlzdEtub3dsZWRnZUZvbGRlcnNSZXF1ZXN0Ik4KHExpc3RLbm93bGVkZ2VGb2xkZXJzUmVzcG9uc2USLgoHZm9sZGVycxgBIAMoCzIdLnNhbi50b3dlci52MS5Lbm93bGVkZ2VGb2xkZXIiPwocQ3JlYXRlS25vd2xlZGdlRm9sZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhEKCXBhcmVudF9pZBgCIAEoDSJOCh1DcmVhdGVLbm93bGVkZ2VGb2xkZXJSZXNwb25zZRItCgZmb2xkZXIYASABKAsyHS5zYW4udG93ZXIudjEuS25vd2xlZGdlRm9sZGVyIksKHFVwZGF0ZUtub3dsZWRnZUZvbGRlclJlcXVlc3QSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIRCglwYXJlbnRfaWQYAyABKA0iTgodVXBkYXRlS25vd2xlZGdlRm9sZGVyUmVzcG9uc2USLQoGZm9sZGVyGAEgASgLMh0uc2FuLnRvd2VyLnYxLktub3dsZWRnZUZvbGRlciIqChxEZWxldGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0EgoKAmlkGAEgASgNIh8KHURlbGV0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlIp4BCg1Lbm93bGVkZ2VOb2RlEgsKA2tleRgBIAEoCRIMCgR0eXBlGAIgASgJEg0KBXRpdGxlGAMgASgJEg8KB3N1bW1hcnkYBCABKAkSEAoIa2V5d29yZHMYBSADKAkSCwoDbG9jGAYgASgJEgwKBGxpbmUYByABKA0SFQoNbmVlZHNfc3VtbWFyeRgIIAEoCBIOCgZhdXRob3IYCSABKAkiNgoNS25vd2xlZGdlTGluaxIMCgRmcm9tGAEgASgJEgsKA3JlbBgCIAEoCRIKCgJ0bxgDIAEoCSIhChNHZXRLbm93bGVkZ2VSZXF1ZXN0EgoKAmlkGAEgASgNIkIKFEdldEtub3dsZWRnZVJlc3BvbnNlEioKCWtub3dsZWRnZRgBIAEoCzIXLnNhbi50b3dlci52MS5Lbm93bGVkZ2UiIgoUU3luY0tub3dsZWRnZVJlcXVlc3QSCgoCaWQYASABKA0iygEKFVN5bmNLbm93bGVkZ2VSZXNwb25zZRISCgpkb2NzX2FkZGVkGAEgASgNEhQKDGRvY3NfdXBkYXRlZBgCIAEoDRIUCgxkb2NzX3JlbW92ZWQYAyABKA0SFgoOc2VjdGlvbnNfYWRkZWQYBCABKA0SGAoQc2VjdGlvbnNfdXBkYXRlZBgFIAEoDRIYChBzZWN0aW9uc19yZW1vdmVkGAYgASgNEhUKDW5lZWRzX3N1bW1hcnkYByABKA0SDgoGZXJyb3JzGAggAygJIiYKGEdldEtub3dsZWRnZUdyYXBoUmVxdWVzdBIKCgJpZBgBIAEoDSJzChlHZXRLbm93bGVkZ2VHcmFwaFJlc3BvbnNlEioKBW5vZGVzGAEgAygLMhsuc2FuLnRvd2VyLnYxLktub3dsZWRnZU5vZGUSKgoFbGlua3MYAiADKAsyGy5zYW4udG93ZXIudjEuS25vd2xlZGdlTGluayIyChdHZXRLbm93bGVkZ2VOb2RlUmVxdWVzdBIKCgJpZBgBIAEoDRILCgNrZXkYAiABKAkipgEKGEdldEtub3dsZWRnZU5vZGVSZXNwb25zZRIpCgRub2RlGAEgASgLMhsuc2FuLnRvd2VyLnYxLktub3dsZWRnZU5vZGUSKAoDb3V0GAIgAygLMhsuc2FuLnRvd2VyLnYxLktub3dsZWRnZUxpbmsSJwoCaW4YAyADKAsyGy5zYW4udG93ZXIudjEuS25vd2xlZGdlTGluaxIMCgR0ZXh0GAQgASgJItMBCgVCcmFpbhIMCgRuYW1lGAEgASgJEg8KB2dyYW1tYXIYAiABKA0SEwoLZm9ya2VkX2Zyb20YAyABKAkSDwoHY3JlYXRlZBgEIAEoCRISCgpsYXN0X3NsZWVwGAUgASgJEg4KBmNsYWltcxgGIAEoDRIQCghjb25jZXB0cxgHIAEoDRIPCgdzb3VyY2VzGAggASgNEgwKBHJ1bnMYCSABKA0SDgoGcGFzc2VkGAogASgNEg8KB3dhaXRpbmcYCyABKA0SDwoHcmV0aXJlZBgMIAEoDSIfChFMaXN0QnJhaW5zUmVxdWVzdBIKCgJpZBgBIAEoDSI5ChJMaXN0QnJhaW5zUmVzcG9uc2USIwoGYnJhaW5zGAEgAygLMhMuc2FuLnRvd2VyLnYxLkJyYWluIkYKC0JyYWluU291cmNlEgwKBGZhY3QYASABKAkSDQoFdGl0bGUYAiABKAkSCwoDbG9jGAMgASgJEg0KBXF1b3RlGAQgASgJIpQCCgpCcmFpbkNsYWltEgsKA2tleRgBIAEoCRIMCgR0ZXh0GAIgASgJEg4KBnN0YXR1cxgDIAEoCRISCgpjb25maWRlbmNlGAQgASgBEgwKBHVzZXMYBSABKA0SDAoEd2lucxgGIAEoDRIOCgZ3ZWlnaHQYByABKAESDwoHcmV0aXJlZBgIIAEoCRINCgVzdGFsZRgJIAEoCBINCgVhYm91dBgKIAMoCRIUCgxhcHBsaWVzX3doZW4YCyADKAkSKgoHc291cmNlcxgMIAMoCzIZLnNhbi50b3dlci52MS5CcmFpblNvdXJjZRIqCgdhZ2FpbnN0GA0gAygLMhkuc2FuLnRvd2VyLnYxLkJyYWluU291cmNlIn8KFkxpc3RCcmFpbkNsYWltc1JlcXVlc3QSCgoCaWQYASABKA0SDQoFYnJhaW4YAiABKAkSDQoFcXVlcnkYAyABKAkSDgoGc3RhdHVzGAQgASgJEgwKBHNvcnQYBSABKAkSDgoGb2Zmc2V0GAYgASgNEg0KBWxpbWl0GAcgASgNIlIKF0xpc3RCcmFpbkNsYWltc1Jlc3BvbnNlEg0KBXRvdGFsGAEgASgNEigKBmNsYWltcxgCIAMoCzIYLnNhbi50b3dlci52MS5CcmFpbkNsYWltIrYBCghCcmFpblJ1bhILCgNrZXkYASABKAkSDAoEdGFzaxgCIAEoCRINCgVjaGVjaxgDIAEoCRIOCgZhdXRob3IYBCABKAkSDwoHY3JlYXRlZBgFIAEoCRIMCgR1c2VkGAYgASgNEhMKC2hhc19vdXRjb21lGAcgASgIEg4KBnBhc3NlZBgIIAEoCBISCgVzY29yZRgJIAEoAUgAiAEBEg4KBmRldGFpbBgKIAEoCUIICgZfc2NvcmUiQAoUTGlzdEJyYWluUnVuc1JlcXVlc3QSCgoCaWQYASABKA0SDQoFYnJhaW4YAiABKAkSDQoFbGltaXQYAyABKA0iPQoVTGlzdEJyYWluUnVuc1Jlc3BvbnNlEiQKBHJ1bnMYASADKAsyFi5zYW4udG93ZXIudjEuQnJhaW5SdW4iPgoSUmVjYWxsQnJhaW5SZXF1ZXN0EgoKAmlkGAEgASgNEg0KBWJyYWluGAIgASgJEg0KBXF1ZXJ5GAMgASgJIkkKDVJlY2FsbGVkQ2xhaW0SCwoDa2V5GAEgASgJEgwKBHRleHQYAiABKAkSDgoGc3RhdHVzGAMgASgJEg0KBXNjb3JlGAQgASgBIkYKDFJlY2FsbGVkRmFjdBILCgNrZXkYASABKAkSDQoFdGl0bGUYAiABKAkSCwoDbG9jGAMgASgJEg0KBXNjb3JlGAQgASgBIn8KE1JlY2FsbEJyYWluUmVzcG9uc2USKwoGY2xhaW1zGAEgAygLMhsuc2FuLnRvd2VyLnYxLlJlY2FsbGVkQ2xhaW0SKQoFZmFjdHMYAiADKAsyGi5zYW4udG93ZXIudjEuUmVjYWxsZWRGYWN0EhAKCG1hcmtkb3duGAMgASgJMqQMChBLbm93bGVkZ2VTZXJ2aWNlElgKDUxpc3RLbm93bGVkZ2USIi5zYW4udG93ZXIudjEuTGlzdEtub3dsZWRnZVJlcXVlc3QaIy5zYW4udG93ZXIudjEuTGlzdEtub3dsZWRnZVJlc3BvbnNlEl4KD0NyZWF0ZUtub3dsZWRnZRIkLnNhbi50b3dlci52MS5DcmVhdGVLbm93bGVkZ2VSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLkNyZWF0ZUtub3dsZWRnZVJlc3BvbnNlEl4KD0RlbGV0ZUtub3dsZWRnZRIkLnNhbi50b3dlci52MS5EZWxldGVLbm93bGVkZ2VSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLkRlbGV0ZUtub3dsZWRnZVJlc3BvbnNlElgKDU1vdmVLbm93bGVkZ2USIi5zYW4udG93ZXIudjEuTW92ZUtub3dsZWRnZVJlcXVlc3QaIy5zYW4udG93ZXIudjEuTW92ZUtub3dsZWRnZVJlc3BvbnNlEm0KFExpc3RLbm93bGVkZ2VGb2xkZXJzEikuc2FuLnRvd2VyLnYxLkxpc3RLbm93bGVkZ2VGb2xkZXJzUmVxdWVzdBoqLnNhbi50b3dlci52MS5MaXN0S25vd2xlZGdlRm9sZGVyc1Jlc3BvbnNlEnAKFUNyZWF0ZUtub3dsZWRnZUZvbGRlchIqLnNhbi50b3dlci52MS5DcmVhdGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0Gisuc2FuLnRvd2VyLnYxLkNyZWF0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlEnAKFVVwZGF0ZUtub3dsZWRnZUZvbGRlchIqLnNhbi50b3dlci52MS5VcGRhdGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0Gisuc2FuLnRvd2VyLnYxLlVwZGF0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlEnAKFURlbGV0ZUtub3dsZWRnZUZvbGRlchIqLnNhbi50b3dlci52MS5EZWxldGVLbm93bGVkZ2VGb2xkZXJSZXF1ZXN0Gisuc2FuLnRvd2VyLnYxLkRlbGV0ZUtub3dsZWRnZUZvbGRlclJlc3BvbnNlElUKDEdldEtub3dsZWRnZRIhLnNhbi50b3dlci52MS5HZXRLbm93bGVkZ2VSZXF1ZXN0GiIuc2FuLnRvd2VyLnYxLkdldEtub3dsZWRnZVJlc3BvbnNlElgKDVN5bmNLbm93bGVkZ2USIi5zYW4udG93ZXIudjEuU3luY0tub3dsZWRnZVJlcXVlc3QaIy5zYW4udG93ZXIudjEuU3luY0tub3dsZWRnZVJlc3BvbnNlEmQKEUdldEtub3dsZWRnZUdyYXBoEiYuc2FuLnRvd2VyLnYxLkdldEtub3dsZWRnZUdyYXBoUmVxdWVzdBonLnNhbi50b3dlci52MS5HZXRLbm93bGVkZ2VHcmFwaFJlc3BvbnNlEmEKEEdldEtub3dsZWRnZU5vZGUSJS5zYW4udG93ZXIudjEuR2V0S25vd2xlZGdlTm9kZVJlcXVlc3QaJi5zYW4udG93ZXIudjEuR2V0S25vd2xlZGdlTm9kZVJlc3BvbnNlEk8KCkxpc3RCcmFpbnMSHy5zYW4udG93ZXIudjEuTGlzdEJyYWluc1JlcXVlc3QaIC5zYW4udG93ZXIudjEuTGlzdEJyYWluc1Jlc3BvbnNlEl4KD0xpc3RCcmFpbkNsYWltcxIkLnNhbi50b3dlci52MS5MaXN0QnJhaW5DbGFpbXNSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLkxpc3RCcmFpbkNsYWltc1Jlc3BvbnNlElgKDUxpc3RCcmFpblJ1bnMSIi5zYW4udG93ZXIudjEuTGlzdEJyYWluUnVuc1JlcXVlc3QaIy5zYW4udG93ZXIudjEuTGlzdEJyYWluUnVuc1Jlc3BvbnNlElIKC1JlY2FsbEJyYWluEiAuc2FuLnRvd2VyLnYxLlJlY2FsbEJyYWluUmVxdWVzdBohLnNhbi50b3dlci52MS5SZWNhbGxCcmFpblJlc3BvbnNlQq4BChBjb20uc2FuLnRvd2VyLnYxQg5Lbm93bGVkZ2VQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp, file_san_tower_v1_storage]);
 
 /**
  * @generated from message san.tower.v1.Knowledge
@@ -717,6 +717,590 @@ export const GetKnowledgeNodeResponseSchema: GenMessage<GetKnowledgeNodeResponse
   messageDesc(file_san_tower_v1_knowledge, 27);
 
 /**
+ * Brain is a brain of a knowledge, with its counts.
+ *
+ * @generated from message san.tower.v1.Brain
+ */
+export type Brain = Message<"san.tower.v1.Brain"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * grammar is the version of the grammar it follows.
+   *
+   * @generated from field: uint32 grammar = 2;
+   */
+  grammar: number;
+
+  /**
+   * forked_from is the brain it was copied from, if any.
+   *
+   * @generated from field: string forked_from = 3;
+   */
+  forkedFrom: string;
+
+  /**
+   * created and last_sleep are RFC 3339 times; last_sleep is empty
+   * before its first sleep.
+   *
+   * @generated from field: string created = 4;
+   */
+  created: string;
+
+  /**
+   * @generated from field: string last_sleep = 5;
+   */
+  lastSleep: string;
+
+  /**
+   * @generated from field: uint32 claims = 6;
+   */
+  claims: number;
+
+  /**
+   * @generated from field: uint32 concepts = 7;
+   */
+  concepts: number;
+
+  /**
+   * @generated from field: uint32 sources = 8;
+   */
+  sources: number;
+
+  /**
+   * @generated from field: uint32 runs = 9;
+   */
+  runs: number;
+
+  /**
+   * passed is how many runs passed their check, waiting how many have
+   * no outcome yet.
+   *
+   * @generated from field: uint32 passed = 10;
+   */
+  passed: number;
+
+  /**
+   * @generated from field: uint32 waiting = 11;
+   */
+  waiting: number;
+
+  /**
+   * retired is how many claims and edges were taken out of use.
+   *
+   * @generated from field: uint32 retired = 12;
+   */
+  retired: number;
+};
+
+/**
+ * Describes the message san.tower.v1.Brain.
+ * Use `create(BrainSchema)` to create a new message.
+ */
+export const BrainSchema: GenMessage<Brain> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 28);
+
+/**
+ * @generated from message san.tower.v1.ListBrainsRequest
+ */
+export type ListBrainsRequest = Message<"san.tower.v1.ListBrainsRequest"> & {
+  /**
+   * id is the knowledge's.
+   *
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+};
+
+/**
+ * Describes the message san.tower.v1.ListBrainsRequest.
+ * Use `create(ListBrainsRequestSchema)` to create a new message.
+ */
+export const ListBrainsRequestSchema: GenMessage<ListBrainsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 29);
+
+/**
+ * @generated from message san.tower.v1.ListBrainsResponse
+ */
+export type ListBrainsResponse = Message<"san.tower.v1.ListBrainsResponse"> & {
+  /**
+   * @generated from field: repeated san.tower.v1.Brain brains = 1;
+   */
+  brains: Brain[];
+};
+
+/**
+ * Describes the message san.tower.v1.ListBrainsResponse.
+ * Use `create(ListBrainsResponseSchema)` to create a new message.
+ */
+export const ListBrainsResponseSchema: GenMessage<ListBrainsResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 30);
+
+/**
+ * BrainSource is a doc or section of the knowledge a claim rests on.
+ *
+ * @generated from message san.tower.v1.BrainSource
+ */
+export type BrainSource = Message<"san.tower.v1.BrainSource"> & {
+  /**
+   * fact is its key in the knowledge's graph.
+   *
+   * @generated from field: string fact = 1;
+   */
+  fact: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * loc is its file:line.
+   *
+   * @generated from field: string loc = 3;
+   */
+  loc: string;
+
+  /**
+   * quote is the words of it the claim rests on.
+   *
+   * @generated from field: string quote = 4;
+   */
+  quote: string;
+};
+
+/**
+ * Describes the message san.tower.v1.BrainSource.
+ * Use `create(BrainSourceSchema)` to create a new message.
+ */
+export const BrainSourceSchema: GenMessage<BrainSource> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 31);
+
+/**
+ * BrainClaim is a claim of a brain.
+ *
+ * @generated from message san.tower.v1.BrainClaim
+ */
+export type BrainClaim = Message<"san.tower.v1.BrainClaim"> & {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * @generated from field: string text = 2;
+   */
+  text: string;
+
+  /**
+   * status is proposed, verified or confirmed (by the user).
+   *
+   * @generated from field: string status = 3;
+   */
+  status: string;
+
+  /**
+   * @generated from field: double confidence = 4;
+   */
+  confidence: number;
+
+  /**
+   * uses and wins: in how many runs it was used, and how many passed.
+   *
+   * @generated from field: uint32 uses = 5;
+   */
+  uses: number;
+
+  /**
+   * @generated from field: uint32 wins = 6;
+   */
+  wins: number;
+
+  /**
+   * weight is what sleep weighs it by: (0.5 + confidence) x record x
+   * trust; under 0.1 it is retired.
+   *
+   * @generated from field: double weight = 7;
+   */
+  weight: number;
+
+  /**
+   * retired is why it was taken out of use; empty while in use.
+   *
+   * @generated from field: string retired = 8;
+   */
+  retired: string;
+
+  /**
+   * stale: its sources changed, so it waits to be learned again.
+   *
+   * @generated from field: bool stale = 9;
+   */
+  stale: boolean;
+
+  /**
+   * about are its concepts, applies_when the contexts it holds in.
+   *
+   * @generated from field: repeated string about = 10;
+   */
+  about: string[];
+
+  /**
+   * @generated from field: repeated string applies_when = 11;
+   */
+  appliesWhen: string[];
+
+  /**
+   * sources speak for it, against against it.
+   *
+   * @generated from field: repeated san.tower.v1.BrainSource sources = 12;
+   */
+  sources: BrainSource[];
+
+  /**
+   * @generated from field: repeated san.tower.v1.BrainSource against = 13;
+   */
+  against: BrainSource[];
+};
+
+/**
+ * Describes the message san.tower.v1.BrainClaim.
+ * Use `create(BrainClaimSchema)` to create a new message.
+ */
+export const BrainClaimSchema: GenMessage<BrainClaim> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 32);
+
+/**
+ * @generated from message san.tower.v1.ListBrainClaimsRequest
+ */
+export type ListBrainClaimsRequest = Message<"san.tower.v1.ListBrainClaimsRequest"> & {
+  /**
+   * id is the knowledge's; brain its brain's name (root when empty).
+   *
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+
+  /**
+   * @generated from field: string brain = 2;
+   */
+  brain: string;
+
+  /**
+   * query: every word in the claim's text, a concept or a source.
+   *
+   * @generated from field: string query = 3;
+   */
+  query: string;
+
+  /**
+   * status: empty for the claims in use, else proposed, verified,
+   * confirmed or retired.
+   *
+   * @generated from field: string status = 4;
+   */
+  status: string;
+
+  /**
+   * sort: weight (the default), uses or new.
+   *
+   * @generated from field: string sort = 5;
+   */
+  sort: string;
+
+  /**
+   * @generated from field: uint32 offset = 6;
+   */
+  offset: number;
+
+  /**
+   * limit is the page's size, 50 when 0.
+   *
+   * @generated from field: uint32 limit = 7;
+   */
+  limit: number;
+};
+
+/**
+ * Describes the message san.tower.v1.ListBrainClaimsRequest.
+ * Use `create(ListBrainClaimsRequestSchema)` to create a new message.
+ */
+export const ListBrainClaimsRequestSchema: GenMessage<ListBrainClaimsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 33);
+
+/**
+ * @generated from message san.tower.v1.ListBrainClaimsResponse
+ */
+export type ListBrainClaimsResponse = Message<"san.tower.v1.ListBrainClaimsResponse"> & {
+  /**
+   * total is how many claims pass the query.
+   *
+   * @generated from field: uint32 total = 1;
+   */
+  total: number;
+
+  /**
+   * @generated from field: repeated san.tower.v1.BrainClaim claims = 2;
+   */
+  claims: BrainClaim[];
+};
+
+/**
+ * Describes the message san.tower.v1.ListBrainClaimsResponse.
+ * Use `create(ListBrainClaimsResponseSchema)` to create a new message.
+ */
+export const ListBrainClaimsResponseSchema: GenMessage<ListBrainClaimsResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 34);
+
+/**
+ * BrainRun is a task done with a brain, and its outcome.
+ *
+ * @generated from message san.tower.v1.BrainRun
+ */
+export type BrainRun = Message<"san.tower.v1.BrainRun"> & {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * @generated from field: string task = 2;
+   */
+  task: string;
+
+  /**
+   * check is how its outcome is judged.
+   *
+   * @generated from field: string check = 3;
+   */
+  check: string;
+
+  /**
+   * @generated from field: string author = 4;
+   */
+  author: string;
+
+  /**
+   * @generated from field: string created = 5;
+   */
+  created: string;
+
+  /**
+   * used is how many claims and concepts it used.
+   *
+   * @generated from field: uint32 used = 6;
+   */
+  used: number;
+
+  /**
+   * has_outcome: its outcome is known; passed, score and detail are it.
+   *
+   * @generated from field: bool has_outcome = 7;
+   */
+  hasOutcome: boolean;
+
+  /**
+   * @generated from field: bool passed = 8;
+   */
+  passed: boolean;
+
+  /**
+   * @generated from field: optional double score = 9;
+   */
+  score?: number;
+
+  /**
+   * @generated from field: string detail = 10;
+   */
+  detail: string;
+};
+
+/**
+ * Describes the message san.tower.v1.BrainRun.
+ * Use `create(BrainRunSchema)` to create a new message.
+ */
+export const BrainRunSchema: GenMessage<BrainRun> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 35);
+
+/**
+ * @generated from message san.tower.v1.ListBrainRunsRequest
+ */
+export type ListBrainRunsRequest = Message<"san.tower.v1.ListBrainRunsRequest"> & {
+  /**
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+
+  /**
+   * @generated from field: string brain = 2;
+   */
+  brain: string;
+
+  /**
+   * limit is how many, 30 when 0.
+   *
+   * @generated from field: uint32 limit = 3;
+   */
+  limit: number;
+};
+
+/**
+ * Describes the message san.tower.v1.ListBrainRunsRequest.
+ * Use `create(ListBrainRunsRequestSchema)` to create a new message.
+ */
+export const ListBrainRunsRequestSchema: GenMessage<ListBrainRunsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 36);
+
+/**
+ * @generated from message san.tower.v1.ListBrainRunsResponse
+ */
+export type ListBrainRunsResponse = Message<"san.tower.v1.ListBrainRunsResponse"> & {
+  /**
+   * @generated from field: repeated san.tower.v1.BrainRun runs = 1;
+   */
+  runs: BrainRun[];
+};
+
+/**
+ * Describes the message san.tower.v1.ListBrainRunsResponse.
+ * Use `create(ListBrainRunsResponseSchema)` to create a new message.
+ */
+export const ListBrainRunsResponseSchema: GenMessage<ListBrainRunsResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 37);
+
+/**
+ * @generated from message san.tower.v1.RecallBrainRequest
+ */
+export type RecallBrainRequest = Message<"san.tower.v1.RecallBrainRequest"> & {
+  /**
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+
+  /**
+   * @generated from field: string brain = 2;
+   */
+  brain: string;
+
+  /**
+   * query is the task or question.
+   *
+   * @generated from field: string query = 3;
+   */
+  query: string;
+};
+
+/**
+ * Describes the message san.tower.v1.RecallBrainRequest.
+ * Use `create(RecallBrainRequestSchema)` to create a new message.
+ */
+export const RecallBrainRequestSchema: GenMessage<RecallBrainRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 38);
+
+/**
+ * RecalledClaim is a claim a recall brought up.
+ *
+ * @generated from message san.tower.v1.RecalledClaim
+ */
+export type RecalledClaim = Message<"san.tower.v1.RecalledClaim"> & {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * @generated from field: string text = 2;
+   */
+  text: string;
+
+  /**
+   * @generated from field: string status = 3;
+   */
+  status: string;
+
+  /**
+   * @generated from field: double score = 4;
+   */
+  score: number;
+};
+
+/**
+ * Describes the message san.tower.v1.RecalledClaim.
+ * Use `create(RecalledClaimSchema)` to create a new message.
+ */
+export const RecalledClaimSchema: GenMessage<RecalledClaim> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 39);
+
+/**
+ * RecalledFact is a doc or section a recall reached: what to read and cite.
+ *
+ * @generated from message san.tower.v1.RecalledFact
+ */
+export type RecalledFact = Message<"san.tower.v1.RecalledFact"> & {
+  /**
+   * key is its key in the knowledge's graph.
+   *
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * loc is its file:line.
+   *
+   * @generated from field: string loc = 3;
+   */
+  loc: string;
+
+  /**
+   * @generated from field: double score = 4;
+   */
+  score: number;
+};
+
+/**
+ * Describes the message san.tower.v1.RecalledFact.
+ * Use `create(RecalledFactSchema)` to create a new message.
+ */
+export const RecalledFactSchema: GenMessage<RecalledFact> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 40);
+
+/**
+ * @generated from message san.tower.v1.RecallBrainResponse
+ */
+export type RecallBrainResponse = Message<"san.tower.v1.RecallBrainResponse"> & {
+  /**
+   * @generated from field: repeated san.tower.v1.RecalledClaim claims = 1;
+   */
+  claims: RecalledClaim[];
+
+  /**
+   * @generated from field: repeated san.tower.v1.RecalledFact facts = 2;
+   */
+  facts: RecalledFact[];
+
+  /**
+   * markdown is the recall as a context block for a prompt.
+   *
+   * @generated from field: string markdown = 3;
+   */
+  markdown: string;
+};
+
+/**
+ * Describes the message san.tower.v1.RecallBrainResponse.
+ * Use `create(RecallBrainResponseSchema)` to create a new message.
+ */
+export const RecallBrainResponseSchema: GenMessage<RecallBrainResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_knowledge, 41);
+
+/**
  * KnowledgeService keeps the tower's knowledge, in its database, which the
  * UI's Knowledge page lists (the user, 2026-10-28). A knowledge's files are
  * in a storage (StorageService) made with it. Knowledge are in folders, as
@@ -859,6 +1443,53 @@ export const KnowledgeService: GenService<{
     methodKind: "unary";
     input: typeof GetKnowledgeNodeRequestSchema;
     output: typeof GetKnowledgeNodeResponseSchema;
+  },
+  /**
+   * The brains of a knowledge (the user, 2026-11-01: "make tower can show
+   * it"): self-improving memories learned from its docs, in its folder's
+   * knowledge_data/brains (docs/brain.md in the research repo). Read-only:
+   * a brain changes by learning, runs and sleep (the Brain steps).
+   *
+   * ListBrains lists them, each with its counts; none when it has none.
+   *
+   * @generated from rpc san.tower.v1.KnowledgeService.ListBrains
+   */
+  listBrains: {
+    methodKind: "unary";
+    input: typeof ListBrainsRequestSchema;
+    output: typeof ListBrainsResponseSchema;
+  },
+  /**
+   * ListBrainClaims gives a page of a brain's claims, each with what it
+   * rests on and how it worked out.
+   *
+   * @generated from rpc san.tower.v1.KnowledgeService.ListBrainClaims
+   */
+  listBrainClaims: {
+    methodKind: "unary";
+    input: typeof ListBrainClaimsRequestSchema;
+    output: typeof ListBrainClaimsResponseSchema;
+  },
+  /**
+   * ListBrainRuns gives a brain's latest runs, newest first.
+   *
+   * @generated from rpc san.tower.v1.KnowledgeService.ListBrainRuns
+   */
+  listBrainRuns: {
+    methodKind: "unary";
+    input: typeof ListBrainRunsRequestSchema;
+    output: typeof ListBrainRunsResponseSchema;
+  },
+  /**
+   * RecallBrain gives what a brain recalls for a task: claims, and the
+   * docs and sections they rest on. No AI.
+   *
+   * @generated from rpc san.tower.v1.KnowledgeService.RecallBrain
+   */
+  recallBrain: {
+    methodKind: "unary";
+    input: typeof RecallBrainRequestSchema;
+    output: typeof RecallBrainResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_san_tower_v1_knowledge, 0);

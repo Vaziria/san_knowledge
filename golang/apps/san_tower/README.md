@@ -337,6 +337,50 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   before the step runs; `call.back` reads one after each item, and before
   each item the value of its step is dropped, so an item whose AI step did
   not run gives no answer rather than the one before.
+- The brain steps (Knowledge; `engine/brain.go`; the research repo's
+  docs/brain.md: a brain is a self-improving memory next to a knowledge's
+  graph, in `knowledge_data/brains/`, used through `san_knowledge/graph`).
+  Each takes the Knowledge of a Knowledge Base step and a Brain (root when
+  empty).
+  - Brain Learn has the brain learn the docs that are new or changed since
+    it last did (`graph.Brains.Learn`): two `claude -p` calls per doc (your
+    login), Model proposes claims with their quotes and Verify Model checks
+    each; Limit caps the docs a run does.
+  - Brain Sleep tidies it after a snapshot (decay, merge, retire, stale; no
+    AI). With AI Yes, `Brains.Dream` follows (Model, up to two calls):
+    claims that are contested or won in some runs and lost in others get
+    `applies_when` contexts where their evidence or runs show them, 8 a
+    sleep, and once a week a grammar proposal may be written to
+    `brains/proposals/` for the gate, never applied.
+  - Brain Recall (pure, no AI) gives an AI step's prompt what the brain
+    recalls for Task: claims, best first, and the docs and sections to cite
+    (`Recall.Markdown`).
+  - Brain Run records Task and Answer as a run (`Brains.Answered`): what it
+    used are the claims behind the recalled facts the answer cites by
+    file:line. Its outcome comes from Success (yes or no, with Score,
+    Detail and Check: a task's own check), else from the citation check
+    (Outcome Citation Check: Verify Model reads each cited section and
+    judges the line that cites it; a pass when every citation holds,
+    nothing when it cites none), else later (Outcome Later). Run is the
+    run's key, Passed whether it passed.
+  - Brain Outcome gives a waiting run its outcome later, once: the user's
+    reaction, a post's reach.
+  - Brain Tool (a tool, like Knowledge Tool) gives an AI step `recall
+    [task]` and `check [answer]`: check runs the citation check on the
+    answer and records the run of the last recall's task.
+
+  Claude Ask (CLI)'s Project MCP (the user, 2026-11-01: "let primordial bot
+  can access folder project setting mcp", "not only just defined tool in
+  workflow"): with Yes, Claude also gets the servers of Directory's own
+  `.mcp.json`, in the same `--mcp-config` as the tower's tools, and
+  `--allowedTools` allows `mcp__<server>` for each. `--strict-mcp-config`
+  stays with Tools None and Read Only, so the user's other MCP servers (the
+  browser, Blender, claude.ai connectors) stay out. Without Directory, or
+  without a `.mcp.json` there, the step fails and says so.
+
+  `data/add-brain-workflow.ps1` made workflow 29, `nightly brain`, switched
+  off: at 03:00 Knowledge Sync → Brain Learn (Limit 20) → Brain Sleep with
+  AI, on Research Marketing's root brain.
 - Storage (Storage), UUID and MD5 Hash (Data; the user's ask, 2026-10-25) are pure
   steps: they run when a step takes one of their outputs, once per run.
   Storage gives the storage its Storage setting picks (Storage below): Path
@@ -1627,7 +1671,13 @@ frontmatter `domain:`, `keyword:` and `summary:` are applied as written.
 SyncKnowledge brings it in line with the files (no AI; a changed section
 keeps its summary and needs a new one), GetKnowledgeGraph gives every node
 and link, and GetKnowledgeNode one node with its links and its text from
-the file (6000 characters at most). Summaries are written by a workflow's
+the file (6000 characters at most). The brains of a knowledge (its
+folder's `knowledge_data/brains`, the Brain steps' memories) are read with
+ListBrains (each with its counts; none without making one), ListBrainClaims
+(a page of claims with their sources, filtered and sorted),
+ListBrainRuns (the latest runs and outcomes) and RecallBrain (no AI), for
+the Knowledge page's Brain view (`internal/server/brain.go`; the user,
+2026-11-01): read-only, a brain opened per call. Summaries are written by a workflow's
 Knowledge Summarize step (with the AI you choose, or `claude -p` with
 `engine.SummarizePrompt`, a system prompt for knowledge about anything):
 the SummarizeKnowledge call behind the page's old Summarize button is gone

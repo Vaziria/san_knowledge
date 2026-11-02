@@ -59,6 +59,10 @@ func Handler(o Options) http.Handler {
 	mux.HandleFunc("POST /api/fetch", h.fetch)
 	mux.HandleFunc("GET /api/todos", h.todos)
 	mux.HandleFunc("POST /api/todos", h.editTodo)
+	mux.HandleFunc("GET /api/brains", h.brainList)
+	mux.HandleFunc("GET /api/brain/claims", h.brainClaims)
+	mux.HandleFunc("GET /api/brain/runs", h.brainRuns)
+	mux.HandleFunc("GET /api/brain/recall", h.brainRecall)
 
 	root, _ := fs.Sub(dist, "dist")
 	files := http.FileServer(http.FS(root))

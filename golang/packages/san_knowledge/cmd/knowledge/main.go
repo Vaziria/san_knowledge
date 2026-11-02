@@ -45,7 +45,8 @@ func disableSliceSeparator(cmd *cli.Command) {
 
 // boolFlagNames never take a value, so a "-" after them is positional.
 var boolFlagNames = map[string]bool{"json": true, "force": true, "no-open": true, "help": true, "h": true,
-	"version": true, "v": true, "no-ai": true, "dry-run": true, "needs-summary": true, "no-sync": true, "refresh": true, "redo-ai": true}
+	"version": true, "v": true, "no-ai": true, "dry-run": true, "needs-summary": true, "no-sync": true, "refresh": true, "redo-ai": true,
+	"plan": true, "replace": true, "no-save": true, "again": true, "ai": true}
 
 // stdinArgLast moves a positional "-" (read stdin) to the end. urfave/cli stops
 // parsing flags at "-", which would silently ignore e.g. "import - --json".
@@ -144,8 +145,12 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 				Usage: "run as an MCP server on stdio so AI chat sessions can use the knowledge graph",
 				Description: "Registered in .mcp.json as \"knowledge\". Syncs the tracked docs (without AI) on start.\n" +
 					"Tools: knowledge_explain, _search, _get, _list, _stats, _sync, _pending, _annotate, _add_domain, _assign_domain, _unassign_domain,\n" +
-					"_fetch, _save_web.",
-				Flags: []cli.Flag{&cli.BoolFlag{Name: "no-sync", Usage: "do not sync the tracked docs on start"}},
+					"_fetch, _save_web; brain_list, _grammar, _stats, _get, _query, _remember, _link, _retire, _record_run,\n" +
+					"_record_outcome, _recall, _snapshot, _fork, _create (see \"knowledge brain --help\").",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{Name: "no-sync", Usage: "do not sync the tracked docs on start"},
+					&cli.StringFlag{Name: "brain", Value: kb.RootBrain, Usage: "the brain the brain_* tools use when a call names none", Sources: cli.EnvVars("KNOWLEDGE_BRAIN")},
+				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					dir, err := dataDir(cmd.String("data"))
 					if err != nil {
@@ -246,6 +251,8 @@ func newApp(stdin io.Reader, out io.Writer) *cli.Command {
 					})
 				},
 			},
+			brainCommand(),
+			examCommand(),
 			{
 				Name: "where", Category: "graph", Usage: "print the data directory", ArgsUsage: " ",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -325,10 +332,12 @@ func (c *app) emit(v any, text func()) error { return emit(c.out, c.cmd.Bool("js
 
 func (c *app) author() string { return authorFrom(c.cmd, "user") }
 
+func (c *app) values(name string) []string { return values(c.cmd, name) }
+
 // values returns repeated flag values, also splitting on commas.
-func (c *app) values(name string) []string {
+func values(cmd *cli.Command, name string) []string {
 	var out []string
-	for _, v := range c.cmd.StringSlice(name) {
+	for _, v := range cmd.StringSlice(name) {
 		for _, p := range strings.Split(v, ",") {
 			if p = strings.TrimSpace(p); p != "" {
 				out = append(out, p)

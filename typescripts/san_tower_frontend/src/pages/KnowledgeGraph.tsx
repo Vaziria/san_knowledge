@@ -18,6 +18,7 @@ import {
 } from '@chakra-ui/react';
 import {
   ArrowLeftIcon,
+  BrainIcon,
   EyeIcon,
   FoldVerticalIcon,
   RefreshCwIcon,
@@ -25,6 +26,7 @@ import {
   SearchIcon,
   ShrinkIcon,
   UnfoldVerticalIcon,
+  WaypointsIcon,
   WorkflowIcon,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -37,6 +39,7 @@ import type {
   KnowledgeNode,
   SyncKnowledgeResponse,
 } from '../gen/san/tower/v1/knowledge_pb';
+import { BrainPanel } from '../knowledge/BrainPanel';
 import { BATCH, CORE, buildNet, pruned, shownNodes } from '../knowledge/fold';
 import { GraphCanvas, graphColors, nodeTypes, typeOf, useDark } from '../knowledge/GraphCanvas';
 import { createSyncWorkflow } from '../knowledge/syncSample';
@@ -68,10 +71,25 @@ const MAX_MATCHES_SHOWN = 30;
 // most-connected first, a batch at a time (Expand more), and Collapses it
 // again; Collapse all goes back to the core. The selected node, and the
 // first matches of a search, are shown with the path to them.
+//
+// Brain (?view=brain; the user, 2026-11-01: "make tower can show it") shows
+// the knowledge's brains instead of the graph (knowledge/BrainPanel.tsx):
+// their claims, runs and recall. A source there opens in the node dialog.
 export function KnowledgeGraph() {
   const id = Number(useParams().id) || 0;
   const [params, setParams] = useSearchParams();
   const selected = params.get('node') ?? undefined;
+  const mode = params.get('view') === 'brain' ? 'brain' : 'graph';
+  const setMode = (m: 'graph' | 'brain') =>
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        if (m === 'brain') next.set('view', 'brain');
+        else next.delete('view');
+        return next;
+      },
+      { replace: true },
+    );
   const [k, setK] = useState<Knowledge>();
   const [graph, setGraph] = useState<Graph>();
   const [version, setVersion] = useState(0);
@@ -254,6 +272,31 @@ export function KnowledgeGraph() {
               </Text>
             </Stack>
             <HStack gap="2">
+              <HStack gap="0" role="group" aria-label="View">
+                <Button
+                  size="sm"
+                  variant={mode === 'graph' ? 'subtle' : 'outline'}
+                  roundedEnd="0"
+                  aria-pressed={mode === 'graph'}
+                  onClick={() => setMode('graph')}
+                  title="The graph of its docs and sections"
+                >
+                  <WaypointsIcon />
+                  Graph
+                </Button>
+                <Button
+                  size="sm"
+                  variant={mode === 'brain' ? 'subtle' : 'outline'}
+                  roundedStart="0"
+                  ms="-1px"
+                  aria-pressed={mode === 'brain'}
+                  onClick={() => setMode('brain')}
+                  title="Its brains: claims learned from the docs, and how they worked out"
+                >
+                  <BrainIcon />
+                  Brain
+                </Button>
+              </HStack>
               <Button size="sm" variant="outline" loading={syncing} onClick={() => void sync()} title="Read the files again">
                 <RefreshCwIcon />
                 Sync
@@ -270,7 +313,12 @@ export function KnowledgeGraph() {
               </Button>
             </HStack>
           </HStack>
-          {stats.pending > 0 && summarizers && (
+          {mode === 'brain' && (
+            <Box flex="1" minH="0" overflowY="auto" pe="1">
+              <BrainPanel id={id} onView={view} />
+            </Box>
+          )}
+          {mode === 'graph' && stats.pending > 0 && summarizers && (
             <Text textStyle="sm" color="fg.muted">
               {stats.pending} nodes wait for a summary.{' '}
               {summarizers.length > 0 ? (
@@ -293,77 +341,90 @@ export function KnowledgeGraph() {
               )}
             </Text>
           )}
-          <HStack gap="3" wrap="wrap">
-            <InputGroup maxW="xs" startElement={<SearchIcon size="16" />}>
-              <Input
-                size="sm"
-                value={query}
-                onChange={(e) => setQuery(e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  const first = matches?.values().next().value;
-                  if (e.key === 'Enter' && first) select(first);
-                }}
-                placeholder="Find a node by title, keyword or summary"
-              />
-            </InputGroup>
-            <Text textStyle="sm" color="fg.muted">
-              {matches
-                ? `${matches.size} found` + (matches.size > MAX_MATCHES_SHOWN ? `, the first ${MAX_MATCHES_SHOWN} shown` : '')
-                : `${stats.docs} docs, ${stats.sections} sections, ${stats.domains} domains` +
-                  (shown && shown.nodes.length < graph.nodes.length ? ` · ${shown.nodes.length} shown` : '')}
-            </Text>
-          </HStack>
-          <Box flex="1" minH="80" position="relative" borderWidth="1px" rounded="md" bg="bg.panel" overflow="hidden">
-            {graph.nodes.length === 0 ? (
-              <Text color="fg.muted" p="4">
-                No markdown files in its folder yet: add .md files there, then Sync.
-              </Text>
-            ) : (
-              <>
-                <GraphCanvas
-                  nodes={shown?.nodes ?? []}
-                  links={shown?.links ?? []}
-                  selected={selected}
-                  matches={matches}
-                  fit={fit}
-                  folded={shown?.hidden}
-                  anchors={shown?.anchors}
-                  onSelect={select}
-                  onMenu={(key, at) => setMenu({ key, at })}
-                />
-                <HStack position="absolute" top="2" right="2" gap="1">
-                  <IconButton
-                    aria-label="Collapse all"
-                    title={`Collapse all: back to the ${CORE} most-connected nodes`}
-                    size="xs"
-                    variant="outline"
-                    bg="bg.panel"
-                    onClick={() => {
-                      setOpened(new Map());
-                      select(undefined);
-                      setQuery('');
+          {mode === 'graph' && (
+            <>
+              <HStack gap="3" wrap="wrap">
+                <InputGroup maxW="xs" startElement={<SearchIcon size="16" />}>
+                  <Input
+                    size="sm"
+                    value={query}
+                    onChange={(e) => setQuery(e.currentTarget.value)}
+                    onKeyDown={(e) => {
+                      const first = matches?.values().next().value;
+                      if (e.key === 'Enter' && first) select(first);
                     }}
-                  >
-                    <ShrinkIcon />
-                  </IconButton>
-                  <IconButton
-                    aria-label="Fit the graph in view"
-                    title="Fit"
-                    size="xs"
-                    variant="outline"
-                    bg="bg.panel"
-                    onClick={() => setFit((n) => n + 1)}
-                  >
-                    <ScanIcon />
-                  </IconButton>
-                </HStack>
-                <Legend />
-              </>
-            )}
-          </Box>
-          <Text fontSize="xs" color="fg.muted">
-            The most-connected nodes first · click a node to mark its links · right-click it to expand (+N) or collapse it · drag to pan · wheel to zoom
-          </Text>
+                    placeholder="Find a node by title, keyword or summary"
+                  />
+                </InputGroup>
+                <Text textStyle="sm" color="fg.muted">
+                  {matches
+                    ? `${matches.size} found` +
+                      (matches.size > MAX_MATCHES_SHOWN ? `, the first ${MAX_MATCHES_SHOWN} shown` : '')
+                    : `${stats.docs} docs, ${stats.sections} sections, ${stats.domains} domains` +
+                      (shown && shown.nodes.length < graph.nodes.length ? ` · ${shown.nodes.length} shown` : '')}
+                </Text>
+              </HStack>
+              <Box
+                flex="1"
+                minH="80"
+                position="relative"
+                borderWidth="1px"
+                rounded="md"
+                bg="bg.panel"
+                overflow="hidden"
+              >
+                {graph.nodes.length === 0 ? (
+                  <Text color="fg.muted" p="4">
+                    No markdown files in its folder yet: add .md files there, then Sync.
+                  </Text>
+                ) : (
+                  <>
+                    <GraphCanvas
+                      nodes={shown?.nodes ?? []}
+                      links={shown?.links ?? []}
+                      selected={selected}
+                      matches={matches}
+                      fit={fit}
+                      folded={shown?.hidden}
+                      anchors={shown?.anchors}
+                      onSelect={select}
+                      onMenu={(key, at) => setMenu({ key, at })}
+                    />
+                    <HStack position="absolute" top="2" right="2" gap="1">
+                      <IconButton
+                        aria-label="Collapse all"
+                        title={`Collapse all: back to the ${CORE} most-connected nodes`}
+                        size="xs"
+                        variant="outline"
+                        bg="bg.panel"
+                        onClick={() => {
+                          setOpened(new Map());
+                          select(undefined);
+                          setQuery('');
+                        }}
+                      >
+                        <ShrinkIcon />
+                      </IconButton>
+                      <IconButton
+                        aria-label="Fit the graph in view"
+                        title="Fit"
+                        size="xs"
+                        variant="outline"
+                        bg="bg.panel"
+                        onClick={() => setFit((n) => n + 1)}
+                      >
+                        <ScanIcon />
+                      </IconButton>
+                    </HStack>
+                    <Legend />
+                  </>
+                )}
+              </Box>
+              <Text fontSize="xs" color="fg.muted">
+                The most-connected nodes first · click a node to mark its links · right-click it to expand (+N) or collapse it · drag to pan · wheel to zoom
+              </Text>
+            </>
+          )}
         </>
       )}
       {/* The pointer menu's trigger is an empty box at the pointer, as the

@@ -50,6 +50,22 @@ service KnowledgeService {
   rpc GetKnowledgeGraph(GetKnowledgeGraphRequest) returns (GetKnowledgeGraphResponse);
   // GetKnowledgeNode gives one node, its links, and its text from the file.
   rpc GetKnowledgeNode(GetKnowledgeNodeRequest) returns (GetKnowledgeNodeResponse);
+
+  // The brains of a knowledge (the user, 2026-11-01: "make tower can show
+  // it"): self-improving memories learned from its docs, in its folder's
+  // knowledge_data/brains (docs/brain.md in the research repo). Read-only:
+  // a brain changes by learning, runs and sleep (the Brain steps).
+  //
+  // ListBrains lists them, each with its counts; none when it has none.
+  rpc ListBrains(ListBrainsRequest) returns (ListBrainsResponse);
+  // ListBrainClaims gives a page of a brain's claims, each with what it
+  // rests on and how it worked out.
+  rpc ListBrainClaims(ListBrainClaimsRequest) returns (ListBrainClaimsResponse);
+  // ListBrainRuns gives a brain's latest runs, newest first.
+  rpc ListBrainRuns(ListBrainRunsRequest) returns (ListBrainRunsResponse);
+  // RecallBrain gives what a brain recalls for a task: claims, and the
+  // docs and sections they rest on. No AI.
+  rpc RecallBrain(RecallBrainRequest) returns (RecallBrainResponse);
 }
 
 message Knowledge {
@@ -219,4 +235,154 @@ message GetKnowledgeNodeResponse {
   // text is its text in the file (a doc's whole text), cut
   // at 6000 characters.
   string text = 4;
+}
+
+// Brain is a brain of a knowledge, with its counts.
+message Brain {
+  string name = 1;
+  // grammar is the version of the grammar it follows.
+  uint32 grammar = 2;
+  // forked_from is the brain it was copied from, if any.
+  string forked_from = 3;
+  // created and last_sleep are RFC 3339 times; last_sleep is empty
+  // before its first sleep.
+  string created = 4;
+  string last_sleep = 5;
+  uint32 claims = 6;
+  uint32 concepts = 7;
+  uint32 sources = 8;
+  uint32 runs = 9;
+  // passed is how many runs passed their check, waiting how many have
+  // no outcome yet.
+  uint32 passed = 10;
+  uint32 waiting = 11;
+  // retired is how many claims and edges were taken out of use.
+  uint32 retired = 12;
+}
+
+message ListBrainsRequest {
+  // id is the knowledge's.
+  uint32 id = 1;
+}
+
+message ListBrainsResponse {
+  repeated Brain brains = 1;
+}
+
+// BrainSource is a doc or section of the knowledge a claim rests on.
+message BrainSource {
+  // fact is its key in the knowledge's graph.
+  string fact = 1;
+  string title = 2;
+  // loc is its file:line.
+  string loc = 3;
+  // quote is the words of it the claim rests on.
+  string quote = 4;
+}
+
+// BrainClaim is a claim of a brain.
+message BrainClaim {
+  string key = 1;
+  string text = 2;
+  // status is proposed, verified or confirmed (by the user).
+  string status = 3;
+  double confidence = 4;
+  // uses and wins: in how many runs it was used, and how many passed.
+  uint32 uses = 5;
+  uint32 wins = 6;
+  // weight is what sleep weighs it by: (0.5 + confidence) x record x
+  // trust; under 0.1 it is retired.
+  double weight = 7;
+  // retired is why it was taken out of use; empty while in use.
+  string retired = 8;
+  // stale: its sources changed, so it waits to be learned again.
+  bool stale = 9;
+  // about are its concepts, applies_when the contexts it holds in.
+  repeated string about = 10;
+  repeated string applies_when = 11;
+  // sources speak for it, against against it.
+  repeated BrainSource sources = 12;
+  repeated BrainSource against = 13;
+}
+
+message ListBrainClaimsRequest {
+  // id is the knowledge's; brain its brain's name (root when empty).
+  uint32 id = 1;
+  string brain = 2;
+  // query: every word in the claim's text, a concept or a source.
+  string query = 3;
+  // status: empty for the claims in use, else proposed, verified,
+  // confirmed or retired.
+  string status = 4;
+  // sort: weight (the default), uses or new.
+  string sort = 5;
+  uint32 offset = 6;
+  // limit is the page's size, 50 when 0.
+  uint32 limit = 7;
+}
+
+message ListBrainClaimsResponse {
+  // total is how many claims pass the query.
+  uint32 total = 1;
+  repeated BrainClaim claims = 2;
+}
+
+// BrainRun is a task done with a brain, and its outcome.
+message BrainRun {
+  string key = 1;
+  string task = 2;
+  // check is how its outcome is judged.
+  string check = 3;
+  string author = 4;
+  string created = 5;
+  // used is how many claims and concepts it used.
+  uint32 used = 6;
+  // has_outcome: its outcome is known; passed, score and detail are it.
+  bool has_outcome = 7;
+  bool passed = 8;
+  optional double score = 9;
+  string detail = 10;
+}
+
+message ListBrainRunsRequest {
+  uint32 id = 1;
+  string brain = 2;
+  // limit is how many, 30 when 0.
+  uint32 limit = 3;
+}
+
+message ListBrainRunsResponse {
+  repeated BrainRun runs = 1;
+}
+
+message RecallBrainRequest {
+  uint32 id = 1;
+  string brain = 2;
+  // query is the task or question.
+  string query = 3;
+}
+
+// RecalledClaim is a claim a recall brought up.
+message RecalledClaim {
+  string key = 1;
+  string text = 2;
+  string status = 3;
+  double score = 4;
+}
+
+// RecalledFact is a doc or section a recall reached: what to read and cite.
+message RecalledFact {
+  // key is its key in the knowledge's graph.
+  string key = 1;
+  string title = 2;
+  // loc is its file:line.
+  string loc = 3;
+  double score = 4;
+}
+
+message RecallBrainResponse {
+  repeated RecalledClaim claims = 1;
+  repeated RecalledFact facts = 2;
+  // markdown is the recall as a context block for a prompt.
+  string markdown = 3;
 }

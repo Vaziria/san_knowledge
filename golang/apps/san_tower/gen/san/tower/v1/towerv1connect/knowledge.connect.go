@@ -69,6 +69,18 @@ const (
 	// KnowledgeServiceGetKnowledgeNodeProcedure is the fully-qualified name of the KnowledgeService's
 	// GetKnowledgeNode RPC.
 	KnowledgeServiceGetKnowledgeNodeProcedure = "/san.tower.v1.KnowledgeService/GetKnowledgeNode"
+	// KnowledgeServiceListBrainsProcedure is the fully-qualified name of the KnowledgeService's
+	// ListBrains RPC.
+	KnowledgeServiceListBrainsProcedure = "/san.tower.v1.KnowledgeService/ListBrains"
+	// KnowledgeServiceListBrainClaimsProcedure is the fully-qualified name of the KnowledgeService's
+	// ListBrainClaims RPC.
+	KnowledgeServiceListBrainClaimsProcedure = "/san.tower.v1.KnowledgeService/ListBrainClaims"
+	// KnowledgeServiceListBrainRunsProcedure is the fully-qualified name of the KnowledgeService's
+	// ListBrainRuns RPC.
+	KnowledgeServiceListBrainRunsProcedure = "/san.tower.v1.KnowledgeService/ListBrainRuns"
+	// KnowledgeServiceRecallBrainProcedure is the fully-qualified name of the KnowledgeService's
+	// RecallBrain RPC.
+	KnowledgeServiceRecallBrainProcedure = "/san.tower.v1.KnowledgeService/RecallBrain"
 )
 
 // KnowledgeServiceClient is a client for the san.tower.v1.KnowledgeService service.
@@ -107,6 +119,21 @@ type KnowledgeServiceClient interface {
 	GetKnowledgeGraph(context.Context, *connect.Request[v1.GetKnowledgeGraphRequest]) (*connect.Response[v1.GetKnowledgeGraphResponse], error)
 	// GetKnowledgeNode gives one node, its links, and its text from the file.
 	GetKnowledgeNode(context.Context, *connect.Request[v1.GetKnowledgeNodeRequest]) (*connect.Response[v1.GetKnowledgeNodeResponse], error)
+	// The brains of a knowledge (the user, 2026-11-01: "make tower can show
+	// it"): self-improving memories learned from its docs, in its folder's
+	// knowledge_data/brains (docs/brain.md in the research repo). Read-only:
+	// a brain changes by learning, runs and sleep (the Brain steps).
+	//
+	// ListBrains lists them, each with its counts; none when it has none.
+	ListBrains(context.Context, *connect.Request[v1.ListBrainsRequest]) (*connect.Response[v1.ListBrainsResponse], error)
+	// ListBrainClaims gives a page of a brain's claims, each with what it
+	// rests on and how it worked out.
+	ListBrainClaims(context.Context, *connect.Request[v1.ListBrainClaimsRequest]) (*connect.Response[v1.ListBrainClaimsResponse], error)
+	// ListBrainRuns gives a brain's latest runs, newest first.
+	ListBrainRuns(context.Context, *connect.Request[v1.ListBrainRunsRequest]) (*connect.Response[v1.ListBrainRunsResponse], error)
+	// RecallBrain gives what a brain recalls for a task: claims, and the
+	// docs and sections they rest on. No AI.
+	RecallBrain(context.Context, *connect.Request[v1.RecallBrainRequest]) (*connect.Response[v1.RecallBrainResponse], error)
 }
 
 // NewKnowledgeServiceClient constructs a client for the san.tower.v1.KnowledgeService service. By
@@ -192,6 +219,30 @@ func NewKnowledgeServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(knowledgeServiceMethods.ByName("GetKnowledgeNode")),
 			connect.WithClientOptions(opts...),
 		),
+		listBrains: connect.NewClient[v1.ListBrainsRequest, v1.ListBrainsResponse](
+			httpClient,
+			baseURL+KnowledgeServiceListBrainsProcedure,
+			connect.WithSchema(knowledgeServiceMethods.ByName("ListBrains")),
+			connect.WithClientOptions(opts...),
+		),
+		listBrainClaims: connect.NewClient[v1.ListBrainClaimsRequest, v1.ListBrainClaimsResponse](
+			httpClient,
+			baseURL+KnowledgeServiceListBrainClaimsProcedure,
+			connect.WithSchema(knowledgeServiceMethods.ByName("ListBrainClaims")),
+			connect.WithClientOptions(opts...),
+		),
+		listBrainRuns: connect.NewClient[v1.ListBrainRunsRequest, v1.ListBrainRunsResponse](
+			httpClient,
+			baseURL+KnowledgeServiceListBrainRunsProcedure,
+			connect.WithSchema(knowledgeServiceMethods.ByName("ListBrainRuns")),
+			connect.WithClientOptions(opts...),
+		),
+		recallBrain: connect.NewClient[v1.RecallBrainRequest, v1.RecallBrainResponse](
+			httpClient,
+			baseURL+KnowledgeServiceRecallBrainProcedure,
+			connect.WithSchema(knowledgeServiceMethods.ByName("RecallBrain")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -209,6 +260,10 @@ type knowledgeServiceClient struct {
 	syncKnowledge         *connect.Client[v1.SyncKnowledgeRequest, v1.SyncKnowledgeResponse]
 	getKnowledgeGraph     *connect.Client[v1.GetKnowledgeGraphRequest, v1.GetKnowledgeGraphResponse]
 	getKnowledgeNode      *connect.Client[v1.GetKnowledgeNodeRequest, v1.GetKnowledgeNodeResponse]
+	listBrains            *connect.Client[v1.ListBrainsRequest, v1.ListBrainsResponse]
+	listBrainClaims       *connect.Client[v1.ListBrainClaimsRequest, v1.ListBrainClaimsResponse]
+	listBrainRuns         *connect.Client[v1.ListBrainRunsRequest, v1.ListBrainRunsResponse]
+	recallBrain           *connect.Client[v1.RecallBrainRequest, v1.RecallBrainResponse]
 }
 
 // ListKnowledge calls san.tower.v1.KnowledgeService.ListKnowledge.
@@ -271,6 +326,26 @@ func (c *knowledgeServiceClient) GetKnowledgeNode(ctx context.Context, req *conn
 	return c.getKnowledgeNode.CallUnary(ctx, req)
 }
 
+// ListBrains calls san.tower.v1.KnowledgeService.ListBrains.
+func (c *knowledgeServiceClient) ListBrains(ctx context.Context, req *connect.Request[v1.ListBrainsRequest]) (*connect.Response[v1.ListBrainsResponse], error) {
+	return c.listBrains.CallUnary(ctx, req)
+}
+
+// ListBrainClaims calls san.tower.v1.KnowledgeService.ListBrainClaims.
+func (c *knowledgeServiceClient) ListBrainClaims(ctx context.Context, req *connect.Request[v1.ListBrainClaimsRequest]) (*connect.Response[v1.ListBrainClaimsResponse], error) {
+	return c.listBrainClaims.CallUnary(ctx, req)
+}
+
+// ListBrainRuns calls san.tower.v1.KnowledgeService.ListBrainRuns.
+func (c *knowledgeServiceClient) ListBrainRuns(ctx context.Context, req *connect.Request[v1.ListBrainRunsRequest]) (*connect.Response[v1.ListBrainRunsResponse], error) {
+	return c.listBrainRuns.CallUnary(ctx, req)
+}
+
+// RecallBrain calls san.tower.v1.KnowledgeService.RecallBrain.
+func (c *knowledgeServiceClient) RecallBrain(ctx context.Context, req *connect.Request[v1.RecallBrainRequest]) (*connect.Response[v1.RecallBrainResponse], error) {
+	return c.recallBrain.CallUnary(ctx, req)
+}
+
 // KnowledgeServiceHandler is an implementation of the san.tower.v1.KnowledgeService service.
 type KnowledgeServiceHandler interface {
 	// ListKnowledge lists the knowledge right in a folder, by name.
@@ -307,6 +382,21 @@ type KnowledgeServiceHandler interface {
 	GetKnowledgeGraph(context.Context, *connect.Request[v1.GetKnowledgeGraphRequest]) (*connect.Response[v1.GetKnowledgeGraphResponse], error)
 	// GetKnowledgeNode gives one node, its links, and its text from the file.
 	GetKnowledgeNode(context.Context, *connect.Request[v1.GetKnowledgeNodeRequest]) (*connect.Response[v1.GetKnowledgeNodeResponse], error)
+	// The brains of a knowledge (the user, 2026-11-01: "make tower can show
+	// it"): self-improving memories learned from its docs, in its folder's
+	// knowledge_data/brains (docs/brain.md in the research repo). Read-only:
+	// a brain changes by learning, runs and sleep (the Brain steps).
+	//
+	// ListBrains lists them, each with its counts; none when it has none.
+	ListBrains(context.Context, *connect.Request[v1.ListBrainsRequest]) (*connect.Response[v1.ListBrainsResponse], error)
+	// ListBrainClaims gives a page of a brain's claims, each with what it
+	// rests on and how it worked out.
+	ListBrainClaims(context.Context, *connect.Request[v1.ListBrainClaimsRequest]) (*connect.Response[v1.ListBrainClaimsResponse], error)
+	// ListBrainRuns gives a brain's latest runs, newest first.
+	ListBrainRuns(context.Context, *connect.Request[v1.ListBrainRunsRequest]) (*connect.Response[v1.ListBrainRunsResponse], error)
+	// RecallBrain gives what a brain recalls for a task: claims, and the
+	// docs and sections they rest on. No AI.
+	RecallBrain(context.Context, *connect.Request[v1.RecallBrainRequest]) (*connect.Response[v1.RecallBrainResponse], error)
 }
 
 // NewKnowledgeServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -388,6 +478,30 @@ func NewKnowledgeServiceHandler(svc KnowledgeServiceHandler, opts ...connect.Han
 		connect.WithSchema(knowledgeServiceMethods.ByName("GetKnowledgeNode")),
 		connect.WithHandlerOptions(opts...),
 	)
+	knowledgeServiceListBrainsHandler := connect.NewUnaryHandler(
+		KnowledgeServiceListBrainsProcedure,
+		svc.ListBrains,
+		connect.WithSchema(knowledgeServiceMethods.ByName("ListBrains")),
+		connect.WithHandlerOptions(opts...),
+	)
+	knowledgeServiceListBrainClaimsHandler := connect.NewUnaryHandler(
+		KnowledgeServiceListBrainClaimsProcedure,
+		svc.ListBrainClaims,
+		connect.WithSchema(knowledgeServiceMethods.ByName("ListBrainClaims")),
+		connect.WithHandlerOptions(opts...),
+	)
+	knowledgeServiceListBrainRunsHandler := connect.NewUnaryHandler(
+		KnowledgeServiceListBrainRunsProcedure,
+		svc.ListBrainRuns,
+		connect.WithSchema(knowledgeServiceMethods.ByName("ListBrainRuns")),
+		connect.WithHandlerOptions(opts...),
+	)
+	knowledgeServiceRecallBrainHandler := connect.NewUnaryHandler(
+		KnowledgeServiceRecallBrainProcedure,
+		svc.RecallBrain,
+		connect.WithSchema(knowledgeServiceMethods.ByName("RecallBrain")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.KnowledgeService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case KnowledgeServiceListKnowledgeProcedure:
@@ -414,6 +528,14 @@ func NewKnowledgeServiceHandler(svc KnowledgeServiceHandler, opts ...connect.Han
 			knowledgeServiceGetKnowledgeGraphHandler.ServeHTTP(w, r)
 		case KnowledgeServiceGetKnowledgeNodeProcedure:
 			knowledgeServiceGetKnowledgeNodeHandler.ServeHTTP(w, r)
+		case KnowledgeServiceListBrainsProcedure:
+			knowledgeServiceListBrainsHandler.ServeHTTP(w, r)
+		case KnowledgeServiceListBrainClaimsProcedure:
+			knowledgeServiceListBrainClaimsHandler.ServeHTTP(w, r)
+		case KnowledgeServiceListBrainRunsProcedure:
+			knowledgeServiceListBrainRunsHandler.ServeHTTP(w, r)
+		case KnowledgeServiceRecallBrainProcedure:
+			knowledgeServiceRecallBrainHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -469,4 +591,20 @@ func (UnimplementedKnowledgeServiceHandler) GetKnowledgeGraph(context.Context, *
 
 func (UnimplementedKnowledgeServiceHandler) GetKnowledgeNode(context.Context, *connect.Request[v1.GetKnowledgeNodeRequest]) (*connect.Response[v1.GetKnowledgeNodeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KnowledgeService.GetKnowledgeNode is not implemented"))
+}
+
+func (UnimplementedKnowledgeServiceHandler) ListBrains(context.Context, *connect.Request[v1.ListBrainsRequest]) (*connect.Response[v1.ListBrainsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KnowledgeService.ListBrains is not implemented"))
+}
+
+func (UnimplementedKnowledgeServiceHandler) ListBrainClaims(context.Context, *connect.Request[v1.ListBrainClaimsRequest]) (*connect.Response[v1.ListBrainClaimsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KnowledgeService.ListBrainClaims is not implemented"))
+}
+
+func (UnimplementedKnowledgeServiceHandler) ListBrainRuns(context.Context, *connect.Request[v1.ListBrainRunsRequest]) (*connect.Response[v1.ListBrainRunsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KnowledgeService.ListBrainRuns is not implemented"))
+}
+
+func (UnimplementedKnowledgeServiceHandler) RecallBrain(context.Context, *connect.Request[v1.RecallBrainRequest]) (*connect.Response[v1.RecallBrainResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KnowledgeService.RecallBrain is not implemented"))
 }

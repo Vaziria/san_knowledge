@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import type { Mode, Palette } from './theme';
 import { Segmented, useApp } from './ui';
 
-export type ViewMode = 'graph' | 'table' | 'board';
+export type ViewMode = 'graph' | 'table' | 'board' | 'brain';
 
 // A small graph in the node encoding: a domain hexagon linked to a doc and its
 // sections. index.html carries the same drawing (light colours) as the favicon.
@@ -50,7 +50,7 @@ export function TopBar({ counts, mode, setMode, colorMode, toggleColorMode, quer
         <Button type="submit" size="sm" colorPalette="accent">Explain</Button>
       </Flex>
       <HStack gap="8px" order={{ base: 2, md: 0 }}>
-        <Segmented label="View mode" value={mode} onChange={setMode} options={[{ value: 'graph', text: 'Graph' }, { value: 'table', text: 'Table' }, { value: 'board', text: 'Board' }]} />
+        <Segmented label="View mode" value={mode} onChange={setMode} options={[{ value: 'graph', text: 'Graph' }, { value: 'table', text: 'Table' }, { value: 'board', text: 'Board' }, { value: 'brain', text: 'Brain', title: 'The brains: claims learned from the docs, and how they worked out (docs/brain.md)' }]} />
         <IconButton size="sm" variant="outline" aria-label="Toggle theme" title={`Switch to ${colorMode === 'dark' ? 'light' : 'dark'} theme`} onClick={toggleColorMode}>◐</IconButton>
       </HStack>
     </Flex>

@@ -150,12 +150,13 @@ var claudeKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "claude-ask-cli", Title: "Claude Ask (CLI)", Category: "AI",
 			Group:       "Claude",
-			Description: "Asks Claude the Prompt with this computer's Claude Code (claude -p, your login), started in Directory (a project's folder, whose CLAUDE.md it reads) or the temporary folder; Answer is its reply. Tools: None (no tools or MCP: for a prompt anyone may have written), Read Only (reads the files), or Full (tools, MCP and skills); Permission Mode is how they are allowed, as claude --permission-mode (Bypass Permissions allows everything: only for prompts you write). When Claude needs more from you to answer, Needs Feedback fires instead, with Question its question (or Done, with the question as Answer, when Needs Feedback links nowhere). With a Session ID, from Claude Chat Session, it goes on with that conversation, as Claude Code does on screen: a question sent while Claude works is queued and answered next (several at once are answered together, by the last one's run), Claude Interrupt stops it (Stopped fires), and with Status Bot and Status Chat a Telegram message shows what it is doing as it goes. Without a Session ID it keeps none.",
+			Description: "Asks Claude the Prompt with this computer's Claude Code (claude -p, your login), started in Directory (a project's folder, whose CLAUDE.md it reads) or the temporary folder; Answer is its reply. Tools: None (no tools or MCP: for a prompt anyone may have written), Read Only (reads the files), or Full (tools, MCP and skills); with Project MCP Yes, Claude also gets the MCP servers of Directory's own .mcp.json, and their tools are allowed, while your other MCP servers stay out (with Tools None or Read Only); Permission Mode is how they are allowed, as claude --permission-mode (Bypass Permissions allows everything: only for prompts you write). When Claude needs more from you to answer, Needs Feedback fires instead, with Question its question (or Done, with the question as Answer, when Needs Feedback links nowhere). With a Session ID, from Claude Chat Session, it goes on with that conversation, as Claude Code does on screen: a question sent while Claude works is queued and answered next (several at once are answered together, by the last one's run), Claude Interrupt stops it (Stopped fires), and with Status Bot and Status Chat a Telegram message shows what it is doing as it goes. Without a Session ID it keeps none.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Needs Feedback", Event), sock("Stopped", Event), sock("Answer", Text), sock("Question", Text)},
 			Settings: []*v1.Setting{
 				{Name: "Model", Options: claudeModelOptions},
 				{Name: "Effort", Options: claudeEffortOptions},
 				{Name: "Tools", Options: []string{"None", "Read Only", "Full"}},
+				{Name: "Project MCP", Options: []string{"No", "Yes"}},
 				{Name: "Permission Mode", Options: claudeModeOptions},
 				{Name: "Wait", Placeholder: "10m: how long the answer may take"},
 				{Name: "Status Bot", ConnectionType: store.TelegramBot},
@@ -331,10 +332,27 @@ func claudeAskCLI(c *call) error {
 	if err != nil {
 		return err
 	}
+	// Project MCP (the user, 2026-11-01: "let primordial bot can access
+	// folder project setting mcp", "not only just defined tool in
+	// workflow"): the servers of Directory's .mcp.json too, their tools
+	// allowed. --strict-mcp-config stays, so the user's other servers (the
+	// browser, Blender, claude.ai connectors) stay out.
+	var mcpConfigs, mcpAllowed []string
+	if c.setting("Project MCP") == "Yes" {
+		file, names, err := projectMCP(strings.TrimSpace(c.text("Directory")))
+		if err != nil {
+			return err
+		}
+		mcpConfigs = append(mcpConfigs, file)
+		for _, n := range names {
+			mcpAllowed = append(mcpAllowed, "mcp__"+n)
+		}
+	}
 	if toolset != nil && session != "" {
 		c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "Tools are not given to a Claude Chat Session yet: this ask goes on without them")
 	}
 	if session != "" {
+		args = append(args, mcpFlags(mcpConfigs, mcpAllowed)...)
 		// The session's live process: stream-json both ways (claudelive.go).
 		live := slices.Concat([]string{"-p", "--input-format", "stream-json", "--output-format", "stream-json",
 			"--verbose", "--replay-user-messages", "--json-schema", claudeReply}, args[5:])
@@ -349,8 +367,10 @@ func claudeAskCLI(c *call) error {
 			return err
 		}
 		defer done()
-		args = append(args, "--mcp-config", config, "--allowedTools", "mcp__tower")
+		mcpConfigs = append([]string{config}, mcpConfigs...)
+		mcpAllowed = append([]string{"mcp__tower"}, mcpAllowed...)
 	}
+	args = append(args, mcpFlags(mcpConfigs, mcpAllowed)...)
 	ctx, cancel := context.WithTimeout(c.ctx, wait)
 	defer cancel()
 	stdout, stderr, err := claude(ctx, dir, prompt, args)
@@ -416,6 +436,46 @@ func (c *call) claudeAnswered(text string, question bool) {
 		c.outputs["Question"] = stringValue(text)
 		c.fire("Done")
 	}
+}
+
+// projectMCP is the .mcp.json of the project folder dir, and the names of
+// its servers, for Project MCP.
+func projectMCP(dir string) (file string, names []string, err error) {
+	if dir == "" {
+		return "", nil, errors.New("Project MCP needs Directory: the project's folder, whose .mcp.json it reads")
+	}
+	file = filepath.Join(dir, ".mcp.json")
+	data, err := os.ReadFile(file)
+	if errors.Is(err, os.ErrNotExist) {
+		return "", nil, fmt.Errorf("Project MCP: %s has no .mcp.json", dir)
+	}
+	if err != nil {
+		return "", nil, err
+	}
+	var cfg struct {
+		Servers map[string]json.RawMessage `json:"mcpServers"`
+	}
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return "", nil, fmt.Errorf("Project MCP: %s: %w", file, err)
+	}
+	if len(cfg.Servers) == 0 {
+		return "", nil, fmt.Errorf("Project MCP: %s names no servers (mcpServers)", file)
+	}
+	for n := range cfg.Servers {
+		names = append(names, n)
+	}
+	slices.Sort(names)
+	return file, names, nil
+}
+
+// mcpFlags gives claude the MCP configs, and allows their tools: one
+// --mcp-config with every file, then --allowedTools. The prompt goes on
+// stdin, so nothing after them is taken as one of their values.
+func mcpFlags(configs, allowed []string) []string {
+	if len(configs) == 0 {
+		return nil
+	}
+	return slices.Concat([]string{"--mcp-config"}, configs, []string{"--allowedTools", strings.Join(allowed, ",")})
 }
 
 // claude runs the claude command in dir with args and the prompt on stdin.

@@ -81,6 +81,17 @@ type Store struct {
 
 // Open opens (or creates) the knowledge database in dir.
 func Open(dir string) (*Store, error) {
+	db, err := openGraph(dir, "key", "node_type", "loc")
+	if err != nil {
+		return nil, err
+	}
+	abs, _ := filepath.Abs(dir)
+	return &Store{db: db, Dir: abs, Root: filepath.Dir(abs)}, nil
+}
+
+// openGraph opens (or creates) a goraphdb graph in dir, with a property index
+// on each of props: the knowledge graph, and each brain (brain.go).
+func openGraph(dir string, props ...string) (*graphdb.DB, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, err
 	}
@@ -107,7 +118,7 @@ func Open(dir string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, prop := range []string{"key", "node_type", "loc"} {
+	for _, prop := range props {
 		if !db.HasIndex(prop) {
 			if err := db.CreateIndex(prop); err != nil {
 				db.Close()
@@ -115,8 +126,7 @@ func Open(dir string) (*Store, error) {
 			}
 		}
 	}
-	abs, _ := filepath.Abs(dir)
-	return &Store{db: db, Dir: abs, Root: filepath.Dir(abs)}, nil
+	return db, nil
 }
 
 func (s *Store) Close() error { return s.db.Close() }
@@ -146,8 +156,11 @@ func now() string { return time.Now().Format(time.RFC3339) }
 
 // ---- reads -----------------------------------------------------------------
 
-func (s *Store) nodeByKey(key string) (*graphdb.Node, error) {
-	nodes, err := s.db.FindByProperty("key", key)
+func (s *Store) nodeByKey(key string) (*graphdb.Node, error) { return findKey(s.db, key) }
+
+// findKey finds a node by its key property, in the knowledge graph or a brain.
+func findKey(db *graphdb.DB, key string) (*graphdb.Node, error) {
+	nodes, err := db.FindByProperty("key", key)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +258,7 @@ func (s *Store) Links(key string) (out, in []Link, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	keys := keyCache{s: s}
+	keys := keyCache{db: s.db}
 	out, in = []Link{}, []Link{}
 	for _, e := range outEdges {
 		out = append(out, keys.link(e))
@@ -260,7 +273,7 @@ func (s *Store) Links(key string) (out, in []Link, err error) {
 
 // AllLinks returns every edge in the graph.
 func (s *Store) AllLinks() ([]Link, error) {
-	keys := keyCache{s: s}
+	keys := keyCache{db: s.db}
 	links := []Link{}
 	var cursor graphdb.EdgeID
 	for {
@@ -531,7 +544,7 @@ func (s *Store) Neighbors(key string, depth int) ([]NeighborHit, error) {
 	if err != nil {
 		return nil, err
 	}
-	keys := keyCache{s: s}
+	keys := keyCache{db: s.db}
 	hits := []NeighborHit{}
 	for _, r := range res {
 		if r.Node.ID == n.ID {
@@ -564,7 +577,7 @@ func (s *Store) Path(fromKey, toKey string) ([]*Node, []Link, error) {
 	if err != nil || p == nil {
 		return nil, nil, fmt.Errorf("no path between %q and %q", fromKey, toKey)
 	}
-	keys := keyCache{s: s}
+	keys := keyCache{db: s.db}
 	var nodes []*Node
 	for _, n := range p.Nodes {
 		nodes = append(nodes, toNode(n))
@@ -831,7 +844,7 @@ func sortLinks(l []Link) {
 }
 
 type keyCache struct {
-	s    *Store
+	db   *graphdb.DB
 	keys map[graphdb.NodeID]string
 }
 
@@ -843,7 +856,7 @@ func (c *keyCache) key(id graphdb.NodeID) string {
 		return k
 	}
 	k := fmt.Sprintf("#%d", id)
-	if n, err := c.s.db.GetNode(id); err == nil && n != nil {
+	if n, err := c.db.GetNode(id); err == nil && n != nil {
 		k = n.GetString("key")
 	}
 	c.keys[id] = k

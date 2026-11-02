@@ -1,0 +1,867 @@
+{
+  "taken": "2026-10-31T23:35:10+07:00",
+  "by": "brain:ctxtest",
+  "k": 5,
+  "frozen": true,
+  "parts": {
+    "all": {
+      "questions": 64,
+      "hit_at_1": 0.390625,
+      "hit_at_k": 0.640625,
+      "doc_hit_at_k": 0.734375,
+      "mrr": 0.4822916666666666,
+      "stale": 0
+    },
+    "heldout": {
+      "questions": 32,
+      "hit_at_1": 0.1875,
+      "hit_at_k": 0.59375,
+      "doc_hit_at_k": 0.71875,
+      "mrr": 0.34114583333333337,
+      "stale": 0
+    },
+    "practice": {
+      "questions": 32,
+      "hit_at_1": 0.59375,
+      "hit_at_k": 0.6875,
+      "doc_hit_at_k": 0.75,
+      "mrr": 0.6234375,
+      "stale": 0
+    }
+  },
+  "scores": [
+    {
+      "id": "q001",
+      "part": "practice",
+      "rank": 4,
+      "doc_rank": 4,
+      "top": [
+        "videos/san-medium-tiktok/AGENTS.md#key-rules",
+        "golang/packages/san_youtube/README.md#uploading-videos/the-post",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/packages/san_linkedin/README.md#the-tool/scheduling",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber"
+      ]
+    },
+    {
+      "id": "q002",
+      "part": "heldout",
+      "rank": 3,
+      "doc_rank": 3,
+      "top": [
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/packages/san_linkedin/README.md#the-package/what-the-markdown-becomes",
+        "tasks/done/01-firefly-figure.md#what-to-build",
+        "golang/packages/san_linkedin/README.md#the-tool/scheduling"
+      ]
+    },
+    {
+      "id": "q003",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "videos/san-radio-tiktok/frame.md#frame-treatments/3-stat-grid-data-move-top-border-cards-dark-the-dense-frame",
+        "videos/san-radio-tiktok/frame.md#the-frame/frame-craft-bar",
+        "project/bargawa/blender/textures/ground.md#the-spiky-ground",
+        "videos/san-radio-tiktok/frame.md#numerals-claims-hard-rule",
+        "tasks/done/01-firefly-figure.md#what-to-build"
+      ]
+    },
+    {
+      "id": "q004",
+      "part": "heldout",
+      "rank": 2,
+      "doc_rank": 1,
+      "top": [
+        "videos/san-radio-tiktok/frame.md#the-frame/frame-craft-bar",
+        "videos/san-radio-tiktok/frame.md#typography",
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "tasks/done/01-firefly-figure.md#what-to-build",
+        "videos/san-radio-tiktok/frame.md#composition-rules/do"
+      ]
+    },
+    {
+      "id": "q007",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn/kenapa-resolver-tidak-membuka-port-53-saja",
+        "golang/examples/smb/README.md#run",
+        "docs/articles/foreign_terms_wordlist.md#keep-in-english",
+        "project/bargawa/blender/textures/ground.md#the-soil",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md"
+      ]
+    },
+    {
+      "id": "q008",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/packages/san_piano/README.md#the-tool",
+        "golang/packages/san_piano/README.md",
+        "videos/san-medium-tiktok/AGENTS.md#commands"
+      ]
+    },
+    {
+      "id": "q009",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "docs/knowledge.md#genenal",
+        "videos/san-medium-tiktok/AGENTS.md#skills-use-these-first",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-2",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "project/bargawa/blender/textures/ground.md"
+      ]
+    },
+    {
+      "id": "q010",
+      "part": "heldout",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "videos/blender-material-tutorial/BRIEF.md#notes",
+        "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#fisika-di-blender-adalah-tidak-ada-yang-otomatis",
+        "videos/blender-material-tutorial/BRIEF.md",
+        "project/bargawa/README.md#commands",
+        "videos/blender-aset-game/BRIEF.md#notes"
+      ]
+    },
+    {
+      "id": "q011",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 5,
+      "top": [
+        "docs/knowledge.md#genenal",
+        "project/bargawa/README.md#conventions",
+        "golang/packages/san_vpn/README.md#download",
+        "golang/packages/san_profile_manager/README.md",
+        "golang/packages/san_tunnels/docs/readme.md"
+      ]
+    },
+    {
+      "id": "q012",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 4,
+      "top": [
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber",
+        "golang/packages/san_tunnels/docs/readme.md#transports",
+        "golang/packages/san_vpn/README.md#set-up-with-a-dev-tunnel"
+      ]
+    },
+    {
+      "id": "q013",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 2,
+      "top": [
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/packages/san_youtube/README.md#usage",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "golang/packages/san_youtube/README.md"
+      ]
+    },
+    {
+      "id": "q014",
+      "part": "heldout",
+      "rank": 4,
+      "doc_rank": 4,
+      "top": [
+        "videos/san-medium-tiktok/AGENTS.md#key-rules",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "videos/san-medium-tiktok/AGENTS.md#skills-use-these-first",
+        "golang/packages/san_youtube/README.md#uploading-videos/the-post",
+        "golang/packages/san_youtube/README.md#uploading-videos"
+      ]
+    },
+    {
+      "id": "q015",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/external_sources/web/static.makehumancommunity.org/mpfb-releases-release-20b1.md#preselecting-group-and-material",
+        "project/bargawa/README.md#conventions",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "typescripts/animation/src/figures/Grass/BermudaGrass.md",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber"
+      ]
+    },
+    {
+      "id": "q016",
+      "part": "heldout",
+      "rank": 3,
+      "doc_rank": 3,
+      "top": [
+        "docs/knowledge.md#genenal",
+        "golang/apps/autotrade/USAGE.md#limits-and-safety-autotrade-yaml",
+        "docs/external_sources/web/static.makehumancommunity.org/mpfb-releases-release-20b1.md#makeclothes-now-bundled-with-mpfb",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "docs/external_sources/web/static.makehumancommunity.org/mpfb-releases-release-20b1.md#multiple-asset-directories"
+      ]
+    },
+    {
+      "id": "q017",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "project/bargawa/references/08-fire-samples.md#part-8-the-sparks-geometry-nodes",
+        "tasks/done/01-firefly-figure.md#what-to-build",
+        "project/bargawa/references/08-fire-samples.md#part-9-the-collection-an-asset",
+        "project/bargawa/references/08-fire-samples.md#the-plan",
+        "golang/packages/san_piano/README.md#the-package"
+      ]
+    },
+    {
+      "id": "q018",
+      "part": "heldout",
+      "rank": 3,
+      "doc_rank": 3,
+      "top": [
+        "project/bargawa/README.md#conventions",
+        "tasks/done/01-firefly-figure.md#what-to-build",
+        "project/bargawa/references/08-fire-samples.md#part-7-the-light",
+        "project/bargawa/references/08-fire-samples.md#the-plan",
+        "project/bargawa/references/08-fire-samples.md#part-6-the-flames"
+      ]
+    },
+    {
+      "id": "q019",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "golang/packages/san_message/docs/readme.md#pull-subscriber",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-3",
+        "project/bargawa/README.md#conventions",
+        "videos/san-medium-tiktok/AGENTS.md#commands",
+        "golang/apps/san_tower/workflows/trading/README.md"
+      ]
+    },
+    {
+      "id": "q020",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "docs/external_repo/san_remote.md#design-decisions",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "project/bargawa/README.md#conventions",
+        "project/bargawa/blender/textures/ground.md#the-soil"
+      ]
+    },
+    {
+      "id": "q021",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/packages/san_message/docs/readme.md#topic-metadata-mmap",
+        "golang/packages/san_message/docs/readme.md#event-log-file",
+        "golang/packages/san_message/docs/readme.md#subscriber-metadata-mmap",
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa"
+      ]
+    },
+    {
+      "id": "q022",
+      "part": "heldout",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/packages/san_message/docs/readme.md#pull-subscriber",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "docs/external_repo/san_remote.md#protocol",
+        "golang/packages/san_piano/README.md#the-package",
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md"
+      ]
+    },
+    {
+      "id": "q023",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/packages/audio_contextual_compiler/README.md#the-spec",
+        "golang/apps/san_tower/workflows/trading/README.md",
+        "project/bargawa/blender/places/jatisrana.md#proportion-and-size-2026-10-20/results",
+        "golang/packages/audio_contextual_compiler/README.md#the-tool"
+      ]
+    },
+    {
+      "id": "q024",
+      "part": "heldout",
+      "rank": 2,
+      "doc_rank": 1,
+      "top": [
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#not-in-it",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md",
+        "project/bargawa/blender/textures/ground.md#the-soil"
+      ]
+    },
+    {
+      "id": "q025",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "project/bargawa/README.md#conventions",
+        "project/bargawa/blender/textures/ground.md",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber",
+        "videos/san-radio-tiktok/frame.md#the-frame/frame-craft-bar"
+      ]
+    },
+    {
+      "id": "q026",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-3",
+        "docs/stories/ramabargawa/models.md",
+        "tasks/done/01-firefly-figure.md#checks",
+        "videos/san-radio-tiktok/frame.md#the-frame/frame-craft-bar"
+      ]
+    },
+    {
+      "id": "q027",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/packages/san_piano/README.md#the-package",
+        "project/bargawa/blender/textures/ground.md#the-soil",
+        "videos/san-medium-tiktok/AGENTS.md#commands"
+      ]
+    },
+    {
+      "id": "q028",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "golang/apps/san_tower/workflows/trading/journal/rules.md",
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "golang/apps/autotrade/docs/basic_flow.md#basic-flow"
+      ]
+    },
+    {
+      "id": "q029",
+      "part": "practice",
+      "rank": 5,
+      "doc_rank": 4,
+      "top": [
+        "docs/external_repo/san_remote.md#protocol",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/packages/san_piano/README.md#the-tool",
+        "experimental/transcript/README.md#indonesian",
+        "experimental/transcript/README.md#if-start-does-nothing"
+      ]
+    },
+    {
+      "id": "q030",
+      "part": "heldout",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "experimental/transcript/README.md#later-on-the-pi",
+        "golang/packages/audio_contextual_compiler/README.md#the-tool",
+        "experimental/transcript/README.md#indonesian",
+        "golang/apps/san_tower/README.md#raspberry-pi",
+        "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/garden-ramps"
+      ]
+    },
+    {
+      "id": "q031",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/apps/san_tower/workflows/trading/README.md#switching-over-from-autotrade",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/apps/autotrade/USAGE.md#metatrader-5-mifx-the-second-venue",
+        "experimental/transcript/README.md#indonesian"
+      ]
+    },
+    {
+      "id": "q032",
+      "part": "heldout",
+      "rank": 2,
+      "doc_rank": 2,
+      "top": [
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "golang/apps/san_tower/workflows/trading/README.md#set-up",
+        "project/bargawa/README.md#commands",
+        "project/bargawa/README.md#conventions",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live"
+      ]
+    },
+    {
+      "id": "q033",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "videos/blender-aset-game/BRIEF.md#parts",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "project/bargawa/blender/textures/ground.md",
+        "project/bargawa/blender/textures/ground.md#the-soil"
+      ]
+    },
+    {
+      "id": "q034",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "golang/apps/san_tower/workflows/trading/README.md#each-tick",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/apps/san_tower/README.md#workflows",
+        "golang/packages/san_linkedin/README.md#the-tool",
+        "golang/packages/audio_contextual_compiler/README.md#the-tool"
+      ]
+    },
+    {
+      "id": "q035",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "project/bargawa/README.md#conventions",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "typescripts/animation/src/figures/Grass/BermudaGrass.md",
+        "golang/packages/san_profile_manager/README.md",
+        "experimental/transcript/README.md#indonesian"
+      ]
+    },
+    {
+      "id": "q036",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "project/bargawa/README.md#conventions",
+        "golang/packages/san_piano/README.md#the-package",
+        "videos/san-medium-tiktok/AGENTS.md#commands",
+        "golang/apps/autotrade/USAGE.md#limits-and-safety-autotrade-yaml",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa"
+      ]
+    },
+    {
+      "id": "q039",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-4",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-2",
+        "videos/san-medium-tiktok/AGENTS.md#commands",
+        "golang/apps/autotrade/USAGE.md#limits-and-safety-autotrade-yaml",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#discipline"
+      ]
+    },
+    {
+      "id": "q040",
+      "part": "heldout",
+      "rank": 4,
+      "doc_rank": 3,
+      "top": [
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-2",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-1",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-4"
+      ]
+    },
+    {
+      "id": "q041",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/external_repo/san_remote.md#protocol",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-3",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "golang/packages/san_linkedin/README.md#the-package/what-the-markdown-becomes"
+      ]
+    },
+    {
+      "id": "q042",
+      "part": "heldout",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/external_repo/san_remote.md#extension",
+        "docs/external_repo/san_remote.md#design-decisions",
+        "golang/packages/san_piano/README.md#the-tool",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once"
+      ]
+    },
+    {
+      "id": "q043",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/packages/san_piano/README.md#the-tool",
+        "golang/packages/audio_contextual_compiler/README.md#the-tool",
+        "golang/packages/san_message/docs/readme.md#topic-metadata-mmap",
+        "project/bargawa/README.md#commands",
+        "golang/packages/san_linkedin/README.md#the-tool"
+      ]
+    },
+    {
+      "id": "q044",
+      "part": "heldout",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/packages/san_piano/README.md#the-package",
+        "golang/packages/san_piano/README.md",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "project/bargawa/blender/textures/ground.md"
+      ]
+    },
+    {
+      "id": "q045",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/articles/foreign_terms_wordlist.md#keep-in-english",
+        "golang/packages/san_youtube/README.md#uploading-videos",
+        "docs/articles/foreign_terms_wordlist.md#keep-in-indonesian",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#memilih-domain-untuk-vpn",
+        "golang/packages/san_linkedin/README.md#the-package/how-a-draft-is-filled"
+      ]
+    },
+    {
+      "id": "q046",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "experimental/transcript/README.md#indonesian",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "project/bargawa/README.md#conventions",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md",
+        "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/garden-ramps"
+      ]
+    },
+    {
+      "id": "q047",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/knowledge.md#genenal",
+        "docs/knowledge.md#knowledge-exe-tools/general-command",
+        "project/bargawa/README.md#conventions",
+        "videos/san-medium-tiktok/AGENTS.md#commands",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber"
+      ]
+    },
+    {
+      "id": "q048",
+      "part": "heldout",
+      "rank": 2,
+      "doc_rank": 1,
+      "top": [
+        "docs/knowledge.md#genenal",
+        "docs/knowledge.md#knowledge-exe-tools/general-command",
+        "docs/external_repo/san_remote.md#protocol",
+        "golang/apps/san_tower/README.md",
+        "golang/apps/autotrade/docs/basic_flow.md#basic-flow"
+      ]
+    },
+    {
+      "id": "q051",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/examples/smb/README.md#run",
+        "docs/external_repo/san_remote.md#protocol",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn/kenapa-resolver-tidak-membuka-port-53-saja",
+        "golang/examples/smb/README.md#mount-it",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run"
+      ]
+    },
+    {
+      "id": "q052",
+      "part": "heldout",
+      "rank": 4,
+      "doc_rank": 3,
+      "top": [
+        "docs/external_repo/san_remote.md#protocol",
+        "videos/san-medium-tiktok/AGENTS.md#commands",
+        "golang/examples/smb/README.md",
+        "golang/examples/smb/README.md#what-it-supports",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber"
+      ]
+    },
+    {
+      "id": "q055",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#memilih-domain-untuk-vpn",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn/jawaban-dns-yang-tepat-untuk-setiap-pertanyaan",
+        "docs/articles/foreign_terms_wordlist.md#keep-in-english",
+        "golang/packages/san_vpn/README.md#names",
+        "golang/packages/san_vpn/README.md"
+      ]
+    },
+    {
+      "id": "q056",
+      "part": "heldout",
+      "rank": 3,
+      "doc_rank": 1,
+      "top": [
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#memilih-domain-untuk-vpn",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn/jawaban-dns-yang-tepat-untuk-setiap-pertanyaan",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#tiga-cara-memberi-nama-di-vpn",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn/kenapa-resolver-tidak-membuka-port-53-saja"
+      ]
+    },
+    {
+      "id": "q057",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "golang/packages/san_youtube/README.md#how-it-works",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/packages/san_piano/README.md#the-package",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-4",
+        "golang/packages/san_profile_manager/README.md"
+      ]
+    },
+    {
+      "id": "q058",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "golang/apps/autotrade/USAGE.md#limits-and-safety-autotrade-yaml",
+        "golang/apps/autotrade/USAGE.md#commands/limit-entries-maker-fee",
+        "golang/apps/san_tower/workflows/trading/README.md",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-3",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-2"
+      ]
+    },
+    {
+      "id": "q059",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/packages/san_profile_manager/README.md",
+        "docs/knowledge.md#genenal",
+        "docs/external_repo/san_remote.md#design-decisions",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run"
+      ]
+    },
+    {
+      "id": "q060",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 1,
+      "top": [
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "docs/external_repo/san_remote.md#design-decisions",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run",
+        "project/bargawa/README.md#conventions"
+      ]
+    },
+    {
+      "id": "q065",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#fisika-di-blender-adalah-tidak-ada-yang-otomatis",
+        "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#origin-adalah-titik-pegangan-sebuah-objek",
+        "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#mirror-modifier-adalah-cermin-di-origin",
+        "videos/blender-aset-game/BRIEF.md#parts",
+        "docs/articles/create-live-radio/seri-membuat-radio-live-24-jam-bagian-1-apa-itu-radio-live-24-jam-di-youtube.md#anjuran-youtube-untuk-encoder-siaran/kenapa-bitrate-radio-ini-tidak-dibuat-tetap"
+      ]
+    },
+    {
+      "id": "q066",
+      "part": "heldout",
+      "rank": 2,
+      "doc_rank": 1,
+      "top": [
+        "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#fisika-di-blender-adalah-tidak-ada-yang-otomatis",
+        "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#fisika-di-game-adalah-tugas-game-engine-bukan-blender",
+        "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn/jawaban-dns-yang-tepat-untuk-setiap-pertanyaan",
+        "videos/blender-aset-game/BRIEF.md#parts",
+        "project/bargawa/README.md#the-game"
+      ]
+    },
+    {
+      "id": "q069",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/apps/autotrade/USAGE.md#commands/limit-entries-maker-fee",
+        "golang/apps/autotrade/USAGE.md#backtest-results-2026-10-09",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-2",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md"
+      ]
+    },
+    {
+      "id": "q070",
+      "part": "heldout",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#discipline",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-2",
+        "golang/apps/san_tower/workflows/trading/README.md#each-tick",
+        "videos/san-medium-tiktok/AGENTS.md#commands",
+        "golang/apps/autotrade/USAGE.md#backtest-results-2026-10-09"
+      ]
+    },
+    {
+      "id": "q073",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/garden-ramps",
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "project/bargawa/blender/textures/ground.md#the-spiky-ground",
+        "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/garden-step-measurements-depth-and-tread",
+        "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-4"
+      ]
+    },
+    {
+      "id": "q074",
+      "part": "heldout",
+      "rank": 3,
+      "doc_rank": 3,
+      "top": [
+        "project/bargawa/README.md#conventions",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/potential-problems-with-garden-steps-and-ramps",
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "golang/packages/san_message/docs/readme.md#pull-subscriber"
+      ]
+    },
+    {
+      "id": "q075",
+      "part": "practice",
+      "rank": 1,
+      "doc_rank": 1,
+      "top": [
+        "project/bargawa/README.md#conventions",
+        "typescripts/animation/src/figures/Fish/Fish.md#animation-behavior",
+        "videos/san-medium-tiktok/AGENTS.md#skills-use-these-first",
+        "project/bargawa/references/08-fire-samples.md#part-7-the-light",
+        "typescripts/animation/src/figures/Grass/BermudaGrass.md"
+      ]
+    },
+    {
+      "id": "q076",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 3,
+      "top": [
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+        "golang/packages/san_piano/README.md#the-tool",
+        "project/bargawa/README.md#conventions",
+        "videos/san-medium-tiktok/AGENTS.md#commands",
+        "golang/packages/san_message/docs/readme.md#topic-metadata-mmap"
+      ]
+    },
+    {
+      "id": "q077",
+      "part": "practice",
+      "rank": 2,
+      "doc_rank": 2,
+      "top": [
+        "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/garden-ramps",
+        "project/bargawa/blender/textures/ground.md#the-spiky-ground",
+        "golang/packages/san_profile_manager/README.md#where-profiles-live",
+        "typescripts/animation/src/figures/Grass/BermudaGrass.md",
+        "project/bargawa/blender/textures/ground.md"
+      ]
+    },
+    {
+      "id": "q078",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 2,
+      "top": [
+        "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+        "project/bargawa/blender/textures/ground.md#the-spiky-ground",
+        "project/bargawa/blender/textures/ground.md",
+        "project/bargawa/README.md#the-game",
+        "project/bargawa/README.md#conventions"
+      ]
+    },
+    {
+      "id": "q079",
+      "part": "practice",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "typescripts/animation/src/story/forest_lake_meeting/forest_lake_meeting.md",
+        "tasks/done/01-firefly-figure.md#what-to-build",
+        "project/bargawa/blender/textures/ground.md#the-soil",
+        "golang/packages/san_youtube/README.md#usage",
+        "golang/packages/san_profile_manager/README.md#how-chrome-is-run"
+      ]
+    },
+    {
+      "id": "q080",
+      "part": "heldout",
+      "rank": 0,
+      "doc_rank": 0,
+      "top": [
+        "docs/stories/ramabargawa/models.md",
+        "project/bargawa/references/08-fire-samples.md#part-8-the-sparks-geometry-nodes",
+        "docs/external_repo/san_remote.md#design-decisions",
+        "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+        "golang/packages/san_piano/README.md#the-package"
+      ]
+    }
+  ],
+  "file": "D:\\research\\marketing\\knowledge_data\\exam\\results\\20261031-233554-brain-ctxtest.json"
+}

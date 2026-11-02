@@ -26,6 +26,13 @@ type Opener func(fn func(*kb.Store) error) error
 type Server struct {
 	// Fetcher downloads pages for knowledge_fetch; tests replace it.
 	Fetcher kb.Fetcher
+	// Brains, when set, adds the brain_* tools (brain.go); Brain is the
+	// brain they use when a call names none ("" is the root brain).
+	Brains *kb.Brains
+	Brain  string
+	// Verifier is brain_check_answer's citation check (haiku when nil);
+	// tests replace it.
+	Verifier kb.Verifier
 
 	open    Opener
 	author  string
@@ -114,16 +121,24 @@ func (s *Server) dispatch(req request) (any, *rpcError) {
 				version = v
 			}
 		}
+		text := instructions
+		if s.Brains != nil {
+			text += "\n" + brainInstructions
+		}
 		return map[string]any{
 			"protocolVersion": version,
 			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}},
 			"serverInfo":      map[string]any{"name": "knowledge", "title": "Knowledge Graph", "version": s.version},
-			"instructions":    instructions,
+			"instructions":    text,
 		}, nil
 	case "ping":
 		return map[string]any{}, nil
 	case "tools/list":
-		return map[string]any{"tools": toolDefs()}, nil
+		tools := toolDefs()
+		if s.Brains != nil {
+			tools = append(tools, brainToolDefs()...)
+		}
+		return map[string]any{"tools": tools}, nil
 	case "tools/call":
 		var p struct {
 			Name      string          `json:"name"`
@@ -245,6 +260,10 @@ func toolDefs() []any {
 func (s *Server) call(name string, raw json.RawMessage) (string, error) {
 	if len(raw) == 0 {
 		raw = []byte("{}")
+	}
+	if strings.HasPrefix(name, "brain_") && s.Brains != nil {
+		// A brain opens the knowledge graph itself when it reads a source.
+		return s.brainCall(name, raw)
 	}
 	var text string
 	if name == "knowledge_fetch" {

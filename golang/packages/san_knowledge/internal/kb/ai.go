@@ -98,7 +98,21 @@ var annotateSchema = `{
 }`
 
 func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*AnnotateResult, error) {
-	cmdName, model, timeout, system := c.Command, c.Model, c.Timeout, c.SystemPrompt
+	system := c.SystemPrompt
+	if system == "" {
+		system = annotateSystemPrompt
+	}
+	var res AnnotateResult
+	if err := c.structured(ctx, "Annotate the document described in the JSON on stdin.", annotateSchema, system, req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// structured runs one "claude -p" call: req as JSON on stdin, the answer
+// decoded into res through the --json-schema structured output.
+func (c ClaudeCLI) structured(ctx context.Context, task, schema, system string, req, res any) error {
+	cmdName, model, timeout := c.Command, c.Model, c.Timeout
 	if cmdName == "" {
 		cmdName = "claude"
 	}
@@ -108,16 +122,12 @@ func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*Annotat
 	if timeout == 0 {
 		timeout = 4 * time.Minute
 	}
-	if system == "" {
-		system = annotateSystemPrompt
-	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, cmdName, "-p",
-		"Annotate the document described in the JSON on stdin.",
+	cmd := exec.CommandContext(ctx, cmdName, "-p", task,
 		"--output-format", "json",
-		"--json-schema", annotateSchema,
+		"--json-schema", schema,
 		"--model", model,
 		"--system-prompt", system,
 		"--tools", "",
@@ -127,20 +137,20 @@ func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*Annotat
 	cmd.Dir = os.TempDir() // keep project CLAUDE.md and hooks out of the call
 	input, err := json.Marshal(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	cmd.Stdin = bytes.NewReader(input)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	if err := cmd.Run(); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
-			return nil, fmt.Errorf("claude CLI not found (install Claude Code or use --no-ai): %w", err)
+			return fmt.Errorf("claude CLI not found (install Claude Code or use --no-ai): %w", err)
 		}
 		msg := strings.TrimSpace(stderr.String())
 		if msg == "" {
 			msg = strings.TrimSpace(stdout.String())
 		}
-		return nil, fmt.Errorf("claude CLI failed: %v: %s", err, truncate(msg, 300))
+		return fmt.Errorf("claude CLI failed: %v: %s", err, truncate(msg, 300))
 	}
 	var out struct {
 		IsError          bool            `json:"is_error"`
@@ -148,16 +158,15 @@ func (c ClaudeCLI) Annotate(ctx context.Context, req *AnnotateRequest) (*Annotat
 		StructuredOutput json.RawMessage `json:"structured_output"`
 	}
 	if err := json.Unmarshal(stdout.Bytes(), &out); err != nil {
-		return nil, fmt.Errorf("unexpected claude CLI output: %w", err)
+		return fmt.Errorf("unexpected claude CLI output: %w", err)
 	}
 	if out.IsError || len(out.StructuredOutput) == 0 || string(out.StructuredOutput) == "null" {
-		return nil, fmt.Errorf("claude CLI returned no structured output: %s", truncate(out.Result, 300))
+		return fmt.Errorf("claude CLI returned no structured output: %s", truncate(out.Result, 300))
 	}
-	var res AnnotateResult
-	if err := json.Unmarshal(out.StructuredOutput, &res); err != nil {
-		return nil, fmt.Errorf("invalid structured output: %w", err)
+	if err := json.Unmarshal(out.StructuredOutput, res); err != nil {
+		return fmt.Errorf("invalid structured output: %w", err)
 	}
-	return &res, nil
+	return nil
 }
 
 func truncate(s string, n int) string {

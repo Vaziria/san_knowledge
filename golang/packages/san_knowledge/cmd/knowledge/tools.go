@@ -311,6 +311,7 @@ func serveMCP(cmd *cli.Command, dir string, in io.Reader, out io.Writer) error {
 	fmt.Fprintf(os.Stderr, "knowledge mcp: serving %s on stdio\n", dir)
 	srv := mcpserver.New(opener(dir), authorFrom(cmd, "ai"), version)
 	srv.Fetcher = webFetcher
+	srv.Brains, srv.Brain = &kb.Brains{Data: dir}, cmd.String("brain")
 	return srv.Serve(in, out)
 }
 

@@ -1,0 +1,519 @@
+{
+  "created": "2026-10-31T22:15:45+07:00",
+  "model": "sonnet",
+  "frozen": "2026-10-31T22:33:43+07:00",
+  "questions": [
+    {
+      "id": "q001",
+      "part": "practice",
+      "question": "How far ahead of the current time must a LinkedIn article be scheduled, and what minute increments are allowed?",
+      "answer": "At least 15 minutes ahead, and on a quarter hour (15-minute steps).",
+      "source": "golang/packages/san_linkedin/README.md#the-tool/scheduling",
+      "loc": "golang/packages/san_linkedin/README.md:89"
+    },
+    {
+      "id": "q002",
+      "part": "heldout",
+      "question": "What happens to a heading level like ### when an article's markdown is turned into a LinkedIn draft?",
+      "answer": "The editor has only Heading and Subheading: ## becomes a Heading, and ### (and deeper) becomes a Subheading.",
+      "source": "golang/packages/san_linkedin/README.md#the-package/what-the-markdown-becomes",
+      "loc": "golang/packages/san_linkedin/README.md:259"
+    },
+    {
+      "id": "q003",
+      "part": "practice",
+      "question": "In the stat grid frame, what color are the big numerals on the three cards?",
+      "answer": "Fire-orange, on an ink-black ground.",
+      "source": "videos/san-radio-tiktok/frame.md#frame-treatments/3-stat-grid-data-move-top-border-cards-dark-the-dense-frame",
+      "loc": "videos/san-radio-tiktok/frame.md:222"
+    },
+    {
+      "id": "q004",
+      "part": "heldout",
+      "question": "How many words can a headline have to be set at the largest display size?",
+      "answer": "Two words or fewer; 3–4 words use h1 and 5+ use h2, with the block capped at 78cqw.",
+      "source": "videos/san-radio-tiktok/frame.md#typography",
+      "loc": "videos/san-radio-tiktok/frame.md:172"
+    },
+    {
+      "id": "q007",
+      "part": "practice",
+      "question": "Which address is reserved for answering name lookups inside the network, and does anything listen on port 53?",
+      "answer": "The network's last address (e.g. 10.77.0.254 in 10.77.0.0/24) is reserved for names; nothing listens on port 53.",
+      "source": "golang/packages/san_vpn/README.md#names",
+      "loc": "golang/packages/san_vpn/README.md:387"
+    },
+    {
+      "id": "q008",
+      "part": "heldout",
+      "question": "Which Windows versions can run the program, and why are Windows 7 and 8.1 excluded?",
+      "answer": "Windows 10 or Windows Server 2016 and newer; they are the oldest Windows that Go programs run on, so 7 and 8.1 are out.",
+      "source": "golang/packages/san_vpn/README.md#limits",
+      "loc": "golang/packages/san_vpn/README.md:492"
+    },
+    {
+      "id": "q009",
+      "part": "practice",
+      "question": "Which recording take was the final video built from, and how was the last explanation caption divided?",
+      "answer": "Take 3; the last explanation was split into two captions: \"Hasilnya dikirim ke Material Output.\" and \"Material = resep tampilan permukaan objek.\"",
+      "source": "videos/blender-material-tutorial/BRIEF.md#customizations",
+      "loc": "videos/blender-material-tutorial/BRIEF.md:39"
+    },
+    {
+      "id": "q010",
+      "part": "heldout",
+      "question": "Apakah video ini memakai musik atau suara pengisi, dan apakah ada risiko file proyek Blender pengguna terubah?",
+      "answer": "Tidak ada musik, suara, title card, atau emoji; tidak ada yang disentuh di D:\\blender_project karena Blender rekaman terpisah.",
+      "source": "videos/blender-material-tutorial/BRIEF.md#notes",
+      "loc": "videos/blender-material-tutorial/BRIEF.md:55"
+    },
+    {
+      "id": "q011",
+      "part": "practice",
+      "question": "Which Go version is needed to build this tunnel tool, and which platforms does the build script produce binaries for?",
+      "answer": "Go 1.26+; it builds for Windows (amd64) and Linux (amd64).",
+      "source": "golang/packages/san_tunnels/docs/readme.md#install",
+      "loc": "golang/packages/san_tunnels/docs/readme.md:26"
+    },
+    {
+      "id": "q012",
+      "part": "heldout",
+      "question": "What happens if a WebSocket tunnel drops after about a minute of sitting idle, and what is the workaround?",
+      "answer": "Both ends ping every 25s so it shouldn't happen; if it does, something in the path drops WebSocket control frames or the idle timeout is under 25s. Workaround: use --transport connect.",
+      "source": "golang/packages/san_tunnels/docs/readme.md#troubleshooting",
+      "loc": "golang/packages/san_tunnels/docs/readme.md:380"
+    },
+    {
+      "id": "q013",
+      "part": "practice",
+      "question": "What happens to the chat reader if YouTube keeps replying with 429 after every retry has been used?",
+      "answer": "It returns ErrRateLimited.",
+      "source": "golang/packages/san_youtube/README.md#usage/errors",
+      "loc": "golang/packages/san_youtube/README.md:112"
+    },
+    {
+      "id": "q014",
+      "part": "heldout",
+      "question": "How long must the scheduled publish time be ahead of now when uploading a video?",
+      "answer": "At least 15 minutes ahead.",
+      "source": "golang/packages/san_youtube/README.md#uploading-videos/the-post",
+      "loc": "golang/packages/san_youtube/README.md:285"
+    },
+    {
+      "id": "q015",
+      "part": "practice",
+      "question": "What is the default value of the box that chooses which vertex group gets preselected when creating a new character?",
+      "answer": "The default value is “body”.",
+      "source": "docs/external_sources/web/static.makehumancommunity.org/mpfb-releases-release-20b1.md#preselecting-group-and-material",
+      "loc": "docs/external_sources/web/static.makehumancommunity.org/mpfb-releases-release-20b1.md:146"
+    },
+    {
+      "id": "q016",
+      "part": "heldout",
+      "question": "Why was the clothes-making tool moved into MPFB, and what can you do with a saved garment right away?",
+      "answer": "The standalone addon had not been updated for Blender 4+. Now clothes can be saved straight to the asset library and equipped immediately without restarting Blender.",
+      "source": "docs/external_sources/web/static.makehumancommunity.org/mpfb-releases-release-20b1.md#makeclothes-now-bundled-with-mpfb",
+      "loc": "docs/external_sources/web/static.makehumancommunity.org/mpfb-releases-release-20b1.md:128"
+    },
+    {
+      "id": "q017",
+      "part": "practice",
+      "question": "How many sparks does the Geometry Nodes setup produce for the wood fire, and why not use a normal particle system?",
+      "answer": "60 sparks; particle systems need a bake and their force fields don't work inside a linked collection instance, so the sparks are computed from time alone.",
+      "source": "project/bargawa/references/08-fire-samples.md#part-8-the-sparks-geometry-nodes",
+      "loc": "project/bargawa/references/08-fire-samples.md:161"
+    },
+    {
+      "id": "q018",
+      "part": "heldout",
+      "question": "What power and radius should the point light inside the wood fire have, and at what height is it placed?",
+      "answer": "150 W, radius 0.135, placed at z 0.18 (colour #FF9640).",
+      "source": "project/bargawa/references/08-fire-samples.md#part-7-the-light",
+      "loc": "project/bargawa/references/08-fire-samples.md:147"
+    },
+    {
+      "id": "q019",
+      "part": "practice",
+      "question": "Why does the tool wait a few seconds after stopping the recording before saving it?",
+      "answer": "Saving right after stopping fails with \"Permission denied\" because the file is still in use, so it waits 3 seconds.",
+      "source": "golang/packages/audio_contextual_compiler/README.md#rendering",
+      "loc": "golang/packages/audio_contextual_compiler/README.md:170"
+    },
+    {
+      "id": "q020",
+      "part": "heldout",
+      "question": "How is each Claude call isolated so a project's CLAUDE.md and hooks don't affect it?",
+      "answer": "It runs `claude -p` with no tools, no MCP servers (--strict-mcp-config), no saved session, and the temp folder as working directory.",
+      "source": "golang/packages/audio_contextual_compiler/README.md#how-claude-is-called",
+      "loc": "golang/packages/audio_contextual_compiler/README.md:161"
+    },
+    {
+      "id": "q021",
+      "part": "practice",
+      "question": "How many topics can the topic metadata file hold, and how big is each topic's slot?",
+      "answer": "8,192 topics, each in a fixed 512-byte slot (file is 4 MB).",
+      "source": "golang/packages/san_message/docs/readme.md#topic-metadata-mmap",
+      "loc": "golang/packages/san_message/docs/readme.md:134"
+    },
+    {
+      "id": "q022",
+      "part": "heldout",
+      "question": "What is the longest ack timeout a pull stream can ask for?",
+      "answer": "24 hours (default is 30s; more than that is refused).",
+      "source": "golang/packages/san_message/docs/readme.md#pull-subscriber",
+      "loc": "golang/packages/san_message/docs/readme.md:199"
+    },
+    {
+      "id": "q023",
+      "part": "practice",
+      "question": "How wide is the passage through the 14th-century Bajang Ratu gate, and how tall is the gate?",
+      "answer": "The passage is 1.4 m wide, and the gate is 16.5 m tall.",
+      "source": "project/bargawa/docs/reference/general/wilwatikta-museum.md#what-we-can-use-for-ramabargawa",
+      "loc": "project/bargawa/docs/reference/general/wilwatikta-museum.md:12"
+    },
+    {
+      "id": "q024",
+      "part": "heldout",
+      "question": "Which museum record was used for the kendi's size check, since the museum has no kendi?",
+      "answer": "A LACMA record: Kendi with Hanuman, East Java, circa 14th century, 27.94 × 12.7 × 15.88 cm.",
+      "source": "project/bargawa/docs/reference/general/wilwatikta-museum.md#not-in-it",
+      "loc": "project/bargawa/docs/reference/general/wilwatikta-museum.md:26"
+    },
+    {
+      "id": "q025",
+      "part": "practice",
+      "question": "After the fixes were applied, how many equal rises does the lake staircase have and how high is each one?",
+      "answer": "25 equal rises of 0.137 m, with treads of 0.37 m.",
+      "source": "project/bargawa/blender/places/jatisrana.md#proportion-and-size-2026-10-20/applied-2026-10-20",
+      "loc": "project/bargawa/blender/places/jatisrana.md:61"
+    },
+    {
+      "id": "q026",
+      "part": "heldout",
+      "question": "How tall is Ramabargawa after the characters were resized to be nearer Javanese stature?",
+      "answer": "1.80 m (down from 1.90 m), still the tallest.",
+      "source": "project/bargawa/blender/places/jatisrana.md#proportion-and-size-2026-10-20/what-is-not-correct-and-the-proposed-fixes",
+      "loc": "project/bargawa/blender/places/jatisrana.md:43"
+    },
+    {
+      "id": "q027",
+      "part": "practice",
+      "question": "How long can a trade stay open without reaching +0.5R before the coded rules close it?",
+      "answer": "32 candles.",
+      "source": "golang/apps/autotrade/USAGE.md#the-coded-rules-internal-strategy-a-second-opinion",
+      "loc": "golang/apps/autotrade/USAGE.md:130"
+    },
+    {
+      "id": "q028",
+      "part": "heldout",
+      "question": "What is the default largest notional value allowed for a new position, in USDT?",
+      "answer": "1000 (max_position_usdt).",
+      "source": "golang/apps/autotrade/USAGE.md#limits-and-safety-autotrade-yaml",
+      "loc": "golang/apps/autotrade/USAGE.md:195"
+    },
+    {
+      "id": "q029",
+      "part": "practice",
+      "question": "Why does the speech recognizer's button sometimes do nothing when clicked, and what happened to the server when given an invalid model name?",
+      "answer": "vosk.NewModel returns a nil error even when vosk_model_new returns NULL, which crashes the process inside vosk_recognizer_new; model directories are now validated. Also start() awaited onopen alone, so a refused upgrade never settled.",
+      "source": "experimental/transcript/README.md#if-start-does-nothing",
+      "loc": "experimental/transcript/README.md:118"
+    },
+    {
+      "id": "q030",
+      "part": "heldout",
+      "question": "How much memory should I budget per speech model when running on a 1 GB Raspberry Pi 3B+?",
+      "answer": "Roughly 230-300 MB per model, so only one model at a time on a 1 GB Pi 3B+.",
+      "source": "experimental/transcript/README.md#later-on-the-pi",
+      "loc": "experimental/transcript/README.md:105"
+    },
+    {
+      "id": "q031",
+      "part": "practice",
+      "question": "Which four trading pairs are shared between the two systems on the same testnet account, and what mode is the account in?",
+      "answer": "BTCUSDT, ETHUSDT, BNBUSDT and BCHUSDT, in one-way mode (one position per pair).",
+      "source": "golang/apps/san_tower/workflows/trading/README.md#switching-over-from-autotrade",
+      "loc": "golang/apps/san_tower/workflows/trading/README.md:59"
+    },
+    {
+      "id": "q032",
+      "part": "heldout",
+      "question": "Where does the setup script copy the journal folder to, and does it overwrite an existing one?",
+      "answer": "It copies journal/ to \u003ctower data\u003e/trading-journal, unless that folder already exists; the journal is never overwritten.",
+      "source": "golang/apps/san_tower/workflows/trading/README.md#set-up",
+      "loc": "golang/apps/san_tower/workflows/trading/README.md:43"
+    },
+    {
+      "id": "q033",
+      "part": "practice",
+      "question": "Which value is used for the Randomize amount when making the rock from a sphere?",
+      "answer": "0.25",
+      "source": "videos/blender-aset-game/BRIEF.md#parts",
+      "loc": "videos/blender-aset-game/BRIEF.md:42"
+    },
+    {
+      "id": "q034",
+      "part": "heldout",
+      "question": "Why did the first attempt to schedule the TikTok posts fail?",
+      "answer": "Claude Code was stopped because of low memory while typing part 1's caption, leaving nothing in Studio.",
+      "source": "videos/blender-aset-game/BRIEF.md#posted",
+      "loc": "videos/blender-aset-game/BRIEF.md:62"
+    },
+    {
+      "id": "q035",
+      "part": "practice",
+      "question": "How tall is the character who plays the elderly hermit father, and how does that compare with the tallest mortal?",
+      "answer": "Jamadagni is 1.66 m; Ramabargawa, the tallest mortal, is 1.80 m.",
+      "source": "docs/stories/ramabargawa/models.md#general-requirements",
+      "loc": "docs/stories/ramabargawa/models.md:21"
+    },
+    {
+      "id": "q036",
+      "part": "heldout",
+      "question": "Which prop is the main hero item, and which characters use it?",
+      "answer": "The kapak (Ramabargawa's great axe), used by C01 and C02.",
+      "source": "docs/stories/ramabargawa/models.md#props",
+      "loc": "docs/stories/ramabargawa/models.md:145"
+    },
+    {
+      "id": "q039",
+      "part": "practice",
+      "question": "Which trade was exited early after only 9 minutes, closing around 751.55 and losing about half of 1R instead of hitting the full stop?",
+      "answer": "The BNBUSDT resting limit long at 752 (opened 2026-10-10 15:17 UTC), closed at 751.55 for -1.61 USDT (-0.53R).",
+      "source": "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-4",
+      "loc": "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md:68"
+    },
+    {
+      "id": "q040",
+      "part": "heldout",
+      "question": "Why did the BTCUSDT short opened at 82473.7 get stopped out with extra slippage, and how far was the stop from entry?",
+      "answer": "The stop was only 334 away, less than one 1h ATR (464), while the 1d trend was still up; a squeeze to 83,500 ran through it and it filled ~120 worse, for -1.56R.",
+      "source": "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md#autotrade-1",
+      "loc": "golang/apps/san_tower/workflows/trading/journal/lessons/autotrade.md:7"
+    },
+    {
+      "id": "q041",
+      "part": "practice",
+      "question": "How long does the server wait for a browser to attach before returning an Unavailable error when none is connected?",
+      "answer": "Up to 45 seconds.",
+      "source": "docs/external_repo/san_remote.md#protocol",
+      "loc": "docs/external_repo/san_remote.md:232"
+    },
+    {
+      "id": "q042",
+      "part": "heldout",
+      "question": "How many entries does the extension's debug log keep, and what is the character cut-off for each code or result?",
+      "answer": "The last 200 entries, with each code or result cut at 20,000 characters.",
+      "source": "docs/external_repo/san_remote.md#extension",
+      "loc": "docs/external_repo/san_remote.md:263"
+    },
+    {
+      "id": "q043",
+      "part": "practice",
+      "question": "If I run the command-line debug mode with an output file option, what happens when the file already exists, and are the status lines saved?",
+      "answer": "An existing file is replaced, and the \"==\" status lines are not saved to the file.",
+      "source": "golang/packages/san_piano/README.md#the-tool",
+      "loc": "golang/packages/san_piano/README.md:11"
+    },
+    {
+      "id": "q044",
+      "part": "heldout",
+      "question": "How does the Go library name middle C, and what happens when a keyboard sends a note-on with velocity 0?",
+      "answer": "Middle C (note 60) is called C4; a note-on with velocity 0 arrives as NoteOff.",
+      "source": "golang/packages/san_piano/README.md#the-package",
+      "loc": "golang/packages/san_piano/README.md:36"
+    },
+    {
+      "id": "q045",
+      "part": "practice",
+      "question": "Which private IP address ranges are listed in the wordlist, and what is the rule for writing \"private IP\" in the articles?",
+      "answer": "Write \"private IP\" in English (not \"IP privat\"); the ranges are 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16.",
+      "source": "docs/articles/foreign_terms_wordlist.md#keep-in-english",
+      "loc": "docs/articles/foreign_terms_wordlist.md:8"
+    },
+    {
+      "id": "q046",
+      "part": "heldout",
+      "question": "How should the English word \"queue\" be written in the Indonesian text, and what does it refer to for a member of the relay?",
+      "answer": "Use \"antrean\", the relay's queue for one member.",
+      "source": "docs/articles/foreign_terms_wordlist.md#keep-in-indonesian",
+      "loc": "docs/articles/foreign_terms_wordlist.md:204"
+    },
+    {
+      "id": "q047",
+      "part": "practice",
+      "question": "Which embedded database library does the project use for storing its knowledge?",
+      "answer": "github.com/mstrYoda/goraphdb",
+      "source": "docs/knowledge.md#genenal",
+      "loc": "docs/knowledge.md:5"
+    },
+    {
+      "id": "q048",
+      "part": "heldout",
+      "question": "What command connects the knowledge tool to an AI chat session?",
+      "answer": "knowledge.exe mcp",
+      "source": "docs/knowledge.md#knowledge-exe-tools/general-command",
+      "loc": "docs/knowledge.md:19"
+    },
+    {
+      "id": "q051",
+      "part": "practice",
+      "question": "Why does the server listen on port 4455 by default instead of the standard SMB port?",
+      "answer": "Windows' own SMB service already holds port 445 on every address, and binding a privileged port needs elevation.",
+      "source": "golang/examples/smb/README.md#run",
+      "loc": "golang/examples/smb/README.md:9"
+    },
+    {
+      "id": "q052",
+      "part": "heldout",
+      "question": "Which SMB protocol versions can the server negotiate, and is SMB1 included?",
+      "answer": "SMB dialects 2.0.2 through 3.0.2; SMB1 is not supported (nor is 3.1.1).",
+      "source": "golang/examples/smb/README.md#what-it-supports",
+      "loc": "golang/examples/smb/README.md:39"
+    },
+    {
+      "id": "q055",
+      "part": "practice",
+      "question": "Mengapa domain `.local` tidak cocok dipakai untuk nama client VPN?",
+      "answer": "Karena `.local` sudah dipakai untuk multicast DNS (RFC 6762), sehingga pertanyaannya dikirim ke semua perangkat di LAN, bukan ke server DNS, dan tidak sampai ke program client.",
+      "source": "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#memilih-domain-untuk-vpn",
+      "loc": "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md:27"
+    },
+    {
+      "id": "q056",
+      "part": "heldout",
+      "question": "Berapa lama jawaban DNS untuk nama client berlaku sebelum OS bertanya lagi?",
+      "answer": "60 detik.",
+      "source": "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md#anatomi-nama-di-dalam-vpn/jawaban-dns-yang-tepat-untuk-setiap-pertanyaan",
+      "loc": "docs/articles/create-own-vpn/seri-membuat-vpn-sendiri-bagian-7-menjangkau-client-vpn-lewat-nama.md:66"
+    },
+    {
+      "id": "q057",
+      "part": "practice",
+      "question": "How many messages does a chat keep before older ones are dropped, and how many does the page show at first?",
+      "answer": "It keeps the newest 2000 messages; the page shows the newest 100.",
+      "source": "golang/apps/san_tower/README.md#chat",
+      "loc": "golang/apps/san_tower/README.md:1320"
+    },
+    {
+      "id": "q058",
+      "part": "heldout",
+      "question": "What happens to the stop orders if the exchange refuses a stop after the main order has already gone in?",
+      "answer": "The order is undone: placed stops are cancelled, a limit order is cancelled, and anything filled is closed at market; the step fails.",
+      "source": "golang/apps/san_tower/README.md#finance",
+      "loc": "golang/apps/san_tower/README.md:1398"
+    },
+    {
+      "id": "q059",
+      "part": "practice",
+      "question": "What happens if a tool tries to start Chrome on a profile that was opened by the sign-in window or by a Chrome the user launched manually?",
+      "answer": "Start returns ErrProfileInUse (\"the profile is already open in another Chrome window\"), because that Chrome has no debugging port.",
+      "source": "golang/packages/san_profile_manager/README.md#how-chrome-is-run/two-tools-at-once",
+      "loc": "golang/packages/san_profile_manager/README.md:101"
+    },
+    {
+      "id": "q060",
+      "part": "heldout",
+      "question": "Where was the old Medium tool's browser profile stored before it was moved into the workspace?",
+      "answer": "In %AppData%\\san_medium\\profile.",
+      "source": "golang/packages/san_profile_manager/README.md#moving-a-profile-from-before",
+      "loc": "golang/packages/san_profile_manager/README.md:142"
+    },
+    {
+      "id": "q065",
+      "part": "practice",
+      "question": "Kalau saya ingin objek yang tidak pernah bergerak tetapi tetap padat bisa ditabrak di Blender, peran fisika apa yang harus dipilih dan apa bedanya dengan objek yang jatuh?",
+      "answer": "Pilih Passive (untuk tanah atau dinding); objek yang digerakkan gravitasi dan tabrakan memakai Active.",
+      "source": "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#fisika-di-blender-adalah-tidak-ada-yang-otomatis",
+      "loc": "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md:31"
+    },
+    {
+      "id": "q066",
+      "part": "heldout",
+      "question": "Di Godot, akhiran nama apa yang saya beri pada objek di Blender agar saat diimpor jadi penghalang tak terlihat tanpa mesh?",
+      "answer": "Akhiran -colonly, yang membuang mesh dan hanya menyisakan StaticBody3D.",
+      "source": "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md#fisika-di-game-adalah-tugas-game-engine-bukan-blender",
+      "loc": "docs/articles/blender-aset-game/belajar-blender-untuk-aset-game-dari-kubus-yang-jatuh-sampai-gerbang-yang-simetris.md:94"
+    },
+    {
+      "id": "q069",
+      "part": "practice",
+      "question": "How much does a market entry cost in fees for a full round trip on the testnet account?",
+      "answer": "About 0.08% per round trip (taker 0.04% twice); a limit entry costs about 0.06%.",
+      "source": "golang/apps/san_tower/workflows/trading/journal/rules.md#each-tick/doing-action",
+      "loc": "golang/apps/san_tower/workflows/trading/journal/rules.md:76"
+    },
+    {
+      "id": "q070",
+      "part": "heldout",
+      "question": "What should I do after two losing trades in a row before taking the next trade?",
+      "answer": "The next trade needs a clearly better setup than either of the two losers.",
+      "source": "golang/apps/san_tower/workflows/trading/journal/rules.md#discipline",
+      "loc": "golang/apps/san_tower/workflows/trading/journal/rules.md:179"
+    },
+    {
+      "id": "q073",
+      "part": "practice",
+      "question": "What gradient is accepted as standard for a wheelchair-friendly ramp, and how wide should it be at minimum?",
+      "answer": "A gradient of 1:12 (1m of rise per 12m horizontally), with a minimum width of 1.2m.",
+      "source": "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/garden-ramps",
+      "loc": "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md:78"
+    },
+    {
+      "id": "q074",
+      "part": "heldout",
+      "question": "Why can a step's paving end up sticking up as a tripping hazard where it meets a loose gravel path, and what is the better solution?",
+      "answer": "Gravel moves or sinks with use, leaving the top step's paving standing proud; instead build a paved apron or landing about 1-1.2m deep or more that incorporates the top step.",
+      "source": "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md#sloping-garden-ideas-with-steps-and-ramps/potential-problems-with-garden-steps-and-ramps",
+      "loc": "docs/external_sources/web/gardensillustrated.com/garden-design-design-solutions-coping-with-slopes.md:94"
+    },
+    {
+      "id": "q075",
+      "part": "practice",
+      "question": "Which direction does the x axis point, and where is the lake in height relative to the terrace?",
+      "answer": "x points east; the terrace is at z 0 and the lake at z -4 (metres).",
+      "source": "project/bargawa/README.md#conventions",
+      "loc": "project/bargawa/README.md:89"
+    },
+    {
+      "id": "q076",
+      "part": "heldout",
+      "question": "What happens if I try to build a .blend file that is currently open in Blender, and what must I do afterwards if I force it?",
+      "answer": "The runner refuses to overwrite it; -Force goes ahead anyway, and the open window then needs File \u003e Revert (saving would restore the old version).",
+      "source": "project/bargawa/README.md#commands",
+      "loc": "project/bargawa/README.md:44"
+    },
+    {
+      "id": "q077",
+      "part": "practice",
+      "question": "What height value in meters is used for the spike displacement, and at what value does the color ramp turn white for the spiky ground relief?",
+      "answer": "Height 0.1 m; the ramp is white at 0.427 (black at 0.0).",
+      "source": "project/bargawa/blender/textures/ground.md#the-spiky-ground",
+      "loc": "project/bargawa/blender/textures/ground.md:15"
+    },
+    {
+      "id": "q078",
+      "part": "heldout",
+      "question": "Which material serves as Jatisrana's bare ground, and how often is its photo repeated on the mesh?",
+      "answer": "The soil material (M_ground_soil), with its photo repeated once every 5.6 m.",
+      "source": "project/bargawa/blender/textures/ground.md#the-soil",
+      "loc": "project/bargawa/blender/textures/ground.md:30"
+    },
+    {
+      "id": "q079",
+      "part": "practice",
+      "question": "Which boons does the father promise the hero in addition to bringing his mother and brothers back, and how can the hero's life end?",
+      "answer": "A long life, no equal, and death only by Wisnu's incarnation (titisan Wisnu).",
+      "source": "project/bargawa/docs/summaries/story.md#the-scenes/4-anugrah-s4-moonlit-night",
+      "loc": "project/bargawa/docs/summaries/story.md:124"
+    },
+    {
+      "id": "q080",
+      "part": "heldout",
+      "question": "Why does the family never call the hero \"Rama\", and what do they call him instead?",
+      "answer": "\"Rama\" is the krama word for father in Javanese; his parents call him \"Bargawa\" or \"Le\" (son).",
+      "source": "project/bargawa/docs/summaries/story.md#language",
+      "loc": "project/bargawa/docs/summaries/story.md:40"
+    }
+  ]
+}

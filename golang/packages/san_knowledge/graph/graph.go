@@ -43,6 +43,74 @@ type (
 	RelatedContext = kb.RelatedContext
 )
 
+// Brains (docs/brain.md) of a folder's graph, in <folder>/knowledge_data/brains.
+type (
+	Brains         = kb.Brains
+	Brain          = kb.Brain
+	LearnOptions   = kb.LearnOptions
+	LearnReport    = kb.LearnReport
+	LearnDocReport = kb.LearnDocReport
+	SleepOptions   = kb.SleepOptions
+	SleepReport    = kb.SleepReport
+	// What learning asks the AI and gets back.
+	Proposer      = kb.Proposer
+	Verifier      = kb.Verifier
+	LearnRequest  = kb.LearnRequest
+	LearnProposal = kb.LearnProposal
+	ProposedClaim = kb.ProposedClaim
+	VerifyRequest = kb.VerifyRequest
+	Verdict       = kb.Verdict
+	// Using a brain for a task: recall, the run, its outcome, and the
+	// citation check that gives an answer its outcome.
+	Recall         = kb.Recall
+	RecallOptions  = kb.RecallOptions
+	FactHit        = kb.FactHit
+	Recalled       = kb.Recalled
+	Run            = kb.Run
+	Outcome        = kb.Outcome
+	RunReport      = kb.RunReport
+	BrainNode      = kb.BrainNode
+	Ref            = kb.Ref
+	CitationReport = kb.CitationReport
+	CitedFact      = kb.CitedFact
+	AnswerReport   = kb.AnswerReport
+	AnswerOptions  = kb.AnswerOptions
+	// A brain's writes, guarded (kb/brain.go).
+	Memory    = kb.Memory
+	BrainLink = kb.BrainLink
+	// What the brain views read (kb/brainview.go).
+	BrainInfo  = kb.BrainInfo
+	BrainStats = kb.BrainStats
+	ClaimQuery = kb.ClaimQuery
+	ClaimPage  = kb.ClaimPage
+	ClaimRow   = kb.ClaimRow
+	SourceRow  = kb.SourceRow
+	RunRow     = kb.RunRow
+	// Sleep's AI part.
+	Dreamer        = kb.Dreamer
+	DreamOptions   = kb.DreamOptions
+	DreamReport    = kb.DreamReport
+	SettleRequest  = kb.SettleRequest
+	Settlement     = kb.Settlement
+	SettledContext = kb.SettledContext
+	PatternRequest = kb.PatternRequest
+	PatternAnswer  = kb.PatternAnswer
+)
+
+// ErrNoBrain is a brain that is not there.
+var ErrNoBrain = kb.ErrNoBrain
+
+// CitationCheck is the check of a run whose outcome the citation check gives.
+const CitationCheck = kb.CitationCheck
+
+// BrainsOf are the brains of root's graph.
+func BrainsOf(root string) Brains { return kb.Brains{Data: Dir(root)} }
+
+// CheckCitations checks the citations of answer against root's graph.
+func CheckCitations(ctx context.Context, root, answer string, v Verifier) (*CitationReport, error) {
+	return kb.CheckCitations(ctx, Dir(root), answer, v)
+}
+
 // Node types.
 const (
 	TypeDomain  = kb.TypeDomain

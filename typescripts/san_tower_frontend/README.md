@@ -62,7 +62,17 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     A create or delete makes the editor's Storage selects ask again. A
     knowledge's row opens its graph.
   - `KnowledgeGraph.tsx` (`/knowledge/<id>`, a page of its own; the nav
-    keeps Knowledge marked; the user, 2026-10-28): a knowledge's graph, as
+    keeps Knowledge marked; the user, 2026-10-28): a knowledge's graph, or,
+    with Graph | Brain in its header set to Brain (`?view=brain`; the user,
+    2026-11-01: "make tower can show it"), its brains
+    (`src/knowledge/BrainPanel.tsx`, read-only): the brain's counts (a
+    select when it has several), its claims a page of 50 at a time (filter
+    by words, In use / Proposed / Verified / Confirmed / Retired, sorted by
+    weight, uses or newest), each with its status, confidence, won/used,
+    weight, concepts and contexts and, opened, the docs and sections it
+    rests on (a file:line opens that node's dialog), a Recall box, and the
+    latest runs with their outcomes. A knowledge with no brain says how one
+    is made (Brain Learn). Graph view is the rest of this entry: a knowledge's graph, as
     the knowledge tool's view shows one (`src/knowledge/GraphCanvas.tsx`),
     with a link back to its folder. Opening it syncs the graph with the
     files first (no AI), as the view does when it starts; Sync does it again

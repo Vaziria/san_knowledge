@@ -1,6 +1,7 @@
 import { Box, Button, Code, Grid, HStack, Spinner, Tabs, Text } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BoardView } from './BoardView';
+import { BrainView } from './BrainView';
 import { api, errorText, explain as fetchExplain, q, type AIReport, type Explanation, type GraphResponse, type KNode, type SavedWeb, type SyncReport } from './api';
 import { Dialogs } from './dialogs';
 import { GraphView, type ViewRequest } from './GraphView';
@@ -39,7 +40,11 @@ export function App() {
   const [selected, setSelected] = useState<string | null>(null);
   const [explained, setExplained] = useState<{ explanation: Explanation; markdown: string } | null>(null);
   const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<ViewMode>('graph');
+  // ?view=table|board|brain opens that view (graph by default).
+  const [mode, setMode] = useState<ViewMode>(() => {
+    const v = new URLSearchParams(location.search).get('view');
+    return v === 'table' || v === 'board' || v === 'brain' ? v : 'graph';
+  });
   const [colorBy, setColorByState] = useState<ColorBy>(initialColorBy);
   const [filters, setFilters] = useState<Filters>({ hiddenTypes: new Set(), hiddenCommunities: new Set(), keyword: '', domain: '' });
   const [sort, setSort] = useState<Sort>({ col: 'title', dir: 1 });
@@ -232,6 +237,11 @@ export function App() {
             {mode === 'board' && (
               <Box position="absolute" inset="0" bg="bg">
                 <BoardView />
+              </Box>
+            )}
+            {mode === 'brain' && (
+              <Box position="absolute" inset="0" bg="bg">
+                <BrainView />
               </Box>
             )}
             {empty && (

@@ -56,6 +56,60 @@ var knowledgeKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
+			Kind: "brain-learn", Title: "Brain Learn", Category: "Knowledge",
+			Description: "Has a brain of a knowledge (docs/brain.md: a self-improving memory next to its graph) learn from the docs that are new or changed since it last did: for each doc, Claude Code (claude -p, your login) proposes claims, each with the section and the words it rests on, and a second call with Verify Model checks each against those words; what passes is written, verified. Two calls per doc. Limit is how many docs a run does (no limit when empty), the rest wait. Text says what was learned, Report is the same as data.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Text", Text), sock("Report", Object)},
+			Settings: []*v1.Setting{{Name: "Brain", Placeholder: "root"}, {Name: "Limit", Placeholder: "No limit"},
+				{Name: "Model", Placeholder: "sonnet: proposes"}, {Name: "Verify Model", Placeholder: "haiku: checks"}},
+			Inputs: []*v1.Socket{sock("Event", Event), sock("Knowledge", Knowledge)},
+		},
+		run: brainLearn,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "brain-sleep", Title: "Brain Sleep", Category: "Knowledge",
+			Description: "A brain's sleep (docs/brain.md), after a snapshot of it: what was not used since the last sleep loses some confidence, duplicate concepts are merged, very weak claims and edges are retired and what was retired long ago removed, and claims whose sources changed go back to proposed, to be learned again (Brain Learn). No AI, unless AI is Yes: then Claude Code (claude -p, your login, Model) gives claims that are contested or won in some tasks and lost in others the contexts they hold in (applies_when), where the evidence or the runs show it, up to 8 a sleep in one call; and once a week, with 30 claims or more, a second call may write a grammar proposal for the gate (knowledge brain gate). Text says what it did, Report is the same as data.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Text", Text), sock("Report", Object)},
+			Settings: []*v1.Setting{{Name: "Brain", Placeholder: "root"}, {Name: "AI", Options: []string{"No", "Yes"}},
+				{Name: "Model", Placeholder: "sonnet: with AI"}},
+			Inputs: []*v1.Socket{sock("Event", Event), sock("Knowledge", Knowledge)},
+		},
+		run: brainSleep,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "brain-recall", Title: "Brain Recall", Category: "Knowledge",
+			Description: "What a knowledge's brain recalls for Task (docs/brain.md), for an AI step's prompt: the claims it brings up, best first (with how they worked out in past tasks), and the docs and sections they rest on, with the file:line to read and cite. No AI. Text is that context block, Recall the same as data, Count how many docs and sections. Record the AI's answer with Brain Run.",
+			Outputs:     []*v1.Socket{sock("Text", Text), sock("Recall", Object), sock("Count", Object)},
+			Settings:    []*v1.Setting{{Name: "Brain", Placeholder: "root"}},
+			Inputs:      []*v1.Socket{sock("Knowledge", Knowledge), field("Task")},
+		},
+		run: brainRecall,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "brain-run", Title: "Brain Run", Category: "Knowledge",
+			Description: "Records a task a brain helped with and its answer as a run of the brain: what it used are the claims behind what the brain recalls for Task and Answer cites (by file:line). Its outcome credits them: with Success given (yes or no, with Score 0 to 1 and Detail; Check says what the check is, such as \"the tests pass\"), the task's own check; else, with Outcome Citation Check, the citation check (Claude Code, your login, Verify Model: do the docs the answer cites say what it says there; a pass when every citation holds, nothing when it cites none); with Outcome Later, none yet: give it with Brain Outcome. Run is the run's key, Passed whether it passed, Text says what was recorded, Report is the same as data.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Run", Text), sock("Passed", Object), sock("Text", Text), sock("Report", Object)},
+			Settings: []*v1.Setting{{Name: "Brain", Placeholder: "root"}, {Name: "Outcome", Options: []string{"Citation Check", "Later"}},
+				{Name: "Verify Model", Placeholder: "haiku: the citation check"}},
+			Inputs: []*v1.Socket{sock("Event", Event), sock("Knowledge", Knowledge), field("Task"), field("Answer"),
+				field("Success"), field("Score"), field("Detail"), field("Check")},
+		},
+		run: brainRun,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "brain-outcome", Title: "Brain Outcome", Category: "Knowledge",
+			Description: "Gives a brain's run its outcome, once, when it is known later: the user's reaction, a post's reach, a test run. Run is the run's key (Brain Run's Run), Success yes or no, Score 0 to 1 when the check gives one, Detail what happened. What the run used gains a use, and a win when it passed. Text says what was credited, Report is the same as data.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Text", Text), sock("Report", Object)},
+			Settings:    []*v1.Setting{{Name: "Brain", Placeholder: "root"}},
+			Inputs:      []*v1.Socket{sock("Event", Event), sock("Knowledge", Knowledge), field("Run"), field("Success"), field("Score"), field("Detail")},
+		},
+		run: brainOutcome,
+	},
+	{
+		StepKind: &v1.StepKind{
 			Kind: "knowledge-search", Title: "Knowledge Search", Category: "Knowledge",
 			Description: "Finds the nodes of a knowledge that hold every word of Query, in their title, keywords, summary or text, best first: Text lists them for a person, or with AI Format as a context block for an AI's prompt; Results are the same as data, and Count how many matched.",
 			Outputs:     []*v1.Socket{sock("Text", Text), sock("Results", Object), sock("Count", Object)},

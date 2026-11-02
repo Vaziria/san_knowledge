@@ -1560,6 +1560,1094 @@ func (x *GetKnowledgeNodeResponse) GetText() string {
 	return ""
 }
 
+// Brain is a brain of a knowledge, with its counts.
+type Brain struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// grammar is the version of the grammar it follows.
+	Grammar uint32 `protobuf:"varint,2,opt,name=grammar,proto3" json:"grammar,omitempty"`
+	// forked_from is the brain it was copied from, if any.
+	ForkedFrom string `protobuf:"bytes,3,opt,name=forked_from,json=forkedFrom,proto3" json:"forked_from,omitempty"`
+	// created and last_sleep are RFC 3339 times; last_sleep is empty
+	// before its first sleep.
+	Created   string `protobuf:"bytes,4,opt,name=created,proto3" json:"created,omitempty"`
+	LastSleep string `protobuf:"bytes,5,opt,name=last_sleep,json=lastSleep,proto3" json:"last_sleep,omitempty"`
+	Claims    uint32 `protobuf:"varint,6,opt,name=claims,proto3" json:"claims,omitempty"`
+	Concepts  uint32 `protobuf:"varint,7,opt,name=concepts,proto3" json:"concepts,omitempty"`
+	Sources   uint32 `protobuf:"varint,8,opt,name=sources,proto3" json:"sources,omitempty"`
+	Runs      uint32 `protobuf:"varint,9,opt,name=runs,proto3" json:"runs,omitempty"`
+	// passed is how many runs passed their check, waiting how many have
+	// no outcome yet.
+	Passed  uint32 `protobuf:"varint,10,opt,name=passed,proto3" json:"passed,omitempty"`
+	Waiting uint32 `protobuf:"varint,11,opt,name=waiting,proto3" json:"waiting,omitempty"`
+	// retired is how many claims and edges were taken out of use.
+	Retired       uint32 `protobuf:"varint,12,opt,name=retired,proto3" json:"retired,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Brain) Reset() {
+	*x = Brain{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Brain) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Brain) ProtoMessage() {}
+
+func (x *Brain) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Brain.ProtoReflect.Descriptor instead.
+func (*Brain) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *Brain) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Brain) GetGrammar() uint32 {
+	if x != nil {
+		return x.Grammar
+	}
+	return 0
+}
+
+func (x *Brain) GetForkedFrom() string {
+	if x != nil {
+		return x.ForkedFrom
+	}
+	return ""
+}
+
+func (x *Brain) GetCreated() string {
+	if x != nil {
+		return x.Created
+	}
+	return ""
+}
+
+func (x *Brain) GetLastSleep() string {
+	if x != nil {
+		return x.LastSleep
+	}
+	return ""
+}
+
+func (x *Brain) GetClaims() uint32 {
+	if x != nil {
+		return x.Claims
+	}
+	return 0
+}
+
+func (x *Brain) GetConcepts() uint32 {
+	if x != nil {
+		return x.Concepts
+	}
+	return 0
+}
+
+func (x *Brain) GetSources() uint32 {
+	if x != nil {
+		return x.Sources
+	}
+	return 0
+}
+
+func (x *Brain) GetRuns() uint32 {
+	if x != nil {
+		return x.Runs
+	}
+	return 0
+}
+
+func (x *Brain) GetPassed() uint32 {
+	if x != nil {
+		return x.Passed
+	}
+	return 0
+}
+
+func (x *Brain) GetWaiting() uint32 {
+	if x != nil {
+		return x.Waiting
+	}
+	return 0
+}
+
+func (x *Brain) GetRetired() uint32 {
+	if x != nil {
+		return x.Retired
+	}
+	return 0
+}
+
+type ListBrainsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// id is the knowledge's.
+	Id            uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBrainsRequest) Reset() {
+	*x = ListBrainsRequest{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrainsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrainsRequest) ProtoMessage() {}
+
+func (x *ListBrainsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrainsRequest.ProtoReflect.Descriptor instead.
+func (*ListBrainsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ListBrainsRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type ListBrainsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Brains        []*Brain               `protobuf:"bytes,1,rep,name=brains,proto3" json:"brains,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBrainsResponse) Reset() {
+	*x = ListBrainsResponse{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrainsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrainsResponse) ProtoMessage() {}
+
+func (x *ListBrainsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrainsResponse.ProtoReflect.Descriptor instead.
+func (*ListBrainsResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ListBrainsResponse) GetBrains() []*Brain {
+	if x != nil {
+		return x.Brains
+	}
+	return nil
+}
+
+// BrainSource is a doc or section of the knowledge a claim rests on.
+type BrainSource struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// fact is its key in the knowledge's graph.
+	Fact  string `protobuf:"bytes,1,opt,name=fact,proto3" json:"fact,omitempty"`
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// loc is its file:line.
+	Loc string `protobuf:"bytes,3,opt,name=loc,proto3" json:"loc,omitempty"`
+	// quote is the words of it the claim rests on.
+	Quote         string `protobuf:"bytes,4,opt,name=quote,proto3" json:"quote,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrainSource) Reset() {
+	*x = BrainSource{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrainSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrainSource) ProtoMessage() {}
+
+func (x *BrainSource) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrainSource.ProtoReflect.Descriptor instead.
+func (*BrainSource) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *BrainSource) GetFact() string {
+	if x != nil {
+		return x.Fact
+	}
+	return ""
+}
+
+func (x *BrainSource) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *BrainSource) GetLoc() string {
+	if x != nil {
+		return x.Loc
+	}
+	return ""
+}
+
+func (x *BrainSource) GetQuote() string {
+	if x != nil {
+		return x.Quote
+	}
+	return ""
+}
+
+// BrainClaim is a claim of a brain.
+type BrainClaim struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Key   string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Text  string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	// status is proposed, verified or confirmed (by the user).
+	Status     string  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Confidence float64 `protobuf:"fixed64,4,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	// uses and wins: in how many runs it was used, and how many passed.
+	Uses uint32 `protobuf:"varint,5,opt,name=uses,proto3" json:"uses,omitempty"`
+	Wins uint32 `protobuf:"varint,6,opt,name=wins,proto3" json:"wins,omitempty"`
+	// weight is what sleep weighs it by: (0.5 + confidence) x record x
+	// trust; under 0.1 it is retired.
+	Weight float64 `protobuf:"fixed64,7,opt,name=weight,proto3" json:"weight,omitempty"`
+	// retired is why it was taken out of use; empty while in use.
+	Retired string `protobuf:"bytes,8,opt,name=retired,proto3" json:"retired,omitempty"`
+	// stale: its sources changed, so it waits to be learned again.
+	Stale bool `protobuf:"varint,9,opt,name=stale,proto3" json:"stale,omitempty"`
+	// about are its concepts, applies_when the contexts it holds in.
+	About       []string `protobuf:"bytes,10,rep,name=about,proto3" json:"about,omitempty"`
+	AppliesWhen []string `protobuf:"bytes,11,rep,name=applies_when,json=appliesWhen,proto3" json:"applies_when,omitempty"`
+	// sources speak for it, against against it.
+	Sources       []*BrainSource `protobuf:"bytes,12,rep,name=sources,proto3" json:"sources,omitempty"`
+	Against       []*BrainSource `protobuf:"bytes,13,rep,name=against,proto3" json:"against,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrainClaim) Reset() {
+	*x = BrainClaim{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrainClaim) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrainClaim) ProtoMessage() {}
+
+func (x *BrainClaim) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrainClaim.ProtoReflect.Descriptor instead.
+func (*BrainClaim) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *BrainClaim) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *BrainClaim) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *BrainClaim) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *BrainClaim) GetConfidence() float64 {
+	if x != nil {
+		return x.Confidence
+	}
+	return 0
+}
+
+func (x *BrainClaim) GetUses() uint32 {
+	if x != nil {
+		return x.Uses
+	}
+	return 0
+}
+
+func (x *BrainClaim) GetWins() uint32 {
+	if x != nil {
+		return x.Wins
+	}
+	return 0
+}
+
+func (x *BrainClaim) GetWeight() float64 {
+	if x != nil {
+		return x.Weight
+	}
+	return 0
+}
+
+func (x *BrainClaim) GetRetired() string {
+	if x != nil {
+		return x.Retired
+	}
+	return ""
+}
+
+func (x *BrainClaim) GetStale() bool {
+	if x != nil {
+		return x.Stale
+	}
+	return false
+}
+
+func (x *BrainClaim) GetAbout() []string {
+	if x != nil {
+		return x.About
+	}
+	return nil
+}
+
+func (x *BrainClaim) GetAppliesWhen() []string {
+	if x != nil {
+		return x.AppliesWhen
+	}
+	return nil
+}
+
+func (x *BrainClaim) GetSources() []*BrainSource {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+func (x *BrainClaim) GetAgainst() []*BrainSource {
+	if x != nil {
+		return x.Against
+	}
+	return nil
+}
+
+type ListBrainClaimsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// id is the knowledge's; brain its brain's name (root when empty).
+	Id    uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Brain string `protobuf:"bytes,2,opt,name=brain,proto3" json:"brain,omitempty"`
+	// query: every word in the claim's text, a concept or a source.
+	Query string `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`
+	// status: empty for the claims in use, else proposed, verified,
+	// confirmed or retired.
+	Status string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// sort: weight (the default), uses or new.
+	Sort   string `protobuf:"bytes,5,opt,name=sort,proto3" json:"sort,omitempty"`
+	Offset uint32 `protobuf:"varint,6,opt,name=offset,proto3" json:"offset,omitempty"`
+	// limit is the page's size, 50 when 0.
+	Limit         uint32 `protobuf:"varint,7,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBrainClaimsRequest) Reset() {
+	*x = ListBrainClaimsRequest{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrainClaimsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrainClaimsRequest) ProtoMessage() {}
+
+func (x *ListBrainClaimsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrainClaimsRequest.ProtoReflect.Descriptor instead.
+func (*ListBrainClaimsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ListBrainClaimsRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ListBrainClaimsRequest) GetBrain() string {
+	if x != nil {
+		return x.Brain
+	}
+	return ""
+}
+
+func (x *ListBrainClaimsRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *ListBrainClaimsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListBrainClaimsRequest) GetSort() string {
+	if x != nil {
+		return x.Sort
+	}
+	return ""
+}
+
+func (x *ListBrainClaimsRequest) GetOffset() uint32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ListBrainClaimsRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListBrainClaimsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// total is how many claims pass the query.
+	Total         uint32        `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	Claims        []*BrainClaim `protobuf:"bytes,2,rep,name=claims,proto3" json:"claims,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBrainClaimsResponse) Reset() {
+	*x = ListBrainClaimsResponse{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrainClaimsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrainClaimsResponse) ProtoMessage() {}
+
+func (x *ListBrainClaimsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrainClaimsResponse.ProtoReflect.Descriptor instead.
+func (*ListBrainClaimsResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ListBrainClaimsResponse) GetTotal() uint32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListBrainClaimsResponse) GetClaims() []*BrainClaim {
+	if x != nil {
+		return x.Claims
+	}
+	return nil
+}
+
+// BrainRun is a task done with a brain, and its outcome.
+type BrainRun struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Key   string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Task  string                 `protobuf:"bytes,2,opt,name=task,proto3" json:"task,omitempty"`
+	// check is how its outcome is judged.
+	Check   string `protobuf:"bytes,3,opt,name=check,proto3" json:"check,omitempty"`
+	Author  string `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
+	Created string `protobuf:"bytes,5,opt,name=created,proto3" json:"created,omitempty"`
+	// used is how many claims and concepts it used.
+	Used uint32 `protobuf:"varint,6,opt,name=used,proto3" json:"used,omitempty"`
+	// has_outcome: its outcome is known; passed, score and detail are it.
+	HasOutcome    bool     `protobuf:"varint,7,opt,name=has_outcome,json=hasOutcome,proto3" json:"has_outcome,omitempty"`
+	Passed        bool     `protobuf:"varint,8,opt,name=passed,proto3" json:"passed,omitempty"`
+	Score         *float64 `protobuf:"fixed64,9,opt,name=score,proto3,oneof" json:"score,omitempty"`
+	Detail        string   `protobuf:"bytes,10,opt,name=detail,proto3" json:"detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrainRun) Reset() {
+	*x = BrainRun{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrainRun) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrainRun) ProtoMessage() {}
+
+func (x *BrainRun) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrainRun.ProtoReflect.Descriptor instead.
+func (*BrainRun) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *BrainRun) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *BrainRun) GetTask() string {
+	if x != nil {
+		return x.Task
+	}
+	return ""
+}
+
+func (x *BrainRun) GetCheck() string {
+	if x != nil {
+		return x.Check
+	}
+	return ""
+}
+
+func (x *BrainRun) GetAuthor() string {
+	if x != nil {
+		return x.Author
+	}
+	return ""
+}
+
+func (x *BrainRun) GetCreated() string {
+	if x != nil {
+		return x.Created
+	}
+	return ""
+}
+
+func (x *BrainRun) GetUsed() uint32 {
+	if x != nil {
+		return x.Used
+	}
+	return 0
+}
+
+func (x *BrainRun) GetHasOutcome() bool {
+	if x != nil {
+		return x.HasOutcome
+	}
+	return false
+}
+
+func (x *BrainRun) GetPassed() bool {
+	if x != nil {
+		return x.Passed
+	}
+	return false
+}
+
+func (x *BrainRun) GetScore() float64 {
+	if x != nil && x.Score != nil {
+		return *x.Score
+	}
+	return 0
+}
+
+func (x *BrainRun) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+type ListBrainRunsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Brain string                 `protobuf:"bytes,2,opt,name=brain,proto3" json:"brain,omitempty"`
+	// limit is how many, 30 when 0.
+	Limit         uint32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBrainRunsRequest) Reset() {
+	*x = ListBrainRunsRequest{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrainRunsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrainRunsRequest) ProtoMessage() {}
+
+func (x *ListBrainRunsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrainRunsRequest.ProtoReflect.Descriptor instead.
+func (*ListBrainRunsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *ListBrainRunsRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ListBrainRunsRequest) GetBrain() string {
+	if x != nil {
+		return x.Brain
+	}
+	return ""
+}
+
+func (x *ListBrainRunsRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListBrainRunsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Runs          []*BrainRun            `protobuf:"bytes,1,rep,name=runs,proto3" json:"runs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBrainRunsResponse) Reset() {
+	*x = ListBrainRunsResponse{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrainRunsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrainRunsResponse) ProtoMessage() {}
+
+func (x *ListBrainRunsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrainRunsResponse.ProtoReflect.Descriptor instead.
+func (*ListBrainRunsResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ListBrainRunsResponse) GetRuns() []*BrainRun {
+	if x != nil {
+		return x.Runs
+	}
+	return nil
+}
+
+type RecallBrainRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Brain string                 `protobuf:"bytes,2,opt,name=brain,proto3" json:"brain,omitempty"`
+	// query is the task or question.
+	Query         string `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecallBrainRequest) Reset() {
+	*x = RecallBrainRequest{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecallBrainRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecallBrainRequest) ProtoMessage() {}
+
+func (x *RecallBrainRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecallBrainRequest.ProtoReflect.Descriptor instead.
+func (*RecallBrainRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *RecallBrainRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *RecallBrainRequest) GetBrain() string {
+	if x != nil {
+		return x.Brain
+	}
+	return ""
+}
+
+func (x *RecallBrainRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+// RecalledClaim is a claim a recall brought up.
+type RecalledClaim struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Score         float64                `protobuf:"fixed64,4,opt,name=score,proto3" json:"score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecalledClaim) Reset() {
+	*x = RecalledClaim{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecalledClaim) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecalledClaim) ProtoMessage() {}
+
+func (x *RecalledClaim) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecalledClaim.ProtoReflect.Descriptor instead.
+func (*RecalledClaim) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *RecalledClaim) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *RecalledClaim) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *RecalledClaim) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *RecalledClaim) GetScore() float64 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+// RecalledFact is a doc or section a recall reached: what to read and cite.
+type RecalledFact struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// key is its key in the knowledge's graph.
+	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// loc is its file:line.
+	Loc           string  `protobuf:"bytes,3,opt,name=loc,proto3" json:"loc,omitempty"`
+	Score         float64 `protobuf:"fixed64,4,opt,name=score,proto3" json:"score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecalledFact) Reset() {
+	*x = RecalledFact{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecalledFact) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecalledFact) ProtoMessage() {}
+
+func (x *RecalledFact) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecalledFact.ProtoReflect.Descriptor instead.
+func (*RecalledFact) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *RecalledFact) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *RecalledFact) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *RecalledFact) GetLoc() string {
+	if x != nil {
+		return x.Loc
+	}
+	return ""
+}
+
+func (x *RecalledFact) GetScore() float64 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+type RecallBrainResponse struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Claims []*RecalledClaim       `protobuf:"bytes,1,rep,name=claims,proto3" json:"claims,omitempty"`
+	Facts  []*RecalledFact        `protobuf:"bytes,2,rep,name=facts,proto3" json:"facts,omitempty"`
+	// markdown is the recall as a context block for a prompt.
+	Markdown      string `protobuf:"bytes,3,opt,name=markdown,proto3" json:"markdown,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecallBrainResponse) Reset() {
+	*x = RecallBrainResponse{}
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecallBrainResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecallBrainResponse) ProtoMessage() {}
+
+func (x *RecallBrainResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_knowledge_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecallBrainResponse.ProtoReflect.Descriptor instead.
+func (*RecallBrainResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_knowledge_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *RecallBrainResponse) GetClaims() []*RecalledClaim {
+	if x != nil {
+		return x.Claims
+	}
+	return nil
+}
+
+func (x *RecallBrainResponse) GetFacts() []*RecalledFact {
+	if x != nil {
+		return x.Facts
+	}
+	return nil
+}
+
+func (x *RecallBrainResponse) GetMarkdown() string {
+	if x != nil {
+		return x.Markdown
+	}
+	return ""
+}
+
 var File_san_tower_v1_knowledge_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_knowledge_proto_rawDesc = "" +
@@ -1659,7 +2747,99 @@ const file_san_tower_v1_knowledge_proto_rawDesc = "" +
 	"\x04node\x18\x01 \x01(\v2\x1b.san.tower.v1.KnowledgeNodeR\x04node\x12-\n" +
 	"\x03out\x18\x02 \x03(\v2\x1b.san.tower.v1.KnowledgeLinkR\x03out\x12+\n" +
 	"\x02in\x18\x03 \x03(\v2\x1b.san.tower.v1.KnowledgeLinkR\x02in\x12\x12\n" +
-	"\x04text\x18\x04 \x01(\tR\x04text2\xc5\t\n" +
+	"\x04text\x18\x04 \x01(\tR\x04text\"\xbd\x02\n" +
+	"\x05Brain\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\agrammar\x18\x02 \x01(\rR\agrammar\x12\x1f\n" +
+	"\vforked_from\x18\x03 \x01(\tR\n" +
+	"forkedFrom\x12\x18\n" +
+	"\acreated\x18\x04 \x01(\tR\acreated\x12\x1d\n" +
+	"\n" +
+	"last_sleep\x18\x05 \x01(\tR\tlastSleep\x12\x16\n" +
+	"\x06claims\x18\x06 \x01(\rR\x06claims\x12\x1a\n" +
+	"\bconcepts\x18\a \x01(\rR\bconcepts\x12\x18\n" +
+	"\asources\x18\b \x01(\rR\asources\x12\x12\n" +
+	"\x04runs\x18\t \x01(\rR\x04runs\x12\x16\n" +
+	"\x06passed\x18\n" +
+	" \x01(\rR\x06passed\x12\x18\n" +
+	"\awaiting\x18\v \x01(\rR\awaiting\x12\x18\n" +
+	"\aretired\x18\f \x01(\rR\aretired\"#\n" +
+	"\x11ListBrainsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\"A\n" +
+	"\x12ListBrainsResponse\x12+\n" +
+	"\x06brains\x18\x01 \x03(\v2\x13.san.tower.v1.BrainR\x06brains\"_\n" +
+	"\vBrainSource\x12\x12\n" +
+	"\x04fact\x18\x01 \x01(\tR\x04fact\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x10\n" +
+	"\x03loc\x18\x03 \x01(\tR\x03loc\x12\x14\n" +
+	"\x05quote\x18\x04 \x01(\tR\x05quote\"\xfd\x02\n" +
+	"\n" +
+	"BrainClaim\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x1e\n" +
+	"\n" +
+	"confidence\x18\x04 \x01(\x01R\n" +
+	"confidence\x12\x12\n" +
+	"\x04uses\x18\x05 \x01(\rR\x04uses\x12\x12\n" +
+	"\x04wins\x18\x06 \x01(\rR\x04wins\x12\x16\n" +
+	"\x06weight\x18\a \x01(\x01R\x06weight\x12\x18\n" +
+	"\aretired\x18\b \x01(\tR\aretired\x12\x14\n" +
+	"\x05stale\x18\t \x01(\bR\x05stale\x12\x14\n" +
+	"\x05about\x18\n" +
+	" \x03(\tR\x05about\x12!\n" +
+	"\fapplies_when\x18\v \x03(\tR\vappliesWhen\x123\n" +
+	"\asources\x18\f \x03(\v2\x19.san.tower.v1.BrainSourceR\asources\x123\n" +
+	"\aagainst\x18\r \x03(\v2\x19.san.tower.v1.BrainSourceR\aagainst\"\xae\x01\n" +
+	"\x16ListBrainClaimsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x14\n" +
+	"\x05brain\x18\x02 \x01(\tR\x05brain\x12\x14\n" +
+	"\x05query\x18\x03 \x01(\tR\x05query\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x12\n" +
+	"\x04sort\x18\x05 \x01(\tR\x04sort\x12\x16\n" +
+	"\x06offset\x18\x06 \x01(\rR\x06offset\x12\x14\n" +
+	"\x05limit\x18\a \x01(\rR\x05limit\"a\n" +
+	"\x17ListBrainClaimsResponse\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\rR\x05total\x120\n" +
+	"\x06claims\x18\x02 \x03(\v2\x18.san.tower.v1.BrainClaimR\x06claims\"\x82\x02\n" +
+	"\bBrainRun\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
+	"\x04task\x18\x02 \x01(\tR\x04task\x12\x14\n" +
+	"\x05check\x18\x03 \x01(\tR\x05check\x12\x16\n" +
+	"\x06author\x18\x04 \x01(\tR\x06author\x12\x18\n" +
+	"\acreated\x18\x05 \x01(\tR\acreated\x12\x12\n" +
+	"\x04used\x18\x06 \x01(\rR\x04used\x12\x1f\n" +
+	"\vhas_outcome\x18\a \x01(\bR\n" +
+	"hasOutcome\x12\x16\n" +
+	"\x06passed\x18\b \x01(\bR\x06passed\x12\x19\n" +
+	"\x05score\x18\t \x01(\x01H\x00R\x05score\x88\x01\x01\x12\x16\n" +
+	"\x06detail\x18\n" +
+	" \x01(\tR\x06detailB\b\n" +
+	"\x06_score\"R\n" +
+	"\x14ListBrainRunsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x14\n" +
+	"\x05brain\x18\x02 \x01(\tR\x05brain\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\rR\x05limit\"C\n" +
+	"\x15ListBrainRunsResponse\x12*\n" +
+	"\x04runs\x18\x01 \x03(\v2\x16.san.tower.v1.BrainRunR\x04runs\"P\n" +
+	"\x12RecallBrainRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x14\n" +
+	"\x05brain\x18\x02 \x01(\tR\x05brain\x12\x14\n" +
+	"\x05query\x18\x03 \x01(\tR\x05query\"c\n" +
+	"\rRecalledClaim\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x14\n" +
+	"\x05score\x18\x04 \x01(\x01R\x05score\"^\n" +
+	"\fRecalledFact\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x10\n" +
+	"\x03loc\x18\x03 \x01(\tR\x03loc\x12\x14\n" +
+	"\x05score\x18\x04 \x01(\x01R\x05score\"\x98\x01\n" +
+	"\x13RecallBrainResponse\x123\n" +
+	"\x06claims\x18\x01 \x03(\v2\x1b.san.tower.v1.RecalledClaimR\x06claims\x120\n" +
+	"\x05facts\x18\x02 \x03(\v2\x1a.san.tower.v1.RecalledFactR\x05facts\x12\x1a\n" +
+	"\bmarkdown\x18\x03 \x01(\tR\bmarkdown2\xa4\f\n" +
 	"\x10KnowledgeService\x12X\n" +
 	"\rListKnowledge\x12\".san.tower.v1.ListKnowledgeRequest\x1a#.san.tower.v1.ListKnowledgeResponse\x12^\n" +
 	"\x0fCreateKnowledge\x12$.san.tower.v1.CreateKnowledgeRequest\x1a%.san.tower.v1.CreateKnowledgeResponse\x12^\n" +
@@ -1672,7 +2852,12 @@ const file_san_tower_v1_knowledge_proto_rawDesc = "" +
 	"\fGetKnowledge\x12!.san.tower.v1.GetKnowledgeRequest\x1a\".san.tower.v1.GetKnowledgeResponse\x12X\n" +
 	"\rSyncKnowledge\x12\".san.tower.v1.SyncKnowledgeRequest\x1a#.san.tower.v1.SyncKnowledgeResponse\x12d\n" +
 	"\x11GetKnowledgeGraph\x12&.san.tower.v1.GetKnowledgeGraphRequest\x1a'.san.tower.v1.GetKnowledgeGraphResponse\x12a\n" +
-	"\x10GetKnowledgeNode\x12%.san.tower.v1.GetKnowledgeNodeRequest\x1a&.san.tower.v1.GetKnowledgeNodeResponseB\xae\x01\n" +
+	"\x10GetKnowledgeNode\x12%.san.tower.v1.GetKnowledgeNodeRequest\x1a&.san.tower.v1.GetKnowledgeNodeResponse\x12O\n" +
+	"\n" +
+	"ListBrains\x12\x1f.san.tower.v1.ListBrainsRequest\x1a .san.tower.v1.ListBrainsResponse\x12^\n" +
+	"\x0fListBrainClaims\x12$.san.tower.v1.ListBrainClaimsRequest\x1a%.san.tower.v1.ListBrainClaimsResponse\x12X\n" +
+	"\rListBrainRuns\x12\".san.tower.v1.ListBrainRunsRequest\x1a#.san.tower.v1.ListBrainRunsResponse\x12R\n" +
+	"\vRecallBrain\x12 .san.tower.v1.RecallBrainRequest\x1a!.san.tower.v1.RecallBrainResponseB\xae\x01\n" +
 	"\x10com.san.tower.v1B\x0eKnowledgeProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -1687,7 +2872,7 @@ func file_san_tower_v1_knowledge_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_knowledge_proto_rawDescData
 }
 
-var file_san_tower_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_san_tower_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_san_tower_v1_knowledge_proto_goTypes = []any{
 	(*Knowledge)(nil),                     // 0: san.tower.v1.Knowledge
 	(*KnowledgeFolder)(nil),               // 1: san.tower.v1.KnowledgeFolder
@@ -1717,13 +2902,27 @@ var file_san_tower_v1_knowledge_proto_goTypes = []any{
 	(*GetKnowledgeGraphResponse)(nil),     // 25: san.tower.v1.GetKnowledgeGraphResponse
 	(*GetKnowledgeNodeRequest)(nil),       // 26: san.tower.v1.GetKnowledgeNodeRequest
 	(*GetKnowledgeNodeResponse)(nil),      // 27: san.tower.v1.GetKnowledgeNodeResponse
-	(*Storage)(nil),                       // 28: san.tower.v1.Storage
-	(*timestamppb.Timestamp)(nil),         // 29: google.protobuf.Timestamp
+	(*Brain)(nil),                         // 28: san.tower.v1.Brain
+	(*ListBrainsRequest)(nil),             // 29: san.tower.v1.ListBrainsRequest
+	(*ListBrainsResponse)(nil),            // 30: san.tower.v1.ListBrainsResponse
+	(*BrainSource)(nil),                   // 31: san.tower.v1.BrainSource
+	(*BrainClaim)(nil),                    // 32: san.tower.v1.BrainClaim
+	(*ListBrainClaimsRequest)(nil),        // 33: san.tower.v1.ListBrainClaimsRequest
+	(*ListBrainClaimsResponse)(nil),       // 34: san.tower.v1.ListBrainClaimsResponse
+	(*BrainRun)(nil),                      // 35: san.tower.v1.BrainRun
+	(*ListBrainRunsRequest)(nil),          // 36: san.tower.v1.ListBrainRunsRequest
+	(*ListBrainRunsResponse)(nil),         // 37: san.tower.v1.ListBrainRunsResponse
+	(*RecallBrainRequest)(nil),            // 38: san.tower.v1.RecallBrainRequest
+	(*RecalledClaim)(nil),                 // 39: san.tower.v1.RecalledClaim
+	(*RecalledFact)(nil),                  // 40: san.tower.v1.RecalledFact
+	(*RecallBrainResponse)(nil),           // 41: san.tower.v1.RecallBrainResponse
+	(*Storage)(nil),                       // 42: san.tower.v1.Storage
+	(*timestamppb.Timestamp)(nil),         // 43: google.protobuf.Timestamp
 }
 var file_san_tower_v1_knowledge_proto_depIdxs = []int32{
-	28, // 0: san.tower.v1.Knowledge.storage:type_name -> san.tower.v1.Storage
-	29, // 1: san.tower.v1.Knowledge.created_at:type_name -> google.protobuf.Timestamp
-	29, // 2: san.tower.v1.Knowledge.updated_at:type_name -> google.protobuf.Timestamp
+	42, // 0: san.tower.v1.Knowledge.storage:type_name -> san.tower.v1.Storage
+	43, // 1: san.tower.v1.Knowledge.created_at:type_name -> google.protobuf.Timestamp
+	43, // 2: san.tower.v1.Knowledge.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 3: san.tower.v1.ListKnowledgeResponse.knowledge:type_name -> san.tower.v1.Knowledge
 	0,  // 4: san.tower.v1.CreateKnowledgeResponse.knowledge:type_name -> san.tower.v1.Knowledge
 	1,  // 5: san.tower.v1.ListKnowledgeFoldersResponse.folders:type_name -> san.tower.v1.KnowledgeFolder
@@ -1735,35 +2934,50 @@ var file_san_tower_v1_knowledge_proto_depIdxs = []int32{
 	18, // 11: san.tower.v1.GetKnowledgeNodeResponse.node:type_name -> san.tower.v1.KnowledgeNode
 	19, // 12: san.tower.v1.GetKnowledgeNodeResponse.out:type_name -> san.tower.v1.KnowledgeLink
 	19, // 13: san.tower.v1.GetKnowledgeNodeResponse.in:type_name -> san.tower.v1.KnowledgeLink
-	2,  // 14: san.tower.v1.KnowledgeService.ListKnowledge:input_type -> san.tower.v1.ListKnowledgeRequest
-	4,  // 15: san.tower.v1.KnowledgeService.CreateKnowledge:input_type -> san.tower.v1.CreateKnowledgeRequest
-	6,  // 16: san.tower.v1.KnowledgeService.DeleteKnowledge:input_type -> san.tower.v1.DeleteKnowledgeRequest
-	8,  // 17: san.tower.v1.KnowledgeService.MoveKnowledge:input_type -> san.tower.v1.MoveKnowledgeRequest
-	10, // 18: san.tower.v1.KnowledgeService.ListKnowledgeFolders:input_type -> san.tower.v1.ListKnowledgeFoldersRequest
-	12, // 19: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:input_type -> san.tower.v1.CreateKnowledgeFolderRequest
-	14, // 20: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:input_type -> san.tower.v1.UpdateKnowledgeFolderRequest
-	16, // 21: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:input_type -> san.tower.v1.DeleteKnowledgeFolderRequest
-	20, // 22: san.tower.v1.KnowledgeService.GetKnowledge:input_type -> san.tower.v1.GetKnowledgeRequest
-	22, // 23: san.tower.v1.KnowledgeService.SyncKnowledge:input_type -> san.tower.v1.SyncKnowledgeRequest
-	24, // 24: san.tower.v1.KnowledgeService.GetKnowledgeGraph:input_type -> san.tower.v1.GetKnowledgeGraphRequest
-	26, // 25: san.tower.v1.KnowledgeService.GetKnowledgeNode:input_type -> san.tower.v1.GetKnowledgeNodeRequest
-	3,  // 26: san.tower.v1.KnowledgeService.ListKnowledge:output_type -> san.tower.v1.ListKnowledgeResponse
-	5,  // 27: san.tower.v1.KnowledgeService.CreateKnowledge:output_type -> san.tower.v1.CreateKnowledgeResponse
-	7,  // 28: san.tower.v1.KnowledgeService.DeleteKnowledge:output_type -> san.tower.v1.DeleteKnowledgeResponse
-	9,  // 29: san.tower.v1.KnowledgeService.MoveKnowledge:output_type -> san.tower.v1.MoveKnowledgeResponse
-	11, // 30: san.tower.v1.KnowledgeService.ListKnowledgeFolders:output_type -> san.tower.v1.ListKnowledgeFoldersResponse
-	13, // 31: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:output_type -> san.tower.v1.CreateKnowledgeFolderResponse
-	15, // 32: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:output_type -> san.tower.v1.UpdateKnowledgeFolderResponse
-	17, // 33: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:output_type -> san.tower.v1.DeleteKnowledgeFolderResponse
-	21, // 34: san.tower.v1.KnowledgeService.GetKnowledge:output_type -> san.tower.v1.GetKnowledgeResponse
-	23, // 35: san.tower.v1.KnowledgeService.SyncKnowledge:output_type -> san.tower.v1.SyncKnowledgeResponse
-	25, // 36: san.tower.v1.KnowledgeService.GetKnowledgeGraph:output_type -> san.tower.v1.GetKnowledgeGraphResponse
-	27, // 37: san.tower.v1.KnowledgeService.GetKnowledgeNode:output_type -> san.tower.v1.GetKnowledgeNodeResponse
-	26, // [26:38] is the sub-list for method output_type
-	14, // [14:26] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	28, // 14: san.tower.v1.ListBrainsResponse.brains:type_name -> san.tower.v1.Brain
+	31, // 15: san.tower.v1.BrainClaim.sources:type_name -> san.tower.v1.BrainSource
+	31, // 16: san.tower.v1.BrainClaim.against:type_name -> san.tower.v1.BrainSource
+	32, // 17: san.tower.v1.ListBrainClaimsResponse.claims:type_name -> san.tower.v1.BrainClaim
+	35, // 18: san.tower.v1.ListBrainRunsResponse.runs:type_name -> san.tower.v1.BrainRun
+	39, // 19: san.tower.v1.RecallBrainResponse.claims:type_name -> san.tower.v1.RecalledClaim
+	40, // 20: san.tower.v1.RecallBrainResponse.facts:type_name -> san.tower.v1.RecalledFact
+	2,  // 21: san.tower.v1.KnowledgeService.ListKnowledge:input_type -> san.tower.v1.ListKnowledgeRequest
+	4,  // 22: san.tower.v1.KnowledgeService.CreateKnowledge:input_type -> san.tower.v1.CreateKnowledgeRequest
+	6,  // 23: san.tower.v1.KnowledgeService.DeleteKnowledge:input_type -> san.tower.v1.DeleteKnowledgeRequest
+	8,  // 24: san.tower.v1.KnowledgeService.MoveKnowledge:input_type -> san.tower.v1.MoveKnowledgeRequest
+	10, // 25: san.tower.v1.KnowledgeService.ListKnowledgeFolders:input_type -> san.tower.v1.ListKnowledgeFoldersRequest
+	12, // 26: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:input_type -> san.tower.v1.CreateKnowledgeFolderRequest
+	14, // 27: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:input_type -> san.tower.v1.UpdateKnowledgeFolderRequest
+	16, // 28: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:input_type -> san.tower.v1.DeleteKnowledgeFolderRequest
+	20, // 29: san.tower.v1.KnowledgeService.GetKnowledge:input_type -> san.tower.v1.GetKnowledgeRequest
+	22, // 30: san.tower.v1.KnowledgeService.SyncKnowledge:input_type -> san.tower.v1.SyncKnowledgeRequest
+	24, // 31: san.tower.v1.KnowledgeService.GetKnowledgeGraph:input_type -> san.tower.v1.GetKnowledgeGraphRequest
+	26, // 32: san.tower.v1.KnowledgeService.GetKnowledgeNode:input_type -> san.tower.v1.GetKnowledgeNodeRequest
+	29, // 33: san.tower.v1.KnowledgeService.ListBrains:input_type -> san.tower.v1.ListBrainsRequest
+	33, // 34: san.tower.v1.KnowledgeService.ListBrainClaims:input_type -> san.tower.v1.ListBrainClaimsRequest
+	36, // 35: san.tower.v1.KnowledgeService.ListBrainRuns:input_type -> san.tower.v1.ListBrainRunsRequest
+	38, // 36: san.tower.v1.KnowledgeService.RecallBrain:input_type -> san.tower.v1.RecallBrainRequest
+	3,  // 37: san.tower.v1.KnowledgeService.ListKnowledge:output_type -> san.tower.v1.ListKnowledgeResponse
+	5,  // 38: san.tower.v1.KnowledgeService.CreateKnowledge:output_type -> san.tower.v1.CreateKnowledgeResponse
+	7,  // 39: san.tower.v1.KnowledgeService.DeleteKnowledge:output_type -> san.tower.v1.DeleteKnowledgeResponse
+	9,  // 40: san.tower.v1.KnowledgeService.MoveKnowledge:output_type -> san.tower.v1.MoveKnowledgeResponse
+	11, // 41: san.tower.v1.KnowledgeService.ListKnowledgeFolders:output_type -> san.tower.v1.ListKnowledgeFoldersResponse
+	13, // 42: san.tower.v1.KnowledgeService.CreateKnowledgeFolder:output_type -> san.tower.v1.CreateKnowledgeFolderResponse
+	15, // 43: san.tower.v1.KnowledgeService.UpdateKnowledgeFolder:output_type -> san.tower.v1.UpdateKnowledgeFolderResponse
+	17, // 44: san.tower.v1.KnowledgeService.DeleteKnowledgeFolder:output_type -> san.tower.v1.DeleteKnowledgeFolderResponse
+	21, // 45: san.tower.v1.KnowledgeService.GetKnowledge:output_type -> san.tower.v1.GetKnowledgeResponse
+	23, // 46: san.tower.v1.KnowledgeService.SyncKnowledge:output_type -> san.tower.v1.SyncKnowledgeResponse
+	25, // 47: san.tower.v1.KnowledgeService.GetKnowledgeGraph:output_type -> san.tower.v1.GetKnowledgeGraphResponse
+	27, // 48: san.tower.v1.KnowledgeService.GetKnowledgeNode:output_type -> san.tower.v1.GetKnowledgeNodeResponse
+	30, // 49: san.tower.v1.KnowledgeService.ListBrains:output_type -> san.tower.v1.ListBrainsResponse
+	34, // 50: san.tower.v1.KnowledgeService.ListBrainClaims:output_type -> san.tower.v1.ListBrainClaimsResponse
+	37, // 51: san.tower.v1.KnowledgeService.ListBrainRuns:output_type -> san.tower.v1.ListBrainRunsResponse
+	41, // 52: san.tower.v1.KnowledgeService.RecallBrain:output_type -> san.tower.v1.RecallBrainResponse
+	37, // [37:53] is the sub-list for method output_type
+	21, // [21:37] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_knowledge_proto_init() }
@@ -1772,13 +2986,14 @@ func file_san_tower_v1_knowledge_proto_init() {
 		return
 	}
 	file_san_tower_v1_storage_proto_init()
+	file_san_tower_v1_knowledge_proto_msgTypes[35].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_knowledge_proto_rawDesc), len(file_san_tower_v1_knowledge_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   28,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

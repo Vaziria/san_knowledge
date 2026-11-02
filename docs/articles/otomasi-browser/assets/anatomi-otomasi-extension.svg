@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="1520" height="680" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Program tahu langkahnya, extension hanya menjalankan perintah">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="340" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Program tahu langkahnya, extension hanya menjalankan perintah</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Perintah berjalan ke kanan. Hasilnya kembali ke kiri sebagai JSON, lewat jalan yang sama.</text>
+
+  <!-- Computer and browser containers -->
+  <rect x="24" y="76" width="712" height="240" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="98" font-weight="600" fill="#1f1f1f">Komputer kamu</text>
+  <rect x="420" y="106" width="300" height="140" rx="8" fill="#ffffff" fill-opacity="0.6" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="434" y="124" font-size="11.5" font-weight="600" fill="#5f5f5f">Browser harianmu</text>
+
+  <!-- Boxes -->
+  <rect x="40" y="134" width="148" height="88" rx="8" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="232" y="134" width="148" height="88" rx="8"/>
+    <rect x="434" y="134" width="128" height="88" rx="8"/>
+    <rect x="580" y="134" width="128" height="88" rx="8"/>
+  </g>
+
+  <g text-anchor="middle">
+    <text x="114" y="164" font-weight="600" fill="#1f1f1f">Program pengirim</text>
+    <text x="114" y="183" font-size="11.5" fill="#1f1f1f">tahu langkah</text>
+    <text x="114" y="199" font-size="11.5" fill="#1f1f1f">setiap situs</text>
+    <text x="306" y="164" font-weight="600" fill="#1f1f1f">Server lokal</text>
+    <text x="306" y="183" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">127.0.0.1</text>
+    <text x="306" y="199" font-size="11.5" fill="#5f5f5f">hanya loopback</text>
+    <text x="498" y="164" font-weight="600" fill="#1f1f1f">Extension</text>
+    <text x="498" y="183" font-size="11.5" fill="#5f5f5f">menghubungi server,</text>
+    <text x="498" y="199" font-size="11.5" fill="#5f5f5f">menunggu perintah</text>
+    <text x="644" y="164" font-weight="600" fill="#1f1f1f">Tab</text>
+    <text x="644" y="183" font-size="11.5" fill="#5f5f5f">situs yang</text>
+    <text x="644" y="199" font-size="11.5" fill="#5f5f5f">sudah login</text>
+  </g>
+
+  <!-- API names under the extension and tab -->
+  <text x="571" y="238" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f" text-anchor="middle">chrome.tabs, chrome.userScripts</text>
+
+  <!-- Command chips -->
+  <text x="40" y="270" font-size="11.5" fill="#5f5f5f">Perintah yang umum</text>
+  <g fill="#ffffff" stroke="#2f76d6" stroke-width="1">
+    <rect x="40" y="280" width="84" height="22" rx="11"/>
+    <rect x="132" y="280" width="112" height="22" rx="11"/>
+    <rect x="252" y="280" width="106" height="22" rx="11"/>
+    <rect x="366" y="280" width="94" height="22" rx="11"/>
+    <rect x="468" y="280" width="76" height="22" rx="11"/>
+  </g>
+  <g text-anchor="middle" font-size="11.5" fill="#1f1f1f">
+    <text x="82" y="295">buka tab</text>
+    <text x="188" y="295">jalankan script</text>
+    <text x="305" y="295">bawa ke depan</text>
+    <text x="413" y="295">screenshot</text>
+    <text x="506" y="295">tutup tab</text>
+  </g>
+
+  <!-- Flows: commands to the right (accent), results back (grey) -->
+  <g fill="none" stroke-width="1.5">
+    <path d="M188 160H232" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M380 160H434" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M562 160H580" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M232 198H188" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M434 198H380" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M580 198H562" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+  </g>
+</svg>

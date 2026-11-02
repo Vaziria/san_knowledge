@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="1520" height="600" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Run yang datang bersamaan menunggu giliran di antrean">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="300" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Run yang datang bersamaan menunggu giliran di antrean</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Dengan pilihan satu run pada satu waktu, engine mengambil run berikutnya setelah run sebelumnya selesai.</text>
+
+  <!-- Containers -->
+  <rect x="24" y="112" width="150" height="88" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="214" y="92" width="236" height="128" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="230" y="114" font-weight="600" fill="#1f1f1f">Antrean</text>
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="232" y="128" width="92" height="52" rx="6"/>
+    <rect x="340" y="128" width="92" height="52" rx="6"/>
+    <rect x="650" y="112" width="86" height="88" rx="8"/>
+  </g>
+  <rect x="490" y="112" width="130" height="88" rx="8" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+
+  <g text-anchor="middle">
+    <text x="99" y="140" font-weight="600" fill="#1f1f1f">Trigger</text>
+    <text x="99" y="158" font-size="11.5" fill="#5f5f5f">perubahan file,</text>
+    <text x="99" y="173" font-size="11.5" fill="#5f5f5f">tiga catatan baru</text>
+    <text x="99" y="188" font-size="11.5" fill="#5f5f5f">dalam satu menit</text>
+
+    <text x="278" y="150" font-weight="600" fill="#1f1f1f">run 3</text>
+    <text x="278" y="167" font-size="11.5" fill="#5f5f5f">menunggu</text>
+    <text x="386" y="150" font-weight="600" fill="#1f1f1f">run 2</text>
+    <text x="386" y="167" font-size="11.5" fill="#5f5f5f">berikutnya</text>
+    <text x="332" y="206" font-size="11.5" fill="#5f5f5f">disimpan di database atau broker</text>
+
+    <text x="555" y="142" font-weight="600" fill="#1f1f1f">Engine</text>
+    <text x="555" y="160" font-size="11.5" fill="#1f1f1f">menjalankan run 1</text>
+    <text x="555" y="175" font-size="11.5" fill="#1f1f1f">sampai selesai</text>
+
+    <text x="693" y="150" font-weight="600" fill="#1f1f1f">Selesai</text>
+    <text x="693" y="167" font-size="11.5" fill="#5f5f5f">lalu ambil</text>
+    <text x="693" y="182" font-size="11.5" fill="#5f5f5f">run 2</text>
+  </g>
+
+  <!-- Flow -->
+  <g fill="none" stroke-width="1.5">
+    <path d="M174 156H214" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M324 154H340" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M450 156H490" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M620 156H650" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+  </g>
+  <text x="194" y="148" text-anchor="middle" font-size="11.5" fill="#5f5f5f">3 run</text>
+
+  <!-- Note -->
+  <text x="24" y="256" font-size="11.5" fill="#5f5f5f">Kelemahannya, run yang sedang menunggu persetujuan juga menahan semua run di belakangnya.</text>
+  <text x="24" y="274" font-size="11.5" fill="#5f5f5f">Karena itu, langkah persetujuan butuh batas waktu.</text>
+</svg>

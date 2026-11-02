@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 456" width="1520" height="912" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Setiap sesi AI agent dimulai dengan context window yang kosong">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="456" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Setiap sesi AI agent dimulai dengan context window yang kosong</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Yang dibaca dan disimpulkan di sesi 1 tidak terbawa ke sesi 2. Hanya file instruksi yang dimuat lagi.</text>
+
+  <!-- containers -->
+  <rect x="24" y="80" width="300" height="272" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="436" y="80" width="300" height="272" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="132" width="268" height="34" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="174" width="268" height="34" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="216" width="268" height="34" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="258" width="268" height="34" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="300" width="268" height="34" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="452" y="132" width="268" height="34" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="452" y="174" width="268" height="162" rx="6" fill="#ffffff"/>
+  <rect x="452" y="174" width="268" height="162" rx="6" fill="#2f76d6" fill-opacity="0.08" stroke="#2f76d6" stroke-width="1.25" stroke-dasharray="5 4"/>
+  <rect x="24" y="384" width="712" height="48" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+
+  <!-- connectors -->
+  <line x1="332" y1="216" x2="426" y2="216" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <line x1="174" y1="384" x2="174" y2="356" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <line x1="586" y1="384" x2="586" y2="340" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+
+  <!-- text -->
+  <text x="40" y="104" font-size="13" font-weight="600" fill="#1f1f1f">Sesi 1, Senin</text>
+  <text x="40" y="121" font-size="11.5" fill="#5f5f5f">context window</text>
+  <text x="452" y="104" font-size="13" font-weight="600" fill="#1f1f1f">Sesi 2, Selasa</text>
+  <text x="452" y="121" font-size="11.5" fill="#5f5f5f">context window</text>
+  <text x="56" y="153" fill="#1f1f1f">file instruksi</text>
+  <text x="56" y="195" fill="#1f1f1f">pesan kamu</text>
+  <text x="56" y="237" fill="#1f1f1f">isi 12 file yang dibaca agent</text>
+  <text x="56" y="279" fill="#1f1f1f">hasil perintah yang dijalankan</text>
+  <text x="56" y="321" fill="#1f1f1f">kesimpulan: refund butuh persetujuan admin</text>
+  <text x="468" y="153" fill="#1f1f1f">file instruksi</text>
+  <text x="586" y="240" font-size="13" font-weight="600" text-anchor="middle" fill="#1f1f1f">kosong</text>
+  <text x="586" y="260" font-size="11.5" text-anchor="middle" fill="#5f5f5f">agent membaca ulang file yang sama,</text>
+  <text x="586" y="276" font-size="11.5" text-anchor="middle" fill="#5f5f5f">atau menebak</text>
+  <text x="379" y="206" font-size="11.5" text-anchor="middle" fill="#5f5f5f">sesi berakhir</text>
+  <text x="379" y="236" font-size="11.5" text-anchor="middle" fill="#5f5f5f">isi context hilang</text>
+  <text x="184" y="374" font-size="11.5" fill="#5f5f5f">dibaca</text>
+  <text x="596" y="374" font-size="11.5" fill="#5f5f5f">dibaca ulang</text>
+  <text x="40" y="405" font-size="12.5" font-weight="600" fill="#1f1f1f">Folder proyek</text>
+  <text x="40" y="422" font-size="11.5" fill="#5f5f5f">kode, dokumen desain, catatan keputusan</text>
+</svg>

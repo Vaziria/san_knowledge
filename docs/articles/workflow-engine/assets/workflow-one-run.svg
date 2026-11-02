@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 388" width="1520" height="776" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Satu run berhenti di langkah persetujuan, lalu lanjut saat kamu menjawab">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="388" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Satu run berhenti di langkah persetujuan, lalu lanjut saat kamu menjawab</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Selama menunggu, tidak ada program yang ikut menunggu. Keadaan run tersimpan di database.</text>
+
+  <!-- Step boxes -->
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#f1f0eb">
+    <rect x="24" y="104" width="104" height="64" rx="8"/>
+    <rect x="156" y="104" width="104" height="64" rx="8"/>
+    <rect x="288" y="104" width="104" height="64" rx="8"/>
+    <rect x="606" y="84" width="130" height="52" rx="8"/>
+  </g>
+  <rect x="606" y="164" width="130" height="52" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="5 4"/>
+  <rect x="420" y="104" width="124" height="64" rx="8" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+
+  <g text-anchor="middle">
+    <text x="76" y="130" font-weight="600" fill="#1f1f1f">Trigger</text>
+    <text x="76" y="148" font-size="11.5" fill="#5f5f5f">jadwal 19:00</text>
+    <text x="208" y="130" font-weight="600" fill="#1f1f1f">baca</text>
+    <text x="208" y="148" font-size="11.5" fill="#5f5f5f">catatan baru</text>
+    <text x="340" y="130" font-weight="600" fill="#1f1f1f">draf</text>
+    <text x="340" y="148" font-size="11.5" fill="#5f5f5f">minta draf ke AI</text>
+    <text x="482" y="124" font-weight="600" fill="#1f1f1f">setuju</text>
+    <text x="482" y="141" font-size="11.5" fill="#1f1f1f">kirim ke Telegram,</text>
+    <text x="482" y="156" font-size="11.5" fill="#1f1f1f">lalu tunggu</text>
+    <text x="671" y="106" font-weight="600" fill="#1f1f1f">posting</text>
+    <text x="671" y="123" font-size="11.5" fill="#5f5f5f">jadwalkan postingan</text>
+    <text x="671" y="186" font-weight="600" fill="#1f1f1f">Selesai</text>
+    <text x="671" y="203" font-size="11.5" fill="#5f5f5f">tanpa posting</text>
+  </g>
+
+  <!-- Step numbers -->
+  <g fill="#ffffff" stroke="#a8a69c" stroke-width="1.25">
+    <circle cx="28" cy="100" r="9"/>
+    <circle cx="160" cy="100" r="9"/>
+    <circle cx="292" cy="100" r="9"/>
+    <circle cx="610" cy="80" r="9"/>
+  </g>
+  <circle cx="424" cy="100" r="9" fill="#ffffff" stroke="#2f76d6" stroke-width="1.25"/>
+  <g text-anchor="middle" font-size="11" font-weight="600" fill="#1f1f1f">
+    <text x="28" y="104">1</text>
+    <text x="160" y="104">2</text>
+    <text x="292" y="104">3</text>
+    <text x="424" y="104">4</text>
+    <text x="610" y="84">6</text>
+  </g>
+
+  <!-- Flow -->
+  <g fill="none" stroke-width="1.5">
+    <path d="M128 136H156" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M260 136H288" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M392 136H420" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M544 124L606 110" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M544 148L606 190" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+  </g>
+  <circle cx="575" cy="104" r="9" fill="#ffffff" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="575" y="108" text-anchor="middle" font-size="11" font-weight="600" fill="#1f1f1f">5</text>
+  <text x="560" y="92" font-size="11.5" fill="#2f76d6" text-anchor="end">Setujui</text>
+  <text x="566" y="186" font-size="11.5" fill="#5f5f5f" text-anchor="end">Tolak</text>
+
+  <!-- Timeline -->
+  <text x="24" y="246" font-size="11.5" fill="#5f5f5f">Waktu</text>
+  <g fill="none" stroke-width="2">
+    <path d="M24 262H392" stroke="#a8a69c"/>
+    <path d="M420 262H600" stroke="#2f76d6" stroke-dasharray="6 5"/>
+    <path d="M606 262H736" stroke="#a8a69c"/>
+  </g>
+  <g stroke="#a8a69c" stroke-width="1.25">
+    <path d="M24 256V268"/>
+    <path d="M392 256V268"/>
+    <path d="M736 256V268"/>
+  </g>
+  <g stroke="#2f76d6" stroke-width="1.25">
+    <path d="M420 256V268"/>
+    <path d="M600 256V268"/>
+  </g>
+  <g text-anchor="middle" font-size="11.5">
+    <text x="208" y="284" fill="#5f5f5f">beberapa detik</text>
+    <text x="510" y="284" fill="#2f76d6">menunggu jawabanmu,</text>
+    <text x="510" y="299" fill="#2f76d6">bisa berjam-jam</text>
+    <text x="671" y="284" fill="#5f5f5f">lanjut</text>
+  </g>
+
+  <!-- Run log -->
+  <rect x="24" y="320" width="712" height="44" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="346" fill="#1f1f1f"><tspan font-weight="600">Log run</tspan> mencatat input, output, dan waktu setiap node, termasuk jawaban yang kamu pilih.</text>
+</svg>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="1520" height="800" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Workflow adalah graf, dan engine yang menjalankannya">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Workflow adalah graf, dan engine yang menjalankannya</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Engine mengikuti edge dari node ke node, mencatat hasilnya di log run, dan mengambil token dari credential.</text>
+
+  <!-- Engine container -->
+  <rect x="24" y="76" width="712" height="300" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="98" font-weight="600" fill="#1f1f1f">Workflow engine</text>
+
+  <!-- Workflow (graph) container -->
+  <rect x="40" y="110" width="680" height="118" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="5 4"/>
+  <text x="56" y="130" font-weight="600" fill="#1f1f1f">Workflow</text>
+  <text x="118" y="130" font-size="11.5" fill="#5f5f5f">graf yang tersimpan, belum berjalan</text>
+
+  <!-- Nodes -->
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#f1f0eb">
+    <rect x="56" y="144" width="136" height="64" rx="8"/>
+    <rect x="226" y="144" width="136" height="64" rx="8"/>
+    <rect x="396" y="144" width="136" height="64" rx="8"/>
+    <rect x="566" y="144" width="138" height="64" rx="8"/>
+  </g>
+
+  <!-- Bottom boxes -->
+  <rect x="40" y="262" width="200" height="98" rx="8" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <g stroke="#a8a69c" stroke-width="1.25" fill="#ffffff">
+    <rect x="280" y="262" width="200" height="98" rx="8"/>
+    <rect x="520" y="262" width="200" height="98" rx="8"/>
+  </g>
+
+  <g text-anchor="middle">
+    <text x="124" y="171" font-weight="600" fill="#1f1f1f">Trigger</text>
+    <text x="124" y="189" font-size="11.5" fill="#5f5f5f">jadwal 19:00</text>
+    <text x="294" y="171" font-weight="600" fill="#1f1f1f">Node</text>
+    <text x="294" y="189" font-size="11.5" fill="#5f5f5f">baca catatan</text>
+    <text x="464" y="171" font-weight="600" fill="#1f1f1f">Node</text>
+    <text x="464" y="189" font-size="11.5" fill="#5f5f5f">minta draf ke AI</text>
+    <text x="635" y="171" font-weight="600" fill="#1f1f1f">Node</text>
+    <text x="635" y="189" font-size="11.5" fill="#5f5f5f">kirim ke Telegram</text>
+    <text x="209" y="166" font-size="11.5" fill="#5f5f5f">edge</text>
+
+    <text x="140" y="288" font-weight="600" fill="#1f1f1f">Engine</text>
+    <text x="140" y="308" font-size="11.5" fill="#1f1f1f">menunggu trigger,</text>
+    <text x="140" y="324" font-size="11.5" fill="#1f1f1f">membuat run, lalu mengikuti</text>
+    <text x="140" y="340" font-size="11.5" fill="#1f1f1f">edge dari node ke node</text>
+
+    <text x="380" y="288" font-weight="600" fill="#1f1f1f">Log run</text>
+    <text x="380" y="308" font-size="11.5" fill="#5f5f5f">input, output, error,</text>
+    <text x="380" y="324" font-size="11.5" fill="#5f5f5f">dan waktu setiap node,</text>
+    <text x="380" y="340" font-size="11.5" fill="#5f5f5f">satu log untuk setiap run</text>
+
+    <text x="620" y="288" font-weight="600" fill="#1f1f1f">Credential</text>
+    <text x="620" y="308" font-size="11.5" fill="#5f5f5f">token dan password,</text>
+    <text x="620" y="324" font-size="11.5" fill="#5f5f5f">disimpan sekali, dipakai</text>
+    <text x="620" y="340" font-size="11.5" fill="#5f5f5f">node lewat namanya</text>
+  </g>
+
+  <!-- Connectors -->
+  <g fill="none" stroke-width="1.5">
+    <path d="M192 176H226" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M362 176H396" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M532 176H566" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+    <path d="M124 262V228" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M240 311H280" stroke="#2f76d6" marker-end="url(#arrow)"/>
+    <path d="M620 262V228" stroke="#a8a69c" marker-end="url(#arrow-grey)"/>
+  </g>
+  <text x="132" y="250" font-size="11.5" fill="#2f76d6">menjalankan</text>
+  <text x="628" y="250" font-size="11.5" fill="#5f5f5f">dipakai node</text>
+</svg>

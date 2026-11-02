@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 446" width="1520" height="892" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Hanya bagian yang fingerprint-nya berubah yang dikirim ke AI">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="446" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Hanya bagian yang fingerprint-nya berubah yang dikirim ke AI</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Langkah tanpa AI membandingkan fingerprint lama dan baru. Langkah AI hanya membaca bagian yang ditandai.</text>
+
+  <!-- containers -->
+  <rect x="24" y="76" width="548" height="296" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="132" width="516" height="38" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="178" width="516" height="38" rx="6" fill="#ffffff"/>
+  <rect x="40" y="178" width="516" height="38" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="40" y="224" width="516" height="38" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="40" y="270" width="516" height="38" rx="6" fill="#ffffff"/>
+  <rect x="40" y="270" width="516" height="38" rx="6" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="40" y="316" width="516" height="38" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="612" y="170" width="124" height="132" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+
+  <!-- connectors -->
+  <path d="M556 197 C584 197 584 214 610 214" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M556 289 C584 289 584 258 610 258" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- text -->
+  <text x="40" y="100" font-size="13" font-weight="600" fill="#1f1f1f">Langkah tanpa AI</text>
+  <text x="52" y="122" font-size="11.5" fill="#5f5f5f">Bagian di pembayaran.md</text>
+  <text x="204" y="122" font-size="11.5" fill="#5f5f5f">fingerprint lama</text>
+  <text x="304" y="122" font-size="11.5" fill="#5f5f5f">fingerprint baru</text>
+  <text x="404" y="122" font-size="11.5" fill="#5f5f5f">hasil</text>
+  <text x="52" y="156" font-weight="600" fill="#1f1f1f">Metode bayar</text>
+  <text x="204" y="156" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">4b1e…07</text>
+  <text x="304" y="156" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">4b1e…07</text>
+  <text x="404" y="156" fill="#5f5f5f">sama, tidak disentuh</text>
+  <text x="52" y="202" font-weight="600" fill="#1f1f1f">Refund</text>
+  <text x="204" y="202" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">9f3a…c2</text>
+  <text x="304" y="202" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">7d02…e9</text>
+  <text x="404" y="202" font-weight="600" fill="#2f76d6">berubah, perlu ringkasan</text>
+  <text x="52" y="248" font-weight="600" fill="#1f1f1f">Biaya admin</text>
+  <text x="204" y="248" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">c81f…5a</text>
+  <text x="304" y="248" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">c81f…5a</text>
+  <text x="404" y="248" fill="#5f5f5f">sama, tidak disentuh</text>
+  <text x="52" y="294" font-weight="600" fill="#1f1f1f">Refund sebagian</text>
+  <text x="204" y="294" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">–</text>
+  <text x="304" y="294" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">e5a9…13</text>
+  <text x="404" y="294" font-weight="600" fill="#2f76d6">baru, perlu ringkasan</text>
+  <text x="52" y="340" font-weight="600" fill="#1f1f1f">Cicilan</text>
+  <text x="204" y="340" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">2b77…d4</text>
+  <text x="304" y="340" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">–</text>
+  <text x="404" y="340" fill="#5f5f5f">hilang, dihapus</text>
+  <text x="674" y="206" font-size="13" font-weight="600" text-anchor="middle" fill="#1f1f1f">Langkah AI</text>
+  <text x="674" y="228" font-size="11.5" text-anchor="middle" fill="#5f5f5f">menulis ringkasan</text>
+  <text x="674" y="244" font-size="11.5" text-anchor="middle" fill="#5f5f5f">dan kata kunci</text>
+  <text x="674" y="276" font-weight="600" text-anchor="middle" fill="#1f1f1f">2 dari 5 bagian</text>
+  <text x="24" y="398" font-size="11.5" fill="#5f5f5f">Lima bagian diperiksa tanpa AI, tetapi hanya dua yang dikirim ke AI.</text>
+  <text x="24" y="416" font-size="11.5" fill="#5f5f5f">Ringkasan lama Refund tetap disimpan sampai ringkasan barunya selesai ditulis.</text>
+</svg>

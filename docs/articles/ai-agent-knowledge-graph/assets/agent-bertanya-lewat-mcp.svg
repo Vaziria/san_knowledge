@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 410" width="1520" height="820" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="AI agent mendapat jawaban beserta lokasi file dan baris">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="410" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">AI agent mendapat jawaban beserta lokasi file dan baris</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Agent bertanya lewat tool MCP, lalu hanya membuka lokasi yang disebut jawabannya.</text>
+
+  <!-- lane headers -->
+  <rect x="24" y="76" width="160" height="44" rx="8" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="214" y="76" width="160" height="44" rx="8" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="404" y="76" width="160" height="44" rx="8" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="576" y="76" width="160" height="44" rx="8" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+
+  <!-- lifelines -->
+  <line x1="104.0" y1="120" x2="104.0" y2="380" stroke="#a8a69c" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="294.0" y1="120" x2="294.0" y2="380" stroke="#a8a69c" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="484.0" y1="120" x2="484.0" y2="380" stroke="#a8a69c" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="656.0" y1="120" x2="656.0" y2="336" stroke="#a8a69c" stroke-width="1" stroke-dasharray="3 4"/>
+
+  <!-- answer card and file box -->
+  <rect x="124" y="206" width="440" height="64" rx="8" fill="#ffffff"/>
+  <rect x="124" y="206" width="440" height="64" rx="8" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="576" y="338" width="160" height="48" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+
+  <!-- messages -->
+  <line x1="104" y1="152" x2="292" y2="152" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <line x1="294" y1="186" x2="482" y2="186" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <line x1="484" y1="290" x2="106" y2="290" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="104" y1="326" x2="654" y2="326" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+
+  <!-- text -->
+  <text x="104.0" y="95" font-size="12.5" font-weight="600" text-anchor="middle" fill="#1f1f1f">AI agent</text>
+  <text x="104.0" y="112" font-size="11.5" text-anchor="middle" fill="#5f5f5f">Claude Code, Codex, Cursor</text>
+  <text x="294.0" y="95" font-size="12.5" font-weight="600" text-anchor="middle" fill="#1f1f1f">Server MCP</text>
+  <text x="294.0" y="112" font-size="11.5" text-anchor="middle" fill="#5f5f5f">tool pencarian, penjelasan</text>
+  <text x="484.0" y="95" font-size="12.5" font-weight="600" text-anchor="middle" fill="#1f1f1f">Knowledge graph</text>
+  <text x="484.0" y="112" font-size="11.5" text-anchor="middle" fill="#5f5f5f">node, edge, ringkasan</text>
+  <text x="656.0" y="95" font-size="12.5" font-weight="600" text-anchor="middle" fill="#1f1f1f">File proyek</text>
+  <text x="656.0" y="112" font-size="11.5" text-anchor="middle" fill="#5f5f5f">markdown dan kode</text>
+  <text x="116" y="144" fill="#1f1f1f">1. batas waktu refund</text>
+  <text x="306" y="178" fill="#1f1f1f">2. cari node yang cocok</text>
+  <text x="140" y="227" font-size="12.5" font-weight="600" fill="#2f76d6">3. Jawaban dengan alamat</text>
+  <text x="140" y="245" font-size="11.5" fill="#1f1f1f">Refund, pembayaran.md:42, beserta ringkasannya</text>
+  <text x="140" y="261" font-size="11.5" fill="#1f1f1f">Keluhan pelanggan, support.md:17, merujuk ke Refund</text>
+  <text x="306" y="318" fill="#1f1f1f">4. buka baris 42 dan 17 saja</text>
+  <text x="588" y="358" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">pembayaran.md:42</text>
+  <text x="588" y="376" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">support.md:17</text>
+</svg>

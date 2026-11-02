@@ -683,9 +683,9 @@ when X asks. It cannot be undone.
 ## Medium
 
 `san_remote medium` writes your markdown articles into Medium through your
-browser's Medium session, the way you would in Medium's editor. It is
-[san_medium](../../../packages/san_medium/README.md) on your own browser
-instead of a Chrome of its own:
+browser's Medium session, the way you would in Medium's editor. It began as the
+chromedp tool `san_medium`, moved onto your own browser (the old tool was
+removed on 2026-11-02 and is in git history):
 - **draft** opens a new story with Write, types the title, pastes the text,
   and puts each image in its place with the editor's + menu, with its alt
   text and caption. Medium saves the draft itself; the tool then checks it
@@ -745,8 +745,8 @@ link ending in `-<id>`). **`--at`** is local time, on a whole minute, at least
 
 `san_remote linkedin` writes your markdown articles into LinkedIn articles
 through your browser's LinkedIn session, the way you would in the article
-editor. It is [san_linkedin](../../../packages/san_linkedin/README.md) on your
-own browser:
+editor. It began as the chromedp tool `san_linkedin`,
+moved onto your own browser (removed on 2026-11-02, in git history):
 - **draft** opens "Write article" from the feed, types the title, uploads the
   cover (`--cover`), pastes the text, and puts each image in its place with
   the editor's image button, with its alt text and caption. With `--at` it
@@ -788,8 +788,9 @@ works (see "Chrome to the front" under Troubleshooting).
 ## TikTok
 
 `san_remote tiktok` posts your videos through TikTok Studio, in your
-browser's TikTok session. It is
-[san_tiktok](../../../packages/san_tiktok/README.md) on your own browser:
+browser's TikTok session. It began as the
+chromedp tool `san_tiktok`, moved onto your own browser (removed on
+2026-11-02, in git history):
 - **post** gives Studio's upload page the video, writes the caption, picking
   each `#hashtag` from TikTok's suggestions, and schedules it for Everyone,
   or with `--now` posts it at once for Only you. A video is never public at

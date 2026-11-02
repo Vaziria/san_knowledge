@@ -1,6 +1,6 @@
 # Article guideline
 
-How articles for Medium are written and stored in this repo. Articles are drafts; the user publishes them to Medium by hand, from a Medium draft that `san_medium` can make (see "Publishing to Medium").
+How articles for Medium are written and stored in this repo. Articles are drafts; they reach Medium as a Medium draft that `san_remote medium` makes (see "Publishing to Medium").
 
 ## Layout
 
@@ -196,7 +196,7 @@ Medium takes images, not Markdown diagrams. Draw each one as SVG, render it to P
 
   Use one accent per diagram, on the thing the title is about.
 - **Drawing order:** filled containers first, connectors after, so arrows stay visible.
-- **In the article:** alt text describes what the picture shows, in at most 500 characters (Medium keeps no more, and `san_medium` refuses a longer one). An italic caption follows on the next line:
+- **In the article:** alt text describes what the picture shows, in at most 500 characters (Medium keeps no more, and the draft tool refuses a longer one). An italic caption follows on the next line:
 
   ```markdown
   ![Dua baris: ...apa yang digambar...](assets/vpn-packet-inside-a-packet.png)
@@ -215,23 +215,23 @@ Render with headless Edge, using a profile folder of its own in the scratchpad. 
 
 ## Publishing to Medium
 
-Medium no longer issues API tokens. `golang/packages/san_medium` makes the draft instead by driving a logged-in Chrome through Medium's own editor. Publishing stays with the user.
+Medium no longer issues API tokens. `san_remote medium` (golang/apps/san_remote) makes the draft instead by driving Medium's own editor in the user's own Chrome, which is signed in as @archetipe. The old chromedp tool `san_medium` was removed on 2026-11-02 (the user: "don't use old tools, use San remote"); it is in git history. Publishing stays with the user, or is scheduled with `--at` after the user approves.
 
-1. Once: `bin\san_medium.exe login` (from `golang/packages/san_medium`), sign in to Medium in the window that opens, then close it.
-2. `bin\san_medium.exe draft -dry-run <article.md>` shows how the article will be cut. Then `bin\san_medium.exe draft <article.md>` writes the new draft, uploads each image from `assets/` with its alt text and caption, and prints the draft's URL.
-3. The user opens the draft, adds tags, and publishes.
+1. `san_remote medium status` checks the account (`serve` must be running; see [social_posting.md](../social_posting.md)).
+2. `san_remote medium draft --dry-run <article.md>` shows how the article will be cut. Then `san_remote medium draft <article.md>` writes the new draft, uploads each image from `assets/` with its alt text and caption, and prints the draft's URL. With `--at "2026-11-24 09:00" --topic <t>` it also schedules it.
+3. `san_remote medium scheduled` lists what is waiting; `unschedule <id>` keeps it as a draft.
 
-Write drafts one at a time. Cloudflare in front of Medium blocks the Medium sign-in session when chromedp launches Chrome itself (2026-10-11), so the tool starts Chrome as a plain process and attaches to it. If `draft` ever stops with "Cloudflare blocks this browser", run `login` on a new profile (`-profile <dir>`).
+Write drafts one at a time, and keep Chrome on screen while one is written.
 
 By hand, as before: open the article in VS Code, press `Ctrl+Shift+V` for the preview, then select all of the preview, copy it, and paste it into a new Medium story. Medium does not convert pasted Markdown, but it keeps the formatting of pasted HTML. Then upload each PNG from `assets/` where its image appears; pasted images do not come through.
 
 ## Publishing to LinkedIn
 
-`golang/packages/san_linkedin` does the same for LinkedIn articles, through LinkedIn's article editor; see its README. LinkedIn is signed in on `-profile basic`.
+`san_remote linkedin` does the same for LinkedIn articles, through LinkedIn's article editor in the user's own Chrome (signed in as Heri Santoso); see [san_remote's docs](../../golang/apps/san_remote/docs/readme.md#linkedin). The old chromedp tool `san_linkedin` was removed on 2026-11-02 and is in git history.
 
-1. `bin\san_linkedin.exe draft -dry-run <article.md>` shows how the article will be cut.
-2. `bin\san_linkedin.exe draft -profile basic -cover <image> -at "2026-11-20 09:00" -text "<post text>" <article.md>` writes the draft, uploads the cover and each image with its alt text and caption, and schedules it. Without `-at` it stays a draft.
-3. `scheduled` lists what is waiting; `unschedule "<title>"` moves an article back to the drafts.
+1. `san_remote linkedin draft --dry-run <article.md>` shows how the article will be cut.
+2. `san_remote linkedin draft --cover <image> --at "2026-11-20 09:00" --text "<post text>" <article.md>` writes the draft, uploads the cover and each image with its alt text and caption, and schedules it. Without `--at` it stays a draft.
+3. `san_remote linkedin scheduled` lists what is waiting; `unschedule "<title>"` moves an article back to the drafts.
 
 How the article changes on LinkedIn:
 

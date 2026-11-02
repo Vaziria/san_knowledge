@@ -107,6 +107,12 @@ message BinanceSettings {
 message SanRemoteSettings {
   // url is where it listens, e.g. http://127.0.0.1:7478.
   string url = 1;
+  // browser is the attached browser the connection's steps drive, by its id
+  // or its name in the San Remote popup (any case), e.g. "personal"; empty
+  // takes the only one attached. A Chrome profile is a browser of its own,
+  // with its own sign-ins, so a connection per profile is an account per
+  // connection (the user, 2026-11-03: "Is San Tower accomodating that ?").
+  string browser = 2;
 }
 
 // TelegramBotSettings is a Telegram bot, which the tower reads and sends
@@ -178,6 +184,10 @@ message TestConnectionResponse {
   bool ok = 1;
   // message says what was found, or why it is not ok.
   string message = 2;
+  // browsers, for a San Remote connection, are the attached browsers by
+  // what Browser may say for each: its name, or its id when another has
+  // the same name.
+  repeated string browsers = 3;
 }
 
 message PairWhatsAppRequest {

@@ -203,6 +203,7 @@ func checkConnection(c *Connection) error {
 	case SanRemote:
 		sr := c.Settings.GetSanRemote()
 		sr.Url = strings.TrimRight(strings.TrimSpace(sr.Url), "/")
+		sr.Browser = strings.TrimSpace(sr.Browser)
 		u, err := url.Parse(sr.Url)
 		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 			return fail(ErrInvalid, "the URL must be an http or https address, such as http://127.0.0.1:7478")

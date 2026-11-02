@@ -89,14 +89,7 @@ func (s *Server) TestConnection(ctx context.Context, req *connect.Request[v1.Tes
 			}
 			return connect.NewResponse(&v1.TestConnectionResponse{Message: fmt.Sprintf("san_remote api does not answer at %s: %s (start it with `san_remote api`)", url, msg)}), nil
 		}
-		if len(r.Msg.Browsers) == 0 {
-			return connect.NewResponse(&v1.TestConnectionResponse{Message: "san_remote answers, but no browser is attached: open Chrome or Edge with the San Remote extension"}), nil
-		}
-		names := make([]string, len(r.Msg.Browsers))
-		for i, b := range r.Msg.Browsers {
-			names[i] = fmt.Sprintf("%s (extension %s)", b.Name, b.ExtensionVersion)
-		}
-		return connect.NewResponse(&v1.TestConnectionResponse{Ok: true, Message: "san_remote answers; attached: " + strings.Join(names, ", ")}), nil
+		return connect.NewResponse(testBrowser(r.Msg.Browsers, settings.GetSanRemote().GetBrowser())), nil
 	case store.TelegramBot:
 		token := strings.TrimSpace(settings.GetTelegramBot().GetToken())
 		if token == "" {
@@ -256,4 +249,47 @@ func connectionToProto(c store.Connection) *v1.Connection {
 
 func connectionFromProto(p *v1.Connection) store.Connection {
 	return store.Connection{ID: p.GetId(), Name: p.GetName(), Settings: p.GetSettings()}
+}
+
+// testBrowser says whether a San Remote connection's browser (by id or
+// name, any case; empty for the only one) is among the attached ones, as
+// san_remote picks it (internal/hub, pickLocked), and lists them by what
+// Browser may say for each.
+func testBrowser(attached []*remotev1.Browser, sel string) *v1.TestConnectionResponse {
+	sel = strings.TrimSpace(sel)
+	if len(attached) == 0 {
+		return &v1.TestConnectionResponse{Message: "san_remote answers, but no browser is attached: open Chrome or Edge with the San Remote extension"}
+	}
+	same := map[string]int{}
+	for _, b := range attached {
+		same[strings.ToLower(b.Name)]++
+	}
+	var choices, names []string
+	var found []*remotev1.Browser
+	for _, b := range attached {
+		choice := b.Name
+		if same[strings.ToLower(b.Name)] > 1 || b.Name == "" {
+			choice = b.Id
+		}
+		choices = append(choices, choice)
+		names = append(names, fmt.Sprintf("%s (extension %s)", choice, b.ExtensionVersion))
+		if sel == "" || b.Id == sel || strings.EqualFold(b.Name, sel) {
+			found = append(found, b)
+		}
+	}
+	res := &v1.TestConnectionResponse{Browsers: choices}
+	list := strings.Join(names, ", ")
+	switch {
+	case len(found) == 1 && sel == "":
+		res.Ok, res.Message = true, "san_remote answers; attached: "+list
+	case len(found) == 1:
+		res.Ok, res.Message = true, fmt.Sprintf("san_remote answers; steps drive %s (%s); attached: %s", found[0].Name, found[0].Id, list)
+	case sel == "":
+		res.Message = "several browsers are attached: pick one under Browser (" + list + ")"
+	case len(found) == 0:
+		res.Message = fmt.Sprintf("no attached browser is called %q (attached: %s)", sel, list)
+	default:
+		res.Message = fmt.Sprintf("several attached browsers are called %q: give the id instead (attached: %s)", sel, list)
+	}
+	return res
 }

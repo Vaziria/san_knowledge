@@ -63,7 +63,7 @@ const binanceNetworks: Record<string, string> = {
 const address = (s?: ConnectionSettings) => {
   switch (s?.type.case) {
     case 'sanRemote':
-      return s.type.value.url;
+      return s.type.value.browser ? `${s.type.value.url} · ${s.type.value.browser}` : s.type.value.url;
     case 'telegramBot':
       return `bot ${s.type.value.token.split(':')[0]}`;
     case 'whatsapp':
@@ -285,6 +285,8 @@ function ConnectionDialog({
   const [type, setType] = useState<ConnectionType>(old?.case ?? initialType ?? 'sanRemote');
   const [name, setName] = useState(connection?.name ?? '');
   const [url, setUrl] = useState(old?.case === 'sanRemote' ? old.value.url : 'http://127.0.0.1:7478');
+  // The browser its steps drive, by id or name; empty for the only one.
+  const [browser, setBrowser] = useState(old?.case === 'sanRemote' ? old.value.browser : '');
   const [token, setToken] = useState(old?.case === 'telegramBot' ? old.value.token : '');
   const [apiKey, setApiKey] = useState(old?.case === 'binance' ? old.value.apiKey : '');
   const [apiSecret, setApiSecret] = useState(old?.case === 'binance' ? old.value.apiSecret : '');
@@ -328,7 +330,7 @@ function ConnectionDialog({
   }, [type, storageList]);
   const settings =
     type === 'sanRemote'
-      ? { type: { case: 'sanRemote' as const, value: { url: url.trim() } } }
+      ? { type: { case: 'sanRemote' as const, value: { url: url.trim(), browser: browser.trim() } } }
       : type === 'telegramBot'
         ? { type: { case: 'telegramBot' as const, value: { token: token.trim() } } }
         : type === 'binance'
@@ -582,12 +584,29 @@ function ConnectionDialog({
           />
         </FormField>
       ) : type === 'sanRemote' ? (
-        <FormField
-          label="URL"
-          help="Where `san_remote api` listens. Start it with `san_remote api` (it needs `san_remote serve`)."
-        >
-          <Input fontFamily="mono" value={url} onChange={(e) => setUrl(e.currentTarget.value)} />
-        </FormField>
+        <>
+          <FormField
+            label="URL"
+            help="Where `san_remote api` listens. Start it with `san_remote api` (it needs `san_remote serve`)."
+          >
+            <Input fontFamily="mono" value={url} onChange={(e) => setUrl(e.currentTarget.value)} />
+          </FormField>
+          <FormField
+            label="Browser"
+            help="The browser this connection's steps drive: its name in the San Remote popup, or its id. Empty takes the only one attached. Each Chrome profile is its own browser with its own sign-ins, so make a connection per profile. Test lists the attached ones."
+          >
+            <Input
+              fontFamily="mono"
+              value={browser}
+              onChange={(e) => setBrowser(e.currentTarget.value)}
+              placeholder="the only one attached"
+              list="san-remote-browsers"
+            />
+            <datalist id="san-remote-browsers">
+              {result?.browsers.map((b) => <option key={b} value={b} />)}
+            </datalist>
+          </FormField>
+        </>
       ) : (
         <FormField
           label="Token"

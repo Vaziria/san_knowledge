@@ -475,7 +475,13 @@ func (x *BinanceSettings) GetNetwork() string {
 type SanRemoteSettings struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// url is where it listens, e.g. http://127.0.0.1:7478.
-	Url           string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	// browser is the attached browser the connection's steps drive, by its id
+	// or its name in the San Remote popup (any case), e.g. "personal"; empty
+	// takes the only one attached. A Chrome profile is a browser of its own,
+	// with its own sign-ins, so a connection per profile is an account per
+	// connection (the user, 2026-11-03: "Is San Tower accomodating that ?").
+	Browser       string `protobuf:"bytes,2,opt,name=browser,proto3" json:"browser,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -513,6 +519,13 @@ func (*SanRemoteSettings) Descriptor() ([]byte, []int) {
 func (x *SanRemoteSettings) GetUrl() string {
 	if x != nil {
 		return x.Url
+	}
+	return ""
+}
+
+func (x *SanRemoteSettings) GetBrowser() string {
+	if x != nil {
+		return x.Browser
 	}
 	return ""
 }
@@ -1048,7 +1061,11 @@ type TestConnectionResponse struct {
 	// ok: the other side answered and can do its work.
 	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
 	// message says what was found, or why it is not ok.
-	Message       string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	// browsers, for a San Remote connection, are the attached browsers by
+	// what Browser may say for each: its name, or its id when another has
+	// the same name.
+	Browsers      []string `protobuf:"bytes,3,rep,name=browsers,proto3" json:"browsers,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1095,6 +1112,13 @@ func (x *TestConnectionResponse) GetMessage() string {
 		return x.Message
 	}
 	return ""
+}
+
+func (x *TestConnectionResponse) GetBrowsers() []string {
+	if x != nil {
+		return x.Browsers
+	}
+	return nil
 }
 
 type PairWhatsAppRequest struct {
@@ -1254,9 +1278,10 @@ const file_san_tower_v1_connection_proto_rawDesc = "" +
 	"\aapi_key\x18\x01 \x01(\tR\x06apiKey\x12\x1d\n" +
 	"\n" +
 	"api_secret\x18\x02 \x01(\tR\tapiSecret\x12\x18\n" +
-	"\anetwork\x18\x03 \x01(\tR\anetwork\"%\n" +
+	"\anetwork\x18\x03 \x01(\tR\anetwork\"?\n" +
 	"\x11SanRemoteSettings\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\"+\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x12\x18\n" +
+	"\abrowser\x18\x02 \x01(\tR\abrowser\"+\n" +
 	"\x13TelegramBotSettings\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"\x89\x01\n" +
 	"\x10WhatsAppSettings\x12\x10\n" +
@@ -1290,10 +1315,11 @@ const file_san_tower_v1_connection_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\rR\x02id\"\x1a\n" +
 	"\x18DeleteConnectionResponse\"U\n" +
 	"\x15TestConnectionRequest\x12<\n" +
-	"\bsettings\x18\x01 \x01(\v2 .san.tower.v1.ConnectionSettingsR\bsettings\"B\n" +
+	"\bsettings\x18\x01 \x01(\v2 .san.tower.v1.ConnectionSettingsR\bsettings\"^\n" +
 	"\x16TestConnectionResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"H\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1a\n" +
+	"\bbrowsers\x18\x03 \x03(\tR\bbrowsers\"H\n" +
 	"\x13PairWhatsAppRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +

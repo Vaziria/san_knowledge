@@ -1355,6 +1355,15 @@ connection is gone fails, saying so.
   http://127.0.0.1:7478; golang/apps/san_remote), which posts through the
   user's own browser and needs `san_remote serve`. Test (TestConnection)
   lists the browsers attached behind it, without opening anything in them.
+  Browser (the user, 2026-11-03: "Is San Tower accomodating that ?") picks
+  the attached browser the connection's steps drive, by its name in the San
+  Remote popup or its id, any case; empty takes the only one attached, and
+  with several attached a step fails saying so. Each Chrome profile is a
+  browser of its own, with its own sign-ins, so a connection per profile is
+  an account per connection. The engine puts it on every request to
+  san_remote (`pickBrowser`, an interceptor), so no step names a browser.
+  Test says whether Browser is among the attached ones, and the form offers
+  them (by name, or by id when two share a name).
 - **Telegram Bot**: a bot's token from @BotFather (`/newbot`), checked for
   its shape (`123456:ABC-DEF1234`). Test asks the Bot API which bot it is
   (getMe), which reads no messages. Deleting the connection deletes the

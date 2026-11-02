@@ -700,22 +700,25 @@ func (c *call) sanRemote() (remoteClients, error) {
 		return remoteClients{}, fmt.Errorf("connection %s is not a san_remote connection", conn.Name)
 	}
 	// No timeout: a post takes a minute or two, and the run's context ends
-	// it when the tower stops.
-	hc, url := http.DefaultClient, conn.Settings.GetSanRemote().GetUrl()
+	// it when the tower stops. The connection's browser goes on every
+	// request (pickBrowser).
+	sr := conn.Settings.GetSanRemote()
+	hc, url := http.DefaultClient, sr.GetUrl()
+	opt := connect.WithInterceptors(pickBrowser(sr.GetBrowser()))
 	return remoteClients{
-		threads:   threadsv1connect.NewThreadsServiceClient(hc, url),
-		x:         xv1connect.NewXServiceClient(hc, url),
-		facebook:  facebookv1connect.NewFacebookServiceClient(hc, url),
-		vidara:    vidarav1connect.NewVidaraServiceClient(hc, url),
-		medium:    mediumv1connect.NewMediumServiceClient(hc, url),
-		linkedin:  linkedinv1connect.NewLinkedInServiceClient(hc, url),
-		tiktok:    tiktokv1connect.NewTikTokServiceClient(hc, url),
-		youtube:   youtubev1connect.NewYouTubeServiceClient(hc, url),
-		instagram: instagramv1connect.NewInstagramServiceClient(hc, url),
-		telegram:  telegramv1connect.NewTelegramServiceClient(hc, url),
-		chatgpt:   chatgptv1connect.NewChatGPTServiceClient(hc, url),
-		gemini:    geminiv1connect.NewGeminiServiceClient(hc, url),
-		claude:    claudev1connect.NewClaudeServiceClient(hc, url),
+		threads:   threadsv1connect.NewThreadsServiceClient(hc, url, opt),
+		x:         xv1connect.NewXServiceClient(hc, url, opt),
+		facebook:  facebookv1connect.NewFacebookServiceClient(hc, url, opt),
+		vidara:    vidarav1connect.NewVidaraServiceClient(hc, url, opt),
+		medium:    mediumv1connect.NewMediumServiceClient(hc, url, opt),
+		linkedin:  linkedinv1connect.NewLinkedInServiceClient(hc, url, opt),
+		tiktok:    tiktokv1connect.NewTikTokServiceClient(hc, url, opt),
+		youtube:   youtubev1connect.NewYouTubeServiceClient(hc, url, opt),
+		instagram: instagramv1connect.NewInstagramServiceClient(hc, url, opt),
+		telegram:  telegramv1connect.NewTelegramServiceClient(hc, url, opt),
+		chatgpt:   chatgptv1connect.NewChatGPTServiceClient(hc, url, opt),
+		gemini:    geminiv1connect.NewGeminiServiceClient(hc, url, opt),
+		claude:    claudev1connect.NewClaudeServiceClient(hc, url, opt),
 	}, nil
 }
 

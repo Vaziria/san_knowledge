@@ -108,6 +108,7 @@ func serveCommand() *cli.Command {
 			&cli.StringFlag{Name: "listen", Value: "127.0.0.1:7476", Usage: "address to listen on (loopback only)"},
 			&cli.StringSliceFlag{Name: "extension-id", Value: []string{hub.ExtensionID}, Usage: "extension ids allowed to attach"},
 			&cli.StringFlag{Name: "log-level", Value: "info", Usage: "debug, info, warn or error"},
+			&cli.DurationFlag{Name: "idle", Usage: "stop after this long with no command from the CLI, MCP server or api, such as 15m (0: never)"},
 		},
 		Action: runServe,
 	}
@@ -126,16 +127,32 @@ func runServe(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("--listen %s: san_remote only listens on a loopback address", addr)
 	}
 
+	idle := cmd.Duration("idle")
+	if idle < 0 {
+		return fmt.Errorf("bad --idle %s: it must be 0 (never) or more", idle)
+	}
+
 	h := hub.New(log)
+	handler := h.Handler(cmd.StringSlice("extension-id")...)
+	var watch *idleWatch
+	if idle > 0 {
+		watch = newIdleWatch(time.Now)
+		handler = watch.wrap(handler)
+	}
 	// No WriteTimeout: the Attach streams stay open as long as the browser does.
-	srv := &http.Server{Addr: addr, Handler: h.Handler(cmd.StringSlice("extension-id")...), ReadHeaderTimeout: 10 * time.Second}
+	srv := &http.Server{Addr: addr, Handler: handler, ReadHeaderTimeout: 10 * time.Second}
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(ln) }()
-	log.Info("san_remote listening", "addr", addr, "version", version)
+	if watch != nil {
+		go watch.stopWhenIdle(ctx, idle, idleTick(idle), log, cancel)
+	}
+	log.Info("san_remote listening", "addr", addr, "version", version, "idle", idle)
 
 	select {
 	case err := <-errc:

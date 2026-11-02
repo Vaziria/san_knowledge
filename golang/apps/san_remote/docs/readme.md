@@ -69,6 +69,7 @@ Google for "cute cat" in your browser (see Development).
 
 ```powershell
 bin\san_remote.exe serve                          # the server; 127.0.0.1:7476
+bin\san_remote.exe serve --idle 15m               # and stop after 15 minutes with no command
 bin\san_remote.exe browsers                       # attached browsers
 bin\san_remote.exe tabs                           # id, window, active, title, url
 bin\san_remote.exe exec 'return document.title'   # in the active tab
@@ -1299,6 +1300,7 @@ logged.
 | `serve --listen` | address to listen on, loopback only | `127.0.0.1:7476` |
 | `serve --extension-id` | extension ids allowed to attach (repeatable) | `kmlmiiljeiakjbilabmpdiegmoagkmkg` |
 | `serve --log-level` | debug, info, warn, error | `info` |
+| `serve --idle` | stop after this long with no command, such as `15m` (see below) | `0`, never |
 | `api --listen` | address the API listens on, loopback only | `127.0.0.1:7478` |
 | `api --log-level` | debug (each site step), info, warn, error | `info` |
 | `--server`, `$SAN_REMOTE_SERVER` | where the CLI and MCP find `serve` | `http://127.0.0.1:7476` |
@@ -1308,6 +1310,19 @@ logged.
 | extension popup: Browser name | name shown in `browsers`, used by `--browser` | `Chrome` or `Edge` |
 
 Changing the server or the name in the popup reconnects at once.
+
+**`serve --idle`** (the user, 2026-11-02: "shutdown San remote if no use in
+15 minute"). With `--idle 15m`, `serve` stops by itself once 15 minutes have
+passed with no command, and the extension shows it disconnected until the
+next `serve`.
+- A command is a call to RemoteService: from the CLI, the MCP server or the
+  api. The extension's own calls (attaching, its pings, its replies) are not,
+  since an attached browser makes them all the time.
+- A command still running keeps it up, however long it takes, such as a
+  TikTok post waiting on its content check. The 15 minutes count from when
+  the last command ended.
+- It checks every tenth of the limit (at most every 30 seconds), so it stops
+  at most that much late. The tower's San Remote server is not affected.
 
 ## Security
 

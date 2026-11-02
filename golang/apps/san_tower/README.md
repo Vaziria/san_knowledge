@@ -163,7 +163,7 @@ Messengers › Telegram); the UI asks for them
 Logic, Data, Storage (the user, 2026-10-27: Storage, File Path, Read File
 and Glob, moved out of Data), Datetime, Action, Messengers (the user,
 2026-10-27: Telegram's and WhatsApp's steps, their triggers too, each
-messenger a sub-menu), Social, Finance (the user, 2026-10-27: Binance),
+messenger a sub-menu), Social, Shop (the user, 2026-11-03: Shopee), Finance (the user, 2026-10-27: Binance),
 Knowledge (the user, 2026-10-28) and AI; the UI gives each a colour and an
 icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
@@ -1008,6 +1008,33 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   - A post brings Chrome to the front for a minute or two. A Vidara
     upload opens its tab but does not wait for Chrome to be in front: it
     goes on behind other windows, as long as the file takes.
+- Shopee steps (category Shop › Shopee; `engine/shopee.go`; the user,
+  2026-11-03: "Upload product shopee, delete produk shopee and up product
+  shopee", then "Add node to get list product too") work on the shop in
+  Shopee Seller Centre through `san_remote api` (san_remote's ShopeeService,
+  his choice over the Shopee Open Platform API), at the San Remote
+  connection their Connection setting names:
+  - **Shopee Products** lists Produk Saya, newest change first: Filter is
+    the tab (All, Live, Archived, Review, Violation, Draft), Search the
+    list's search box (name, SKU, id), Limit at most how many (default 50,
+    up to 500). Products holds each product with its models (options,
+    price, stock, SKU); Total is the tab's count, Count how many came.
+  - **Shopee Upload Product** adds a product through Tambah Produk Baru
+    from a product file (markdown with frontmatter: san_remote's readme,
+    "Shopee"), a File or the Product text (photos by absolute paths), with
+    up to 2 variations and a price, stock and SKU per combination. The
+    form is read back before it is saved. Publish As Written follows the
+    file (archived when it says nothing); Archived or Live overrides it.
+    Rehearse Yes fills and checks the form and saves nothing. ID and Link
+    are the new product's.
+  - **Shopee Delete Product** deletes a product by its id or a Seller
+    Centre or shop link; a live one is archived first. It cannot be undone.
+  - **Shopee Naikkan Produk** bumps a live product ("up product": Seller
+    Centre's 5 slots, 4 hours each). Boosted fires with Until (RFC 3339)
+    and Slots ("2 of 5"); a product that is not live, one on its 4-hour
+    cooldown, or all slots in use fire Refused with the Reason instead
+    (san_remote refuses before pressing anything), so a scheduled workflow
+    goes on; Done fires either way.
 - Telegram steps work as a bot, through the Telegram Bot connection their
   Connection setting names (the Bot API, over plain net/http,
   `internal/telegram`):

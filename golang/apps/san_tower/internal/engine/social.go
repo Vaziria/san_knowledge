@@ -15,6 +15,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1/chatgptv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/shopee/v1/shopeev1connect"
 	facebookv1 "github.com/wargasipil/san_remote/gen/san/remote/facebook/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
@@ -674,6 +675,7 @@ type remoteClients struct {
 	chatgpt   chatgptv1connect.ChatGPTServiceClient
 	gemini    geminiv1connect.GeminiServiceClient
 	claude    claudev1connect.ClaudeServiceClient
+	shopee    shopeev1connect.ShopeeServiceClient
 }
 
 // sanRemote is the san_remote connection the step names.
@@ -719,6 +721,7 @@ func (c *call) sanRemote() (remoteClients, error) {
 		chatgpt:   chatgptv1connect.NewChatGPTServiceClient(hc, url, opt),
 		gemini:    geminiv1connect.NewGeminiServiceClient(hc, url, opt),
 		claude:    claudev1connect.NewClaudeServiceClient(hc, url, opt),
+		shopee:    shopeev1connect.NewShopeeServiceClient(hc, url, opt),
 	}, nil
 }
 

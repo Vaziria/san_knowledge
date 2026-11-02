@@ -134,3 +134,22 @@ func TestHelpersExist(t *testing.T) {
 		}
 	}
 }
+
+func TestIsShownDate(t *testing.T) {
+	at := time.Date(2026, 11, 7, 19, 0, 0, 0, time.Local)
+	for _, c := range []struct {
+		box  string
+		want bool
+	}{
+		{"Nov 7, 2026", true},
+		{"7 Nov 2026", true},
+		{" 7 Nov 2026 ", true},
+		{"Nov 8, 2026", false},
+		{"8 Nov 2026", false},
+		{"", false},
+	} {
+		if got := isShownDate(c.box, at); got != c.want {
+			t.Errorf("isShownDate(%q) = %v, want %v", c.box, got, c.want)
+		}
+	}
+}

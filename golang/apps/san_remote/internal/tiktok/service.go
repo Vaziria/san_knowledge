@@ -562,7 +562,7 @@ func (t *session) schedule(ctx context.Context, at time.Time) error {
 	}
 
 	// The date first: on today, earlier times may not be offered.
-	if s.Date != date {
+	if !isShownDate(s.Date, at) {
 		if err := t.Press(ctx, "the date", "pressDate"); err != nil {
 			return err
 		}
@@ -600,7 +600,7 @@ func (t *session) schedule(ctx context.Context, at time.Time) error {
 		}
 		if err := t.Until(ctx, "the date to read "+date, 10*time.Second, func() (bool, error) {
 			s, err := t.readSchedule(ctx)
-			return err == nil && s.Date == date && !s.DateOpen, err
+			return err == nil && isShownDate(s.Date, at) && !s.DateOpen, err
 		}); err != nil {
 			return err
 		}
@@ -626,12 +626,20 @@ func (t *session) schedule(ctx context.Context, at time.Time) error {
 	}
 	return t.Until(ctx, "the schedule to read "+date+" "+clock, 10*time.Second, func() (bool, error) {
 		s, err := t.readSchedule(ctx)
-		return err == nil && s.Mode == "schedule" && s.Date == date && s.Time == clock && !s.TimeOpen && !s.DateOpen, err
+		return err == nil && s.Mode == "schedule" && isShownDate(s.Date, at) && s.Time == clock && !s.TimeOpen && !s.DateOpen, err
 	})
 }
 
 // shownDate is how the date box shows a day: "Nov 3, 2026".
 func shownDate(at time.Time) string { return at.Format("Jan 2, 2006") }
+
+// isShownDate reports whether the date box shows at's day. Studio writes it
+// as "Nov 3, 2026", or as "3 Nov 2026" when the browser's language puts the
+// day first (seen 2026-11-03: "7 Nov 2026").
+func isShownDate(box string, at time.Time) bool {
+	box = strings.TrimSpace(box)
+	return box == shownDate(at) || box == at.Format("2 Jan 2006")
+}
 
 // dayLabel is the date picker's name for a day: "Tuesday, November 3rd,
 // 2026".
@@ -764,7 +772,7 @@ func (t *session) ready(ctx context.Context, p Post, label string) error {
 		if label == "" || label == "Everyone" {
 			return fmt.Errorf("%w: a post now for %q; not posting", ErrPage, label)
 		}
-	} else if at := p.At.Local(); s.Mode != "schedule" || s.Date != shownDate(at) || s.Time != at.Format("15:04") {
+	} else if at := p.At.Local(); s.Mode != "schedule" || !isShownDate(s.Date, at) || s.Time != at.Format("15:04") {
 		return fmt.Errorf("%w: the schedule reads %q %s %s; not posting", ErrPage, s.Mode, s.Date, s.Time)
 	}
 	var v visibilityState

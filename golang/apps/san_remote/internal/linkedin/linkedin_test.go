@@ -67,3 +67,22 @@ func TestHelpersExist(t *testing.T) {
 		}
 	}
 }
+
+func TestSameDate(t *testing.T) {
+	at := time.Date(2026, 11, 5, 9, 0, 0, 0, time.Local)
+	for _, c := range []struct {
+		box  string
+		want bool
+	}{
+		{"11/5/2026", true},
+		{"11/05/2026", true},
+		{" 11/5/2026 ", true},
+		{"11/6/2026", false},
+		{"5/11/2026", false},
+		{"", false},
+	} {
+		if got := sameDate(c.box, at); got != c.want {
+			t.Errorf("sameDate(%q) = %v, want %v", c.box, got, c.want)
+		}
+	}
+}

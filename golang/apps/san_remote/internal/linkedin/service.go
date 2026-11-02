@@ -1282,8 +1282,16 @@ func (t *session) pickDate(ctx context.Context, at time.Time) error {
 	return t.Until(ctx, "the date in its box", 5*time.Second, func() (bool, error) {
 		var w *when
 		err := t.Call(ctx, &w, "when")
-		return w != nil && w.Date == at.Format("01/02/2006"), err
+		return w != nil && sameDate(w.Date, at), err
 	})
+}
+
+// sameDate reports whether the date box shows at's day. LinkedIn writes it
+// without leading zeros ("11/5/2026", seen 2026-11-02), the tests with them
+// ("11/05/2026"); both are taken.
+func sameDate(box string, at time.Time) bool {
+	box = strings.TrimSpace(box)
+	return box == at.Format("01/02/2006") || box == at.Format("1/2/2006")
 }
 
 // pickTime opens the time list and presses at's time.

@@ -1,0 +1,272 @@
+syntax = "proto3";
+
+package san.remote.shopee.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// ShopeeService is the Shopee service (internal/shopee) over Connect, served
+// by `san_remote api` for other programs (the tower's workflows). Like the
+// CLI, it works in Shopee Seller Centre (seller.shopee.co.id, interface in
+// Indonesian) in a tab of the user's browser, the way a person does: no
+// Shopee Open Platform API. Reads go in a background tab; whatever changes
+// the shop brings Chrome to the front with a tab of its own.
+service ShopeeService {
+  // GetStatus says whether the browser is signed in to Seller Centre, and as
+  // which shop.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // ListProducts lists the shop's products (Produk Saya), newest change
+  // first, from one of its tabs.
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  // CreateProduct adds a product through Tambah Produk Baru: photos, name,
+  // category, attributes, description, variations with a price, stock and
+  // SKU each (or one price and stock), weight, couriers; then Simpan &
+  // Arsipkan (archived, the default) or Simpan & Tampilkan (live). The whole
+  // form is read back before the button is pressed, and the product is then
+  // read back from the shop's list. A tab is brought to the front for a
+  // minute or two.
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+  // DeleteProduct deletes a product (Lainnya, Hapus, then Hapus when Seller
+  // Centre asks). A live product is archived first, since Seller Centre
+  // deletes only archived ones. It cannot be undone.
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
+  // PublishProduct shows an archived product to buyers (Lainnya, Tampilkan).
+  rpc PublishProduct(PublishProductRequest) returns (PublishProductResponse);
+  // ArchiveProduct hides a live product from buyers (Lainnya, Arsipkan,
+  // Konfirmasi).
+  rpc ArchiveProduct(ArchiveProductRequest) returns (ArchiveProductResponse);
+  // BoostProduct bumps a live product to the top (Lainnya, Naikkan Produk).
+  // Seller Centre has 5 slots; each holds its product for 4 hours, and a
+  // product cannot be bumped again until its 4 hours are over. A full set of
+  // slots, a product on its cooldown, or one that is not live is refused
+  // (FailedPrecondition) before anything is pressed.
+  rpc BoostProduct(BoostProductRequest) returns (BoostProductResponse);
+  // ListBoosted lists the bumped products, with when each one's slot is
+  // free again.
+  rpc ListBoosted(ListBoostedRequest) returns (ListBoostedResponse);
+}
+
+// Status is the browser's Seller Centre session.
+message Status {
+  bool signed_in = 1;
+  // The shop's name, "Get Resolved ID".
+  string shop = 2;
+  // The account's username, "getresolved.id".
+  string username = 3;
+  int64 shop_id = 4;
+}
+
+// Model is one variation of a product (one combination of its options), or
+// the only one of a product without variations.
+message Model {
+  int64 id = 1;
+  // One option per variation, in the variations' order: ["Merah", "S"].
+  // Empty for a product without variations.
+  repeated string options = 2;
+  // In rupiah.
+  int64 price = 3;
+  int64 stock = 4;
+  string sku = 5;
+}
+
+// Product is a product as Seller Centre lists it.
+message Product {
+  int64 id = 1;
+  string name = 2;
+  // live, archived, or "status N" for the other states Seller Centre has
+  // (under review, a violation).
+  string status = 3;
+  // In rupiah: the lowest and highest price of its models.
+  int64 price_min = 4;
+  int64 price_max = 5;
+  // The stock of all its models.
+  int64 stock = 6;
+  int64 sold = 7;
+  // The parent SKU (SKU Induk).
+  string sku = 8;
+  repeated Model models = 9;
+  // The cover photo's link.
+  string cover = 10;
+  google.protobuf.Timestamp created = 11;
+  google.protobuf.Timestamp updated = 12;
+  // Its page in Seller Centre, https://seller.shopee.co.id/portal/product/<id>.
+  string url = 13;
+}
+
+// Variation is a variation (Variasi) of a new product and its options, as
+// they are typed into the form: up to 2 variations, a name of up to 14
+// characters, options of up to 20.
+message Variation {
+  string name = 1;
+  repeated string options = 2;
+}
+
+// NewModel gives one combination of the options its price, stock and SKU.
+// A combination without one takes the request's price and stock.
+message NewModel {
+  // One option per variation, in order: ["Merah", "S"].
+  repeated string options = 1;
+  // In rupiah, 99 to 150,000,000; unset for the request's price.
+  optional int64 price = 2;
+  // Unset for the request's stock.
+  optional int64 stock = 3;
+  string sku = 4;
+}
+
+// Dimensions is the parcel's size (Ukuran Paket), in whole centimetres.
+message Dimensions {
+  int32 length = 1;
+  int32 width = 2;
+  int32 height = 3;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message ListProductsRequest {
+  string browser = 1;
+  // Which tab: all (Semua, the default), live (Live), archived (Belum
+  // Ditampilkan), review (Sedang Ditinjau Shopee), violation (Perlu
+  // Tindakan) or draft.
+  string filter = 2;
+  // At most this many (default 50).
+  uint32 limit = 3;
+  // Only products whose name, SKU, variation code or id holds this (the
+  // list's search box).
+  string search = 4;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+  // How many the tab holds in all.
+  uint32 total = 2;
+}
+
+message CreateProductRequest {
+  string browser = 1;
+  // Instead of the fields below: the product's markdown file, an absolute
+  // path on this computer, read as `san_remote shopee upload` reads one
+  // (frontmatter for the fields, photos relative to it, the description
+  // after it). What the request gives as well wins over the file.
+  string file = 2;
+  // The same as text; photos named in it need absolute paths.
+  string markdown = 3;
+
+  // Up to 255 characters.
+  string name = 4;
+  // Plain text, line breaks kept; up to 3000 characters.
+  string description = 5;
+  // 1 to 9 square jpg or png files of up to 2 MB, absolute paths, in order.
+  // The first is the cover (Cover Produk): Seller Centre fills the cover
+  // with it and does not let another photo be chosen there.
+  repeated string photos = 6;
+  reserved 7;
+  // The category's path as the picker names it: ["Komputer & Aksesoris",
+  // "Software"]. It must end at a category with no subcategories.
+  repeated string category = 8;
+  // Attributes (Spesifikasi) by their names on the form: {"Merek": "Tidak
+  // ada merek"}. A list's value is picked from its options.
+  map<string, string> attributes = 9;
+  // Up to 2 variations. Without them the product has one price and stock.
+  repeated Variation variations = 10;
+  // Per combination of the variations' options; the others take price and
+  // stock.
+  repeated NewModel models = 11;
+  // In rupiah, 99 to 150,000,000: the product's price, or the variations'
+  // default.
+  int64 price = 12;
+  // The product's stock, or the variations' default.
+  optional int64 stock = 13;
+  // The parent SKU (SKU Induk).
+  string sku = 14;
+  // The parcel's weight in grams (required, with the file's).
+  int32 weight_grams = 15;
+  Dimensions dimensions = 16;
+  // new (Baru, the default) or used (Pernah Dipakai).
+  string condition = 17;
+  // The couriers (Jasa Kirim) to turn on for this product, by name:
+  // "Reguler (Cashless)". Empty: Reguler (Cashless), or the first one
+  // offered. It never changes the shop's shipping settings.
+  repeated string couriers = 18;
+  // Produk Berbahaya: it holds a battery, magnet, liquid or flammables.
+  bool dangerous_goods = 19;
+  // archived (Simpan & Arsipkan, the default) or live (Simpan & Tampilkan).
+  string publish = 20;
+  // Do every step but the save, then leave the form: nothing is made.
+  bool rehearse = 21;
+}
+
+message CreateProductResponse {
+  // The product as the shop lists it afterwards; with rehearse, only what
+  // the form held.
+  Product product = 1;
+  // What the form read before it was saved, line by line.
+  repeated string form = 2;
+}
+
+message DeleteProductRequest {
+  string browser = 1;
+  int64 id = 2;
+}
+
+message DeleteProductResponse {
+  // The product as it was.
+  Product product = 1;
+}
+
+message PublishProductRequest {
+  string browser = 1;
+  int64 id = 2;
+}
+
+message PublishProductResponse {
+  Product product = 1;
+}
+
+message ArchiveProductRequest {
+  string browser = 1;
+  int64 id = 2;
+}
+
+message ArchiveProductResponse {
+  Product product = 1;
+}
+
+// Boost is a bumped product's slot.
+message Boost {
+  int64 id = 1;
+  // Empty when the product is gone (deleted): its slot is held all the same.
+  string name = 2;
+  // When the slot is free again, and the product can be bumped again.
+  google.protobuf.Timestamp ends_at = 3;
+  int64 seconds_left = 4;
+}
+
+message BoostProductRequest {
+  string browser = 1;
+  int64 id = 2;
+}
+
+message BoostProductResponse {
+  Boost boost = 1;
+  // Slots in use, this one included, of slots_total (5).
+  uint32 slots_used = 2;
+  uint32 slots_total = 3;
+}
+
+message ListBoostedRequest {
+  string browser = 1;
+}
+
+message ListBoostedResponse {
+  repeated Boost boosts = 1;
+  uint32 slots_used = 2;
+  uint32 slots_total = 3;
+  // How long a slot holds its product: 14400 (4 hours).
+  int64 cooldown_seconds = 4;
+}

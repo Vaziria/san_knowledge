@@ -26,6 +26,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
+	shopeev1 "github.com/wargasipil/san_remote/gen/san/remote/shopee/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/shopee/v1/shopeev1connect"
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/threads/v1/threadsv1connect"
 	tiktokv1 "github.com/wargasipil/san_remote/gen/san/remote/tiktok/v1"
@@ -48,6 +50,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
 	"github.com/wargasipil/san_remote/internal/page"
+	"github.com/wargasipil/san_remote/internal/shopee"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/vidara"
@@ -70,6 +73,7 @@ func start(t *testing.T, server string) *httptest.Server {
 		LinkedIn:  &linkedin.Service{B: b},
 		TikTok:    &tiktok.Service{B: b},
 		Instagram: &instagram.Service{B: b},
+		Shopee:    &shopee.Service{B: b},
 		ChatGPT:   &chatgpt.Service{B: b},
 		Gemini:    &gemini.Service{B: b},
 		Claude:    &claude.Service{B: b},
@@ -137,6 +141,20 @@ func TestRefused(t *testing.T) {
 		t.Fatal(err)
 	}
 	photos := []*instagramv1.Media{{File: photo}}
+	sp := shopeev1connect.NewShopeeServiceClient(ts.Client(), ts.URL)
+	square := filepath.Join(dir, "sq.png")
+	if err := os.WriteFile(square, squarePNG, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	one := int64(1)
+	product := func(change func(*shopeev1.CreateProductRequest)) *connect.Request[shopeev1.CreateProductRequest] {
+		r := &shopeev1.CreateProductRequest{
+			Name: "TES", Description: "Uji.", Photos: []string{square}, Category: []string{"Komputer & Aksesoris", "Software"},
+			Price: 9999000, Stock: &one, WeightGrams: 100,
+		}
+		change(r)
+		return connect.NewRequest(r)
+	}
 	post := []*threadsv1.Post{{Text: "hello"}}
 
 	for name, err := range map[string]error{
@@ -177,6 +195,18 @@ func TestRefused(t *testing.T) {
 		"chatgpt bad chat":         second(cg.Ask(ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: "halo", Chat: "https://example.com/c/1"}))),
 		"gemini no prompt":         second(gm.Ask(ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: "   "}))),
 		"claude no prompt":         second(cl.Ask(ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: "   "}))),
+		"shopee relative photo":    second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Photos = []string{"sq.png"} }))),
+		"shopee not square":        second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Photos = []string{photo} }))),
+		"shopee no name":           second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Name = "" }))),
+		"shopee low price":         second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Price = 50 }))),
+		"shopee long option": second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) {
+			r.Variations = []*shopeev1.Variation{{Name: "Warna", Options: []string{"Merah marun tua sekali ya"}}}
+		}))),
+		"shopee bad publish":   second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Publish = "now" }))),
+		"shopee relative file": second(sp.CreateProduct(ctx, connect.NewRequest(&shopeev1.CreateProductRequest{File: "p.md"}))),
+		"shopee no id":         second(sp.DeleteProduct(ctx, connect.NewRequest(&shopeev1.DeleteProductRequest{}))),
+		"shopee boost no id":   second(sp.BoostProduct(ctx, connect.NewRequest(&shopeev1.BoostProductRequest{}))),
+		"shopee bad filter":    second(sp.ListProducts(ctx, connect.NewRequest(&shopeev1.ListProductsRequest{Filter: "sold"}))),
 	} {
 		if connect.CodeOf(err) != connect.CodeInvalidArgument {
 			t.Errorf("%s: %v", name, err)
@@ -196,6 +226,10 @@ func TestRefused(t *testing.T) {
 	if _, err := ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Media: photos, At: soon})); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Errorf("instagram too soon: %v", err)
 	}
+	// A valid product gets as far as the browser.
+	if _, err := sp.CreateProduct(ctx, product(func(*shopeev1.CreateProductRequest) {})); err == nil || connect.CodeOf(err) == connect.CodeInvalidArgument {
+		t.Errorf("shopee, a valid product: %v", err)
+	}
 	// A video without at is not refused: it is saved as Private, so it gets
 	// as far as the browser.
 	if _, err := yt.UploadVideo(ctx, connect.NewRequest(&youtubev1.UploadVideoRequest{Video: video, Title: "Uji", Short: true})); err == nil || connect.CodeOf(err) == connect.CodeInvalidArgument {
@@ -204,3 +238,11 @@ func TestRefused(t *testing.T) {
 }
 
 func second[T any](_ T, err error) error { return err }
+
+// squarePNG is a 1x1 png: a square photo.
+var squarePNG = []byte{
+	0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01,
+	0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x44, 0x41,
+	0x54, 0x78, 0x9c, 0x63, 0x60, 0x60, 0x60, 0xf8, 0x0f, 0x00, 0x01, 0x04, 0x01, 0x00, 0x5f, 0x0e, 0x1a, 0x75, 0x00, 0x00,
+	0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+}

@@ -24,6 +24,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
+	"github.com/wargasipil/san_remote/internal/shopee"
 	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/youtube"
@@ -31,7 +32,7 @@ import (
 
 // The site services added on 2026-10-25: Medium, LinkedIn, TikTok and
 // ChatGPT; YouTube on 2026-10-26; Telegram on 2026-10-27; Instagram on
-// 2026-10-29.
+// 2026-10-29; Shopee on 2026-11-03 (shopee.go).
 
 // absolute refuses a relative path: it would be inside wherever `san_remote
 // api` was started.
@@ -492,6 +493,7 @@ func siteCode(err error) (connect.Code, bool) {
 		instagram.ErrInvalidPost, instagram.ErrTooSoon, instagram.ErrTooLate, instagram.ErrBadPost, instagram.ErrAmbiguous,
 		youtube.ErrInvalidPost, youtube.ErrTooSoon, youtube.ErrNoMatch,
 		telegram.ErrInvalid, telegram.ErrNotFound, telegram.ErrAmbiguous,
+		shopee.ErrInvalid,
 		chatgpt.ErrInvalidPrompt,
 		gemini.ErrInvalidPrompt,
 		claude.ErrInvalidPrompt,
@@ -507,6 +509,7 @@ func siteCode(err error) (connect.Code, bool) {
 		instagram.ErrNotSignedIn, instagram.ErrLanguage, instagram.ErrNoBusinessSuite, instagram.ErrBusinessLanguage, instagram.ErrNotOwn,
 		youtube.ErrNotSignedIn, youtube.ErrLanguage, youtube.ErrNotShort, youtube.ErrPublic,
 		telegram.ErrNotSignedIn, telegram.ErrLanguage, telegram.ErrRefused,
+		shopee.ErrNotSignedIn, shopee.ErrLanguage, shopee.ErrNotLive, shopee.ErrCooldown, shopee.ErrSlotsFull, shopee.ErrRefused,
 		chatgpt.ErrNotSignedIn, chatgpt.ErrLanguage, chatgpt.ErrRefused,
 		gemini.ErrNotSignedIn, gemini.ErrLanguage, gemini.ErrRefused,
 		claude.ErrNotSignedIn, claude.ErrLanguage, claude.ErrRefused,

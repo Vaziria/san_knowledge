@@ -31,6 +31,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/shopee/v1/shopeev1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/telegram/v1/telegramv1connect"
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/threads/v1/threadsv1connect"
@@ -50,6 +51,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
+	"github.com/wargasipil/san_remote/internal/shopee"
 	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
@@ -77,6 +79,7 @@ type API struct {
 	YouTube   *youtube.Service
 	Telegram  *telegram.Service
 	Instagram *instagram.Service
+	Shopee    *shopee.Service
 	ChatGPT   *chatgpt.Service
 	Gemini    *gemini.Service
 	Claude    *claude.Service
@@ -101,6 +104,7 @@ func (a *API) Handler() http.Handler {
 	mux.Handle(youtubev1connect.NewYouTubeServiceHandler(youtubeAPI{a}))
 	mux.Handle(telegramv1connect.NewTelegramServiceHandler(telegramAPI{a}))
 	mux.Handle(instagramv1connect.NewInstagramServiceHandler(instagramAPI{a}))
+	mux.Handle(shopeev1connect.NewShopeeServiceHandler(shopeeAPI{a}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatgptAPI{a}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAPI{a}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeAPI{a}))
@@ -130,7 +134,7 @@ func (a *API) fail(err error) error {
 		return connect.NewError(connect.CodeFailedPrecondition, err)
 	case errors.Is(err, x.ErrNotFound), errors.Is(err, vidara.ErrNoFolder),
 		errors.Is(err, chatgpt.ErrChatGone), errors.Is(err, gemini.ErrChatGone), errors.Is(err, claude.ErrChatGone),
-		errors.Is(err, instagram.ErrNoMatch):
+		errors.Is(err, instagram.ErrNoMatch), errors.Is(err, shopee.ErrNotFound):
 		return connect.NewError(connect.CodeNotFound, err)
 	}
 	if code, ok := siteCode(err); ok {

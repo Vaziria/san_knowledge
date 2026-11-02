@@ -92,6 +92,7 @@ bin\san_remote.exe medium ...                     # Medium: see "Medium" below
 bin\san_remote.exe linkedin ...                   # LinkedIn: see "LinkedIn" below
 bin\san_remote.exe tiktok ...                     # TikTok: see "TikTok" below
 bin\san_remote.exe instagram ...                  # Instagram: see "Instagram" below
+bin\san_remote.exe shopee ...                     # Shopee Seller Centre: see "Shopee" below
 bin\san_remote.exe chatgpt ...                    # ChatGPT: see "ChatGPT" below
 bin\san_remote.exe gemini ...                     # Gemini: see "Gemini" below
 bin\san_remote.exe claude ...                     # claude.ai: see "Claude" below
@@ -199,6 +200,10 @@ rebuilding, reconnect with `/mcp`.
 | `telegram_create_group` | title, browser |
 | `telegram_delete_group` | group (id or title), browser |
 | `telegram_add_member`, `telegram_remove_member` | group, user (username), browser |
+| `shopee_status`, `shopee_boosted` | browser |
+| `shopee_products` | filter (all, live, archived, review, violation, draft), search, limit, browser |
+| `shopee_upload` | file (a product file); publish (archived, live), rehearse, browser |
+| `shopee_publish`, `shopee_archive`, `shopee_boost`, `shopee_delete` | product (id or link), browser |
 | `chatgpt_status` | browser |
 | `chatgpt_ask` | prompt; keep, chat, wait_seconds, browser |
 | `gemini_status` | browser |
@@ -220,7 +225,10 @@ they say `at` schedules in Business Suite and `now` publishes at once, since
 instagram.com cannot schedule, so to use `now` only for a post you asked to
 publish now. For Telegram
 they say the bot token is a secret not to repeat in chat, and to ask before
-a delete, a removal or adding someone to a group. For ChatGPT
+a delete, a removal or adding someone to a group. For Shopee they say to
+upload, make live, bump or delete only the products you named, that an
+upload is saved archived unless it is live, and to ask before a delete.
+For ChatGPT
 and Gemini they say a new chat is a Temporary chat unless `keep` is set, and
 for Claude an incognito chat.
 
@@ -250,6 +258,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.instagram.v1.InstagramService` | GetStatus, CreatePost (photos, a carousel or a Reel by absolute paths, with alt text; the caption, or a markdown file or text; `at` schedules it in Business Suite, `now` shares it at once), ListPosts (the profile's latest, `limit`), ListScheduled (Business Suite's Dijadwalkan), DeletePost (by link or code), DeleteScheduled (by caption and/or `at`; one must match) |
 | `san.remote.youtube.v1.YouTubeService` | GetStatus, UploadVideo (an absolute video file; scheduled, or saved as Private; `short`), ListVideos, DeleteVideo (never a Public one unless `allow_public`), MakePrivate |
 | `san.remote.telegram.v1.TelegramService` | GetStatus, CreateBot (through @BotFather; the bot with its token), DeleteBot, CreateGroup (the group's id), DeleteGroup, AddMember, RemoveMember (a group by id or title, a user by username) |
+| `san.remote.shopee.v1.ShopeeService` | GetStatus, ListProducts (a tab of Produk Saya, `search`, `limit`; each product with its models), CreateProduct (a product file by absolute path, its markdown, or the fields: photos by absolute paths, category path, attributes, up to 2 variations with a price, stock and SKU per combination; archived unless `publish` live; `rehearse`), PublishProduct, ArchiveProduct, BoostProduct (Naikkan Produk; FailedPrecondition when not live, on its cooldown or all 5 slots in use), ListBoosted, DeleteProduct (a live one is archived first) |
 | `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
@@ -1184,6 +1193,152 @@ second group made and deleted by title, the bot deleted, and deleting it
 again refused as not one of the account's bots.
 
 A failed step stops with a screenshot: `san_remote-telegram-150405.png`.
+
+## Shopee
+
+`san_remote shopee` works in Shopee Seller Centre (seller.shopee.co.id) in
+your browser, as your shop, the way you would there (2026-11-03: the
+tower's Shopee nodes go through San Remote, not the Shopee Open Platform
+API). The steps are in Go (`internal/shopee/service.go`, `create.go`) and
+the page knowledge in `shopee.js`, found in your signed-in Seller Centre:
+- **status** says which shop is signed in (`/api/selleraccount/shop_info/`).
+- **products** lists Produk Saya: one of its tabs (`--filter all`, `live`,
+  `archived`, `review`, `violation`, `draft`), `--search` as the list's
+  search box (name, SKU, variation code, id), `--models` with each model
+  (options, price, stock, SKU). It reads the list's own endpoint
+  (`/api/v3/opt/mpsku/list/v2/get_product_list`, 48 a page) from the page,
+  in a background tab.
+- **upload** adds a product through Tambah Produk Baru from a product file
+  (below), as a person fills the form: the photos (Seller Centre opens them
+  in Pembuat Foto AI, whose "Terapkan ke Produk (N)" puts them in the
+  form), the name, Selanjutnya; the category in Ubah Kategori, level by
+  level; the attributes (Spesifikasi), typed or picked from their lists;
+  the description; Aktifkan Variasi, each variation's name and options,
+  and the table's price, stock and Kode Variasi per row (or one price and
+  stock); the weight and parcel size, Produk Berbahaya, the couriers. Then
+  the whole form is read back, and only when it reads as given is **Simpan
+  & Arsipkan** pressed (archived, the default) or, with `publish: live`,
+  **Simpan & Tampilkan**. The product is then found in Produk Saya and its
+  models compared with the file's. `--rehearse` does every step but Simpan
+  and prints what the form read; `--dry-run` only prints the product.
+- **publish** shows an archived product (Lainnya, Tampilkan); **archive**
+  hides a live one (Lainnya, Arsipkan, Konfirmasi).
+- **boost** bumps a live product (Lainnya, **Naikkan Produk**). Seller
+  Centre has 5 slots; each holds its product for 4 hours, and the product
+  cannot be bumped again until then. A product that is not live, one on its
+  cooldown (its menu shows the countdown instead of Naikkan Produk), and a
+  full set of slots are refused before anything is pressed, with when the
+  next slot is free. **boosted** lists the slots in use
+  (`get_bumped_product_list`): each product and when its slot is free.
+- **delete** deletes a product (Lainnya, Hapus, then Hapus in "Hapus
+  produk", which must name the product). Seller Centre deletes only
+  archived products, so a live one is archived first. An id the shop does
+  not have is refused. It cannot be undone.
+
+```powershell
+bin\san_remote.exe shopee status                         # signed in as getresolved.id (shop Get Resolved ID, id 77987996)
+bin\san_remote.exe shopee products --filter live --models
+bin\san_remote.exe shopee products --search 57614536675
+bin\san_remote.exe shopee upload --dry-run product.md    # the product as it will be made
+bin\san_remote.exe shopee upload --rehearse product.md   # fill and check the form; save nothing
+bin\san_remote.exe shopee upload product.md              # archived; --publish live to show it at once
+bin\san_remote.exe shopee publish 55071063221
+bin\san_remote.exe shopee boost 55071063221              # bumped ... until Tue 3 Nov 2026 06:11:11 +07; 2 of 5 slots in use
+bin\san_remote.exe shopee boosted
+bin\san_remote.exe shopee archive 55071063221
+bin\san_remote.exe shopee delete 55071063221
+```
+
+A product file is markdown: frontmatter for the fields, then the
+description (plain text; markdown marks are dropped, line breaks kept, up
+to 3000 characters):
+
+```markdown
+---
+name: Kaos Polos Katun Combed 30s          # up to 255 characters
+category: Pakaian Pria > Atasan > Kaos      # as the picker names it, down to a category with no subcategories
+photos: [kaos-1.jpg, kaos-2.jpg]            # 1 to 9, square jpg/png up to 2 MB, relative to this file; the first is the cover
+attributes:                                 # Spesifikasi, by their names on the form
+  Merek: Tidak ada merek
+price: 75000                                # rupiah, 99 to 150.000.000: the product's, or the variations' default
+stock: 10                                   # the same
+sku: KAOS-POLOS                             # SKU Induk, optional
+weight: 200                                 # grams, required
+dimensions: 30x20x3                         # cm, optional
+condition: new                              # new (Baru) or used (Pernah Dipakai)
+couriers: [Reguler (Cashless)]              # optional: the default is Reguler (Cashless), or the first offered
+dangerous: false                            # Produk Berbahaya
+publish: archived                           # archived (Simpan & Arsipkan) or live (Simpan & Tampilkan)
+variations:                                 # up to 2; a name up to 14 characters, options up to 20, no commas
+  - name: Warna
+    options: [Hitam, Putih]
+  - name: Ukuran
+    options: [M, L, XL]
+models:                                     # per combination, in the variations' order; the others take price and stock
+  - options: [Hitam, XL]
+    price: 80000
+    sku: KAOS-HITAM-XL
+---
+
+Kaos polos bahan katun combed 30s.
+Adem dan nyaman dipakai sehari-hari.
+```
+
+- Everything in the file is checked before a tab opens: the photos (format,
+  size, square, since Seller Centre's photos are 1:1 and another shape
+  opens a cropper), the lengths, the price range, every model naming one
+  option of each variation, no combination or SKU twice.
+- **The cover is the first photo.** Seller Centre fills Cover Produk with
+  it and locks it there (the image manager is `image-lock`, with only
+  Preview on the photo), so a cover of its own cannot be chosen.
+- **Seller Centre fills some of the form by itself.** "Isi Otomatis
+  Variasi" turned Variasi on with variations it guessed from the photos
+  and the name (Warna: Merah, Biru for a red and a blue photo): the tool
+  then retypes them and takes away the variations and options beyond the
+  file's, or all of them for a product without variations, which brings
+  Harga and Stok back. A required attribute it filled once (Tipe
+  Software) it left empty another time, so give the category's required
+  attributes in the file; an empty one is an error that names it, before
+  anything is saved.
+- Kondisi offers Baru and Pernah Dipakai (`condition: used`; "bekas" is
+  read as used too). Its list opens inside the select, not at the end of
+  the page as Spesifikasi's lists do.
+- The check before Simpan also stops when "Iklankan Produk dan Dapatkan
+  Voucher" is on or the form shows an error, and the couriers are turned
+  on only for this product: the shop's shipping settings are never
+  touched.
+- Uploads need a shown tab (files given to a hidden one did nothing), so
+  upload, publish, archive, boost and delete bring Chrome to the front with
+  a tab of their own. Photos reach the page in 4 MB pieces and are given to
+  the section's own `input[type=file]` through a DataTransfer. Text boxes
+  get the native value setter and input/change events; the description is
+  a Quill editor, typed line by line with `execCommand` and a pause after
+  each line, since Quill moves its caret a moment after an edit. The menu
+  items, buttons and modals take synthetic clicks.
+- **The interface must be in Indonesian** (Seller Centre's language cookie
+  `id`): the steps press buttons by their names (Tambah Produk Baru,
+  Selanjutnya, Lainnya, Naikkan Produk, Hapus). The category picker's
+  button is "Confirm", in English, in either.
+- Reads go through the list's own endpoints from the page, with the page's
+  cookies (`SPC_CDS`); every change is a button pressed. Seller Centre's
+  search goes on finding a deleted product for a while, so a delete is
+  confirmed by the list itself; and the list keeps an archived row's live
+  menu until it is loaded again, which delete does.
+- **A deleted product holds its Naikkan slot** until its 4 hours are over:
+  boosted lists it without a name.
+
+Live-tested on 2026-11-03 on the shop getresolved.id: a product "TES
+san_remote - akan dihapus" (2 photos, Komputer & Aksesoris > Software, Warna
+Merah/Biru x Ukuran S/M at Rp9.999.000, stock 1 and an SKU each) rehearsed,
+then uploaded archived, listed with its 4 models, published, bumped (2 of 5
+slots, until 06:11:11), listed among the bumped, refused a second bump (on
+its cooldown), and deleted; a second one uploaded and deleted again. A bump
+of an archived product and a delete of a product the shop does not have
+were refused. A product without variations (one photo, SKU Induk, a
+parcel size, Kondisi Pernah Dipakai) was rehearsed: Seller Centre had
+filled Warna and Ukuran by itself again, and the tool took them away.
+
+A failed step stops with a screenshot: `san_remote-shopee-150405.png`.
 
 ## ChatGPT
 

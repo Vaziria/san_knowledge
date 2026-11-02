@@ -30,6 +30,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
+	"github.com/wargasipil/san_remote/internal/shopee"
 	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/threads"
 	"github.com/wargasipil/san_remote/internal/tiktok"
@@ -57,6 +58,7 @@ type Server struct {
 	YouTube   *youtube.Service
 	Telegram  *telegram.Service
 	Instagram *instagram.Service
+	Shopee    *shopee.Service
 	ChatGPT   *chatgpt.Service
 	Gemini    *gemini.Service
 	Claude    *claude.Service
@@ -137,12 +139,12 @@ func (s *Server) dispatch(ctx context.Context, req request) (any, *rpcError) {
 			"protocolVersion": version,
 			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}},
 			"serverInfo":      map[string]any{"name": "san_remote", "title": "San Remote", "version": s.Version},
-			"instructions":    instructions + sitesInstructions,
+			"instructions":    instructions + sitesInstructions + shopeeInstructions,
 		}, nil
 	case "ping":
 		return map[string]any{}, nil
 	case "tools/list":
-		return map[string]any{"tools": append(toolDefs(), siteToolDefs()...)}, nil
+		return map[string]any{"tools": append(append(toolDefs(), siteToolDefs()...), shopeeToolDefs()...)}, nil
 	case "tools/call":
 		var p struct {
 			Name      string          `json:"name"`
@@ -445,6 +447,10 @@ type args struct {
 	Username string `json:"username"`
 	Group    string `json:"group"`
 	User     string `json:"user"`
+	// shopee_*
+	Product string `json:"product"`
+	Filter  string `json:"filter"`
+	Publish string `json:"publish"`
 }
 
 // Call runs one tool and returns its content: text, or for
@@ -486,6 +492,8 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.instagram(ctx, name, a)
 	case strings.HasPrefix(name, "telegram_"):
 		text, err = s.telegram(ctx, name, a)
+	case strings.HasPrefix(name, "shopee_"):
+		text, err = s.shopee(ctx, name, a)
 	case strings.HasPrefix(name, "chatgpt_"):
 		text, err = s.chatgpt(ctx, name, a)
 	case strings.HasPrefix(name, "gemini_"):

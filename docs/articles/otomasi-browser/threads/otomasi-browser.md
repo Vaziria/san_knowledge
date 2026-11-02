@@ -56,4 +56,4 @@ Sering ada jalan yang lebih sederhana: API resmi jika cukup, layanan penjadwal s
 ---
 
 Artikel lengkapnya, "Mengotomasi posting media sosial lewat browser, dan kapan sebaiknya tidak", membahas juga cara kerja CDP dan userScripts, cara melampirkan file, dan kapan otomasi browser cocok untukmu:
-{{MEDIUM_URL}}
+https://medium.com/p/28c172dfa031

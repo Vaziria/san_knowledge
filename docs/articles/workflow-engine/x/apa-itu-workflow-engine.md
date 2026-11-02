@@ -42,4 +42,4 @@ Lima engine yang akan sering kamu temui: Zapier tanpa kode, n8n yang bisa kamu j
 Kelemahannya, engine adalah satu program lagi yang harus dirawat. Script dengan cron tetap cukup untuk pekerjaan yang boleh diulang dari awal.
 
 Artikel lengkapnya, "Apa itu workflow engine, dan kapan script dengan cron saja tidak cukup?":
-{{MEDIUM_URL}}
+https://medium.com/p/042e38378751

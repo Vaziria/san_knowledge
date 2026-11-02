@@ -65,4 +65,4 @@ Lima workflow engine yang akan sering kamu temui:
 Kelemahannya, workflow engine adalah satu program lagi yang harus dirawat, logika yang rumit sulit dibaca di editor visual, dan workflow-nya terikat pada engine tempat ia dibuat. Script dengan cron tetap cukup untuk pekerjaan yang boleh diulang dari awal.
 
 Artikel lengkapnya, "Apa itu workflow engine, dan kapan script dengan cron saja tidak cukup?":
-{{MEDIUM_URL}}
+https://medium.com/p/042e38378751

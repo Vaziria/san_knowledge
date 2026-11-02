@@ -200,6 +200,8 @@ Write these as they are, with no Indonesian equivalent next to them.
 | UV unwrap | | explained at first use |
 | glTF | | the 3D file format |
 | Blender's interface names | | Sidebar, Properties, Physics, Modifier, Add Modifier, Randomize, Amount, Random Seed, Clipping, Merge, Apply Modifiers and the like stay exactly as Blender shows them |
+| script | skrip | a small program you run; "script-nya" (the user, 2026-11-02) |
+| run | eksekusi | one run of a workflow or a program; "run-nya", "satu run" (the user, 2026-11-02) |
 
 ## Keep in Indonesian
 

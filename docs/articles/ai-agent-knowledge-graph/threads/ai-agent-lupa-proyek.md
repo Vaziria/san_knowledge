@@ -56,4 +56,4 @@ Untuk proyek kecil, grep atau satu CLAUDE.md sudah cukup. Untuk teks tanpa headi
 Artikel lengkapnya membahas juga langkah sinkronisasi, cara agent bertanya, dan kapan kamu tidak membutuhkan knowledge graph:
 
 Kenapa AI agent lupa proyekmu setiap sesi, dan kapan ia butuh knowledge graph?
-{{MEDIUM_URL}}
+https://medium.com/p/ae5e424cfb0d

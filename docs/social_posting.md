@@ -32,11 +32,12 @@ approving them. The week's schedule and its state live in `docs/social_plan/<mon
 - **Not used:** Facebook ("leave Facebook, that's account not ready", 2026-11-02). X ("leave the
   X", 2026-11-02): X's upload API answers "Your account is suspended and is not permitted to
   access this feature" for @archetipe_. The user says it was suspended before any automation.
-- **Instagram is back** (the user, 2026-11-02: "manage Instagram too, it's okay"). Scheduling
-  goes through Meta Business Suite, which must be switched to @archetipe__, not the Uni_Q Page.
+- **Instagram: not used** (the user, 2026-11-02: "leave instagram"). Scheduling it needs Meta
+  Business Suite switched to @archetipe__ by hand.
 - **No Blender content** ("I don't like blender", 2026-11-02).
-- **Approval:** the drafts for a day go to the user on Telegram at 20:00 WIB the evening before.
-  Nothing is scheduled before the user approves it.
+- **Approval:** the week's posts go to the user on Telegram on Sunday at 20:00 WIB (the cron job
+  plans only), and everything is scheduled at once after "approve week" (the user, 2026-11-02:
+  "can we schedule all one week tonight?"). Nothing is scheduled before the user approves it.
 - **The browser server:** `san_remote serve --idle 15m`, which stops by itself after 15 minutes
   unused (the user, 2026-11-02). Start it again before the next command.
 - **One browser: `san_remote` for every platform** (the user, 2026-11-02: "why you always open

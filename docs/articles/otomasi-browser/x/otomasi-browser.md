@@ -33,4 +33,4 @@ Risikonya nyata. Aturan otomasi X menyebut otomasi tanpa API, seperti scripting 
 ---
 
 Artikel lengkapnya, "Mengotomasi posting media sosial lewat browser, dan kapan sebaiknya tidak":
-{{MEDIUM_URL}}
+https://medium.com/p/28c172dfa031

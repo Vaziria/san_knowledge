@@ -1,0 +1,85 @@
+{
+  "format": "san_tower.workflows",
+  "version": 1,
+  "exportedAt": "2026-11-03T14:15:18.790992300Z",
+  "tower": "dev",
+  "workflows": [
+    {
+      "name": "OpenAI API - ChatGPT Session",
+      "steps": [
+        {
+          "id": "api",
+          "kind": "openai-api",
+          "values": {
+            "Host": "127.0.0.1",
+            "Models": "browser-chat",
+            "Port": "7481",
+            "Timeout": "10m"
+          }
+        },
+        {
+          "id": "session",
+          "kind": "browser-chat-session",
+          "y": 160,
+          "values": {
+            "New Chat": "Never"
+          }
+        },
+        {
+          "id": "gpt",
+          "kind": "chatgpt-ask",
+          "x": 260,
+          "values": {
+            "Chat": "Leave",
+            "Connection": "1",
+            "Temporary": "No"
+          }
+        },
+        {
+          "id": "reply",
+          "kind": "openai-reply",
+          "x": 520
+        }
+      ],
+      "links": [
+        {
+          "source": "api",
+          "sourceSocket": "Event",
+          "target": "gpt",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Messages",
+          "target": "gpt",
+          "targetSocket": "Messages"
+        },
+        {
+          "source": "gpt",
+          "sourceSocket": "Done",
+          "target": "reply",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "gpt",
+          "sourceSocket": "Answer",
+          "target": "reply",
+          "targetSocket": "Answer"
+        },
+        {
+          "source": "session",
+          "sourceSocket": "Chat Link",
+          "target": "gpt",
+          "targetSocket": "Chat Link"
+        }
+      ],
+      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7481/v1) answered by ChatGPT in your browser, in one kept chat: a conversation's first request starts the chat with all of it, each next one sends only the newest message into it (method 2)."
+    }
+  ],
+  "connections": {
+    "1": {
+      "name": "San Remote",
+      "type": "san_remote"
+    }
+  }
+}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/store"
@@ -48,20 +49,36 @@ var browserChatKinds = []*kind{{
 // the answer and the chat's link (empty for a Temporary one).
 type browserAsk func(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (answer, link string, err error)
 
-// askStep runs a browser ask step on site with ask.
+// askStep runs a browser ask step on site with ask. Its Messages, when
+// linked, is asked rather than Prompt (askMessages).
 func askStep(site string, ask browserAsk) func(c *call) error {
 	return func(c *call) error {
 		r, err := c.sanRemote()
 		if err != nil {
 			return err
 		}
-		prompt, wait, err := c.askArgs()
+		turns, err := c.askTurns()
+		if err != nil {
+			return err
+		}
+		var prompt string
+		var wait time.Duration
+		if turns == nil {
+			prompt, wait, err = c.askArgs()
+		} else {
+			wait, err = c.wait()
+		}
 		if err != nil {
 			return err
 		}
 		chat, session, err := c.chatLink(site)
 		if err != nil {
 			return err
+		}
+		if turns != nil {
+			if chat, prompt, err = c.askMessages(turns, chat, session); err != nil {
+				return err
+			}
 		}
 		keep := c.setting("Temporary") == "No"
 		if !keep && (chat != "" || session != "") {
@@ -75,6 +92,10 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 			// The session's chat was deleted on the site: a new one.
 			c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "the chat %s is not there (deleted on the site?): starting a new one", chat)
 			chat = ""
+			if turns != nil {
+				prompt = conversationPrompt(turns)
+				c.logf(v1.LogLevel_LOG_LEVEL_INFO, "Messages: the whole conversation (%s) goes to the new chat", messages(len(turns)))
+			}
 			answer, link, err = ask(c, r, prompt, wait, chat, keep, c.setting("Chat") == "Stay", 0)
 		}
 		if err != nil {
@@ -88,6 +109,47 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 		c.fire("Done")
 		return nil
 	}
+}
+
+// askTurns reads the step's Messages, the conversation an OpenAI API's
+// request brought: nil when Messages is not linked, and Prompt is asked.
+func (c *call) askTurns() ([]chatTurn, error) {
+	v, ok := c.inputs["Messages"].(*structpb.Value)
+	if !ok {
+		if c.inLinked != nil && c.inLinked("Messages") {
+			return nil, errors.New("Messages is linked, but no messages came: link an OpenAI API's Messages")
+		}
+		return nil, nil
+	}
+	return turnsOf(v)
+}
+
+// askMessages is what an ask with Messages sends, and in which chat (the
+// user, 2026-11-03: "we have session right ? If no session, method 1 seem
+// pretty", "But if it is have session connected node, is methon 2"):
+//   - into a chat that goes on, a Browser Chat Session's kept one or a
+//     chat's link, only the newest message: the chat has the turns before it
+//     (method 2);
+//   - into a new chat, the whole conversation as one prompt (method 1), as
+//     with no Chat Link, or a session's first ask, whose chat then has it;
+//   - a conversation at its start (no assistant message) while the session
+//     already keeps a chat goes to a new chat, which the session keeps from
+//     then on, so two of the client's conversations do not mix.
+func (c *call) askMessages(turns []chatTurn, chat, session string) (string, string, error) {
+	switch {
+	case chat == "":
+		c.logf(v1.LogLevel_LOG_LEVEL_INFO, "Messages: the whole conversation (%s) as one prompt, in a new chat", messages(len(turns)))
+		return "", conversationPrompt(turns), nil
+	case session != "" && newConversation(turns):
+		c.logf(v1.LogLevel_LOG_LEVEL_INFO, "Messages: a new conversation (no assistant message yet): a new chat rather than the session's %s, which it keeps from now on", chat)
+		return "", conversationPrompt(turns), nil
+	}
+	turn := newTurn(turns)
+	if turn == "" {
+		return "", "", errors.New("Messages: nothing after the last assistant message to send")
+	}
+	c.logf(v1.LogLevel_LOG_LEVEL_INFO, "Messages: only the newest message, into the chat %s, which has the turns before it", chat)
+	return chat, turn, nil
 }
 
 // errChatGone is an ask whose chat link opened no chat.

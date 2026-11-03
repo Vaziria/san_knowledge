@@ -33,6 +33,9 @@ http://127.0.0.1:7477:
 
 What else the tower watches is still to be decided.
 
+Workflows ready to import are in [examples/](examples/README.md) (the user,
+2026-11-03: "Create example workflow in folder examples, in tower").
+
 Module `github.com/wargasipil/san_tower`, Go 1.26. It uses san_message,
 san_remote's generated clients, and san_knowledge's `graph` package (the
 knowledge tool's store, sync and AI step), from this repository (`replace`
@@ -126,7 +129,9 @@ and a browser call must come from the tower's own page (its Origin's host
 is the Host) or a loopback one. The Browser Remote Server's addresses stay
 on loopback unless its own Listen on setting says All networks (see Browser
 Remote Server below). Listening on every address, the tower reaches itself (its
-triggers' broker streams) at 127.0.0.1 (`selfURL`), never at `[::]`.
+triggers' broker streams) at 127.0.0.1 (`selfURL`), never at `[::]`. An
+OpenAI API step listens on its own Host and Port, 127.0.0.1 unless set
+otherwise (see Workflows).
 
 ## Raspberry Pi
 
@@ -167,7 +172,7 @@ messenger a sub-menu), Social, Shop (the user, 2026-11-03: Shopee), Finance (the
 Knowledge (the user, 2026-10-28) and AI; the UI gives each a colour and an
 icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
-a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart, Tower Chat and
+a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart, Tower Chat, OpenAI API and
 Telegram Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
 Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Now, Datetime,
 Datetime Operation, String to Datetime, Wait, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
@@ -850,6 +855,94 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     tick every 5 minutes, whose one chat would soon be too long) makes the
     session one per hour or day (UTC): its Chat Link is the session's key
     with the hour or day after `@`, so a new hour starts a new kept chat.
+  - Messages, on those three (the user, 2026-11-03, for the OpenAI API
+    below; "Is Claude and Gemini supported it ?": the same on each): an
+    object input for an OpenAI API's Messages, the conversation a client
+    sent, asked instead of Prompt. How it reaches the chat (the user: "we
+    have session right ? If no session, method 1 seem pretty", "But if it
+    is have session connected node, is methon 2"):
+    - method 1, a new chat: with no Chat Link (a Temporary chat each
+      request, stateless like the real API), or a Browser Chat Session with
+      no kept chat yet on the site. The whole conversation goes as one
+      prompt: a lone user message as it is, else a line asking to answer
+      only the last User message, then each message under `[System]`,
+      `[User]` or `[Assistant]`. A session's first ask starts its kept chat
+      with all of it.
+    - method 2, a chat that goes on: a session's kept chat (or a chat's link
+      typed in), which has the turns before. Only the newest turn goes: the
+      user's message(s) after the last assistant message.
+    - A conversation at its start (no assistant message) while the session
+      keeps a chat goes to a new chat, which the session keeps from then
+      on, so a client's second conversation does not land in the first's
+      chat. The step's log says which way it went. A session holds one
+      conversation at a time: two clients talking at once through one
+      session mix in its chat.
+  - OpenAI API and OpenAI Reply (AI › OpenAI API; `engine/openai.go`; the
+    user, 2026-11-03: "Can I have open ai compatible node, that can
+    configure port and listen host, and can connected to any ai chat
+    browser node in tower ?"). OpenAI API is a trigger: while its workflow
+    is switched on, the tower serves an OpenAI-compatible chat API at
+    `http://<Host>:<Port>/v1`, text only (no tool calls, no images):
+    - `GET /v1/models` lists Models (and `GET /v1/models/<id>` one);
+      `POST /v1/chat/completions` takes `messages` (role system, developer,
+      user or assistant; content a string or a list of `{"type": "text",
+      "text": ...}` parts) and `stream`. Not streamed, the answer is one
+      `chat.completion` (`choices[0].message`, `finish_reason` stop, `usage`
+      counted roughly as a quarter of the characters); streamed, Server-Sent
+      Events: the assistant's role at once, an SSE comment every 15 s while
+      the run works, the answer as one chunk when it is ready, the chunk
+      with `finish_reason` stop, a usage chunk when `stream_options.include_usage`,
+      then `data: [DONE]`. Any model name is taken (clients send their own
+      defaults); none is the first of Models.
+    - Each request starts a run from the step: Messages (the conversation,
+      each `{role, content}` with the content as text), Prompt (all of it as
+      one labelled text, method 1's, for steps that are not browser chats),
+      Last Message (the newest user message), Model, and Request (the body).
+      The run's OpenAI Reply answers it with its Answer; a second one in the
+      run only logs that it was not sent. A run that ends without one, or
+      fails, answers 500 with the run's error; no answer within Timeout
+      (10m, counted from the request) answers 504, and the run goes on. The
+      requests to one step run one at a time, the next when the run before
+      it has ended, since a browser chat answers one at a time. A run by
+      hand reads text, or a request's JSON, but its OpenAI Reply fails: no
+      request waits for it.
+    - Settings: Host (127.0.0.1, this computer only), Port (7480; clear of
+      san_remote serve 7476, the tower 7477 and san_remote api 7478), Models
+      (`browser-chat`), API Key (empty: none needed; set, a request needs
+      `Authorization: Bearer <key>`, else 401) and Timeout. An edit of Host
+      or Port starts the server again; the others change in place. A port
+      in use, a bad Host or Port, or one that another workflow's OpenAI API
+      step has (which starts once that one lets it go) is the step's state's
+      error, and the tower goes on. Errors are OpenAI's
+      `{"error": {"message", "type", "param", "code"}}`: 400 a bad body,
+      401, 404 an unknown path or model, 405 a wrong method.
+    - A Host other than loopback (a LAN address, 0.0.0.0) lets anyone on that
+      network use the browser accounts: the log warns, the state says "open
+      to the network", and Windows Firewall asks once for san_tower.exe. Set
+      an API Key then. An exported workflow carries the key in its values.
+    - A workflow: OpenAI API → ChatGPT Ask (its Messages from the OpenAI
+      API's Messages, its Chat Link from a Browser Chat Session for method
+      2, or none and Temporary Yes for method 1) → OpenAI Reply (Event from
+      Done, Answer from Answer). Ready to import in
+      [examples/openai-api](examples/openai-api/README.md), with a router
+      whose `model` (chatgpt, gemini, claude) picks the site.
+    - Any OpenAI client talks to it with base URL `http://127.0.0.1:7480/v1`
+      and any API key (or the step's):
+
+      ```sh
+      curl http://127.0.0.1:7480/v1/models
+      curl http://127.0.0.1:7480/v1/chat/completions -H 'Content-Type: application/json' \
+        -d '{"model": "browser-chat", "messages": [{"role": "user", "content": "Reply with the single word: pong"}]}'
+      curl -N http://127.0.0.1:7480/v1/chat/completions -H 'Content-Type: application/json' \
+        -d '{"stream": true, "messages": [{"role": "user", "content": "Reply with the single word: pong"}]}'
+      ```
+
+      ```python
+      from openai import OpenAI
+      client = OpenAI(base_url="http://127.0.0.1:7480/v1", api_key="not-needed")
+      r = client.chat.completions.create(model="browser-chat", messages=[{"role": "user", "content": "hi"}])
+      print(r.choices[0].message.content)
+      ```
   - Remote Shell (AI; the user, 2026-10-27: "Implement
     remote_shell_protocol.md. it to be node"; `engine/remoteshell.go`) is
     the Web Machine Shell Protocol of
@@ -1396,6 +1489,7 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   another format, a newer version or no workflows is refused, and a
   workflow that cannot be saved (e.g. two steps with one id) takes back
   the ones made before it, so a refused file leaves nothing.
+  [examples/](examples/README.md) holds such files, made by exporting.
 
 ## Chat
 
@@ -1921,7 +2015,9 @@ second fails to listen before it opens the broker.
   `schedule.go` the Schedule steps' timers and their Every, `telegram.go`
   the Telegram steps and the bots' pollers (`SyncConnections`, after a
   connection changes), `towerchat.go` the Tower Chat steps and `Chat`, which
-  keeps a message sent on the Chat page and starts its runs.
+  keeps a message sent on the Chat page and starts its runs, `openai.go`
+  the OpenAI API steps' servers and OpenAI Reply (`browserchat.go` the
+  browser asks' Messages).
 - `internal/telegram`: the Bot API client (getMe, getUpdates,
   sendMessage); `telegramtest` is a fake Bot API for tests, which reach no
   Telegram.

@@ -1,0 +1,71 @@
+{
+  "format": "san_tower.workflows",
+  "version": 1,
+  "exportedAt": "2026-11-03T14:15:18.512755700Z",
+  "tower": "dev",
+  "workflows": [
+    {
+      "name": "OpenAI API - ChatGPT",
+      "steps": [
+        {
+          "id": "api",
+          "kind": "openai-api",
+          "values": {
+            "Host": "127.0.0.1",
+            "Models": "browser-chat",
+            "Port": "7480",
+            "Timeout": "10m"
+          }
+        },
+        {
+          "id": "gpt",
+          "kind": "chatgpt-ask",
+          "x": 260,
+          "values": {
+            "Chat": "Leave",
+            "Connection": "1",
+            "Temporary": "Yes"
+          }
+        },
+        {
+          "id": "reply",
+          "kind": "openai-reply",
+          "x": 520
+        }
+      ],
+      "links": [
+        {
+          "source": "api",
+          "sourceSocket": "Event",
+          "target": "gpt",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Messages",
+          "target": "gpt",
+          "targetSocket": "Messages"
+        },
+        {
+          "source": "gpt",
+          "sourceSocket": "Done",
+          "target": "reply",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "gpt",
+          "sourceSocket": "Answer",
+          "target": "reply",
+          "targetSocket": "Answer"
+        }
+      ],
+      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7480/v1) answered by ChatGPT in your browser: each request's whole conversation goes as one prompt to a new Temporary chat (method 1, stateless like the real API)."
+    }
+  ],
+  "connections": {
+    "1": {
+      "name": "San Remote",
+      "type": "san_remote"
+    }
+  }
+}

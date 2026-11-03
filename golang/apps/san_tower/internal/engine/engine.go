@@ -89,6 +89,13 @@ type Engine struct {
 	// timers, and the watch steps' states (watch.go).
 	watchers    map[string]*watcher
 	watchStates map[uint32][]*v1.TriggerState
+	// The OpenAI API steps' servers, by the same key as the timers, and
+	// their states; the requests waiting for their run's OpenAI Reply, by
+	// request id, guarded by oaMu (openai.go).
+	oaServers map[string]*openAIServer
+	oaStates  map[uint32][]*v1.TriggerState
+	oaMu      sync.Mutex
+	oaWaiting map[string]*openAIWait
 	// The WhatsApp connections' devices, by connection id (whatsapp.go).
 	wa map[uint32]*waConn
 	// The one-at-a-time workflows' queues (queue.go), guarded by qmu: the
@@ -140,6 +147,7 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		pollers: make(map[uint32]*poller), tgSteps: make(map[uint32][]tgStep),
 		logSteps: make(map[uint32][]logStep), chatSteps: make(map[uint32][]string),
 		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
+		oaServers: make(map[string]*openAIServer), oaStates: make(map[uint32][]*v1.TriggerState), oaWaiting: make(map[string]*openAIWait),
 		waiting: make(map[uint32]*waiter), readers: make(map[uint32]context.CancelFunc), queues: make(map[uint32]string),
 		ssh: NewSSHShells(),
 	}
@@ -282,9 +290,11 @@ func (e *Engine) SyncAll() error {
 		e.syncLogs(w)
 		e.syncChats(w)
 		e.syncWatches(w)
+		e.syncOpenAI(w)
 	}
 	e.dropTimers(known)
 	e.dropWatches(known)
+	e.dropOpenAI(known)
 	for id := range e.tgSteps {
 		if !known[id] {
 			delete(e.tgSteps, id)
@@ -346,6 +356,7 @@ func (e *Engine) Sync(id uint32) {
 	e.syncLogs(w)
 	e.syncChats(w)
 	e.syncWatches(w)
+	e.syncOpenAI(w)
 	url := e.brokerURL()
 	subs, err := e.subscribers(url)
 	if err != nil {
@@ -632,7 +643,7 @@ func (e *Engine) Triggers(id uint32) []*v1.TriggerState {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var out []*v1.TriggerState
-	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id), e.whatsappStates(id), e.logStates(id), e.chatStates(id), e.watchStatesOf(id)) {
+	for _, s := range slices.Concat(e.states[id], e.timerStates[id], e.telegramStates(id), e.whatsappStates(id), e.logStates(id), e.chatStates(id), e.watchStatesOf(id), e.openAIStatesOf(id)) {
 		out = append(out, proto.Clone(s).(*v1.TriggerState))
 	}
 	return out
@@ -735,6 +746,7 @@ func (e *Engine) execute(w store.Workflow, r store.Run, stepID string, data []by
 	env.ChatSend = func(chat, text string, markdown bool) (chatMessage, error) {
 		return e.chatSend(w.ID, r.ID, chat, text, markdown)
 	}
+	env.OpenAIReply = e.openAIReplier(data)
 	waited := time.Since(r.StartedAt)
 	steps, runErr := Execute(e.ctx, w.Graph, stepID, data, env)
 	noteWait(steps, waited)

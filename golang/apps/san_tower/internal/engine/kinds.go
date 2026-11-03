@@ -80,10 +80,11 @@ func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ
 // kinds are the kinds of step, in the order the editor's Add menu shows them:
 // the core ones, Log Event (logevent.go), Tower Restart (towerrestart.go),
 // the datetime ones (datetime.go), the san_remote ones (social.go, then
-// sites.go), then the Tower Chat ones (towerchat.go), the Telegram ones
+// sites.go), the OpenAI API ones (openai.go), then the Tower Chat ones
+// (towerchat.go), the Telegram ones
 // (telegram.go), the WhatsApp ones (whatsapp.go), the SSH ones (ssh.go),
 // the GitHub ones (github.go) and the knowledge ones (knowledge.go).
-var kinds = slices.Concat(coreKinds, progressKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, sshKinds, githubKinds, shopeeKinds, knowledgeKinds, toolKinds, moreToolKinds, indicatorKinds, tradingKinds, tradeLoopKinds)
+var kinds = slices.Concat(coreKinds, progressKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, openAIKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, sshKinds, githubKinds, shopeeKinds, knowledgeKinds, toolKinds, moreToolKinds, indicatorKinds, tradingKinds, tradeLoopKinds)
 
 var coreKinds = []*kind{
 	{

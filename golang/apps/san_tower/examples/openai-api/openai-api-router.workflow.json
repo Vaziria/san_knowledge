@@ -1,0 +1,194 @@
+{
+  "format": "san_tower.workflows",
+  "version": 1,
+  "exportedAt": "2026-11-03T14:15:19.073155600Z",
+  "tower": "dev",
+  "workflows": [
+    {
+      "name": "OpenAI API - Router",
+      "steps": [
+        {
+          "id": "api",
+          "kind": "openai-api",
+          "values": {
+            "Host": "127.0.0.1",
+            "Models": "chatgpt, gemini, claude",
+            "Port": "7482",
+            "Timeout": "10m"
+          }
+        },
+        {
+          "id": "is-gemini",
+          "kind": "regex-filter",
+          "x": 260,
+          "values": {
+            "Pattern": "(?i)^gemini"
+          }
+        },
+        {
+          "id": "gemini",
+          "kind": "gemini-ask",
+          "x": 520,
+          "values": {
+            "Chat": "Leave",
+            "Connection": "1",
+            "Temporary": "Yes"
+          }
+        },
+        {
+          "id": "reply-gemini",
+          "kind": "openai-reply",
+          "x": 780
+        },
+        {
+          "id": "is-claude",
+          "kind": "regex-filter",
+          "x": 520,
+          "y": 160,
+          "values": {
+            "Pattern": "(?i)^claude"
+          }
+        },
+        {
+          "id": "claude",
+          "kind": "claude-ask-browser",
+          "x": 780,
+          "y": 160,
+          "values": {
+            "Chat": "Leave",
+            "Connection": "1",
+            "Temporary": "Yes"
+          }
+        },
+        {
+          "id": "reply-claude",
+          "kind": "openai-reply",
+          "x": 1040,
+          "y": 160
+        },
+        {
+          "id": "chatgpt",
+          "kind": "chatgpt-ask",
+          "x": 780,
+          "y": 320,
+          "values": {
+            "Chat": "Leave",
+            "Connection": "1",
+            "Temporary": "Yes"
+          }
+        },
+        {
+          "id": "reply-chatgpt",
+          "kind": "openai-reply",
+          "x": 1040,
+          "y": 320
+        }
+      ],
+      "links": [
+        {
+          "source": "api",
+          "sourceSocket": "Event",
+          "target": "is-gemini",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Model",
+          "target": "is-gemini",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "is-gemini",
+          "sourceSocket": "Match",
+          "target": "gemini",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "is-gemini",
+          "sourceSocket": "Else",
+          "target": "is-claude",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Model",
+          "target": "is-claude",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "is-claude",
+          "sourceSocket": "Match",
+          "target": "claude",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "is-claude",
+          "sourceSocket": "Else",
+          "target": "chatgpt",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Messages",
+          "target": "gemini",
+          "targetSocket": "Messages"
+        },
+        {
+          "source": "gemini",
+          "sourceSocket": "Done",
+          "target": "reply-gemini",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "gemini",
+          "sourceSocket": "Answer",
+          "target": "reply-gemini",
+          "targetSocket": "Answer"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Messages",
+          "target": "claude",
+          "targetSocket": "Messages"
+        },
+        {
+          "source": "claude",
+          "sourceSocket": "Done",
+          "target": "reply-claude",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "claude",
+          "sourceSocket": "Answer",
+          "target": "reply-claude",
+          "targetSocket": "Answer"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Messages",
+          "target": "chatgpt",
+          "targetSocket": "Messages"
+        },
+        {
+          "source": "chatgpt",
+          "sourceSocket": "Done",
+          "target": "reply-chatgpt",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "chatgpt",
+          "sourceSocket": "Answer",
+          "target": "reply-chatgpt",
+          "targetSocket": "Answer"
+        }
+      ],
+      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7482/v1) whose model picks the site: chatgpt, gemini or claude (Claude on claude.ai); any other model, or none, goes to ChatGPT. Each request's whole conversation goes as one prompt to a new Temporary chat (method 1)."
+    }
+  ],
+  "connections": {
+    "1": {
+      "name": "San Remote",
+      "type": "san_remote"
+    }
+  }
+}

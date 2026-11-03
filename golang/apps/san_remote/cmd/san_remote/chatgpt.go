@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/urfave/cli/v3"
@@ -52,21 +53,26 @@ func chatgptCommand() *cli.Command {
 				ArgsUsage: "PROMPT | -",
 				Description: "The prompt is the argument, or stdin with -, or --file. The chat is a Temporary chat\n" +
 					"(not kept in your history) unless --keep, which prints the chat's link to stderr;\n" +
-					"--chat continues a kept chat by its link.",
+					"--chat continues a kept chat by its link. --image attaches an image first (repeat it for more).",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "file", Usage: "read the prompt from this file"},
 					&cli.BoolFlag{Name: "keep", Usage: "a normal chat, kept in your history, instead of a Temporary chat"},
 					&cli.StringFlag{Name: "chat", Usage: "continue the kept chat at this link (https://chatgpt.com/c/...)"},
 					&cli.DurationFlag{Name: "wait", Value: chatgpt.DefaultWait, Usage: "how long to wait for the answer"},
+					&cli.StringSliceFlag{Name: "image", Usage: "an image to attach before the prompt is sent: png, jpg, webp or gif (repeatable)"},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					prompt, err := readPrompt(cmd)
 					if err != nil {
 						return err
 					}
+					images, err := imagePaths(cmd)
+					if err != nil {
+						return err
+					}
 					a, err := chatgptService(cmd).Ask(ctx, chatgpt.Ask{
 						Browser: cmd.String("browser"), Prompt: prompt, Chat: cmd.String("chat"),
-						Keep: cmd.Bool("keep"), Wait: cmd.Duration("wait"),
+						Keep: cmd.Bool("keep"), Wait: cmd.Duration("wait"), Files: images,
 					})
 					if err != nil {
 						return clientError(cmd, err)
@@ -80,6 +86,19 @@ func chatgptCommand() *cli.Command {
 			},
 		},
 	}
+}
+
+// imagePaths are ask's --image files, as absolute paths.
+func imagePaths(cmd *cli.Command) ([]string, error) {
+	var out []string
+	for _, p := range cmd.StringSlice("image") {
+		abs, err := filepath.Abs(p)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, abs)
+	}
+	return out, nil
 }
 
 // readPrompt reads ask's prompt: the argument, stdin for -, or --file.

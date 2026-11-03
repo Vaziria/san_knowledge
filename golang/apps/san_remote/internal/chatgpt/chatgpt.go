@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/wargasipil/san_remote/internal/attach"
 )
 
 var (
@@ -72,6 +74,10 @@ type Ask struct {
 	// goes on in it, and closes it once Idle goes by without one (the user,
 	// 2026-10-27); zero closes it, unless Stay.
 	Idle time.Duration
+	// Files are images to attach before the prompt is sent: absolute paths
+	// of png, jpg, webp or gif files (internal/attach; the user,
+	// 2026-11-03: "Can we add tool call and image ?").
+	Files []string
 }
 
 // Answer is ChatGPT's answer to one Ask.
@@ -125,6 +131,9 @@ func (a *Ask) Check() error {
 		if _, err := ChatID(a.Chat); err != nil {
 			return err
 		}
+	}
+	if _, err := attach.Check(a.Files); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidPrompt, err)
 	}
 	return nil
 }

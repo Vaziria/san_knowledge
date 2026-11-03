@@ -14,6 +14,10 @@
 //   - a new chat is a Temporary chat after the "Temporary chat" button: its
 //     greeting says "Temporary chats ... don't appear in recent chats", and
 //     once a prompt is sent a "Temporary chat" label stands in the header
+//   - the prompt box has no file input until its "Upload & tools" menu
+//     opens a file dialog, so images are pasted into it, as a person pastes
+//     a copied image (2026-11-03); the first upload of an account asks to
+//     agree to "Creating content from images and files" in a dialog
 globalThis.__sanGemini = (() => {
   const vis = (e) => {
     if (!e) return false;
@@ -35,6 +39,30 @@ globalThis.__sanGemini = (() => {
     e.focus?.();
     e.click();
     return true;
+  };
+  // area is the prompt box's whole area, which shows the files attached.
+  const area = () => editor()?.closest('input-area-v2') ?? document.querySelector('input-area-v2');
+  // Images an ask attaches come in base64 pieces (internal/attach); each
+  // becomes a Blob at once.
+  const staged = new Map();
+  const bytes = (b64) => {
+    if (Uint8Array.fromBase64) return Uint8Array.fromBase64(b64);
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k++) out[k] = bin.charCodeAt(k);
+    return out;
+  };
+  // filesOf takes the staged files ([{id, name, type}]) as a DataTransfer,
+  // or null when one is not staged.
+  const filesOf = (files) => {
+    const dt = new DataTransfer();
+    for (const f of files) {
+      const parts = staged.get(f.id);
+      if (!parts) return null;
+      staged.delete(f.id);
+      dt.items.add(new File(parts, f.name, { type: f.type, lastModified: Date.now() }));
+    }
+    return dt;
   };
 
   return {
@@ -90,5 +118,42 @@ globalThis.__sanGemini = (() => {
     // turnText is the last answer's whole text, for an error Gemini shows in
     // place of an answer.
     turnText: () => responses().at(-1)?.innerText ?? '',
+    stage(id, piece) {
+      const parts = staged.get(id) ?? [];
+      parts.push(new Blob([bytes(piece)]));
+      staged.set(id, parts);
+      return parts.length;
+    },
+    // attach pastes the staged files into the prompt box: "" or what went
+    // wrong.
+    attach(files) {
+      const ed = editor();
+      if (!ed) return 'no prompt box';
+      const dt = filesOf(files);
+      if (!dt) return 'a file is not staged';
+      ed.focus();
+      ed.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+      return '';
+    },
+    // attachments: how many files the prompt box shows (their previews, or
+    // their remove buttons), whether one still uploads, and the dialog to
+    // agree to before the first upload.
+    attachments() {
+      const a = area();
+      const dialog = [...document.querySelectorAll('mat-dialog-container, [role=dialog]')].find(
+        (d) => vis(d) && /Creating content from images and files/.test(d.innerText),
+      );
+      const removes = [...(a?.querySelectorAll('button[aria-label^="Remove"]') ?? [])].filter(vis);
+      const previews = [...(a?.querySelectorAll('img') ?? [])].filter(vis);
+      const uploading = [...(a?.querySelectorAll('[role=progressbar], mat-progress-spinner, mat-progress-bar, [aria-busy=true]') ?? [])].some(vis);
+      return {
+        names: [],
+        count: Math.max(removes.length, previews.length),
+        uploading,
+        problem: dialog
+          ? 'Gemini asks to agree to "Creating content from images and files" before its first upload: press Agree once in Gemini (gemini.google.com), then ask again'
+          : '',
+      };
+    },
   };
 })();

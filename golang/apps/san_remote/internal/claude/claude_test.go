@@ -50,7 +50,7 @@ func TestChatLink(t *testing.T) {
 // The helpers service.go calls are the ones claude.js has, and copy.js puts
 // the clipboard back.
 func TestHelpersExist(t *testing.T) {
-	for _, fn := range []string{"state", "account", "incognito", "write", "prompt", "send", "answer", "turnText"} {
+	for _, fn := range []string{"state", "account", "incognito", "write", "prompt", "send", "answer", "turnText", "stage", "attach", "attachments"} {
 		if !regexp.MustCompile(`(?m)^    ` + fn + `[(:]`).MatchString(claudeJS) {
 			t.Errorf("claude.js has no %s", fn)
 		}

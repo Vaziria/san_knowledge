@@ -249,11 +249,12 @@ func siteToolDefs() []any {
 			"Whether the browser is signed in to ChatGPT, as whom, and on which plan.",
 			schema(map[string]any{"browser": browserProp}), true, false),
 		tool("chatgpt_ask", "ChatGPT: ask",
-			"Send a prompt to ChatGPT and return its answer as markdown. A new chat is a Temporary chat (not kept in the user's history) unless keep is set; chat continues a kept chat by its link. Works in a background tab.",
+			"Send a prompt to ChatGPT and return its answer as markdown. A new chat is a Temporary chat (not kept in the user's history) unless keep is set; chat continues a kept chat by its link; images are attached first. Works in a background tab.",
 			schema(map[string]any{
 				"prompt":       str("The prompt"),
 				"keep":         flag("A normal chat, kept in the history, instead of a Temporary chat; its link comes back"),
 				"chat":         str("Continue the kept chat at this link (https://chatgpt.com/c/<id>)"),
+				"images":       strs("Images to attach before the prompt is sent: absolute paths of png, jpg, webp or gif files, at most 10, each at most 20 MB"),
 				"wait_seconds": intg("How long to wait for the answer (default 600)"),
 				"browser":      browserProp,
 			}, "prompt"), false, false),
@@ -267,6 +268,7 @@ func siteToolDefs() []any {
 				"prompt":       str("The prompt"),
 				"keep":         flag("A normal chat, kept in the history, instead of an incognito chat; its link comes back"),
 				"chat":         str("Continue the kept chat at this link (https://claude.ai/chat/<id>)"),
+				"images":       strs("Images to attach before the prompt is sent: absolute paths of png, jpg, webp or gif files, at most 10, each at most 20 MB"),
 				"wait_seconds": intg("How long to wait for the answer (default 600)"),
 				"browser":      browserProp,
 			}, "prompt"), false, false),
@@ -280,6 +282,7 @@ func siteToolDefs() []any {
 				"prompt":       str("The prompt"),
 				"keep":         flag("A normal chat, kept in the history, instead of a Temporary chat; its link comes back"),
 				"chat":         str("Continue the kept chat at this link (https://gemini.google.com/app/<id>)"),
+				"images":       strs("Images to attach before the prompt is sent: absolute paths of png, jpg, webp or gif files, at most 10, each at most 20 MB"),
 				"wait_seconds": intg("How long to wait for the answer (default 600)"),
 				"browser":      browserProp,
 			}, "prompt"), false, false),
@@ -822,7 +825,7 @@ func (s *Server) chatgpt(ctx context.Context, name string, a args) (string, erro
 		return fmt.Sprintf("Signed in to ChatGPT as %s (%s).", st.Name, st.Plan), nil
 	case "chatgpt_ask":
 		ans, err := s.ChatGPT.Ask(ctx, chatgpt.Ask{
-			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second, Files: a.Images,
 		})
 		if err != nil {
 			return "", err
@@ -848,7 +851,7 @@ func (s *Server) claude(ctx context.Context, name string, a args) (string, error
 		return fmt.Sprintf("Signed in to claude.ai as %s (%s).", st.Name, st.Plan), nil
 	case "claude_ask":
 		ans, err := s.Claude.Ask(ctx, claude.Ask{
-			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second, Files: a.Images,
 		})
 		if err != nil {
 			return "", err
@@ -874,7 +877,7 @@ func (s *Server) gemini(ctx context.Context, name string, a args) (string, error
 		return "Signed in to Gemini as " + st.Name + ".", nil
 	case "gemini_ask":
 		ans, err := s.Gemini.Ask(ctx, gemini.Ask{
-			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second,
+			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second, Files: a.Images,
 		})
 		if err != nil {
 			return "", err

@@ -206,7 +206,7 @@ rebuilding, reconnect with `/mcp`.
 | `shopee_media` | product (id or link); photos (absolute paths, the whole gallery), video (an absolute path), remove_video, rehearse, browser |
 | `shopee_publish`, `shopee_archive`, `shopee_boost`, `shopee_delete` | product (id or link), browser |
 | `chatgpt_status` | browser |
-| `chatgpt_ask` | prompt; keep, chat, wait_seconds, browser |
+| `chatgpt_ask` | prompt; keep, chat, wait_seconds, images, browser |
 | `gemini_status` | browser |
 | `gemini_ask` | prompt; keep, wait_seconds, browser |
 | `claude_status` | browser |
@@ -1406,6 +1406,8 @@ weighed:
   your clipboard.
 - `--keep` asks in a normal chat instead, and prints its link to stderr;
   `--chat <link>` continues a kept chat.
+- `--image FILE` (repeatable) attaches an image first (the user, 2026-11-03:
+  "Can we add tool call and image ?"): see Images in an ask below.
 - **status** says who is signed in, and on which plan.
 
 ```powershell
@@ -1415,6 +1417,7 @@ Get-Content prompt.md | bin\san_remote.exe chatgpt ask -
 bin\san_remote.exe chatgpt ask --file prompt.md --wait 20m
 bin\san_remote.exe chatgpt ask --keep "Mulai topik baru"            # == chat https://chatgpt.com/c/...
 bin\san_remote.exe chatgpt ask --chat https://chatgpt.com/c/... "Lanjutkan"
+bin\san_remote.exe chatgpt ask --image tes.png "What number is in this image? Answer with only it."   # 4721
 ```
 
 - The page's own code sends every request; the tool only writes in the
@@ -1435,6 +1438,10 @@ Google session, as `chatgpt` does ChatGPT:
 - `--keep` asks in a normal chat instead, and prints its link to stderr.
 - `--chat LINK` goes on in a kept chat (2026-10-27): it opens the chat by its
   link, as a person opens one they kept, and asks there.
+- `--image FILE` (repeatable) attaches an image first, pasted into the
+  prompt box. The first upload of an account makes Gemini ask to agree to
+  "Creating content from images and files": the ask fails saying so, and
+  goes once you have pressed Agree in Gemini yourself.
 - **status** says which Google account is signed in.
 
 ```powershell
@@ -1462,6 +1469,7 @@ claude.ai session, as `chatgpt` does ChatGPT:
   page before it reaches your clipboard.
 - `--keep` asks in a normal chat instead, and prints its link to stderr.
 - `--chat LINK` goes on in a kept chat (2026-10-27), opened by its link.
+- `--image FILE` (repeatable) attaches an image first.
 - **status** says who is signed in, and on which plan.
 
 ```powershell
@@ -1478,6 +1486,30 @@ bin\san_remote.exe claude ask --chat https://claude.ai/chat/... "Lanjutkan"
 - claude.ai's interface must be in English.
 - Claude Code on this computer is another way to ask Claude: the tower's
   Claude Ask (CLI) step runs `claude -p`; this is claude.ai in the browser.
+
+### Images in an ask
+
+`--image` on `chatgpt ask`, `gemini ask` and `claude ask` (`files` in the
+API's AskRequest, `images` in the MCP tools; `internal/attach`) attaches
+images before the prompt is written, the way a person picks them in the
+composer:
+- Each must be a png, jpg/jpeg, webp or gif whose bytes are that type, at
+  most 20 MB, at most 10 per ask; the API and MCP take absolute paths (the
+  CLI makes a relative one absolute). A bad one is refused before any tab
+  opens.
+- The file goes into the page in base64 pieces, then to the composer:
+  ChatGPT's and claude.ai's hidden file input, as if chosen in the file
+  dialog; Gemini has no file input until its menu opens a dialog, so the
+  images are pasted into its prompt box. The ask waits (up to 3 minutes)
+  until the composer shows each one by name, uploaded (ChatGPT's "Uploading
+  <name>" progress bar gone, claude.ai's thumbnail no longer pending), then
+  writes the prompt and sends.
+- A site that shows something else instead fails the ask with it: Gemini's
+  "Creating content from images and files" dialog, which asks each account
+  once to agree before its first upload (press Agree in Gemini yourself;
+  the tool does not agree for you).
+- Images work in Temporary and incognito chats as in kept ones. Images the
+  chat makes are not read back.
 
 ## Debug panel
 

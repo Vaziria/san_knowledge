@@ -10,6 +10,10 @@
 //   - each turn is a [data-turn-key], holding the prompt and then the answer,
 //     with data-talvt-turn-state in_progress, then complete
 //   - while ChatGPT writes, the composer's button is "Stop"; then "Send"
+//   - images go in through the composer form's hidden file inputs (one
+//     takes several images); each shows as a thumbnail with "Remove
+//     <name>", and while it uploads a progressbar "Uploading <name>"
+//     (2026-11-03). Send stays enabled meanwhile.
 globalThis.__sanChatGPT = (() => {
   const vis = (e) => {
     if (!e) return false;
@@ -22,12 +26,43 @@ globalThis.__sanChatGPT = (() => {
   const lastTurn = () => turns().at(-1);
   // The answer of a turn: what follows ChatGPT's own heading ("ChatGPT
   // said:", marked data-conversation-role=assistant).
+  // Only what comes after the heading counts: a long prompt shows folded,
+  // in a data-markdown-copy of its own that reads "Show more", which was
+  // read as the answer before the answer had any text (2026-11-03).
   const answerOf = (t) => {
     const h = t?.querySelector('[data-conversation-role=assistant]');
     if (!h) return null;
-    const md = [...t.querySelectorAll('[data-markdown-copy]')].filter((m) => !m.parentElement.closest('[data-markdown-copy]'));
+    const md = [...t.querySelectorAll('[data-markdown-copy]')].filter(
+      (m) => !m.parentElement.closest('[data-markdown-copy]') && h.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING,
+    );
     return md.length ? md : [h.parentElement];
   };
+  // form is the composer's form, which holds its file inputs and the
+  // thumbnails of the files attached.
+  const form = () => editor()?.closest('form') ?? null;
+  // Images an ask attaches come in base64 pieces (internal/attach); each
+  // becomes a Blob at once.
+  const staged = new Map();
+  const bytes = (b64) => {
+    if (Uint8Array.fromBase64) return Uint8Array.fromBase64(b64);
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k++) out[k] = bin.charCodeAt(k);
+    return out;
+  };
+  // filesOf takes the staged files ([{id, name, type}]) as a DataTransfer,
+  // or null when one is not staged.
+  const filesOf = (files) => {
+    const dt = new DataTransfer();
+    for (const f of files) {
+      const parts = staged.get(f.id);
+      if (!parts) return null;
+      staged.delete(f.id);
+      dt.items.add(new File(parts, f.name, { type: f.type, lastModified: Date.now() }));
+    }
+    return dt;
+  };
+
   // press clicks e as a mouse does: the focus leaves the editor first.
   const press = (e) => {
     if (!e) return false;
@@ -97,5 +132,32 @@ globalThis.__sanChatGPT = (() => {
     // turnText is the last turn's whole text, for an error ChatGPT shows in
     // place of an answer.
     turnText: () => lastTurn()?.innerText ?? '',
+    stage(id, piece) {
+      const parts = staged.get(id) ?? [];
+      parts.push(new Blob([bytes(piece)]));
+      staged.set(id, parts);
+      return parts.length;
+    },
+    // attach gives the composer the staged files, as if they were chosen in
+    // its file dialog: "" or what went wrong.
+    attach(files) {
+      const f = form();
+      if (!f) return 'no composer';
+      const input = f.querySelector('input[type=file][multiple][accept="image/*"]') ?? f.querySelector('input[type=file][multiple]');
+      if (!input) return 'no file input in the composer';
+      const dt = filesOf(files);
+      if (!dt) return 'a file is not staged';
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return '';
+    },
+    // attachments: the files the composer shows, by name, and whether one
+    // still uploads.
+    attachments() {
+      const f = form();
+      const names = [...(f?.querySelectorAll('button[aria-label^="Remove "]') ?? [])].filter(vis).map((b) => b.getAttribute('aria-label').slice(7));
+      const uploading = [...(f?.querySelectorAll('[role=progressbar]') ?? [])].some(vis);
+      return { names, count: names.length, uploading, problem: '' };
+    },
   };
 })();

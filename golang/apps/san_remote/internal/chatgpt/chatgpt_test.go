@@ -27,12 +27,14 @@ func TestCheck(t *testing.T) {
 		a  Ask
 		ok bool
 	}{
-		"a prompt":      {Ask{Prompt: "halo"}, true},
-		"a kept chat":   {Ask{Prompt: "lagi", Chat: "https://chatgpt.com/c/6add1cd0-d2dc-83ec-83cb-b4c14018932f"}, true},
-		"empty":         {Ask{Prompt: " \n "}, false},
-		"too long":      {Ask{Prompt: strings.Repeat("x", MaxPrompt+1)}, false},
-		"a bad chat":    {Ask{Prompt: "halo", Chat: "nope"}, false},
-		"negative wait": {Ask{Prompt: "halo", Wait: -time.Second}, false},
+		"a prompt":         {Ask{Prompt: "halo"}, true},
+		"a kept chat":      {Ask{Prompt: "lagi", Chat: "https://chatgpt.com/c/6add1cd0-d2dc-83ec-83cb-b4c14018932f"}, true},
+		"empty":            {Ask{Prompt: " \n "}, false},
+		"too long":         {Ask{Prompt: strings.Repeat("x", MaxPrompt+1)}, false},
+		"a bad chat":       {Ask{Prompt: "halo", Chat: "nope"}, false},
+		"negative wait":    {Ask{Prompt: "halo", Wait: -time.Second}, false},
+		"a relative image": {Ask{Prompt: "halo", Files: []string{"cat.png"}}, false},
+		"not an image":     {Ask{Prompt: "halo", Files: []string{"C:/x/notes.txt"}}, false},
 	} {
 		if err := c.a.Check(); (err == nil) != c.ok || (err != nil && !errors.Is(err, ErrInvalidPrompt)) {
 			t.Errorf("%s: %v", name, err)
@@ -51,7 +53,7 @@ func TestWords(t *testing.T) {
 // The helpers service.go calls are the ones chatgpt.js has, and copy.js puts
 // the clipboard back.
 func TestHelpersExist(t *testing.T) {
-	for _, fn := range []string{"state", "account", "temporary", "write", "prompt", "send", "answer", "turnText"} {
+	for _, fn := range []string{"state", "account", "temporary", "write", "prompt", "send", "answer", "turnText", "stage", "attach", "attachments"} {
 		if !regexp.MustCompile(`(?m)^    ` + fn + `[(:]`).MatchString(chatgptJS) {
 			t.Errorf("chatgpt.js has no %s", fn)
 		}

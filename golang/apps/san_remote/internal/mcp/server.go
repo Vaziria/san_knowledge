@@ -438,6 +438,7 @@ type args struct {
 	Keep         bool     `json:"keep"`
 	Chat         string   `json:"chat"`
 	WaitSeconds  int32    `json:"wait_seconds"`
+	Images       []string `json:"images"`
 	// instagram_*
 	Rehearse bool   `json:"rehearse"`
 	AILabel  bool   `json:"ai_label"`

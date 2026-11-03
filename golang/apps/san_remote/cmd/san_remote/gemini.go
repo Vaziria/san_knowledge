@@ -49,20 +49,27 @@ func geminiCommand() *cli.Command {
 				Usage:     "send a prompt and print the answer",
 				ArgsUsage: "PROMPT | -",
 				Description: "The prompt is the argument, or stdin with -, or --file. The chat is a Temporary chat\n" +
-					"(not kept in your history) unless --keep, which prints the chat's link to stderr.",
+					"(not kept in your history) unless --keep, which prints the chat's link to stderr.\n" +
+					"--image attaches an image first (repeat it for more).",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "file", Usage: "read the prompt from this file"},
 					&cli.StringFlag{Name: "chat", Usage: "continue the kept chat at this link (https://gemini.google.com/app/<id>)"},
 					&cli.BoolFlag{Name: "keep", Usage: "a normal chat, kept in your history, instead of a Temporary chat"},
 					&cli.DurationFlag{Name: "wait", Value: gemini.DefaultWait, Usage: "how long to wait for the answer"},
+					&cli.StringSliceFlag{Name: "image", Usage: "an image to attach before the prompt is sent: png, jpg, webp or gif (repeatable)"},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					prompt, err := readPrompt(cmd)
 					if err != nil {
 						return err
 					}
+					images, err := imagePaths(cmd)
+					if err != nil {
+						return err
+					}
 					a, err := geminiService(cmd).Ask(ctx, gemini.Ask{
 						Browser: cmd.String("browser"), Prompt: prompt, Chat: cmd.String("chat"), Keep: cmd.Bool("keep"), Wait: cmd.Duration("wait"),
+						Files: images,
 					})
 					if err != nil {
 						return clientError(cmd, err)

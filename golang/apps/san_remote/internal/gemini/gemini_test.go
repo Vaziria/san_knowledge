@@ -56,7 +56,7 @@ func TestChatLink(t *testing.T) {
 // The helpers service.go calls are the ones gemini.js has, and copy.js puts
 // the clipboard back.
 func TestHelpersExist(t *testing.T) {
-	for _, fn := range []string{"state", "account", "temporary", "write", "prompt", "send", "answer", "turnText"} {
+	for _, fn := range []string{"state", "account", "temporary", "write", "prompt", "send", "answer", "turnText", "stage", "attach", "attachments"} {
 		if !regexp.MustCompile(`(?m)^    ` + fn + `[(:]`).MatchString(geminiJS) {
 			t.Errorf("gemini.js has no %s", fn)
 		}

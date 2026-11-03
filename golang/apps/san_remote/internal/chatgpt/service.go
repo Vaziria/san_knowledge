@@ -11,6 +11,7 @@ import (
 
 	"connectrpc.com/connect"
 
+	"github.com/wargasipil/san_remote/internal/attach"
 	"github.com/wargasipil/san_remote/internal/page"
 )
 
@@ -258,6 +259,9 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 			return nil, err
 		}
 	}
+	if err := t.attach(ctx, a.Files); err != nil {
+		return nil, err
+	}
 	st, err = t.state(ctx)
 	if err != nil {
 		return nil, err
@@ -288,6 +292,16 @@ func (t *session) ask(ctx context.Context, a Ask) (*Answer, error) {
 		}
 	}
 	return ans, nil
+}
+
+// attach gives the composer the ask's images, before the prompt is written,
+// and waits until each shows uploaded.
+func (t *session) attach(ctx context.Context, paths []string) error {
+	files, err := attach.Check(paths)
+	if err != nil || len(files) == 0 {
+		return err
+	}
+	return attach.Attach(ctx, t.Session, files, ErrPage, ErrRefused)
 }
 
 // send writes the prompt and presses Send, then waits for its turn to show:

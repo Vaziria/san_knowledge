@@ -48,6 +48,10 @@ message AskRequest {
   // in it, and close it once this long goes by without one; 0 closes it
   // (unless stay).
   uint32 idle_seconds = 7;
+  // Images to attach before the prompt is sent: absolute paths of png, jpg,
+  // webp or gif files on the computer san_remote runs on, at most 10, each
+  // at most 20 MB.
+  repeated string files = 8;
 }
 
 message AskResponse {

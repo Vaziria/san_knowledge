@@ -15,6 +15,10 @@
 //   - "Use incognito" makes the chat incognito: the address gains
 //     ?incognito, which a sent chat keeps, and the button becomes "Exit
 //     incognito"
+//   - images go in through the prompt box's hidden file input
+//     (data-testid file-upload); each shows as a [data-testid=file-thumbnail]
+//     with "Remove <name>", data-state pending and aria-busy true while it
+//     uploads (2026-11-03). Send stays enabled meanwhile.
 globalThis.__sanClaude = (() => {
   const vis = (e) => {
     if (!e) return false;
@@ -36,6 +40,31 @@ globalThis.__sanClaude = (() => {
     e.focus?.();
     e.click();
     return true;
+  };
+  // box is the prompt box's fieldset, which holds the file input and the
+  // thumbnails of the files attached.
+  const box = () => editor()?.closest('fieldset') ?? document;
+  // Images an ask attaches come in base64 pieces (internal/attach); each
+  // becomes a Blob at once.
+  const staged = new Map();
+  const bytes = (b64) => {
+    if (Uint8Array.fromBase64) return Uint8Array.fromBase64(b64);
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k++) out[k] = bin.charCodeAt(k);
+    return out;
+  };
+  // filesOf takes the staged files ([{id, name, type}]) as a DataTransfer,
+  // or null when one is not staged.
+  const filesOf = (files) => {
+    const dt = new DataTransfer();
+    for (const f of files) {
+      const parts = staged.get(f.id);
+      if (!parts) return null;
+      staged.delete(f.id);
+      dt.items.add(new File(parts, f.name, { type: f.type, lastModified: Date.now() }));
+    }
+    return dt;
   };
 
   return {
@@ -97,5 +126,31 @@ globalThis.__sanClaude = (() => {
     // turnText is the last answer's whole text, for an error claude.ai shows
     // in place of an answer.
     turnText: () => answers().at(-1)?.innerText ?? '',
+    stage(id, piece) {
+      const parts = staged.get(id) ?? [];
+      parts.push(new Blob([bytes(piece)]));
+      staged.set(id, parts);
+      return parts.length;
+    },
+    // attach gives the prompt box the staged files, as if they were chosen
+    // in its file dialog: "" or what went wrong.
+    attach(files) {
+      const input = box().querySelector('input[type=file][data-testid="file-upload"]') ?? document.querySelector('input[type=file][data-testid="file-upload"]');
+      if (!input) return 'no file input in the prompt box';
+      const dt = filesOf(files);
+      if (!dt) return 'a file is not staged';
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return '';
+    },
+    // attachments: the files the prompt box shows, by name, and whether one
+    // still uploads.
+    attachments() {
+      const b = box();
+      const names = [...b.querySelectorAll('button[aria-label^="Remove "]')].filter(vis).map((x) => x.getAttribute('aria-label').slice(7));
+      const tiles = [...b.querySelectorAll('[data-testid="file-thumbnail"]')];
+      const uploading = tiles.some((t) => t.getAttribute('aria-busy') === 'true' || t.dataset.state === 'pending');
+      return { names, count: tiles.length, uploading, problem: '' };
+    },
   };
 })();

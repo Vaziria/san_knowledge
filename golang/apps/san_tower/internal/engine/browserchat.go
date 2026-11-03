@@ -46,11 +46,15 @@ var browserChatKinds = []*kind{{
 // Remote: chat is the link to go on in (empty: a new chat), keep makes a
 // new chat a kept one; stay leaves its tab open, and idle keeps it open on
 // the chat for the chat's next ask until idle goes by without one. It gives
-// the answer and the chat's link (empty for a Temporary one).
-type browserAsk func(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (answer, link string, err error)
+// the answer and the chat's link (empty for a Temporary one). files are
+// images to attach before the prompt (absolute paths; openaiimages.go).
+type browserAsk func(c *call, r remoteClients, prompt string, files []string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (answer, link string, err error)
 
 // askStep runs a browser ask step on site with ask. Its Messages, when
-// linked, is asked rather than Prompt (askMessages).
+// linked, is asked rather than Prompt (askMessages), with the images of
+// the messages it sends (askImages); its Tools, when it has some, go with
+// the prompt as the tools protocol, and the calls in the answer are its
+// Tool Calls (openaitools.go).
 func askStep(site string, ask browserAsk) func(c *call) error {
 	return func(c *call) error {
 		r, err := c.sanRemote()
@@ -58,6 +62,10 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 			return err
 		}
 		turns, err := c.askTurns()
+		if err != nil {
+			return err
+		}
+		tools, err := toolSpecOf(c.object("Tools"))
 		if err != nil {
 			return err
 		}
@@ -87,7 +95,13 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 			c.logs = append(c.logs, "a chat that goes on is kept in the history: Temporary does not apply")
 			c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_INFO)
 		}
-		answer, link, err := ask(c, r, prompt, wait, chat, keep, c.setting("Chat") == "Stay", 0)
+		stay := c.setting("Chat") == "Stay"
+		var images []string
+		if turns != nil {
+			images = c.askImages(turns, chat == "")
+		}
+		asked := c.withTools(tools, turns, prompt, chat)
+		answer, link, err := ask(c, r, asked, images, wait, chat, keep, stay, 0)
 		if err != nil && session != "" && chat != "" && chatGone(err) {
 			// The session's chat was deleted on the site: a new one.
 			c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "the chat %s is not there (deleted on the site?): starting a new one", chat)
@@ -95,8 +109,10 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 			if turns != nil {
 				prompt = conversationPrompt(turns)
 				c.logf(v1.LogLevel_LOG_LEVEL_INFO, "Messages: the whole conversation (%s) goes to the new chat", messages(len(turns)))
+				images = c.askImages(turns, true)
 			}
-			answer, link, err = ask(c, r, prompt, wait, chat, keep, c.setting("Chat") == "Stay", 0)
+			asked = c.withTools(tools, turns, prompt, chat)
+			answer, link, err = ask(c, r, asked, images, wait, chat, keep, stay, 0)
 		}
 		if err != nil {
 			return remoteErr(err)
@@ -104,7 +120,22 @@ func askStep(site string, ask browserAsk) func(c *call) error {
 		if err := c.keepChat(session, site, chat, link); err != nil {
 			return err
 		}
+		var calls []toolCall
+		if tools.on() {
+			setToolsSeen(link, tools.hash())
+			again := func(prompt, chat string) (string, string, error) {
+				var files []string
+				if chat == "" { // a new chat, which has not seen the images
+					files = images
+				}
+				return ask(c, r, prompt, files, wait, chat, keep, stay, 0)
+			}
+			if answer, calls, err = c.toolAnswer(tools, turns, prompt, asked, answer, link, again); err != nil {
+				return err
+			}
+		}
 		c.outputs["Answer"] = stringValue(answer)
+		c.outputs["Tool Calls"] = callsValue(calls)
 		c.outputs["Chat Link"] = stringValue(link)
 		c.fire("Done")
 		return nil

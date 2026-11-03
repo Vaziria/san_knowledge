@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -30,20 +31,22 @@ import (
 	"github.com/wargasipil/san_tower/internal/store"
 )
 
-// A request's messages: content as a string or as parts, developer as
-// system; what is wrong with one says where.
+// A request's messages: content as a string or as parts (an image part is
+// [image n] in the text, n over the conversation), developer as system; what
+// is wrong with one says where. A request's messages cannot name files.
 func TestParseChatRequest(t *testing.T) {
 	req, turns, err := parseChatRequest([]byte(`{"model": "gpt-4o", "stream": true, "stream_options": {"include_usage": true}, "messages": [
 		{"role": "developer", "content": "Be brief."},
-		{"role": "user", "content": [{"type": "text", "text": "Look:"}, {"type": "image_url", "image_url": {"url": "x"}}, {"type": "text", "text": "what is it?"}]},
+		{"role": "user", "content": [{"type": "text", "text": "Look:"}, {"type": "image_url", "image_url": {"url": "x"}}, {"type": "text", "text": "what is it?"}], "images": ["C:/secret.png"]},
 		{"role": "assistant", "content": null},
 		{"role": "Assistant", "content": "A cat."},
-		{"role": "user", "content": "Sure?"}]}`))
+		{"role": "user", "content": [{"type": "input_image", "image_url": "https://example.com/b.png"}]}]}`), false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []chatTurn{{"system", "Be brief."}, {"user", "Look:\nwhat is it?"}, {"assistant", ""}, {"assistant", "A cat."}, {"user", "Sure?"}}
-	if !slices.Equal(turns, want) || req.Model != "gpt-4o" || !req.Stream || !req.StreamOptions.IncludeUsage {
+	want := []chatTurn{{Role: "system", Content: "Be brief."}, {Role: "user", Content: "Look:\n[image 1]\nwhat is it?", refs: []imageRef{{1, "x"}}},
+		{Role: "assistant", Content: ""}, {Role: "assistant", Content: "A cat."}, {Role: "user", Content: "[image 2]", refs: []imageRef{{2, "https://example.com/b.png"}}}}
+	if !reflect.DeepEqual(turns, want) || req.Model != "gpt-4o" || !req.Stream || !req.StreamOptions.IncludeUsage {
 		t.Errorf("got %+v, %+v", req, turns)
 	}
 	for body, wantErr := range map[string]string{
@@ -52,12 +55,13 @@ func TestParseChatRequest(t *testing.T) {
 		`{"messages": []}`: "messages: give at least one message",
 		`{"messages": [{"role": "system", "content": "x"}]}`:                   "give a user message",
 		`{"messages": [{"role": "user", "content": "  "}]}`:                    "has no text",
-		`{"messages": [{"role": "user", "content": [{"type": "image_url"}]}]}`: "has no text",
+		`{"messages": [{"role": "user", "content": [{"type": "image_url"}]}]}`: "[0].image_url: give image_url as",
+		`{"messages": [{"role": "user", "content": [{"type": "audio"}]}]}`:     "has no text and no image",
 		`{"messages": [{"content": "x"}]}`:                                     "messages[0].role is empty",
 		`{"messages": [{"role": "user", "content": 5}]}`:                       "messages[0].content: give text",
 		`{"messages": ["hi"]}`:                                                 "messages[0]: give an object",
 	} {
-		if _, _, err := parseChatRequest([]byte(body)); err == nil || !strings.Contains(err.Error(), wantErr) {
+		if _, _, err := parseChatRequest([]byte(body), false); err == nil || !strings.Contains(err.Error(), wantErr) {
 			t.Errorf("%s: %v, want %q", body, err, wantErr)
 		}
 	}
@@ -66,11 +70,11 @@ func TestParseChatRequest(t *testing.T) {
 // The whole conversation as one prompt (method 1), the newest turn (method
 // 2), and whether a conversation is at its start.
 func TestConversationText(t *testing.T) {
-	one := []chatTurn{{"user", " hi "}}
+	one := []chatTurn{{Role: "user", Content: " hi "}}
 	if got := conversationPrompt(one); got != "hi" {
 		t.Errorf("a lone message: %q", got)
 	}
-	conv := []chatTurn{{"system", "Be brief."}, {"user", "hi"}, {"assistant", "Hello!"}, {"user", "2+2?"}, {"user", "And 3+3?"}}
+	conv := []chatTurn{{Role: "system", Content: "Be brief."}, {Role: "user", Content: "hi"}, {Role: "assistant", Content: "Hello!"}, {Role: "user", Content: "2+2?"}, {Role: "user", Content: "And 3+3?"}}
 	want := conversationNote + "\n\n[System]\nBe brief.\n\n[User]\nhi\n\n[Assistant]\nHello!\n\n[User]\n2+2?\n\n[User]\nAnd 3+3?"
 	if got := conversationPrompt(conv); got != want {
 		t.Errorf("conversation:\n%s\nwant\n%s", got, want)
@@ -78,20 +82,20 @@ func TestConversationText(t *testing.T) {
 	if got := newTurn(conv); got != "2+2?\n\nAnd 3+3?" {
 		t.Errorf("newest turn: %q", got)
 	}
-	if got := newTurn([]chatTurn{{"system", "s"}, {"user", "x"}}); got != "[System]\ns\n\n[User]\nx" {
+	if got := newTurn([]chatTurn{{Role: "system", Content: "s"}, {Role: "user", Content: "x"}}); got != "[System]\ns\n\n[User]\nx" {
 		t.Errorf("a turn with a system message: %q", got)
 	}
-	if got := newTurn([]chatTurn{{"user", "x"}, {"assistant", "y"}}); got != "" {
+	if got := newTurn([]chatTurn{{Role: "user", Content: "x"}, {Role: "assistant", Content: "y"}}); got != "" {
 		t.Errorf("nothing after the answer: %q", got)
 	}
-	if !newConversation(one) || !newConversation([]chatTurn{{"system", "s"}, {"user", "x"}}) || newConversation(conv) {
+	if !newConversation(one) || !newConversation([]chatTurn{{Role: "system", Content: "s"}, {Role: "user", Content: "x"}}) || newConversation(conv) {
 		t.Error("newConversation")
 	}
 	if lastUserText(conv) != "And 3+3?" {
 		t.Error("lastUserText")
 	}
 	// Messages as the trigger gives it reads back the same; a Request too.
-	if got, err := turnsOf(turnsValue(conv)); err != nil || !slices.Equal(got, conv) {
+	if got, err := turnsOf(turnsValue(conv)); err != nil || !reflect.DeepEqual(got, conv) {
 		t.Errorf("turnsOf(turnsValue) = %v, %v", got, err)
 	}
 	if got, err := turnsOf(payload([]byte(`{"messages": [{"role": "user", "content": "x"}]}`))); err != nil || len(got) != 1 {
@@ -302,7 +306,10 @@ func oaAnswer(t *testing.T, body []byte) string {
 		c.Choices[0].FinishReason == nil || *c.Choices[0].FinishReason != "stop" || c.Usage == nil || c.Usage.TotalTokens != c.Usage.PromptTokens+c.Usage.CompletionTokens {
 		t.Errorf("chat.completion: %s", body)
 	}
-	return c.Choices[0].Message.Content
+	if c.Choices[0].Message.Content == nil {
+		t.Fatalf("no content: %s", body)
+	}
+	return *c.Choices[0].Message.Content
 }
 
 // sseEvents are a streamed answer's data lines; comments are left out.
@@ -684,7 +691,7 @@ func fakeSites(t *testing.T) (*siteAsks, string) {
 func chatBody(turns ...string) []byte {
 	var msgs []chatTurn
 	for i := 0; i+1 < len(turns); i += 2 {
-		msgs = append(msgs, chatTurn{turns[i], turns[i+1]})
+		msgs = append(msgs, chatTurn{Role: turns[i], Content: turns[i+1]})
 	}
 	b, _ := json.Marshal(map[string]any{"messages": msgs})
 	return b
@@ -744,7 +751,7 @@ func testAskMessages(t *testing.T, kind, site, base string) {
 		return a, steps
 	}
 	first := []string{"system", "Be brief.", "user", "hi"}
-	whole := conversationPrompt([]chatTurn{{"system", "Be brief."}, {"user", "hi"}})
+	whole := conversationPrompt([]chatTurn{{Role: "system", Content: "Be brief."}, {Role: "user", Content: "hi"}})
 
 	// The session's first ask: all of it, in a new chat the session keeps.
 	a, steps := ask(graph(true), chatBody(first...))
@@ -846,19 +853,19 @@ func TestOpenAIBrowserSession(t *testing.T) {
 // The reply function answers once, and only a request's run.
 func TestOpenAIReplier(t *testing.T) {
 	e := &Engine{oaWaiting: map[string]*openAIWait{}}
-	if _, err := e.openAIReplier([]byte(`{"messages": []}`))("x"); !errors.Is(err, errNotOpenAIRun) {
+	if _, err := e.openAIReplier([]byte(`{"messages": []}`))(openAIAnswer{Text: "x"}); !errors.Is(err, errNotOpenAIRun) {
 		t.Errorf("no request: %v", err)
 	}
-	wait := &openAIWait{answer: make(chan string, 1)}
+	wait := &openAIWait{answer: make(chan openAIAnswer, 1)}
 	e.oaWaiting["chatcmpl-1"] = wait
 	reply := e.openAIReplier([]byte(`{"id": "chatcmpl-1"}`))
-	if note, err := reply("first"); note != "" || err != nil || <-wait.answer != "first" {
+	if note, err := reply(openAIAnswer{Text: "first"}); note != "" || err != nil || (<-wait.answer).Text != "first" {
 		t.Errorf("first: %q, %v", note, err)
 	}
-	if note, err := reply("second"); err != nil || !strings.Contains(note, "answered already") {
+	if note, err := reply(openAIAnswer{Text: "second"}); err != nil || !strings.Contains(note, "answered already") {
 		t.Errorf("second: %q, %v", note, err)
 	}
-	if note, _ := e.openAIReplier([]byte(`{"id": "chatcmpl-2"}`))("x"); !strings.Contains(note, "not waiting any more") {
+	if note, _ := e.openAIReplier([]byte(`{"id": "chatcmpl-2"}`))(openAIAnswer{Text: "x"}); !strings.Contains(note, "not waiting any more") {
 		t.Errorf("gone: %q", note)
 	}
 }

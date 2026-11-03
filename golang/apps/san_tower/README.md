@@ -877,16 +877,65 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
       chat. The step's log says which way it went. A session holds one
       conversation at a time: two clients talking at once through one
       session mix in its chat.
+    - Images in the messages (an OpenAI API request's, saved as files for
+      the run) go with the prompt: San Remote attaches them in the chat's
+      composer before it writes the prompt, and waits until each shows
+      uploaded. Into a new chat (method 1) all of the conversation's go, the
+      newest 10 at most; into a chat that goes on (method 2) those of the
+      newest turn. Each message's text says `[image n]` where its image was,
+      and the file is `image-<n>.<ext>`, so the chat can tell them apart.
+  - Tools and Tool Calls, on those three (the user, 2026-11-03: "Can we add
+    tool call and image ?", then "Yea I follow your recommendation, go
+    ahead"; `engine/openaitools.go`). The web chats have no function
+    calling a program can use, so it is a prompt protocol. Tools, linked to
+    an OpenAI API's Tools, tells the chat the request's functions, each with
+    its description and JSON schema, framed as functions the user runs on
+    their computer: to have one run, the chat answers with only
+    `{"tool_calls": [{"name": ..., "arguments": {...}}]}` in a ```json
+    code block (framed as the chat's own tools, ChatGPT often answered
+    that they "aren't connected to this chat" and worked the answer out
+    itself). Each prompt ends with a one-line reminder of the turn's rule:
+    tool_choice auto (ask when a function can do it), required (must ask
+    for one), a named function (must ask for that one), none (no protocol,
+    plain text); after tool results, auto asks for the answer and a call
+    only for a result still missing. A new chat (method 1) gets the
+    protocol with the whole conversation every time; a kept chat (method
+    2) gets it once per list of tools (the tower remembers, by chat link,
+    until it restarts) and then the reminder with each newest turn, which
+    may be tool results (`[Tool result <id> <name>(<arguments>)]` and the
+    result's text; an assistant's calls read `[Tool call <id>
+    <name>(<arguments>)]`).
+    - The answer is read tolerantly: the JSON in a code block or not, prose
+      around it, a call alone (`{"name", "arguments"}`) or a list, OpenAI's
+      own `{"function": ...}` shape, arguments as an object or a JSON
+      string, markdown escapes (`tool\_calls`). Each call must name one of
+      the request's functions (another case is taken) with an object as
+      arguments; parallel_tool_calls false keeps the first call.
+    - An answer that tried and failed (no JSON that reads, an unknown
+      function, arguments that are not an object), plain text when
+      tool_choice wants a call, a reply that says it cannot use the
+      functions ("I couldn't invoke the external tools"), or plain text to a
+      message that asks for them in so many words ("use the tools", a
+      function's name with `_` or `-`) is corrected once: in the kept chat,
+      or, from a Temporary chat, in a new one with the whole prompt and the
+      correction (and the images again). Still not a call, it goes as a
+      plain answer with tool_choice auto, else the step fails with the
+      chat's answer. The log says which way it went.
+    - Tool Calls is the calls read, `[{name, arguments}]`, an empty list for
+      a plain answer; Answer is the chat's text either way. Without Tools
+      linked, or a request without tools, nothing changes.
   - OpenAI API and OpenAI Reply (AI › OpenAI API; `engine/openai.go`; the
     user, 2026-11-03: "Can I have open ai compatible node, that can
     configure port and listen host, and can connected to any ai chat
     browser node in tower ?"). OpenAI API is a trigger: while its workflow
     is switched on, the tower serves an OpenAI-compatible chat API at
-    `http://<Host>:<Port>/v1`, text only (no tool calls, no images):
+    `http://<Host>:<Port>/v1`, with tool calls and images in:
     - `GET /v1/models` lists Models (and `GET /v1/models/<id>` one);
       `POST /v1/chat/completions` takes `messages` (role system, developer,
-      user or assistant; content a string or a list of `{"type": "text",
-      "text": ...}` parts) and `stream`. Not streamed, the answer is one
+      user, assistant (with `tool_calls`) or tool (with `tool_call_id`);
+      content a string or a list of `{"type": "text", "text": ...}` and
+      `{"type": "image_url", "image_url": {"url": ...}}` parts), `tools`
+      (function tools), `tool_choice`, `parallel_tool_calls` and `stream`. Not streamed, the answer is one
       `chat.completion` (`choices[0].message`, `finish_reason` stop, `usage`
       counted roughly as a quarter of the characters); streamed, Server-Sent
       Events: the assistant's role at once, an SSE comment every 15 s while
@@ -895,7 +944,10 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
       then `data: [DONE]`. Any model name is taken (clients send their own
       defaults); none is the first of Models.
     - Each request starts a run from the step: Messages (the conversation,
-      each `{role, content}` with the content as text), Prompt (all of it as
+      each `{role, content}` with the content as text, and `tool_calls`,
+      `tool_call_id`, `name` and `images` where a message has them), Tools
+      (`{tools, tool_choice, parallel_tool_calls}`, null without tools),
+      Prompt (all of it as
       one labelled text, method 1's, for steps that are not browser chats),
       Last Message (the newest user message), Model, and Request (the body).
       The run's OpenAI Reply answers it with its Answer; a second one in the
@@ -923,9 +975,35 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     - A workflow: OpenAI API → ChatGPT Ask (its Messages from the OpenAI
       API's Messages, its Chat Link from a Browser Chat Session for method
       2, or none and Temporary Yes for method 1) → OpenAI Reply (Event from
-      Done, Answer from Answer). Ready to import in
+      Done, Answer from Answer, Tool Calls from Tool Calls), with Tools from
+      the OpenAI API's Tools. Ready to import in
       [examples/openai-api](examples/openai-api/README.md), with a router
       whose `model` (chatgpt, gemini, claude) picks the site.
+    - Tool calls: OpenAI Reply's Tool Calls, linked to the Ask's, answers
+      with those calls when there are some: the message's `content` is null
+      and its `tool_calls` are `[{id: "call_<random>", type: "function",
+      function: {name, arguments}}]` (arguments a JSON string),
+      `finish_reason` tool_calls; streamed, each call comes whole in a chunk
+      of its own (`index`, `id`, `type`, `function.name`,
+      `function.arguments`), then the chunk with `finish_reason` tool_calls.
+      The client runs the functions and sends their results as `tool`
+      messages in its next request, which the chat gets as text. A full
+      agent loop (a `get_time` and an `add` tool) worked through ChatGPT,
+      Gemini and Claude, streamed or not.
+    - Images in: a part's `image_url` is a `data:` URL with the image in
+      base64, or an http(s) link the tower downloads (within 30 s): a png,
+      jpeg, webp or gif of at most 20 MB (ChatGPT's own limit).
+      Each is saved as `image-<n>.<ext>` in a folder of the request's own in
+      the system's temp folder, removed when its run ends (a tower that
+      dies mid-run leaves it there), and Messages carries the files'
+      absolute paths as each message's `images`; a client's own `images`
+      field is ignored, so it cannot name files on this computer. A bad
+      image is a 400 before any run starts. The run's Request keeps the
+      body with each `data:` URL's base64 left out. Images the chat makes
+      do not come back. Gemini asks once per account to agree to
+      "Creating content from images and files" before its first upload;
+      until someone presses Agree in Gemini, its asks with images fail
+      saying so.
     - Any OpenAI client talks to it with base URL `http://127.0.0.1:7480/v1`
       and any API key (or the step's):
 
@@ -2017,7 +2095,8 @@ second fails to listen before it opens the broker.
   connection changes), `towerchat.go` the Tower Chat steps and `Chat`, which
   keeps a message sent on the Chat page and starts its runs, `openai.go`
   the OpenAI API steps' servers and OpenAI Reply (`browserchat.go` the
-  browser asks' Messages).
+  browser asks' Messages, `openaitools.go` the tools protocol,
+  `openaiimages.go` the request's images).
 - `internal/telegram`: the Bot API client (getMe, getUpdates,
   sendMessage); `telegramtest` is a fake Bot API for tests, which reach no
   Telegram.

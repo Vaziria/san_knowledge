@@ -83,10 +83,10 @@ type Env struct {
 	// that chat names, its id or its name, as this run's (towerchat.go).
 	ChatSend func(chat, text string, markdown bool) (chatMessage, error)
 	// OpenAIReply answers the OpenAI API request this run is for (OpenAI
-	// Reply; openai.go): a note to log when the answer is not sent (a
-	// second one, or a request no longer waiting), an error when no
-	// request started the run.
-	OpenAIReply func(answer string) (note string, err error)
+	// Reply; openai.go), with text or tool calls: a note to log when the
+	// answer is not sent (a second one, or a request no longer waiting), an
+	// error when no request started the run.
+	OpenAIReply func(answer openAIAnswer) (note string, err error)
 	// FindWorkflow looks up a workflow by name, and RunWorkflow runs it
 	// from its trigger, Manual first, with data, waits for the run and
 	// records it (Workflow Tool).

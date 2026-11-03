@@ -264,10 +264,10 @@ var siteKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "chatgpt-ask", Title: "ChatGPT Ask", Category: "AI",
 			Group:       "ChatGPT",
-			Description: "Asks ChatGPT the Prompt through San Remote, in a Temporary chat that ChatGPT does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat). Messages, linked to an OpenAI API's Messages, is asked instead of Prompt: into a chat that goes on (a Browser Chat Session's) only the newest message, else the whole conversation as one prompt in a new chat.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Chat Link", Text)},
+			Description: "Asks ChatGPT the Prompt through San Remote, in a Temporary chat that ChatGPT does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat). Messages, linked to an OpenAI API's Messages, is asked instead of Prompt: into a chat that goes on (a Browser Chat Session's) only the newest message, else the whole conversation as one prompt in a new chat; the images of the messages sent are attached before the prompt (at most 10). Tools, linked to an OpenAI API's Tools, tells the chat the request's tools (a prompt protocol: a call is answered as a JSON object in a code block; a kept chat gets the list once, then a reminder) and reads the calls in the answer as Tool Calls, [{name, arguments}], empty for a plain answer, for OpenAI Reply's Tool Calls; a broken call is corrected once.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Tool Calls", Object), sock("Chat Link", Text)},
 			Settings:    askSettings(),
-			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), sock("Messages", Object), field("Chat Link")},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), sock("Messages", Object), sock("Tools", Object), field("Chat Link")},
 		},
 		run: askStep("ChatGPT", askChatGPT),
 	},
@@ -275,10 +275,10 @@ var siteKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "gemini-ask", Title: "Gemini Ask", Category: "AI",
 			Group:       "Gemini",
-			Description: "Asks Gemini the Prompt through San Remote, in a Temporary chat that Gemini does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply. Brings Chrome to the front while it asks. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat). Messages, linked to an OpenAI API's Messages, is asked instead of Prompt: into a chat that goes on (a Browser Chat Session's) only the newest message, else the whole conversation as one prompt in a new chat.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Chat Link", Text)},
+			Description: "Asks Gemini the Prompt through San Remote, in a Temporary chat that Gemini does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply. Brings Chrome to the front while it asks. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat). Messages, linked to an OpenAI API's Messages, is asked instead of Prompt: into a chat that goes on (a Browser Chat Session's) only the newest message, else the whole conversation as one prompt in a new chat; the images of the messages sent are attached before the prompt (at most 10). Tools, linked to an OpenAI API's Tools, tells the chat the request's tools (a prompt protocol: a call is answered as a JSON object in a code block; a kept chat gets the list once, then a reminder) and reads the calls in the answer as Tool Calls, [{name, arguments}], empty for a plain answer, for OpenAI Reply's Tool Calls; a broken call is corrected once.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Tool Calls", Object), sock("Chat Link", Text)},
 			Settings:    askSettings(),
-			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), sock("Messages", Object), field("Chat Link")},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), sock("Messages", Object), sock("Tools", Object), field("Chat Link")},
 		},
 		run: askStep("Gemini", askGemini),
 	},
@@ -286,10 +286,10 @@ var siteKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "claude-ask-browser", Title: "Claude Ask (Browser)", Category: "AI",
 			Group:       "Claude",
-			Description: "Asks Claude on claude.ai the Prompt through San Remote, in an incognito chat kept out of the history, or with Temporary No a normal chat kept in it; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat). Messages, linked to an OpenAI API's Messages, is asked instead of Prompt: into a chat that goes on (a Browser Chat Session's) only the newest message, else the whole conversation as one prompt in a new chat.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Chat Link", Text)},
+			Description: "Asks Claude on claude.ai the Prompt through San Remote, in an incognito chat kept out of the history, or with Temporary No a normal chat kept in it; Answer is its reply as markdown. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Temporary chat). Messages, linked to an OpenAI API's Messages, is asked instead of Prompt: into a chat that goes on (a Browser Chat Session's) only the newest message, else the whole conversation as one prompt in a new chat; the images of the messages sent are attached before the prompt (at most 10). Tools, linked to an OpenAI API's Tools, tells the chat the request's tools (a prompt protocol: a call is answered as a JSON object in a code block; a kept chat gets the list once, then a reminder) and reads the calls in the answer as Tool Calls, [{name, arguments}], empty for a plain answer, for OpenAI Reply's Tool Calls; a broken call is corrected once.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Tool Calls", Object), sock("Chat Link", Text)},
 			Settings:    askSettings(),
-			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), sock("Messages", Object), field("Chat Link")},
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), sock("Messages", Object), sock("Tools", Object), field("Chat Link")},
 		},
 		run: askStep("Claude", askClaude),
 	},
@@ -394,24 +394,24 @@ func instagramDelete(c *call) error {
 // browserAsks are the sites of the browser ask steps, and how each asks.
 var browserAsks = map[string]browserAsk{"ChatGPT": askChatGPT, "Gemini": askGemini, "Claude": askClaude}
 
-func askChatGPT(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
-	res, err := r.chatgpt.Ask(c.ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
+func askChatGPT(c *call, r remoteClients, prompt string, files []string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
+	res, err := r.chatgpt.Ask(c.ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: prompt, Files: files, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
 	if err != nil {
 		return "", "", err
 	}
 	return res.Msg.Text, res.Msg.Chat, nil
 }
 
-func askGemini(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
-	res, err := r.gemini.Ask(c.ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
+func askGemini(c *call, r remoteClients, prompt string, files []string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
+	res, err := r.gemini.Ask(c.ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: prompt, Files: files, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
 	if err != nil {
 		return "", "", err
 	}
 	return res.Msg.Text, res.Msg.Chat, nil
 }
 
-func askClaude(c *call, r remoteClients, prompt string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
-	res, err := r.claude.Ask(c.ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: prompt, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
+func askClaude(c *call, r remoteClients, prompt string, files []string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
+	res, err := r.claude.Ask(c.ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: prompt, Files: files, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
 	if err != nil {
 		return "", "", err
 	}

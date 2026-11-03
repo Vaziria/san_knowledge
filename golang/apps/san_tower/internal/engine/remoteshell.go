@@ -262,7 +262,7 @@ const shellTabIdle = 5 * time.Minute
 // say sends prompt to the chat, a kept one, and gives its answer.
 func (s *shellChat) say(prompt string) (string, error) {
 	s.c.logf(v1.LogLevel_LOG_LEVEL_DEBUG, "waiting for %s's answer", s.site)
-	answer, link, err := s.ask(s.c, s.r, prompt, s.wait, s.chat, true, false, shellTabIdle)
+	answer, link, err := s.ask(s.c, s.r, prompt, nil, s.wait, s.chat, true, false, shellTabIdle)
 	if err != nil {
 		if chatGone(err) {
 			return "", fmt.Errorf("%w: %v", errChatGone, remoteErr(err))

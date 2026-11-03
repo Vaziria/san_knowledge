@@ -1,7 +1,7 @@
 {
   "format": "san_tower.workflows",
   "version": 1,
-  "exportedAt": "2026-11-03T14:15:18.790992300Z",
+  "exportedAt": "2026-11-03T16:31:01.972741300Z",
   "tower": "dev",
   "workflows": [
     {
@@ -71,9 +71,21 @@
           "sourceSocket": "Chat Link",
           "target": "gpt",
           "targetSocket": "Chat Link"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Tools",
+          "target": "gpt",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "gpt",
+          "sourceSocket": "Tool Calls",
+          "target": "reply",
+          "targetSocket": "Tool Calls"
         }
       ],
-      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7481/v1) answered by ChatGPT in your browser, in one kept chat: a conversation's first request starts the chat with all of it, each next one sends only the newest message into it (method 2)."
+      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7481/v1) answered by ChatGPT in your browser, in one kept chat: a conversation's first request starts the chat with all of it, each next one sends only the newest message into it (method 2). Tools work too: the kept chat is told the tools once, then gets a reminder with each tool result. Images in the messages (image_url parts) are attached in the chat too."
     }
   ],
   "connections": {

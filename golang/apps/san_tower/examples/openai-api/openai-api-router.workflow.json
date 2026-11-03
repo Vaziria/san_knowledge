@@ -1,7 +1,7 @@
 {
   "format": "san_tower.workflows",
   "version": 1,
-  "exportedAt": "2026-11-03T14:15:19.073155600Z",
+  "exportedAt": "2026-11-03T16:31:01.997919800Z",
   "tower": "dev",
   "workflows": [
     {
@@ -180,9 +180,45 @@
           "sourceSocket": "Answer",
           "target": "reply-chatgpt",
           "targetSocket": "Answer"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Tools",
+          "target": "gemini",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "gemini",
+          "sourceSocket": "Tool Calls",
+          "target": "reply-gemini",
+          "targetSocket": "Tool Calls"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Tools",
+          "target": "claude",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "claude",
+          "sourceSocket": "Tool Calls",
+          "target": "reply-claude",
+          "targetSocket": "Tool Calls"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Tools",
+          "target": "chatgpt",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "chatgpt",
+          "sourceSocket": "Tool Calls",
+          "target": "reply-chatgpt",
+          "targetSocket": "Tool Calls"
         }
       ],
-      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7482/v1) whose model picks the site: chatgpt, gemini or claude (Claude on claude.ai); any other model, or none, goes to ChatGPT. Each request's whole conversation goes as one prompt to a new Temporary chat (method 1)."
+      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7482/v1) whose model picks the site: chatgpt, gemini or claude (Claude on claude.ai); any other model, or none, goes to ChatGPT. Each request's whole conversation goes as one prompt to a new Temporary chat (method 1). Tools work too, on each site: the request's tools go to the chat as a prompt protocol, and its calls come back as tool_calls. Images in the messages (image_url parts) are attached in the chat too."
     }
   ],
   "connections": {

@@ -13,6 +13,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -30,8 +31,9 @@ import (
 // OpenAI API (the user, 2026-11-03: "Can I have open ai compatible node,
 // that can configure port and listen host, and can connected to any ai chat
 // browser node in tower ?"). An OpenAI API step of a workflow switched on is
-// an HTTP server that speaks OpenAI's chat API, text only: GET /v1/models and
-// POST /v1/chat/completions, streamed or not. Each request starts a run from
+// an HTTP server that speaks OpenAI's chat API: GET /v1/models and POST
+// /v1/chat/completions, streamed or not, with tools (openaitools.go) and
+// images (openaiimages.go). Each request starts a run from
 // the step, and the run's OpenAI Reply answers it. Linked to the Messages of
 // a browser ask (ChatGPT, Gemini, Claude on claude.ai; browserchat.go), any
 // OpenAI client talks with those sites through the tower. How a request's
@@ -69,8 +71,8 @@ var openAIKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: OpenAIAPI, Title: "OpenAI API", Category: "AI", Group: "OpenAI API",
-			Description: "Serves an OpenAI-compatible chat API at http://Host:Port/v1 while the workflow is switched on (GET /v1/models, POST /v1/chat/completions, streamed or not, text only): each request starts a run, and the run's OpenAI Reply answers it. Messages is the conversation, for a ChatGPT, Gemini or Claude (Browser) Ask's Messages; Prompt all of it as one labelled text; Last Message the newest user message; Model the model asked for; Request the request's JSON. With API Key set, a request needs Authorization: Bearer <key>. Requests run one at a time, each answered within Timeout (10m).",
-			Outputs:     []*v1.Socket{sock("Event", Event), sock("Messages", Object), sock("Prompt", Text), sock("Last Message", Text), sock("Model", Text), sock("Request", Object)},
+			Description: "Serves an OpenAI-compatible chat API at http://Host:Port/v1 while the workflow is switched on (GET /v1/models, POST /v1/chat/completions, streamed or not, with tools): each request starts a run, and the run's OpenAI Reply answers it. Messages is the conversation (images in it saved as files for the run), for a ChatGPT, Gemini or Claude (Browser) Ask's Messages; Tools the request's tools, tool_choice and parallel_tool_calls (null without tools), for the Ask's Tools; Prompt all of it as one labelled text; Last Message the newest user message; Model the model asked for; Request the request's JSON. With API Key set, a request needs Authorization: Bearer <key>. Requests run one at a time, each answered within Timeout (10m).",
+			Outputs:     []*v1.Socket{sock("Event", Event), sock("Messages", Object), sock("Tools", Object), sock("Prompt", Text), sock("Last Message", Text), sock("Model", Text), sock("Request", Object)},
 			Settings: []*v1.Setting{
 				{Name: "Host", Placeholder: "127.0.0.1: this computer only"},
 				{Name: "Port", Placeholder: "7480"},
@@ -84,21 +86,31 @@ var openAIKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: OpenAIReply, Title: "OpenAI Reply", Category: "AI", Group: "OpenAI API",
-			Description: "Answers the OpenAI API request this run is for with Answer, such as a ChatGPT Ask's Answer: the client gets it as the assistant's message. A run that ends without an OpenAI Reply, or fails, answers the client with an error; a second one in a run is ignored.",
+			Description: "Answers the OpenAI API request this run is for with Answer, such as a ChatGPT Ask's Answer: the client gets it as the assistant's message. Tool Calls, linked to the Ask's Tool Calls, answers with those calls instead when there are some (tool_calls, finish_reason tool_calls); the client runs the tools and sends their results in its next request. A run that ends without an OpenAI Reply, or fails, answers the client with an error; a second one in a run is ignored.",
 			Outputs:     []*v1.Socket{sock("Done", Event)},
-			Inputs:      []*v1.Socket{sock("Event", Event), {Name: "Answer", Type: Text, Field: true}},
+			Inputs:      []*v1.Socket{sock("Event", Event), {Name: "Answer", Type: Text, Field: true}, sock("Tool Calls", Object)},
 		},
 		run: openAIReplyStep,
 	},
 }
 
-// chatTurn is a message of a conversation, its content as text.
+// chatTurn is a message of a conversation, its content as text. An
+// assistant's message may have tool calls, and a tool message is the result
+// of the call ToolCallID, of the tool Name (openaitools.go). Images are the
+// files of the message's images, [image n] in its text (openaiimages.go);
+// refs are a request's images until they are saved.
 type chatTurn struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role       string     `json:"role"`
+	Content    string     `json:"content"`
+	ToolCalls  []toolCall `json:"tool_calls,omitempty"`
+	ToolCallID string     `json:"tool_call_id,omitempty"`
+	Name       string     `json:"name,omitempty"`
+	Images     []string   `json:"images,omitempty"`
+	refs       []imageRef
 }
 
-// chatRequest is what the engine reads of a chat completion request.
+// chatRequest is what the engine reads of a chat completion request; spec
+// is its tools, read (nil without).
 type chatRequest struct {
 	Model         string            `json:"model"`
 	Messages      []json.RawMessage `json:"messages"`
@@ -106,86 +118,149 @@ type chatRequest struct {
 	StreamOptions *struct {
 		IncludeUsage bool `json:"include_usage"`
 	} `json:"stream_options"`
+	toolFields
+	spec *toolSpec
 }
 
 // openAIRun is an OpenAI API run's data: the request's id, the model asked
-// for, the conversation, and the request's body as it came.
+// for, the conversation, its tools as the request gave them, and the
+// request's body as it came.
 type openAIRun struct {
-	ID       string          `json:"id"`
-	Model    string          `json:"model"`
-	Messages []chatTurn      `json:"messages"`
-	Request  json.RawMessage `json:"request,omitempty"`
+	ID       string     `json:"id"`
+	Model    string     `json:"model"`
+	Messages []chatTurn `json:"messages"`
+	toolFields
+	Request json.RawMessage `json:"request,omitempty"`
 }
 
 var errNoTurns = errors.New("give at least one message")
 
 // parseTurns reads a conversation's messages: each a role (developer, the
-// newer clients' name for system, is system) and its content as text.
-func parseTurns(raw []json.RawMessage) ([]chatTurn, error) {
+// newer clients' name for system, is system; function, the old name for
+// tool, is tool), its content as text, its images, an assistant's tool
+// calls, and the call a tool message answers, whose tool's name it takes
+// when it has none. files says the messages may name image files
+// (images), as the tower's own Messages do; a request's may not, or a
+// client could have the tower send any image on this computer to a chat.
+func parseTurns(raw []json.RawMessage, files bool) ([]chatTurn, error) {
 	if len(raw) == 0 {
 		return nil, errNoTurns
 	}
 	turns := make([]chatTurn, 0, len(raw))
+	called := map[string]string{} // a call's tool, by the call's id
+	images := 0                   // the conversation's, so far
 	for i, r := range raw {
 		var m struct {
-			Role    string          `json:"role"`
-			Content json.RawMessage `json:"content"`
+			Role       string            `json:"role"`
+			Content    json.RawMessage   `json:"content"`
+			ToolCalls  []json.RawMessage `json:"tool_calls"`
+			ToolCallID string            `json:"tool_call_id"`
+			Name       string            `json:"name"`
+			Images     []string          `json:"images"`
 		}
 		if err := json.Unmarshal(r, &m); err != nil {
 			return nil, fmt.Errorf("messages[%d]: give an object with role and content", i)
 		}
 		role := strings.ToLower(strings.TrimSpace(m.Role))
-		if role == "" {
+		switch role {
+		case "":
 			return nil, fmt.Errorf("messages[%d].role is empty", i)
-		}
-		if role == "developer" {
+		case "developer":
 			role = "system"
+		case "function":
+			role = "tool"
 		}
-		text, err := contentText(m.Content)
+		text, refs, err := contentOf(m.Content, &images)
 		if err != nil {
 			return nil, fmt.Errorf("messages[%d].content: %w", i, err)
 		}
-		turns = append(turns, chatTurn{Role: role, Content: text})
+		t := chatTurn{Role: role, Content: text, refs: refs}
+		if files {
+			for _, p := range m.Images {
+				if p = strings.TrimSpace(p); !filepath.IsAbs(p) {
+					return nil, fmt.Errorf("messages[%d].images: %q is not an absolute path", i, p)
+				}
+				t.Images = append(t.Images, p)
+			}
+		}
+		for j, tc := range m.ToolCalls {
+			id, name, args, _, err := readCall(tc)
+			if err != nil {
+				return nil, fmt.Errorf("messages[%d].tool_calls[%d]: %v", i, j, err)
+			}
+			t.ToolCalls = append(t.ToolCalls, toolCall{ID: id, Type: "function", Function: toolFunction{Name: name, Arguments: args}})
+			if id != "" {
+				called[id] = name
+			}
+		}
+		if role == "tool" {
+			t.ToolCallID, t.Name = strings.TrimSpace(m.ToolCallID), strings.TrimSpace(m.Name)
+			if t.Name == "" {
+				t.Name = called[t.ToolCallID]
+			}
+		}
+		turns = append(turns, t)
 	}
 	return turns, nil
 }
 
-// contentText is a message's content as text: a string, or a list of parts
-// whose text parts ({"type": "text", "text": ...}) are joined by line
-// breaks; other parts, such as images, are left out (text only, for now).
-// No content, as an assistant's tool call has, is empty.
-func contentText(raw json.RawMessage) (string, error) {
+// contentOf is a message's content as text, and its images: a string, or a
+// list of parts whose text parts ({"type": "text", "text": ...}) are joined
+// by line breaks, each image part ({"type": "image_url", "image_url":
+// {"url": ...}}, or the Responses API's input_image) being [image n] there,
+// n counted over the conversation (images); other parts, such as audio, are
+// left out. No content, as an assistant's tool call has, is empty.
+func contentOf(raw json.RawMessage, images *int) (string, []imageRef, error) {
 	raw = bytes.TrimSpace(raw)
 	if len(raw) == 0 || string(raw) == "null" {
-		return "", nil
+		return "", nil, nil
 	}
 	var s string
 	if json.Unmarshal(raw, &s) == nil {
-		return s, nil
+		return s, nil, nil
 	}
 	var parts []struct {
-		Text *string `json:"text"`
+		Type     string          `json:"type"`
+		Text     *string         `json:"text"`
+		ImageURL json.RawMessage `json:"image_url"`
 	}
 	if err := json.Unmarshal(raw, &parts); err != nil {
-		return "", errors.New("give text, or a list of text parts")
+		return "", nil, errors.New("give text, or a list of text and image_url parts")
 	}
 	var texts []string
-	for _, p := range parts {
-		if p.Text != nil {
+	var refs []imageRef
+	for j, p := range parts {
+		switch {
+		case p.Text != nil:
 			texts = append(texts, *p.Text)
+		case p.Type == "image_url" || p.Type == "input_image" || (p.Type == "" && len(p.ImageURL) > 0):
+			link, err := partImage(p.ImageURL)
+			if err != nil {
+				return "", nil, fmt.Errorf("[%d].image_url: %w", j, err)
+			}
+			*images++
+			refs = append(refs, imageRef{N: *images, URL: link})
+			texts = append(texts, fmt.Sprintf("[image %d]", *images))
 		}
 	}
-	return strings.Join(texts, "\n"), nil
+	return strings.Join(texts, "\n"), refs, nil
 }
 
-// parseChatRequest reads a chat completion request's body and its
-// conversation, which must have a user message with text.
-func parseChatRequest(body []byte) (chatRequest, []chatTurn, error) {
+// parseChatRequest reads a chat completion request's body, its tools and
+// its conversation, which must have a user message with text or an image.
+// files says its messages may name image files (parseTurns): the tower's
+// own run data, not a client's request.
+func parseChatRequest(body []byte, files bool) (chatRequest, []chatTurn, error) {
 	var req chatRequest
 	if err := json.Unmarshal(body, &req); err != nil {
 		return req, nil, fmt.Errorf("the body is not a chat request's JSON: %v", err)
 	}
-	turns, err := parseTurns(req.Messages)
+	spec, err := req.toolFields.spec()
+	if err != nil {
+		return req, nil, err
+	}
+	req.spec = spec
+	turns, err := parseTurns(req.Messages, files)
 	switch {
 	case errors.Is(err, errNoTurns):
 		return req, nil, fmt.Errorf("messages: %w", err)
@@ -197,7 +272,7 @@ func parseChatRequest(body []byte) (chatRequest, []chatTurn, error) {
 		return req, nil, errors.New("messages: give a user message")
 	}
 	if strings.TrimSpace(turns[i].Content) == "" {
-		return req, nil, errors.New("the last user message has no text: only text reaches the chat")
+		return req, nil, errors.New("the last user message has no text and no image")
 	}
 	return req, turns, nil
 }
@@ -234,11 +309,58 @@ func roleLabel(role string) string {
 	return strings.ToUpper(role[:1]) + role[1:]
 }
 
-// conversationNote heads a conversation written as one prompt.
-const conversationNote = "The conversation so far is below, each message under its speaker's label. Answer only the last User message, as the Assistant, without a label."
+// conversationNote heads a conversation written as one prompt, and
+// resultsNote one that ends with tool results: with "Answer only the last
+// User message" there, ChatGPT asked for the same tools again and again
+// (2026-11-03).
+const (
+	conversationNote = "The conversation so far is below, each message under its speaker's label. Answer only the last User message, as the Assistant, without a label."
+	resultsNote      = "The conversation so far is below, each message under its speaker's label. It ends with the results of the functions the Assistant asked me to run, under [Tool result ...]: use them to answer the last User message, as the Assistant, without a label."
+)
 
-func writeTurn(b *strings.Builder, t chatTurn) {
-	fmt.Fprintf(b, "[%s]\n%s\n\n", roleLabel(t.Role), strings.TrimSpace(t.Content))
+// endsWithResults says whether a conversation ends with tool results, which
+// the answer is to use.
+func endsWithResults(turns []chatTurn) bool {
+	return len(turns) > 0 && turns[len(turns)-1].Role == "tool"
+}
+
+// callsOf are the conversation's tool calls, by id: what a tool result
+// answers, for its label.
+func callsOf(turns []chatTurn) map[string]toolFunction {
+	calls := map[string]toolFunction{}
+	for _, t := range turns {
+		for _, tc := range t.ToolCalls {
+			if tc.ID != "" {
+				calls[tc.ID] = tc.Function
+			}
+		}
+	}
+	return calls
+}
+
+// callLabel names a call: its id, its tool, and its arguments, cut short.
+func callLabel(id, name, args string) string {
+	s := strings.TrimSpace(id + " " + name)
+	if args != "" {
+		s += "(" + clip(args, 300) + ")"
+	}
+	return s
+}
+
+// writeTurn writes a message under its speaker's label. An assistant's tool
+// calls follow its text, each as [Tool call <id> <name>(<arguments>)]; a
+// tool's result is under [Tool result <id> <name>(<arguments>)], the
+// arguments of the call it answers.
+func writeTurn(b *strings.Builder, t chatTurn, calls map[string]toolFunction) {
+	if t.Role == "tool" {
+		fmt.Fprintf(b, "[Tool result %s]\n%s\n\n", callLabel(t.ToolCallID, t.Name, calls[t.ToolCallID].Arguments), strings.TrimSpace(t.Content))
+		return
+	}
+	text := strings.TrimSpace(t.Content)
+	for _, tc := range t.ToolCalls {
+		text = strings.TrimSpace(text + "\n[Tool call " + callLabel(tc.ID, tc.Function.Name, tc.Function.Arguments) + "]")
+	}
+	fmt.Fprintf(b, "[%s]\n%s\n\n", roleLabel(t.Role), text)
 }
 
 // conversationPrompt is the whole conversation as one prompt, for a chat
@@ -249,10 +371,21 @@ func conversationPrompt(turns []chatTurn) string {
 	if len(turns) == 1 && turns[0].Role == "user" {
 		return strings.TrimSpace(turns[0].Content)
 	}
+	return labelledConversation(turns)
+}
+
+// labelledConversation is the conversation with each message labelled, a
+// lone one too.
+func labelledConversation(turns []chatTurn) string {
+	calls := callsOf(turns)
 	var b strings.Builder
-	b.WriteString(conversationNote + "\n\n")
+	if endsWithResults(turns) {
+		b.WriteString(resultsNote + "\n\n")
+	} else {
+		b.WriteString(conversationNote + "\n\n")
+	}
 	for _, t := range turns {
-		writeTurn(&b, t)
+		writeTurn(&b, t, calls)
 	}
 	return strings.TrimSpace(b.String())
 }
@@ -260,7 +393,7 @@ func conversationPrompt(turns []chatTurn) string {
 // newTurn is what came after the conversation's last assistant message, for
 // a chat that has the rest (method 2): the user's newest message, or
 // messages, as they are, a blank line between; with any other message among
-// them (a system one), each under its label.
+// them (a system one, a tool's result), each under its label.
 func newTurn(turns []chatTurn) string {
 	last := -1
 	for i, t := range turns {
@@ -270,12 +403,13 @@ func newTurn(turns []chatTurn) string {
 	}
 	rest := turns[last+1:]
 	plain := !slices.ContainsFunc(rest, func(t chatTurn) bool { return t.Role != "user" })
+	calls := callsOf(turns)
 	var b strings.Builder
 	for _, t := range rest {
 		if plain {
 			b.WriteString(strings.TrimSpace(t.Content) + "\n\n")
 		} else {
-			writeTurn(&b, t)
+			writeTurn(&b, t, calls)
 		}
 	}
 	return strings.TrimSpace(b.String())
@@ -296,15 +430,14 @@ func newConversation(turns []chatTurn) bool {
 }
 
 // turnsValue is a conversation as the Messages output gives it: a list of
-// {role, content}.
+// {role, content}, with tool_calls, tool_call_id and name where a message
+// has them, in OpenAI's shape, which turnsOf reads back.
 func turnsValue(turns []chatTurn) *structpb.Value {
-	list := &structpb.ListValue{}
-	for _, t := range turns {
-		list.Values = append(list.Values, structpb.NewStructValue(&structpb.Struct{Fields: map[string]*structpb.Value{
-			"role": structpb.NewStringValue(t.Role), "content": structpb.NewStringValue(t.Content),
-		}}))
+	b, err := json.Marshal(turns)
+	if err != nil {
+		return structpb.NewNullValue()
 	}
-	return structpb.NewListValue(list)
+	return payload(b)
 }
 
 // turnsOf reads a Messages input: a list of messages, as an OpenAI API's
@@ -322,7 +455,7 @@ func turnsOf(v *structpb.Value) ([]chatTurn, error) {
 		}
 		raw = req.Messages
 	}
-	turns, err := parseTurns(raw)
+	turns, err := parseTurns(raw, true)
 	if errors.Is(err, errNoTurns) {
 		return nil, errors.New("Messages: there are none: link an OpenAI API's Messages")
 	}
@@ -333,15 +466,20 @@ func turnsOf(v *structpb.Value) ([]chatTurn, error) {
 }
 
 // openAIFired starts a run of an OpenAI API step: Messages is the
-// conversation, Prompt all of it as one text (method 1's), Last Message the
-// newest user message, Model and Request the request's.
+// conversation, Tools the request's tools (null without), Prompt all of the
+// conversation as one text (method 1's), Last Message the newest user
+// message, Model and Request the request's.
 func openAIFired(st *v1.Step, data []byte) (map[string]proto.Message, []string, error) {
 	d, err := openAIRunOf(st, data)
 	if err != nil {
 		return nil, nil, err
 	}
+	tools, err := d.toolFields.spec()
+	if err != nil {
+		return nil, nil, err
+	}
 	return map[string]proto.Message{
-		"Messages": turnsValue(d.Messages), "Prompt": stringValue(conversationPrompt(d.Messages)),
+		"Messages": turnsValue(d.Messages), "Tools": tools.value(), "Prompt": stringValue(conversationPrompt(d.Messages)),
 		"Last Message": stringValue(lastUserText(d.Messages)), "Model": stringValue(d.Model), "Request": payload(d.Request),
 	}, []string{"Event"}, nil
 }
@@ -353,7 +491,7 @@ func openAIRunOf(st *v1.Step, data []byte) (openAIRun, error) {
 	data = bytes.TrimSpace(data)
 	switch {
 	case len(data) > 0 && data[0] == '{':
-		req, turns, err := parseChatRequest(data)
+		req, turns, err := parseChatRequest(data, true)
 		if err != nil {
 			return d, err
 		}
@@ -362,7 +500,7 @@ func openAIRunOf(st *v1.Step, data []byte) (openAIRun, error) {
 			Request json.RawMessage `json:"request"`
 		}
 		_ = json.Unmarshal(data, &more)
-		d = openAIRun{ID: more.ID, Model: req.Model, Messages: turns, Request: more.Request}
+		d = openAIRun{ID: more.ID, Model: req.Model, Messages: turns, toolFields: req.toolFields, Request: more.Request}
 		if len(d.Request) == 0 {
 			d.Request = data
 		}
@@ -389,35 +527,52 @@ var errNotOpenAIRun = errors.New("this run was not started by a request to an Op
 
 func openAIReplyStep(c *call) error {
 	answer := c.text("Answer")
-	if strings.TrimSpace(answer) == "" {
+	calls, err := toolCallsOf(c.object("Tool Calls"))
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(answer) == "" && len(calls) == 0 {
 		return fmt.Errorf("Answer %w: link the answer, such as a ChatGPT Ask's Answer", errEmpty)
 	}
 	if c.env.OpenAIReply == nil {
 		return errNotOpenAIRun
 	}
-	note, err := c.env.OpenAIReply(answer)
+	note, err := c.env.OpenAIReply(openAIAnswer{Text: answer, ToolCalls: calls})
 	if err != nil {
 		return err
 	}
-	if note != "" {
+	switch {
+	case note != "":
 		c.log(v1.LogLevel_LOG_LEVEL_WARNING, note)
-	} else {
+	case len(calls) > 0:
+		names := make([]string, len(calls))
+		for i, tc := range calls {
+			names[i] = tc.Function.Name + " " + tc.ID
+		}
+		c.logf(v1.LogLevel_LOG_LEVEL_INFO, "answered the request with %s: %s", plural(len(calls), "tool call", "tool calls"), strings.Join(names, ", "))
+	default:
 		c.logf(v1.LogLevel_LOG_LEVEL_INFO, "answered the request (%d characters)", utf8.RuneCountInString(answer))
 	}
 	c.fire(Done)
 	return nil
 }
 
+// openAIAnswer is a run's answer to its request: text, or tool calls.
+type openAIAnswer struct {
+	Text      string
+	ToolCalls []toolCall
+}
+
 // openAIWait is a request waiting for its run's OpenAI Reply.
-type openAIWait struct{ answer chan string } // holds one
+type openAIWait struct{ answer chan openAIAnswer } // holds one
 
 // openAIReplier is a run's Env.OpenAIReply: it answers the request whose
 // run data is, once; a second answer in the run, or one for a request no
 // longer waiting, is a note to log, not sent.
-func (e *Engine) openAIReplier(data []byte) func(string) (string, error) {
+func (e *Engine) openAIReplier(data []byte) func(openAIAnswer) (string, error) {
 	var mu sync.Mutex
 	replied := false
-	return func(answer string) (string, error) {
+	return func(answer openAIAnswer) (string, error) {
 		mu.Lock()
 		defer mu.Unlock()
 		if replied {
@@ -835,16 +990,34 @@ func (s *openAIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type openAIDelta struct {
-	Role    string  `json:"role,omitempty"`
-	Content *string `json:"content,omitempty"`
+	Role      string            `json:"role,omitempty"`
+	Content   *string           `json:"content,omitempty"`
+	ToolCalls []openAIToolDelta `json:"tool_calls,omitempty"`
+}
+
+// openAIToolDelta is a tool call in a streamed chunk: each comes whole, in
+// one chunk, by its index.
+type openAIToolDelta struct {
+	Index    int          `json:"index"`
+	ID       string       `json:"id"`
+	Type     string       `json:"type"`
+	Function toolFunction `json:"function"`
+}
+
+// openAIMessage is the assistant's message of a chat.completion: its text,
+// or, with tool calls, none (null).
+type openAIMessage struct {
+	Role      string     `json:"role"`
+	Content   *string    `json:"content"`
+	ToolCalls []toolCall `json:"tool_calls,omitempty"`
 }
 
 type openAIChoice struct {
-	Index        int          `json:"index"`
-	Message      *chatTurn    `json:"message,omitempty"`
-	Delta        *openAIDelta `json:"delta,omitempty"`
-	Logprobs     any          `json:"logprobs"`
-	FinishReason *string      `json:"finish_reason"`
+	Index        int            `json:"index"`
+	Message      *openAIMessage `json:"message,omitempty"`
+	Delta        *openAIDelta   `json:"delta,omitempty"`
+	Logprobs     any            `json:"logprobs"`
+	FinishReason *string        `json:"finish_reason"`
 }
 
 type openAIUsage struct {
@@ -868,16 +1041,36 @@ type openAICompletion struct {
 // characters: no site says what it used.
 func roughTokens(s string) int { return (utf8.RuneCountInString(s) + 3) / 4 }
 
-func usageOf(turns []chatTurn, answer string) *openAIUsage {
-	u := &openAIUsage{CompletionTokens: roughTokens(answer)}
+func usageOf(turns []chatTurn, answer openAIAnswer) *openAIUsage {
+	out := answer.Text
+	if len(answer.ToolCalls) > 0 {
+		b, _ := json.Marshal(answer.ToolCalls)
+		out = string(b)
+	}
+	u := &openAIUsage{CompletionTokens: roughTokens(out)}
 	for _, t := range turns {
 		u.PromptTokens += roughTokens(t.Content)
+		for _, tc := range t.ToolCalls {
+			u.PromptTokens += roughTokens(tc.Function.Name + tc.Function.Arguments)
+		}
 	}
 	u.TotalTokens = u.PromptTokens + u.CompletionTokens
 	return u
 }
 
-var stop = "stop"
+var (
+	stop          = "stop"
+	toolCallsStop = "tool_calls"
+)
+
+// message is an answer as a chat.completion's message, and the reason it
+// ends with.
+func (a openAIAnswer) message() (*openAIMessage, *string) {
+	if len(a.ToolCalls) > 0 {
+		return &openAIMessage{Role: "assistant", ToolCalls: a.ToolCalls}, &toolCallsStop
+	}
+	return &openAIMessage{Role: "assistant", Content: &a.Text}, &stop
+}
 
 // openAIStream writes a streamed answer as server-sent events.
 type openAIStream struct {
@@ -917,11 +1110,19 @@ func (s *openAIStream) alive() {
 	_ = s.rc.Flush()
 }
 
-// finish sends the answer as one chunk, the chunk that ends it, the usage
-// when asked for, and [DONE].
-func (s *openAIStream) finish(answer string, usage *openAIUsage, withUsage bool) {
-	s.delta(&openAIDelta{Content: &answer}, nil)
-	s.delta(&openAIDelta{}, &stop)
+// finish sends the answer, the chunk that ends it, the usage when asked
+// for, and [DONE]. Text comes as one chunk; tool calls each in a chunk of
+// its own, whole (index, id, type, name, arguments), and the last chunk's
+// finish_reason is tool_calls.
+func (s *openAIStream) finish(answer openAIAnswer, usage *openAIUsage, withUsage bool) {
+	_, reason := answer.message()
+	if len(answer.ToolCalls) == 0 {
+		s.delta(&openAIDelta{Content: &answer.Text}, nil)
+	}
+	for i, tc := range answer.ToolCalls {
+		s.delta(&openAIDelta{ToolCalls: []openAIToolDelta{{Index: i, ID: tc.ID, Type: "function", Function: tc.Function}}}, nil)
+	}
+	s.delta(&openAIDelta{}, reason)
 	if withUsage {
 		c := s.chunk
 		c.Choices, c.Usage = []openAIChoice{}, usage
@@ -949,7 +1150,7 @@ func (s *openAIServer) complete(w http.ResponseWriter, r *http.Request, cfg open
 		badRequest("the body cannot be read: " + err.Error()).write(w)
 		return
 	}
-	req, turns, err := parseChatRequest(body)
+	req, turns, err := parseChatRequest(body, false)
 	if err != nil {
 		badRequest(err.Error()).write(w)
 		return
@@ -960,7 +1161,17 @@ func (s *openAIServer) complete(w http.ResponseWriter, r *http.Request, cfg open
 		return
 	}
 	defer release()
-	d := openAIRun{ID: "chatcmpl-" + randomID(), Model: cmp.Or(strings.TrimSpace(req.Model), cfg.models[0]), Messages: turns, Request: body}
+	// The images are files until the run ends (removeImages), which may be
+	// after the request has given up.
+	removeImages, err := saveImages(r.Context(), turns)
+	if err != nil {
+		badRequest(err.Error()).write(w)
+		return
+	}
+	if hasImages(turns) {
+		body = withoutImageData(body)
+	}
+	d := openAIRun{ID: "chatcmpl-" + randomID(), Model: cmp.Or(strings.TrimSpace(req.Model), cfg.models[0]), Messages: turns, toolFields: req.toolFields, Request: body}
 	created := time.Now().Unix()
 	ctx, cancel := context.WithTimeoutCause(r.Context(), cfg.timeout, errOpenAITimeout)
 	defer cancel()
@@ -970,7 +1181,7 @@ func (s *openAIServer) complete(w http.ResponseWriter, r *http.Request, cfg open
 		stream = startStream(w, d.ID, created, d.Model)
 		alive = stream.alive
 	}
-	answer, oerr := s.e.openAIAsk(ctx, s, d, cfg.timeout, alive)
+	answer, oerr := s.e.openAIAsk(ctx, s, d, len(req.spec.names()), cfg.timeout, alive, removeImages)
 	if oerr != nil {
 		s.e.log.Warn("an OpenAI API request got no answer", "workflow", s.workflow, "step", s.step, "status", oerr.status, "err", oerr.text)
 	}
@@ -982,9 +1193,10 @@ func (s *openAIServer) complete(w http.ResponseWriter, r *http.Request, cfg open
 	case oerr != nil:
 		oerr.write(w)
 	default:
+		msg, reason := answer.message()
 		writeJSON(w, http.StatusOK, openAICompletion{
 			ID: d.ID, Object: "chat.completion", Created: created, Model: d.Model,
-			Choices: []openAIChoice{{Message: &chatTurn{Role: "assistant", Content: answer}, FinishReason: &stop}},
+			Choices: []openAIChoice{{Message: msg, FinishReason: reason}},
 			Usage:   usageOf(turns, answer),
 		})
 	}
@@ -992,12 +1204,20 @@ func (s *openAIServer) complete(w http.ResponseWriter, r *http.Request, cfg open
 
 var errOpenAITimeout = errors.New("the OpenAI API step's Timeout passed")
 
-// openAIAsk starts a run of server s's step for request d and waits for its
-// OpenAI Reply's answer, calling alive now and then while it waits. One
-// request runs at a time: the next waits until the run before it ends. A
-// run that ends without an answer, or fails, is a server error; no answer
-// within timeout is 504, and the run goes on.
-func (e *Engine) openAIAsk(ctx context.Context, s *openAIServer, d openAIRun, timeout time.Duration, alive func()) (string, *openAIErr) {
+// openAIAsk starts a run of server s's step for request d, which offers
+// tools tools, and waits for its OpenAI Reply's answer, calling alive now
+// and then while it waits. One request runs at a time: the next waits until
+// the run before it ends. A run that ends without an answer, or fails, is a
+// server error; no answer within timeout is 504, and the run goes on.
+// ended is called once the run has ended, or when none starts.
+func (e *Engine) openAIAsk(ctx context.Context, s *openAIServer, d openAIRun, tools int, timeout time.Duration, alive, ended func()) (openAIAnswer, *openAIErr) {
+	var none openAIAnswer
+	started := false
+	defer func() {
+		if !started {
+			ended()
+		}
+	}()
 	tick := time.NewTicker(openAIKeepAlive)
 	defer tick.Stop()
 	gone := func(what string) *openAIErr {
@@ -1011,7 +1231,7 @@ func (e *Engine) openAIAsk(ctx context.Context, s *openAIServer, d openAIRun, ti
 		case s.busy <- struct{}{}:
 			waiting = false
 		case <-ctx.Done():
-			return "", gone("it waited all along for the request before it")
+			return none, gone("it waited all along for the request before it")
 		case <-tick.C:
 			alive()
 		}
@@ -1020,14 +1240,14 @@ func (e *Engine) openAIAsk(ctx context.Context, s *openAIServer, d openAIRun, ti
 	w, err := e.store.GetWorkflow(s.workflow)
 	if err != nil || !w.Active {
 		free()
-		return "", &openAIErr{http.StatusServiceUnavailable, "server_error", "", "the workflow is switched off or gone"}
+		return none, &openAIErr{http.StatusServiceUnavailable, "server_error", "", "the workflow is switched off or gone"}
 	}
 	data, err := json.Marshal(d)
 	if err != nil {
 		free()
-		return "", serverError(err.Error())
+		return none, serverError(err.Error())
 	}
-	wait := &openAIWait{answer: make(chan string, 1)}
+	wait := &openAIWait{answer: make(chan openAIAnswer, 1)}
 	e.oaMu.Lock()
 	e.oaWaiting[d.ID] = wait
 	e.oaMu.Unlock()
@@ -1037,14 +1257,21 @@ func (e *Engine) openAIAsk(ctx context.Context, s *openAIServer, d openAIRun, ti
 		e.oaMu.Unlock()
 	}()
 	trigger := fmt.Sprintf("openai api, %s, %s", d.Model, messages(len(d.Messages)))
+	if tools > 0 {
+		trigger += ", " + plural(tools, "tool", "tools")
+	}
+	if n := imageCount(d.Messages); n > 0 {
+		trigger += ", " + plural(n, "image", "images")
+	}
 	run, err := e.begin(w, s.step, trigger, data)
 	if err != nil {
 		free()
-		return "", serverError("the run could not start: " + err.Error())
+		return none, serverError("the run could not start: " + err.Error())
 	}
 	done := make(chan store.Run, 1)
 	if err := e.background(func() {
 		defer free()
+		defer ended()
 		fr, err := e.finish(w, run, s.step, data)
 		if err != nil && fr.Error == "" {
 			fr.Error = err.Error()
@@ -1053,8 +1280,9 @@ func (e *Engine) openAIAsk(ctx context.Context, s *openAIServer, d openAIRun, ti
 	}); err != nil {
 		free()
 		_, _ = e.store.FinishRun(run, v1.RunStatus_RUN_STATUS_INTERRUPTED, err.Error(), nil)
-		return "", &openAIErr{http.StatusServiceUnavailable, "server_error", "", "the tower is stopping"}
+		return none, &openAIErr{http.StatusServiceUnavailable, "server_error", "", "the tower is stopping"}
 	}
+	started = true
 	for {
 		select {
 		case answer := <-wait.answer:
@@ -1067,13 +1295,13 @@ func (e *Engine) openAIAsk(ctx context.Context, s *openAIServer, d openAIRun, ti
 			}
 			switch {
 			case fr.Status == v1.RunStatus_RUN_STATUS_FAILED:
-				return "", serverError(fmt.Sprintf("run %d of workflow %s failed: %s", fr.ID, w.Name, fr.Error))
+				return none, serverError(fmt.Sprintf("run %d of workflow %s failed: %s", fr.ID, w.Name, fr.Error))
 			case fr.Error != "":
-				return "", serverError(fmt.Sprintf("run %d of workflow %s ended without an answer: %s", fr.ID, w.Name, fr.Error))
+				return none, serverError(fmt.Sprintf("run %d of workflow %s ended without an answer: %s", fr.ID, w.Name, fr.Error))
 			}
-			return "", serverError(fmt.Sprintf("run %d of workflow %s ended without an OpenAI Reply: put one in the workflow, with its Answer linked", fr.ID, w.Name))
+			return none, serverError(fmt.Sprintf("run %d of workflow %s ended without an OpenAI Reply: put one in the workflow, with its Answer linked", fr.ID, w.Name))
 		case <-ctx.Done():
-			return "", gone(fmt.Sprintf("run %d of workflow %s goes on in the tower", run.ID, w.Name))
+			return none, gone(fmt.Sprintf("run %d of workflow %s goes on in the tower", run.ID, w.Name))
 		case <-tick.C:
 			alive()
 		}

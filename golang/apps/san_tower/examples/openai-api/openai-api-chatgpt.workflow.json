@@ -1,7 +1,7 @@
 {
   "format": "san_tower.workflows",
   "version": 1,
-  "exportedAt": "2026-11-03T14:15:18.512755700Z",
+  "exportedAt": "2026-11-03T16:31:01.927804800Z",
   "tower": "dev",
   "workflows": [
     {
@@ -57,9 +57,21 @@
           "sourceSocket": "Answer",
           "target": "reply",
           "targetSocket": "Answer"
+        },
+        {
+          "source": "api",
+          "sourceSocket": "Tools",
+          "target": "gpt",
+          "targetSocket": "Tools"
+        },
+        {
+          "source": "gpt",
+          "sourceSocket": "Tool Calls",
+          "target": "reply",
+          "targetSocket": "Tool Calls"
         }
       ],
-      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7480/v1) answered by ChatGPT in your browser: each request's whole conversation goes as one prompt to a new Temporary chat (method 1, stateless like the real API)."
+      "description": "An OpenAI-compatible chat API (http://127.0.0.1:7480/v1) answered by ChatGPT in your browser: each request's whole conversation goes as one prompt to a new Temporary chat (method 1, stateless like the real API). Tools work too: the request's tools go to the chat as a prompt protocol, and its calls come back as tool_calls. Images in the messages (image_url parts) are attached in the chat too."
     }
   ],
   "connections": {

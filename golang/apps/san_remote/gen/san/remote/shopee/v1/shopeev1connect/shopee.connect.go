@@ -41,6 +41,9 @@ const (
 	// ShopeeServiceCreateProductProcedure is the fully-qualified name of the ShopeeService's
 	// CreateProduct RPC.
 	ShopeeServiceCreateProductProcedure = "/san.remote.shopee.v1.ShopeeService/CreateProduct"
+	// ShopeeServiceUpdateMediaProcedure is the fully-qualified name of the ShopeeService's UpdateMedia
+	// RPC.
+	ShopeeServiceUpdateMediaProcedure = "/san.remote.shopee.v1.ShopeeService/UpdateMedia"
 	// ShopeeServiceDeleteProductProcedure is the fully-qualified name of the ShopeeService's
 	// DeleteProduct RPC.
 	ShopeeServiceDeleteProductProcedure = "/san.remote.shopee.v1.ShopeeService/DeleteProduct"
@@ -66,14 +69,21 @@ type ShopeeServiceClient interface {
 	// ListProducts lists the shop's products (Produk Saya), newest change
 	// first, from one of its tabs.
 	ListProducts(context.Context, *connect.Request[v1.ListProductsRequest]) (*connect.Response[v1.ListProductsResponse], error)
-	// CreateProduct adds a product through Tambah Produk Baru: photos, name,
-	// category, attributes, description, variations with a price, stock and
-	// SKU each (or one price and stock), weight, couriers; then Simpan &
-	// Arsipkan (archived, the default) or Simpan & Tampilkan (live). The whole
-	// form is read back before the button is pressed, and the product is then
-	// read back from the shop's list. A tab is brought to the front for a
-	// minute or two.
+	// CreateProduct adds a product through Tambah Produk Baru: photos, a
+	// video, name, category, attributes, description, variations with a
+	// price, stock and SKU each (or one price and stock), weight, couriers;
+	// then Simpan & Arsipkan (archived, the default) or Simpan & Tampilkan
+	// (live). The whole form is read back before the button is pressed, and
+	// the product is then read back from the shop's list and its detail. A
+	// tab is brought to the front for a minute or two.
 	CreateProduct(context.Context, *connect.Request[v1.CreateProductRequest]) (*connect.Response[v1.CreateProductResponse], error)
+	// UpdateMedia replaces the photos and/or the video of a product the shop
+	// has, on its page in Seller Centre (/portal/product/<id>): only what is
+	// asked is touched, the page is read back, and only then is Update
+	// pressed, which keeps a live product live and an archived one archived.
+	// The product's detail is then read until it has the new photos and
+	// video. NotFound for an id the shop does not have.
+	UpdateMedia(context.Context, *connect.Request[v1.UpdateMediaRequest]) (*connect.Response[v1.UpdateMediaResponse], error)
 	// DeleteProduct deletes a product (Lainnya, Hapus, then Hapus when Seller
 	// Centre asks). A live product is archived first, since Seller Centre
 	// deletes only archived ones. It cannot be undone.
@@ -123,6 +133,12 @@ func NewShopeeServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(shopeeServiceMethods.ByName("CreateProduct")),
 			connect.WithClientOptions(opts...),
 		),
+		updateMedia: connect.NewClient[v1.UpdateMediaRequest, v1.UpdateMediaResponse](
+			httpClient,
+			baseURL+ShopeeServiceUpdateMediaProcedure,
+			connect.WithSchema(shopeeServiceMethods.ByName("UpdateMedia")),
+			connect.WithClientOptions(opts...),
+		),
 		deleteProduct: connect.NewClient[v1.DeleteProductRequest, v1.DeleteProductResponse](
 			httpClient,
 			baseURL+ShopeeServiceDeleteProductProcedure,
@@ -161,6 +177,7 @@ type shopeeServiceClient struct {
 	getStatus      *connect.Client[v1.GetStatusRequest, v1.GetStatusResponse]
 	listProducts   *connect.Client[v1.ListProductsRequest, v1.ListProductsResponse]
 	createProduct  *connect.Client[v1.CreateProductRequest, v1.CreateProductResponse]
+	updateMedia    *connect.Client[v1.UpdateMediaRequest, v1.UpdateMediaResponse]
 	deleteProduct  *connect.Client[v1.DeleteProductRequest, v1.DeleteProductResponse]
 	publishProduct *connect.Client[v1.PublishProductRequest, v1.PublishProductResponse]
 	archiveProduct *connect.Client[v1.ArchiveProductRequest, v1.ArchiveProductResponse]
@@ -181,6 +198,11 @@ func (c *shopeeServiceClient) ListProducts(ctx context.Context, req *connect.Req
 // CreateProduct calls san.remote.shopee.v1.ShopeeService.CreateProduct.
 func (c *shopeeServiceClient) CreateProduct(ctx context.Context, req *connect.Request[v1.CreateProductRequest]) (*connect.Response[v1.CreateProductResponse], error) {
 	return c.createProduct.CallUnary(ctx, req)
+}
+
+// UpdateMedia calls san.remote.shopee.v1.ShopeeService.UpdateMedia.
+func (c *shopeeServiceClient) UpdateMedia(ctx context.Context, req *connect.Request[v1.UpdateMediaRequest]) (*connect.Response[v1.UpdateMediaResponse], error) {
+	return c.updateMedia.CallUnary(ctx, req)
 }
 
 // DeleteProduct calls san.remote.shopee.v1.ShopeeService.DeleteProduct.
@@ -216,14 +238,21 @@ type ShopeeServiceHandler interface {
 	// ListProducts lists the shop's products (Produk Saya), newest change
 	// first, from one of its tabs.
 	ListProducts(context.Context, *connect.Request[v1.ListProductsRequest]) (*connect.Response[v1.ListProductsResponse], error)
-	// CreateProduct adds a product through Tambah Produk Baru: photos, name,
-	// category, attributes, description, variations with a price, stock and
-	// SKU each (or one price and stock), weight, couriers; then Simpan &
-	// Arsipkan (archived, the default) or Simpan & Tampilkan (live). The whole
-	// form is read back before the button is pressed, and the product is then
-	// read back from the shop's list. A tab is brought to the front for a
-	// minute or two.
+	// CreateProduct adds a product through Tambah Produk Baru: photos, a
+	// video, name, category, attributes, description, variations with a
+	// price, stock and SKU each (or one price and stock), weight, couriers;
+	// then Simpan & Arsipkan (archived, the default) or Simpan & Tampilkan
+	// (live). The whole form is read back before the button is pressed, and
+	// the product is then read back from the shop's list and its detail. A
+	// tab is brought to the front for a minute or two.
 	CreateProduct(context.Context, *connect.Request[v1.CreateProductRequest]) (*connect.Response[v1.CreateProductResponse], error)
+	// UpdateMedia replaces the photos and/or the video of a product the shop
+	// has, on its page in Seller Centre (/portal/product/<id>): only what is
+	// asked is touched, the page is read back, and only then is Update
+	// pressed, which keeps a live product live and an archived one archived.
+	// The product's detail is then read until it has the new photos and
+	// video. NotFound for an id the shop does not have.
+	UpdateMedia(context.Context, *connect.Request[v1.UpdateMediaRequest]) (*connect.Response[v1.UpdateMediaResponse], error)
 	// DeleteProduct deletes a product (Lainnya, Hapus, then Hapus when Seller
 	// Centre asks). A live product is archived first, since Seller Centre
 	// deletes only archived ones. It cannot be undone.
@@ -269,6 +298,12 @@ func NewShopeeServiceHandler(svc ShopeeServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(shopeeServiceMethods.ByName("CreateProduct")),
 		connect.WithHandlerOptions(opts...),
 	)
+	shopeeServiceUpdateMediaHandler := connect.NewUnaryHandler(
+		ShopeeServiceUpdateMediaProcedure,
+		svc.UpdateMedia,
+		connect.WithSchema(shopeeServiceMethods.ByName("UpdateMedia")),
+		connect.WithHandlerOptions(opts...),
+	)
 	shopeeServiceDeleteProductHandler := connect.NewUnaryHandler(
 		ShopeeServiceDeleteProductProcedure,
 		svc.DeleteProduct,
@@ -307,6 +342,8 @@ func NewShopeeServiceHandler(svc ShopeeServiceHandler, opts ...connect.HandlerOp
 			shopeeServiceListProductsHandler.ServeHTTP(w, r)
 		case ShopeeServiceCreateProductProcedure:
 			shopeeServiceCreateProductHandler.ServeHTTP(w, r)
+		case ShopeeServiceUpdateMediaProcedure:
+			shopeeServiceUpdateMediaHandler.ServeHTTP(w, r)
 		case ShopeeServiceDeleteProductProcedure:
 			shopeeServiceDeleteProductHandler.ServeHTTP(w, r)
 		case ShopeeServicePublishProductProcedure:
@@ -336,6 +373,10 @@ func (UnimplementedShopeeServiceHandler) ListProducts(context.Context, *connect.
 
 func (UnimplementedShopeeServiceHandler) CreateProduct(context.Context, *connect.Request[v1.CreateProductRequest]) (*connect.Response[v1.CreateProductResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.remote.shopee.v1.ShopeeService.CreateProduct is not implemented"))
+}
+
+func (UnimplementedShopeeServiceHandler) UpdateMedia(context.Context, *connect.Request[v1.UpdateMediaRequest]) (*connect.Response[v1.UpdateMediaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.remote.shopee.v1.ShopeeService.UpdateMedia is not implemented"))
 }
 
 func (UnimplementedShopeeServiceHandler) DeleteProduct(context.Context, *connect.Request[v1.DeleteProductRequest]) (*connect.Response[v1.DeleteProductResponse], error) {

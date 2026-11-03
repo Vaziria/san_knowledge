@@ -88,6 +88,11 @@ func (t *session) create(ctx context.Context, n New, models []Model) (*Created, 
 		return nil, err
 	}
 	t.guides(ctx)
+	if n.Video != "" {
+		if _, err := t.putVideo(ctx, n.Video); err != nil {
+			return nil, err
+		}
+	}
 	if err := t.attributes(ctx, n.Attributes); err != nil {
 		return nil, err
 	}
@@ -125,11 +130,51 @@ func (t *session) create(ctx context.Context, n New, models []Model) (*Created, 
 		p := Product{Name: n.Name, Status: "rehearsed", SKU: n.SKU, Models: models}
 		return &Created{Product: p, Form: form}, nil
 	}
+	var video *videoState
+	if n.Video != "" {
+		if video, err = t.video(ctx); err != nil {
+			return nil, err
+		}
+	}
 	p, err := t.save(ctx, n, models)
 	if p == nil {
 		return nil, err
 	}
+	if err == nil {
+		err = t.savedMedia(ctx, p, video)
+	}
 	return &Created{Product: *p, Form: form}, err
+}
+
+// savedMedia reads the new product's photos and video from its detail;
+// with a video given, it waits for the product to have the one the form
+// showed (Seller Centre may still be processing it).
+func (t *session) savedMedia(ctx context.Context, p *Product, video *videoState) error {
+	var d *detail
+	err := t.Until(ctx, "the new product's video", 2*time.Minute, func() (bool, error) {
+		var err error
+		if d, err = t.detail(ctx, p.ID); err != nil {
+			return false, err
+		}
+		if video == nil || savedVideo(d, video) {
+			return true, nil
+		}
+		return false, page.Sleep(ctx, 3*time.Second)
+	})
+	if d != nil {
+		d.apply(p)
+	}
+	if err != nil {
+		got := "unread"
+		if d != nil {
+			got = orNone(d.videoID())
+		}
+		return fmt.Errorf("%w: product %d was saved, but its video reads %s, not the form's %s", err, p.ID, got, video)
+	}
+	if p.Video != nil {
+		t.Log(fmt.Sprintf("it has %d photos and the video %s (%s)", len(p.Photos), p.Video.ID, p.Video.Duration))
+	}
+	return nil
 }
 
 // newForm opens Tambah Produk Baru from Produk Saya, as a person does, and
@@ -215,7 +260,7 @@ func (t *session) give(ctx context.Context, fieldID, prefix string, paths []stri
 		if err := t.stageFile(ctx, id, p); err != nil {
 			return err
 		}
-		refs = append(refs, fileRef{ID: id, Name: filepath.Base(p), Type: photoType(p)})
+		refs = append(refs, fileRef{ID: id, Name: filepath.Base(p), Type: fileType(p)})
 	}
 	if err := t.Front(ctx); err != nil {
 		return err
@@ -233,10 +278,17 @@ func (t *session) give(ctx context.Context, fieldID, prefix string, paths []stri
 // photos gives Foto Produk the photos. Seller Centre opens them in
 // Pembuat Foto AI, whose "Terapkan ke Produk (N)" puts them in the form.
 func (t *session) photos(ctx context.Context, paths []string) error {
+	return t.addPhotos(ctx, paths, 0, "photo")
+}
+
+// addPhotos adds the photos after the have photos Foto Produk holds, the way
+// photos gives them; prefix names them while they are staged in the page.
+func (t *session) addPhotos(ctx context.Context, paths []string, have int, prefix string) error {
 	t.Log(fmt.Sprintf("choosing %d photos", len(paths)))
-	if err := t.give(ctx, "images", "photo", paths); err != nil {
+	if err := t.give(ctx, "images", prefix, paths); err != nil {
 		return err
 	}
+	want := have + len(paths)
 	var ps photoState
 	if err := t.Until(ctx, "the photos to upload", 2*time.Minute, func() (bool, error) {
 		if err := t.Call(ctx, &ps, "photos"); err != nil {
@@ -245,7 +297,7 @@ func (t *session) photos(ctx context.Context, paths []string) error {
 		if len(ps.Errors) > 0 {
 			return false, fmt.Errorf("%w: Foto Produk: %s", ErrRefused, strings.Join(ps.Errors, "; "))
 		}
-		return ps.Drawer != "" || ps.Count == len(paths), nil
+		return ps.Drawer != "" || ps.Count == want, nil
 	}); err != nil {
 		return err
 	}
@@ -268,9 +320,9 @@ func (t *session) photos(ctx context.Context, paths []string) error {
 			return err
 		}
 	}
-	if err := t.Until(ctx, fmt.Sprintf("Foto Produk to hold %d photos", len(paths)), time.Minute, func() (bool, error) {
+	if err := t.Until(ctx, fmt.Sprintf("Foto Produk to hold %d photos", want), time.Minute, func() (bool, error) {
 		err := t.Call(ctx, &ps, "photos")
-		return err == nil && ps.Count == len(paths) && ps.Drawer == "", err
+		return err == nil && ps.Count == want && ps.Drawer == "", err
 	}); err != nil {
 		return fmt.Errorf("%w (it reads %d, %v)", err, ps.Count, ps.Errors)
 	}
@@ -921,6 +973,7 @@ func (t *session) condition(ctx context.Context, v string) error {
 type formView struct {
 	Photos      int
 	Cover       string
+	Video       *videoState
 	Name        string
 	Category    string
 	Attributes  []attribute
@@ -956,7 +1009,7 @@ func (t *session) view(ctx context.Context, variations bool) (*formView, error) 
 		args []any
 	}
 	calls := []call{
-		{&ps, "photos", nil}, {&v.Cover, "cover", nil}, {&name, "name", nil}, {&v.Category, "category", nil},
+		{&ps, "photos", nil}, {&v.Cover, "cover", nil}, {&v.Video, "video", nil}, {&name, "name", nil}, {&v.Category, "category", nil},
 		{&v.Attributes, "attributes", nil}, {&desc, "description", nil}, {&weight, "fieldValue", []any{"weight"}},
 		{&v.Danger, "danger", nil}, {&v.Ads, "ads", nil}, {&v.Condition, "condition", nil}, {&v.Errors, "errors", nil},
 		{&sku, "fieldValue", []any{"parentSku"}}, {&parcel[0], "fieldValue", []any{"dimension.length"}},
@@ -1004,8 +1057,15 @@ func (t *session) ready(ctx context.Context, n New, models []Model) ([]string, e
 	if len(problems) > 0 {
 		return lines, fmt.Errorf("%w: the form reads %s; not saving", ErrPage, strings.Join(problems, "; "))
 	}
-	t.Log(fmt.Sprintf("checked the form: %d photos, %s, %d models, %s g, couriers %s", v.Photos, v.Category, len(models), v.Weight, strings.Join(onCouriers(v.Couriers), ", ")))
+	t.Log(fmt.Sprintf("checked the form: %d photos, video %s, %s, %d models, %s g, couriers %s", v.Photos, orNone(videoID(v.Video)), v.Category, len(models), v.Weight, strings.Join(onCouriers(v.Couriers), ", ")))
 	return lines, nil
+}
+
+func videoID(v *videoState) string {
+	if v == nil {
+		return ""
+	}
+	return v.ID
 }
 
 func onCouriers(cs []courier) []string {
@@ -1030,6 +1090,21 @@ func (v *formView) check(n New, models []Model) (lines, problems []string) {
 		bad("no cover")
 	} else {
 		lines = append(lines, "cover: "+v.Cover)
+	}
+	// Video Produk: the given video taken (shown, or still processing), or
+	// none at all.
+	switch {
+	case n.Video != "":
+		lines = append(lines, "video: "+v.Video.String())
+		if !v.Video.accepted() {
+			bad("the video not taken (%s)", v.Video)
+		}
+		if es := v.Video.errorsOrNil(); len(es) > 0 {
+			bad("Video Produk says: %s", strings.Join(es, "; "))
+		}
+	case v.Video != nil && v.Video.State != "empty":
+		lines = append(lines, "video: "+v.Video.String())
+		bad("a video that was not given (%s)", v.Video)
 	}
 	lines = append(lines, "name: "+v.Name)
 	if v.Name != n.Name {

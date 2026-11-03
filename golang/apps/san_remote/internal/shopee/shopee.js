@@ -134,6 +134,13 @@ globalThis.__sanShopee = (() => {
   const realOptions = (i) => [...(tier(i)?.querySelectorAll('.variation-option-panel .options-item:not(.virtual-options-item) input[placeholder="Masukkan"]') ?? [])];
   const categoryModal = () => all('.eds-modal__box').find((m) => m.querySelector('.category-selector'));
   const editor = () => field('description')?.querySelector('.ql-editor');
+  // Foto Produk's photos, in order: the boxes of its image manager that hold
+  // a photo (not the cover's manager, not the box that adds one).
+  const galleryBoxes = () => {
+    const f = field('images');
+    const m = [...(f?.querySelectorAll('.shopee-image-manager') ?? [])].find((x) => !x.closest('[data-product-edit-field-unique-id="promotionImages"]'));
+    return [...(m?.querySelectorAll('.shopee-image-manager__itembox') ?? [])].filter((b) => b.querySelector('img.shopee-image-manager__image'));
+  };
 
   return {
     // state is what the page shows, for the waits.
@@ -146,6 +153,8 @@ globalThis.__sanShopee = (() => {
         portal: /^\/portal\//.test(p) || p === '/',
         list: /^\/portal\/product\/list/.test(p),
         listReady: /^\/portal\/product\/list/.test(p) && !!document.querySelector('input[placeholder^="Cari Nama Produk"]'),
+        // edit: a product's own page, /portal/product/<id>.
+        edit: /^\/portal\/product\/\d+/.test(p),
         form: !!field('name') && !!field('images'),
         full: !!field('category'),
         sections: !!field('brandAndAttributes') && !!field('logistic'),
@@ -182,6 +191,23 @@ globalThis.__sanShopee = (() => {
         total: j.data?.config?.total_slots ?? 0,
         cooldown: j.data?.config?.cooldown_seconds ?? 0,
         products: (j.data?.products ?? []).map((p) => ({ id: p.id, left: p.cool_down_seconds ?? 0 })),
+      };
+    },
+    // detail is a product as its own page reads it (get_product_info): its
+    // photos' ids in order and its video (video_list: vid, duration in
+    // seconds, thumb_url), which the list does not give.
+    async detail(id) {
+      const j = await api('/api/v3/product/get_product_info', { product_id: String(id), is_draft: 'false' });
+      const p = j.data?.product_info;
+      return {
+        code: j.code ?? -1,
+        message: j.message ?? '',
+        found: !!p,
+        name: p?.name ?? '',
+        status: p?.status ?? 0,
+        unlist: !!p?.is_unlisted,
+        images: p?.images ?? [],
+        videos: (p?.video_list ?? []).map((v) => ({ id: v.vid ?? '', duration: v.duration ?? 0, cover: v.thumb_url ?? '' })),
       };
     },
 
@@ -269,8 +295,8 @@ globalThis.__sanShopee = (() => {
       staged.set(id, parts);
       return parts.length;
     },
-    // give hands the field's file input (images, promotionImages) the staged
-    // files, as if they were chosen in Pilih Foto's dialog. It returns "" or
+    // give hands the field's file input (images, promotionImages, video) the
+    // staged files, as if they were chosen in its dialog. It returns "" or
     // what went wrong.
     give(id, files) {
       const f = field(id);
@@ -303,6 +329,49 @@ globalThis.__sanShopee = (() => {
       };
     },
     pressApplyPhotos: () => press(all('.drawer-creator-editor button, .drawer button').find((b) => /^Terapkan ke Produk/.test(own(b)))),
+    // gallery: the photos of Foto Produk in order, by their links (the cover
+    // has its own image manager, promotionImages, which is left out).
+    gallery: () => galleryBoxes().map((b) => b.querySelector('img.shopee-image-manager__image').src),
+    // pressDeletePhoto presses Delete in photo i's own menu (Ubah dengan AI,
+    // Ubah, Preview, Delete), which takes it away at once.
+    pressDeletePhoto(i) {
+      const box = galleryBoxes()[i];
+      return press([...(box?.querySelectorAll('.action-popup-content__actions__item') ?? [])].find((a) => /^(Delete|Hapus)$/.test(own(a))));
+    },
+
+    // Video Produk: empty (its file input, "Tambah Video"), uploading (a
+    // progress bar, "0%" to "101%"), processing ("Diproses", once uploaded),
+    // or ready (the video's cover, <vid>_cover, and its length, "00:15").
+    // The cover's link holds the video's id from processing on. An
+    // error-container that holds neither the progress nor "Diproses" is
+    // Seller Centre's complaint.
+    video() {
+      const f = field('video');
+      if (!f) return null;
+      const main = f.querySelector('.video-main') ?? f;
+      const cover = [...main.querySelectorAll('img')].map((i) => i.src).find((s) => /_cover/.test(s)) ?? '';
+      const ready = !!main.querySelector('.video-container');
+      const uploading = !ready && !!main.querySelector('.upload-process-percent, .eds-progress');
+      const processing = !ready && !uploading && !!main.querySelector('.transcoding-text');
+      const empty = !ready && !uploading && !processing && !!main.querySelector('input[type=file]');
+      const complaints = all('.error-container', main).filter((e) => !e.querySelector('.transcoding-text, .upload-process-percent, .eds-progress')).map(own);
+      return {
+        state: ready ? 'ready' : uploading ? 'uploading' : processing ? 'processing' : empty ? 'empty' : 'other',
+        id: (cover.match(/\/([^/?#]+)_cover/) || [])[1] ?? '',
+        duration: own(main.querySelector('.video-duration')),
+        progress: own(main.querySelector('.upload-process-percent')),
+        text: text(main).slice(0, 120),
+        errors: [...errorsIn(f), ...complaints].filter(Boolean),
+      };
+    },
+    // pressRemoveVideo presses the video's delete icon (the last of its
+    // tools: Preview, then the bin), or while it is processing, its delete.
+    // Seller Centre takes it away at once, without asking.
+    pressRemoveVideo() {
+      const main = field('video')?.querySelector('.video-main');
+      const icons = [...(main?.querySelectorAll('.action-tools .action-tools-icon') ?? [])];
+      return press(icons.length ? icons[icons.length - 1] : main?.querySelector('.action-delete'));
+    },
     // cover: the cover's uploaded photo, "" when there is none yet.
     cover() {
       const f = field('promotionImages');
@@ -541,5 +610,9 @@ globalThis.__sanShopee = (() => {
     },
     saveButtons: () => all('button').map(own).filter((t) => /^Simpan & /.test(t)),
     pressSave: (label) => press(all('button').find((b) => own(b) === label && !b.disabled)),
+    // A product's own page has its buttons at the bottom: Kembali, then for
+    // an archived product Hapus, Tampilkan and Update.
+    editButtons: () => all('.product-detail-button-container button').map((b) => ({ label: own(b), disabled: b.disabled || /disabled/.test(b.className) })),
+    pressEditButton: (label) => press(all('.product-detail-button-container button').find((b) => own(b) === label && !b.disabled)),
   };
 })();

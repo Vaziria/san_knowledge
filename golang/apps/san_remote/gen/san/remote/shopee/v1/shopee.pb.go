@@ -196,7 +196,14 @@ type Product struct {
 	Created *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created,proto3" json:"created,omitempty"`
 	Updated *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated,proto3" json:"updated,omitempty"`
 	// Its page in Seller Centre, https://seller.shopee.co.id/portal/product/<id>.
-	Url           string `protobuf:"bytes,13,opt,name=url,proto3" json:"url,omitempty"`
+	Url string `protobuf:"bytes,13,opt,name=url,proto3" json:"url,omitempty"`
+	// The photos' links, in order (the first is the cover), and the video:
+	// read from the product's detail, by CreateProduct, UpdateMedia, and
+	// ListProducts with media. media_read says they were.
+	Photos []string `protobuf:"bytes,14,rep,name=photos,proto3" json:"photos,omitempty"`
+	// Unset when the product has no video.
+	Video         *Video `protobuf:"bytes,15,opt,name=video,proto3" json:"video,omitempty"`
+	MediaRead     bool   `protobuf:"varint,16,opt,name=media_read,json=mediaRead,proto3" json:"media_read,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -322,6 +329,91 @@ func (x *Product) GetUrl() string {
 	return ""
 }
 
+func (x *Product) GetPhotos() []string {
+	if x != nil {
+		return x.Photos
+	}
+	return nil
+}
+
+func (x *Product) GetVideo() *Video {
+	if x != nil {
+		return x.Video
+	}
+	return nil
+}
+
+func (x *Product) GetMediaRead() bool {
+	if x != nil {
+		return x.MediaRead
+	}
+	return false
+}
+
+// Video is a product's video (Video Produk) as Seller Centre keeps it.
+type Video struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Seller Centre's id, "id-11110105-6vfes-mqyi4q5mk4xsf0".
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// How long it plays, in whole seconds.
+	DurationSeconds int32 `protobuf:"varint,2,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	// Its picture's link.
+	Cover         string `protobuf:"bytes,3,opt,name=cover,proto3" json:"cover,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Video) Reset() {
+	*x = Video{}
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Video) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Video) ProtoMessage() {}
+
+func (x *Video) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Video.ProtoReflect.Descriptor instead.
+func (*Video) Descriptor() ([]byte, []int) {
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Video) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Video) GetDurationSeconds() int32 {
+	if x != nil {
+		return x.DurationSeconds
+	}
+	return 0
+}
+
+func (x *Video) GetCover() string {
+	if x != nil {
+		return x.Cover
+	}
+	return ""
+}
+
 // Variation is a variation (Variasi) of a new product and its options, as
 // they are typed into the form: up to 2 variations, a name of up to 14
 // characters, options of up to 20.
@@ -335,7 +427,7 @@ type Variation struct {
 
 func (x *Variation) Reset() {
 	*x = Variation{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[3]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -347,7 +439,7 @@ func (x *Variation) String() string {
 func (*Variation) ProtoMessage() {}
 
 func (x *Variation) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[3]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -360,7 +452,7 @@ func (x *Variation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Variation.ProtoReflect.Descriptor instead.
 func (*Variation) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{3}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Variation) GetName() string {
@@ -394,7 +486,7 @@ type NewModel struct {
 
 func (x *NewModel) Reset() {
 	*x = NewModel{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[4]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +498,7 @@ func (x *NewModel) String() string {
 func (*NewModel) ProtoMessage() {}
 
 func (x *NewModel) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[4]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +511,7 @@ func (x *NewModel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NewModel.ProtoReflect.Descriptor instead.
 func (*NewModel) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{4}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *NewModel) GetOptions() []string {
@@ -462,7 +554,7 @@ type Dimensions struct {
 
 func (x *Dimensions) Reset() {
 	*x = Dimensions{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[5]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -474,7 +566,7 @@ func (x *Dimensions) String() string {
 func (*Dimensions) ProtoMessage() {}
 
 func (x *Dimensions) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[5]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,7 +579,7 @@ func (x *Dimensions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Dimensions.ProtoReflect.Descriptor instead.
 func (*Dimensions) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{5}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Dimensions) GetLength() int32 {
@@ -521,7 +613,7 @@ type GetStatusRequest struct {
 
 func (x *GetStatusRequest) Reset() {
 	*x = GetStatusRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[6]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -533,7 +625,7 @@ func (x *GetStatusRequest) String() string {
 func (*GetStatusRequest) ProtoMessage() {}
 
 func (x *GetStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[6]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -546,7 +638,7 @@ func (x *GetStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetStatusRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{6}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetStatusRequest) GetBrowser() string {
@@ -565,7 +657,7 @@ type GetStatusResponse struct {
 
 func (x *GetStatusResponse) Reset() {
 	*x = GetStatusResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[7]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -577,7 +669,7 @@ func (x *GetStatusResponse) String() string {
 func (*GetStatusResponse) ProtoMessage() {}
 
 func (x *GetStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[7]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -590,7 +682,7 @@ func (x *GetStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetStatusResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{7}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetStatusResponse) GetStatus() *Status {
@@ -611,14 +703,17 @@ type ListProductsRequest struct {
 	Limit uint32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Only products whose name, SKU, variation code or id holds this (the
 	// list's search box).
-	Search        string `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	Search string `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	// Also read each product's photos and video from its detail (one request
+	// a product).
+	Media         bool `protobuf:"varint,5,opt,name=media,proto3" json:"media,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListProductsRequest) Reset() {
 	*x = ListProductsRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[8]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -630,7 +725,7 @@ func (x *ListProductsRequest) String() string {
 func (*ListProductsRequest) ProtoMessage() {}
 
 func (x *ListProductsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[8]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -643,7 +738,7 @@ func (x *ListProductsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProductsRequest.ProtoReflect.Descriptor instead.
 func (*ListProductsRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{8}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListProductsRequest) GetBrowser() string {
@@ -674,6 +769,13 @@ func (x *ListProductsRequest) GetSearch() string {
 	return ""
 }
 
+func (x *ListProductsRequest) GetMedia() bool {
+	if x != nil {
+		return x.Media
+	}
+	return false
+}
+
 type ListProductsResponse struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Products []*Product             `protobuf:"bytes,1,rep,name=products,proto3" json:"products,omitempty"`
@@ -685,7 +787,7 @@ type ListProductsResponse struct {
 
 func (x *ListProductsResponse) Reset() {
 	*x = ListProductsResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[9]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -697,7 +799,7 @@ func (x *ListProductsResponse) String() string {
 func (*ListProductsResponse) ProtoMessage() {}
 
 func (x *ListProductsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[9]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -710,7 +812,7 @@ func (x *ListProductsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProductsResponse.ProtoReflect.Descriptor instead.
 func (*ListProductsResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{9}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListProductsResponse) GetProducts() []*Product {
@@ -777,14 +879,18 @@ type CreateProductRequest struct {
 	// archived (Simpan & Arsipkan, the default) or live (Simpan & Tampilkan).
 	Publish string `protobuf:"bytes,20,opt,name=publish,proto3" json:"publish,omitempty"`
 	// Do every step but the save, then leave the form: nothing is made.
-	Rehearse      bool `protobuf:"varint,21,opt,name=rehearse,proto3" json:"rehearse,omitempty"`
+	Rehearse bool `protobuf:"varint,21,opt,name=rehearse,proto3" json:"rehearse,omitempty"`
+	// Video Produk: an MP4 of 10 to 60 seconds and up to 30 MB, an absolute
+	// path. It is checked (format, size, length read from the file) before a
+	// tab opens. Empty: the file's video, or none.
+	Video         string `protobuf:"bytes,22,opt,name=video,proto3" json:"video,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateProductRequest) Reset() {
 	*x = CreateProductRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[10]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -796,7 +902,7 @@ func (x *CreateProductRequest) String() string {
 func (*CreateProductRequest) ProtoMessage() {}
 
 func (x *CreateProductRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[10]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -809,7 +915,7 @@ func (x *CreateProductRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProductRequest.ProtoReflect.Descriptor instead.
 func (*CreateProductRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{10}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CreateProductRequest) GetBrowser() string {
@@ -952,10 +1058,17 @@ func (x *CreateProductRequest) GetRehearse() bool {
 	return false
 }
 
+func (x *CreateProductRequest) GetVideo() string {
+	if x != nil {
+		return x.Video
+	}
+	return ""
+}
+
 type CreateProductResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The product as the shop lists it afterwards; with rehearse, only what
-	// the form held.
+	// The product as the shop lists it afterwards, with its photos and video;
+	// with rehearse, only what the form held.
 	Product *Product `protobuf:"bytes,1,opt,name=product,proto3" json:"product,omitempty"`
 	// What the form read before it was saved, line by line.
 	Form          []string `protobuf:"bytes,2,rep,name=form,proto3" json:"form,omitempty"`
@@ -965,7 +1078,7 @@ type CreateProductResponse struct {
 
 func (x *CreateProductResponse) Reset() {
 	*x = CreateProductResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[11]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -977,7 +1090,7 @@ func (x *CreateProductResponse) String() string {
 func (*CreateProductResponse) ProtoMessage() {}
 
 func (x *CreateProductResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[11]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -990,7 +1103,7 @@ func (x *CreateProductResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProductResponse.ProtoReflect.Descriptor instead.
 func (*CreateProductResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{11}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CreateProductResponse) GetProduct() *Product {
@@ -1007,6 +1120,161 @@ func (x *CreateProductResponse) GetForm() []string {
 	return nil
 }
 
+type UpdateMediaRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Browser string                 `protobuf:"bytes,1,opt,name=browser,proto3" json:"browser,omitempty"`
+	Id      int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	// The whole new gallery, absolute paths of 1 to 9 square jpg or png
+	// files of up to 2 MB, in order; the first is the cover. Empty keeps the
+	// product's photos.
+	Photos []string `protobuf:"bytes,3,rep,name=photos,proto3" json:"photos,omitempty"`
+	// A new video for Video Produk (an MP4 of 10 to 60 seconds and up to 30
+	// MB, an absolute path), in place of the product's. Empty keeps it.
+	Video string `protobuf:"bytes,4,opt,name=video,proto3" json:"video,omitempty"`
+	// Take the product's video away.
+	RemoveVideo bool `protobuf:"varint,5,opt,name=remove_video,json=removeVideo,proto3" json:"remove_video,omitempty"`
+	// Do every step but Update, then leave the page: nothing changes.
+	Rehearse      bool `protobuf:"varint,6,opt,name=rehearse,proto3" json:"rehearse,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateMediaRequest) Reset() {
+	*x = UpdateMediaRequest{}
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateMediaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateMediaRequest) ProtoMessage() {}
+
+func (x *UpdateMediaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateMediaRequest.ProtoReflect.Descriptor instead.
+func (*UpdateMediaRequest) Descriptor() ([]byte, []int) {
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *UpdateMediaRequest) GetBrowser() string {
+	if x != nil {
+		return x.Browser
+	}
+	return ""
+}
+
+func (x *UpdateMediaRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UpdateMediaRequest) GetPhotos() []string {
+	if x != nil {
+		return x.Photos
+	}
+	return nil
+}
+
+func (x *UpdateMediaRequest) GetVideo() string {
+	if x != nil {
+		return x.Video
+	}
+	return ""
+}
+
+func (x *UpdateMediaRequest) GetRemoveVideo() bool {
+	if x != nil {
+		return x.RemoveVideo
+	}
+	return false
+}
+
+func (x *UpdateMediaRequest) GetRehearse() bool {
+	if x != nil {
+		return x.Rehearse
+	}
+	return false
+}
+
+type UpdateMediaResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The product afterwards (as before, with rehearse), with its photos and
+	// video.
+	Product *Product `protobuf:"bytes,1,opt,name=product,proto3" json:"product,omitempty"`
+	// What the page read before Update, line by line.
+	Form []string `protobuf:"bytes,2,rep,name=form,proto3" json:"form,omitempty"`
+	// The product before, with its photos and video.
+	Before        *Product `protobuf:"bytes,3,opt,name=before,proto3" json:"before,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateMediaResponse) Reset() {
+	*x = UpdateMediaResponse{}
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateMediaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateMediaResponse) ProtoMessage() {}
+
+func (x *UpdateMediaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateMediaResponse.ProtoReflect.Descriptor instead.
+func (*UpdateMediaResponse) Descriptor() ([]byte, []int) {
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *UpdateMediaResponse) GetProduct() *Product {
+	if x != nil {
+		return x.Product
+	}
+	return nil
+}
+
+func (x *UpdateMediaResponse) GetForm() []string {
+	if x != nil {
+		return x.Form
+	}
+	return nil
+}
+
+func (x *UpdateMediaResponse) GetBefore() *Product {
+	if x != nil {
+		return x.Before
+	}
+	return nil
+}
+
 type DeleteProductRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Browser       string                 `protobuf:"bytes,1,opt,name=browser,proto3" json:"browser,omitempty"`
@@ -1017,7 +1285,7 @@ type DeleteProductRequest struct {
 
 func (x *DeleteProductRequest) Reset() {
 	*x = DeleteProductRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[12]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1029,7 +1297,7 @@ func (x *DeleteProductRequest) String() string {
 func (*DeleteProductRequest) ProtoMessage() {}
 
 func (x *DeleteProductRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[12]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1042,7 +1310,7 @@ func (x *DeleteProductRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProductRequest.ProtoReflect.Descriptor instead.
 func (*DeleteProductRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{12}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DeleteProductRequest) GetBrowser() string {
@@ -1069,7 +1337,7 @@ type DeleteProductResponse struct {
 
 func (x *DeleteProductResponse) Reset() {
 	*x = DeleteProductResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[13]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1081,7 +1349,7 @@ func (x *DeleteProductResponse) String() string {
 func (*DeleteProductResponse) ProtoMessage() {}
 
 func (x *DeleteProductResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[13]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1094,7 +1362,7 @@ func (x *DeleteProductResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProductResponse.ProtoReflect.Descriptor instead.
 func (*DeleteProductResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{13}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *DeleteProductResponse) GetProduct() *Product {
@@ -1114,7 +1382,7 @@ type PublishProductRequest struct {
 
 func (x *PublishProductRequest) Reset() {
 	*x = PublishProductRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[14]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1126,7 +1394,7 @@ func (x *PublishProductRequest) String() string {
 func (*PublishProductRequest) ProtoMessage() {}
 
 func (x *PublishProductRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[14]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1407,7 @@ func (x *PublishProductRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishProductRequest.ProtoReflect.Descriptor instead.
 func (*PublishProductRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{14}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PublishProductRequest) GetBrowser() string {
@@ -1165,7 +1433,7 @@ type PublishProductResponse struct {
 
 func (x *PublishProductResponse) Reset() {
 	*x = PublishProductResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[15]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1177,7 +1445,7 @@ func (x *PublishProductResponse) String() string {
 func (*PublishProductResponse) ProtoMessage() {}
 
 func (x *PublishProductResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[15]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1190,7 +1458,7 @@ func (x *PublishProductResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishProductResponse.ProtoReflect.Descriptor instead.
 func (*PublishProductResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{15}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *PublishProductResponse) GetProduct() *Product {
@@ -1210,7 +1478,7 @@ type ArchiveProductRequest struct {
 
 func (x *ArchiveProductRequest) Reset() {
 	*x = ArchiveProductRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[16]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1222,7 +1490,7 @@ func (x *ArchiveProductRequest) String() string {
 func (*ArchiveProductRequest) ProtoMessage() {}
 
 func (x *ArchiveProductRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[16]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1235,7 +1503,7 @@ func (x *ArchiveProductRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArchiveProductRequest.ProtoReflect.Descriptor instead.
 func (*ArchiveProductRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{16}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ArchiveProductRequest) GetBrowser() string {
@@ -1261,7 +1529,7 @@ type ArchiveProductResponse struct {
 
 func (x *ArchiveProductResponse) Reset() {
 	*x = ArchiveProductResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[17]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1273,7 +1541,7 @@ func (x *ArchiveProductResponse) String() string {
 func (*ArchiveProductResponse) ProtoMessage() {}
 
 func (x *ArchiveProductResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[17]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1286,7 +1554,7 @@ func (x *ArchiveProductResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArchiveProductResponse.ProtoReflect.Descriptor instead.
 func (*ArchiveProductResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{17}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ArchiveProductResponse) GetProduct() *Product {
@@ -1311,7 +1579,7 @@ type Boost struct {
 
 func (x *Boost) Reset() {
 	*x = Boost{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[18]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1323,7 +1591,7 @@ func (x *Boost) String() string {
 func (*Boost) ProtoMessage() {}
 
 func (x *Boost) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[18]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1336,7 +1604,7 @@ func (x *Boost) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Boost.ProtoReflect.Descriptor instead.
 func (*Boost) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{18}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *Boost) GetId() int64 {
@@ -1377,7 +1645,7 @@ type BoostProductRequest struct {
 
 func (x *BoostProductRequest) Reset() {
 	*x = BoostProductRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[19]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1389,7 +1657,7 @@ func (x *BoostProductRequest) String() string {
 func (*BoostProductRequest) ProtoMessage() {}
 
 func (x *BoostProductRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[19]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1402,7 +1670,7 @@ func (x *BoostProductRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BoostProductRequest.ProtoReflect.Descriptor instead.
 func (*BoostProductRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{19}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *BoostProductRequest) GetBrowser() string {
@@ -1431,7 +1699,7 @@ type BoostProductResponse struct {
 
 func (x *BoostProductResponse) Reset() {
 	*x = BoostProductResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[20]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1443,7 +1711,7 @@ func (x *BoostProductResponse) String() string {
 func (*BoostProductResponse) ProtoMessage() {}
 
 func (x *BoostProductResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[20]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1456,7 +1724,7 @@ func (x *BoostProductResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BoostProductResponse.ProtoReflect.Descriptor instead.
 func (*BoostProductResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{20}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *BoostProductResponse) GetBoost() *Boost {
@@ -1489,7 +1757,7 @@ type ListBoostedRequest struct {
 
 func (x *ListBoostedRequest) Reset() {
 	*x = ListBoostedRequest{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[21]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1501,7 +1769,7 @@ func (x *ListBoostedRequest) String() string {
 func (*ListBoostedRequest) ProtoMessage() {}
 
 func (x *ListBoostedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[21]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1514,7 +1782,7 @@ func (x *ListBoostedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBoostedRequest.ProtoReflect.Descriptor instead.
 func (*ListBoostedRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{21}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListBoostedRequest) GetBrowser() string {
@@ -1537,7 +1805,7 @@ type ListBoostedResponse struct {
 
 func (x *ListBoostedResponse) Reset() {
 	*x = ListBoostedResponse{}
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[22]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1549,7 +1817,7 @@ func (x *ListBoostedResponse) String() string {
 func (*ListBoostedResponse) ProtoMessage() {}
 
 func (x *ListBoostedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[22]
+	mi := &file_san_remote_shopee_v1_shopee_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1562,7 +1830,7 @@ func (x *ListBoostedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBoostedResponse.ProtoReflect.Descriptor instead.
 func (*ListBoostedResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{22}
+	return file_san_remote_shopee_v1_shopee_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListBoostedResponse) GetBoosts() []*Boost {
@@ -1608,7 +1876,7 @@ const file_san_remote_shopee_v1_shopee_proto_rawDesc = "" +
 	"\aoptions\x18\x02 \x03(\tR\aoptions\x12\x14\n" +
 	"\x05price\x18\x03 \x01(\x03R\x05price\x12\x14\n" +
 	"\x05stock\x18\x04 \x01(\x03R\x05stock\x12\x10\n" +
-	"\x03sku\x18\x05 \x01(\tR\x03sku\"\x84\x03\n" +
+	"\x03sku\x18\x05 \x01(\tR\x03sku\"\xee\x03\n" +
 	"\aProduct\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
@@ -1623,7 +1891,15 @@ const file_san_remote_shopee_v1_shopee_proto_rawDesc = "" +
 	" \x01(\tR\x05cover\x124\n" +
 	"\acreated\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\acreated\x124\n" +
 	"\aupdated\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\aupdated\x12\x10\n" +
-	"\x03url\x18\r \x01(\tR\x03url\"9\n" +
+	"\x03url\x18\r \x01(\tR\x03url\x12\x16\n" +
+	"\x06photos\x18\x0e \x03(\tR\x06photos\x121\n" +
+	"\x05video\x18\x0f \x01(\v2\x1b.san.remote.shopee.v1.VideoR\x05video\x12\x1d\n" +
+	"\n" +
+	"media_read\x18\x10 \x01(\bR\tmediaRead\"X\n" +
+	"\x05Video\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
+	"\x10duration_seconds\x18\x02 \x01(\x05R\x0fdurationSeconds\x12\x14\n" +
+	"\x05cover\x18\x03 \x01(\tR\x05cover\"9\n" +
 	"\tVariation\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aoptions\x18\x02 \x03(\tR\aoptions\"\x80\x01\n" +
@@ -1642,15 +1918,16 @@ const file_san_remote_shopee_v1_shopee_proto_rawDesc = "" +
 	"\x10GetStatusRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\"I\n" +
 	"\x11GetStatusResponse\x124\n" +
-	"\x06status\x18\x01 \x01(\v2\x1c.san.remote.shopee.v1.StatusR\x06status\"u\n" +
+	"\x06status\x18\x01 \x01(\v2\x1c.san.remote.shopee.v1.StatusR\x06status\"\x8b\x01\n" +
 	"\x13ListProductsRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x16\n" +
 	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\rR\x05limit\x12\x16\n" +
-	"\x06search\x18\x04 \x01(\tR\x06search\"g\n" +
+	"\x06search\x18\x04 \x01(\tR\x06search\x12\x14\n" +
+	"\x05media\x18\x05 \x01(\bR\x05media\"g\n" +
 	"\x14ListProductsResponse\x129\n" +
 	"\bproducts\x18\x01 \x03(\v2\x1d.san.remote.shopee.v1.ProductR\bproducts\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\rR\x05total\"\xaf\x06\n" +
+	"\x05total\x18\x02 \x01(\rR\x05total\"\xc5\x06\n" +
 	"\x14CreateProductRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x12\n" +
 	"\x04file\x18\x02 \x01(\tR\x04file\x12\x1a\n" +
@@ -1678,14 +1955,26 @@ const file_san_remote_shopee_v1_shopee_proto_rawDesc = "" +
 	"\bcouriers\x18\x12 \x03(\tR\bcouriers\x12'\n" +
 	"\x0fdangerous_goods\x18\x13 \x01(\bR\x0edangerousGoods\x12\x18\n" +
 	"\apublish\x18\x14 \x01(\tR\apublish\x12\x1a\n" +
-	"\brehearse\x18\x15 \x01(\bR\brehearse\x1a=\n" +
+	"\brehearse\x18\x15 \x01(\bR\brehearse\x12\x14\n" +
+	"\x05video\x18\x16 \x01(\tR\x05video\x1a=\n" +
 	"\x0fAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\b\n" +
 	"\x06_stockJ\x04\b\a\x10\b\"d\n" +
 	"\x15CreateProductResponse\x127\n" +
 	"\aproduct\x18\x01 \x01(\v2\x1d.san.remote.shopee.v1.ProductR\aproduct\x12\x12\n" +
-	"\x04form\x18\x02 \x03(\tR\x04form\"@\n" +
+	"\x04form\x18\x02 \x03(\tR\x04form\"\xab\x01\n" +
+	"\x12UpdateMediaRequest\x12\x18\n" +
+	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x03R\x02id\x12\x16\n" +
+	"\x06photos\x18\x03 \x03(\tR\x06photos\x12\x14\n" +
+	"\x05video\x18\x04 \x01(\tR\x05video\x12!\n" +
+	"\fremove_video\x18\x05 \x01(\bR\vremoveVideo\x12\x1a\n" +
+	"\brehearse\x18\x06 \x01(\bR\brehearse\"\x99\x01\n" +
+	"\x13UpdateMediaResponse\x127\n" +
+	"\aproduct\x18\x01 \x01(\v2\x1d.san.remote.shopee.v1.ProductR\aproduct\x12\x12\n" +
+	"\x04form\x18\x02 \x03(\tR\x04form\x125\n" +
+	"\x06before\x18\x03 \x01(\v2\x1d.san.remote.shopee.v1.ProductR\x06before\"@\n" +
 	"\x14DeleteProductRequest\x12\x18\n" +
 	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\x03R\x02id\"P\n" +
@@ -1723,11 +2012,12 @@ const file_san_remote_shopee_v1_shopee_proto_rawDesc = "" +
 	"slots_used\x18\x02 \x01(\rR\tslotsUsed\x12\x1f\n" +
 	"\vslots_total\x18\x03 \x01(\rR\n" +
 	"slotsTotal\x12)\n" +
-	"\x10cooldown_seconds\x18\x04 \x01(\x03R\x0fcooldownSeconds2\xcd\x06\n" +
+	"\x10cooldown_seconds\x18\x04 \x01(\x03R\x0fcooldownSeconds2\xb1\a\n" +
 	"\rShopeeService\x12\\\n" +
 	"\tGetStatus\x12&.san.remote.shopee.v1.GetStatusRequest\x1a'.san.remote.shopee.v1.GetStatusResponse\x12e\n" +
 	"\fListProducts\x12).san.remote.shopee.v1.ListProductsRequest\x1a*.san.remote.shopee.v1.ListProductsResponse\x12h\n" +
-	"\rCreateProduct\x12*.san.remote.shopee.v1.CreateProductRequest\x1a+.san.remote.shopee.v1.CreateProductResponse\x12h\n" +
+	"\rCreateProduct\x12*.san.remote.shopee.v1.CreateProductRequest\x1a+.san.remote.shopee.v1.CreateProductResponse\x12b\n" +
+	"\vUpdateMedia\x12(.san.remote.shopee.v1.UpdateMediaRequest\x1a).san.remote.shopee.v1.UpdateMediaResponse\x12h\n" +
 	"\rDeleteProduct\x12*.san.remote.shopee.v1.DeleteProductRequest\x1a+.san.remote.shopee.v1.DeleteProductResponse\x12k\n" +
 	"\x0ePublishProduct\x12+.san.remote.shopee.v1.PublishProductRequest\x1a,.san.remote.shopee.v1.PublishProductResponse\x12k\n" +
 	"\x0eArchiveProduct\x12+.san.remote.shopee.v1.ArchiveProductRequest\x1a,.san.remote.shopee.v1.ArchiveProductResponse\x12e\n" +
@@ -1747,72 +2037,80 @@ func file_san_remote_shopee_v1_shopee_proto_rawDescGZIP() []byte {
 	return file_san_remote_shopee_v1_shopee_proto_rawDescData
 }
 
-var file_san_remote_shopee_v1_shopee_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_san_remote_shopee_v1_shopee_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_san_remote_shopee_v1_shopee_proto_goTypes = []any{
 	(*Status)(nil),                 // 0: san.remote.shopee.v1.Status
 	(*Model)(nil),                  // 1: san.remote.shopee.v1.Model
 	(*Product)(nil),                // 2: san.remote.shopee.v1.Product
-	(*Variation)(nil),              // 3: san.remote.shopee.v1.Variation
-	(*NewModel)(nil),               // 4: san.remote.shopee.v1.NewModel
-	(*Dimensions)(nil),             // 5: san.remote.shopee.v1.Dimensions
-	(*GetStatusRequest)(nil),       // 6: san.remote.shopee.v1.GetStatusRequest
-	(*GetStatusResponse)(nil),      // 7: san.remote.shopee.v1.GetStatusResponse
-	(*ListProductsRequest)(nil),    // 8: san.remote.shopee.v1.ListProductsRequest
-	(*ListProductsResponse)(nil),   // 9: san.remote.shopee.v1.ListProductsResponse
-	(*CreateProductRequest)(nil),   // 10: san.remote.shopee.v1.CreateProductRequest
-	(*CreateProductResponse)(nil),  // 11: san.remote.shopee.v1.CreateProductResponse
-	(*DeleteProductRequest)(nil),   // 12: san.remote.shopee.v1.DeleteProductRequest
-	(*DeleteProductResponse)(nil),  // 13: san.remote.shopee.v1.DeleteProductResponse
-	(*PublishProductRequest)(nil),  // 14: san.remote.shopee.v1.PublishProductRequest
-	(*PublishProductResponse)(nil), // 15: san.remote.shopee.v1.PublishProductResponse
-	(*ArchiveProductRequest)(nil),  // 16: san.remote.shopee.v1.ArchiveProductRequest
-	(*ArchiveProductResponse)(nil), // 17: san.remote.shopee.v1.ArchiveProductResponse
-	(*Boost)(nil),                  // 18: san.remote.shopee.v1.Boost
-	(*BoostProductRequest)(nil),    // 19: san.remote.shopee.v1.BoostProductRequest
-	(*BoostProductResponse)(nil),   // 20: san.remote.shopee.v1.BoostProductResponse
-	(*ListBoostedRequest)(nil),     // 21: san.remote.shopee.v1.ListBoostedRequest
-	(*ListBoostedResponse)(nil),    // 22: san.remote.shopee.v1.ListBoostedResponse
-	nil,                            // 23: san.remote.shopee.v1.CreateProductRequest.AttributesEntry
-	(*timestamppb.Timestamp)(nil),  // 24: google.protobuf.Timestamp
+	(*Video)(nil),                  // 3: san.remote.shopee.v1.Video
+	(*Variation)(nil),              // 4: san.remote.shopee.v1.Variation
+	(*NewModel)(nil),               // 5: san.remote.shopee.v1.NewModel
+	(*Dimensions)(nil),             // 6: san.remote.shopee.v1.Dimensions
+	(*GetStatusRequest)(nil),       // 7: san.remote.shopee.v1.GetStatusRequest
+	(*GetStatusResponse)(nil),      // 8: san.remote.shopee.v1.GetStatusResponse
+	(*ListProductsRequest)(nil),    // 9: san.remote.shopee.v1.ListProductsRequest
+	(*ListProductsResponse)(nil),   // 10: san.remote.shopee.v1.ListProductsResponse
+	(*CreateProductRequest)(nil),   // 11: san.remote.shopee.v1.CreateProductRequest
+	(*CreateProductResponse)(nil),  // 12: san.remote.shopee.v1.CreateProductResponse
+	(*UpdateMediaRequest)(nil),     // 13: san.remote.shopee.v1.UpdateMediaRequest
+	(*UpdateMediaResponse)(nil),    // 14: san.remote.shopee.v1.UpdateMediaResponse
+	(*DeleteProductRequest)(nil),   // 15: san.remote.shopee.v1.DeleteProductRequest
+	(*DeleteProductResponse)(nil),  // 16: san.remote.shopee.v1.DeleteProductResponse
+	(*PublishProductRequest)(nil),  // 17: san.remote.shopee.v1.PublishProductRequest
+	(*PublishProductResponse)(nil), // 18: san.remote.shopee.v1.PublishProductResponse
+	(*ArchiveProductRequest)(nil),  // 19: san.remote.shopee.v1.ArchiveProductRequest
+	(*ArchiveProductResponse)(nil), // 20: san.remote.shopee.v1.ArchiveProductResponse
+	(*Boost)(nil),                  // 21: san.remote.shopee.v1.Boost
+	(*BoostProductRequest)(nil),    // 22: san.remote.shopee.v1.BoostProductRequest
+	(*BoostProductResponse)(nil),   // 23: san.remote.shopee.v1.BoostProductResponse
+	(*ListBoostedRequest)(nil),     // 24: san.remote.shopee.v1.ListBoostedRequest
+	(*ListBoostedResponse)(nil),    // 25: san.remote.shopee.v1.ListBoostedResponse
+	nil,                            // 26: san.remote.shopee.v1.CreateProductRequest.AttributesEntry
+	(*timestamppb.Timestamp)(nil),  // 27: google.protobuf.Timestamp
 }
 var file_san_remote_shopee_v1_shopee_proto_depIdxs = []int32{
 	1,  // 0: san.remote.shopee.v1.Product.models:type_name -> san.remote.shopee.v1.Model
-	24, // 1: san.remote.shopee.v1.Product.created:type_name -> google.protobuf.Timestamp
-	24, // 2: san.remote.shopee.v1.Product.updated:type_name -> google.protobuf.Timestamp
-	0,  // 3: san.remote.shopee.v1.GetStatusResponse.status:type_name -> san.remote.shopee.v1.Status
-	2,  // 4: san.remote.shopee.v1.ListProductsResponse.products:type_name -> san.remote.shopee.v1.Product
-	23, // 5: san.remote.shopee.v1.CreateProductRequest.attributes:type_name -> san.remote.shopee.v1.CreateProductRequest.AttributesEntry
-	3,  // 6: san.remote.shopee.v1.CreateProductRequest.variations:type_name -> san.remote.shopee.v1.Variation
-	4,  // 7: san.remote.shopee.v1.CreateProductRequest.models:type_name -> san.remote.shopee.v1.NewModel
-	5,  // 8: san.remote.shopee.v1.CreateProductRequest.dimensions:type_name -> san.remote.shopee.v1.Dimensions
-	2,  // 9: san.remote.shopee.v1.CreateProductResponse.product:type_name -> san.remote.shopee.v1.Product
-	2,  // 10: san.remote.shopee.v1.DeleteProductResponse.product:type_name -> san.remote.shopee.v1.Product
-	2,  // 11: san.remote.shopee.v1.PublishProductResponse.product:type_name -> san.remote.shopee.v1.Product
-	2,  // 12: san.remote.shopee.v1.ArchiveProductResponse.product:type_name -> san.remote.shopee.v1.Product
-	24, // 13: san.remote.shopee.v1.Boost.ends_at:type_name -> google.protobuf.Timestamp
-	18, // 14: san.remote.shopee.v1.BoostProductResponse.boost:type_name -> san.remote.shopee.v1.Boost
-	18, // 15: san.remote.shopee.v1.ListBoostedResponse.boosts:type_name -> san.remote.shopee.v1.Boost
-	6,  // 16: san.remote.shopee.v1.ShopeeService.GetStatus:input_type -> san.remote.shopee.v1.GetStatusRequest
-	8,  // 17: san.remote.shopee.v1.ShopeeService.ListProducts:input_type -> san.remote.shopee.v1.ListProductsRequest
-	10, // 18: san.remote.shopee.v1.ShopeeService.CreateProduct:input_type -> san.remote.shopee.v1.CreateProductRequest
-	12, // 19: san.remote.shopee.v1.ShopeeService.DeleteProduct:input_type -> san.remote.shopee.v1.DeleteProductRequest
-	14, // 20: san.remote.shopee.v1.ShopeeService.PublishProduct:input_type -> san.remote.shopee.v1.PublishProductRequest
-	16, // 21: san.remote.shopee.v1.ShopeeService.ArchiveProduct:input_type -> san.remote.shopee.v1.ArchiveProductRequest
-	19, // 22: san.remote.shopee.v1.ShopeeService.BoostProduct:input_type -> san.remote.shopee.v1.BoostProductRequest
-	21, // 23: san.remote.shopee.v1.ShopeeService.ListBoosted:input_type -> san.remote.shopee.v1.ListBoostedRequest
-	7,  // 24: san.remote.shopee.v1.ShopeeService.GetStatus:output_type -> san.remote.shopee.v1.GetStatusResponse
-	9,  // 25: san.remote.shopee.v1.ShopeeService.ListProducts:output_type -> san.remote.shopee.v1.ListProductsResponse
-	11, // 26: san.remote.shopee.v1.ShopeeService.CreateProduct:output_type -> san.remote.shopee.v1.CreateProductResponse
-	13, // 27: san.remote.shopee.v1.ShopeeService.DeleteProduct:output_type -> san.remote.shopee.v1.DeleteProductResponse
-	15, // 28: san.remote.shopee.v1.ShopeeService.PublishProduct:output_type -> san.remote.shopee.v1.PublishProductResponse
-	17, // 29: san.remote.shopee.v1.ShopeeService.ArchiveProduct:output_type -> san.remote.shopee.v1.ArchiveProductResponse
-	20, // 30: san.remote.shopee.v1.ShopeeService.BoostProduct:output_type -> san.remote.shopee.v1.BoostProductResponse
-	22, // 31: san.remote.shopee.v1.ShopeeService.ListBoosted:output_type -> san.remote.shopee.v1.ListBoostedResponse
-	24, // [24:32] is the sub-list for method output_type
-	16, // [16:24] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	27, // 1: san.remote.shopee.v1.Product.created:type_name -> google.protobuf.Timestamp
+	27, // 2: san.remote.shopee.v1.Product.updated:type_name -> google.protobuf.Timestamp
+	3,  // 3: san.remote.shopee.v1.Product.video:type_name -> san.remote.shopee.v1.Video
+	0,  // 4: san.remote.shopee.v1.GetStatusResponse.status:type_name -> san.remote.shopee.v1.Status
+	2,  // 5: san.remote.shopee.v1.ListProductsResponse.products:type_name -> san.remote.shopee.v1.Product
+	26, // 6: san.remote.shopee.v1.CreateProductRequest.attributes:type_name -> san.remote.shopee.v1.CreateProductRequest.AttributesEntry
+	4,  // 7: san.remote.shopee.v1.CreateProductRequest.variations:type_name -> san.remote.shopee.v1.Variation
+	5,  // 8: san.remote.shopee.v1.CreateProductRequest.models:type_name -> san.remote.shopee.v1.NewModel
+	6,  // 9: san.remote.shopee.v1.CreateProductRequest.dimensions:type_name -> san.remote.shopee.v1.Dimensions
+	2,  // 10: san.remote.shopee.v1.CreateProductResponse.product:type_name -> san.remote.shopee.v1.Product
+	2,  // 11: san.remote.shopee.v1.UpdateMediaResponse.product:type_name -> san.remote.shopee.v1.Product
+	2,  // 12: san.remote.shopee.v1.UpdateMediaResponse.before:type_name -> san.remote.shopee.v1.Product
+	2,  // 13: san.remote.shopee.v1.DeleteProductResponse.product:type_name -> san.remote.shopee.v1.Product
+	2,  // 14: san.remote.shopee.v1.PublishProductResponse.product:type_name -> san.remote.shopee.v1.Product
+	2,  // 15: san.remote.shopee.v1.ArchiveProductResponse.product:type_name -> san.remote.shopee.v1.Product
+	27, // 16: san.remote.shopee.v1.Boost.ends_at:type_name -> google.protobuf.Timestamp
+	21, // 17: san.remote.shopee.v1.BoostProductResponse.boost:type_name -> san.remote.shopee.v1.Boost
+	21, // 18: san.remote.shopee.v1.ListBoostedResponse.boosts:type_name -> san.remote.shopee.v1.Boost
+	7,  // 19: san.remote.shopee.v1.ShopeeService.GetStatus:input_type -> san.remote.shopee.v1.GetStatusRequest
+	9,  // 20: san.remote.shopee.v1.ShopeeService.ListProducts:input_type -> san.remote.shopee.v1.ListProductsRequest
+	11, // 21: san.remote.shopee.v1.ShopeeService.CreateProduct:input_type -> san.remote.shopee.v1.CreateProductRequest
+	13, // 22: san.remote.shopee.v1.ShopeeService.UpdateMedia:input_type -> san.remote.shopee.v1.UpdateMediaRequest
+	15, // 23: san.remote.shopee.v1.ShopeeService.DeleteProduct:input_type -> san.remote.shopee.v1.DeleteProductRequest
+	17, // 24: san.remote.shopee.v1.ShopeeService.PublishProduct:input_type -> san.remote.shopee.v1.PublishProductRequest
+	19, // 25: san.remote.shopee.v1.ShopeeService.ArchiveProduct:input_type -> san.remote.shopee.v1.ArchiveProductRequest
+	22, // 26: san.remote.shopee.v1.ShopeeService.BoostProduct:input_type -> san.remote.shopee.v1.BoostProductRequest
+	24, // 27: san.remote.shopee.v1.ShopeeService.ListBoosted:input_type -> san.remote.shopee.v1.ListBoostedRequest
+	8,  // 28: san.remote.shopee.v1.ShopeeService.GetStatus:output_type -> san.remote.shopee.v1.GetStatusResponse
+	10, // 29: san.remote.shopee.v1.ShopeeService.ListProducts:output_type -> san.remote.shopee.v1.ListProductsResponse
+	12, // 30: san.remote.shopee.v1.ShopeeService.CreateProduct:output_type -> san.remote.shopee.v1.CreateProductResponse
+	14, // 31: san.remote.shopee.v1.ShopeeService.UpdateMedia:output_type -> san.remote.shopee.v1.UpdateMediaResponse
+	16, // 32: san.remote.shopee.v1.ShopeeService.DeleteProduct:output_type -> san.remote.shopee.v1.DeleteProductResponse
+	18, // 33: san.remote.shopee.v1.ShopeeService.PublishProduct:output_type -> san.remote.shopee.v1.PublishProductResponse
+	20, // 34: san.remote.shopee.v1.ShopeeService.ArchiveProduct:output_type -> san.remote.shopee.v1.ArchiveProductResponse
+	23, // 35: san.remote.shopee.v1.ShopeeService.BoostProduct:output_type -> san.remote.shopee.v1.BoostProductResponse
+	25, // 36: san.remote.shopee.v1.ShopeeService.ListBoosted:output_type -> san.remote.shopee.v1.ListBoostedResponse
+	28, // [28:37] is the sub-list for method output_type
+	19, // [19:28] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_san_remote_shopee_v1_shopee_proto_init() }
@@ -1820,15 +2118,15 @@ func file_san_remote_shopee_v1_shopee_proto_init() {
 	if File_san_remote_shopee_v1_shopee_proto != nil {
 		return
 	}
-	file_san_remote_shopee_v1_shopee_proto_msgTypes[4].OneofWrappers = []any{}
-	file_san_remote_shopee_v1_shopee_proto_msgTypes[10].OneofWrappers = []any{}
+	file_san_remote_shopee_v1_shopee_proto_msgTypes[5].OneofWrappers = []any{}
+	file_san_remote_shopee_v1_shopee_proto_msgTypes[11].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_remote_shopee_v1_shopee_proto_rawDesc), len(file_san_remote_shopee_v1_shopee_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   24,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

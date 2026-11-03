@@ -448,9 +448,12 @@ type args struct {
 	Group    string `json:"group"`
 	User     string `json:"user"`
 	// shopee_*
-	Product string `json:"product"`
-	Filter  string `json:"filter"`
-	Publish string `json:"publish"`
+	Product     string   `json:"product"`
+	Filter      string   `json:"filter"`
+	Publish     string   `json:"publish"`
+	Photos      []string `json:"photos"`
+	RemoveVideo bool     `json:"remove_video"`
+	WithMedia   bool     `json:"with_media"`
 }
 
 // Call runs one tool and returns its content: text, or for

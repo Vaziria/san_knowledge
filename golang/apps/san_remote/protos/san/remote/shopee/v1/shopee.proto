@@ -17,14 +17,21 @@ service ShopeeService {
   // ListProducts lists the shop's products (Produk Saya), newest change
   // first, from one of its tabs.
   rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
-  // CreateProduct adds a product through Tambah Produk Baru: photos, name,
-  // category, attributes, description, variations with a price, stock and
-  // SKU each (or one price and stock), weight, couriers; then Simpan &
-  // Arsipkan (archived, the default) or Simpan & Tampilkan (live). The whole
-  // form is read back before the button is pressed, and the product is then
-  // read back from the shop's list. A tab is brought to the front for a
-  // minute or two.
+  // CreateProduct adds a product through Tambah Produk Baru: photos, a
+  // video, name, category, attributes, description, variations with a
+  // price, stock and SKU each (or one price and stock), weight, couriers;
+  // then Simpan & Arsipkan (archived, the default) or Simpan & Tampilkan
+  // (live). The whole form is read back before the button is pressed, and
+  // the product is then read back from the shop's list and its detail. A
+  // tab is brought to the front for a minute or two.
   rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+  // UpdateMedia replaces the photos and/or the video of a product the shop
+  // has, on its page in Seller Centre (/portal/product/<id>): only what is
+  // asked is touched, the page is read back, and only then is Update
+  // pressed, which keeps a live product live and an archived one archived.
+  // The product's detail is then read until it has the new photos and
+  // video. NotFound for an id the shop does not have.
+  rpc UpdateMedia(UpdateMediaRequest) returns (UpdateMediaResponse);
   // DeleteProduct deletes a product (Lainnya, Hapus, then Hapus when Seller
   // Centre asks). A live product is archived first, since Seller Centre
   // deletes only archived ones. It cannot be undone.
@@ -90,6 +97,23 @@ message Product {
   google.protobuf.Timestamp updated = 12;
   // Its page in Seller Centre, https://seller.shopee.co.id/portal/product/<id>.
   string url = 13;
+  // The photos' links, in order (the first is the cover), and the video:
+  // read from the product's detail, by CreateProduct, UpdateMedia, and
+  // ListProducts with media. media_read says they were.
+  repeated string photos = 14;
+  // Unset when the product has no video.
+  Video video = 15;
+  bool media_read = 16;
+}
+
+// Video is a product's video (Video Produk) as Seller Centre keeps it.
+message Video {
+  // Seller Centre's id, "id-11110105-6vfes-mqyi4q5mk4xsf0".
+  string id = 1;
+  // How long it plays, in whole seconds.
+  int32 duration_seconds = 2;
+  // Its picture's link.
+  string cover = 3;
 }
 
 // Variation is a variation (Variasi) of a new product and its options, as
@@ -139,6 +163,9 @@ message ListProductsRequest {
   // Only products whose name, SKU, variation code or id holds this (the
   // list's search box).
   string search = 4;
+  // Also read each product's photos and video from its detail (one request
+  // a product).
+  bool media = 5;
 }
 
 message ListProductsResponse {
@@ -199,14 +226,44 @@ message CreateProductRequest {
   string publish = 20;
   // Do every step but the save, then leave the form: nothing is made.
   bool rehearse = 21;
+  // Video Produk: an MP4 of 10 to 60 seconds and up to 30 MB, an absolute
+  // path. It is checked (format, size, length read from the file) before a
+  // tab opens. Empty: the file's video, or none.
+  string video = 22;
 }
 
 message CreateProductResponse {
-  // The product as the shop lists it afterwards; with rehearse, only what
-  // the form held.
+  // The product as the shop lists it afterwards, with its photos and video;
+  // with rehearse, only what the form held.
   Product product = 1;
   // What the form read before it was saved, line by line.
   repeated string form = 2;
+}
+
+message UpdateMediaRequest {
+  string browser = 1;
+  int64 id = 2;
+  // The whole new gallery, absolute paths of 1 to 9 square jpg or png
+  // files of up to 2 MB, in order; the first is the cover. Empty keeps the
+  // product's photos.
+  repeated string photos = 3;
+  // A new video for Video Produk (an MP4 of 10 to 60 seconds and up to 30
+  // MB, an absolute path), in place of the product's. Empty keeps it.
+  string video = 4;
+  // Take the product's video away.
+  bool remove_video = 5;
+  // Do every step but Update, then leave the page: nothing changes.
+  bool rehearse = 6;
+}
+
+message UpdateMediaResponse {
+  // The product afterwards (as before, with rehearse), with its photos and
+  // video.
+  Product product = 1;
+  // What the page read before Update, line by line.
+  repeated string form = 2;
+  // The product before, with its photos and video.
+  Product before = 3;
 }
 
 message DeleteProductRequest {

@@ -1,9 +1,11 @@
 // Package shopee works on the user's Shopee shop through Shopee Seller
 // Centre (seller.shopee.co.id) in the user's own browser, the way a person
 // does there: no Shopee Open Platform API. It adds a product with its
-// photos, category, attributes, description and variations (Tambah Produk
-// Baru), deletes, archives and shows products, bumps one to the top
-// (Naikkan Produk), and lists the products and the bumped ones.
+// photos, video, category, attributes, description and variations (Tambah
+// Produk Baru), replaces the photos and the video of a product it has
+// (its page in Seller Centre), deletes, archives and shows products, bumps
+// one to the top (Naikkan Produk), and lists the products and the bumped
+// ones.
 //
 // Seller Centre's interface is read in Indonesian (the account's language,
 // "id"): the steps press Lainnya, Hapus, Naikkan Produk, Simpan & Arsipkan.
@@ -76,6 +78,10 @@ const (
 	MaxStock       = 9_999_999
 	MaxWeight      = 1_000_000 // grams
 	MaxSKU         = 100
+	// Video Produk: "Size: Max 30MB", "Durasi: 10-60detik", "Format: MP4".
+	MaxVideoBytes = 30 << 20
+	MinVideo      = 10 * time.Second
+	MaxVideo      = 60 * time.Second
 )
 
 // photoTypes are what the tool hands Seller Centre's file inputs, by
@@ -83,6 +89,14 @@ const (
 var photoTypes = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}
 
 func photoType(name string) string { return photoTypes[strings.ToLower(filepath.Ext(name))] }
+
+// fileType is a photo's or a video's type, as the file inputs are given it.
+func fileType(name string) string {
+	if strings.EqualFold(filepath.Ext(name), ".mp4") {
+		return "video/mp4"
+	}
+	return photoType(name)
+}
 
 // Variation is a variation of a product (Variasi) and its options, in order.
 type Variation struct {
@@ -109,7 +123,10 @@ type New struct {
 	Description string
 	// Photos are files, in order. The first is the cover (Cover Produk):
 	// Seller Centre fills the cover with it and locks it there.
-	Photos   []string
+	Photos []string
+	// Video is an MP4 file of 10 to 60 seconds and up to 30 MB (Video
+	// Produk), or "" for none.
+	Video    string
 	Category []string
 	// Attributes by their names on the form, as typed or picked.
 	Attributes map[string]string
@@ -129,6 +146,92 @@ type New struct {
 	Live bool
 	// Rehearse does every step but Simpan.
 	Rehearse bool
+}
+
+// Media is what to change in the photos and the video of a product the
+// shop has (UpdateMedia), on its page in Seller Centre.
+type Media struct {
+	Browser string
+	ID      int64
+	// Photos are the whole new gallery, in order (1 to 9; the first is the
+	// cover, as Seller Centre locks it to photo 1); none keeps the photos.
+	Photos []string
+	// Video replaces the product's video, or adds one; "" keeps it.
+	Video string
+	// RemoveVideo takes the product's video away.
+	RemoveVideo bool
+	// Rehearse does every step but Update, and leaves the page unsaved.
+	Rehearse bool
+}
+
+// Check reports what Seller Centre would refuse, or what cannot be asked,
+// before any browser is opened.
+func (m *Media) Check() error {
+	bad := func(format string, a ...any) error {
+		return fmt.Errorf("%w: "+format, append([]any{ErrInvalid}, a...)...)
+	}
+	switch {
+	case m.ID <= 0:
+		return bad("no product id")
+	case len(m.Photos) == 0 && m.Video == "" && !m.RemoveVideo:
+		return bad("nothing to change: give the photos, a video, or remove the video")
+	case m.Video != "" && m.RemoveVideo:
+		return bad("give a video or remove the video, not both")
+	case len(m.Photos) > MaxPhotos:
+		return bad("%d photos; Seller Centre takes up to %d", len(m.Photos), MaxPhotos)
+	}
+	for _, p := range m.Photos {
+		if err := checkPhoto(p); err != nil {
+			return err
+		}
+	}
+	if m.Video != "" {
+		if _, err := CheckVideo(m.Video); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Summary is the change as it will be made, line by line, for --dry-run.
+func (m *Media) Summary() []string {
+	out := []string{fmt.Sprintf("product: %d", m.ID)}
+	if len(m.Photos) == 0 {
+		out = append(out, "photos: kept")
+	}
+	for i, p := range m.Photos {
+		out = append(out, fmt.Sprintf("photo %d: %s", i+1, p))
+	}
+	if len(m.Photos) > 0 {
+		out = append(out, "cover: photo 1 (Seller Centre's choice)")
+	}
+	switch {
+	case m.Video != "":
+		line := "video: " + m.Video
+		if d, err := MP4Duration(m.Video); err == nil {
+			line += fmt.Sprintf(" (%s)", d.Round(100*time.Millisecond))
+		}
+		out = append(out, line+", in place of the product's")
+	case m.RemoveVideo:
+		out = append(out, "video: taken away")
+	default:
+		out = append(out, "video: kept")
+	}
+	return append(out, "save: Update (the product stays live or archived as it is)")
+}
+
+// photoLink is a photo's or picture's link from its id in Seller Centre.
+func photoLink(id string) string {
+	if id == "" || strings.Contains(id, "://") {
+		return id
+	}
+	return "https://down-id.img.susercontent.com/file/" + id
+}
+
+// photoID is the id in a photo's link: the link's last part.
+func photoID(link string) string {
+	link, _, _ = strings.Cut(link, "?")
+	return link[strings.LastIndex(link, "/")+1:]
 }
 
 // Model is one row of the variations' table as it will be filled: a
@@ -155,6 +258,21 @@ type Product struct {
 	Cover    string
 	Created  time.Time
 	Updated  time.Time
+	// Photos are the photos' links, in order, and Video the product's
+	// video (nil for none): read from the product's own page (its detail),
+	// so only where MediaRead says they were read.
+	Photos    []string
+	Video     *Video
+	MediaRead bool
+}
+
+// Video is a product's video as Seller Centre keeps it.
+type Video struct {
+	// ID is Seller Centre's, "id-11110105-6vfes-mqyi4q5mk4xsf0".
+	ID       string
+	Duration time.Duration
+	// Cover is its picture's link.
+	Cover string
 }
 
 // URL is the product's page in Seller Centre.
@@ -200,6 +318,7 @@ type file struct {
 	Name       string            `yaml:"name"`
 	Category   yaml.Node         `yaml:"category"`
 	Photos     []string          `yaml:"photos"`
+	Video      string            `yaml:"video"`
 	Attributes map[string]string `yaml:"attributes"`
 	Variations []Variation       `yaml:"variations"`
 	Models     []NewModel        `yaml:"models"`
@@ -220,6 +339,7 @@ type file struct {
 //	name: Kaos Polos Katun
 //	category: Pakaian Pria > Atasan > Kaos
 //	photos: [photos/1.jpg, photos/2.jpg]
+//	video: photos/kaos.mp4
 //	attributes:
 //	  Merek: Tidak ada merek
 //	weight: 200
@@ -237,7 +357,7 @@ type file struct {
 //
 //	The description, as plain text.
 //
-// Photos are relative to the file.
+// Photos and the video are relative to the file.
 func ParseFile(path string) (*New, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -251,6 +371,7 @@ func ParseFile(path string) (*New, error) {
 	for i, p := range n.Photos {
 		n.Photos[i] = relTo(dir, p)
 	}
+	n.Video = relTo(dir, n.Video)
 	return n, nil
 }
 
@@ -262,7 +383,7 @@ func relTo(dir, p string) string {
 }
 
 // Parse reads a product from markdown, as ParseFile does, leaving its
-// photos as the frontmatter gives them.
+// photos and video as the frontmatter gives them.
 func Parse(md []byte) (*New, error) {
 	text := strings.ReplaceAll(string(md), "\r\n", "\n")
 	text = strings.TrimPrefix(text, string(rune(0xFEFF)))
@@ -282,7 +403,7 @@ func Parse(md []byte) (*New, error) {
 		text = body
 	}
 	n := &New{
-		Name: strings.TrimSpace(f.Name), Description: plaintext.From(text), Photos: f.Photos,
+		Name: strings.TrimSpace(f.Name), Description: plaintext.From(text), Photos: f.Photos, Video: strings.TrimSpace(f.Video),
 		Attributes: f.Attributes, Variations: f.Variations, Models: f.Models, Price: f.Price, Stock: f.Stock,
 		SKU: f.SKU, Weight: f.Weight, Couriers: f.Couriers, Dangerous: f.Dangerous,
 	}
@@ -417,6 +538,11 @@ func (n *New) Check() ([]Model, error) {
 			return nil, err
 		}
 	}
+	if n.Video != "" {
+		if _, err := CheckVideo(n.Video); err != nil {
+			return nil, err
+		}
+	}
 	if len(n.Category) == 0 {
 		return nil, bad("no category: give its path as the picker names it, such as \"Komputer & Aksesoris > Software\"")
 	}
@@ -511,6 +637,34 @@ func checkPhoto(path string) error {
 		return fmt.Errorf("%w: %s is %dx%d; give a square photo (1:1, such as 1024x1024)", ErrInvalid, path, c.Width, c.Height)
 	}
 	return nil
+}
+
+// CheckVideo checks a video is one Video Produk takes: an MP4 of up to 30
+// MB that plays 10 to 60 seconds (Seller Centre opens a longer one in a
+// trimmer the tool does not drive). It returns how long it plays, read
+// from the file's own boxes.
+func CheckVideo(path string) (time.Duration, error) {
+	if !strings.EqualFold(filepath.Ext(path), ".mp4") {
+		return 0, fmt.Errorf("%w: %s is not an .mp4; Video Produk takes MP4 only", ErrInvalid, path)
+	}
+	fi, err := os.Stat(path)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %v", ErrInvalid, err)
+	}
+	if !fi.Mode().IsRegular() {
+		return 0, fmt.Errorf("%w: %s is not a file", ErrInvalid, path)
+	}
+	if fi.Size() > MaxVideoBytes {
+		return 0, fmt.Errorf("%w: %s is %.1f MB; Video Produk takes up to 30 MB", ErrInvalid, path, float64(fi.Size())/(1<<20))
+	}
+	d, err := MP4Duration(path)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %s: %v", ErrInvalid, path, err)
+	}
+	if d < MinVideo || d > MaxVideo {
+		return d, fmt.Errorf("%w: %s plays %s; Video Produk takes 10 to 60 seconds", ErrInvalid, path, d)
+	}
+	return d, nil
 }
 
 // models checks the variations and works out every combination's model.
@@ -642,6 +796,13 @@ func (n *New) Summary(models []Model) []string {
 		out = append(out, fmt.Sprintf("photo %d: %s", i+1, p))
 	}
 	out = append(out, "cover: photo 1 (Seller Centre's choice)")
+	if n.Video != "" {
+		line := "video: " + n.Video
+		if d, err := MP4Duration(n.Video); err == nil {
+			line += fmt.Sprintf(" (%s)", d.Round(100*time.Millisecond))
+		}
+		out = append(out, line)
+	}
 	for _, k := range sortedKeys(n.Attributes) {
 		out = append(out, fmt.Sprintf("attribute %s: %s", k, n.Attributes[k]))
 	}

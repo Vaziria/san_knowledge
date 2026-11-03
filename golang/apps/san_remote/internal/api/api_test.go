@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/binary"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -147,6 +148,24 @@ func TestRefused(t *testing.T) {
 		t.Fatal(err)
 	}
 	one := int64(1)
+	// An MP4 of 15 s and one of 5 s: only their boxes.
+	mp4 := func(name string, seconds uint32) string {
+		mvhd := append(append([]byte{0, 0, 0, 0}, make([]byte, 8)...), 0, 0, 0x03, 0xe8)
+		mvhd = binary.BigEndian.AppendUint32(mvhd, seconds*1000)
+		mvhd = append(mvhd, make([]byte, 80)...)
+		box := func(kind string, body []byte) []byte {
+			return append(append(binary.BigEndian.AppendUint32(nil, uint32(8+len(body))), kind...), body...)
+		}
+		path := filepath.Join(dir, name)
+		if err := os.WriteFile(path, append(box("ftyp", []byte("isom\x00\x00\x02\x00isom")), box("moov", box("mvhd", mvhd))...), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	goodVideo, shortVideo := mp4("good.mp4", 15), mp4("short.mp4", 5)
+	media := func(r *shopeev1.UpdateMediaRequest) *connect.Request[shopeev1.UpdateMediaRequest] {
+		return connect.NewRequest(r)
+	}
 	product := func(change func(*shopeev1.CreateProductRequest)) *connect.Request[shopeev1.CreateProductRequest] {
 		r := &shopeev1.CreateProductRequest{
 			Name: "TES", Description: "Uji.", Photos: []string{square}, Category: []string{"Komputer & Aksesoris", "Software"},
@@ -202,11 +221,20 @@ func TestRefused(t *testing.T) {
 		"shopee long option": second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) {
 			r.Variations = []*shopeev1.Variation{{Name: "Warna", Options: []string{"Merah marun tua sekali ya"}}}
 		}))),
-		"shopee bad publish":   second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Publish = "now" }))),
-		"shopee relative file": second(sp.CreateProduct(ctx, connect.NewRequest(&shopeev1.CreateProductRequest{File: "p.md"}))),
-		"shopee no id":         second(sp.DeleteProduct(ctx, connect.NewRequest(&shopeev1.DeleteProductRequest{}))),
-		"shopee boost no id":   second(sp.BoostProduct(ctx, connect.NewRequest(&shopeev1.BoostProductRequest{}))),
-		"shopee bad filter":    second(sp.ListProducts(ctx, connect.NewRequest(&shopeev1.ListProductsRequest{Filter: "sold"}))),
+		"shopee bad publish":      second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Publish = "now" }))),
+		"shopee relative file":    second(sp.CreateProduct(ctx, connect.NewRequest(&shopeev1.CreateProductRequest{File: "p.md"}))),
+		"shopee no id":            second(sp.DeleteProduct(ctx, connect.NewRequest(&shopeev1.DeleteProductRequest{}))),
+		"shopee boost no id":      second(sp.BoostProduct(ctx, connect.NewRequest(&shopeev1.BoostProductRequest{}))),
+		"shopee bad filter":       second(sp.ListProducts(ctx, connect.NewRequest(&shopeev1.ListProductsRequest{Filter: "sold"}))),
+		"shopee short video":      second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Video = shortVideo }))),
+		"shopee relative video":   second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Video = "good.mp4" }))),
+		"shopee media no id":      second(sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Photos: []string{square}}))),
+		"shopee media nothing":    second(sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Id: 1}))),
+		"shopee media relative":   second(sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Id: 1, Photos: []string{"sq.png"}}))),
+		"shopee media rel video":  second(sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Id: 1, Video: "good.mp4"}))),
+		"shopee media not square": second(sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Id: 1, Photos: []string{photo}}))),
+		"shopee media short":      second(sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Id: 1, Video: shortVideo}))),
+		"shopee media both":       second(sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Id: 1, Video: goodVideo, RemoveVideo: true}))),
 	} {
 		if connect.CodeOf(err) != connect.CodeInvalidArgument {
 			t.Errorf("%s: %v", name, err)
@@ -226,9 +254,15 @@ func TestRefused(t *testing.T) {
 	if _, err := ig.CreatePost(ctx, connect.NewRequest(&instagramv1.CreatePostRequest{Media: photos, At: soon})); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Errorf("instagram too soon: %v", err)
 	}
-	// A valid product gets as far as the browser.
+	// A valid product gets as far as the browser, with a video too.
 	if _, err := sp.CreateProduct(ctx, product(func(*shopeev1.CreateProductRequest) {})); err == nil || connect.CodeOf(err) == connect.CodeInvalidArgument {
 		t.Errorf("shopee, a valid product: %v", err)
+	}
+	if _, err := sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Video = goodVideo })); err == nil || connect.CodeOf(err) == connect.CodeInvalidArgument {
+		t.Errorf("shopee, a valid product with a video: %v", err)
+	}
+	if _, err := sp.UpdateMedia(ctx, media(&shopeev1.UpdateMediaRequest{Id: 1, Photos: []string{square}, Video: goodVideo})); err == nil || connect.CodeOf(err) == connect.CodeInvalidArgument {
+		t.Errorf("shopee, valid media: %v", err)
 	}
 	// A video without at is not refused: it is saved as Private, so it gets
 	// as far as the browser.

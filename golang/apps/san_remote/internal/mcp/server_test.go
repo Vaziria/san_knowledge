@@ -31,6 +31,8 @@ func TestServe(t *testing.T) {
 		`{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"remote_screenshot","arguments":{}}}`,
 		`{"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"threads_post","arguments":{"text":"halo"}}}`,
 		`{"jsonrpc":"2.0","id":10,"method":"tools/call","params":{"name":"threads_post","arguments":{"text":"halo","at":"2020-01-01 09:00"}}}`,
+		`{"jsonrpc":"2.0","id":11,"method":"tools/call","params":{"name":"shopee_media","arguments":{"product":"49871140785"}}}`,
+		`{"jsonrpc":"2.0","id":12,"method":"tools/call","params":{"name":"shopee_media","arguments":{"product":"49871140785","video":"C:/v.mp4","remove_video":true}}}`,
 	}, "\n")
 	var out bytes.Buffer
 	if err := s.Serve(context.Background(), strings.NewReader(in), &out); err != nil {
@@ -44,14 +46,14 @@ func TestServe(t *testing.T) {
 		}
 		replies = append(replies, m)
 	}
-	if len(replies) != 10 {
-		t.Fatalf("%d replies, want 10 (no reply to the notification)", len(replies))
+	if len(replies) != 12 {
+		t.Fatalf("%d replies, want 12 (no reply to the notification)", len(replies))
 	}
 	init := replies[0]["result"].(map[string]any)
 	if init["protocolVersion"] != "2025-03-26" || !strings.Contains(init["instructions"].(string), "remote_exec") {
 		t.Errorf("initialize %v", init)
 	}
-	if n := len(replies[1]["result"].(map[string]any)["tools"].([]any)); n != 83 {
+	if n := len(replies[1]["result"].(map[string]any)["tools"].([]any)); n != 84 {
 		t.Errorf("%d tools", n)
 	}
 	text := func(i int) (string, bool) {
@@ -84,6 +86,13 @@ func TestServe(t *testing.T) {
 	}
 	if txt, isErr := text(9); !isErr || !strings.Contains(txt, "too soon") {
 		t.Errorf("post in the past: %v %s", isErr, txt)
+	}
+	// shopee_media checks what it is asked before a browser opens.
+	if txt, isErr := text(10); !isErr || !strings.Contains(txt, "nothing to change") {
+		t.Errorf("media, nothing asked: %v %s", isErr, txt)
+	}
+	if txt, isErr := text(11); !isErr || !strings.Contains(txt, "not both") {
+		t.Errorf("media, a video and none: %v %s", isErr, txt)
 	}
 }
 

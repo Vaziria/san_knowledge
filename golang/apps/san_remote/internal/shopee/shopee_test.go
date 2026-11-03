@@ -436,7 +436,7 @@ func TestScript(t *testing.T) {
 		seen[m[1]] = true
 	}
 	called := regexp.MustCompile(`(?:Call|CallFor|Do|do|Press)\(ctx, (?:[^,]+, )?(?:&?\w+(?:\.\w+)?, )?"(\w+)"`)
-	for _, f := range []string{"service.go", "create.go"} {
+	for f, least := range map[string]int{"service.go": 10, "create.go": 10, "media.go": 8} {
 		b, err := os.ReadFile(f)
 		if err != nil {
 			t.Fatal(err)
@@ -448,8 +448,14 @@ func TestScript(t *testing.T) {
 				t.Errorf("%s calls %s, which shopee.js does not have", f, m[1])
 			}
 		}
-		if n < 10 {
+		if n < least {
 			t.Errorf("%s: found only %d calls; the pattern no longer matches", f, n)
+		}
+	}
+	// mediaView calls these by name from a list.
+	for _, fn := range []string{"name", "cover", "video", "errors", "gallery", "detail", "pressRemoveVideo", "pressDeletePhoto", "editButtons", "pressEditButton"} {
+		if !seen[fn] {
+			t.Errorf("shopee.js has no %s", fn)
 		}
 	}
 }

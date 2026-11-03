@@ -28,7 +28,7 @@ func (s shopeeAPI) ListProducts(ctx context.Context, req *connect.Request[shopee
 	if _, ok := shopee.Filters[strings.ToLower(strings.TrimSpace(req.Msg.Filter))]; !ok && strings.TrimSpace(req.Msg.Filter) != "" {
 		return nil, invalid("filter %q: give all, live, archived, review, violation or draft", req.Msg.Filter)
 	}
-	list, total, err := s.a.Shopee.Products(ctx, req.Msg.Browser, req.Msg.Filter, int(req.Msg.Limit), req.Msg.Search)
+	list, total, err := s.a.Shopee.Products(ctx, req.Msg.Browser, req.Msg.Filter, int(req.Msg.Limit), req.Msg.Search, req.Msg.Media)
 	if err != nil {
 		return nil, s.a.fail(err)
 	}
@@ -58,6 +58,31 @@ func (s shopeeAPI) CreateProduct(ctx context.Context, req *connect.Request[shope
 		return nil, s.a.fail(err)
 	}
 	return reply(&shopeev1.CreateProductResponse{Product: shopeeProduct(&c.Product), Form: c.Form}, nil)
+}
+
+// UpdateMedia checks the photos and the video before a tab opens.
+func (s shopeeAPI) UpdateMedia(ctx context.Context, req *connect.Request[shopeev1.UpdateMediaRequest]) (*connect.Response[shopeev1.UpdateMediaResponse], error) {
+	m := req.Msg
+	if m.Id <= 0 {
+		return nil, invalid("id is required")
+	}
+	if err := absoluteAll("photo", m.Photos); err != nil {
+		return nil, err
+	}
+	if v := strings.TrimSpace(m.Video); v != "" {
+		if err := absolute("video", v); err != nil {
+			return nil, err
+		}
+	}
+	md := shopee.Media{Browser: m.Browser, ID: m.Id, Photos: m.Photos, Video: strings.TrimSpace(m.Video), RemoveVideo: m.RemoveVideo, Rehearse: m.Rehearse}
+	if err := md.Check(); err != nil {
+		return nil, s.a.fail(err)
+	}
+	u, err := s.a.Shopee.UpdateMedia(ctx, md)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&shopeev1.UpdateMediaResponse{Product: shopeeProduct(&u.Product), Form: u.Form, Before: shopeeProduct(&u.Before)}, nil)
 }
 
 func (s shopeeAPI) DeleteProduct(ctx context.Context, req *connect.Request[shopeev1.DeleteProductRequest]) (*connect.Response[shopeev1.DeleteProductResponse], error) {
@@ -155,6 +180,16 @@ func shopeeNewOf(m *shopeev1.CreateProductRequest) (*shopee.New, error) {
 		}
 		n.Photos = m.Photos
 	}
+	if v := strings.TrimSpace(m.Video); v != "" {
+		if err := absolute("video", v); err != nil {
+			return nil, err
+		}
+		n.Video = v
+	} else if md != "" && n.Video != "" {
+		if err := absoluteIn("video", n.Video); err != nil {
+			return nil, err
+		}
+	}
 	if len(m.Category) > 0 {
 		n.Category = shopee.SplitCategory(strings.Join(m.Category, ">"))
 	}
@@ -228,6 +263,10 @@ func shopeeProduct(p *shopee.Product) *shopeev1.Product {
 	out := &shopeev1.Product{
 		Id: p.ID, Name: p.Name, Status: p.Status, PriceMin: p.PriceMin, PriceMax: p.PriceMax, Stock: p.Stock, Sold: p.Sold,
 		Sku: p.SKU, Cover: p.Cover, Created: stamp(p.Created), Updated: stamp(p.Updated),
+		Photos: p.Photos, MediaRead: p.MediaRead,
+	}
+	if v := p.Video; v != nil {
+		out.Video = &shopeev1.Video{Id: v.ID, DurationSeconds: int32(v.Duration.Seconds()), Cover: v.Cover}
 	}
 	if p.ID != 0 {
 		out.Url = p.URL()

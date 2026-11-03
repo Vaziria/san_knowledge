@@ -201,8 +201,9 @@ rebuilding, reconnect with `/mcp`.
 | `telegram_delete_group` | group (id or title), browser |
 | `telegram_add_member`, `telegram_remove_member` | group, user (username), browser |
 | `shopee_status`, `shopee_boosted` | browser |
-| `shopee_products` | filter (all, live, archived, review, violation, draft), search, limit, browser |
-| `shopee_upload` | file (a product file); publish (archived, live), rehearse, browser |
+| `shopee_products` | filter (all, live, archived, review, violation, draft), search, limit, with_media, browser |
+| `shopee_upload` | file (a product file, with an optional video); publish (archived, live), rehearse, browser |
+| `shopee_media` | product (id or link); photos (absolute paths, the whole gallery), video (an absolute path), remove_video, rehearse, browser |
 | `shopee_publish`, `shopee_archive`, `shopee_boost`, `shopee_delete` | product (id or link), browser |
 | `chatgpt_status` | browser |
 | `chatgpt_ask` | prompt; keep, chat, wait_seconds, browser |
@@ -226,8 +227,9 @@ instagram.com cannot schedule, so to use `now` only for a post you asked to
 publish now. For Telegram
 they say the bot token is a secret not to repeat in chat, and to ask before
 a delete, a removal or adding someone to a group. For Shopee they say to
-upload, make live, bump or delete only the products you named, that an
-upload is saved archived unless it is live, and to ask before a delete.
+upload, make live, bump, change or delete only the products you named, that an
+upload is saved archived unless it is live, that a change of photos or
+video keeps the product live or archived, and to ask before a delete.
 For ChatGPT
 and Gemini they say a new chat is a Temporary chat unless `keep` is set, and
 for Claude an incognito chat.
@@ -258,7 +260,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.instagram.v1.InstagramService` | GetStatus, CreatePost (photos, a carousel or a Reel by absolute paths, with alt text; the caption, or a markdown file or text; `at` schedules it in Business Suite, `now` shares it at once), ListPosts (the profile's latest, `limit`), ListScheduled (Business Suite's Dijadwalkan), DeletePost (by link or code), DeleteScheduled (by caption and/or `at`; one must match) |
 | `san.remote.youtube.v1.YouTubeService` | GetStatus, UploadVideo (an absolute video file; scheduled, or saved as Private; `short`), ListVideos, DeleteVideo (never a Public one unless `allow_public`), MakePrivate |
 | `san.remote.telegram.v1.TelegramService` | GetStatus, CreateBot (through @BotFather; the bot with its token), DeleteBot, CreateGroup (the group's id), DeleteGroup, AddMember, RemoveMember (a group by id or title, a user by username) |
-| `san.remote.shopee.v1.ShopeeService` | GetStatus, ListProducts (a tab of Produk Saya, `search`, `limit`; each product with its models), CreateProduct (a product file by absolute path, its markdown, or the fields: photos by absolute paths, category path, attributes, up to 2 variations with a price, stock and SKU per combination; archived unless `publish` live; `rehearse`), PublishProduct, ArchiveProduct, BoostProduct (Naikkan Produk; FailedPrecondition when not live, on its cooldown or all 5 slots in use), ListBoosted, DeleteProduct (a live one is archived first) |
+| `san.remote.shopee.v1.ShopeeService` | GetStatus, ListProducts (a tab of Produk Saya, `search`, `limit`; each product with its models; `media` adds its photos and video), CreateProduct (a product file by absolute path, its markdown, or the fields: photos by absolute paths, an optional `video` (MP4, 10-60 s, up to 30 MB), category path, attributes, up to 2 variations with a price, stock and SKU per combination; archived unless `publish` live; `rehearse`), UpdateMedia (a product's `photos`, the whole new gallery, and/or its `video`, or `remove_video`; saved with Update, which keeps it live or archived; `rehearse`), PublishProduct, ArchiveProduct, BoostProduct (Naikkan Produk; FailedPrecondition when not live, on its cooldown or all 5 slots in use), ListBoosted, DeleteProduct (a live one is archived first) |
 | `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
@@ -1205,22 +1207,45 @@ the page knowledge in `shopee.js`, found in your signed-in Seller Centre:
 - **products** lists Produk Saya: one of its tabs (`--filter all`, `live`,
   `archived`, `review`, `violation`, `draft`), `--search` as the list's
   search box (name, SKU, variation code, id), `--models` with each model
-  (options, price, stock, SKU). It reads the list's own endpoint
+  (options, price, stock, SKU), `--media` with each product's photos and
+  video (read from each product's detail, `/api/v3/product/get_product_info`:
+  one request a product). It reads the list's own endpoint
   (`/api/v3/opt/mpsku/list/v2/get_product_list`, 48 a page) from the page,
   in a background tab.
 - **upload** adds a product through Tambah Produk Baru from a product file
   (below), as a person fills the form: the photos (Seller Centre opens them
   in Pembuat Foto AI, whose "Terapkan ke Produk (N)" puts them in the
   form), the name, Selanjutnya; the category in Ubah Kategori, level by
-  level; the attributes (Spesifikasi), typed or picked from their lists;
+  level; the video (Video Produk, below); the attributes (Spesifikasi),
+  typed or picked from their lists;
   the description; Aktifkan Variasi, each variation's name and options,
   and the table's price, stock and Kode Variasi per row (or one price and
   stock); the weight and parcel size, Produk Berbahaya, the couriers. Then
   the whole form is read back, and only when it reads as given is **Simpan
   & Arsipkan** pressed (archived, the default) or, with `publish: live`,
   **Simpan & Tampilkan**. The product is then found in Produk Saya and its
-  models compared with the file's. `--rehearse` does every step but Simpan
+  models compared with the file's, and its detail read until it has the
+  form's video. `--rehearse` does every step but Simpan
   and prints what the form read; `--dry-run` only prints the product.
+- **media** replaces the photos and/or the video of a product the shop has,
+  on its own page (`/portal/product/<id>`): `--photo FILE` (repeated, in
+  order) is the whole new gallery, 1 to 9, the first the cover; `--video
+  FILE` replaces the video (or adds one); `--remove-video` takes it away.
+  What is not given is not touched. The page must first read as the
+  product's detail does; the old photos after the first are deleted (the
+  photo's menu, Delete), the new ones added through Pembuat Foto AI, then
+  the old first one deleted (Seller Centre keeps at least one photo, and
+  makes the new first photo the cover); the old video is deleted (its
+  delete icon, at once, no question) before the new one is given. The page
+  is read back (the photos as added, in order, the cover photo 1, the
+  video taken or gone, no error) and only then is **Update** pressed: the
+  page's button that keeps the product as it is, live or archived
+  (Tampilkan or Arsipkan, beside it, would change that, and a page without
+  Update is refused). The product's detail is then read until it has the
+  page's photos and video, and the list until it reads as visible as
+  before. `--rehearse` does every step but Update; `--dry-run` checks the
+  files and prints the change. Replacing one photo in place is not offered:
+  give the whole gallery.
 - **publish** shows an archived product (Lainnya, Tampilkan); **archive**
   hides a live one (Lainnya, Arsipkan, Konfirmasi).
 - **boost** bumps a live product (Lainnya, **Naikkan Produk**). Seller
@@ -1238,10 +1263,13 @@ the page knowledge in `shopee.js`, found in your signed-in Seller Centre:
 ```powershell
 bin\san_remote.exe shopee status                         # signed in as getresolved.id (shop Get Resolved ID, id 77987996)
 bin\san_remote.exe shopee products --filter live --models
-bin\san_remote.exe shopee products --search 57614536675
+bin\san_remote.exe shopee products --search 57614536675 --media   # with its photos and video
 bin\san_remote.exe shopee upload --dry-run product.md    # the product as it will be made
 bin\san_remote.exe shopee upload --rehearse product.md   # fill and check the form; save nothing
 bin\san_remote.exe shopee upload product.md              # archived; --publish live to show it at once
+bin\san_remote.exe shopee media 49871140785 --photo b1.jpg --photo b2.jpg --photo b3.jpg --video tes2.mp4 --rehearse
+bin\san_remote.exe shopee media 49871140785 --photo b1.jpg --photo b2.jpg --photo b3.jpg --video tes2.mp4
+bin\san_remote.exe shopee media 49871140785 --remove-video
 bin\san_remote.exe shopee publish 55071063221
 bin\san_remote.exe shopee boost 55071063221              # bumped ... until Tue 3 Nov 2026 06:11:11 +07; 2 of 5 slots in use
 bin\san_remote.exe shopee boosted
@@ -1258,6 +1286,7 @@ to 3000 characters):
 name: Kaos Polos Katun Combed 30s          # up to 255 characters
 category: Pakaian Pria > Atasan > Kaos      # as the picker names it, down to a category with no subcategories
 photos: [kaos-1.jpg, kaos-2.jpg]            # 1 to 9, square jpg/png up to 2 MB, relative to this file; the first is the cover
+video: kaos.mp4                             # optional: Video Produk, an MP4 of 10 to 60 seconds and up to 30 MB, relative to this file
 attributes:                                 # Spesifikasi, by their names on the form
   Merek: Tidak ada merek
 price: 75000                                # rupiah, 99 to 150.000.000: the product's, or the variations' default
@@ -1286,8 +1315,22 @@ Adem dan nyaman dipakai sehari-hari.
 
 - Everything in the file is checked before a tab opens: the photos (format,
   size, square, since Seller Centre's photos are 1:1 and another shape
-  opens a cropper), the lengths, the price range, every model naming one
-  option of each variation, no combination or SKU twice.
+  opens a cropper), the video (below), the lengths, the price range, every
+  model naming one option of each variation, no combination or SKU twice.
+- **Video Produk** ("Size: Max 30MB, resolution should not less than 1x1px
+  | Durasi: 10-60detik | Format: MP4") takes one video. The tool checks the
+  extension, the size, and how long it plays, read from the file's own
+  boxes (`moov/mvhd`, version 0 or 1, or `mvex/mehd` for a fragmented
+  file; no ffprobe), so a 5-second video is refused before a tab opens.
+  Seller Centre opens a given video in **Edit Video**, a trimmer ("15
+  detik ditentukan"), where Konfirmasi keeps it whole (a video over 60 s
+  would have to be trimmed there, which the tool does not do); it then
+  uploads it (a percentage, which reads 101% at the end) and processes it
+  ("Diproses"), then shows its cover and length. The form is saved once
+  the video is ready, or after a few minutes still processing, since
+  Seller Centre saves a product while its video is processed ("Video akan
+  muncul setelah berhasil diproses"). The saved product's detail
+  (`video_list`) must then have that video, by its id.
 - **The cover is the first photo.** Seller Centre fills Cover Produk with
   it and locks it there (the image manager is `image-lock`, with only
   Preview on the photo), so a cover of its own cannot be chosen.
@@ -1308,8 +1351,9 @@ Adem dan nyaman dipakai sehari-hari.
   on only for this product: the shop's shipping settings are never
   touched.
 - Uploads need a shown tab (files given to a hidden one did nothing), so
-  upload, publish, archive, boost and delete bring Chrome to the front with
-  a tab of their own. Photos reach the page in 4 MB pieces and are given to
+  upload, media, publish, archive, boost and delete bring Chrome to the
+  front with a tab of their own. Photos and videos reach the page in 4 MB
+  pieces and are given to
   the section's own `input[type=file]` through a DataTransfer. Text boxes
   get the native value setter and input/change events; the description is
   a Quill editor, typed line by line with `execCommand` and a pause after
@@ -1337,6 +1381,16 @@ of an archived product and a delete of a product the shop does not have
 were refused. A product without variations (one photo, SKU Induk, a
 parcel size, Kondisi Pernah Dipakai) was rehearsed: Seller Centre had
 filled Warna and Ukuran by itself again, and the tool took them away.
+
+Media, live-tested the same day: a product "TES san_remote - akan dihapus"
+was uploaded archived with 2 photos and a 15-second video (ready in a few
+seconds, its detail had the video by id); its media were rehearsed, then
+replaced with 3 other photos and another video (Update; it stayed
+archived, and its detail had the 3 new photos in order and the new video);
+its video was then taken away (rehearsed, then Update; no video). A
+5-second video was refused before a tab opened, and an id the shop does
+not have before anything was pressed. The product was deleted afterwards;
+the shop's own product, with its video, was not touched.
 
 A failed step stops with a screenshot: `san_remote-shopee-150405.png`.
 

@@ -102,6 +102,7 @@ type state struct {
 	Portal    bool   `json:"portal"`
 	List      bool   `json:"list"`
 	ListReady bool   `json:"listReady"`
+	Edit      bool   `json:"edit"`
 	Form      bool   `json:"form"`
 	Full      bool   `json:"full"`
 	Sections  bool   `json:"sections"`
@@ -323,9 +324,10 @@ func (s *Service) Status(ctx context.Context, browser string) (*Status, error) {
 
 // Products lists the products of one of Produk Saya's tabs (Filters; ""
 // is all), at most limit (0: 50), with the tab's total. search keeps those
-// whose name, SKU, variation code or id holds it. It reads in a background
-// tab.
-func (s *Service) Products(ctx context.Context, browser, filter string, limit int, search string) ([]Product, int, error) {
+// whose name, SKU, variation code or id holds it. media also reads each
+// product's photos and video from its detail, one request a product. It
+// reads in a background tab.
+func (s *Service) Products(ctx context.Context, browser, filter string, limit int, search string, media bool) ([]Product, int, error) {
 	listType, err := listTypeOf(filter)
 	if err != nil {
 		return nil, 0, err
@@ -348,9 +350,8 @@ func (s *Service) Products(ctx context.Context, browser, filter string, limit in
 					out = append(out, l.product())
 				}
 			}
-			return nil
 		}
-		for n := 1; n <= maxPages && len(out) < limit; n++ {
+		for n := 1; search == "" && n <= maxPages && len(out) < limit; n++ {
 			pg, err := t.page(ctx, listType, n, pageSize, "")
 			if err != nil {
 				return err
@@ -363,6 +364,16 @@ func (s *Service) Products(ctx context.Context, browser, filter string, limit in
 			}
 			if len(pg.Products) < pageSize || n*pageSize >= pg.Total {
 				break
+			}
+		}
+		if media {
+			t.Log(fmt.Sprintf("reading the photos and video of %d products", len(out)))
+			for i := range out {
+				d, err := t.detail(ctx, out[i].ID)
+				if err != nil {
+					return err
+				}
+				d.apply(&out[i])
 			}
 		}
 		return nil

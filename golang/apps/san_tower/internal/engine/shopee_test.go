@@ -46,6 +46,15 @@ type fakeShopee struct {
 	create *shopeev1.CreateProductRequest
 	del    *shopeev1.DeleteProductRequest
 	boost  *shopeev1.BoostProductRequest
+	media  *shopeev1.UpdateMediaRequest
+}
+
+func (f *fakeShopee) UpdateMedia(_ context.Context, req *connect.Request[shopeev1.UpdateMediaRequest]) (*connect.Response[shopeev1.UpdateMediaResponse], error) {
+	f.media = req.Msg
+	return connect.NewResponse(&shopeev1.UpdateMediaResponse{
+		Before:  &shopeev1.Product{Id: req.Msg.Id, Photos: []string{"old1"}, Video: &shopeev1.Video{Id: "v-old", DurationSeconds: 44}},
+		Product: &shopeev1.Product{Id: req.Msg.Id, Photos: []string{"new1", "new2"}, Video: &shopeev1.Video{Id: "v-new", DurationSeconds: 15}},
+	}), nil
 }
 
 func (f *fakeShopee) ListProducts(_ context.Context, req *connect.Request[shopeev1.ListProductsRequest]) (*connect.Response[shopeev1.ListProductsResponse], error) {
@@ -133,6 +142,12 @@ func TestShopeeProducts(t *testing.T) {
 		len(products[0].GetStructValue().Fields["models"].GetListValue().GetValues()) != 1 {
 		t.Errorf("Products = %v", products)
 	}
+	if f.list.GetMedia() {
+		t.Errorf("Media without asking: %v", f.list)
+	}
+	if _, err := runOne(t, env, "shopee-products", "Media", "Yes"); err != nil || !f.list.GetMedia() {
+		t.Errorf("Media Yes: %v, %v", f.list, err)
+	}
 	// Defaults: all, 50.
 	if _, err := runOne(t, env, "shopee-products"); err != nil || f.list.GetFilter() != "all" || f.list.GetLimit() != 50 {
 		t.Errorf("defaults: %v, %v", f.list, err)
@@ -151,8 +166,15 @@ func TestShopeeUpload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if f.create.GetFile() != "D:/toko/kaos.md" || f.create.GetPublish() != "live" || f.create.GetRehearse() || f.create.GetBrowser() != "toko" {
+	if f.create.GetFile() != "D:/toko/kaos.md" || f.create.GetPublish() != "live" || f.create.GetRehearse() || f.create.GetBrowser() != "toko" || f.create.GetVideo() != "" {
 		t.Errorf("request = %v", f.create)
+	}
+	if _, err := runOne(t, env, "shopee-upload", "File", "D:/toko/kaos.md", "Video", " D:/toko/kaos.mp4 "); err != nil || f.create.GetVideo() != "D:/toko/kaos.mp4" {
+		t.Errorf("Video: %v, %v", f.create, err)
+	}
+	f.create = nil
+	if _, err := runOne(t, env, "shopee-upload", "File", "D:/toko/kaos.md", "Video", "kaos.mp4"); err == nil || f.create != nil {
+		t.Errorf("relative Video: %v, sent %v", err, f.create)
 	}
 	if textOut(t, s, "ID") != "55071063221" || textOut(t, s, "Link") != "https://seller.shopee.co.id/portal/product/55071063221" {
 		t.Errorf("ID %s, Link %s", textOut(t, s, "ID"), textOut(t, s, "Link"))
@@ -210,5 +232,47 @@ func TestShopeeBoost(t *testing.T) {
 	}
 	if strings.Join(s.Fired, ",") != "Refused,Done" || !strings.Contains(textOut(t, s, "Reason"), "4 hours") || textOut(t, s, "Until") != "" {
 		t.Errorf("refused: fired %v, Reason %q", s.Fired, textOut(t, s, "Reason"))
+	}
+}
+
+// Update Media replaces the photos (one path a line) and/or the video, or
+// removes the video; asking for nothing, or a new video and its removal,
+// fails before san_remote is asked.
+func TestShopeeMedia(t *testing.T) {
+	f := &fakeShopee{}
+	env := shopeeEnv(t, f)
+	s, err := runOne(t, env, "shopee-media", "Product", "https://seller.shopee.co.id/portal/product/49871140785",
+		"Photos", "D:/toko/b1.jpg\n\n  D:/toko/b2.jpg  \n", "Video", "D:/toko/tes2.mp4", "Rehearse", "Yes")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := f.media
+	if m.GetId() != 49871140785 || strings.Join(m.GetPhotos(), "|") != "D:/toko/b1.jpg|D:/toko/b2.jpg" || m.GetVideo() != "D:/toko/tes2.mp4" ||
+		m.GetRemoveVideo() || !m.GetRehearse() || m.GetBrowser() != "toko" {
+		t.Errorf("request = %v", m)
+	}
+	after := objectOut(t, s, "Product").GetStructValue().Fields
+	before := objectOut(t, s, "Before").GetStructValue().Fields
+	if len(after["photos"].GetListValue().GetValues()) != 2 || after["video"].GetStructValue().Fields["id"].GetStringValue() != "v-new" ||
+		before["video"].GetStructValue().Fields["id"].GetStringValue() != "v-old" || strings.Join(s.Fired, ",") != "Done" {
+		t.Errorf("Product %v, Before %v, fired %v", after, before, s.Fired)
+	}
+	if _, err := runOne(t, env, "shopee-media", "Product", "49871140785", "Remove Video", "Yes"); err != nil || !f.media.GetRemoveVideo() || len(f.media.GetPhotos()) != 0 || f.media.GetRehearse() {
+		t.Errorf("Remove Video: %v, %v", f.media, err)
+	}
+	for _, c := range []struct {
+		name   string
+		values []string
+	}{
+		{"nothing", []string{"Product", "49871140785"}},
+		{"video and remove", []string{"Product", "49871140785", "Video", "D:/toko/v.mp4", "Remove Video", "Yes"}},
+		{"relative photo", []string{"Product", "49871140785", "Photos", "b1.jpg"}},
+		{"ten photos", []string{"Product", "49871140785", "Photos", strings.Repeat("D:/p.jpg\n", 10)}},
+		{"bad product", []string{"Product", "kaos", "Video", "D:/toko/v.mp4"}},
+	} {
+		f.media = nil
+		if _, err := runOne(t, env, "shopee-media", c.values...); err == nil || f.media != nil {
+			t.Errorf("%s: %v, sent %v", c.name, err, f.media)
+		}
 	}
 }

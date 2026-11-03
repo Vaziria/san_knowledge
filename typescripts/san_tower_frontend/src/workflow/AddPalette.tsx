@@ -185,6 +185,7 @@ const kindIcons: Record<string, LucideIcon> = {
   'shopee-upload': PackagePlusIcon,
   'shopee-delete': PackageXIcon,
   'shopee-boost': ArrowBigUpDashIcon,
+  'shopee-media': ImagePlusIcon,
   publish: SendIcon,
   log: ScrollTextIcon,
   fail: OctagonXIcon,

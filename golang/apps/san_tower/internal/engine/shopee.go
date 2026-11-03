@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,10 +28,11 @@ var shopeeKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "shopee-products", Title: "Shopee Products", Category: "Shop",
 			Group:       "Shopee",
-			Description: "Lists the shop's products in Shopee Seller Centre (Produk Saya) through San Remote, newest change first: Filter picks the tab (All, Live, Archived, Review, Violation, Draft), Search keeps those whose name, SKU or id holds it, Limit is at most how many (default 50, up to 500). Products is the list, each with its models (options, price, stock, SKU); Total is how many the tab holds, Count how many came.",
+			Description: "Lists the shop's products in Shopee Seller Centre (Produk Saya) through San Remote, newest change first: Filter picks the tab (All, Live, Archived, Review, Violation, Draft), Search keeps those whose name, SKU or id holds it, Limit is at most how many (default 50, up to 500). Media Yes reads each product's photos and video too (one more read a product). Products is the list, each with its models (options, price, stock, SKU); Total is how many the tab holds, Count how many came.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Products", Object), sock("Total", Text), sock("Count", Text)},
-			Settings:    []*v1.Setting{connectionSetting(), {Name: "Filter", Options: []string{"All", "Live", "Archived", "Review", "Violation", "Draft"}}},
-			Inputs:      []*v1.Socket{sock("Event", Event), field("Search"), field("Limit")},
+			Settings: []*v1.Setting{connectionSetting(), {Name: "Filter", Options: []string{"All", "Live", "Archived", "Review", "Violation", "Draft"}},
+				{Name: "Media", Options: []string{"No", "Yes"}}},
+			Inputs: []*v1.Socket{sock("Event", Event), field("Search"), field("Limit")},
 		},
 		run: shopeeProducts,
 	},
@@ -38,7 +40,7 @@ var shopeeKinds = []*kind{
 		StepKind: &v1.StepKind{
 			Kind: "shopee-upload", Title: "Shopee Upload Product", Category: "Shop",
 			Group:       "Shopee",
-			Description: "Adds a product to the shop through San Remote, in Seller Centre's Tambah Produk Baru: a product file, markdown with frontmatter (name, category, photos, attributes, price, stock, weight, up to 2 variations with a price, stock and SKU per combination; san_remote's readme), as a File (photos relative to it) or the Product text (photos by absolute paths). The form is read back before it is saved. Publish: As Written follows the file (archived when it says nothing), Archived saves it hidden (Simpan & Arsipkan), Live shows it to buyers (Simpan & Tampilkan). Rehearse Yes fills and checks the form but saves nothing. Brings Chrome to the front for a minute or two. ID and Link are the new product's.",
+			Description: "Adds a product to the shop through San Remote, in Seller Centre's Tambah Produk Baru: a product file, markdown with frontmatter (name, category, photos, attributes, price, stock, weight, up to 2 variations with a price, stock and SKU per combination; san_remote's readme), as a File (photos and video: relative to it) or the Product text (by absolute paths). Video, an MP4 of 10 to 60 seconds and up to 30 MB by its absolute path, is the product's video (Video Produk) over the file's. The form is read back before it is saved. Publish: As Written follows the file (archived when it says nothing), Archived saves it hidden (Simpan & Arsipkan), Live shows it to buyers (Simpan & Tampilkan). Rehearse Yes fills and checks the form but saves nothing. Brings Chrome to the front for a minute or two. ID and Link are the new product's.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Product", Object), sock("ID", Text), sock("Link", Text)},
 			Settings: []*v1.Setting{
 				connectionSetting(),
@@ -46,7 +48,7 @@ var shopeeKinds = []*kind{
 				{Name: "Publish", Options: []string{"As Written", "Archived", "Live"}},
 				{Name: "Rehearse", Options: []string{"No", "Yes"}},
 			},
-			Inputs: []*v1.Socket{sock("Event", Event), only("Source=File", field("File")), only("Source=Text", field("Product"))},
+			Inputs: []*v1.Socket{sock("Event", Event), only("Source=File", field("File")), only("Source=Text", field("Product")), field("Video")},
 		},
 		run: shopeeUpload,
 	},
@@ -85,6 +87,20 @@ var shopeeKinds = []*kind{
 		},
 		run: shopeeBoost,
 	},
+	{
+		// The user, 2026-11-03: "Also replace video or photo in existing".
+		StepKind: &v1.StepKind{
+			Kind: "shopee-media", Title: "Shopee Update Media", Category: "Shop",
+			Group:       "Shopee",
+			Description: "Replaces the photos and/or the video of a product the shop has, through San Remote, on its page in Seller Centre: Product is its id or link; Photos, one absolute path a line (1 to 9 square jpg or png files of up to 2 MB, in order, the first the cover), replace the whole gallery, and empty keeps it; Video, an MP4 of 10 to 60 seconds and up to 30 MB, replaces the video, and empty keeps it; Remove Video Yes takes the video away. The page is read back, then saved with Update, which keeps the product live or archived as it was. Rehearse Yes does every step but Update. Product is the product afterwards, Before as it was, both with their photos and video. Brings Chrome to the front for a minute or two.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Product", Object), sock("Before", Object)},
+			Settings: []*v1.Setting{connectionSetting(),
+				{Name: "Remove Video", Options: []string{"No", "Yes"}},
+				{Name: "Rehearse", Options: []string{"No", "Yes"}}},
+			Inputs: []*v1.Socket{sock("Event", Event), field("Product"), field("Photos"), field("Video")},
+		},
+		run: shopeeMedia,
+	},
 }
 
 // shopeeFilters are Shopee Products' Filter options as san_remote names the
@@ -114,7 +130,7 @@ func shopeeProducts(c *call) error {
 		return err
 	}
 	res, err := r.shopee.ListProducts(c.ctx, connect.NewRequest(&shopeev1.ListProductsRequest{
-		Filter: filter, Limit: uint32(limit), Search: strings.TrimSpace(c.text("Search")),
+		Filter: filter, Limit: uint32(limit), Search: strings.TrimSpace(c.text("Search")), Media: c.setting("Media") == "Yes",
 	}))
 	if err != nil {
 		return remoteErr(err)
@@ -152,6 +168,13 @@ func shopeeUpload(c *call) error {
 			return err
 		}
 		req.File = file
+	}
+	if strings.TrimSpace(c.text("Video")) != "" {
+		video, err := c.absolute("Video", "the product's MP4 video")
+		if err != nil {
+			return err
+		}
+		req.Video = video
 	}
 	r, err := c.sanRemote()
 	if err != nil {
@@ -205,6 +228,47 @@ func shopeeBoost(c *call) error {
 	c.outputs["Slots"] = stringValue(fmt.Sprintf("%d of %d", res.Msg.GetSlotsUsed(), res.Msg.GetSlotsTotal()))
 	c.outputs["Reason"] = stringValue("")
 	c.fire("Boosted")
+	c.fire("Done")
+	return nil
+}
+
+func shopeeMedia(c *call) error {
+	req := &shopeev1.UpdateMediaRequest{RemoveVideo: c.setting("Remove Video") == "Yes", Rehearse: c.setting("Rehearse") == "Yes"}
+	for _, line := range strings.Split(c.text("Photos"), "\n") {
+		if p := strings.TrimSpace(line); p != "" {
+			if !filepath.IsAbs(p) {
+				return fmt.Errorf("Photos %q: give each photo's absolute path, one a line, such as File Path's Absolute Path", p)
+			}
+			req.Photos = append(req.Photos, p)
+		}
+	}
+	if len(req.Photos) > 9 {
+		return fmt.Errorf("Photos: %d photos; a product takes 1 to 9", len(req.Photos))
+	}
+	if strings.TrimSpace(c.text("Video")) != "" {
+		if req.RemoveVideo {
+			return errors.New("Video and Remove Video Yes: give a new video or remove it, not both")
+		}
+		video, err := c.absolute("Video", "the product's MP4 video")
+		if err != nil {
+			return err
+		}
+		req.Video = video
+	}
+	if len(req.Photos) == 0 && req.Video == "" && !req.RemoveVideo {
+		return errors.New("nothing to change: give Photos, a Video, or Remove Video Yes")
+	}
+	r, id, err := c.shopeeProduct()
+	if err != nil {
+		return err
+	}
+	req.Id = id
+	res, err := r.shopee.UpdateMedia(c.ctx, connect.NewRequest(req))
+	if err != nil {
+		return remoteErr(err)
+	}
+	c.outputs["Product"] = toValue(res.Msg.GetProduct())
+	c.outputs["Before"] = toValue(res.Msg.GetBefore())
 	c.fire("Done")
 	return nil
 }

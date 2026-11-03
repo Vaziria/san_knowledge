@@ -1017,18 +1017,27 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   - **Shopee Products** lists Produk Saya, newest change first: Filter is
     the tab (All, Live, Archived, Review, Violation, Draft), Search the
     list's search box (name, SKU, id), Limit at most how many (default 50,
-    up to 500). Products holds each product with its models (options,
-    price, stock, SKU); Total is the tab's count, Count how many came.
+    up to 500), Media Yes each product's photos and video too. Products
+    holds each product with its models (options, price, stock, SKU); Total
+    is the tab's count, Count how many came.
   - **Shopee Upload Product** adds a product through Tambah Produk Baru
     from a product file (markdown with frontmatter: san_remote's readme,
     "Shopee"), a File or the Product text (photos by absolute paths), with
     up to 2 variations and a price, stock and SKU per combination. The
     form is read back before it is saved. Publish As Written follows the
     file (archived when it says nothing); Archived or Live overrides it.
-    Rehearse Yes fills and checks the form and saves nothing. ID and Link
-    are the new product's.
+    Rehearse Yes fills and checks the form and saves nothing. Video (an
+    MP4 of 10 to 60 seconds, up to 30 MB) is the product's Video Produk,
+    over the file's `video:`. ID and Link are the new product's.
   - **Shopee Delete Product** deletes a product by its id or a Seller
     Centre or shop link; a live one is archived first. It cannot be undone.
+  - **Shopee Update Media** (the user, 2026-11-03: "Also replace video or
+    photo in existing") replaces a product's photos (the whole gallery, one
+    absolute path a line, the first the cover) and/or its video (Video, or
+    Remove Video Yes), on its page in Seller Centre, saved with Update so
+    the product stays live or archived as it was; Rehearse Yes saves
+    nothing. Product and Before carry the photos and video after and
+    before.
   - **Shopee Naikkan Produk** bumps a live product ("up product": Seller
     Centre's 5 slots, 4 hours each). Boosted fires with Until (RFC 3339)
     and Slots ("2 of 5"); a product that is not live, one on its 4-hour

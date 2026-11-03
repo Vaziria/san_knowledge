@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -17,6 +18,21 @@ import (
 )
 
 const anyPort = "127.0.0.1:0"
+
+// TestMain keeps the servers of the tests on loopback, also on every
+// network: listening on every address makes Windows Firewall ask about the
+// test binary, which `go test` builds in a new folder on each run. The
+// network's rules are the Host checks, which loopback serves as well.
+func TestMain(m *testing.M) {
+	listenEvery = func(addr string) string { return addr }
+	os.Exit(m.Run())
+}
+
+func TestEveryAddr(t *testing.T) {
+	if got := everyAddr("127.0.0.1:7476"); got != ":7476" {
+		t.Errorf("everyAddr = %q, want :7476", got)
+	}
+}
 
 func open(t *testing.T, dir, hubAddr, apiAddr string) *Remote {
 	t.Helper()
@@ -149,8 +165,14 @@ func TestSetNetwork(t *testing.T) {
 		t.Fatalf("loopback: %+v", st)
 	}
 
+	var asked []string
+	listenEvery = func(addr string) string { asked = append(asked, addr); return addr }
+	t.Cleanup(func() { listenEvery = func(addr string) string { return addr } })
 	if err := r.SetNetwork(true); err != nil {
 		t.Fatal(err)
+	}
+	if len(asked) != 2 {
+		t.Errorf("listened on every network for %v, want the server and the api", asked)
 	}
 	st = r.Status(t.Context())
 	if !st.Network || !st.Running || !strings.HasPrefix(st.HubURL, "http://127.0.0.1:") {

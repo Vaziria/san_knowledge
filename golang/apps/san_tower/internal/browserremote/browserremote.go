@@ -226,7 +226,7 @@ func (r *Remote) start() (*running, error) {
 				return nil, fmt.Errorf("%s is in use (is san_remote %s running already?)", a.addr, a.cmd)
 			}
 		}
-		hubAddr, apiAddr = everyAddr(r.hubAddr), everyAddr(r.apiAddr)
+		hubAddr, apiAddr = listenEvery(r.hubAddr), listenEvery(r.apiAddr)
 	}
 	hubLn, err := net.Listen("tcp", hubAddr)
 	if err != nil {
@@ -261,6 +261,13 @@ func (r *Remote) start() (*running, error) {
 	}
 	return run, nil
 }
+
+// listenEvery is where the server listens on every network for addr:
+// everyAddr. The tests keep it on loopback (the user, 2026-11-03: "we just
+// use on local"): a test binary that listens on every address makes Windows
+// Firewall ask, and `go test` builds it in a new folder each run, so it
+// asked on every run.
+var listenEvery = everyAddr
 
 // everyAddr is addr's port on every address of this computer.
 func everyAddr(addr string) string {

@@ -45,6 +45,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/gmaps"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/hubtest"
 	"github.com/wargasipil/san_remote/internal/instagram"
@@ -64,20 +65,21 @@ func start(t *testing.T, server string) *httptest.Server {
 	c := hub.NewClient(server)
 	b := page.Remote{C: c}
 	a := &API{
-		Client:    c,
-		Server:    server,
-		Threads:   &threads.Service{B: b},
-		X:         &x.Service{B: b},
-		Facebook:  &facebook.Service{B: b},
-		Vidara:    &vidara.Service{B: b},
-		Medium:    &medium.Service{B: b},
-		LinkedIn:  &linkedin.Service{B: b},
-		TikTok:    &tiktok.Service{B: b},
-		Instagram: &instagram.Service{B: b},
-		Shopee:    &shopee.Service{B: b},
-		ChatGPT:   &chatgpt.Service{B: b},
-		Gemini:    &gemini.Service{B: b},
-		Claude:    &claude.Service{B: b},
+		Client:     c,
+		Server:     server,
+		Threads:    &threads.Service{B: b},
+		X:          &x.Service{B: b},
+		Facebook:   &facebook.Service{B: b},
+		Vidara:     &vidara.Service{B: b},
+		Medium:     &medium.Service{B: b},
+		LinkedIn:   &linkedin.Service{B: b},
+		TikTok:     &tiktok.Service{B: b},
+		Instagram:  &instagram.Service{B: b},
+		Shopee:     &shopee.Service{B: b},
+		GoogleMaps: &gmaps.Service{B: b},
+		ChatGPT:    &chatgpt.Service{B: b},
+		Gemini:     &gemini.Service{B: b},
+		Claude:     &claude.Service{B: b},
 	}
 	ts := httptest.NewServer(a.Handler())
 	t.Cleanup(ts.Close)

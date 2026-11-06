@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/gmaps"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
@@ -59,9 +61,11 @@ type Server struct {
 	Telegram  *telegram.Service
 	Instagram *instagram.Service
 	Shopee    *shopee.Service
-	ChatGPT   *chatgpt.Service
-	Gemini    *gemini.Service
-	Claude    *claude.Service
+	// GoogleMaps runs gmaps_search in this process, through Client.
+	GoogleMaps *gmaps.Service
+	ChatGPT    *chatgpt.Service
+	Gemini     *gemini.Service
+	Claude     *claude.Service
 	// Server is the URL Client talks to, for error messages.
 	Server  string
 	Version string
@@ -139,12 +143,12 @@ func (s *Server) dispatch(ctx context.Context, req request) (any, *rpcError) {
 			"protocolVersion": version,
 			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}},
 			"serverInfo":      map[string]any{"name": "san_remote", "title": "San Remote", "version": s.Version},
-			"instructions":    instructions + sitesInstructions + shopeeInstructions,
+			"instructions":    instructions + sitesInstructions + shopeeInstructions + gmapsInstructions,
 		}, nil
 	case "ping":
 		return map[string]any{}, nil
 	case "tools/list":
-		return map[string]any{"tools": append(append(toolDefs(), siteToolDefs()...), shopeeToolDefs()...)}, nil
+		return map[string]any{"tools": slices.Concat(toolDefs(), siteToolDefs(), shopeeToolDefs(), gmapsToolDefs())}, nil
 	case "tools/call":
 		var p struct {
 			Name      string          `json:"name"`
@@ -455,6 +459,13 @@ type args struct {
 	Photos      []string `json:"photos"`
 	RemoveVideo bool     `json:"remove_video"`
 	WithMedia   bool     `json:"with_media"`
+	// gmaps_*
+	Keyword       string  `json:"keyword"`
+	Latitude      float64 `json:"latitude"`
+	Longitude     float64 `json:"longitude"`
+	PlusCode      string  `json:"plus_code"`
+	Zoom          float64 `json:"zoom"`
+	VisitWebsites bool    `json:"visit_websites"`
 }
 
 // Call runs one tool and returns its content: text, or for
@@ -498,6 +509,8 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.telegram(ctx, name, a)
 	case strings.HasPrefix(name, "shopee_"):
 		text, err = s.shopee(ctx, name, a)
+	case strings.HasPrefix(name, "gmaps_"):
+		text, err = s.gmaps(ctx, name, a)
 	case strings.HasPrefix(name, "chatgpt_"):
 		text, err = s.chatgpt(ctx, name, a)
 	case strings.HasPrefix(name, "gemini_"):

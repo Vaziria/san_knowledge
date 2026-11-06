@@ -14,7 +14,7 @@ plugins:
   # The extension's client (typescripts/san_remote_extension). It only talks
   # BrowserService; the site services (Threads, X, Facebook, Vidara, Medium,
   # LinkedIn, TikTok, ChatGPT, Gemini, Claude, YouTube, Telegram, Instagram,
-  # Shopee)
+  # Shopee, Google Maps)
   # stay on the Go side.
   - local: protoc-gen-es
     out: ../../../typescripts/san_remote_extension/src/gen
@@ -34,3 +34,4 @@ plugins:
       - san.remote.telegram.v1
       - san.remote.instagram.v1
       - san.remote.shopee.v1
+      - san.remote.gmaps.v1

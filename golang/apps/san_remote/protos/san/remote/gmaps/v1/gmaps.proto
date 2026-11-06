@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package san.remote.gmaps.v1;
+
+// GoogleMapsService is the Google Maps service (internal/gmaps) over Connect,
+// served by `san_remote api` for other programs (the tower's workflows). Like
+// the CLI, it reads Google Maps (www.google.com/maps) in a tab of the user's
+// browser, the way a person does: no Places API. It only reads.
+service GoogleMapsService {
+  // SearchPlaces searches Maps for a keyword around a point at a zoom level,
+  // scrolls the results to the end of the list (Maps lists up to about 120),
+  // then opens each place and reads its name, category, address, phone,
+  // website and plus code. With visit_websites, each place's website is
+  // fetched once and the social media links on it are collected too.
+  rpc SearchPlaces(SearchPlacesRequest) returns (SearchPlacesResponse);
+}
+
+message SearchPlacesRequest {
+  // The attached browser's id or name; empty is the only one attached.
+  string browser = 1;
+  // The point the search is around: latitude and longitude, or plus_code,
+  // a full plus code such as "6P58RR48+P4". Not both.
+  double latitude = 2;
+  double longitude = 3;
+  string plus_code = 4;
+  // The map's zoom level, 3 to 21; 0 is 15 (a few streets).
+  double zoom = 5;
+  // What to search for, as typed in Maps' search box: "coffee", "bengkel
+  // motor". Required.
+  string keyword = 6;
+  // At most this many places; 0 is all the list holds.
+  uint32 limit = 7;
+  // Fetch each place's website once and collect the social media links on
+  // it (Instagram, Facebook, TikTok, X, YouTube, LinkedIn, WhatsApp,
+  // Telegram, Threads). Without it, social has only the website, when it is
+  // one of those.
+  bool visit_websites = 8;
+}
+
+message SearchPlacesResponse {
+  repeated Place places = 1;
+  // The point and zoom searched around.
+  double latitude = 2;
+  double longitude = 3;
+  double zoom = 4;
+  // Whether the list was read to its end ("You've reached the end of the
+  // list"), so places holds every result Maps gave; false when limit or
+  // the list stopping growing ended it first.
+  bool end_of_list = 5;
+  // Maps showed its limited view, which it gives a browser it does not
+  // trust (often one not signed in to Google): it lists only a few places.
+  bool limited_view = 6;
+}
+
+message Place {
+  string name = 1;
+  // As Maps names it: "Coffee shop".
+  string category = 2;
+  string address = 3;
+  // As Maps shows it: "0813-2345-6387"; tel is its tel: link's number,
+  // "081323456387".
+  string phone = 4;
+  string tel = 5;
+  string website = 6;
+  repeated SocialLink social = 7;
+  // The full plus code of the place's point: "6P58RR48+P4".
+  string plus_code = 8;
+  // The plus code as Maps shows it, short with a locality: "RR48+P4 Kebon
+  // Kacang, Central Jakarta City, Jakarta".
+  string plus_code_local = 9;
+  double latitude = 10;
+  double longitude = 11;
+  // The rating out of 5, 0 when it has none; reviews how many gave one.
+  double rating = 12;
+  uint32 reviews = 13;
+  // The place's Google place id ("ChIJ..."), and its link on Maps.
+  string place_id = 14;
+  string url = 15;
+  // Why the website gave no social links, when visit_websites was asked:
+  // "HTTP 403", a timeout. Empty when it was read.
+  string website_error = 16;
+}
+
+// SocialLink is one social media profile of a place.
+message SocialLink {
+  // instagram, facebook, tiktok, x, youtube, linkedin, whatsapp, telegram,
+  // threads.
+  string site = 1;
+  string url = 2;
+}

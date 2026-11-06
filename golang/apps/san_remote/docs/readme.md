@@ -93,6 +93,7 @@ bin\san_remote.exe linkedin ...                   # LinkedIn: see "LinkedIn" bel
 bin\san_remote.exe tiktok ...                     # TikTok: see "TikTok" below
 bin\san_remote.exe instagram ...                  # Instagram: see "Instagram" below
 bin\san_remote.exe shopee ...                     # Shopee Seller Centre: see "Shopee" below
+bin\san_remote.exe gmaps ...                      # Google Maps: see "Google Maps" below
 bin\san_remote.exe chatgpt ...                    # ChatGPT: see "ChatGPT" below
 bin\san_remote.exe gemini ...                     # Gemini: see "Gemini" below
 bin\san_remote.exe claude ...                     # claude.ai: see "Claude" below
@@ -205,6 +206,7 @@ rebuilding, reconnect with `/mcp`.
 | `shopee_upload` | file (a product file, with an optional video); publish (archived, live), rehearse, browser |
 | `shopee_media` | product (id or link); photos (absolute paths, the whole gallery), video (an absolute path), remove_video, rehearse, browser |
 | `shopee_publish`, `shopee_archive`, `shopee_boost`, `shopee_delete` | product (id or link), browser |
+| `gmaps_search` | keyword; latitude and longitude, or plus_code; zoom, limit, visit_websites, browser |
 | `chatgpt_status` | browser |
 | `chatgpt_ask` | prompt; keep, chat, wait_seconds, images, browser |
 | `gemini_status` | browser |
@@ -230,6 +232,8 @@ a delete, a removal or adding someone to a group. For Shopee they say to
 upload, make live, bump, change or delete only the products you named, that an
 upload is saved archived unless it is live, that a change of photos or
 video keeps the product live or archived, and to ask before a delete.
+For Google Maps they say it only reads, and that a long list takes minutes,
+so to give a limit when the task needs only a few places.
 For ChatGPT
 and Gemini they say a new chat is a Temporary chat unless `keep` is set, and
 for Claude an incognito chat.
@@ -261,6 +265,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.youtube.v1.YouTubeService` | GetStatus, UploadVideo (an absolute video file; scheduled, or saved as Private; `short`), ListVideos, DeleteVideo (never a Public one unless `allow_public`), MakePrivate |
 | `san.remote.telegram.v1.TelegramService` | GetStatus, CreateBot (through @BotFather; the bot with its token), DeleteBot, CreateGroup (the group's id), DeleteGroup, AddMember, RemoveMember (a group by id or title, a user by username) |
 | `san.remote.shopee.v1.ShopeeService` | GetStatus, ListProducts (a tab of Produk Saya, `search`, `limit`; each product with its models; `media` adds its photos and video), CreateProduct (a product file by absolute path, its markdown, or the fields: photos by absolute paths, an optional `video` (MP4, 10-60 s, up to 30 MB), category path, attributes, up to 2 variations with a price, stock and SKU per combination; archived unless `publish` live; `rehearse`), UpdateMedia (a product's `photos`, the whole new gallery, and/or its `video`, or `remove_video`; saved with Update, which keeps it live or archived; `rehearse`), PublishProduct, ArchiveProduct, BoostProduct (Naikkan Produk; FailedPrecondition when not live, on its cooldown or all 5 slots in use), ListBoosted, DeleteProduct (a live one is archived first) |
+| `san.remote.gmaps.v1.GoogleMapsService` | SearchPlaces (a `keyword` around `latitude` and `longitude` or a full `plus_code`, at `zoom`; every place listed or `limit`; each with its name, category, address, phone, website, social links, plus code, point, rating and Maps link; `visit_websites` reads each website for its social links; says `end_of_list` and `limited_view`) |
 | `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
@@ -1394,6 +1399,56 @@ the shop's own product, with its video, was not touched.
 
 A failed step stops with a screenshot: `san_remote-shopee-150405.png`.
 
+## Google Maps
+
+`san_remote gmaps` reads Google Maps (www.google.com/maps) in your browser,
+the way you would there (2026-11-06: the tower's Google Maps Places node goes
+through San Remote, with no Places API key). It only reads. The steps are in
+Go (`internal/gmaps/service.go`) and the page knowledge in `gmaps.js`, found
+on Maps in English (every page is opened with `hl=en`):
+
+```powershell
+bin\san_remote.exe gmaps search coffee --at -6.2,106.816                 # every place listed, around a point
+bin\san_remote.exe gmaps search "bengkel motor" --plus-code 6P58RR48+P4 --zoom 13 --limit 20
+bin\san_remote.exe gmaps search kopi --at -6.2,106.816 --limit 5 --visit-websites --json
+```
+
+- **search** opens `/maps/search/<keyword>/@<lat>,<lng>,<zoom>z` in a
+  background tab: the point is `--at latitude,longitude` or `--plus-code`, a
+  full plus code (a short one, "RR48+P4 Jakarta", is refused: it names a
+  point only near a place); `--zoom` is 3 to 21 (default 15, a few streets;
+  12 is a city). It scrolls the list until Maps says "You've reached the end
+  of the list" (Maps lists about 120 places at most), `--limit` places are
+  listed, or the list stops growing for 8 s. Then it opens each place's page
+  in turn, a second or so apart, and reads it:
+  - **name** (`h1`) and **category**;
+  - **address**, **phone** (as shown, and its `tel:` number), **website**
+    and Maps' plus code, from the elements Maps marks with
+    `data-item-id` (`address`, `phone:tel:...`, `authority`, `oloc`);
+  - **plus code**: the full code (10 digits, about 14 m) of the place's
+    point, worked out here from its latitude and longitude, which are in
+    the place's link (`!3d<lat>!4d<lng>`); and as Maps shows it, short with
+    a place name ("RR48+P4 Kebon Kacang, Central Jakarta City, Jakarta");
+  - **rating** and **reviews**, the **place id** (`ChIJ...`) and its **Maps
+    link**.
+- **Social media:** Maps has no field for it. A website that is itself a
+  profile (Instagram, Facebook, TikTok, X, YouTube, LinkedIn, WhatsApp,
+  Telegram, Threads) is one. `--visit-websites` also fetches each place's
+  website once, from san_remote rather than the browser, four at a time,
+  and collects the profiles it links to, link pages such as Linktree too;
+  share buttons and single posts are left out. A website that does not
+  answer is noted (`website_error`) and the search goes on.
+- A search Maps finds one place for opens that place's page, which is the
+  only place; one it finds nothing for gives no places.
+- The output is a block a place, or JSON with `--json` (the fields are the
+  API's `Place`). It also says whether the list was read to its end, and
+  whether Maps showed its **limited view** ("You're seeing a limited view of
+  Google Maps"), which it gives a browser it does not trust, often one not
+  signed in to Google: a few places only.
+- Google may ask whether the browser is a robot (`google.com/sorry`) after
+  many searches: the search stops with that, and someone has to answer it
+  in the browser. Keep searches to what you need.
+
 ## ChatGPT
 
 `san_remote chatgpt` asks ChatGPT through your browser's ChatGPT session, the
@@ -1639,6 +1694,9 @@ need a token and TLS first.
 | claude: `the browser is not signed in to claude.ai` | Sign in to claude.ai in that browser (a lapsed session lands on the sign-in page). |
 | claude: `Claude gave no answer: …` | claude.ai's own words, such as a usage limit. |
 | vidara delete waits, then `the code did not finish` | With two-factor login on, Vidara asks for a code before a delete, in a prompt the tool cannot answer. Delete it on the page. |
+| gmaps: `Google asks whether this is a robot` | Open google.com/maps in that browser and answer the check; search less often, or with a `--limit`. |
+| gmaps: `Google asks for cookie consent` | Open google.com/maps in that browser and answer it once. |
+| gmaps: only a few places, `limited view` | Maps gives a browser it does not trust a limited view: sign in to Google in that browser. |
 
 ## Development
 
@@ -1784,6 +1842,15 @@ The layout of the code is in the design doc.
   chat or regenerate. `--keep` has not been run live.
 - **Claude (claude.ai):** text prompts only; no files, model choice,
   projects, continuing a chat or retry. `--keep` has not been run live.
+- **Google Maps:** reads only. One search a call, about 120 places at most
+  (what Maps lists); a search wider than that needs several points. Not
+  read: opening hours, photos, reviews' text, price level, a place's
+  menu or bookings, and social links Maps keeps elsewhere than the
+  website. A website that needs JavaScript to show its links gives none.
+  Run live on 2026-11-06: 5 places from the CLI, and 20 from the tower's
+  step through `san_remote api` (the list scrolled twice in a background
+  tab, 7, 14, 20 places; about 2 s a place). A search read to the very end
+  of the list (about 120 places) has not been run live.
 
 ## See also
 

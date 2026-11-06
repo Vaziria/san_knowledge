@@ -28,6 +28,7 @@ import (
 	facebookv1 "github.com/wargasipil/san_remote/gen/san/remote/facebook/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/gmaps/v1/gmapsv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
@@ -47,6 +48,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/gmaps"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
@@ -80,9 +82,11 @@ type API struct {
 	Telegram  *telegram.Service
 	Instagram *instagram.Service
 	Shopee    *shopee.Service
-	ChatGPT   *chatgpt.Service
-	Gemini    *gemini.Service
-	Claude    *claude.Service
+	// GoogleMaps reads Google Maps; it only reads (2026-11-06).
+	GoogleMaps *gmaps.Service
+	ChatGPT    *chatgpt.Service
+	Gemini     *gemini.Service
+	Claude     *claude.Service
 	// LAN takes calls from the local network too (hub.GuardLAN), for a
 	// server that listens there.
 	LAN bool
@@ -105,6 +109,7 @@ func (a *API) Handler() http.Handler {
 	mux.Handle(telegramv1connect.NewTelegramServiceHandler(telegramAPI{a}))
 	mux.Handle(instagramv1connect.NewInstagramServiceHandler(instagramAPI{a}))
 	mux.Handle(shopeev1connect.NewShopeeServiceHandler(shopeeAPI{a}))
+	mux.Handle(gmapsv1connect.NewGoogleMapsServiceHandler(gmapsAPI{a}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatgptAPI{a}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAPI{a}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeAPI{a}))

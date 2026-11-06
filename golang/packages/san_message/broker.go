@@ -1,7 +1,8 @@
 // Package san_message is a lightweight message broker. Each topic is an
 // append-only event log split into segment files, and each subscriber keeps
-// its own pointer into it. One loop delivers events to every subscriber, by
-// webhook or over a pull stream. The design is in docs/readme.md.
+// its own pointer into it. One loop hands events to every subscriber: pull
+// streams it serves itself, webhooks go to a pool of Workers goroutines. The
+// design is in docs/readme.md.
 package san_message
 
 import (
@@ -41,6 +42,7 @@ type Options struct {
 	RetryMaxWait   time.Duration // default 5 min
 	MaxAttempts    int           // attempts before an event is skipped; default 10
 	IdleWait       time.Duration // loop wait when there is nothing to send; default 100ms
+	Workers        int           // webhook calls in flight at once, each for a different subscriber; default 1
 	FlushEvery     time.Duration // fsync and mmap flush period; default 1s
 	HTTPClient     *http.Client  // for webhooks; default http.DefaultClient
 	Log            *slog.Logger  // default slog.Default()
@@ -77,11 +79,17 @@ func (o Options) withDefaults() (Options, error) {
 	if o.FlushEvery == 0 {
 		o.FlushEvery = time.Second
 	}
+	if o.Workers == 0 {
+		o.Workers = 1
+	}
 	if o.HTTPClient == nil {
 		o.HTTPClient = http.DefaultClient
 	}
 	if o.Log == nil {
 		o.Log = slog.Default()
+	}
+	if o.Workers < 0 {
+		return o, fmt.Errorf("%w: workers must be at least 1, got %d", ErrInvalid, o.Workers)
 	}
 	if o.SegmentSize > math.MaxUint32 {
 		return o, fmt.Errorf("%w: segment size %d does not fit the 32-bit offsets", ErrInvalid, o.SegmentSize)
@@ -103,8 +111,12 @@ type Broker struct {
 	topics map[string]*topic
 	subs   map[string]*subscriber
 	conns  map[string]*pullConn // the Stream Pool: open pull streams by subscriber key
+	busy   map[*subscriber]bool // webhook subscribers a worker is delivering to
 	closed bool
 
+	jobs      chan webhookJob // webhook events for the workers
+	free      chan struct{}   // one token per idle worker; the loop takes one before it sends a job
+	cursor    int             // where the loop's next pass starts, so no subscriber waits behind the others
 	wake      chan struct{}
 	stop      context.CancelFunc
 	wg        sync.WaitGroup
@@ -140,6 +152,9 @@ func Open(opt Options) (*Broker, error) {
 		topics:    map[string]*topic{},
 		subs:      map[string]*subscriber{},
 		conns:     map[string]*pullConn{},
+		busy:      map[*subscriber]bool{},
+		jobs:      make(chan webhookJob, opt.Workers),
+		free:      make(chan struct{}, opt.Workers),
 		wake:      make(chan struct{}, 1),
 	}
 	if err := b.load(); err != nil {
@@ -149,14 +164,19 @@ func Open(opt Options) (*Broker, error) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	b.stop = cancel
-	b.wg.Add(2)
+	b.wg.Add(2 + opt.Workers)
 	go b.run(ctx)
 	go b.flushLoop(ctx)
+	for range opt.Workers {
+		b.free <- struct{}{}
+		go b.worker(ctx)
+	}
 	return b, nil
 }
 
-// Close stops the loop, ends the open pull streams, and writes everything to
-// disk.
+// Close stops the loop and the workers (a webhook call in flight is cut off
+// and its event sent again after the next Open), ends the open pull streams,
+// and writes everything to disk.
 func (b *Broker) Close() error {
 	b.closeOnce.Do(func() {
 		b.stop()
@@ -186,7 +206,8 @@ func (b *Broker) Close() error {
 	return b.closeErr
 }
 
-// wakeUp ends the loop's idle wait early.
+// wakeUp ends the loop's idle wait early: after a publish, a pull ack, or a
+// worker finishing.
 func (b *Broker) wakeUp() {
 	select {
 	case b.wake <- struct{}{}:

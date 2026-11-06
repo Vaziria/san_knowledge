@@ -77,6 +77,7 @@ func serverCommand() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "listen", Value: "127.0.0.1:7070", Usage: "address to listen on"},
 			&cli.StringFlag{Name: "data", Value: "event_data", Usage: "data folder"},
+			&cli.IntFlag{Name: "workers", Value: 1, Usage: "webhook calls in flight at once, each for a different subscriber"},
 		},
 		Action: runServer,
 	}
@@ -84,7 +85,7 @@ func serverCommand() *cli.Command {
 
 func runServer(ctx context.Context, cmd *cli.Command) error {
 	log := slog.Default()
-	b, err := san_message.Open(san_message.Options{Dir: cmd.String("data"), Log: log})
+	b, err := san_message.Open(san_message.Options{Dir: cmd.String("data"), Workers: cmd.Int("workers"), Log: log})
 	if err != nil {
 		return err
 	}
@@ -97,7 +98,7 @@ func runServer(ctx context.Context, cmd *cli.Command) error {
 
 	errc := make(chan error, 1)
 	go func() { errc <- srv.ListenAndServe() }()
-	log.Info("san_message listening", "addr", srv.Addr, "data", cmd.String("data"), "version", version)
+	log.Info("san_message listening", "addr", srv.Addr, "data", cmd.String("data"), "workers", cmd.Int("workers"), "version", version)
 
 	select {
 	case err := <-errc:

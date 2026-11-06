@@ -43,6 +43,26 @@ state core {
     tmeta-->wake
     wake-->loop
 
+    pool: Webhook Worker Pool (Workers goroutines, default 1)
+    state pool {
+        state "Send To Webhook (5s timeout)" as sendhook
+        state hook_if <<choice>>
+        state "Update Pointer, reset Retry Count and Retry At" as hookup
+        state "Retry Count + 1, Set Retry At or skip" as hookfail
+        state "Error Log, skip event" as hookskip
+        state "Free worker, wake loop" as hookdone
+
+        [*]-->sendhook
+        sendhook-->hook_if
+        hook_if-->hookup: 2xx
+        hook_if-->hookfail: timeout, network error, 5xx, 408, 429
+        hook_if-->hookskip: other status
+        hookup-->hookdone
+        hookfail-->hookdone
+        hookskip-->hookdone
+        hookdone-->[*]
+    }
+
     loop: Subscriber Loop Forever (one event per subscriber per pass)
     state loop {
         state "Subscriber (from Subscriber Metadata)" as sitem
@@ -51,8 +71,9 @@ state core {
         state new_if <<choice>>
         state "Read Event, check CRC" as read
         state subtype_if <<choice>>
-        state "Send To Webhook (5s timeout)" as sendhook
-        state hook_if <<choice>>
+        state busy_if <<choice>>
+        state worker_if <<choice>>
+        state "Hand event to a worker" as tojob
         state stream_if <<choice>>
         state "Send Pull Event, now in flight" as pevent
         state wait_if <<choice>>
@@ -69,18 +90,20 @@ state core {
         retry_if-->[*]: waiting to retry, next subscriber
         flight_if-->wait_if: pull stream holds an event in flight
         flight_if-->new_if: nothing in flight
-        new_if-->read: new event exist (pointer before Topic Metadata last offset)
+        new_if-->subtype_if: new event exist (pointer before Topic Metadata last offset)
         new_if-->[*]: no event, next subscriber
-        read-->subtype_if
 
-        subtype_if-->sendhook: webhook
-        sendhook-->hook_if
-        hook_if-->pointup: 2xx
-        hook_if-->failed: timeout, network error, 5xx, 408, 429
-        hook_if-->skip: other status
+        subtype_if-->busy_if: webhook
+        busy_if-->[*]: a worker has its event, next subscriber
+        busy_if-->worker_if: no event with a worker
+        worker_if-->read: a worker is free
+        worker_if-->[*]: every worker busy, next pass starts here
+        read-->tojob: webhook
+        tojob-->[*]: next subscriber, without waiting for the webhook
 
         subtype_if-->stream_if: pull
-        stream_if-->pevent: stream in Stream Pool
+        stream_if-->read: stream in Stream Pool
+        read-->pevent: pull
         stream_if-->[*]: no stream, next subscriber
         pevent-->[*]: next subscriber, without waiting for the ack
         wait_if-->ack: ack with its event ID came
@@ -115,6 +138,8 @@ state core {
         cclose-->[*]: removed from Stream Pool
     }
 
+    loop-->pool: webhook events
+    pool-->loop: a finished worker wakes the loop
     pullcon-->loop: loop sends pull events through the Stream Pool, an ack wakes the loop
 }
 
@@ -130,6 +155,13 @@ state subscribe {
 
 subscribe-->core: connect to Pull Rpc Server (HTTP/2)
 ```
+
+### Webhook Workers.
+1. The loop sends no webhook itself: it hands the event to a worker, one of `Workers` goroutines (`Options.Workers`, CLI `server --workers`, default 1), and goes on to the next subscriber.
+2. A subscriber has at most one event with a worker at a time, so its events still arrive one by one, in order. Only different subscribers' webhooks run at the same time, at most `Workers` of them.
+3. A slow webhook holds up only its own subscriber, and a worker. Pull subscribers never wait for a webhook, even with 1 worker.
+4. When every worker is busy, the subscribers left wait. The next pass starts with the first of them, so none waits behind the others for ever.
+5. A worker that finishes moves the pointer (or sets the retry) as the loop did, then wakes the loop.
 
 ## Topic Metadata (MMap).
 ```mermaid
@@ -263,10 +295,11 @@ Every default can be changed in `Options`.
 | Webhook request | POST, body is the event data, headers `X-Event-Id`, `X-Topic`, `X-Event-Created` |
 | Webhook result | 2xx delivered; timeout, network error, 5xx, 408, 429 retry; anything else gives up |
 | Webhook timeout | 5s |
+| Webhook workers | 1: one webhook call at a time; more lets that many subscribers' webhooks run at once |
 | Retry wait | 1s, doubling up to 5 min |
 | Give up | after 10 attempts: the event is logged and skipped |
 | Pull ack timeout | 30s, or what the stream's Hello asks (at most 24 hours) |
-| Idle wait | 100ms, or until a publish or a pull ack wakes the loop |
+| Idle wait | 100ms, or until a publish, a pull ack or a finished webhook worker wakes the loop |
 | Old log files | kept; deleting them comes later |
 
 ## CLI.
@@ -275,7 +308,7 @@ Every default can be changed in `Options`.
 ```sh
 pwsh build.ps1                    # or bash build.sh: vet, test, build bin/san_message(.exe)
 
-bin/san_message server --listen 127.0.0.1:7070 --data event_data
+bin/san_message server --listen 127.0.0.1:7070 --data event_data [--workers 4]
 
 bin/san_message topic create orders
 bin/san_message topic list

@@ -270,6 +270,23 @@ func TestPointerSurvivesRestart(t *testing.T) {
 	must(t, b.CreateSubscriber("billing", "orders", Webhook, h.url))
 	publish(t, b, "orders", "a", "b")
 	h.wait(t, 2)
+	// The webhook has the request before the broker has its answer; a Close
+	// in between cuts the call off and the event is sent again. Wait for the
+	// pointer to move to the end first.
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		subs, err := b.Subscribers("")
+		must(t, err)
+		topics, err := b.Topics()
+		must(t, err)
+		if subs[0].Offset == topics[0].Offset {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("subscriber = %+v, never reached the end of the log (offset %d)", subs[0], topics[0].Offset)
+		}
+		time.Sleep(time.Millisecond)
+	}
 	must(t, b.Close())
 
 	b = openBroker(t, o)

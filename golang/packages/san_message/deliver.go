@@ -28,13 +28,18 @@ const (
 	pending          // a pull stream holds it, not acked yet
 )
 
-// run is the subscriber loop. One goroutine serves every subscriber, by
-// design (see "Flow" in docs/readme.md): a slow webhook holds up the rest
-// for at most its timeout. A pull stream's ack is not waited for: its event
-// stays in flight while the loop serves the others, and is looked at again
-// on each pass (landPull), so a stream may work on an event for minutes
-// before it acks it. Each pass gives every subscriber at most one event, so
-// they take turns; a pass with nothing to send waits for a publish, an ack
+// run is the subscriber loop. One goroutine looks at every subscriber, by
+// design (see "Flow" in docs/readme.md), and gives each at most one event per
+// pass, so they take turns. It does not wait on anyone:
+//   - a webhook event goes to a worker (Options.Workers of them). A subscriber
+//     has at most one event with a worker, so its events stay in order, and
+//     a slow webhook holds up only its own subscriber. When every worker is
+//     busy the rest wait; the next pass starts with the first of them.
+//   - a pull event is handed to the stream, and its ack is looked at again on
+//     each pass (landPull), so a stream may work on an event for minutes
+//     before it acks it.
+//
+// A pass with nothing to send waits for a publish, an ack, a worker finishing,
 // or IdleWait.
 func (b *Broker) run(ctx context.Context) {
 	defer b.wg.Done()
@@ -54,13 +59,26 @@ func (b *Broker) run(ctx context.Context) {
 
 // pass reports whether any delivery was tried.
 func (b *Broker) pass(ctx context.Context) bool {
+	subs := b.snapshot()
+	if len(subs) == 0 {
+		return false
+	}
+	first := b.cursor % len(subs)
+	b.cursor = 0
+	waiting := false
 	tried := false
-	for _, s := range b.snapshot() {
+	for i := range subs {
 		if ctx.Err() != nil {
 			break
 		}
-		if b.deliverNext(ctx, s) {
+		at := (first + i) % len(subs)
+		ok, noWorker := b.deliverNext(ctx, subs[at])
+		if ok {
 			tried = true
+		}
+		if noWorker && !waiting {
+			waiting = true
+			b.cursor = at
 		}
 	}
 	return tried
@@ -76,11 +94,15 @@ func (b *Broker) snapshot() []*subscriber {
 }
 
 // deliverNext tries to deliver the subscriber's next event, and reports
-// whether it tried.
-func (b *Broker) deliverNext(ctx context.Context, s *subscriber) bool {
+// whether it tried, and whether a webhook event waits because every worker is
+// busy.
+func (b *Broker) deliverNext(ctx context.Context, s *subscriber) (tried, noWorker bool) {
+	if s.typ == Webhook && b.isBusy(s) {
+		return false, false // a worker has its event
+	}
 	st, ok := b.state(s)
 	if !ok || st.retryAt > time.Now().UnixMilli() {
-		return false
+		return false, false
 	}
 	if s.typ == Pull {
 		if c := b.pullConn(s.key); c != nil && c.flight != nil {
@@ -88,41 +110,109 @@ func (b *Broker) deliverNext(ctx context.Context, s *subscriber) bool {
 			switch res {
 			case delivered:
 				b.setState(s, subState{at: f.next})
-				return true
+				return true, false
 			case retry:
 				b.retryLater(s, f.rec, st.retryCount, f.at, f.next, why)
-				return true
+				return true, false
 			}
-			return false // still in flight, or its stream ended
+			return false, false // still in flight, or its stream ended
+		}
+	}
+	if s.typ == Webhook {
+		// Take a worker before reading the event, so a pass with every
+		// worker busy reads nothing from disk.
+		select {
+		case <-b.free:
+		default:
+			return false, b.hasEvent(s, st.at)
 		}
 	}
 	rec, at, next, ok := b.nextEvent(s, st.at)
 	if !ok {
-		return false
+		if s.typ == Webhook {
+			b.free <- struct{}{}
+		}
+		return false, false
 	}
 	if at != st.at {
 		st.retryCount = 0 // the pointer moved on, so the retries were for another event
 	}
-	var res result
-	var why string
-	switch s.typ {
-	case Webhook:
-		res, why = b.sendWebhook(ctx, s, rec)
-	case Pull:
-		res, why = b.sendPull(ctx, s, rec, at, next)
+	if s.typ == Webhook {
+		b.setBusy(s, true)
+		b.jobs <- webhookJob{s: s, rec: rec, at: at, next: next, failures: st.retryCount}
+		return true, false
 	}
+	res, why := b.sendPull(ctx, s, rec, at, next)
+	if !b.apply(s, res, why, rec, st.retryCount, at, next) {
+		return false, false
+	}
+	return true, false
+}
+
+// apply moves the subscriber on after a delivery attempt, and reports whether
+// one was made.
+func (b *Broker) apply(s *subscriber, res result, why string, rec record, failures uint16, at, next pos) bool {
 	switch res {
 	case sent:
 	case delivered:
 		b.setState(s, subState{at: next})
 	case retry:
-		b.retryLater(s, rec, st.retryCount, at, next, why)
+		b.retryLater(s, rec, failures, at, next, why)
 	case giveUp:
 		b.skip(s, rec, next, why)
 	default:
 		return false
 	}
 	return true
+}
+
+// hasEvent reports whether the log holds an event past at, without reading
+// it.
+func (b *Broker) hasEvent(s *subscriber, at pos) bool {
+	end, ok := b.topicEnd(s.topic)
+	return ok && at.before(end)
+}
+
+// webhookJob is one webhook event handed to a worker.
+type webhookJob struct {
+	s        *subscriber
+	rec      record
+	at, next pos
+	failures uint16
+}
+
+// worker sends webhook events until the broker closes. The loop takes a free
+// token before it hands over a job, so jobs never has more than Workers in it.
+func (b *Broker) worker(ctx context.Context) {
+	defer b.wg.Done()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case j := <-b.jobs:
+			res, why := b.sendWebhook(ctx, j.s, j.rec)
+			b.apply(j.s, res, why, j.rec, j.failures, j.at, j.next)
+			b.setBusy(j.s, false)
+			b.free <- struct{}{}
+			b.wakeUp()
+		}
+	}
+}
+
+func (b *Broker) isBusy(s *subscriber) bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.busy[s]
+}
+
+func (b *Broker) setBusy(s *subscriber, busy bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if busy {
+		b.busy[s] = true
+	} else {
+		delete(b.busy, s)
+	}
 }
 
 // retryLater keeps the pointer on the event and sets when to try it again:

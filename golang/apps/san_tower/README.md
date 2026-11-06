@@ -168,7 +168,7 @@ Messengers › Telegram); the UI asks for them
 Logic, Data, Storage (the user, 2026-10-27: Storage, File Path, Read File
 and Glob, moved out of Data), Datetime, Action, Messengers (the user,
 2026-10-27: Telegram's and WhatsApp's steps, their triggers too, each
-messenger a sub-menu), Social, Shop (the user, 2026-11-03: Shopee), Finance (the user, 2026-10-27: Binance),
+messenger a sub-menu), Social, Shop (the user, 2026-11-03: Shopee), Maps (the user, 2026-11-06: Google Maps), Finance (the user, 2026-10-27: Binance),
 Knowledge (the user, 2026-10-28) and AI; the UI gives each a colour and an
 icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
@@ -192,7 +192,10 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   a step that already ran, from a pure step (no event input, such as
   Template) run then, or the value typed in the step for an unlinked field
   input. The first step that fails ends the run; a run stops after 1000
-  steps, against a loop.
+  steps, against a loop. An empty field input shows its name greyed in its
+  box, and with Socket.placeholder an example after it, as "Zoom: 15 (3 to
+  21; 12 is a city)" (the user, 2026-11-06: "add watermark in node so it
+  can be help"; the Google Maps Places step has them).
 - Log Event (Trigger; `logevent.go`; the user's ask, 2026-10-25) starts a
   run for each line another workflow's run logs: a Log step's, with its
   Type, or any other step's (Download File's, Cut Video's...), as info. A
@@ -409,6 +412,34 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   up to 10 MB: a byte order mark is dropped and Windows line ends become
   `\n`. A file that is not there, a folder, a bigger file or a binary one
   fails the step. Linked from Glob's Item, it reads each file in turn.
+- The JSON Lines and CSV steps (Storage; `datafiles.go`; the user,
+  2026-11-06: "is we have jsonl file append node ?", "yes, perline per
+  item", "add node to read too", "add node append csv and read csv too")
+  keep records in a file, such as Google Maps Places' Places, and read them
+  back. Path is placed as File Path places a name.
+  - **Append JSONL** writes Record (an Object input) as JSON, one value a
+    line: a list adds a line per item, anything else one line. JSON, a
+    typed field, is used when nothing is linked to Record (no step parses
+    JSON text into an object). A missing file and its folders are made, a
+    file without its last line end gets one first, and a call's lines are
+    written at once under a lock per file, so runs appending together do
+    not mix. File and Lines come out.
+  - **Read JSONL** gives Records, the file's values (blank lines skipped,
+    and a line that is not JSON skipped and named in the log), Count, and
+    Each once per record with Item it, then Done, as Glob loops.
+  - **Append CSV** writes rows, a list's items one row each: an object by
+    the file's header row, a new file's header from Columns or else the
+    first record's keys, sorted (a key the header lacks is left out and
+    logged; a list or object cell is JSON, a missing one empty), and an
+    item that is a list as its values. Separator Comma, Semicolon (Excel
+    with Windows set to Indonesian) or Tab. File, Rows and Columns come
+    out.
+  - **Read CSV** gives Records (Header First Row: an object of text cells a
+    row, by the first row's names, an empty one "column N" and a repeated
+    one "_2"; None: a list a row), Columns, Count, and Each with Item.
+    Separator Auto takes whichever of comma, semicolon and tab the first
+    line has most of. Both read steps take files up to 50 MB, with or
+    without a byte order mark.
 - Glob (Storage; `glob.go`; the user's ask, 2026-10-25) finds the files
   matching Pattern, a field input placed as File Path places a name (in
   the picked storage, the data folder, or absolute): `articles/*/*.md`;
@@ -1215,6 +1246,26 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     cooldown, or all slots in use fire Refused with the Reason instead
     (san_remote refuses before pressing anything), so a scheduled workflow
     goes on; Done fires either way.
+- The Google Maps step (category Maps › Google Maps; `engine/gmaps.go`;
+  the user, 2026-11-06: "can we remote google map ? and make it to node in
+  san tower", with a point, a zoom level and a keyword, for each place's
+  name, address, social media links, phone number and plus code) reads
+  Google Maps through `san_remote api` (san_remote's GoogleMapsService) at
+  the San Remote connection its Connection setting names, in that
+  connection's browser: no Places API key.
+  - **Google Maps Places** searches Keyword around a point at Zoom (3 to
+    21, default 15) and reads every place the list holds (Maps lists about
+    120 at most) or at most Limit (1 to 500). Location Coordinates takes
+    Latitude and Longitude (or both in Latitude, "-6.2, 106.816", as Maps
+    copies a point); Location Plus Code takes a full plus code
+    ("6P58RR48+P4"). Each place in Places has its name, category, address,
+    phone (and tel), website, social links, plus code (full, and as Maps
+    shows it), latitude and longitude, rating and reviews, place id and
+    Maps link. Social Links From Websites (the default, the user's choice)
+    also reads each place's website for the profiles it links to; Website
+    Only keeps the website when it is a profile. Count is how many came,
+    End Of List Yes when the list was read to its end. It reads in a
+    background tab, a few seconds a place.
 - Telegram steps work as a bot, through the Telegram Bot connection their
   Connection setting names (the Bot API, over plain net/http,
   `internal/telegram`):

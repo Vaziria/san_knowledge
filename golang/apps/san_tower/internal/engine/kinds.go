@@ -84,7 +84,7 @@ func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ
 // (towerchat.go), the Telegram ones
 // (telegram.go), the WhatsApp ones (whatsapp.go), the SSH ones (ssh.go),
 // the GitHub ones (github.go) and the knowledge ones (knowledge.go).
-var kinds = slices.Concat(coreKinds, progressKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, openAIKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, sshKinds, githubKinds, shopeeKinds, knowledgeKinds, toolKinds, moreToolKinds, indicatorKinds, tradingKinds, tradeLoopKinds)
+var kinds = slices.Concat(coreKinds, dataFileKinds, progressKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, openAIKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, sshKinds, githubKinds, shopeeKinds, gmapsKinds, knowledgeKinds, toolKinds, moreToolKinds, indicatorKinds, tradingKinds, tradeLoopKinds)
 
 var coreKinds = []*kind{
 	{

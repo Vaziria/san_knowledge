@@ -216,7 +216,7 @@ function FieldText({ socket, value, onChange }: { socket: Socket; value: string;
       rows={1}
       autoresize
       maxH="40"
-      placeholder={socket.name}
+      placeholder={socket.placeholder ? `${socket.name}: ${socket.placeholder}` : socket.name}
       {...typing}
     />
   );

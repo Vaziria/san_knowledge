@@ -15,13 +15,14 @@ import (
 	"connectrpc.com/connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1/chatgptv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
-	"github.com/wargasipil/san_remote/gen/san/remote/shopee/v1/shopeev1connect"
 	facebookv1 "github.com/wargasipil/san_remote/gen/san/remote/facebook/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/gmaps/v1/gmapsv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/shopee/v1/shopeev1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/telegram/v1/telegramv1connect"
 	threadsv1 "github.com/wargasipil/san_remote/gen/san/remote/threads/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/threads/v1/threadsv1connect"
@@ -485,6 +486,14 @@ func (c *call) listPostsUpTo(site, kind string, limit int) ([]proto.Message, fun
 
 func field(name string) *v1.Socket { return &v1.Socket{Name: name, Type: Text, Field: true} }
 
+// hint gives a field input its example, shown greyed after its name in the
+// empty box (the user, 2026-11-06: "add watermark in node so it can be
+// help").
+func hint(text string, s *v1.Socket) *v1.Socket {
+	s.Placeholder = text
+	return s
+}
+
 // only has the editor show an input when a setting has a value, as
 // "Source=File".
 func only(when string, s *v1.Socket) *v1.Socket {
@@ -676,6 +685,7 @@ type remoteClients struct {
 	gemini    geminiv1connect.GeminiServiceClient
 	claude    claudev1connect.ClaudeServiceClient
 	shopee    shopeev1connect.ShopeeServiceClient
+	gmaps     gmapsv1connect.GoogleMapsServiceClient
 }
 
 // sanRemote is the san_remote connection the step names.
@@ -722,6 +732,7 @@ func (c *call) sanRemote() (remoteClients, error) {
 		gemini:    geminiv1connect.NewGeminiServiceClient(hc, url, opt),
 		claude:    claudev1connect.NewClaudeServiceClient(hc, url, opt),
 		shopee:    shopeev1connect.NewShopeeServiceClient(hc, url, opt),
+		gmaps:     gmapsv1connect.NewGoogleMapsServiceClient(hc, url, opt),
 	}, nil
 }
 

@@ -285,7 +285,11 @@ type Socket struct {
 	// hold, joined by commas, as "Format=Plain,Source=Text"; the editor shows
 	// it then, or while it is linked. The engine reads the inputs the
 	// settings say, whatever is shown.
-	When          string `protobuf:"bytes,5,opt,name=when,proto3" json:"when,omitempty"`
+	When string `protobuf:"bytes,5,opt,name=when,proto3" json:"when,omitempty"`
+	// placeholder: a field input's example, shown greyed in the empty box
+	// after its name, as "Zoom: 15 (3 to 21)" (the user, 2026-11-06: "add
+	// watermark in node so it can be help").
+	Placeholder   string `protobuf:"bytes,6,opt,name=placeholder,proto3" json:"placeholder,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -351,6 +355,13 @@ func (x *Socket) GetPicker() string {
 func (x *Socket) GetWhen() string {
 	if x != nil {
 		return x.When
+	}
+	return ""
+}
+
+func (x *Socket) GetPlaceholder() string {
+	if x != nil {
+		return x.Placeholder
 	}
 	return ""
 }
@@ -3311,13 +3322,14 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\vdescription\x18\b \x01(\tR\vdescription\x12\x14\n" +
 	"\x05group\x18\t \x01(\tR\x05group\x12\x18\n" +
 	"\atrigger\x18\n" +
-	" \x01(\bR\atrigger\"r\n" +
+	" \x01(\bR\atrigger\"\x94\x01\n" +
 	"\x06Socket\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x14\n" +
 	"\x05field\x18\x03 \x01(\bR\x05field\x12\x16\n" +
 	"\x06picker\x18\x04 \x01(\tR\x06picker\x12\x12\n" +
-	"\x04when\x18\x05 \x01(\tR\x04when\"\xba\x01\n" +
+	"\x04when\x18\x05 \x01(\tR\x04when\x12 \n" +
+	"\vplaceholder\x18\x06 \x01(\tR\vplaceholder\"\xba\x01\n" +
 	"\aSetting\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aoptions\x18\x02 \x03(\tR\aoptions\x12 \n" +

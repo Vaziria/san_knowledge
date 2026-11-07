@@ -7,3 +7,6 @@
 [submodule "project/game/endless_samurai"]
 	path = project/game/endless_samurai
 	url = https://github.com/wargasipil/endless_samurai
+[submodule "php/apps/web_movie"]
+	path = php/apps/web_movie
+	url = https://github.com/Vaziria/web_movie.git

@@ -1,0 +1,171 @@
+<template id="s10-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 48px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 22px; letter-spacing: 0.14em;
+      text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 100px; }
+    .chrome.r { right: 100px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .rule { position: absolute; left: 100px; right: 100px; top: 96px; height: 1px; background: #282826; }
+    .orange .rule { background: rgba(17, 17, 17, 0.2); }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 28px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 100px; top: 130px; width: 1500px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start; }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .lead { display: block; margin-top: 40px; width: 1250px; font-family: "Barlow"; font-weight: 700; font-size: 44px; line-height: 1.25; }
+    .dark .lead { color: #c8c4bc; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; }
+    .dark .lead b { color: #f0ece5; }
+    .title { display: block; font-family: "Barlow"; font-weight: 800; font-size: 78px; line-height: 0.98; letter-spacing: -0.03em; }
+    /* split: notes on the left, the visual on the right */
+    .col { position: absolute; left: 100px; top: 150px; width: 700px; height: 820px; display: flex; flex-direction: column; justify-content: center; }
+    .notes { display: flex; flex-direction: column; gap: 22px; margin-top: 44px; }
+    .nt { display: flex; gap: 20px; font-family: "Barlow"; font-weight: 700; font-size: 40px; line-height: 1.25; color: #f0ece5; }
+    .nt b { flex: none; font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.85em; color: #e85d26; white-space: nowrap; }
+    .vis { position: absolute; left: 860px; top: 150px; width: 960px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; gap: 32px; }
+    .card { width: 960px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 60px; border-bottom: 2px solid #282826; padding: 0 36px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 58px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 24px 36px 28px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 54px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 54px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 34px; line-height: 54px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 20px; height: 38px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 32px; height: 28px; margin-left: 20px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    /* bullets */
+    .bul { display: flex; align-items: baseline; gap: 28px; font-family: "Barlow"; font-weight: 700; font-size: 56px; line-height: 1.15;
+      margin-top: 30px; white-space: nowrap; }
+    .bul b { font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    /* compare */
+    .cmp { position: absolute; top: 380px; height: 540px; padding: 44px 44px; border-top: 1px solid #282826; background: #1a1a18; }
+    .cmp.pay { background: #e85d26; color: #111111; border-top-color: #e85d26; }
+    .cmp .num { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em; color: #e85d26; text-transform: uppercase; }
+    .cmp.pay .num { color: rgba(17, 17, 17, 0.6); }
+    .cmp .nm { margin-top: 24px; font-family: "Barlow"; font-weight: 800; font-size: 58px; line-height: 1.0; letter-spacing: -0.02em; }
+    .cmp .tx { margin-top: 24px; font-family: "Barlow"; font-weight: 600; font-size: 36px; line-height: 1.3; color: #c8c4bc; }
+    .cmp.pay .tx { color: rgba(17, 17, 17, 0.82); }
+    .ctitle { position: absolute; left: 100px; top: 170px; }
+    .dbox { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      border: 3px solid #f0ece5; background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 26px;
+      letter-spacing: 0.04em; color: #f0ece5; white-space: nowrap; text-align: center; }
+    .dbox.l { align-items: flex-start; padding: 0 28px; text-align: left; }
+    .dbox.hot { border-color: #e85d26; }
+    .dbox.fill { background: #e85d26; border-color: #e85d26; color: #111111; }
+    .dbox.mute { border-color: #505048; color: #888880; }
+    .dbox.dash { border-style: dashed; border-color: #888880; color: #888880; background: transparent; }
+    .dbox.flat { border-color: #282826; }
+    .dn { font-family: "Barlow"; font-weight: 700; font-size: 32px; letter-spacing: 0; line-height: 1.15; white-space: normal; }
+    .ds { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 21px; letter-spacing: 0.04em; color: #888880; white-space: nowrap; }
+    .fill .ds { color: rgba(17, 17, 17, 0.7); }
+    .fill .dn { color: #111111; }
+    .dbig { font-family: "Barlow"; font-weight: 900; font-size: 84px; line-height: 0.9; letter-spacing: -0.03em; color: #e85d26; }
+    .fill .dbig { color: #111111; }
+    .dt { position: absolute; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 24px; letter-spacing: 0.06em;
+      white-space: nowrap; color: #e85d26; }
+    .dt.cream { color: #f0ece5; }
+    .dt.mute { color: #888880; font-weight: 500; }
+    .dt.up { text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+    .dt.say { font-family: "Barlow"; font-weight: 700; font-size: 30px; letter-spacing: 0; line-height: 1.25; white-space: normal; color: #f0ece5; }
+    .dt.say.mute { color: #a8a49c; font-weight: 600; }
+    .dt.stat { font-family: "Barlow"; font-weight: 900; font-size: 150px; line-height: 0.9; letter-spacing: -0.04em; }
+    .cell { position: absolute; display: flex; align-items: center; justify-content: center; border: 3px solid #f0ece5;
+      background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 28px; color: #f0ece5; white-space: nowrap; }
+    .cell.hot { border-color: #e85d26; color: #e85d26; }
+    .cell.dash { border-style: dashed; border-color: #888880; color: #888880; background: transparent; }
+    .ptr { position: absolute; }
+    .ptr svg { position: absolute; left: 0; top: 0; overflow: visible; }
+    .ptr svg path { fill: none; stroke: #e85d26; stroke-width: 5; stroke-linecap: square; }
+    .ptr .lab { position: absolute; left: 0; display: flex; align-items: center; justify-content: center; border: 3px solid #e85d26;
+      background: #111111; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 24px; color: #f0ece5; white-space: nowrap; }
+    svg.dg { position: absolute; left: 0; top: 0; overflow: visible; }
+    svg.dg path { fill: none; stroke: #e85d26; stroke-width: 5; stroke-linecap: square; stroke-linejoin: miter; }
+    svg.dg path.cream { stroke: #f0ece5; }
+    svg.dg path.mute { stroke: #505048; }
+    svg.dg path.dash { stroke: #888880; stroke-dasharray: 12 10; }
+    svg.dg path.thin { stroke-width: 3; }
+    .vline { position: absolute; width: 0; border-left: 4px dashed #e85d26; }
+    .vline.mute { border-left-color: #505048; }
+    .bar { position: absolute; background: #e85d26; transform-origin: 0% 50%; }
+    .bar.mute { background: #505048; }
+    .xmark { position: absolute; width: 70px; height: 70px; }
+    .xmark i { position: absolute; left: 50%; top: 50%; width: 70px; height: 10px; margin: -5px 0 0 -35px; background: #e85d26; }
+    .xmark i:first-child { transform: rotate(45deg); }
+    .xmark i:last-child { transform: rotate(-45deg); }
+    .pkt { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; background: #e85d26; }
+  </style>
+
+  <div id="root" data-composition-id="s10" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+    <div id="s10" class="clip beat dark" data-start="0" data-duration="20" data-track-index="0">
+      <div class="chrome l">bikin message broker sendiri · bagian 1</div><div class="chrome r">01 / 06</div><div class="rule"></div>
+      <div class="col">
+        <span id="s10k" class="kicker">listrik padam</span>
+        <span id="s10t" class="title">record yang terpotong dibuang</span>
+        <div class="notes">
+          <div id="s10n0" class="nt"><b>/</b><span>listrik bisa padam pas record lagi ditulis</span></div>
+          <div id="s10n1" class="nt"><b>/</b><span>ujung log bisa berisi record setengah jadi, atau sampah</span></div>
+          <div id="s10n2" class="nt"><b>/</b><span>saat log dibuka, semua record diperiksa dari awal</span></div>
+          <div id="s10n3" class="nt"><b>/</b><span>di record pertama yang gagal, file dipotong</span></div>
+        </div>
+      </div>
+      <div class="vis">
+        <div id="s10v" style="position: relative; width: 960px; height: 820px">
+          <div id="s10_fl" class="dt up mute" style="left: 0px; top: 120px">file log</div>
+          <div id="s10_r1" class="dbox " style="left: 0px; top: 170px; width: 303px; height: 120px"><span class="dn">record ID 1</span></div>
+          <div id="s10_r2" class="dbox " style="left: 300px; top: 170px; width: 303px; height: 120px"><span class="dn">record ID 2</span></div>
+          <div id="s10_r3" class="dbox dash" style="left: 600px; top: 170px; width: 303px; height: 120px"><span class="dn">ID 3</span><span class="ds">terpotong</span></div>
+          <div id="s10_cut" class="vline " style="left: 598px; top: 140px; height: 190px"></div>
+          <div id="s10_cutl" class="dt " style="left: 612px; top: 312px">ujung log setelah dibuka</div>
+          <div id="s10_q0" class="dt say" style="left: 0px; top: 430px; font-size: 36px">/ panjangnya masuk akal?</div>
+          <div id="s10_q1" class="dt say" style="left: 0px; top: 495px; font-size: 36px">/ datanya lengkap?</div>
+          <div id="s10_q2" class="dt say" style="left: 0px; top: 560px; font-size: 36px">/ CRC-nya cocok?</div>
+          <div id="s10_res" class="dt say" style="left: 0px; top: 660px; font-size: 36px; color: #e85d26">record ID 3 gagal: file dipotong di situ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      tl.fromTo($("s10k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "expo.out" }, 0.05);
+      tl.fromTo($("s10t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo($("s10n0"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1);
+      tl.fromTo($("s10n1"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 5);
+      tl.to($("s10n0"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 5);
+      tl.fromTo($("s10n2"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 10);
+      tl.to($("s10n1"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 10);
+      tl.fromTo($("s10n3"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 15);
+      tl.to($("s10n2"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 15);
+      tl.fromTo([$("s10_fl"), $("s10_r1"), $("s10_r2")], { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.12 }, 0.4);
+      tl.fromTo($("s10_r3"), { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 1.2, ease: "power1.in" }, 1.4);
+      tl.fromTo([$("s10_q0"), $("s10_q1"), $("s10_q2")], { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.5 }, 10.2);
+      tl.fromTo($("s10_res"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 12);
+      tl.to($("s10_r3"), { opacity: 0.15, duration: 0.5, ease: "power2.out" }, 15.2);
+      tl.fromTo([$("s10_cut"), $("s10_cutl")], { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.08 }, 15.3);
+      tl.set({}, {}, 20);
+      window.__timelines["s10"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 372" width="1520" height="744" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Setiap subscriber webhook memegang paling banyak satu worker">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="372" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Setiap subscriber webhook memegang paling banyak satu worker</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Contoh dengan dua worker. Loop menyerahkan pesan hanya ke worker yang menganggur, dan hasilnya selalu kembali ke loop.</text>
+  <rect x="24" y="120" width="150" height="70" rx="8" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="99" y="146" font-weight="600" text-anchor="middle" fill="#1f1f1f">loop pengantar</text>
+  <text x="99" y="164" font-size="11" text-anchor="middle" fill="#5f5f5f">worker menganggur: 0</text>
+  <text x="99" y="179" font-size="11" text-anchor="middle" fill="#5f5f5f">semua worker sibuk</text>
+  <rect x="240" y="92" width="150" height="44" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="315" y="119" font-weight="600" text-anchor="middle" fill="#1f1f1f">worker 1</text>
+  <rect x="240" y="172" width="150" height="44" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="315" y="199" font-weight="600" text-anchor="middle" fill="#1f1f1f">worker 2</text>
+  <path d="M174 140L240 116" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M174 166L240 192" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="205" y="112" font-size="11" text-anchor="middle" fill="#5f5f5f">pesan</text>
+  <path d="M315 216V236H150V190" fill="none" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-grey)"/>
+  <text x="230" y="254" font-size="11" fill="#5f5f5f">hasil kembali ke loop</text>
+  <rect x="456" y="84" width="280" height="60" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="472" y="108" font-weight="600" fill="#1f1f1f">stok</text>
+  <text x="472" y="128" font-size="11" fill="#5f5f5f">pesan 4 di tangan worker 1</text>
+  <text x="720" y="108" font-size="11" text-anchor="end" fill="#5f5f5f">lambat, 4 detik</text>
+  <rect x="456" y="164" width="280" height="60" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="472" y="188" font-weight="600" fill="#1f1f1f">faktur</text>
+  <text x="472" y="208" font-size="11" fill="#5f5f5f">pesan 9 di tangan worker 2</text>
+  <text x="720" y="188" font-size="11" text-anchor="end" fill="#5f5f5f">cepat</text>
+  <path d="M390 114H456" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M390 194H456" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <rect x="456" y="244" width="280" height="60" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="472" y="268" font-weight="600" fill="#1f1f1f">laporan</text>
+  <text x="472" y="288" font-size="11" fill="#5f5f5f">punya pesan, tetapi tidak ada worker</text>
+  <text x="720" y="268" font-size="11" text-anchor="end" fill="#2f76d6">menunggu</text>
+  <rect x="24" y="244" width="150" height="60" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="268" font-weight="600" fill="#1f1f1f">email</text>
+  <text x="40" y="288" font-size="11" fill="#5f5f5f">stream pull, tanpa worker</text>
+  <path d="M99 190V244" fill="none" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-grey)"/>
+  <text x="24" y="334" font-size="11.5" fill="#5f5f5f">Pesan berikutnya untuk stok baru diserahkan setelah pesan 4 selesai, jadi urutannya terjaga.</text>
+  <text x="24" y="352" font-size="11.5" fill="#5f5f5f">Stream pull dilayani loop secara langsung, jadi tidak pernah menunggu worker.</text>
+</svg>

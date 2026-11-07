@@ -1,0 +1,114 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 9
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 1,
+    "findings": [
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 25.968,
+        "selector": "#step5m0",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 59,
+          "top": 1154,
+          "right": 787.45,
+          "bottom": 1214,
+          "width": 728.45,
+          "height": 60
+        },
+        "containerSelector": "#step5m1",
+        "text": "write belum tentu sampai ke disk",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "compositions/step5.html",
+        "bbox": {
+          "x": 59,
+          "y": 1154,
+          "width": 728.45,
+          "height": 60
+        },
+        "firstSeen": 25.968,
+        "lastSeen": 25.968,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          25.968
+        ]
+      }
+    ],
+    "duration": 36.6,
+    "samples": [
+      2.033,
+      6.1,
+      10.167,
+      14.233,
+      18.3,
+      22.367,
+      26.433,
+      30.5,
+      34.567
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 1,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      2.033,
+      10.167,
+      18.3,
+      26.433,
+      34.567
+    ],
+    "checked": 35,
+    "passed": 35
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 13
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 2,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 116.111,
+        "selector": "#s08w0",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 100,
+          "top": 483.97,
+          "right": 996.06,
+          "bottom": 686.36,
+          "width": 896.06,
+          "height": 202.39
+        },
+        "containerSelector": "#s08st > span:nth-of-type(1)",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 100,
+          "top": 261.34,
+          "right": 996.06,
+          "bottom": 465,
+          "width": 896.06,
+          "height": 203.66
+        },
+        "overflow": {
+          "bottom": 221.36
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/s08.html",
+        "bbox": {
+          "x": 100,
+          "y": 483.97,
+          "width": 896.06,
+          "height": 202.39
+        },
+        "firstSeen": 116.111,
+        "lastSeen": 116.111,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          116.111
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 116.111,
+        "selector": "#s08w1",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 100,
+          "top": 687.63,
+          "right": 1215.19,
+          "bottom": 890.02,
+          "width": 1115.19,
+          "height": 202.39
+        },
+        "containerSelector": "#s08st > span:nth-of-type(2)",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 100,
+          "top": 465,
+          "right": 1215.19,
+          "bottom": 668.66,
+          "width": 1115.19,
+          "height": 203.66
+        },
+        "overflow": {
+          "bottom": 221.36
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/s08.html",
+        "bbox": {
+          "x": 100,
+          "y": 687.63,
+          "width": 1115.19,
+          "height": 202.39
+        },
+        "firstSeen": 116.111,
+        "lastSeen": 116.111,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          116.111
+        ]
+      }
+    ],
+    "duration": 190,
+    "samples": [
+      10.556,
+      31.667,
+      52.778,
+      73.889,
+      95,
+      116.111,
+      137.222,
+      158.333,
+      179.444
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 2,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      10.556,
+      52.778,
+      95,
+      137.222,
+      179.444
+    ],
+    "checked": 97,
+    "passed": 97
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

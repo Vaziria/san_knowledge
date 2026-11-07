@@ -1,0 +1,147 @@
+<template id="step5-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 170px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 24px;
+      letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 59px; }
+    .chrome.r { right: 59px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 59px; top: 300px; width: 842px; height: 1200px; display: flex;
+      flex-direction: column; justify-content: center; align-items: flex-start; }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 30px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 34px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .note { display: block; margin-top: 40px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 28px;
+      letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .orange .note { color: rgba(17, 17, 17, 0.7); }
+    .lead { display: block; margin-top: 44px; width: 842px; font-family: "Barlow"; font-weight: 700; font-size: 46px; line-height: 1.2; }
+    .dark .lead { color: #c8c4bc; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; color: #111111; }
+    .kick { position: absolute; left: 59px; top: 500px; }
+    .title { position: absolute; left: 59px; top: 550px; width: 842px; font-family: "Barlow"; font-weight: 800; font-size: 80px;
+      line-height: 0.95; letter-spacing: -0.03em; white-space: nowrap; }
+    .card { position: absolute; left: 50px; width: 855px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 64px; border-bottom: 2px solid #282826; padding: 0 34px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 62px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 26px 34px 30px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 48px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 48px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 30px; line-height: 48px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 18px; height: 34px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 30px; height: 26px; margin-left: 18px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    .tv { position: absolute; left: 59px; width: 842px; }
+    .cap { position: absolute; left: 59px; width: 840px; font-family: "Barlow"; font-weight: 700; font-size: 50px; line-height: 1.2; color: #f0ece5; }
+    .cap .m, .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.82em; color: #e85d26; }
+    .dbox { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      border: 3px solid #f0ece5; background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 26px;
+      letter-spacing: 0.04em; color: #f0ece5; white-space: nowrap; text-align: center; }
+    .dbox.l { align-items: flex-start; padding: 0 28px; text-align: left; }
+    .dbox.hot { border-color: #e85d26; }
+    .dbox.fill { background: #e85d26; border-color: #e85d26; color: #111111; }
+    .dbox.mute { border-color: #505048; color: #888880; }
+    .dbox.dash { border-style: dashed; border-color: #888880; color: #888880; background: transparent; }
+    .dbox.flat { border-color: #282826; }
+    .dn { font-family: "Barlow"; font-weight: 700; font-size: 32px; letter-spacing: 0; line-height: 1.15; white-space: normal; }
+    .ds { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 21px; letter-spacing: 0.04em; color: #888880; white-space: nowrap; }
+    .fill .ds { color: rgba(17, 17, 17, 0.7); }
+    .fill .dn { color: #111111; }
+    .dbig { font-family: "Barlow"; font-weight: 900; font-size: 84px; line-height: 0.9; letter-spacing: -0.03em; color: #e85d26; }
+    .fill .dbig { color: #111111; }
+    .dt { position: absolute; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 24px; letter-spacing: 0.06em;
+      white-space: nowrap; color: #e85d26; }
+    .dt.cream { color: #f0ece5; }
+    .dt.mute { color: #888880; font-weight: 500; }
+    .dt.up { text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+    .dt.say { font-family: "Barlow"; font-weight: 700; font-size: 30px; letter-spacing: 0; line-height: 1.25; white-space: normal; color: #f0ece5; }
+    .dt.say.mute { color: #a8a49c; font-weight: 600; }
+    .dt.stat { font-family: "Barlow"; font-weight: 900; font-size: 150px; line-height: 0.9; letter-spacing: -0.04em; }
+    .cell { position: absolute; display: flex; align-items: center; justify-content: center; border: 3px solid #f0ece5;
+      background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 28px; color: #f0ece5; white-space: nowrap; }
+    .cell.hot { border-color: #e85d26; color: #e85d26; }
+    .cell.dash { border-style: dashed; border-color: #888880; color: #888880; background: transparent; }
+    .ptr { position: absolute; }
+    .ptr svg { position: absolute; left: 0; top: 0; overflow: visible; }
+    .ptr svg path { fill: none; stroke: #e85d26; stroke-width: 5; stroke-linecap: square; }
+    .ptr .lab { position: absolute; left: 0; display: flex; align-items: center; justify-content: center; border: 3px solid #e85d26;
+      background: #111111; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 24px; color: #f0ece5; white-space: nowrap; }
+    svg.dg { position: absolute; left: 0; top: 0; overflow: visible; }
+    svg.dg path { fill: none; stroke: #e85d26; stroke-width: 5; stroke-linecap: square; stroke-linejoin: miter; }
+    svg.dg path.cream { stroke: #f0ece5; }
+    svg.dg path.mute { stroke: #505048; }
+    svg.dg path.dash { stroke: #888880; stroke-dasharray: 12 10; }
+    svg.dg path.thin { stroke-width: 3; }
+    .vline { position: absolute; width: 0; border-left: 4px dashed #e85d26; }
+    .vline.mute { border-left-color: #505048; }
+    .bar { position: absolute; background: #e85d26; transform-origin: 0% 50%; }
+    .bar.mute { background: #505048; }
+    .xmark { position: absolute; width: 70px; height: 70px; }
+    .xmark i { position: absolute; left: 50%; top: 50%; width: 70px; height: 10px; margin: -5px 0 0 -35px; background: #e85d26; }
+    .xmark i:first-child { transform: rotate(45deg); }
+    .xmark i:last-child { transform: rotate(-45deg); }
+    .pkt { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; background: #e85d26; }
+    .tv .dbox { font-size: 32px; }
+    .tv .dn { font-size: 38px; }
+    .tv .ds { font-size: 26px; }
+    .tv .dt { font-size: 30px; }
+    .tv .dt.say { font-size: 36px; }
+    .tv .cell { font-size: 34px; }
+    .tv .ptr .lab { font-size: 30px; }
+  </style>
+
+  <div id="root" data-composition-id="step5" data-start="0" data-duration="5" data-width="1080" data-height="1920">
+    <div id="step5" class="clip beat dark" data-start="0" data-duration="5" data-track-index="0">
+      <div class="chrome l">bikin message broker sendiri</div><div class="chrome r">03 / 06</div>
+      <span id="step5k" class="kicker kick">satu stream per subscriber</span>
+      <div id="step5t" class="title">yang kedua: 409</div>
+      <div id="step5v" class="tv" style="top: 690px; height: 440px">
+          <div id="step5_p1" class="dbox " style="left: 0px; top: 0px; width: 300px; height: 110px"><span class="dn">program 1</span></div>
+          <div id="step5_br" class="dbox hot" style="left: 542px; top: 90px; width: 300px; height: 150px"><span class="dn">broker</span><span class="ds">stream email</span></div>
+          <div id="step5_p2" class="dbox " style="left: 0px; top: 240px; width: 300px; height: 110px"><span class="dn">program 2</span></div>
+          <svg class="dg" width="842" height="440" viewBox="0 0 842 440" aria-hidden="true">
+            <path id="step5_a1" d="M300 55 L538 130 M538 130 L520.3 133.5 M538 130 L525.5 117" />
+            <path id="step5_a2" class="dash" d="M300 295 L538 205" />
+          </svg>
+          <div id="step5_x" class="dt " style="left: 330px; top: 330px; font-size: 38px">409 Conflict</div>
+      </div>
+      <div id="step5m0" class="cap" style="top: 1174px">stream kedua dengan nama yang sama ditolak</div>
+      <div id="step5m1" class="cap" style="top: 1174px">koneksi mati diam-diam? ping HTTP/2, 15 + 15 detik</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      tl.fromTo($("step5k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 0.05);
+      tl.fromTo($("step5t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.12);
+      tl.fromTo($("step5m0"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 0.92);
+      tl.to($("step5m0"), { opacity: 0, duration: 0.18, ease: "power2.in" }, 2.8);
+      tl.fromTo($("step5m1"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 2.92);
+      tl.fromTo([$("step5_p1"), $("step5_br")], { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.12 }, 0.3);
+      $("step5_a1").style.strokeDasharray = "290 290";
+      tl.fromTo($("step5_a1"), { strokeDashoffset: 290 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 0.6);
+      tl.fromTo($("step5_p2"), { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 1);
+      tl.fromTo([$("step5_a2"), $("step5_x")], { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.2 }, 1.4);
+      tl.set({}, {}, 5);
+      window.__timelines["step5"] = tl;
+    })();
+  </script>
+</template>

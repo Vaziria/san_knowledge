@@ -175,6 +175,39 @@ Write these as they are, with no Indonesian equivalent next to them.
 | stream | | RabbitMQ's queue that keeps messages after they are read |
 | flash sale | | explained at first use as a big discount for a short time |
 | timeout | batas waktu (as the term) | explained at first use as "batas waktu menunggu jawaban" |
+| subscriber | pelanggan | the broker series: a named reader of one topic, whose read position the broker keeps; "subscriber-nya", "subscriber pull", "subscriber webhook" |
+| publish | menerbitkan | sending a message to a topic, as in "setiap publish" |
+| record | rekaman | one message as stored in the log, a fixed header plus its data; explained at first use |
+| metadata | | "file metadata", the files that keep topics, subscribers and read positions |
+| slot | | a fixed-size place for one topic or one subscriber in a metadata file |
+| fsync | | the call that forces a file's data to the disk; "di-fsync", explained at first use |
+| memory-mapped file, mmap | | a file mapped into a program's memory; explained at first use |
+| segment | | one file of a Kafka log |
+| crash | | a program stopping on an unhandled error; explained at first use |
+| benchmark | | a test that measures time; explained at first use |
+| struct, package | | the Go meanings: "struct `Broker`", "package `broker`" |
+| pipe | | Go's `io.Pipe`, a writer joined to a reader inside one program; explained at first use |
+| push, pull | dorong, tarik (as the terms) | the two ways to deliver: the broker comes to the subscriber, or the subscriber comes to the broker. "subscriber pull", "stream pull"; "menarik" stays for the plain verb, as in a title |
+| long poll | | a request the server holds until data arrives |
+| stream (HTTP/2) | aliran | one request and its response inside an HTTP/2 connection; "stream pull" is the broker series' one request that carries messages and acks. Not RabbitMQ's stream (above) |
+| hello | | the subscriber's first request on a pull stream, which names the subscriber |
+| body | isi | an HTTP request's or response's content after its header: "body request", "body response" |
+| response | respons | an HTTP response; "jawaban" is fine for the answer itself, as in "jawaban 200" |
+| exclusive consumer | | RabbitMQ's consumer that must be the only one on its queue |
+| webhook | | an HTTP address of the subscriber that the broker calls for each message; explained at first use |
+| worker pool | | a fixed group of goroutines that share the work; explained at first use |
+| worker | pekerja | one goroutine of a worker pool, "worker-nya"; explained with worker pool |
+| head-of-line blocking | | the work at the front of a line holding up everything behind it; explained at first use |
+| pipelining | | HTTP/1.1 sending several requests on one connection without waiting for answers |
+| jitter | | a little randomness added to a retry wait; explained at first use |
+| redirect | pengalihan | an HTTP 3xx answer that sends the client to another address |
+| dead-letter, dead-letter exchange | | where a broker puts messages that keep failing; explained at first use |
+| quorum queue | | RabbitMQ's queue copied to several servers with Raft |
+| handler | | the Go `http.Handler`, a value that answers HTTP requests; explained at first use |
+| transport | | Go's `http.Transport`, the part of the HTTP client that opens and keeps connections |
+| CLI | | a program used through commands in a terminal; explained at first use |
+| wildcard | | NATS's pattern that matches several subjects |
+| request-reply | | a message sent while waiting for an answer (NATS) |
 | invoice | faktur, tagihan | |
 | database | basis data | |
 | backup | cadangan | "di-backup" |
@@ -239,6 +272,18 @@ Everyday words that Indonesian readers use, including Indonesian spellings of bo
 | sinyal | signal | an OS signal, as in "sinyal `SIGHUP`" |
 | konstanta | constant | the Go meaning |
 | jeda | delay, backoff | "jeda yang makin panjang", not "backoff" |
+| posisi baca | read position, offset | a subscriber's place in our broker's log; "offset" stays for Kafka |
+| cadangan, dicadangkan | reserve, reserved | reserved bytes in a slot, and a block of IDs reserved ahead ("cadangan ID"); a safety copy stays "backup" |
+| sektor | sector | a disk sector, "sektor 512 byte" |
+| pengiriman ulang, dikirim lagi | redelivery, resend | a message sent again after no ack came |
+| percobaan ulang, dicoba lagi | retry | "webhook dan percobaan ulang" |
+| loop pengantar | delivery loop | the broker series' one goroutine that delivers messages |
+| mati mendadak | crash, killed | a program or OS stopping without closing cleanly; "dihentikan paksa" for a kill |
+| tertanam, dipasang di server aplikasi, berdiri sendiri | embedded, mounted, standalone | the broker series' three ways to run the broker |
+| menganggur | idle | a worker or connection with nothing to do |
+| giliran, putaran | turn, round, pass | who gets the next worker; one round of the delivery loop |
+| retensi | retention | how long a broker keeps messages before discarding them |
+| salinan, faktor replikasi | replica, replication factor | copies of the data on other servers; "R=3" for NATS |
 | variabel lingkungan | environment variable | as in "variabel lingkungan `PORT`" |
 | akses anonim | anonymous access | |
 | layanan | service | an OS service, as in "menjalankan client sebagai layanan" |

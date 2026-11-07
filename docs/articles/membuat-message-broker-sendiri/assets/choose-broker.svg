@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 364" width="1520" height="728" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Kapan memakai broker yang mana">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="364" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Kapan memakai broker yang mana</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Ringkasan dari bagian penutup artikel ini, dari dokumentasi masing-masing broker.</text>
+  <rect x="24" y="104" width="712" height="54" rx="8" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="44" y="136" font-size="13" font-weight="600" fill="#1f1f1f">brokerku</text>
+  <text x="200" y="127" fill="#1f1f1f">satu server sudah cukup,</text>
+  <text x="200" y="146" font-size="11.5" fill="#5f5f5f">dan broker ingin dipasang di dalam program Go</text>
+  <rect x="24" y="168" width="712" height="54" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="44" y="200" font-size="13" font-weight="600" fill="#1f1f1f">RabbitMQ</text>
+  <text x="200" y="191" fill="#1f1f1f">butuh routing, protokol standar,</text>
+  <text x="200" y="210" font-size="11.5" fill="#5f5f5f">dan queue yang disalin ke beberapa server</text>
+  <rect x="24" y="232" width="712" height="54" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="44" y="264" font-size="13" font-weight="600" fill="#1f1f1f">NATS</text>
+  <text x="200" y="255" fill="#1f1f1f">butuh subject dengan wildcard,</text>
+  <text x="200" y="274" font-size="11.5" fill="#5f5f5f">request-reply, dan JetStream dengan R=3</text>
+  <rect x="24" y="296" width="712" height="54" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="44" y="328" font-size="13" font-weight="600" fill="#1f1f1f">Kafka</text>
+  <text x="200" y="319" fill="#1f1f1f">butuh throughput besar lewat partisi,</text>
+  <text x="200" y="338" font-size="11.5" fill="#5f5f5f">dan membaca ulang riwayat yang panjang</text>
+</svg>

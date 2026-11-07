@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 392" width="1520" height="784" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Satu package broker, tiga cara menjalankannya">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="392" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Satu package broker, tiga cara menjalankannya</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Kodenya sama. Yang berbeda hanya siapa yang memanggil Open, dan di mana Handler dipasang.</text>
+  <text x="24" y="104" font-size="13" font-weight="600" fill="#1f1f1f">tertanam</text>
+  <text x="268" y="104" font-size="13" font-weight="600" fill="#1f1f1f">dipasang di server aplikasi</text>
+  <text x="512" y="104" font-size="13" font-weight="600" fill="#1f1f1f">berdiri sendiri</text>
+  <rect x="24" y="116" width="224" height="150" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="38" y="138" font-weight="600" fill="#1f1f1f">program toko</text>
+  <rect x="38" y="150" width="196" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="136" y="172" text-anchor="middle" fill="#1f1f1f">kode toko</text>
+  <path d="M136 184V214" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="144" y="203" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">b.Publish(...)</text>
+  <rect x="38" y="214" width="196" height="38" rx="8" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="136" y="238" font-weight="600" text-anchor="middle" fill="#1f1f1f">broker</text>
+  <path d="M136 266V300" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <rect x="38" y="300" width="196" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="136" y="322" text-anchor="middle" fill="#1f1f1f">webhook stok</text>
+  <text x="24" y="360" font-size="11" fill="#5f5f5f">Tanpa jaringan antara kode dan broker.</text>
+  <text x="24" y="376" font-size="11" fill="#5f5f5f">Broker hidup dan mati bersama programnya.</text>
+  <rect x="268" y="116" width="224" height="150" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="282" y="138" font-weight="600" fill="#1f1f1f">server HTTP aplikasi :8090</text>
+  <rect x="282" y="150" width="196" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="380" y="172" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">POST /pesanan</text>
+  <path d="M380 184V214" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="388" y="203" font-size="11" font-family="Consolas, Menlo, monospace" fill="#5f5f5f">b.Publish(...)</text>
+  <rect x="282" y="214" width="196" height="38" rx="8" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="380" y="238" font-weight="600" text-anchor="middle" fill="#1f1f1f">broker di /broker/</text>
+  <path d="M328 300V256" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M432 300V256" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <rect x="282" y="300" width="92" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="328" y="322" text-anchor="middle" fill="#1f1f1f">pembaca</text>
+  <rect x="386" y="300" width="92" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="432" y="322" text-anchor="middle" fill="#1f1f1f">CLI</text>
+  <text x="268" y="360" font-size="11" fill="#5f5f5f">Satu proses dan satu port untuk</text>
+  <text x="268" y="376" font-size="11" fill="#5f5f5f">aplikasi dan broker.</text>
+  <rect x="512" y="116" width="224" height="150" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="526" y="138" font-weight="600" fill="#1f1f1f">brokerku server :8080</text>
+  <rect x="526" y="150" width="196" height="102" rx="8" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="624" y="206" font-weight="600" text-anchor="middle" fill="#1f1f1f">broker</text>
+  <path d="M552 300V256" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M624 300V256" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <path d="M696 300V256" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <rect x="526" y="300" width="56" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="554" y="322" font-size="11.5" text-anchor="middle" fill="#1f1f1f">toko</text>
+  <rect x="594" y="300" width="60" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="624" y="322" font-size="11.5" text-anchor="middle" fill="#1f1f1f">pembaca</text>
+  <rect x="666" y="300" width="56" height="34" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="694" y="322" font-size="11.5" text-anchor="middle" fill="#1f1f1f">CLI</text>
+  <text x="512" y="360" font-size="11" fill="#5f5f5f">Semua program memanggil broker</text>
+  <text x="512" y="376" font-size="11" fill="#5f5f5f">lewat HTTP.</text>
+</svg>

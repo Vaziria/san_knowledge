@@ -303,12 +303,13 @@ var coreKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "video-thumbnail", Title: "Video Thumbnail", Category: "Action",
-			Description: "Takes one frame of the video File as a picture, with ffmpeg: From Start, Seconds after the start (empty: the first frame); End, Seconds before the end (empty: the last frame); or Random, at a random time in the video's middle 90%. Saved at Save To (a file or a folder; .jpg, .png or .webp) or beside File as a .jpg; Width scales it, keeping its shape. File is the picture, Second the time it was taken at.",
+			Description: "Takes one frame of the video File as a picture, with ffmpeg: From Start, Seconds after the start (empty: the first frame); End, Seconds before the end (empty: the last frame); or Random, at a random time in the video's middle 90%. Aspect crops it to the largest middle part of 9:16, 1:1, 4:5 or 16:9, or, with Custom, of Ratio (W:H, such as 3:2); Original keeps the whole frame. Saved at Save To (a file or a folder; .jpg, .png or .webp) or beside File as a .jpg; Width scales it, keeping its shape. File is the picture, Second the time it was taken at.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("File", Text), sock("Second", Text)},
-			Settings: []*v1.Setting{{Name: "From", Options: thumbFrom},
+			Settings: []*v1.Setting{{Name: "From", Options: thumbFrom}, {Name: "Aspect", Options: thumbAspects},
 				{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"}},
 			Inputs: []*v1.Socket{sock("Event", Event), hint("clip.mp4, or Download File's File", field("File")),
 				only("From!=Random", hint("2.5; empty: the first or last frame", field("Seconds"))),
+				only("Aspect=Custom", hint("3:2, or 1.91:1 (width:height)", field("Ratio"))),
 				hint("Empty: the video's size; 320", field("Width")),
 				hint("Empty: beside File, clip_thumb_2s.jpg", field("Save To"))},
 		},

@@ -127,7 +127,7 @@ func cropVideo(c *call) error {
 		tag = fmt.Sprintf("crop_%dx%d", w, h)
 	case slices.Contains(cropAspects, aspect):
 		a, b, _ := strings.Cut(aspect, ":")
-		crop = fmt.Sprintf("w='trunc(min(iw,ih*%s/%s)/2)*2':h='trunc(min(ih,iw*%s/%s)/2)*2'", a, b, b, a)
+		crop = cropShape(a, b)
 		tag = a + "x" + b
 	default:
 		return fmt.Errorf("Aspect %q: %s", aspect, strings.Join(cropAspects, ", "))
@@ -156,6 +156,12 @@ var thumbFrom = []string{"Start", "End", "Random"}
 // frame, from 0 to 1 (tests set it).
 var randomFraction = rand.Float64
 
+// thumbAspects are Video Thumbnail's Aspect: the frame as it is, a shape
+// to crop it to (Crop Video's), or Custom, a Ratio.
+var thumbAspects = append([]string{"Original"}, cropAspects...)
+
+var ratioText = regexp.MustCompile(`^(\d+(?:\.\d+)?)\s*[:x/]\s*(\d+(?:\.\d+)?)$`)
+
 // pictureExts are the formats Video Thumbnail saves, by extension.
 var pictureExts = []string{".jpg", ".jpeg", ".png", ".webp"}
 
@@ -167,8 +173,11 @@ var pictureExts = []string{".jpg", ".jpeg", ".png", ".webp"}
 // past the fade-ins and end cards its first and last moments often have.
 // It is saved as pictureOut says, named after File and the time
 // (clip_thumb_2.5s.jpg, clip_thumb_end.jpg); Width scales it, keeping its
-// shape. Second is the time the frame was taken at: the one asked for, or
-// the last frame's own.
+// shape. Aspect first crops it to the largest middle part of 9:16, 1:1, 4:5
+// or 16:9, or, with Custom, of Ratio, W:H (3:2, 1.91:1; the user's ask,
+// 2026-11-07: "add custom ratio too"), named into the file
+// (clip_thumb_2.5s_9x16.jpg). Second is the time the frame was taken at:
+// the one asked for, or the last frame's own.
 func videoThumbnail(c *call) error {
 	in, err := videoIn(c)
 	if err != nil {
@@ -181,6 +190,31 @@ func videoThumbnail(c *call) error {
 	sec, err := seconds(c, "Seconds")
 	if err != nil {
 		return err
+	}
+	aspect := cmp.Or(c.setting("Aspect"), thumbAspects[0])
+	var crop, shape string // the crop filter and its name in the file
+	switch {
+	case aspect == "Original":
+	case aspect == "Custom":
+		raw := strings.TrimSpace(c.text("Ratio"))
+		m := ratioText.FindStringSubmatch(strings.ReplaceAll(raw, ",", "."))
+		var a, b float64
+		if m != nil {
+			a, _ = strconv.ParseFloat(m[1], 64)
+			b, _ = strconv.ParseFloat(m[2], 64)
+		}
+		switch {
+		case raw == "":
+			return fmt.Errorf("Ratio %w: give width:height, such as 3:2", errEmpty)
+		case m == nil || a <= 0 || b <= 0:
+			return fmt.Errorf("Ratio %q: give width:height, such as 3:2 or 1.91:1", raw)
+		}
+		crop, shape = "crop="+cropShape(m[1], m[2]), m[1]+"x"+m[2]
+	case slices.Contains(cropAspects, aspect):
+		a, b, _ := strings.Cut(aspect, ":")
+		crop, shape = "crop="+cropShape(a, b), a+"x"+b
+	default:
+		return fmt.Errorf("Aspect %q: Original, 9:16, 1:1, 4:5, 16:9 or Custom", aspect)
 	}
 	width := -1
 	if strings.TrimSpace(c.text("Width")) != "" {
@@ -225,6 +259,9 @@ func videoThumbnail(c *call) error {
 		at = total * (0.05 + 0.9*randomFraction())
 		tag, which = "thumb_"+secs(at)+"s", "at random"
 	}
+	if shape != "" {
+		tag += "_" + shape
+	}
 	dest, err := pictureOut(c, in, tag)
 	if err != nil {
 		return err
@@ -233,6 +270,9 @@ func videoThumbnail(c *call) error {
 	picture := func(from float64, frames ...string) []string {
 		args := append([]string{"-ss", secs(from), "-i", filepath.FromSlash(in), "-an"}, frames...)
 		filters := "showinfo" // says each frame's time, from the -ss
+		if crop != "" {
+			filters += "," + crop
+		}
 		if width > 0 {
 			filters += fmt.Sprintf(",scale=%d:-1", width)
 		}
@@ -271,11 +311,22 @@ func videoThumbnail(c *call) error {
 		os.Remove(filepath.FromSlash(dest))
 		return fmt.Errorf("no frame at %ss of %s (it is %ss long)", secs(at), in, secs(total))
 	}
+	if shape != "" {
+		which += ", cropped to " + strings.Replace(shape, "x", ":", 1)
+	}
 	c.logs = append(c.logs, fmt.Sprintf("took the frame at %ss (%s) of %s into %s", secs(at), which, in, dest))
 	c.outputs["File"] = stringValue(dest)
 	c.outputs["Second"] = stringValue(secs(at))
 	c.fire("Done")
 	return nil
+}
+
+// cropShape is the crop keeping the largest middle part of a picture of
+// shape a:b, its sizes made even (as H.264 needs, and ffmpeg's crop of a
+// video's usual colour format does anyway): Crop Video's and Video
+// Thumbnail's.
+func cropShape(a, b string) string {
+	return fmt.Sprintf("w='trunc(min(iw,ih*%s/%s)/2)*2':h='trunc(min(ih,iw*%s/%s)/2)*2'", a, b, b, a)
 }
 
 // pictureOut is where Video Thumbnail saves its picture: as videoOut says,

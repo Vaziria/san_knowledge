@@ -497,8 +497,13 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   Saved beside File as `clip_thumb_2.5s.jpg` (`clip_thumb_end.jpg`,
   `clip_thumb_end-2s.jpg`), or at Save To, a file or a folder placed as
   Cut Video's; Save To's extension says the format: .jpg (quality 2),
-  .jpeg, .png or .webp. Width scales it (keeping its shape); empty is the
-  video's size. File is the picture, Second the time it was taken at (the
+  .jpeg, .png or .webp. Aspect (the user's ask, 2026-11-07: "add custom
+  ratio too") crops it first to the largest middle part of 9:16, 1:1, 4:5
+  or 16:9, or, with Custom, of Ratio, width:height (`3:2`, `1.91:1`,
+  `1,91:1`), its sizes made even as Crop Video's (shared: `cropShape`);
+  Original, the default, keeps the whole frame. The shape goes into the
+  name (`clip_thumb_2.5s_9x16.jpg`). Width then scales it (keeping its
+  shape); empty is the video's size. File is the picture, Second the time it was taken at (the
   last frame's own, from ffmpeg's showinfo). A time past the end fails the
   step.
 - The datetime steps (category Datetime, their own group in the Add

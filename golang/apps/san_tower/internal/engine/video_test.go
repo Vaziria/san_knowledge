@@ -332,6 +332,44 @@ func TestVideoThumbnail(t *testing.T) {
 	}
 }
 
+// Video Thumbnail's Aspect crops the frame to the largest middle part of a
+// shape, before Width scales it; Custom takes Ratio as W:H.
+func TestVideoThumbnailAspect(t *testing.T) {
+	if _, err := exec.LookPath(ffmpegCLI); err != nil {
+		t.Skip("no ffmpeg on PATH")
+	}
+	dir := t.TempDir()
+	rgbClip(t, filepath.Join(dir, "clip.mp4")) // 32x32
+	env := Env{DataDir: filepath.ToSlash(dir)}
+	for _, c := range []struct {
+		values map[string]string
+		want   string // the picture's path, from dir
+		size   string
+	}{
+		{map[string]string{"File": "clip.mp4", "Aspect": "Original"}, "clip_thumb_0s.jpg", "32x32"},
+		{map[string]string{"File": "clip.mp4", "Aspect": "9:16"}, "clip_thumb_0s_9x16.jpg", "18x32"},
+		{map[string]string{"File": "clip.mp4", "Aspect": "16:9", "From": "End"}, "clip_thumb_end_16x9.jpg", "32x18"},
+		{map[string]string{"File": "clip.mp4", "Aspect": "4:5", "Save To": "p.png"}, "p.png", "24x32"},
+		{map[string]string{"File": "clip.mp4", "Aspect": "Custom", "Ratio": "3:2"}, "clip_thumb_0s_3x2.jpg", "32x20"},
+		{map[string]string{"File": "clip.mp4", "Aspect": "Custom", "Ratio": " 1,91 : 1 "}, "clip_thumb_0s_1.91x1.jpg", "32x16"},
+		{map[string]string{"File": "clip.mp4", "Aspect": "Custom", "Ratio": "1x2", "Width": "8"}, "clip_thumb_0s_1x2.jpg", "8x16"},
+	} {
+		steps, err := Execute(context.Background(), videoGraph("video-thumbnail", c.values), "go", nil, env)
+		if err != nil {
+			t.Errorf("%v: %v", c.values, err)
+			continue
+		}
+		var got wrapperspb.StringValue
+		if err := steps[1].Outputs["File"].UnmarshalTo(&got); err != nil || got.Value != filepath.ToSlash(filepath.Join(dir, c.want)) {
+			t.Errorf("%v: File %q, %v; want %s", c.values, got.Value, err, c.want)
+			continue
+		}
+		if color, size := colorOf(t, got.Value); size != c.size || color == "?" {
+			t.Errorf("%v: a %s %s picture, want %s", c.values, size, color, c.size)
+		}
+	}
+}
+
 // What Video Thumbnail refuses before it runs ffmpeg.
 func TestVideoThumbnailRefuses(t *testing.T) {
 	dir := t.TempDir()
@@ -351,6 +389,10 @@ func TestVideoThumbnailRefuses(t *testing.T) {
 		{map[string]string{"File": "a.mp4", "Seconds": "1:30"}, `Seconds "1:30": give seconds`},
 		{map[string]string{"File": "a.mp4", "Width": "0"}, `Width "0": give a whole number of pixels, at least 1`},
 		{map[string]string{"File": "a.mp4", "Width": "wide"}, `Width "wide"`},
+		{map[string]string{"File": "a.mp4", "Aspect": "3:4"}, `Aspect "3:4": Original, 9:16, 1:1, 4:5, 16:9 or Custom`},
+		{map[string]string{"File": "a.mp4", "Aspect": "Custom"}, "Ratio is empty: give width:height, such as 3:2"},
+		{map[string]string{"File": "a.mp4", "Aspect": "Custom", "Ratio": "wide"}, `Ratio "wide": give width:height, such as 3:2 or 1.91:1`},
+		{map[string]string{"File": "a.mp4", "Aspect": "Custom", "Ratio": "0:1"}, `Ratio "0:1": give width:height`},
 		{map[string]string{"File": "a.mp4", "Save To": "out"}, "out has no extension, such as .jpg"},
 		{map[string]string{"File": "a.mp4", "Save To": "out.mp4"}, "out.mp4: a picture is .jpg, .jpeg, .png or .webp"},
 		{map[string]string{"File": "a.mp4"}, "ffmpeg is not on this computer's PATH"},
@@ -361,8 +403,8 @@ func TestVideoThumbnailRefuses(t *testing.T) {
 	}
 }
 
-// Every field of Video Thumbnail has an example in its empty box, and
-// Seconds shows only for Start and End.
+// Every field of Video Thumbnail has an example in its empty box, Seconds
+// shows only for Start and End, and Ratio only for Custom.
 func TestVideoThumbnailKind(t *testing.T) {
 	k := byKind["video-thumbnail"]
 	if k == nil {
@@ -374,6 +416,9 @@ func TestVideoThumbnailKind(t *testing.T) {
 		}
 		if in.Name == "Seconds" && in.When != "From!=Random" {
 			t.Errorf("Seconds shows when %q", in.When)
+		}
+		if in.Name == "Ratio" && in.When != "Aspect=Custom" {
+			t.Errorf("Ratio shows when %q", in.When)
 		}
 	}
 }

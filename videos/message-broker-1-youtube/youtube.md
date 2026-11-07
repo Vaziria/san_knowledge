@@ -20,6 +20,6 @@ Seri baru: bikin message broker kecil dengan Go dari nol, cuma pakai library sta
 2:24 Record yang terpotong
 2:44 Kelemahan dan bagian berikutnya
 
-Artikel lengkapnya di Medium, dengan kode Go, test, dan hasil benchmark-nya: {{MEDIUM_URL}}
+Artikel lengkapnya di Medium, dengan kode Go, test, dan hasil benchmark-nya: https://medium.com/p/e403943bae69
 
 Bagian 2: broker mengingat posisi baca setiap subscriber, juga setelah mati mendadak.

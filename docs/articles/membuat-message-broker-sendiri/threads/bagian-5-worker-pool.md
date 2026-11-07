@@ -51,4 +51,4 @@ Di percobaan dengan webhook 4 detik, faktur menerima kedua pesan setelah 8 detik
 
 Ini Bagian 5 dari seri Membuat Message Broker Sendiri, lengkap dengan kode Go, test, benchmark, dan percobaannya. Di Bagian 6, bagian terakhir, kita menjalankan broker dengan tiga cara dan membandingkannya dengan RabbitMQ, NATS, dan Kafka.
 
-{{MEDIUM_URL}}
+https://medium.com/p/22761fe95d8c

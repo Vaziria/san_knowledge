@@ -20,6 +20,6 @@ Bagian 2 dari seri bikin message broker sendiri dengan Go. Broker mulai menginga
 2:27 Kenapa ID tidak boleh kembar
 2:47 Kelemahan dan bagian berikutnya
 
-Artikel lengkapnya di Medium, dengan kode Go dan test-nya: {{MEDIUM_URL}}
+Artikel lengkapnya di Medium, dengan kode Go dan test-nya: https://medium.com/p/7844af967263
 
 Bagian 1: protokol sendiri atau AMQP, lalu menyimpan pesan di log. Bagian 3: subscriber yang menarik pesannya sendiri lewat satu request HTTP/2.

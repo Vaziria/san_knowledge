@@ -53,4 +53,4 @@ Masih ada satu masalah. Hanya ada satu goroutine yang memanggil webhook, jadi we
 
 Ini Bagian 4 dari seri Membuat Message Broker Sendiri, lengkap dengan kode Go, test, dan percobaannya. Di Bagian 5, kita menggantinya dengan worker pool.
 
-{{MEDIUM_URL}}
+https://medium.com/p/6964d35a524b

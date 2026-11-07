@@ -51,4 +51,4 @@ Rancangan seperti ini cocok kalau satu server cukup dan broker ingin ikut di dal
 
 Ini Bagian 6, bagian terakhir seri Membuat Message Broker Sendiri, lengkap dengan kode Go, test, dan percobaannya, ditambah rangkuman seluruh seri.
 
-{{MEDIUM_URL}}
+https://medium.com/p/c18c4bb3baab

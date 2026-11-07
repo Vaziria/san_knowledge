@@ -19,6 +19,6 @@ Bagian 3 dari seri bikin message broker sendiri dengan Go: pesan mulai sampai ke
 2:19 Mencoba brokerku dan pembaca
 2:39 Kelemahan dan bagian berikutnya
 
-Artikel lengkapnya di Medium, dengan kode Go, test, dan percobaannya: {{MEDIUM_URL}}
+Artikel lengkapnya di Medium, dengan kode Go, test, dan percobaannya: https://medium.com/p/87222de2c9f8
 
 Bagian 4: subscriber webhook dan percobaan ulang, dengan jeda yang dimulai dari 1 detik dan berlipat dua sampai paling lama 5 menit.

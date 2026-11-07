@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 392" width="1520" height="784" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Satu request HTTP/2 membawa pesan dan ack ke dua arah">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="392" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Satu request HTTP/2 membawa pesan dan ack ke dua arah</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Request-nya sendiri adalah hello. Setelah jawaban 200, pesan mengalir di body response, dan ack di body request.</text>
+  <rect x="50" y="80" width="140" height="30" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="120" y="100" font-weight="600" text-anchor="middle" fill="#1f1f1f">subscriber email</text>
+  <rect x="570" y="80" width="140" height="30" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="640" y="100" font-weight="600" text-anchor="middle" fill="#1f1f1f">broker</text>
+  <path d="M120 110V378" fill="none" stroke="#a8a69c" stroke-width="1" stroke-dasharray="2 3"/>
+  <path d="M640 110V378" fill="none" stroke="#a8a69c" stroke-width="1" stroke-dasharray="2 3"/>
+  <path d="M120 138H640" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="380.0" y="132" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">POST /subscribers/email/stream?ack_timeout=30s</text>
+  <text x="654" y="142" font-size="11" fill="#5f5f5f">hello</text>
+  <path d="M640 170H120" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="380.0" y="164" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">200 OK</text>
+  <text x="654" y="174" font-size="11" fill="#5f5f5f">jawaban hello</text>
+  <path d="M640 202H120" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="380.0" y="196" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">{"id":1,"time":...,"data":"..."}</text>
+  <text x="654" y="206" font-size="11" fill="#5f5f5f">pesan 1</text>
+  <path d="M120 234H640" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="380.0" y="228" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">{"ack":1}</text>
+  <text x="654" y="238" font-size="11" fill="#5f5f5f">ack</text>
+  <path d="M640 266H120" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="380.0" y="260" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">{"id":2,"time":...,"data":"..."}</text>
+  <text x="654" y="270" font-size="11" fill="#5f5f5f">pesan 2</text>
+  <path d="M640 330H120" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="380.0" y="324" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">{"id":2,"time":...,"data":"..."}</text>
+  <text x="654" y="334" font-size="11" fill="#5f5f5f">pesan 2 dikirim lagi</text>
+  <path d="M120 362H640" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="380.0" y="356" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">{"ack":2}</text>
+  <text x="654" y="366" font-size="11" fill="#5f5f5f">ack</text>
+  <rect x="634" y="272" width="12" height="52" rx="3" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="654" y="296" font-size="11" fill="#5f5f5f">30 detik tanpa ack</text>
+  <text x="132" y="302" font-size="11" fill="#5f5f5f">email gagal mengerjakan pesan 2, tidak ada ack</text>
+</svg>

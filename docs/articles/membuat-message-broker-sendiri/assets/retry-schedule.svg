@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 318" width="1520" height="636" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Jeda berlipat dua, lalu pesan dilewati pada kegagalan ke-10">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="318" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Jeda berlipat dua, lalu pesan dilewati pada kegagalan ke-10</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Garis di bawah digambar sesuai waktu. Hampir semua waktu tunggu ada di beberapa jeda terakhir.</text>
+  <path d="M60 150H700" fill="none" stroke="#a8a69c" stroke-width="1.5"/>
+  <circle cx="60.0" cy="150" r="3.5" fill="#2f76d6"/>
+  <circle cx="61.3" cy="150" r="3.5" fill="#2f76d6"/>
+  <circle cx="63.8" cy="150" r="3.5" fill="#2f76d6"/>
+  <circle cx="68.8" cy="150" r="3.5" fill="#2f76d6"/>
+  <circle cx="78.8" cy="150" r="3.5" fill="#2f76d6"/>
+  <circle cx="98.8" cy="150" r="3.5" fill="#2f76d6"/>
+  <circle cx="138.9" cy="150" r="5" fill="#2f76d6"/>
+  <circle cx="219.1" cy="150" r="5" fill="#2f76d6"/>
+  <circle cx="379.4" cy="150" r="5" fill="#2f76d6"/>
+  <circle cx="700.0" cy="150" r="5" fill="#1f1f1f"/>
+  <rect x="102.82583170254404" y="128" width="32.07827788649706" height="12" rx="3" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="142.9041095890411" y="128" width="72.15655577299412" height="12" rx="3" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="223.06066536203522" y="128" width="152.31311154598828" height="12" rx="3" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <rect x="383.3737769080235" y="128" width="312.6262230919765" height="12" rx="3" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="299.2172211350294" y="122" font-size="11" text-anchor="middle" fill="#2f76d6">jeda 2 m 8 d</text>
+  <text x="539.6868884540118" y="122" font-size="11" text-anchor="middle" fill="#2f76d6">jeda 4 m 16 d</text>
+  <text x="178.98238747553816" y="122" font-size="11" text-anchor="middle" fill="#2f76d6">1 m 4 d</text>
+  <text x="60" y="176" font-size="11" fill="#1f1f1f">percobaan 1 sampai 6</text>
+  <text x="60" y="192" font-size="11" fill="#5f5f5f">dalam 31 detik pertama</text>
+  <text x="138.9041095890411" y="176" font-size="11" text-anchor="middle" fill="#1f1f1f">percobaan 7</text>
+  <text x="138.9041095890411" y="192" font-size="11" text-anchor="middle" fill="#5f5f5f">1 m 3 d</text>
+  <text x="219.06066536203522" y="176" font-size="11" text-anchor="middle" fill="#1f1f1f">percobaan 8</text>
+  <text x="219.06066536203522" y="192" font-size="11" text-anchor="middle" fill="#5f5f5f">2 m 7 d</text>
+  <text x="379.3737769080235" y="176" font-size="11" text-anchor="middle" fill="#1f1f1f">percobaan 9</text>
+  <text x="379.3737769080235" y="192" font-size="11" text-anchor="middle" fill="#5f5f5f">4 m 15 d</text>
+  <text x="700" y="176" font-size="11" font-weight="600" text-anchor="end" fill="#1f1f1f">percobaan 10 gagal</text>
+  <text x="700" y="192" font-size="11" text-anchor="end" fill="#5f5f5f">8 m 31 d, pesan dilewati</text>
+  <text x="60" y="108" font-size="11" fill="#5f5f5f">0 detik</text>
+  <rect x="24" y="222" width="712" height="72" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="246" font-weight="600" fill="#1f1f1f">Jeda setelah kegagalan ke-1 sampai ke-9</text>
+  <text x="40" y="268" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">1 d   2 d   4 d   8 d   16 d   32 d   1 m 4 d   2 m 8 d   4 m 16 d</text>
+  <text x="40" y="286" font-size="11" fill="#5f5f5f">Belum termasuk lama setiap panggilan. Batas 5 menit baru terpakai kalau batas percobaan dinaikkan.</text>
+</svg>

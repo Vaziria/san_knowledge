@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 316" width="1520" height="632" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Satu subscriber hanya punya satu stream, sampai koneksinya terbukti mati">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="316" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Satu subscriber hanya punya satu stream, sampai koneksinya terbukti mati</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Stream kedua ditolak selama stream pertama terbuka. Ping HTTP/2 menemukan koneksi yang mati diam-diam.</text>
+  <rect x="24" y="84" width="300" height="208" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="108" font-weight="600" fill="#1f1f1f">Stream kedua ditolak</text>
+  <rect x="40" y="128" width="110" height="40" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="95" y="152" text-anchor="middle" fill="#1f1f1f">program 1</text>
+  <rect x="40" y="214" width="110" height="40" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="95" y="238" text-anchor="middle" fill="#1f1f1f">program 2</text>
+  <rect x="212" y="166" width="96" height="50" rx="8" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="260" y="186" font-weight="600" text-anchor="middle" fill="#1f1f1f">broker</text>
+  <text x="260" y="204" font-size="11" text-anchor="middle" fill="#5f5f5f">stream email</text>
+  <path d="M150 148L212 182" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M212 204L150 234" fill="none" stroke="#a8a69c" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-grey)"/>
+  <text x="200" y="266" font-size="11" font-family="Consolas, Menlo, monospace" text-anchor="middle" fill="#1f1f1f">409 Conflict</text>
+  <text x="40" y="284" font-size="11" fill="#5f5f5f">Nama subscriber sama, koneksi kedua.</text>
+  <rect x="340" y="84" width="396" height="208" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="356" y="108" font-weight="600" fill="#1f1f1f">Koneksi mati diam-diam</text>
+  <path d="M400 150V166" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <path d="M492 150V166" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <path d="M584 150V166" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <path d="M676 150V166" fill="none" stroke="#a8a69c" stroke-width="1.25"/>
+  <path d="M400 158H716" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="400" y="188" font-size="11" text-anchor="middle" fill="#1f1f1f">paket</text>
+  <text x="400" y="203" font-size="11" text-anchor="middle" fill="#5f5f5f">terakhir lewat</text>
+  <text x="492" y="188" font-size="11" text-anchor="middle" fill="#1f1f1f">15 detik diam,</text>
+  <text x="492" y="203" font-size="11" text-anchor="middle" fill="#5f5f5f">ping dikirim</text>
+  <text x="584" y="188" font-size="11" text-anchor="middle" fill="#1f1f1f">15 detik tanpa</text>
+  <text x="584" y="203" font-size="11" text-anchor="middle" fill="#5f5f5f">jawaban</text>
+  <text x="676" y="188" font-size="11" text-anchor="middle" fill="#1f1f1f">koneksi ditutup,</text>
+  <text x="676" y="203" font-size="11" text-anchor="middle" fill="#5f5f5f">stream dilepas</text>
+  <rect x="356" y="222" width="364" height="50" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="372" y="243" font-size="11.5" fill="#1f1f1f">Setelah itu, email bisa terhubung lagi</text>
+  <text x="372" y="260" font-size="11" fill="#5f5f5f">lewat koneksi baru, paling lama sekitar 30 detik kemudian.</text>
+</svg>

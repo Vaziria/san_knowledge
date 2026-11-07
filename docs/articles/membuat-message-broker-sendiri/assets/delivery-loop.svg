@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 308" width="1520" height="616" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Loop pengantar berkeliling tanpa menunggu satu subscriber pun">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="308" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Loop pengantar berkeliling tanpa menunggu satu subscriber pun</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Setiap putaran, loop mengerjakan satu langkah untuk setiap stream yang terbuka, lalu pindah ke stream berikutnya.</text>
+  <rect x="24" y="104" width="120" height="36" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="84" y="127" text-anchor="middle" fill="#1f1f1f">publish baru</text>
+  <path d="M144 122L196 148" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <rect x="24" y="160" width="120" height="36" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="84" y="183" text-anchor="middle" fill="#1f1f1f">ack datang</text>
+  <path d="M144 178L196 162" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <rect x="24" y="216" width="120" height="36" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="84" y="239" text-anchor="middle" fill="#1f1f1f">100 ms berlalu</text>
+  <path d="M144 234L196 176" fill="none" stroke="#a8a69c" stroke-width="1.5" marker-end="url(#arrow-grey)"/>
+  <text x="24" y="286" font-size="11.5" fill="#5f5f5f">Yang membangunkan loop</text>
+  <rect x="196" y="132" width="128" height="60" rx="8" fill="#2f76d6" fill-opacity="0.12" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="260" y="158" font-weight="600" text-anchor="middle" fill="#1f1f1f">loop pengantar</text>
+  <text x="260" y="176" font-size="11" text-anchor="middle" fill="#5f5f5f">satu goroutine</text>
+  <rect x="372" y="86" width="364" height="54" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="388" y="108" font-weight="600" fill="#1f1f1f">email</text>
+  <text x="388" y="126" font-size="11" fill="#5f5f5f">memegang pesan 4, baru 2 detik</text>
+  <text x="720" y="117" font-size="11.5" text-anchor="end" fill="#2f76d6">periksa ack, belum ada, lanjut</text>
+  <path d="M324 162L372 113" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="372" y="152" width="364" height="54" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="388" y="174" font-weight="600" fill="#1f1f1f">stok</text>
+  <text x="388" y="192" font-size="11" fill="#5f5f5f">tidak memegang pesan</text>
+  <text x="720" y="183" font-size="11.5" text-anchor="end" fill="#2f76d6">kirim pesan 7 ke stream-nya</text>
+  <path d="M324 162L372 179" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="372" y="218" width="364" height="54" rx="8" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="388" y="240" font-weight="600" fill="#1f1f1f">laporan</text>
+  <text x="388" y="258" font-size="11" fill="#5f5f5f">memegang pesan 3, lewat 30 detik</text>
+  <text x="720" y="249" font-size="11.5" text-anchor="end" fill="#2f76d6">kirim pesan 3 lagi</text>
+  <path d="M324 162L372 245" fill="none" stroke="#2f76d6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="372" y="286" font-size="11.5" fill="#5f5f5f">Tidak ada langkah yang menunggu jawaban dari subscriber.</text>
+</svg>

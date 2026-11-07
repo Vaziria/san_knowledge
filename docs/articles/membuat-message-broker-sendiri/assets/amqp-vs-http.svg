@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 356" width="1520" height="712" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="AMQP 0-9-1 punya 53 method, protokol brokerku cukup empat alamat HTTP">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="356" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">AMQP 0-9-1 punya 53 method, protokol brokerku cukup empat alamat HTTP</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Angka AMQP dihitung dari file spesifikasi XML-nya. Keempat alamat brokerku selesai dibangun di Bagian 3.</text>
+  <rect x="24" y="84" width="340" height="248" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="40" y="108" font-weight="600" fill="#1f1f1f">AMQP 0-9-1</text>
+  <text x="40" y="126" font-size="11.5" fill="#5f5f5f">protokol biner di atas TCP</text>
+  <rect x="40" y="138" width="308" height="40" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="52" y="155" font-weight="600" fill="#1f1f1f">koneksi TCP, dibuka dengan handshake</text>
+  <text x="52" y="171" font-size="11" fill="#5f5f5f">start, start-ok, tune, tune-ok, open, open-ok</text>
+  <rect x="40" y="186" width="308" height="40" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="52" y="203" font-weight="600" fill="#1f1f1f">channel di dalam koneksi</text>
+  <text x="52" y="219" font-size="11" fill="#5f5f5f">channel.open, channel.open-ok</text>
+  <rect x="40" y="234" width="308" height="40" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="52" y="251" font-weight="600" fill="#1f1f1f">6 class, 53 method</text>
+  <text x="52" y="267" font-size="11" fill="#5f5f5f">connection, channel, exchange, queue, basic, tx</text>
+  <rect x="40" y="282" width="308" height="40" rx="6" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="52" y="299" font-weight="600" fill="#1f1f1f">4 jenis frame</text>
+  <text x="52" y="315" font-size="11" fill="#5f5f5f">method, header, body, heartbeat</text>
+  <rect x="396" y="84" width="340" height="248" rx="10" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="412" y="108" font-weight="600" fill="#1f1f1f">brokerku</text>
+  <text x="412" y="126" font-size="11.5" fill="#5f5f5f">protokol sendiri di atas HTTP</text>
+  <rect x="412" y="138" width="308" height="40" rx="6" fill="#2f76d6" fill-opacity="0.08" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="424" y="155" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">PUT  /topics/{topic}</text>
+  <text x="424" y="171" font-size="11" fill="#5f5f5f">membuat topic</text>
+  <rect x="412" y="186" width="308" height="40" rx="6" fill="#2f76d6" fill-opacity="0.08" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="424" y="203" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">POST /topics/{topic}</text>
+  <text x="424" y="219" font-size="11" fill="#5f5f5f">mengirim satu pesan</text>
+  <rect x="412" y="234" width="308" height="40" rx="6" fill="#2f76d6" fill-opacity="0.08" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="424" y="251" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">PUT  /subscribers/{name}</text>
+  <text x="424" y="267" font-size="11" fill="#5f5f5f">membuat subscriber</text>
+  <rect x="412" y="282" width="308" height="40" rx="6" fill="#2f76d6" fill-opacity="0.08" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="424" y="299" font-size="11.5" font-family="Consolas, Menlo, monospace" fill="#1f1f1f">POST /subscribers/{name}/stream</text>
+  <text x="424" y="315" font-size="11" fill="#5f5f5f">stream pull, hanya lewat HTTP/2</text>
+</svg>

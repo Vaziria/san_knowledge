@@ -175,7 +175,7 @@ icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart, Tower Chat, OpenAI API and
 Telegram Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
 Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Now, Datetime,
-Datetime Operation, String to Datetime, Wait, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Delete File, Delete Folder and Log,
+Datetime Operation, String to Datetime, Wait, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Video Thumbnail, Delete File, Delete Folder and Log,
 and
 the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
 
@@ -484,6 +484,23 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   file are as Cut Video's (shared in `video.go`: `videoIn`, `videoOut`,
   `ffmpegTo`); beside File it is `clip_9x16.mp4` or `clip_crop_32x20.mp4`.
   The log says the sizes ("from 1920x1080 to 606x1080").
+- Video Thumbnail (Action; `video.go`; the user's ask, 2026-11-07) takes
+  one frame of the video File as a picture, with ffmpeg. From Start (the
+  default) takes it Seconds after the start (empty: the first frame); End,
+  Seconds before the end (empty: the last frame); Random, at a random time
+  in the video's middle 90%, past the fade-ins and end cards a video's
+  first and last moments often have (Seconds is hidden). The last frame is
+  found by letting ffmpeg write every frame from a second before the end
+  over the one before (`-update 1`), so it is the real last one in a phone
+  video, whose frames come unevenly, and, failing that, from 10 seconds
+  before or the start, for a video whose sound goes on after its picture.
+  Saved beside File as `clip_thumb_2.5s.jpg` (`clip_thumb_end.jpg`,
+  `clip_thumb_end-2s.jpg`), or at Save To, a file or a folder placed as
+  Cut Video's; Save To's extension says the format: .jpg (quality 2),
+  .jpeg, .png or .webp. Width scales it (keeping its shape); empty is the
+  video's size. File is the picture, Second the time it was taken at (the
+  last frame's own, from ffmpeg's showinfo). A time past the end fails the
+  step.
 - The datetime steps (category Datetime, their own group in the Add
   menu; pure; `datetime.go`; the user's ask,
   2026-10-25) give a time three ways, in the tower's local time: Datetime

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"math"
+	"math/rand/v2"
 	"os"
 	"os/exec"
 	"path"
@@ -21,6 +22,8 @@ import (
 // ffmpegCLI is the command the video steps run: ffmpeg on this computer's
 // PATH.
 var ffmpegCLI = "ffmpeg"
+
+var errNoFFmpeg = errors.New("ffmpeg is not on this computer's PATH: install it (winget install Gyan.FFmpeg)")
 
 // cutVideo runs Cut Video (the user's ask, 2026-10-25): the part of the
 // video File from Start to End, in seconds (no End: to its end), saved as
@@ -146,6 +149,179 @@ func cropVideo(c *call) error {
 	return nil
 }
 
+// thumbFrom are Video Thumbnail's From: where in the video its frame is.
+var thumbFrom = []string{"Start", "End", "Random"}
+
+// randomFraction is where in the video's middle From Random takes its
+// frame, from 0 to 1 (tests set it).
+var randomFraction = rand.Float64
+
+// pictureExts are the formats Video Thumbnail saves, by extension.
+var pictureExts = []string{".jpg", ".jpeg", ".png", ".webp"}
+
+// videoThumbnail runs Video Thumbnail (the user's ask, 2026-11-07: "add
+// option to pick thumbnail from start, end or random duration"): one frame
+// of the video File as a picture. From Start takes the frame Seconds after
+// the start (empty: the first frame); End, Seconds before the end (empty:
+// the last frame); Random, one at a random time in the video's middle 90%,
+// past the fade-ins and end cards its first and last moments often have.
+// It is saved as pictureOut says, named after File and the time
+// (clip_thumb_2.5s.jpg, clip_thumb_end.jpg); Width scales it, keeping its
+// shape. Second is the time the frame was taken at: the one asked for, or
+// the last frame's own.
+func videoThumbnail(c *call) error {
+	in, err := videoIn(c)
+	if err != nil {
+		return err
+	}
+	from := cmp.Or(c.setting("From"), thumbFrom[0])
+	if !slices.Contains(thumbFrom, from) {
+		return fmt.Errorf("From %q: Start, End or Random", from)
+	}
+	sec, err := seconds(c, "Seconds")
+	if err != nil {
+		return err
+	}
+	width := -1
+	if strings.TrimSpace(c.text("Width")) != "" {
+		if width, err = pixels(c, "Width", 1); err != nil {
+			return err
+		}
+	}
+	if _, err := pictureOut(c, in, "thumb"); err != nil { // Save To, before ffmpeg runs
+		return err
+	}
+	info, err := probe(c, in)
+	if err != nil {
+		return err
+	}
+	total := videoDuration(info)
+	if total < 0 && from != "Start" {
+		return fmt.Errorf("From %s needs the video's length, which ffmpeg does not give for %s", from, in)
+	}
+
+	var at float64 // the frame's time, in seconds
+	var tag, which string
+	last := false
+	switch from {
+	case "Start":
+		at = max(sec, 0)
+		if total >= 0 && at >= total {
+			return fmt.Errorf("Seconds %s is past the video's end, at %ss", secs(at), secs(total))
+		}
+		tag, which = "thumb_"+secs(at)+"s", "from the start"
+	case "End":
+		if sec <= 0 {
+			last = true
+			tag, which = "thumb_end", "the last frame"
+			break
+		}
+		if sec > total {
+			return fmt.Errorf("Seconds %s is before the video's start: it is %ss long", secs(sec), secs(total))
+		}
+		at = total - sec
+		tag, which = "thumb_end-"+secs(sec)+"s", secs(sec)+"s before the end"
+	case "Random":
+		at = total * (0.05 + 0.9*randomFraction())
+		tag, which = "thumb_"+secs(at)+"s", "at random"
+	}
+	dest, err := pictureOut(c, in, tag)
+	if err != nil {
+		return err
+	}
+
+	picture := func(from float64, frames ...string) []string {
+		args := append([]string{"-ss", secs(from), "-i", filepath.FromSlash(in), "-an"}, frames...)
+		filters := "showinfo" // says each frame's time, from the -ss
+		if width > 0 {
+			filters += fmt.Sprintf(",scale=%d:-1", width)
+		}
+		args = append(args, "-vf", filters)
+		if ext := strings.ToLower(path.Ext(dest)); ext == ".jpg" || ext == ".jpeg" {
+			args = append(args, "-q:v", "2") // JPEG at high quality
+		}
+		return args
+	}
+	if !last {
+		err = ffmpegTo(c, dest, picture(at, "-frames:v", "1"), func(string) error { return nil })
+	} else {
+		// The last frame: from a little before the end, ffmpeg writes every
+		// frame over the one before (-update 1), leaving the last, at the
+		// time showinfo said last. Seeking to the length less a frame
+		// misses it in a video whose frames come unevenly (a phone's, whose
+		// last frame may show for longer) or whose sound goes on after the
+		// picture: then from 10 seconds before, then from the start.
+		for _, back := range []float64{1, 10, total} {
+			from := max(total-back, 0)
+			if err = ffmpegTo(c, dest, picture(from, "-update", "1"), func(out string) error {
+				if t := lastFrameTime(out); t >= 0 {
+					at = from + t
+				}
+				return nil
+			}); err == nil || from == 0 {
+				break
+			}
+		}
+	}
+	if err != nil {
+		return err
+	}
+	// A time past the last frame gives ffmpeg nothing to write.
+	if fi, err := os.Stat(filepath.FromSlash(dest)); err != nil || fi.Size() == 0 {
+		os.Remove(filepath.FromSlash(dest))
+		return fmt.Errorf("no frame at %ss of %s (it is %ss long)", secs(at), in, secs(total))
+	}
+	c.logs = append(c.logs, fmt.Sprintf("took the frame at %ss (%s) of %s into %s", secs(at), which, in, dest))
+	c.outputs["File"] = stringValue(dest)
+	c.outputs["Second"] = stringValue(secs(at))
+	c.fire("Done")
+	return nil
+}
+
+// pictureOut is where Video Thumbnail saves its picture: as videoOut says,
+// but a .jpg beside in, and Save To must name a picture format.
+func pictureOut(c *call, in, tag string) (string, error) {
+	dest, err := outFile(c, in, tag, ".jpg", ".jpg or .png, which says the picture's format")
+	if err != nil {
+		return "", err
+	}
+	if !slices.Contains(pictureExts, strings.ToLower(path.Ext(dest))) {
+		return "", fmt.Errorf("Save To %s: a picture is .jpg, .jpeg, .png or .webp", dest)
+	}
+	return dest, nil
+}
+
+// probe is what ffmpeg says of the video in: given no output file, it
+// describes the input (its length, streams, frame rate) and stops.
+func probe(c *call, in string) (string, error) {
+	cmd := exec.CommandContext(c.ctx, ffmpegCLI, "-hide_banner", "-nostdin", "-i", filepath.FromSlash(in))
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	switch err := cmd.Run(); {
+	case errors.Is(err, exec.ErrNotFound), errors.Is(err, fs.ErrNotExist):
+		return "", errNoFFmpeg
+	case c.ctx.Err() != nil:
+		return "", c.ctx.Err()
+	}
+	return stderr.String(), nil // it fails, wanting an output, after saying
+}
+
+var frameTimes = regexp.MustCompile(`pts_time:(\d+(?:\.\d+)?)`)
+
+// lastFrameTime is the time of the last frame ffmpeg's showinfo told of,
+// from the -ss; -1 when it told of none.
+func lastFrameTime(out string) float64 {
+	m := frameTimes.FindAllStringSubmatch(out, -1)
+	if m == nil {
+		return -1
+	}
+	t, err := strconv.ParseFloat(m[len(m)-1][1], 64)
+	if err != nil {
+		return -1
+	}
+	return t
+}
+
 // videoIn is a video step's File: taken as it is when absolute, so a
 // Download File's File links in, else placed as File Path places a name. It
 // must be a file that is there.
@@ -177,8 +353,13 @@ func videoIn(c *call) (string, error) {
 // empty. In a folder the file is named after in and tag (clip_tag.mp4). Its
 // extension says the format, with the codecs ffmpeg picks for it.
 func videoOut(c *call, in, tag string) (string, error) {
-	ext := path.Ext(in)
-	name := strings.TrimSuffix(path.Base(in), ext) + "_" + tag + ext
+	return outFile(c, in, tag, path.Ext(in), ".mp4, which says the video's format")
+}
+
+// outFile is videoOut for a file of extension ext; example is what an
+// extension of Save To could be.
+func outFile(c *call, in, tag, ext, example string) (string, error) {
+	name := strings.TrimSuffix(path.Base(in), path.Ext(in)) + "_" + tag + ext
 	dest := path.Join(path.Dir(in), name)
 	if to := strings.TrimSpace(c.text("Save To")); to != "" {
 		var err error
@@ -194,7 +375,7 @@ func videoOut(c *call, in, tag string) (string, error) {
 		}
 	}
 	if path.Ext(dest) == "" {
-		return "", fmt.Errorf("Save To %s has no extension, such as .mp4, which says the video's format", dest)
+		return "", fmt.Errorf("Save To %s has no extension, such as %s", dest, example)
 	}
 	return dest, nil
 }
@@ -223,7 +404,7 @@ func ffmpegTo(c *call, dest string, args []string, check func(out string) error)
 	if err := cmd.Run(); err != nil {
 		switch {
 		case errors.Is(err, exec.ErrNotFound):
-			return errors.New("ffmpeg is not on this computer's PATH: install it (winget install Gyan.FFmpeg)")
+			return errNoFFmpeg
 		case c.ctx.Err() != nil:
 			return c.ctx.Err()
 		}

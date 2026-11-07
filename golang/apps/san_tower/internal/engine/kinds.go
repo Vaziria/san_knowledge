@@ -302,6 +302,20 @@ var coreKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
+			Kind: "video-thumbnail", Title: "Video Thumbnail", Category: "Action",
+			Description: "Takes one frame of the video File as a picture, with ffmpeg: From Start, Seconds after the start (empty: the first frame); End, Seconds before the end (empty: the last frame); or Random, at a random time in the video's middle 90%. Saved at Save To (a file or a folder; .jpg, .png or .webp) or beside File as a .jpg; Width scales it, keeping its shape. File is the picture, Second the time it was taken at.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("File", Text), sock("Second", Text)},
+			Settings: []*v1.Setting{{Name: "From", Options: thumbFrom},
+				{Name: "Storage", Storage: true, Placeholder: "No storage: the data folder"}},
+			Inputs: []*v1.Socket{sock("Event", Event), hint("clip.mp4, or Download File's File", field("File")),
+				only("From!=Random", hint("2.5; empty: the first or last frame", field("Seconds"))),
+				hint("Empty: the video's size; 320", field("Width")),
+				hint("Empty: beside File, clip_thumb_2s.jpg", field("Save To"))},
+		},
+		run: videoThumbnail,
+	},
+	{
+		StepKind: &v1.StepKind{
 			Kind: "delete-file", Title: "Delete File", Category: "Action",
 			Description: "Deletes the file at Path, such as File Path's Absolute Path (a relative path is in the tower's data folder); one not there counts as done, a folder is refused.",
 			Outputs:     []*v1.Socket{sock("Done", Event)},

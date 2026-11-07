@@ -2,6 +2,9 @@ package engine
 
 import (
 	"context"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -203,5 +206,174 @@ func TestVideoSizes(t *testing.T) {
 		"Output #0, mp4, to 'x.mp4':\n  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 606x1080 [SAR 1:1 DAR 101:180], q=2-31\n"
 	if in, made := videoSizes(out); in != "1920x1080" || made != "606x1080" {
 		t.Errorf("videoSizes = %q, %q", in, made)
+	}
+}
+
+// rgbClip makes a 3 s 32x32 clip at 10 frames a second: red for its first
+// second, green for its second, blue for its third.
+func rgbClip(t *testing.T, file string) {
+	t.Helper()
+	graph := "color=c=red:s=32x32:r=10:d=1[a];color=c=green:s=32x32:r=10:d=1[b];color=c=blue:s=32x32:r=10:d=1[c];[a][b][c]concat=n=3"
+	if out, err := exec.Command(ffmpegCLI, "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i", graph, "-pix_fmt", "yuv420p", file).CombinedOutput(); err != nil {
+		t.Fatalf("make the clip: %v: %s", err, out)
+	}
+}
+
+// colorOf is the picture's main colour at its middle (red, green or blue)
+// and its size.
+func colorOf(t *testing.T, file string) (string, string) {
+	t.Helper()
+	f, err := os.Open(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	img, _, err := image.Decode(f)
+	if err != nil {
+		t.Fatalf("%s: %v", file, err)
+	}
+	b := img.Bounds()
+	r, g, bl, _ := img.At(b.Dx()/2, b.Dy()/2).RGBA()
+	size := strconv.Itoa(b.Dx()) + "x" + strconv.Itoa(b.Dy())
+	switch {
+	case r > g && r > bl:
+		return "red", size
+	case g > r && g > bl:
+		return "green", size
+	case bl > r && bl > g:
+		return "blue", size
+	}
+	return "?", size
+}
+
+// Video Thumbnail with this computer's ffmpeg: a frame from the start, the
+// end or a random time, beside the video, into a folder or a file, as JPEG
+// or PNG, at the video's size or a Width.
+func TestVideoThumbnail(t *testing.T) {
+	if _, err := exec.LookPath(ffmpegCLI); err != nil {
+		t.Skip("no ffmpeg on PATH")
+	}
+	dir := t.TempDir()
+	in := filepath.Join(dir, "clip.mp4")
+	rgbClip(t, in)
+	env := Env{DataDir: filepath.ToSlash(dir)}
+	defer func(f func() float64) { randomFraction = f }(randomFraction)
+	for _, c := range []struct {
+		values   map[string]string
+		fraction float64 // what Random draws
+		want     string  // the picture's path, from dir
+		color    string
+		size     string
+		second   string
+	}{
+		{map[string]string{"File": "clip.mp4"}, 0, "clip_thumb_0s.jpg", "red", "32x32", "0"}, // Start, the first From
+		{map[string]string{"File": in, "From": "Start", "Seconds": "1.5", "Save To": "thumbs/"}, 0, "thumbs/clip_thumb_1.5s.jpg", "green", "32x32", "1.5"},
+		{map[string]string{"File": "clip.mp4", "From": "End"}, 0, "clip_thumb_end.jpg", "blue", "32x32", "2.9"},
+		{map[string]string{"File": "clip.mp4", "From": "End", "Seconds": "0,5", "Save To": "e.png"}, 0, "e.png", "blue", "32x32", "2.5"},
+		{map[string]string{"File": "clip.mp4", "From": "Random"}, 0, "clip_thumb_0.15s.jpg", "red", "32x32", "0.15"},        // 5% in
+		{map[string]string{"File": "clip.mp4", "From": "Random"}, 0.999, "clip_thumb_2.847s.jpg", "blue", "32x32", "2.847"}, // 95% in
+		{map[string]string{"File": "clip.mp4", "Seconds": "2.5", "Width": "16", "Save To": "small.jpg"}, 0, "small.jpg", "blue", "16x16", "2.5"},
+	} {
+		randomFraction = func() float64 { return c.fraction }
+		steps, err := Execute(context.Background(), videoGraph("video-thumbnail", c.values), "go", nil, env)
+		if err != nil {
+			t.Errorf("%v: %v", c.values, err)
+			continue
+		}
+		var got, second wrapperspb.StringValue
+		if err := steps[1].Outputs["File"].UnmarshalTo(&got); err != nil || got.Value != filepath.ToSlash(filepath.Join(dir, c.want)) {
+			t.Errorf("%v: File %q, %v; want %s", c.values, got.Value, err, c.want)
+			continue
+		}
+		if err := steps[1].Outputs["Second"].UnmarshalTo(&second); err != nil || second.Value != c.second {
+			t.Errorf("%v: Second %q, %v; want %s", c.values, second.Value, err, c.second)
+		}
+		if color, size := colorOf(t, got.Value); color != c.color || size != c.size {
+			t.Errorf("%v: a %s %s picture, want %s %s", c.values, size, color, c.size, c.color)
+		}
+		if logs := steps[1].GetLogs(); len(logs) != 1 || !strings.Contains(logs[0], got.Value) {
+			t.Errorf("%v: log %q", c.values, logs)
+		}
+	}
+	// The last frame of a video whose frames come unevenly (a still last
+	// frame) and of one whose sound goes on after its picture ends.
+	g := "color=c=red:s=32x32:r=10:d=1[a];color=c=green:s=32x32:r=10:d=1[b];color=c=blue:s=32x32:r=10:d=1[c];[a][b][c]concat=n=3,mpdecimate=hi=1:lo=1:frac=1:max=0"
+	if out, err := exec.Command(ffmpegCLI, "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i", g, "-fps_mode", "vfr", "-pix_fmt", "yuv420p", filepath.Join(dir, "uneven.mp4")).CombinedOutput(); err != nil {
+		t.Fatalf("make the uneven clip: %v: %s", err, out)
+	}
+	g = "color=c=red:s=32x32:r=10:d=1[a];color=c=blue:s=32x32:r=10:d=1[b];[a][b]concat=n=2"
+	if out, err := exec.Command(ffmpegCLI, "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i", g, "-f", "lavfi", "-i", "sine=duration=4", "-pix_fmt", "yuv420p", filepath.Join(dir, "talks.mp4")).CombinedOutput(); err != nil {
+		t.Fatalf("make the clip with longer sound: %v: %s", err, out)
+	}
+	for file, second := range map[string]string{"uneven.mp4": "2", "talks.mp4": "1.9"} {
+		steps, err := Execute(context.Background(), videoGraph("video-thumbnail", map[string]string{"File": file, "From": "End"}), "go", nil, env)
+		if err != nil {
+			t.Errorf("%s End: %v", file, err)
+			continue
+		}
+		var got, at wrapperspb.StringValue
+		steps[1].Outputs["File"].UnmarshalTo(&got)
+		steps[1].Outputs["Second"].UnmarshalTo(&at)
+		if color, _ := colorOf(t, got.Value); color != "blue" || at.Value != second {
+			t.Errorf("%s End: a %s frame at %ss, want the last, blue, at %ss", file, color, at.Value, second)
+		}
+	}
+	for _, c := range []struct{ from, seconds, want string }{
+		{"Start", "3", "Seconds 3 is past the video's end, at 3s"},
+		{"End", "4", "Seconds 4 is before the video's start: it is 3s long"},
+	} {
+		v := map[string]string{"File": "clip.mp4", "From": c.from, "Seconds": c.seconds}
+		if _, err := Execute(context.Background(), videoGraph("video-thumbnail", v), "go", nil, env); err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%v: %v, want %q", v, err, c.want)
+		}
+	}
+	if left, _ := filepath.Glob(filepath.Join(dir, "*.part.*")); len(left) != 0 {
+		t.Errorf("left behind: %v", left)
+	}
+}
+
+// What Video Thumbnail refuses before it runs ffmpeg.
+func TestVideoThumbnailRefuses(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "a.mp4"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	defer func(s string) { ffmpegCLI = s }(ffmpegCLI)
+	ffmpegCLI = filepath.Join(dir, "no-ffmpeg")
+	env := Env{DataDir: filepath.ToSlash(dir)}
+	for _, c := range []struct {
+		values map[string]string
+		want   string
+	}{
+		{map[string]string{}, "File is empty"},
+		{map[string]string{"File": "b.mp4"}, "b.mp4 is not there"},
+		{map[string]string{"File": "a.mp4", "From": "Middle"}, `From "Middle": Start, End or Random`},
+		{map[string]string{"File": "a.mp4", "Seconds": "1:30"}, `Seconds "1:30": give seconds`},
+		{map[string]string{"File": "a.mp4", "Width": "0"}, `Width "0": give a whole number of pixels, at least 1`},
+		{map[string]string{"File": "a.mp4", "Width": "wide"}, `Width "wide"`},
+		{map[string]string{"File": "a.mp4", "Save To": "out"}, "out has no extension, such as .jpg"},
+		{map[string]string{"File": "a.mp4", "Save To": "out.mp4"}, "out.mp4: a picture is .jpg, .jpeg, .png or .webp"},
+		{map[string]string{"File": "a.mp4"}, "ffmpeg is not on this computer's PATH"},
+	} {
+		if _, err := Execute(context.Background(), videoGraph("video-thumbnail", c.values), "go", nil, env); err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%v: %v, want %q", c.values, err, c.want)
+		}
+	}
+}
+
+// Every field of Video Thumbnail has an example in its empty box, and
+// Seconds shows only for Start and End.
+func TestVideoThumbnailKind(t *testing.T) {
+	k := byKind["video-thumbnail"]
+	if k == nil {
+		t.Fatal("no video-thumbnail kind")
+	}
+	for _, in := range k.Inputs {
+		if in.Field && in.Placeholder == "" {
+			t.Errorf("%s has no placeholder", in.Name)
+		}
+		if in.Name == "Seconds" && in.When != "From!=Random" {
+			t.Errorf("Seconds shows when %q", in.When)
+		}
 	}
 }

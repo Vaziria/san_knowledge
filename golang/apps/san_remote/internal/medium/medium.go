@@ -214,7 +214,11 @@ func same(a, b string) bool { return normalize(a) == normalize(b) }
 
 var (
 	spaces = regexp.MustCompile(`\s+`)
-	quotes = strings.NewReplacer("“", `"`, "”", `"`, "‘", "'", "’", "'", "…", "...", " ", " ")
+	// Medium's smart punctuation also turns the hyphens in "AMQP 0-9-1" into en
+	// dashes ("0–9–1"), and it ties a caption's last two words with a no-break
+	// space, so dashes count as hyphens and no-break spaces as spaces (Go's \s
+	// matches ASCII spaces only).
+	quotes = strings.NewReplacer("“", `"`, "”", `"`, "‘", "'", "’", "'", "…", "...", "\u00a0", " ", "\u202f", " ", "\u2009", " ", "–", "-", "—", "-")
 )
 
 func clip(s string, n int) string {

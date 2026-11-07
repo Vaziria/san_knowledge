@@ -190,4 +190,10 @@ func TestSame(t *testing.T) {
 	if same("a", "b") {
 		t.Error("different text compared equal")
 	}
+	if !same("Kiri, AMQP 0–9–1, protokol biner — di atas TCP", "Kiri, AMQP 0-9-1, protokol biner - di atas TCP") {
+		t.Error("Medium's en and em dashes should compare equal to hyphens")
+	}
+	if !same("hanya berisi yang kita\u00a0pakai.", "hanya berisi yang kita pakai.") {
+		t.Error("a no-break space should compare equal to a space")
+	}
 }

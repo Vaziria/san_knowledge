@@ -1,0 +1,195 @@
+<template id="s03-template">
+  <style>
+    @font-face { font-family: "Barlow"; font-weight: 600; font-display: block; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 700; font-display: block; src: url("assets/fonts/barlow-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 800; font-display: block; src: url("assets/fonts/barlow-latin-800-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Barlow"; font-weight: 900; font-display: block; src: url("assets/fonts/barlow-latin-900-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    .beat { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+    .dark { background: #111111; color: #f0ece5; }
+    .orange { background: #e85d26; color: #111111; }
+    .chrome { position: absolute; top: 48px; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 22px; letter-spacing: 0.14em;
+      text-transform: uppercase; white-space: nowrap; }
+    .chrome.l { left: 100px; }
+    .chrome.r { right: 100px; }
+    .dark .chrome { color: #888880; }
+    .orange .chrome { color: rgba(17, 17, 17, 0.92); }
+    .rule { position: absolute; left: 100px; right: 100px; top: 96px; height: 1px; background: #282826; }
+    .orange .rule { background: rgba(17, 17, 17, 0.2); }
+    .kicker { display: block; font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #e85d26; margin-bottom: 28px; white-space: nowrap; }
+    .orange .kicker { color: rgba(17, 17, 17, 0.92); }
+    .stage { position: absolute; left: 100px; top: 130px; width: 1500px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start; }
+    .w { display: block; font-family: "Barlow"; font-weight: 900; line-height: 0.92; letter-spacing: -0.035em; white-space: nowrap; }
+    .h1 { font-weight: 800; letter-spacing: -0.03em; }
+    .acc { color: #e85d26; }
+    .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+    .lead { display: block; margin-top: 40px; width: 1250px; font-family: "Barlow"; font-weight: 700; font-size: 44px; line-height: 1.25; }
+    .dark .lead { color: #c8c4bc; }
+    .orange .lead { color: rgba(17, 17, 17, 0.8); }
+    .lead b { font-weight: 900; }
+    .dark .lead b { color: #f0ece5; }
+    .title { display: block; font-family: "Barlow"; font-weight: 800; font-size: 78px; line-height: 0.98; letter-spacing: -0.03em; }
+    /* split: notes on the left, the visual on the right */
+    .col { position: absolute; left: 100px; top: 150px; width: 700px; height: 820px; display: flex; flex-direction: column; justify-content: center; }
+    .notes { display: flex; flex-direction: column; gap: 22px; margin-top: 44px; }
+    .nt { display: flex; gap: 20px; font-family: "Barlow"; font-weight: 700; font-size: 40px; line-height: 1.25; color: #f0ece5; }
+    .nt b { flex: none; font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    .m { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 0.85em; color: #e85d26; white-space: nowrap; }
+    .vis { position: absolute; left: 860px; top: 150px; width: 960px; height: 820px; display: flex; flex-direction: column;
+      justify-content: center; gap: 32px; }
+    .card { width: 960px; background: #1a1a18; border: 2px solid #282826; }
+    .head { height: 60px; border-bottom: 2px solid #282826; padding: 0 36px; font-family: "IBM Plex Mono"; font-weight: 500;
+      font-size: 22px; line-height: 58px; letter-spacing: 0.14em; text-transform: uppercase; color: #888880; white-space: nowrap; }
+    .head.path { text-transform: none; letter-spacing: 0.04em; font-size: 24px; color: #a8a49c; }
+    .code { position: relative; padding: 24px 36px 28px; }
+    .band { position: absolute; left: 0; right: 0; top: 0; height: 54px; background: #e85d26; }
+    .ln { position: relative; display: flex; align-items: center; height: 54px; font-family: "IBM Plex Mono"; font-weight: 400;
+      font-size: 34px; line-height: 54px; white-space: pre; color: #f0ece5; font-variant-ligatures: none; }
+    .ln .p { color: #e85d26; }
+    .ln.out { color: #a8a49c; }
+    .caret { display: block; flex: none; width: 20px; height: 38px; background: #f0ece5; }
+    .chk { display: block; flex: none; width: 32px; height: 28px; margin-left: 20px; overflow: visible; }
+    .chk path { fill: none; stroke: #e85d26; stroke-width: 4; }
+    /* bullets */
+    .bul { display: flex; align-items: baseline; gap: 28px; font-family: "Barlow"; font-weight: 700; font-size: 56px; line-height: 1.15;
+      margin-top: 30px; white-space: nowrap; }
+    .bul b { font-family: "IBM Plex Mono"; font-weight: 600; color: #e85d26; }
+    /* compare */
+    .cmp { position: absolute; top: 380px; height: 540px; padding: 44px 44px; border-top: 1px solid #282826; background: #1a1a18; }
+    .cmp.pay { background: #e85d26; color: #111111; border-top-color: #e85d26; }
+    .cmp .num { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 26px; letter-spacing: 0.14em; color: #e85d26; text-transform: uppercase; }
+    .cmp.pay .num { color: rgba(17, 17, 17, 0.6); }
+    .cmp .nm { margin-top: 24px; font-family: "Barlow"; font-weight: 800; font-size: 58px; line-height: 1.0; letter-spacing: -0.02em; }
+    .cmp .tx { margin-top: 24px; font-family: "Barlow"; font-weight: 600; font-size: 36px; line-height: 1.3; color: #c8c4bc; }
+    .cmp.pay .tx { color: rgba(17, 17, 17, 0.82); }
+    .ctitle { position: absolute; left: 100px; top: 170px; }
+    .dbox { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      border: 3px solid #f0ece5; background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 26px;
+      letter-spacing: 0.04em; color: #f0ece5; white-space: nowrap; text-align: center; }
+    .dbox.l { align-items: flex-start; padding: 0 28px; text-align: left; }
+    .dbox.hot { border-color: #e85d26; }
+    .dbox.fill { background: #e85d26; border-color: #e85d26; color: #111111; }
+    .dbox.mute { border-color: #505048; color: #888880; }
+    .dbox.dash { border-style: dashed; border-color: #888880; color: #888880; background: transparent; }
+    .dbox.flat { border-color: #282826; }
+    .dn { font-family: "Barlow"; font-weight: 700; font-size: 32px; letter-spacing: 0; line-height: 1.15; white-space: normal; }
+    .ds { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 21px; letter-spacing: 0.04em; color: #888880; white-space: nowrap; }
+    .fill .ds { color: rgba(17, 17, 17, 0.7); }
+    .fill .dn { color: #111111; }
+    .dbig { font-family: "Barlow"; font-weight: 900; font-size: 84px; line-height: 0.9; letter-spacing: -0.03em; color: #e85d26; }
+    .fill .dbig { color: #111111; }
+    .dt { position: absolute; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 24px; letter-spacing: 0.06em;
+      white-space: nowrap; color: #e85d26; }
+    .dt.cream { color: #f0ece5; }
+    .dt.mute { color: #888880; font-weight: 500; }
+    .dt.up { text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+    .dt.say { font-family: "Barlow"; font-weight: 700; font-size: 30px; letter-spacing: 0; line-height: 1.25; white-space: normal; color: #f0ece5; }
+    .dt.say.mute { color: #a8a49c; font-weight: 600; }
+    .dt.stat { font-family: "Barlow"; font-weight: 900; font-size: 150px; line-height: 0.9; letter-spacing: -0.04em; }
+    .cell { position: absolute; display: flex; align-items: center; justify-content: center; border: 3px solid #f0ece5;
+      background: #1a1a18; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 28px; color: #f0ece5; white-space: nowrap; }
+    .cell.hot { border-color: #e85d26; color: #e85d26; }
+    .cell.dash { border-style: dashed; border-color: #888880; color: #888880; background: transparent; }
+    .ptr { position: absolute; }
+    .ptr svg { position: absolute; left: 0; top: 0; overflow: visible; }
+    .ptr svg path { fill: none; stroke: #e85d26; stroke-width: 5; stroke-linecap: square; }
+    .ptr .lab { position: absolute; left: 0; display: flex; align-items: center; justify-content: center; border: 3px solid #e85d26;
+      background: #111111; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 24px; color: #f0ece5; white-space: nowrap; }
+    svg.dg { position: absolute; left: 0; top: 0; overflow: visible; }
+    svg.dg path { fill: none; stroke: #e85d26; stroke-width: 5; stroke-linecap: square; stroke-linejoin: miter; }
+    svg.dg path.cream { stroke: #f0ece5; }
+    svg.dg path.mute { stroke: #505048; }
+    svg.dg path.dash { stroke: #888880; stroke-dasharray: 12 10; }
+    svg.dg path.thin { stroke-width: 3; }
+    .vline { position: absolute; width: 0; border-left: 4px dashed #e85d26; }
+    .vline.mute { border-left-color: #505048; }
+    .bar { position: absolute; background: #e85d26; transform-origin: 0% 50%; }
+    .bar.mute { background: #505048; }
+    .xmark { position: absolute; width: 70px; height: 70px; }
+    .xmark i { position: absolute; left: 50%; top: 50%; width: 70px; height: 10px; margin: -5px 0 0 -35px; background: #e85d26; }
+    .xmark i:first-child { transform: rotate(45deg); }
+    .xmark i:last-child { transform: rotate(-45deg); }
+    .pkt { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; background: #e85d26; }
+  </style>
+
+  <div id="root" data-composition-id="s03" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+    <div id="s03" class="clip beat dark" data-start="0" data-duration="20" data-track-index="0">
+      <div class="chrome l">bikin message broker sendiri · bagian 4</div><div class="chrome r">04 / 06</div><div class="rule"></div>
+      <div class="col">
+        <span id="s03k" class="kicker">anatomi satu panggilan</span>
+        <span id="s03t" class="title">satu POST per pesan</span>
+        <div class="notes">
+          <div id="s03n0" class="nt"><b>/</b><span>loop pengantar nyerahin pesan, gak nunggu hasilnya</span></div>
+          <div id="s03n1" class="nt"><b>/</b><span>pengirim webhook: goroutine kedua, satu panggilan tiap kali</span></div>
+          <div id="s03n2" class="nt"><b>/</b><span>body: data pesan apa adanya. ID, topic, waktu di header <span class="m">Brokerku-</span></span></div>
+          <div id="s03n3" class="nt"><b>/</b><span>timeout 5 detik (GitHub: 10 detik). redirect gak diikuti</span></div>
+        </div>
+      </div>
+      <div class="vis">
+        <div id="s03v" style="position: relative; width: 960px; height: 820px">
+          <div id="s03_lp" class="dbox " style="left: 0px; top: 0px; width: 400px; height: 120px"><span class="dn">loop pengantar</span><span class="ds">satu goroutine</span></div>
+          <div id="s03_ps" class="dbox " style="left: 560px; top: 0px; width: 400px; height: 120px"><span class="dn">pengirim webhook</span><span class="ds">satu goroutine</span></div>
+          <svg class="dg" width="960" height="820" viewBox="0 0 960 820" aria-hidden="true">
+            <path id="s03_a1" d="M404 36 L556 36 M556 36 L540.2 44.6 M556 36 L540.2 27.4" />
+            <path id="s03_a2" class="cream thin" d="M556 86 L404 86 M404 86 L419.8 77.4 M404 86 L419.8 94.6" />
+            <path id="s03_a3" d="M620 126 L620 236 M620 236 L611.4 220.2 M620 236 L628.6 220.2" />
+            <path id="s03_a4" class="cream thin" d="M900 236 L900 126 M900 126 L908.6 141.8 M900 126 L891.4 141.8" />
+          </svg>
+          <div id="s03_a1l" class="dt " style="left: 442px; top: -2px">pesan</div>
+          <div id="s03_a2l" class="dt cream" style="left: 444px; top: 96px">hasil</div>
+          <div id="s03_a3l" class="dt " style="left: 520px; top: 164px">POST</div>
+          <div id="s03_a4l" class="dt cream" style="left: 668px; top: 164px">jawaban</div>
+          <div id="s03_c" class="card" style="position: absolute; left: 0; top: 250px">
+            <div class="head">webhook stok · POST /</div>
+            <div class="code">
+              <div id="s03_l0" class="ln">Brokerku-Id: 1</div>
+              <div id="s03_l1" class="ln">Brokerku-Topic: pesanan</div>
+              <div id="s03_l2" class="ln">Brokerku-Time: waktu pesan</div>
+              <div id="s03_l3" class="ln out">body: pesanan 1041 dibuat</div>
+            </div>
+          </div>
+          <div id="s03_r" class="dbox l flat" style="left: 0px; top: 640px; width: 960px; height: 120px"><span class="dn" style="font-weight: 600; font-size: 30px; color: #c8c4bc">jawabannya cukup status HTTP, paling lama 5 detik. body jawaban diabaikan.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      tl.fromTo($("s03k"), { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "expo.out" }, 0.05);
+      tl.fromTo($("s03t"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo($("s03n0"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1);
+      tl.fromTo($("s03n1"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 5);
+      tl.to($("s03n0"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 5);
+      tl.fromTo($("s03n2"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 9.5);
+      tl.to($("s03n1"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 9.5);
+      tl.fromTo($("s03n3"), { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 14.5);
+      tl.to($("s03n2"), { opacity: 0.42, duration: 0.3, ease: "power2.out" }, 14.5);
+      tl.fromTo([$("s03_lp"), $("s03_ps")], { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.15 }, 0.4);
+      $("s03_a1").style.strokeDasharray = "192 192";
+      tl.fromTo($("s03_a1"), { strokeDashoffset: 192 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 1.3);
+      tl.fromTo($("s03_a1l"), { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 1.5);
+      tl.set($("s03_ps"), { borderColor: "#e85d26", zIndex: 2 }, 5.3);
+      tl.fromTo($("s03_ps"), { scale: 1.06 }, { scale: 1, duration: 0.35, ease: "power3.out" }, 5.3);
+      $("s03_a3").style.strokeDasharray = "150 150";
+      tl.fromTo($("s03_a3"), { strokeDashoffset: 150 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 9.6);
+      tl.fromTo($("s03_a3l"), { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 9.8);
+      tl.fromTo($("s03_c"), { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 9.9);
+      tl.fromTo([$("s03_l0"), $("s03_l1"), $("s03_l2"), $("s03_l3")], { x: -18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power3.out", stagger: 0.25 }, 10.4);
+      $("s03_a4").style.strokeDasharray = "150 150";
+      tl.fromTo($("s03_a4"), { strokeDashoffset: 150 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 14.6);
+      tl.fromTo($("s03_a4l"), { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 14.8);
+      $("s03_a2").style.strokeDasharray = "192 192";
+      tl.fromTo($("s03_a2"), { strokeDashoffset: 192 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 15.3);
+      tl.fromTo($("s03_a2l"), { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 15.5);
+      tl.fromTo($("s03_r"), { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 15.8);
+      tl.set({}, {}, 20);
+      window.__timelines["s03"] = tl;
+    })();
+  </script>
+</template>

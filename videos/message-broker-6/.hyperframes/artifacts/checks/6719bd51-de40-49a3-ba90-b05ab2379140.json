@@ -1,0 +1,213 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 9
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 3,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 6.133,
+        "selector": "#step1_r0",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 33.74,
+          "top": 685.5,
+          "right": 926.26,
+          "bottom": 844.5,
+          "width": 892.52,
+          "height": 159
+        },
+        "containerSelector": "#step1v",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 59,
+          "top": 690,
+          "right": 901,
+          "bottom": 1190,
+          "width": 842,
+          "height": 500
+        },
+        "overflow": {
+          "left": 25.26,
+          "right": 25.26
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/step1.html",
+        "bbox": {
+          "x": 33.74,
+          "y": 685.5,
+          "width": 892.52,
+          "height": 159
+        },
+        "firstSeen": 6.133,
+        "lastSeen": 6.133,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6.133
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 6.133,
+        "selector": "#step1_r1",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 33.74,
+          "top": 855.5,
+          "right": 926.26,
+          "bottom": 1014.5,
+          "width": 892.52,
+          "height": 159
+        },
+        "containerSelector": "#step1v",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 59,
+          "top": 690,
+          "right": 901,
+          "bottom": 1190,
+          "width": 842,
+          "height": 500
+        },
+        "overflow": {
+          "left": 25.26,
+          "right": 25.26
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/step1.html",
+        "bbox": {
+          "x": 33.74,
+          "y": 855.5,
+          "width": 892.52,
+          "height": 159
+        },
+        "firstSeen": 6.133,
+        "lastSeen": 6.133,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6.133
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 6.133,
+        "selector": "#step1_r2",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 33.74,
+          "top": 1025.5,
+          "right": 926.26,
+          "bottom": 1184.5,
+          "width": 892.52,
+          "height": 159
+        },
+        "containerSelector": "#step1v",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 59,
+          "top": 690,
+          "right": 901,
+          "bottom": 1190,
+          "width": 842,
+          "height": 500
+        },
+        "overflow": {
+          "left": 25.26,
+          "right": 25.26
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/step1.html",
+        "bbox": {
+          "x": 33.74,
+          "y": 1025.5,
+          "width": 892.52,
+          "height": 159
+        },
+        "firstSeen": 6.133,
+        "lastSeen": 6.133,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6.133
+        ]
+      }
+    ],
+    "duration": 36.8,
+    "samples": [
+      2.044,
+      6.133,
+      10.222,
+      14.311,
+      18.4,
+      22.489,
+      26.578,
+      30.667,
+      34.756
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 3,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      2.044,
+      10.222,
+      18.4,
+      26.578,
+      34.756
+    ],
+    "checked": 36,
+    "passed": 36
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

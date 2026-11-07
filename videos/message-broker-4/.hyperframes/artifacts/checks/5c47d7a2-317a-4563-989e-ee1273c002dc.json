@@ -1,0 +1,124 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 9
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 1,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 10.278,
+        "selector": "#step2_r1",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 60.07,
+          "top": 875.02,
+          "right": 952.59,
+          "bottom": 1050.98,
+          "width": 892.52,
+          "height": 175.96
+        },
+        "containerSelector": "#step2v",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 59,
+          "top": 690,
+          "right": 901,
+          "bottom": 1250,
+          "width": 842,
+          "height": 560
+        },
+        "overflow": {
+          "right": 51.59
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/step2.html",
+        "bbox": {
+          "x": 60.07,
+          "y": 875.02,
+          "width": 892.52,
+          "height": 175.96
+        },
+        "firstSeen": 10.278,
+        "lastSeen": 10.278,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          10.278
+        ]
+      }
+    ],
+    "duration": 37,
+    "samples": [
+      2.056,
+      6.167,
+      10.278,
+      14.389,
+      18.5,
+      22.611,
+      26.722,
+      30.833,
+      34.944
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 1,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      2.056,
+      10.278,
+      18.5,
+      26.722,
+      34.944
+    ],
+    "checked": 49,
+    "passed": 49
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

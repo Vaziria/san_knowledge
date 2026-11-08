@@ -39,6 +39,7 @@ import (
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/broker"
+	"github.com/wargasipil/san_tower/internal/moviemov"
 	"github.com/wargasipil/san_tower/internal/store"
 )
 
@@ -110,6 +111,9 @@ type Engine struct {
 	// ssh are the shells SSH Session steps keep open from run to run,
 	// closed when the engine closes.
 	ssh *SSHShells
+	// movieMov are the MovieMov connections' tokens, kept in memory from
+	// run to run (moviemov.go).
+	movieMov *moviemov.Sessions
 
 	// TelegramAPI is where the Bot API answers, telegram.API when empty;
 	// tests set a fake's before Start.
@@ -149,9 +153,13 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
 		oaServers: make(map[string]*openAIServer), oaStates: make(map[uint32][]*v1.TriggerState), oaWaiting: make(map[string]*openAIWait),
 		waiting: make(map[uint32]*waiter), readers: make(map[uint32]context.CancelFunc), queues: make(map[uint32]string),
-		ssh: NewSSHShells(),
+		ssh: NewSSHShells(), movieMov: moviemov.NewSessions(),
 	}
 }
+
+// MovieMov are the MovieMov connections' kept tokens, which TestConnection
+// shares with the steps.
+func (e *Engine) MovieMov() *moviemov.Sessions { return e.movieMov }
 
 // Close closes the triggers' streams, cuts the runs still going short, and
 // waits until each is recorded. Calling it again does nothing more.
@@ -187,6 +195,7 @@ func (e *Engine) env() Env {
 		Publish:          e.publish,
 		TelegramAPI:      e.TelegramAPI,
 		GitHubAPI:        e.GitHubAPI,
+		MovieMov:         e.movieMov,
 		SSH:              e.ssh,
 		KeepHostKey:      e.store.KeepSSHHostKey,
 		TelegramMessages: e.store.TelegramMessages,

@@ -12,10 +12,12 @@ import (
 	"github.com/skip2/go-qrcode"
 	remotev1 "github.com/wargasipil/san_remote/gen/san/remote/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/v1/remotev1connect"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/binance"
+	"github.com/wargasipil/san_tower/internal/moviemov"
 	"github.com/wargasipil/san_tower/internal/sshshell"
 	"github.com/wargasipil/san_tower/internal/store"
 	"github.com/wargasipil/san_tower/internal/whatsapp"
@@ -64,6 +66,7 @@ func (s *Server) DeleteConnection(ctx context.Context, req *connect.Request[v1.D
 	if err := s.store.DeleteConnection(req.Msg.GetId()); err != nil {
 		return nil, storeError(err)
 	}
+	s.engine.MovieMov().Forget(req.Msg.GetId())
 	s.engine.SyncConnections()
 	return connect.NewResponse(&v1.DeleteConnectionResponse{}), nil
 }
@@ -72,6 +75,8 @@ func (s *Server) DeleteConnection(ctx context.Context, req *connect.Request[v1.D
 // `san_remote api` lists the browsers attached to serve behind it; nothing
 // is opened in them. For a Telegram bot: the Bot API says which bot the
 // token is (getMe), which reads no messages. For GitHub: whose token it is.
+// For MovieMov: the tower logs in (or uses its kept token) and asks who
+// it is (GET /me).
 func (s *Server) TestConnection(ctx context.Context, req *connect.Request[v1.TestConnectionRequest]) (*connect.Response[v1.TestConnectionResponse], error) {
 	settings := req.Msg.GetSettings()
 	switch store.ConnectionType(settings) {
@@ -114,6 +119,8 @@ func (s *Server) TestConnection(ctx context.Context, req *connect.Request[v1.Tes
 		return connect.NewResponse(s.testGitHub(ctx, settings.GetGithub())), nil
 	case store.SSH:
 		return connect.NewResponse(testSSH(ctx, settings.GetSsh())), nil
+	case store.MovieMov:
+		return connect.NewResponse(s.testMovieMov(ctx, req.Msg.GetId(), settings.GetMoviemov())), nil
 	}
 	return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("a connection needs a type"))
 }
@@ -206,6 +213,41 @@ func testSSH(ctx context.Context, s *v1.SSHSettings) *v1.TestConnectionResponse 
 	return &v1.TestConnectionResponse{Ok: true, Message: msg}
 }
 
+// testMovieMov logs in to a MovieMov site as the steps do, with the token
+// the tower keeps for the connection (or a new login, which counts in the
+// site's 5 a minute), and says which admin answered (GET /me), which
+// changes nothing. A saved connection's password, which the page never
+// gets, is filled in by its id.
+func (s *Server) testMovieMov(ctx context.Context, id uint32, m *v1.MovieMovSettings) *v1.TestConnectionResponse {
+	m = proto.Clone(m).(*v1.MovieMovSettings)
+	if err := store.CheckMovieMov(m); err != nil {
+		return &v1.TestConnectionResponse{Message: err.Error()}
+	}
+	if m.Password == "" && id != 0 {
+		if c, err := s.store.GetConnection(id); err == nil && c.Type == store.MovieMov {
+			m.Password = c.Settings.GetMoviemov().GetPassword()
+		}
+	}
+	if m.Password == "" {
+		return &v1.TestConnectionResponse{Message: "give the admin's password"}
+	}
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+	var logins []string
+	c := s.engine.MovieMov().Client(id, moviemov.Login{Base: m.BaseUri, Email: m.Username, Password: m.Password}, func(line string) { logins = append(logins, line) })
+	u, err := c.Me(ctx)
+	if err != nil {
+		return &v1.TestConnectionResponse{Message: err.Error()}
+	}
+	msg := fmt.Sprintf("%s answers: admin %s (%s)", c.Base(), u.Name, u.Email)
+	if len(logins) == 0 {
+		msg += "; with the token the tower keeps"
+	} else {
+		msg += "; logged in, and the token is kept for the steps"
+	}
+	return &v1.TestConnectionResponse{Ok: true, Message: msg}
+}
+
 // PairWhatsApp links a device to a WhatsApp account and creates the
 // connection once it is connected (engine.PairWhatsApp): it sends each QR
 // code to scan, as text and as a PNG, then the connection. The stream
@@ -237,11 +279,20 @@ func (s *Server) PairWhatsApp(ctx context.Context, req *connect.Request[v1.PairW
 	return stream.Send(&v1.PairWhatsAppResponse{Connection: connectionToProto(c)})
 }
 
+// connectionToProto is a connection as ConnectionService gives it out. A
+// MovieMov password never leaves the tower: it is empty, with
+// password_set true (the user, 2026-11-08: a pasted password).
 func connectionToProto(c store.Connection) *v1.Connection {
+	settings := c.Settings
+	if m := settings.GetMoviemov(); m != nil {
+		settings = proto.Clone(settings).(*v1.ConnectionSettings)
+		masked := settings.GetMoviemov()
+		masked.PasswordSet, masked.Password = masked.Password != "", ""
+	}
 	return &v1.Connection{
 		Id:        c.ID,
 		Name:      c.Name,
-		Settings:  c.Settings,
+		Settings:  settings,
 		CreatedAt: timestamppb.New(c.CreatedAt),
 		UpdatedAt: timestamppb.New(c.UpdatedAt),
 	}

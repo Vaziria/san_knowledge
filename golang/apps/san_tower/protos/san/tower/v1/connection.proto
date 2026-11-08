@@ -10,8 +10,8 @@ import "google/protobuf/timestamp.proto";
 // telegram_bot: a Telegram bot, through the Bot API, whatsapp: a
 // WhatsApp account, as a device linked to it (PairWhatsApp), binance: a
 // Binance USD-M futures account, through an API key, github: a GitHub
-// account, through a personal access token, and ssh: a server's account,
-// through SSH.
+// account, through a personal access token, ssh: a server's account,
+// through SSH, and moviemov: an admin login on a site made from web_movie.
 service ConnectionService {
   // ListConnections lists the connections by name.
   rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
@@ -51,7 +51,32 @@ message ConnectionSettings {
     BinanceSettings binance = 4;
     GitHubSettings github = 5;
     SSHSettings ssh = 6;
+    MovieMovSettings moviemov = 7;
   }
+}
+
+// MovieMovSettings is an admin login on a site made from web_movie
+// (php/apps/web_movie: MovieMov, https://moviemov.id), whose API the MovieMov
+// steps call (the user, 2026-11-08: "For login, we create new connection
+// type and paste username and password and base uri"). The tower logs in
+// with them itself (POST /login) and keeps the token in memory, per
+// connection and login, logging in again only when the site refuses it.
+message MovieMovSettings {
+  // base_uri is the site's API, https://moviemov.id/api when empty; a site
+  // address with no path gets /api.
+  string base_uri = 1;
+  // username is the admin's email, e.g. admin@moviemov.id.
+  string username = 2;
+  // password is the admin's password. The tower keeps it and never sends it
+  // back: a connection ConnectionService returns has it empty, with
+  // password_set true. Saving one with it empty keeps the saved password,
+  // and TestConnection with the connection's id tests with it. Like a bot's
+  // token, it stays in the tower: an export leaves connection settings
+  // behind.
+  string password = 3;
+  // password_set says the saved connection has a password. Only the tower
+  // sets it.
+  bool password_set = 4;
 }
 
 // SSHSettings is an account on a server, through SSH (the user,
@@ -177,6 +202,10 @@ message DeleteConnectionResponse {}
 
 message TestConnectionRequest {
   ConnectionSettings settings = 1;
+  // id is the saved connection the settings are of, when they are: a secret
+  // the tower does not send back (a MovieMov password) left empty is that
+  // connection's.
+  uint32 id = 2;
 }
 
 message TestConnectionResponse {

@@ -1,0 +1,126 @@
+{
+  "format": "san_tower.workflows",
+  "version": 1,
+  "exportedAt": "2026-11-08T00:09:30.533016200Z",
+  "tower": "dev",
+  "workflows": [
+    {
+      "name": "MovieMov - Upload Draft",
+      "steps": [
+        {
+          "id": "manual",
+          "kind": "manual"
+        },
+        {
+          "id": "video",
+          "kind": "template",
+          "y": 260,
+          "values": {
+            "Text": "{{ payload.video }}"
+          }
+        },
+        {
+          "id": "title",
+          "kind": "template",
+          "x": 260,
+          "y": 260,
+          "values": {
+            "Text": "{{ payload.title }}"
+          }
+        },
+        {
+          "id": "embed",
+          "kind": "template",
+          "x": 520,
+          "y": 260,
+          "values": {
+            "Text": "{{ payload.embed_url }}"
+          }
+        },
+        {
+          "id": "thumb",
+          "kind": "video-thumbnail",
+          "x": 260,
+          "values": {
+            "Aspect": "16:9",
+            "From": "Start",
+            "Seconds": "2",
+            "Width": "1280"
+          }
+        },
+        {
+          "id": "upload",
+          "kind": "moviemov-upload",
+          "x": 620,
+          "values": {
+            "Connection": "1",
+            "Status": "Draft"
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "manual",
+          "sourceSocket": "Payload",
+          "target": "video",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "manual",
+          "sourceSocket": "Payload",
+          "target": "title",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "manual",
+          "sourceSocket": "Payload",
+          "target": "embed",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "manual",
+          "sourceSocket": "Event",
+          "target": "thumb",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "video",
+          "sourceSocket": "Text",
+          "target": "thumb",
+          "targetSocket": "File"
+        },
+        {
+          "source": "thumb",
+          "sourceSocket": "Done",
+          "target": "upload",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "thumb",
+          "sourceSocket": "File",
+          "target": "upload",
+          "targetSocket": "Thumbnail"
+        },
+        {
+          "source": "title",
+          "sourceSocket": "Text",
+          "target": "upload",
+          "targetSocket": "Title"
+        },
+        {
+          "source": "embed",
+          "sourceSocket": "Text",
+          "target": "upload",
+          "targetSocket": "Embed URL"
+        }
+      ],
+      "description": "Run with Payload {\"video\": \"D:/videos/clip.mp4\", \"title\": \"Night Train\", \"embed_url\": \"https://vidara.to/e/XXXX\"}: a 16:9 thumbnail from the video at 2 s (1280 wide), then the movie uploaded to MovieMov as a draft."
+    }
+  ],
+  "connections": {
+    "1": {
+      "name": "MovieMov",
+      "type": "moviemov"
+    }
+  }
+}

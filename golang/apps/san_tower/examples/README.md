@@ -13,6 +13,9 @@ switched off.
   (a new Temporary chat per request), in a kept chat (Browser Chat Session,
   only the newest message per request), and a router whose `model` picks
   the site.
+- [moviemov](moviemov/README.md): a video's 16:9 thumbnail (Video
+  Thumbnail) and the movie uploaded as a draft to MovieMov, a site made
+  from web_movie (MovieMov Upload Movie).
 
 The trading workflows, with their setup script, are in
 [../workflows/trading](../workflows/trading/README.md).

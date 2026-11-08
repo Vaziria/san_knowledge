@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/connection.proto.
  */
 export const file_san_tower_v1_connection: GenFile = /*@__PURE__*/
-  fileDesc("Ch1zYW4vdG93ZXIvdjEvY29ubmVjdGlvbi5wcm90bxIMc2FuLnRvd2VyLnYxIroBCgpDb25uZWN0aW9uEgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSMgoIc2V0dGluZ3MYAyABKAsyIC5zYW4udG93ZXIudjEuQ29ubmVjdGlvblNldHRpbmdzEi4KCmNyZWF0ZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIs4CChJDb25uZWN0aW9uU2V0dGluZ3MSNQoKc2FuX3JlbW90ZRgBIAEoCzIfLnNhbi50b3dlci52MS5TYW5SZW1vdGVTZXR0aW5nc0gAEjkKDHRlbGVncmFtX2JvdBgCIAEoCzIhLnNhbi50b3dlci52MS5UZWxlZ3JhbUJvdFNldHRpbmdzSAASMgoId2hhdHNhcHAYAyABKAsyHi5zYW4udG93ZXIudjEuV2hhdHNBcHBTZXR0aW5nc0gAEjAKB2JpbmFuY2UYBCABKAsyHS5zYW4udG93ZXIudjEuQmluYW5jZVNldHRpbmdzSAASLgoGZ2l0aHViGAUgASgLMhwuc2FuLnRvd2VyLnYxLkdpdEh1YlNldHRpbmdzSAASKAoDc3NoGAYgASgLMhkuc2FuLnRvd2VyLnYxLlNTSFNldHRpbmdzSABCBgoEdHlwZSKEAQoLU1NIU2V0dGluZ3MSDAoEaG9zdBgBIAEoCRIMCgRwb3J0GAIgASgNEgwKBHVzZXIYAyABKAkSEAoIcGFzc3dvcmQYBCABKAkSEwoLcHJpdmF0ZV9rZXkYBSABKAkSEgoKcGFzc3BocmFzZRgGIAEoCRIQCghob3N0X2tleRgHIAEoCSIfCg5HaXRIdWJTZXR0aW5ncxINCgV0b2tlbhgBIAEoCSJHCg9CaW5hbmNlU2V0dGluZ3MSDwoHYXBpX2tleRgBIAEoCRISCgphcGlfc2VjcmV0GAIgASgJEg8KB25ldHdvcmsYAyABKAkiMQoRU2FuUmVtb3RlU2V0dGluZ3MSCwoDdXJsGAEgASgJEg8KB2Jyb3dzZXIYAiABKAkiJAoTVGVsZWdyYW1Cb3RTZXR0aW5ncxINCgV0b2tlbhgBIAEoCSJiChBXaGF0c0FwcFNldHRpbmdzEgsKA2ppZBgBIAEoCRINCgVwaG9uZRgCIAEoCRIMCgRuYW1lGAMgASgJEhIKCnN0b3JhZ2VfaWQYBCABKA0SEAoIZGF0YWJhc2UYBSABKAkiJgoWTGlzdENvbm5lY3Rpb25zUmVxdWVzdBIMCgR0eXBlGAEgASgJIkgKF0xpc3RDb25uZWN0aW9uc1Jlc3BvbnNlEi0KC2Nvbm5lY3Rpb25zGAEgAygLMhguc2FuLnRvd2VyLnYxLkNvbm5lY3Rpb24iRwoXQ3JlYXRlQ29ubmVjdGlvblJlcXVlc3QSLAoKY29ubmVjdGlvbhgBIAEoCzIYLnNhbi50b3dlci52MS5Db25uZWN0aW9uIkgKGENyZWF0ZUNvbm5lY3Rpb25SZXNwb25zZRIsCgpjb25uZWN0aW9uGAEgASgLMhguc2FuLnRvd2VyLnYxLkNvbm5lY3Rpb24iRwoXVXBkYXRlQ29ubmVjdGlvblJlcXVlc3QSLAoKY29ubmVjdGlvbhgBIAEoCzIYLnNhbi50b3dlci52MS5Db25uZWN0aW9uIkgKGFVwZGF0ZUNvbm5lY3Rpb25SZXNwb25zZRIsCgpjb25uZWN0aW9uGAEgASgLMhguc2FuLnRvd2VyLnYxLkNvbm5lY3Rpb24iJQoXRGVsZXRlQ29ubmVjdGlvblJlcXVlc3QSCgoCaWQYASABKA0iGgoYRGVsZXRlQ29ubmVjdGlvblJlc3BvbnNlIksKFVRlc3RDb25uZWN0aW9uUmVxdWVzdBIyCghzZXR0aW5ncxgBIAEoCzIgLnNhbi50b3dlci52MS5Db25uZWN0aW9uU2V0dGluZ3MiRwoWVGVzdENvbm5lY3Rpb25SZXNwb25zZRIKCgJvaxgBIAEoCBIPCgdtZXNzYWdlGAIgASgJEhAKCGJyb3dzZXJzGAMgAygJIjcKE1BhaXJXaGF0c0FwcFJlcXVlc3QSDAoEbmFtZRgBIAEoCRISCgpzdG9yYWdlX2lkGAIgASgNImUKFFBhaXJXaGF0c0FwcFJlc3BvbnNlEg8KB3FyX2NvZGUYASABKAkSDgoGcXJfcG5nGAIgASgMEiwKCmNvbm5lY3Rpb24YAyABKAsyGC5zYW4udG93ZXIudjEuQ29ubmVjdGlvbjLSBAoRQ29ubmVjdGlvblNlcnZpY2USXgoPTGlzdENvbm5lY3Rpb25zEiQuc2FuLnRvd2VyLnYxLkxpc3RDb25uZWN0aW9uc1JlcXVlc3QaJS5zYW4udG93ZXIudjEuTGlzdENvbm5lY3Rpb25zUmVzcG9uc2USYQoQQ3JlYXRlQ29ubmVjdGlvbhIlLnNhbi50b3dlci52MS5DcmVhdGVDb25uZWN0aW9uUmVxdWVzdBomLnNhbi50b3dlci52MS5DcmVhdGVDb25uZWN0aW9uUmVzcG9uc2USYQoQVXBkYXRlQ29ubmVjdGlvbhIlLnNhbi50b3dlci52MS5VcGRhdGVDb25uZWN0aW9uUmVxdWVzdBomLnNhbi50b3dlci52MS5VcGRhdGVDb25uZWN0aW9uUmVzcG9uc2USYQoQRGVsZXRlQ29ubmVjdGlvbhIlLnNhbi50b3dlci52MS5EZWxldGVDb25uZWN0aW9uUmVxdWVzdBomLnNhbi50b3dlci52MS5EZWxldGVDb25uZWN0aW9uUmVzcG9uc2USWwoOVGVzdENvbm5lY3Rpb24SIy5zYW4udG93ZXIudjEuVGVzdENvbm5lY3Rpb25SZXF1ZXN0GiQuc2FuLnRvd2VyLnYxLlRlc3RDb25uZWN0aW9uUmVzcG9uc2USVwoMUGFpcldoYXRzQXBwEiEuc2FuLnRvd2VyLnYxLlBhaXJXaGF0c0FwcFJlcXVlc3QaIi5zYW4udG93ZXIudjEuUGFpcldoYXRzQXBwUmVzcG9uc2UwAUKvAQoQY29tLnNhbi50b3dlci52MUIPQ29ubmVjdGlvblByb3RvUAFaOGdpdGh1Yi5jb20vd2FyZ2FzaXBpbC9zYW5fdG93ZXIvZ2VuL3Nhbi90b3dlci92MTt0b3dlcnYxogIDU1RYqgIMU2FuLlRvd2VyLlYxygIMU2FuXFRvd2VyXFYx4gIYU2FuXFRvd2VyXFYxXEdQQk1ldGFkYXRh6gIOU2FuOjpUb3dlcjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("Ch1zYW4vdG93ZXIvdjEvY29ubmVjdGlvbi5wcm90bxIMc2FuLnRvd2VyLnYxIroBCgpDb25uZWN0aW9uEgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSMgoIc2V0dGluZ3MYAyABKAsyIC5zYW4udG93ZXIudjEuQ29ubmVjdGlvblNldHRpbmdzEi4KCmNyZWF0ZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIoIDChJDb25uZWN0aW9uU2V0dGluZ3MSNQoKc2FuX3JlbW90ZRgBIAEoCzIfLnNhbi50b3dlci52MS5TYW5SZW1vdGVTZXR0aW5nc0gAEjkKDHRlbGVncmFtX2JvdBgCIAEoCzIhLnNhbi50b3dlci52MS5UZWxlZ3JhbUJvdFNldHRpbmdzSAASMgoId2hhdHNhcHAYAyABKAsyHi5zYW4udG93ZXIudjEuV2hhdHNBcHBTZXR0aW5nc0gAEjAKB2JpbmFuY2UYBCABKAsyHS5zYW4udG93ZXIudjEuQmluYW5jZVNldHRpbmdzSAASLgoGZ2l0aHViGAUgASgLMhwuc2FuLnRvd2VyLnYxLkdpdEh1YlNldHRpbmdzSAASKAoDc3NoGAYgASgLMhkuc2FuLnRvd2VyLnYxLlNTSFNldHRpbmdzSAASMgoIbW92aWVtb3YYByABKAsyHi5zYW4udG93ZXIudjEuTW92aWVNb3ZTZXR0aW5nc0gAQgYKBHR5cGUiXgoQTW92aWVNb3ZTZXR0aW5ncxIQCghiYXNlX3VyaRgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRIQCghwYXNzd29yZBgDIAEoCRIUCgxwYXNzd29yZF9zZXQYBCABKAgihAEKC1NTSFNldHRpbmdzEgwKBGhvc3QYASABKAkSDAoEcG9ydBgCIAEoDRIMCgR1c2VyGAMgASgJEhAKCHBhc3N3b3JkGAQgASgJEhMKC3ByaXZhdGVfa2V5GAUgASgJEhIKCnBhc3NwaHJhc2UYBiABKAkSEAoIaG9zdF9rZXkYByABKAkiHwoOR2l0SHViU2V0dGluZ3MSDQoFdG9rZW4YASABKAkiRwoPQmluYW5jZVNldHRpbmdzEg8KB2FwaV9rZXkYASABKAkSEgoKYXBpX3NlY3JldBgCIAEoCRIPCgduZXR3b3JrGAMgASgJIjEKEVNhblJlbW90ZVNldHRpbmdzEgsKA3VybBgBIAEoCRIPCgdicm93c2VyGAIgASgJIiQKE1RlbGVncmFtQm90U2V0dGluZ3MSDQoFdG9rZW4YASABKAkiYgoQV2hhdHNBcHBTZXR0aW5ncxILCgNqaWQYASABKAkSDQoFcGhvbmUYAiABKAkSDAoEbmFtZRgDIAEoCRISCgpzdG9yYWdlX2lkGAQgASgNEhAKCGRhdGFiYXNlGAUgASgJIiYKFkxpc3RDb25uZWN0aW9uc1JlcXVlc3QSDAoEdHlwZRgBIAEoCSJIChdMaXN0Q29ubmVjdGlvbnNSZXNwb25zZRItCgtjb25uZWN0aW9ucxgBIAMoCzIYLnNhbi50b3dlci52MS5Db25uZWN0aW9uIkcKF0NyZWF0ZUNvbm5lY3Rpb25SZXF1ZXN0EiwKCmNvbm5lY3Rpb24YASABKAsyGC5zYW4udG93ZXIudjEuQ29ubmVjdGlvbiJIChhDcmVhdGVDb25uZWN0aW9uUmVzcG9uc2USLAoKY29ubmVjdGlvbhgBIAEoCzIYLnNhbi50b3dlci52MS5Db25uZWN0aW9uIkcKF1VwZGF0ZUNvbm5lY3Rpb25SZXF1ZXN0EiwKCmNvbm5lY3Rpb24YASABKAsyGC5zYW4udG93ZXIudjEuQ29ubmVjdGlvbiJIChhVcGRhdGVDb25uZWN0aW9uUmVzcG9uc2USLAoKY29ubmVjdGlvbhgBIAEoCzIYLnNhbi50b3dlci52MS5Db25uZWN0aW9uIiUKF0RlbGV0ZUNvbm5lY3Rpb25SZXF1ZXN0EgoKAmlkGAEgASgNIhoKGERlbGV0ZUNvbm5lY3Rpb25SZXNwb25zZSJXChVUZXN0Q29ubmVjdGlvblJlcXVlc3QSMgoIc2V0dGluZ3MYASABKAsyIC5zYW4udG93ZXIudjEuQ29ubmVjdGlvblNldHRpbmdzEgoKAmlkGAIgASgNIkcKFlRlc3RDb25uZWN0aW9uUmVzcG9uc2USCgoCb2sYASABKAgSDwoHbWVzc2FnZRgCIAEoCRIQCghicm93c2VycxgDIAMoCSI3ChNQYWlyV2hhdHNBcHBSZXF1ZXN0EgwKBG5hbWUYASABKAkSEgoKc3RvcmFnZV9pZBgCIAEoDSJlChRQYWlyV2hhdHNBcHBSZXNwb25zZRIPCgdxcl9jb2RlGAEgASgJEg4KBnFyX3BuZxgCIAEoDBIsCgpjb25uZWN0aW9uGAMgASgLMhguc2FuLnRvd2VyLnYxLkNvbm5lY3Rpb24y0gQKEUNvbm5lY3Rpb25TZXJ2aWNlEl4KD0xpc3RDb25uZWN0aW9ucxIkLnNhbi50b3dlci52MS5MaXN0Q29ubmVjdGlvbnNSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLkxpc3RDb25uZWN0aW9uc1Jlc3BvbnNlEmEKEENyZWF0ZUNvbm5lY3Rpb24SJS5zYW4udG93ZXIudjEuQ3JlYXRlQ29ubmVjdGlvblJlcXVlc3QaJi5zYW4udG93ZXIudjEuQ3JlYXRlQ29ubmVjdGlvblJlc3BvbnNlEmEKEFVwZGF0ZUNvbm5lY3Rpb24SJS5zYW4udG93ZXIudjEuVXBkYXRlQ29ubmVjdGlvblJlcXVlc3QaJi5zYW4udG93ZXIudjEuVXBkYXRlQ29ubmVjdGlvblJlc3BvbnNlEmEKEERlbGV0ZUNvbm5lY3Rpb24SJS5zYW4udG93ZXIudjEuRGVsZXRlQ29ubmVjdGlvblJlcXVlc3QaJi5zYW4udG93ZXIudjEuRGVsZXRlQ29ubmVjdGlvblJlc3BvbnNlElsKDlRlc3RDb25uZWN0aW9uEiMuc2FuLnRvd2VyLnYxLlRlc3RDb25uZWN0aW9uUmVxdWVzdBokLnNhbi50b3dlci52MS5UZXN0Q29ubmVjdGlvblJlc3BvbnNlElcKDFBhaXJXaGF0c0FwcBIhLnNhbi50b3dlci52MS5QYWlyV2hhdHNBcHBSZXF1ZXN0GiIuc2FuLnRvd2VyLnYxLlBhaXJXaGF0c0FwcFJlc3BvbnNlMAFCrwEKEGNvbS5zYW4udG93ZXIudjFCD0Nvbm5lY3Rpb25Qcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message san.tower.v1.Connection
@@ -97,6 +97,12 @@ export type ConnectionSettings = Message<"san.tower.v1.ConnectionSettings"> & {
      */
     value: SSHSettings;
     case: "ssh";
+  } | {
+    /**
+     * @generated from field: san.tower.v1.MovieMovSettings moviemov = 7;
+     */
+    value: MovieMovSettings;
+    case: "moviemov";
   } | { case: undefined; value?: undefined };
 };
 
@@ -106,6 +112,60 @@ export type ConnectionSettings = Message<"san.tower.v1.ConnectionSettings"> & {
  */
 export const ConnectionSettingsSchema: GenMessage<ConnectionSettings> = /*@__PURE__*/
   messageDesc(file_san_tower_v1_connection, 1);
+
+/**
+ * MovieMovSettings is an admin login on a site made from web_movie
+ * (php/apps/web_movie: MovieMov, https://moviemov.id), whose API the MovieMov
+ * steps call (the user, 2026-11-08: "For login, we create new connection
+ * type and paste username and password and base uri"). The tower logs in
+ * with them itself (POST /login) and keeps the token in memory, per
+ * connection and login, logging in again only when the site refuses it.
+ *
+ * @generated from message san.tower.v1.MovieMovSettings
+ */
+export type MovieMovSettings = Message<"san.tower.v1.MovieMovSettings"> & {
+  /**
+   * base_uri is the site's API, https://moviemov.id/api when empty; a site
+   * address with no path gets /api.
+   *
+   * @generated from field: string base_uri = 1;
+   */
+  baseUri: string;
+
+  /**
+   * username is the admin's email, e.g. admin@moviemov.id.
+   *
+   * @generated from field: string username = 2;
+   */
+  username: string;
+
+  /**
+   * password is the admin's password. The tower keeps it and never sends it
+   * back: a connection ConnectionService returns has it empty, with
+   * password_set true. Saving one with it empty keeps the saved password,
+   * and TestConnection with the connection's id tests with it. Like a bot's
+   * token, it stays in the tower: an export leaves connection settings
+   * behind.
+   *
+   * @generated from field: string password = 3;
+   */
+  password: string;
+
+  /**
+   * password_set says the saved connection has a password. Only the tower
+   * sets it.
+   *
+   * @generated from field: bool password_set = 4;
+   */
+  passwordSet: boolean;
+};
+
+/**
+ * Describes the message san.tower.v1.MovieMovSettings.
+ * Use `create(MovieMovSettingsSchema)` to create a new message.
+ */
+export const MovieMovSettingsSchema: GenMessage<MovieMovSettings> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_connection, 2);
 
 /**
  * SSHSettings is an account on a server, through SSH (the user,
@@ -172,7 +232,7 @@ export type SSHSettings = Message<"san.tower.v1.SSHSettings"> & {
  * Use `create(SSHSettingsSchema)` to create a new message.
  */
 export const SSHSettingsSchema: GenMessage<SSHSettings> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 2);
+  messageDesc(file_san_tower_v1_connection, 3);
 
 /**
  * GitHubSettings is a GitHub account, through a personal access token (the
@@ -197,7 +257,7 @@ export type GitHubSettings = Message<"san.tower.v1.GitHubSettings"> & {
  * Use `create(GitHubSettingsSchema)` to create a new message.
  */
 export const GitHubSettingsSchema: GenMessage<GitHubSettings> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 3);
+  messageDesc(file_san_tower_v1_connection, 4);
 
 /**
  * BinanceSettings is a Binance USD-M futures account, through an API key,
@@ -235,7 +295,7 @@ export type BinanceSettings = Message<"san.tower.v1.BinanceSettings"> & {
  * Use `create(BinanceSettingsSchema)` to create a new message.
  */
 export const BinanceSettingsSchema: GenMessage<BinanceSettings> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 4);
+  messageDesc(file_san_tower_v1_connection, 5);
 
 /**
  * SanRemoteSettings is a connection to `san_remote api`.
@@ -267,7 +327,7 @@ export type SanRemoteSettings = Message<"san.tower.v1.SanRemoteSettings"> & {
  * Use `create(SanRemoteSettingsSchema)` to create a new message.
  */
 export const SanRemoteSettingsSchema: GenMessage<SanRemoteSettings> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 5);
+  messageDesc(file_san_tower_v1_connection, 6);
 
 /**
  * TelegramBotSettings is a Telegram bot, which the tower reads and sends
@@ -289,7 +349,7 @@ export type TelegramBotSettings = Message<"san.tower.v1.TelegramBotSettings"> & 
  * Use `create(TelegramBotSettingsSchema)` to create a new message.
  */
 export const TelegramBotSettingsSchema: GenMessage<TelegramBotSettings> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 6);
+  messageDesc(file_san_tower_v1_connection, 7);
 
 /**
  * WhatsAppSettings is a WhatsApp account, as a device linked to it, as
@@ -345,7 +405,7 @@ export type WhatsAppSettings = Message<"san.tower.v1.WhatsAppSettings"> & {
  * Use `create(WhatsAppSettingsSchema)` to create a new message.
  */
 export const WhatsAppSettingsSchema: GenMessage<WhatsAppSettings> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 7);
+  messageDesc(file_san_tower_v1_connection, 8);
 
 /**
  * @generated from message san.tower.v1.ListConnectionsRequest
@@ -365,7 +425,7 @@ export type ListConnectionsRequest = Message<"san.tower.v1.ListConnectionsReques
  * Use `create(ListConnectionsRequestSchema)` to create a new message.
  */
 export const ListConnectionsRequestSchema: GenMessage<ListConnectionsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 8);
+  messageDesc(file_san_tower_v1_connection, 9);
 
 /**
  * @generated from message san.tower.v1.ListConnectionsResponse
@@ -382,7 +442,7 @@ export type ListConnectionsResponse = Message<"san.tower.v1.ListConnectionsRespo
  * Use `create(ListConnectionsResponseSchema)` to create a new message.
  */
 export const ListConnectionsResponseSchema: GenMessage<ListConnectionsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 9);
+  messageDesc(file_san_tower_v1_connection, 10);
 
 /**
  * @generated from message san.tower.v1.CreateConnectionRequest
@@ -399,7 +459,7 @@ export type CreateConnectionRequest = Message<"san.tower.v1.CreateConnectionRequ
  * Use `create(CreateConnectionRequestSchema)` to create a new message.
  */
 export const CreateConnectionRequestSchema: GenMessage<CreateConnectionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 10);
+  messageDesc(file_san_tower_v1_connection, 11);
 
 /**
  * @generated from message san.tower.v1.CreateConnectionResponse
@@ -416,7 +476,7 @@ export type CreateConnectionResponse = Message<"san.tower.v1.CreateConnectionRes
  * Use `create(CreateConnectionResponseSchema)` to create a new message.
  */
 export const CreateConnectionResponseSchema: GenMessage<CreateConnectionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 11);
+  messageDesc(file_san_tower_v1_connection, 12);
 
 /**
  * @generated from message san.tower.v1.UpdateConnectionRequest
@@ -433,7 +493,7 @@ export type UpdateConnectionRequest = Message<"san.tower.v1.UpdateConnectionRequ
  * Use `create(UpdateConnectionRequestSchema)` to create a new message.
  */
 export const UpdateConnectionRequestSchema: GenMessage<UpdateConnectionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 12);
+  messageDesc(file_san_tower_v1_connection, 13);
 
 /**
  * @generated from message san.tower.v1.UpdateConnectionResponse
@@ -450,7 +510,7 @@ export type UpdateConnectionResponse = Message<"san.tower.v1.UpdateConnectionRes
  * Use `create(UpdateConnectionResponseSchema)` to create a new message.
  */
 export const UpdateConnectionResponseSchema: GenMessage<UpdateConnectionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 13);
+  messageDesc(file_san_tower_v1_connection, 14);
 
 /**
  * @generated from message san.tower.v1.DeleteConnectionRequest
@@ -467,7 +527,7 @@ export type DeleteConnectionRequest = Message<"san.tower.v1.DeleteConnectionRequ
  * Use `create(DeleteConnectionRequestSchema)` to create a new message.
  */
 export const DeleteConnectionRequestSchema: GenMessage<DeleteConnectionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 14);
+  messageDesc(file_san_tower_v1_connection, 15);
 
 /**
  * @generated from message san.tower.v1.DeleteConnectionResponse
@@ -480,7 +540,7 @@ export type DeleteConnectionResponse = Message<"san.tower.v1.DeleteConnectionRes
  * Use `create(DeleteConnectionResponseSchema)` to create a new message.
  */
 export const DeleteConnectionResponseSchema: GenMessage<DeleteConnectionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 15);
+  messageDesc(file_san_tower_v1_connection, 16);
 
 /**
  * @generated from message san.tower.v1.TestConnectionRequest
@@ -490,6 +550,15 @@ export type TestConnectionRequest = Message<"san.tower.v1.TestConnectionRequest"
    * @generated from field: san.tower.v1.ConnectionSettings settings = 1;
    */
   settings?: ConnectionSettings;
+
+  /**
+   * id is the saved connection the settings are of, when they are: a secret
+   * the tower does not send back (a MovieMov password) left empty is that
+   * connection's.
+   *
+   * @generated from field: uint32 id = 2;
+   */
+  id: number;
 };
 
 /**
@@ -497,7 +566,7 @@ export type TestConnectionRequest = Message<"san.tower.v1.TestConnectionRequest"
  * Use `create(TestConnectionRequestSchema)` to create a new message.
  */
 export const TestConnectionRequestSchema: GenMessage<TestConnectionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 16);
+  messageDesc(file_san_tower_v1_connection, 17);
 
 /**
  * @generated from message san.tower.v1.TestConnectionResponse
@@ -532,7 +601,7 @@ export type TestConnectionResponse = Message<"san.tower.v1.TestConnectionRespons
  * Use `create(TestConnectionResponseSchema)` to create a new message.
  */
 export const TestConnectionResponseSchema: GenMessage<TestConnectionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 17);
+  messageDesc(file_san_tower_v1_connection, 18);
 
 /**
  * @generated from message san.tower.v1.PairWhatsAppRequest
@@ -558,7 +627,7 @@ export type PairWhatsAppRequest = Message<"san.tower.v1.PairWhatsAppRequest"> & 
  * Use `create(PairWhatsAppRequestSchema)` to create a new message.
  */
 export const PairWhatsAppRequestSchema: GenMessage<PairWhatsAppRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 18);
+  messageDesc(file_san_tower_v1_connection, 19);
 
 /**
  * PairWhatsAppResponse is a QR code to show, or, last, the connection.
@@ -591,7 +660,7 @@ export type PairWhatsAppResponse = Message<"san.tower.v1.PairWhatsAppResponse"> 
  * Use `create(PairWhatsAppResponseSchema)` to create a new message.
  */
 export const PairWhatsAppResponseSchema: GenMessage<PairWhatsAppResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_connection, 19);
+  messageDesc(file_san_tower_v1_connection, 20);
 
 /**
  * ConnectionService keeps the tower's connections to other programs, which
@@ -600,8 +669,8 @@ export const PairWhatsAppResponseSchema: GenMessage<PairWhatsAppResponse> = /*@_
  * telegram_bot: a Telegram bot, through the Bot API, whatsapp: a
  * WhatsApp account, as a device linked to it (PairWhatsApp), binance: a
  * Binance USD-M futures account, through an API key, github: a GitHub
- * account, through a personal access token, and ssh: a server's account,
- * through SSH.
+ * account, through a personal access token, ssh: a server's account,
+ * through SSH, and moviemov: an admin login on a site made from web_movie.
  *
  * @generated from service san.tower.v1.ConnectionService
  */

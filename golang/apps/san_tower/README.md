@@ -168,7 +168,7 @@ Messengers › Telegram); the UI asks for them
 Logic, Data, Storage (the user, 2026-10-27: Storage, File Path, Read File
 and Glob, moved out of Data), Datetime, Action, Messengers (the user,
 2026-10-27: Telegram's and WhatsApp's steps, their triggers too, each
-messenger a sub-menu), Social, Shop (the user, 2026-11-03: Shopee), Maps (the user, 2026-11-06: Google Maps), Finance (the user, 2026-10-27: Binance),
+messenger a sub-menu), Social, Shop (the user, 2026-11-03: Shopee), Maps (the user, 2026-11-06: Google Maps), Web (the user, 2026-11-08: MovieMov, a site made from web_movie), Finance (the user, 2026-10-27: Binance),
 Knowledge (the user, 2026-10-28) and AI; the UI gives each a colour and an
 icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
@@ -1288,6 +1288,78 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     Only keeps the website when it is a profile. Count is how many came,
     End Of List Yes when the list was read to its end. It reads in a
     background tab, a few seconds a place.
+- The MovieMov steps (category Web › MovieMov; `engine/moviemov.go`,
+  `internal/moviemov`; the user, 2026-11-08: "In tower can we have node to
+  upload to this web that deployed with web_movie ?") work on a site made
+  from web_movie (`php/apps/web_movie`: MovieMov at https://moviemov.id, or
+  any other deploy of it) through its API (its `docs/API.md` and
+  `docs/openapi.json`), as the admin of the MovieMov connection (below)
+  their Connection setting names. The tower logs in itself and keeps the
+  token in memory per connection and login, so a run does not log in (the
+  site allows 5 logins a minute; the tower holds a sixth back itself and
+  says when to try again); a token the site refuses (401) is replaced once.
+  Each login is logged, never the password or the token. A field the site
+  refuses (422) is named in the error: `MovieMov: embed_url: The embed url
+  field must be a valid URL. (422)`. What the tower can check (required
+  fields, sizes, counts, times, the thumbnail) fails the step before the
+  site is called. A list input (Backup Embed URLs, Categories, Tags) is an
+  object socket that is also a field: link a list to it (a movie's
+  categories come back as their names), or type the items (Categories and
+  Tags separated by commas or lines, players a line each), or JSON
+  (`["Drama, Noir"]`); `[]` is an empty list.
+  - **MovieMov Upload Movie** creates a movie: Title and Embed URL (the
+    player's https link or its whole `<iframe>` code) are required; Backup
+    Embed URLs (up to 5, Server 2, 3, ...), Thumbnail (a file: JPEG, PNG or
+    WebP by its bytes, 2 MB at most as the site counts it, such as Video
+    Thumbnail's File with Aspect 16:9; a relative path is in the data
+    folder) or Thumbnail URL, Categories (up to 10, unknown ones are
+    made), Tags (up to 20), Synopsis, Release Year (1870 to 2100),
+    Duration (minutes, 1 to 1440) and Slug (empty: the site makes one from
+    the title) are optional. Status Draft (the default) keeps it hidden;
+    Published puts it live now, or at Publish At when that has passed;
+    Scheduled puts it live by itself at Publish At, which must be to come.
+    Publish At is the picker's time in WIB (`2026-11-09T20:00`), or RFC 3339
+    as the Datetime steps give it, and is sent with its offset. With a
+    Thumbnail file it is sent as a form (lists as `categories[]`, so a
+    comma in a name stays), else as JSON. Movie is the movie as the site
+    answers it (`payload.slug`, `payload.url`, `payload.thumbnail_url`,
+    `payload.status`, `payload.published_at` in UTC), URL its page and
+    Slug its slug.
+  - **MovieMov Update Movie** changes the movie Slug (its slug or its
+    page's link): only the fields that are typed or linked are sent; New
+    Slug changes its address; a list typed as `[]` empties it. A Thumbnail
+    file goes as a form to POST /movies/{slug} (PHP reads uploaded files
+    on POST only), anything else as JSON to PATCH. Remove Thumbnail Yes
+    takes the picture off. Status Keep (the default) leaves it as it is,
+    with Publish At hidden; Draft hides it; Published puts it live (one
+    already live keeps its date); Scheduled, at Publish At. Nothing to
+    change fails the step. A slug the site does not have says so.
+  - **MovieMov Movies** lists movies of Status (Published, Draft, Scheduled
+    or All: drafts need the admin's token, which the step has) matching
+    Search (titles and synopses), Category and Tags (all of up to 5; a name
+    is turned into its slug, Sci Fi is sci-fi), by Sort (Created, the
+    newest first, Trending, Rating, Views or Duration) and Direction
+    (Default, Descending or Ascending). Pages One reads Page of Per Page
+    movies (24 by default, 100 at most); All reads every page, 100 a page,
+    up to Limit movies (1000 by default, 100 pages at most). Each fires
+    once per movie with Item it and Slug its slug, then Done; Movies is the
+    list, Count how many came and Total how many the site has.
+  - **MovieMov Delete Movie** deletes the movie Slug, with its ratings and
+    its uploaded thumbnail. Deleted fires when it was deleted, Not Found
+    (a warning in the log) when the site has no such movie, and Done either
+    way: deleting what is already gone is not a failure, so a clean-up
+    branch goes on, and Not Found can lead to a Fail Run where a wrong
+    slug matters.
+  - **MovieMov Reports** lists the movies whose players visitors reported
+    broken ("Video tidak bisa diputar?"), most reported first: each with
+    `movie.slug`, `movie.title`, `open_reports`, `servers` (reports per
+    player, "1" being Embed URL), `reasons` (not_loading, wrong_video,
+    bad_quality, other) and `latest_at`. Each fires once per movie with
+    Item it and Slug its movie's slug, then Done; Reports is the list and
+    Count how many movies.
+  - **MovieMov Resolve Report** marks every open report of the movie Slug
+    (such as MovieMov Reports' Slug in its Each) fixed; Resolved is how
+    many there were, 0 when none was open.
 - Telegram steps work as a bot, through the Telegram Bot connection their
   Connection setting names (the Bot API, over plain net/http,
   `internal/telegram`):
@@ -1728,6 +1800,25 @@ connection is gone fails, saying so.
   logging in wait 20 s at most. The password, key and passphrase are
   stored and listed as a bot's token is; the table shows user@host:port.
   SSH Session and SSH Exec (Action › SSH, under Workflows) use it.
+- **MovieMov** (the user, 2026-11-08: "For login, we create new
+  connection type and paste username and password and base uri";
+  `internal/moviemov`): an admin login on a site made from web_movie. Base
+  URI is the site's API (https://moviemov.id/api when empty; a site's
+  address with no path gets `/api`), Username the admin's email, Password
+  the admin's password. The password goes in and never comes out: every
+  connection ConnectionService returns has it empty with `password_set`
+  true, the form shows "Saved; type a new one to change it", saving with
+  it empty keeps the saved one, and Test sends the connection's id
+  (TestConnectionRequest.id) so the tower tests with the saved one. It is
+  stored in `tower.db` like the other connections' secrets and an export
+  leaves it behind. Test logs in, or uses the kept token, and asks the
+  site who it is (GET /me), which changes nothing
+  ("https://moviemov.id/api answers: admin Admin (admin@moviemov.id)").
+  The tokens are kept in memory per connection and login (a hash of the
+  base URI, username and password),
+  so an edit logs in anew; each login makes a token named `san-tower` on
+  the site, which never expires (a restarted tower makes one more). The
+  MovieMov steps (Web › MovieMov, under Workflows) use it.
 
 ## Finance
 

@@ -34,8 +34,9 @@ const typeLabels: Record<string, string> = {
   binance: 'Binance',
   github: 'GitHub',
   ssh: 'SSH',
+  moviemov: 'MovieMov',
 };
-type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance' | 'github' | 'ssh';
+type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance' | 'github' | 'ssh' | 'moviemov';
 
 // typeHelp says what a connection of each type is, over its tab's list.
 const typeHelp: Record<ConnectionType, string> = {
@@ -46,6 +47,8 @@ const typeHelp: Record<ConnectionType, string> = {
   binance: 'A Binance futures account, through an API key, which the Finance steps read and trade on.',
   github: 'A GitHub account, through a personal access token, which GitHub Create Issue uses.',
   ssh: 'An account on a server, through SSH: an SSH Session opens a shell there, which SSH Exec steps run commands in.',
+  moviemov:
+    'An admin login on a site made from web_movie (MovieMov, moviemov.id), where the MovieMov steps upload, change, list and delete movies and read broken-video reports.',
 };
 
 // binanceNetworks are a Binance connection's networks; Live trades real money.
@@ -59,7 +62,7 @@ const binanceNetworks: Record<string, string> = {
 // the part of its token before the colon, which is not secret; a WhatsApp
 // account by its number; a Binance account by its network and the start of
 // its API key; a GitHub token by its kind only, since all of it is secret;
-// a server by user@host:port.
+// a server by user@host:port; a MovieMov site by its admin and API.
 const address = (s?: ConnectionSettings) => {
   switch (s?.type.case) {
     case 'sanRemote':
@@ -74,6 +77,8 @@ const address = (s?: ConnectionSettings) => {
       return s.type.value.token.startsWith('github_pat_') ? 'fine-grained token' : 'classic token';
     case 'ssh':
       return `${s.type.value.user}@${s.type.value.host}:${s.type.value.port || 22}`;
+    case 'moviemov':
+      return `${s.type.value.username} · ${s.type.value.baseUri}`;
   }
   return '';
 };
@@ -118,7 +123,8 @@ export function Connections() {
 
   const test = async (c: Connection) => {
     try {
-      const r = await connections.testConnection({ settings: c.settings });
+      // The id fills in what the tower does not send back (a MovieMov password).
+      const r = await connections.testConnection({ settings: c.settings, id: c.id });
       toast(`${c.name}: ${r.message}`, !r.ok);
     } catch (err) {
       toast(`${c.name}: ${errorText(err)}`, true);
@@ -292,6 +298,21 @@ function ConnectionDialog({
   const [apiSecret, setApiSecret] = useState(old?.case === 'binance' ? old.value.apiSecret : '');
   const [network, setNetwork] = useState(old?.case === 'binance' ? old.value.network || 'testnet' : 'testnet');
   const [githubToken, setGithubToken] = useState(old?.case === 'github' ? old.value.token : '');
+  // A MovieMov login. The tower never sends the password back: empty keeps
+  // the saved one (passwordSet), a typed one replaces it.
+  const [movieMov, setMovieMov] = useState(() => ({
+    baseUri: old?.case === 'moviemov' ? old.value.baseUri : 'https://moviemov.id/api',
+    username: old?.case === 'moviemov' ? old.value.username : '',
+    password: '',
+  }));
+  const passwordSet = old?.case === 'moviemov' && old.value.passwordSet;
+  const movieMovInput = (field: keyof typeof movieMov) => ({
+    value: movieMov[field],
+    onChange: (e: { currentTarget: { value: string } }) => {
+      const value = e.currentTarget.value;
+      setMovieMov((m) => ({ ...m, [field]: value }));
+    },
+  });
   // An SSH connection's fields, as typed; its port as text, empty for 22.
   const [ssh, setSsh] = useState(() => {
     const s = old?.case === 'ssh' ? old.value : undefined;
@@ -352,7 +373,18 @@ function ConnectionDialog({
                     },
                   },
                 }
-              : { type: { case: 'whatsapp' as const, value: old?.case === 'whatsapp' ? old.value : { jid: '' } } };
+              : type === 'moviemov'
+                ? {
+                    type: {
+                      case: 'moviemov' as const,
+                      value: {
+                        baseUri: movieMov.baseUri.trim(),
+                        username: movieMov.username.trim(),
+                        password: movieMov.password,
+                      },
+                    },
+                  }
+                : { type: { case: 'whatsapp' as const, value: old?.case === 'whatsapp' ? old.value : { jid: '' } } };
   const close = () => {
     abort.current?.abort();
     onClose();
@@ -388,7 +420,7 @@ function ConnectionDialog({
   const test = async () => {
     setTesting(true);
     try {
-      setResult(await connections.testConnection({ settings }));
+      setResult(await connections.testConnection({ settings, id: connection?.id ?? 0 }));
     } catch (err) {
       setResult({ ok: false, message: errorText(err) } as TestConnectionResponse);
     }
@@ -433,7 +465,7 @@ function ConnectionDialog({
           autoFocus
           value={name}
           onChange={(e) => setName(e.currentTarget.value)}
-          placeholder={({ sanRemote: 'My Chrome', telegramBot: 'My bot', whatsapp: 'My WhatsApp', binance: 'Binance testnet', github: 'My GitHub', ssh: 'My server' } as Record<ConnectionType, string>)[type]}
+          placeholder={({ sanRemote: 'My Chrome', telegramBot: 'My bot', whatsapp: 'My WhatsApp', binance: 'Binance testnet', github: 'My GitHub', ssh: 'My server', moviemov: 'MovieMov' } as Record<ConnectionType, string>)[type]}
         />
       </FormField>
       {type === 'whatsapp' ? (
@@ -568,6 +600,30 @@ function ConnectionDialog({
             help="The server's key, kept the first time the tower connects; a server that gives another is refused from then on. Clear it when the server's key changed on purpose. A new host or port clears it."
           >
             <Input fontFamily="mono" textStyle="xs" placeholder="Kept on first connect" {...sshInput('hostKey')} />
+          </FormField>
+        </>
+      ) : type === 'moviemov' ? (
+        <>
+          <FormField
+            label="Base URI"
+            help="The site's API: https://moviemov.id/api, or that of any site made from web_movie (a site's address alone gets /api)."
+          >
+            <Input fontFamily="mono" placeholder="https://moviemov.id/api" {...movieMovInput('baseUri')} />
+          </FormField>
+          <FormField label="Username" help="The admin's email, as in the site's admin login. Only admins can log in.">
+            <Input fontFamily="mono" placeholder="admin@moviemov.id" {...movieMovInput('username')} />
+          </FormField>
+          <FormField
+            label="Password"
+            help="The tower logs in itself, keeps the token in memory and logs in again only when the site refuses it (the site allows 5 logins a minute). The password stays in the tower: it is never shown again, and an export leaves connection settings behind. Test logs in and asks the site who it is; nothing is changed."
+          >
+            <Input
+              type="password"
+              fontFamily="mono"
+              autoComplete="new-password"
+              placeholder={passwordSet ? 'Saved; type a new one to change it' : ''}
+              {...movieMovInput('password')}
+            />
           </FormField>
         </>
       ) : type === 'github' ? (

@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
+	"github.com/wargasipil/san_tower/internal/moviemov"
 	"github.com/wargasipil/san_tower/internal/sshshell"
 )
 
@@ -35,6 +36,7 @@ const (
 	Binance     = "binance"
 	GitHub      = "github"
 	SSH         = "ssh"
+	MovieMov    = "moviemov"
 )
 
 // Binance networks, a Binance connection's network.
@@ -71,6 +73,8 @@ func ConnectionType(s *v1.ConnectionSettings) string {
 		return GitHub
 	case *v1.ConnectionSettings_Ssh:
 		return SSH
+	case *v1.ConnectionSettings_Moviemov:
+		return MovieMov
 	}
 	return ""
 }
@@ -89,6 +93,9 @@ func (s *Store) ListConnections(typ string) ([]Connection, error) {
 func (s *Store) CreateConnection(c Connection) (Connection, error) {
 	if err := checkConnection(&c); err != nil {
 		return c, err
+	}
+	if c.Type == MovieMov && c.Settings.GetMoviemov().GetPassword() == "" {
+		return c, fail(ErrInvalid, "a MovieMov connection needs the admin's password")
 	}
 	c.ID = 0
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -140,6 +147,15 @@ func (s *Store) UpdateConnection(c Connection) (Connection, error) {
 			o, n := old.Settings.GetSsh(), c.Settings.GetSsh()
 			if (o.Host != n.Host || o.Port != n.Port) && n.HostKey == o.HostKey {
 				n.HostKey = ""
+			}
+		case c.Type == MovieMov:
+			// The password is never sent back (server.connectionToProto):
+			// one left empty is the saved one.
+			if n := c.Settings.GetMoviemov(); n.Password == "" && old.Type == MovieMov {
+				n.Password = old.Settings.GetMoviemov().GetPassword()
+			}
+			if c.Settings.GetMoviemov().GetPassword() == "" {
+				return fail(ErrInvalid, "a MovieMov connection needs the admin's password")
 			}
 		}
 		if err := connectionNameFree(tx, c.Name, c.ID); err != nil {
@@ -249,8 +265,35 @@ func checkConnection(c *Connection) error {
 		return nil
 	case SSH:
 		return checkSSH(c.Settings.GetSsh())
+	case MovieMov:
+		return CheckMovieMov(c.Settings.GetMoviemov())
 	}
 	return fail(ErrInvalid, "a connection needs a type")
+}
+
+// CheckMovieMov trims a MovieMov connection's settings and checks them: an
+// http or https base URI, MovieMov's own when empty, where a site's address
+// with no path gets /api (web_movie's API is there), and the admin's email.
+// The password is checked as the connection is saved, where an empty one
+// keeps the saved one. PasswordSet is the tower's to set, never kept.
+func CheckMovieMov(m *v1.MovieMovSettings) error {
+	m.BaseUri = strings.TrimRight(strings.TrimSpace(m.BaseUri), "/")
+	m.Username = strings.TrimSpace(m.Username)
+	m.PasswordSet = false
+	if m.BaseUri == "" {
+		m.BaseUri = moviemov.DefaultBase
+	}
+	u, err := url.Parse(m.BaseUri)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.RawQuery != "" || u.Fragment != "" || u.User != nil {
+		return fail(ErrInvalid, "a MovieMov connection's base URI is the site's API, such as %s", moviemov.DefaultBase)
+	}
+	if u.Path == "" {
+		m.BaseUri += "/api"
+	}
+	if !strings.Contains(m.Username, "@") {
+		return fail(ErrInvalid, "a MovieMov connection's username is the admin's email, such as admin@moviemov.id")
+	}
+	return nil
 }
 
 // checkSSH trims an SSH connection's settings and checks them: a host, a

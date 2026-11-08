@@ -13,6 +13,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
+	"github.com/wargasipil/san_tower/internal/moviemov"
 	"github.com/wargasipil/san_tower/internal/store"
 )
 
@@ -36,6 +37,10 @@ type Env struct {
 	TelegramAPI string
 	// GitHubAPI is where GitHub's REST API answers, github.API when empty.
 	GitHubAPI string
+	// MovieMov keeps the MovieMov connections' tokens from run to run, so
+	// a step does not log in each time (moviemov.go). Nil: each step logs
+	// in for itself.
+	MovieMov *moviemov.Sessions
 	// SSH are the shells SSH Session steps keep open (ssh.go), and
 	// KeepHostKey keeps a server's host key in its SSH connection when the
 	// connection has none yet (store.KeepSSHHostKey).

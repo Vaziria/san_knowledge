@@ -109,6 +109,9 @@ func logger(cmd *cli.Command) (*slog.Logger, error) {
 // before may still be letting go of.
 const restartEnv = "SAN_TOWER_RESTARTED"
 
+// telegramAPIEnv points the tower's Telegram bots at another Bot API.
+const telegramAPIEnv = "SAN_TOWER_TELEGRAM_API"
+
 // listen opens the tower's address: a loopback one, or with lan any (the
 // user's choice, 2026-10-26: the tower on the Raspberry Pi, opened from the
 // PC). After a restart it tries for 10 s.
@@ -156,6 +159,13 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	eng := engine.New(st, b, log)
 	eng.Version = version
 	eng.WhatsApp = wa
+	// The Telegram bots reach another Bot API at SAN_TOWER_TELEGRAM_API, such
+	// as a fake one for a throwaway tower's end-to-end test of the Telegram
+	// forms; unset, Telegram's own.
+	if api := os.Getenv(telegramAPIEnv); api != "" {
+		eng.TelegramAPI = api
+		log.Warn("the Telegram bots use another Bot API", "url", api)
+	}
 	// Runs still going are cut short and recorded before the database closes.
 	defer eng.Close()
 	s := server.New(version, b, st, eng, rm)

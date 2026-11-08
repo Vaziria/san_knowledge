@@ -145,6 +145,13 @@ message SanRemoteSettings {
 message TelegramBotSettings {
   // token is the bot's token from @BotFather, e.g. 123456:ABC-DEF1234.
   string token = 1;
+  // allowed_users are the Telegram user ids that may use the bot, on every
+  // workflow of it (the user, 2026-11-08: "a" = only listed Telegram users).
+  // Someone else gets "Maaf, tidak punya akses (ID kamu: <id>)", to copy the
+  // id in here. Empty: the Telegram Message triggers take every message, as
+  // before the list; Telegram Command, Menu and Form refuse to run, and say
+  // so.
+  repeated int64 allowed_users = 2;
 }
 
 // WhatsAppSettings is a WhatsApp account, as a device linked to it, as

@@ -636,7 +636,14 @@ func (x *SanRemoteSettings) GetBrowser() string {
 type TelegramBotSettings struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// token is the bot's token from @BotFather, e.g. 123456:ABC-DEF1234.
-	Token         string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// allowed_users are the Telegram user ids that may use the bot, on every
+	// workflow of it (the user, 2026-11-08: "a" = only listed Telegram users).
+	// Someone else gets "Maaf, tidak punya akses (ID kamu: <id>)", to copy the
+	// id in here. Empty: the Telegram Message triggers take every message, as
+	// before the list; Telegram Command, Menu and Form refuse to run, and say
+	// so.
+	AllowedUsers  []int64 `protobuf:"varint,2,rep,packed,name=allowed_users,json=allowedUsers,proto3" json:"allowed_users,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -676,6 +683,13 @@ func (x *TelegramBotSettings) GetToken() string {
 		return x.Token
 	}
 	return ""
+}
+
+func (x *TelegramBotSettings) GetAllowedUsers() []int64 {
+	if x != nil {
+		return x.AllowedUsers
+	}
+	return nil
 }
 
 // WhatsAppSettings is a WhatsApp account, as a device linked to it, as
@@ -1399,9 +1413,10 @@ const file_san_tower_v1_connection_proto_rawDesc = "" +
 	"\anetwork\x18\x03 \x01(\tR\anetwork\"?\n" +
 	"\x11SanRemoteSettings\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12\x18\n" +
-	"\abrowser\x18\x02 \x01(\tR\abrowser\"+\n" +
+	"\abrowser\x18\x02 \x01(\tR\abrowser\"P\n" +
 	"\x13TelegramBotSettings\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"\x89\x01\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12#\n" +
+	"\rallowed_users\x18\x02 \x03(\x03R\fallowedUsers\"\x89\x01\n" +
 	"\x10WhatsAppSettings\x12\x10\n" +
 	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x14\n" +
 	"\x05phone\x18\x02 \x01(\tR\x05phone\x12\x12\n" +

@@ -61,6 +61,29 @@ func TestConnections(t *testing.T) {
 
 // A Binance connection needs a key and its secret; its network is testnet
 // unless it says demo or live.
+// A Telegram bot's Allowed Users are people's ids, each once.
+func TestTelegramBotAllowedUsers(t *testing.T) {
+	s := open(t)
+	bot := func(users ...int64) *v1.ConnectionSettings {
+		return &v1.ConnectionSettings{Type: &v1.ConnectionSettings_TelegramBot{TelegramBot: &v1.TelegramBotSettings{Token: "123456:ABC-def", AllowedUsers: users}}}
+	}
+	c, err := s.CreateConnection(Connection{Name: "Bot", Settings: bot(42, 7, 42)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := c.Settings.GetTelegramBot().GetAllowedUsers(); len(got) != 2 || got[0] != 42 || got[1] != 7 {
+		t.Errorf("allowed: %v", got)
+	}
+	c.Settings = bot(-100123)
+	if _, err := s.UpdateConnection(c); !errors.Is(err, ErrInvalid) || !strings.Contains(err.Error(), "a person's Telegram id") {
+		t.Errorf("a group's id: %v", err)
+	}
+	c.Settings = bot()
+	if c, err = s.UpdateConnection(c); err != nil || len(c.Settings.GetTelegramBot().GetAllowedUsers()) != 0 {
+		t.Errorf("emptied: %v, %v", c, err)
+	}
+}
+
 func TestBinanceConnection(t *testing.T) {
 	s := open(t)
 	binance := func(key, secret, network string) *v1.ConnectionSettings {

@@ -82,6 +82,16 @@ type Engine struct {
 	// Message steps of active workflows, by workflow id.
 	pollers map[uint32]*poller
 	tgSteps map[uint32][]tgStep
+	// The Telegram Command steps of active workflows, by workflow id, and
+	// the chats to tell their forms were cut off, by bot connection id,
+	// until it answers (telegramform.go).
+	cmdSteps map[uint32][]cmdStep
+	notices  map[uint32][]int64
+	// The Telegram Forms' open conversations, one per person, guarded by
+	// convMu; convSeq numbers them, for their buttons.
+	convMu  sync.Mutex
+	convs   map[convKey]*tgConv
+	convSeq int64
 	// The Log Event steps of active workflows, by workflow id.
 	logSteps map[uint32][]logStep
 	// The Tower Chat steps of active workflows, by workflow id (towerchat.go).
@@ -149,6 +159,7 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		states: make(map[uint32][]*v1.TriggerState), listeners: make(map[string]*listener),
 		timers: make(map[string]*timer), timerStates: make(map[uint32][]*v1.TriggerState),
 		pollers: make(map[uint32]*poller), tgSteps: make(map[uint32][]tgStep),
+		cmdSteps: make(map[uint32][]cmdStep), notices: make(map[uint32][]int64), convs: make(map[convKey]*tgConv),
 		logSteps: make(map[uint32][]logStep), chatSteps: make(map[uint32][]string),
 		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
 		oaServers: make(map[string]*openAIServer), oaStates: make(map[uint32][]*v1.TriggerState), oaWaiting: make(map[string]*openAIWait),
@@ -199,6 +210,8 @@ func (e *Engine) env() Env {
 		SSH:              e.ssh,
 		KeepHostKey:      e.store.KeepSSHHostKey,
 		TelegramMessages: e.store.TelegramMessages,
+		TelegramTalk:     e.talk,
+		TelegramCommands: e.botCommands,
 		WhatsAppSend:     e.sendWhatsApp,
 		Storage:          e.store.GetStorage,
 		Knowledge:        e.store.GetKnowledge,
@@ -257,6 +270,7 @@ func (e *Engine) Start(baseURL string) error {
 	if n > 0 {
 		e.log.Warn("workflow runs interrupted by the last stop", "runs", n)
 	}
+	e.takeNotices()
 	e.mu.Lock()
 	e.base = strings.TrimRight(baseURL, "/")
 	e.mu.Unlock()
@@ -309,6 +323,12 @@ func (e *Engine) SyncAll() error {
 			delete(e.tgSteps, id)
 		}
 	}
+	for id := range e.cmdSteps {
+		if !known[id] {
+			delete(e.cmdSteps, id)
+		}
+	}
+	e.syncCommands()
 	for id := range e.logSteps {
 		if !known[id] {
 			delete(e.logSteps, id)
@@ -362,6 +382,7 @@ func (e *Engine) Sync(id uint32) {
 	}
 	e.syncTimers(w)
 	e.syncTelegram(w)
+	e.syncCommands()
 	e.syncLogs(w)
 	e.syncChats(w)
 	e.syncWatches(w)

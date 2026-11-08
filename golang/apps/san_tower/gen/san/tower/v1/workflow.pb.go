@@ -162,7 +162,13 @@ type StepKind struct {
 	// trigger: a step of this kind starts runs. Most triggers are in the
 	// Trigger category; a messenger's (Telegram Message, WhatsApp Message)
 	// is in Messengers, with the messenger's other steps (2026-10-27).
-	Trigger       bool `protobuf:"varint,10,opt,name=trigger,proto3" json:"trigger,omitempty"`
+	Trigger bool `protobuf:"varint,10,opt,name=trigger,proto3" json:"trigger,omitempty"`
+	// outputs_from are outputs a step of this kind has by its settings: one
+	// per row of a table setting, such as a Telegram Form's per question
+	// (the user, 2026-11-08: "adding a question named judul adds a judul
+	// output"). The editor and the engine work them out from the step's
+	// values (engine.StepOutputs); renaming a row renames its output.
+	OutputsFrom   []*SocketsFrom `protobuf:"bytes,11,rep,name=outputs_from,json=outputsFrom,proto3" json:"outputs_from,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -267,6 +273,115 @@ func (x *StepKind) GetTrigger() bool {
 	return false
 }
 
+func (x *StepKind) GetOutputsFrom() []*SocketsFrom {
+	if x != nil {
+		return x.OutputsFrom
+	}
+	return nil
+}
+
+// SocketsFrom makes a socket of each row of a table setting (a Setting with
+// columns) that names one.
+type SocketsFrom struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// setting is the table setting.
+	Setting string `protobuf:"bytes,1,opt,name=setting,proto3" json:"setting,omitempty"`
+	// column is the column whose value names a row's socket: prefix, then the
+	// value trimmed, without the prefix if it has it already ("/" and
+	// "upload" or "/upload" give "/upload"). A row without one makes none,
+	// and a name made twice is one socket.
+	Column string `protobuf:"bytes,2,opt,name=column,proto3" json:"column,omitempty"`
+	Prefix string `protobuf:"bytes,3,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	// type is the sockets' type; types gives another for some values of the
+	// column type_column (Telegram Form: "Multiple Choice" is object).
+	Type       string            `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
+	TypeColumn string            `protobuf:"bytes,5,opt,name=type_column,json=typeColumn,proto3" json:"type_column,omitempty"`
+	Types      map[string]string `protobuf:"bytes,6,rep,name=types,proto3" json:"types,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// before is the output they go before; empty: after the others.
+	Before        string `protobuf:"bytes,7,opt,name=before,proto3" json:"before,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SocketsFrom) Reset() {
+	*x = SocketsFrom{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SocketsFrom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SocketsFrom) ProtoMessage() {}
+
+func (x *SocketsFrom) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SocketsFrom.ProtoReflect.Descriptor instead.
+func (*SocketsFrom) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SocketsFrom) GetSetting() string {
+	if x != nil {
+		return x.Setting
+	}
+	return ""
+}
+
+func (x *SocketsFrom) GetColumn() string {
+	if x != nil {
+		return x.Column
+	}
+	return ""
+}
+
+func (x *SocketsFrom) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *SocketsFrom) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *SocketsFrom) GetTypeColumn() string {
+	if x != nil {
+		return x.TypeColumn
+	}
+	return ""
+}
+
+func (x *SocketsFrom) GetTypes() map[string]string {
+	if x != nil {
+		return x.Types
+	}
+	return nil
+}
+
+func (x *SocketsFrom) GetBefore() string {
+	if x != nil {
+		return x.Before
+	}
+	return ""
+}
+
 // Socket is an input or output of a step. A link joins sockets of the same
 // type: event (when a step runs), object (structured data) or text.
 type Socket struct {
@@ -296,7 +411,7 @@ type Socket struct {
 
 func (x *Socket) Reset() {
 	*x = Socket{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[1]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +423,7 @@ func (x *Socket) String() string {
 func (*Socket) ProtoMessage() {}
 
 func (x *Socket) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[1]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -321,7 +436,7 @@ func (x *Socket) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Socket.ProtoReflect.Descriptor instead.
 func (*Socket) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{1}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Socket) GetName() string {
@@ -380,13 +495,17 @@ type Setting struct {
 	ConnectionType string                 `protobuf:"bytes,4,opt,name=connection_type,json=connectionType,proto3" json:"connection_type,omitempty"`
 	Storage        bool                   `protobuf:"varint,5,opt,name=storage,proto3" json:"storage,omitempty"`
 	Knowledge      bool                   `protobuf:"varint,6,opt,name=knowledge,proto3" json:"knowledge,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// columns make it a table, edited as rows (Telegram Form's Questions):
+	// its value is a JSON list of objects, each a row, keyed by the columns'
+	// names, every value a string ("[{"Name": "judul", ...}]").
+	Columns       []*Column `protobuf:"bytes,7,rep,name=columns,proto3" json:"columns,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Setting) Reset() {
 	*x = Setting{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[2]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +517,7 @@ func (x *Setting) String() string {
 func (*Setting) ProtoMessage() {}
 
 func (x *Setting) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[2]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +530,7 @@ func (x *Setting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Setting.ProtoReflect.Descriptor instead.
 func (*Setting) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{2}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Setting) GetName() string {
@@ -456,6 +575,95 @@ func (x *Setting) GetKnowledge() bool {
 	return false
 }
 
+func (x *Setting) GetColumns() []*Column {
+	if x != nil {
+		return x.Columns
+	}
+	return nil
+}
+
+// Column is a column of a table setting.
+type Column struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// options make it a select, starting at the first one.
+	Options     []string `protobuf:"bytes,2,rep,name=options,proto3" json:"options,omitempty"`
+	Placeholder string   `protobuf:"bytes,3,opt,name=placeholder,proto3" json:"placeholder,omitempty"`
+	// when: the column matters only when another column of the row has a
+	// value, as "Type=Choice", any of several, as "Type=Choice|Multiple
+	// Choice", or any but one, as "Type!=Photo"; the editor shows it then.
+	When string `protobuf:"bytes,4,opt,name=when,proto3" json:"when,omitempty"`
+	// help says what it is for, under it in the editor.
+	Help          string `protobuf:"bytes,5,opt,name=help,proto3" json:"help,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Column) Reset() {
+	*x = Column{}
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Column) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Column) ProtoMessage() {}
+
+func (x *Column) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Column.ProtoReflect.Descriptor instead.
+func (*Column) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Column) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Column) GetOptions() []string {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+func (x *Column) GetPlaceholder() string {
+	if x != nil {
+		return x.Placeholder
+	}
+	return ""
+}
+
+func (x *Column) GetWhen() string {
+	if x != nil {
+		return x.When
+	}
+	return ""
+}
+
+func (x *Column) GetHelp() string {
+	if x != nil {
+		return x.Help
+	}
+	return ""
+}
+
 type Workflow struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Id        uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -486,7 +694,7 @@ type Workflow struct {
 
 func (x *Workflow) Reset() {
 	*x = Workflow{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[3]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -498,7 +706,7 @@ func (x *Workflow) String() string {
 func (*Workflow) ProtoMessage() {}
 
 func (x *Workflow) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[3]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,7 +719,7 @@ func (x *Workflow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Workflow.ProtoReflect.Descriptor instead.
 func (*Workflow) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{3}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Workflow) GetId() uint32 {
@@ -608,7 +816,7 @@ type Step struct {
 
 func (x *Step) Reset() {
 	*x = Step{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[4]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +828,7 @@ func (x *Step) String() string {
 func (*Step) ProtoMessage() {}
 
 func (x *Step) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[4]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +841,7 @@ func (x *Step) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Step.ProtoReflect.Descriptor instead.
 func (*Step) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{4}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Step) GetId() string {
@@ -684,7 +892,7 @@ type Link struct {
 
 func (x *Link) Reset() {
 	*x = Link{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[5]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -696,7 +904,7 @@ func (x *Link) String() string {
 func (*Link) ProtoMessage() {}
 
 func (x *Link) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[5]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -709,7 +917,7 @@ func (x *Link) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Link.ProtoReflect.Descriptor instead.
 func (*Link) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{5}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Link) GetSource() string {
@@ -752,7 +960,7 @@ type Graph struct {
 
 func (x *Graph) Reset() {
 	*x = Graph{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[6]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -764,7 +972,7 @@ func (x *Graph) String() string {
 func (*Graph) ProtoMessage() {}
 
 func (x *Graph) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[6]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -777,7 +985,7 @@ func (x *Graph) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Graph.ProtoReflect.Descriptor instead.
 func (*Graph) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{6}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Graph) GetSteps() []*Step {
@@ -811,7 +1019,7 @@ type TriggerState struct {
 
 func (x *TriggerState) Reset() {
 	*x = TriggerState{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[7]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -823,7 +1031,7 @@ func (x *TriggerState) String() string {
 func (*TriggerState) ProtoMessage() {}
 
 func (x *TriggerState) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[7]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -836,7 +1044,7 @@ func (x *TriggerState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerState.ProtoReflect.Descriptor instead.
 func (*TriggerState) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{7}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *TriggerState) GetStepId() string {
@@ -892,7 +1100,7 @@ type WorkflowSummary struct {
 
 func (x *WorkflowSummary) Reset() {
 	*x = WorkflowSummary{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[8]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -904,7 +1112,7 @@ func (x *WorkflowSummary) String() string {
 func (*WorkflowSummary) ProtoMessage() {}
 
 func (x *WorkflowSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[8]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -917,7 +1125,7 @@ func (x *WorkflowSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowSummary.ProtoReflect.Descriptor instead.
 func (*WorkflowSummary) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{8}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *WorkflowSummary) GetId() uint32 {
@@ -999,7 +1207,7 @@ type Folder struct {
 
 func (x *Folder) Reset() {
 	*x = Folder{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[9]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1011,7 +1219,7 @@ func (x *Folder) String() string {
 func (*Folder) ProtoMessage() {}
 
 func (x *Folder) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[9]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1024,7 +1232,7 @@ func (x *Folder) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Folder.ProtoReflect.Descriptor instead.
 func (*Folder) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{9}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Folder) GetId() uint32 {
@@ -1070,7 +1278,7 @@ type ListFoldersRequest struct {
 
 func (x *ListFoldersRequest) Reset() {
 	*x = ListFoldersRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[10]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1082,7 +1290,7 @@ func (x *ListFoldersRequest) String() string {
 func (*ListFoldersRequest) ProtoMessage() {}
 
 func (x *ListFoldersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[10]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1095,7 +1303,7 @@ func (x *ListFoldersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFoldersRequest.ProtoReflect.Descriptor instead.
 func (*ListFoldersRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{10}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{12}
 }
 
 type ListFoldersResponse struct {
@@ -1107,7 +1315,7 @@ type ListFoldersResponse struct {
 
 func (x *ListFoldersResponse) Reset() {
 	*x = ListFoldersResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[11]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1119,7 +1327,7 @@ func (x *ListFoldersResponse) String() string {
 func (*ListFoldersResponse) ProtoMessage() {}
 
 func (x *ListFoldersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[11]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1132,7 +1340,7 @@ func (x *ListFoldersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFoldersResponse.ProtoReflect.Descriptor instead.
 func (*ListFoldersResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{11}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListFoldersResponse) GetFolders() []*Folder {
@@ -1152,7 +1360,7 @@ type CreateFolderRequest struct {
 
 func (x *CreateFolderRequest) Reset() {
 	*x = CreateFolderRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[12]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1164,7 +1372,7 @@ func (x *CreateFolderRequest) String() string {
 func (*CreateFolderRequest) ProtoMessage() {}
 
 func (x *CreateFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[12]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1177,7 +1385,7 @@ func (x *CreateFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFolderRequest.ProtoReflect.Descriptor instead.
 func (*CreateFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{12}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateFolderRequest) GetName() string {
@@ -1203,7 +1411,7 @@ type CreateFolderResponse struct {
 
 func (x *CreateFolderResponse) Reset() {
 	*x = CreateFolderResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[13]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1215,7 +1423,7 @@ func (x *CreateFolderResponse) String() string {
 func (*CreateFolderResponse) ProtoMessage() {}
 
 func (x *CreateFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[13]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1228,7 +1436,7 @@ func (x *CreateFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFolderResponse.ProtoReflect.Descriptor instead.
 func (*CreateFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{13}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateFolderResponse) GetFolder() *Folder {
@@ -1249,7 +1457,7 @@ type UpdateFolderRequest struct {
 
 func (x *UpdateFolderRequest) Reset() {
 	*x = UpdateFolderRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[14]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1261,7 +1469,7 @@ func (x *UpdateFolderRequest) String() string {
 func (*UpdateFolderRequest) ProtoMessage() {}
 
 func (x *UpdateFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[14]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1274,7 +1482,7 @@ func (x *UpdateFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFolderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{14}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateFolderRequest) GetId() uint32 {
@@ -1307,7 +1515,7 @@ type UpdateFolderResponse struct {
 
 func (x *UpdateFolderResponse) Reset() {
 	*x = UpdateFolderResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[15]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1319,7 +1527,7 @@ func (x *UpdateFolderResponse) String() string {
 func (*UpdateFolderResponse) ProtoMessage() {}
 
 func (x *UpdateFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[15]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1332,7 +1540,7 @@ func (x *UpdateFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFolderResponse.ProtoReflect.Descriptor instead.
 func (*UpdateFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{15}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateFolderResponse) GetFolder() *Folder {
@@ -1351,7 +1559,7 @@ type DeleteFolderRequest struct {
 
 func (x *DeleteFolderRequest) Reset() {
 	*x = DeleteFolderRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[16]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1363,7 +1571,7 @@ func (x *DeleteFolderRequest) String() string {
 func (*DeleteFolderRequest) ProtoMessage() {}
 
 func (x *DeleteFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[16]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1376,7 +1584,7 @@ func (x *DeleteFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFolderRequest.ProtoReflect.Descriptor instead.
 func (*DeleteFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{16}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *DeleteFolderRequest) GetId() uint32 {
@@ -1394,7 +1602,7 @@ type DeleteFolderResponse struct {
 
 func (x *DeleteFolderResponse) Reset() {
 	*x = DeleteFolderResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[17]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1406,7 +1614,7 @@ func (x *DeleteFolderResponse) String() string {
 func (*DeleteFolderResponse) ProtoMessage() {}
 
 func (x *DeleteFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[17]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1419,7 +1627,7 @@ func (x *DeleteFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFolderResponse.ProtoReflect.Descriptor instead.
 func (*DeleteFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{17}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{19}
 }
 
 type MoveWorkflowsRequest struct {
@@ -1432,7 +1640,7 @@ type MoveWorkflowsRequest struct {
 
 func (x *MoveWorkflowsRequest) Reset() {
 	*x = MoveWorkflowsRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[18]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1444,7 +1652,7 @@ func (x *MoveWorkflowsRequest) String() string {
 func (*MoveWorkflowsRequest) ProtoMessage() {}
 
 func (x *MoveWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[18]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1457,7 +1665,7 @@ func (x *MoveWorkflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveWorkflowsRequest.ProtoReflect.Descriptor instead.
 func (*MoveWorkflowsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{18}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *MoveWorkflowsRequest) GetIds() []uint32 {
@@ -1482,7 +1690,7 @@ type MoveWorkflowsResponse struct {
 
 func (x *MoveWorkflowsResponse) Reset() {
 	*x = MoveWorkflowsResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[19]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1494,7 +1702,7 @@ func (x *MoveWorkflowsResponse) String() string {
 func (*MoveWorkflowsResponse) ProtoMessage() {}
 
 func (x *MoveWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[19]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1507,7 +1715,7 @@ func (x *MoveWorkflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveWorkflowsResponse.ProtoReflect.Descriptor instead.
 func (*MoveWorkflowsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{19}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{21}
 }
 
 // Run is one run of a workflow.
@@ -1542,7 +1750,7 @@ type Run struct {
 
 func (x *Run) Reset() {
 	*x = Run{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[20]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1554,7 +1762,7 @@ func (x *Run) String() string {
 func (*Run) ProtoMessage() {}
 
 func (x *Run) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[20]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1567,7 +1775,7 @@ func (x *Run) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Run.ProtoReflect.Descriptor instead.
 func (*Run) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{20}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Run) GetId() uint32 {
@@ -1678,7 +1886,7 @@ type StepRun struct {
 
 func (x *StepRun) Reset() {
 	*x = StepRun{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[21]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1690,7 +1898,7 @@ func (x *StepRun) String() string {
 func (*StepRun) ProtoMessage() {}
 
 func (x *StepRun) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[21]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1703,7 +1911,7 @@ func (x *StepRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StepRun.ProtoReflect.Descriptor instead.
 func (*StepRun) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{21}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *StepRun) GetStepId() string {
@@ -1772,7 +1980,7 @@ type RunSteps struct {
 
 func (x *RunSteps) Reset() {
 	*x = RunSteps{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[22]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1784,7 +1992,7 @@ func (x *RunSteps) String() string {
 func (*RunSteps) ProtoMessage() {}
 
 func (x *RunSteps) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[22]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1797,7 +2005,7 @@ func (x *RunSteps) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunSteps.ProtoReflect.Descriptor instead.
 func (*RunSteps) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{22}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *RunSteps) GetSteps() []*StepRun {
@@ -1822,7 +2030,7 @@ type RunSummary struct {
 
 func (x *RunSummary) Reset() {
 	*x = RunSummary{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[23]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1834,7 +2042,7 @@ func (x *RunSummary) String() string {
 func (*RunSummary) ProtoMessage() {}
 
 func (x *RunSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[23]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1847,7 +2055,7 @@ func (x *RunSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunSummary.ProtoReflect.Descriptor instead.
 func (*RunSummary) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{23}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *RunSummary) GetLogs() []string {
@@ -1879,7 +2087,7 @@ type ListStepKindsRequest struct {
 
 func (x *ListStepKindsRequest) Reset() {
 	*x = ListStepKindsRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[24]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1891,7 +2099,7 @@ func (x *ListStepKindsRequest) String() string {
 func (*ListStepKindsRequest) ProtoMessage() {}
 
 func (x *ListStepKindsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[24]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1904,7 +2112,7 @@ func (x *ListStepKindsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStepKindsRequest.ProtoReflect.Descriptor instead.
 func (*ListStepKindsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{24}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{26}
 }
 
 type ListStepKindsResponse struct {
@@ -1916,7 +2124,7 @@ type ListStepKindsResponse struct {
 
 func (x *ListStepKindsResponse) Reset() {
 	*x = ListStepKindsResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[25]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1928,7 +2136,7 @@ func (x *ListStepKindsResponse) String() string {
 func (*ListStepKindsResponse) ProtoMessage() {}
 
 func (x *ListStepKindsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[25]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1941,7 +2149,7 @@ func (x *ListStepKindsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStepKindsResponse.ProtoReflect.Descriptor instead.
 func (*ListStepKindsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{25}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListStepKindsResponse) GetKinds() []*StepKind {
@@ -1969,7 +2177,7 @@ type ListWorkflowsRequest struct {
 
 func (x *ListWorkflowsRequest) Reset() {
 	*x = ListWorkflowsRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[26]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1981,7 +2189,7 @@ func (x *ListWorkflowsRequest) String() string {
 func (*ListWorkflowsRequest) ProtoMessage() {}
 
 func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[26]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1994,7 +2202,7 @@ func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsRequest.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{26}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListWorkflowsRequest) GetQuery() string {
@@ -2043,7 +2251,7 @@ type ListWorkflowsResponse struct {
 
 func (x *ListWorkflowsResponse) Reset() {
 	*x = ListWorkflowsResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[27]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2055,7 +2263,7 @@ func (x *ListWorkflowsResponse) String() string {
 func (*ListWorkflowsResponse) ProtoMessage() {}
 
 func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[27]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2068,7 +2276,7 @@ func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsResponse.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{27}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListWorkflowsResponse) GetWorkflows() []*WorkflowSummary {
@@ -2097,7 +2305,7 @@ type CreateWorkflowRequest struct {
 
 func (x *CreateWorkflowRequest) Reset() {
 	*x = CreateWorkflowRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[28]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2109,7 +2317,7 @@ func (x *CreateWorkflowRequest) String() string {
 func (*CreateWorkflowRequest) ProtoMessage() {}
 
 func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[28]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2122,7 +2330,7 @@ func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{28}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CreateWorkflowRequest) GetName() string {
@@ -2155,7 +2363,7 @@ type CreateWorkflowResponse struct {
 
 func (x *CreateWorkflowResponse) Reset() {
 	*x = CreateWorkflowResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[29]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2167,7 +2375,7 @@ func (x *CreateWorkflowResponse) String() string {
 func (*CreateWorkflowResponse) ProtoMessage() {}
 
 func (x *CreateWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[29]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2180,7 +2388,7 @@ func (x *CreateWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{29}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *CreateWorkflowResponse) GetWorkflow() *Workflow {
@@ -2199,7 +2407,7 @@ type GetWorkflowRequest struct {
 
 func (x *GetWorkflowRequest) Reset() {
 	*x = GetWorkflowRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[30]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2211,7 +2419,7 @@ func (x *GetWorkflowRequest) String() string {
 func (*GetWorkflowRequest) ProtoMessage() {}
 
 func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[30]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2224,7 +2432,7 @@ func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*GetWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{30}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetWorkflowRequest) GetId() uint32 {
@@ -2243,7 +2451,7 @@ type GetWorkflowResponse struct {
 
 func (x *GetWorkflowResponse) Reset() {
 	*x = GetWorkflowResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[31]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2255,7 +2463,7 @@ func (x *GetWorkflowResponse) String() string {
 func (*GetWorkflowResponse) ProtoMessage() {}
 
 func (x *GetWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[31]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2268,7 +2476,7 @@ func (x *GetWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*GetWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{31}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetWorkflowResponse) GetWorkflow() *Workflow {
@@ -2287,7 +2495,7 @@ type UpdateWorkflowRequest struct {
 
 func (x *UpdateWorkflowRequest) Reset() {
 	*x = UpdateWorkflowRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[32]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2299,7 +2507,7 @@ func (x *UpdateWorkflowRequest) String() string {
 func (*UpdateWorkflowRequest) ProtoMessage() {}
 
 func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[32]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2312,7 +2520,7 @@ func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*UpdateWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{32}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *UpdateWorkflowRequest) GetWorkflow() *Workflow {
@@ -2331,7 +2539,7 @@ type UpdateWorkflowResponse struct {
 
 func (x *UpdateWorkflowResponse) Reset() {
 	*x = UpdateWorkflowResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[33]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2343,7 +2551,7 @@ func (x *UpdateWorkflowResponse) String() string {
 func (*UpdateWorkflowResponse) ProtoMessage() {}
 
 func (x *UpdateWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[33]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2356,7 +2564,7 @@ func (x *UpdateWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*UpdateWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{33}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *UpdateWorkflowResponse) GetWorkflow() *Workflow {
@@ -2376,7 +2584,7 @@ type SetWorkflowActiveRequest struct {
 
 func (x *SetWorkflowActiveRequest) Reset() {
 	*x = SetWorkflowActiveRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[34]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2388,7 +2596,7 @@ func (x *SetWorkflowActiveRequest) String() string {
 func (*SetWorkflowActiveRequest) ProtoMessage() {}
 
 func (x *SetWorkflowActiveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[34]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2401,7 +2609,7 @@ func (x *SetWorkflowActiveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetWorkflowActiveRequest.ProtoReflect.Descriptor instead.
 func (*SetWorkflowActiveRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{34}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *SetWorkflowActiveRequest) GetId() uint32 {
@@ -2427,7 +2635,7 @@ type SetWorkflowActiveResponse struct {
 
 func (x *SetWorkflowActiveResponse) Reset() {
 	*x = SetWorkflowActiveResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[35]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2439,7 +2647,7 @@ func (x *SetWorkflowActiveResponse) String() string {
 func (*SetWorkflowActiveResponse) ProtoMessage() {}
 
 func (x *SetWorkflowActiveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[35]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2452,7 +2660,7 @@ func (x *SetWorkflowActiveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetWorkflowActiveResponse.ProtoReflect.Descriptor instead.
 func (*SetWorkflowActiveResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{35}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *SetWorkflowActiveResponse) GetWorkflow() *Workflow {
@@ -2471,7 +2679,7 @@ type DeleteWorkflowRequest struct {
 
 func (x *DeleteWorkflowRequest) Reset() {
 	*x = DeleteWorkflowRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[36]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2483,7 +2691,7 @@ func (x *DeleteWorkflowRequest) String() string {
 func (*DeleteWorkflowRequest) ProtoMessage() {}
 
 func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[36]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2496,7 +2704,7 @@ func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*DeleteWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{36}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *DeleteWorkflowRequest) GetId() uint32 {
@@ -2514,7 +2722,7 @@ type DeleteWorkflowResponse struct {
 
 func (x *DeleteWorkflowResponse) Reset() {
 	*x = DeleteWorkflowResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[37]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2526,7 +2734,7 @@ func (x *DeleteWorkflowResponse) String() string {
 func (*DeleteWorkflowResponse) ProtoMessage() {}
 
 func (x *DeleteWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[37]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2539,7 +2747,7 @@ func (x *DeleteWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*DeleteWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{37}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{39}
 }
 
 type RunWorkflowRequest struct {
@@ -2556,7 +2764,7 @@ type RunWorkflowRequest struct {
 
 func (x *RunWorkflowRequest) Reset() {
 	*x = RunWorkflowRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[38]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2568,7 +2776,7 @@ func (x *RunWorkflowRequest) String() string {
 func (*RunWorkflowRequest) ProtoMessage() {}
 
 func (x *RunWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[38]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2581,7 +2789,7 @@ func (x *RunWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*RunWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{38}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *RunWorkflowRequest) GetWorkflowId() uint32 {
@@ -2614,7 +2822,7 @@ type RunWorkflowResponse struct {
 
 func (x *RunWorkflowResponse) Reset() {
 	*x = RunWorkflowResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[39]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2626,7 +2834,7 @@ func (x *RunWorkflowResponse) String() string {
 func (*RunWorkflowResponse) ProtoMessage() {}
 
 func (x *RunWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[39]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2639,7 +2847,7 @@ func (x *RunWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*RunWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{39}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RunWorkflowResponse) GetRun() *Run {
@@ -2672,7 +2880,7 @@ type ListRunsRequest struct {
 
 func (x *ListRunsRequest) Reset() {
 	*x = ListRunsRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[40]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2684,7 +2892,7 @@ func (x *ListRunsRequest) String() string {
 func (*ListRunsRequest) ProtoMessage() {}
 
 func (x *ListRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[40]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2697,7 +2905,7 @@ func (x *ListRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRunsRequest.ProtoReflect.Descriptor instead.
 func (*ListRunsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{40}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListRunsRequest) GetWorkflowId() uint32 {
@@ -2744,7 +2952,7 @@ type ListRunsResponse struct {
 
 func (x *ListRunsResponse) Reset() {
 	*x = ListRunsResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[41]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2756,7 +2964,7 @@ func (x *ListRunsResponse) String() string {
 func (*ListRunsResponse) ProtoMessage() {}
 
 func (x *ListRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[41]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2769,7 +2977,7 @@ func (x *ListRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRunsResponse.ProtoReflect.Descriptor instead.
 func (*ListRunsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{41}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListRunsResponse) GetRuns() []*Run {
@@ -2788,7 +2996,7 @@ type GetRunRequest struct {
 
 func (x *GetRunRequest) Reset() {
 	*x = GetRunRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[42]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2800,7 +3008,7 @@ func (x *GetRunRequest) String() string {
 func (*GetRunRequest) ProtoMessage() {}
 
 func (x *GetRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[42]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2813,7 +3021,7 @@ func (x *GetRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRunRequest.ProtoReflect.Descriptor instead.
 func (*GetRunRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{42}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetRunRequest) GetId() uint32 {
@@ -2832,7 +3040,7 @@ type GetRunResponse struct {
 
 func (x *GetRunResponse) Reset() {
 	*x = GetRunResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[43]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2844,7 +3052,7 @@ func (x *GetRunResponse) String() string {
 func (*GetRunResponse) ProtoMessage() {}
 
 func (x *GetRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[43]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2857,7 +3065,7 @@ func (x *GetRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRunResponse.ProtoReflect.Descriptor instead.
 func (*GetRunResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{43}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetRunResponse) GetRun() *Run {
@@ -2877,7 +3085,7 @@ type ExportWorkflowsRequest struct {
 
 func (x *ExportWorkflowsRequest) Reset() {
 	*x = ExportWorkflowsRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[44]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2889,7 +3097,7 @@ func (x *ExportWorkflowsRequest) String() string {
 func (*ExportWorkflowsRequest) ProtoMessage() {}
 
 func (x *ExportWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[44]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2902,7 +3110,7 @@ func (x *ExportWorkflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportWorkflowsRequest.ProtoReflect.Descriptor instead.
 func (*ExportWorkflowsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{44}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ExportWorkflowsRequest) GetIds() []uint32 {
@@ -2926,7 +3134,7 @@ type ExportWorkflowsResponse struct {
 
 func (x *ExportWorkflowsResponse) Reset() {
 	*x = ExportWorkflowsResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[45]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2938,7 +3146,7 @@ func (x *ExportWorkflowsResponse) String() string {
 func (*ExportWorkflowsResponse) ProtoMessage() {}
 
 func (x *ExportWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[45]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2951,7 +3159,7 @@ func (x *ExportWorkflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportWorkflowsResponse.ProtoReflect.Descriptor instead.
 func (*ExportWorkflowsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{45}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ExportWorkflowsResponse) GetJson() string {
@@ -2978,7 +3186,7 @@ type ImportWorkflowsRequest struct {
 
 func (x *ImportWorkflowsRequest) Reset() {
 	*x = ImportWorkflowsRequest{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[46]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2990,7 +3198,7 @@ func (x *ImportWorkflowsRequest) String() string {
 func (*ImportWorkflowsRequest) ProtoMessage() {}
 
 func (x *ImportWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[46]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3003,7 +3211,7 @@ func (x *ImportWorkflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportWorkflowsRequest.ProtoReflect.Descriptor instead.
 func (*ImportWorkflowsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{46}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ImportWorkflowsRequest) GetJson() string {
@@ -3027,7 +3235,7 @@ type ImportWorkflowsResponse struct {
 
 func (x *ImportWorkflowsResponse) Reset() {
 	*x = ImportWorkflowsResponse{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[47]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3039,7 +3247,7 @@ func (x *ImportWorkflowsResponse) String() string {
 func (*ImportWorkflowsResponse) ProtoMessage() {}
 
 func (x *ImportWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[47]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3052,7 +3260,7 @@ func (x *ImportWorkflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportWorkflowsResponse.ProtoReflect.Descriptor instead.
 func (*ImportWorkflowsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{47}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ImportWorkflowsResponse) GetWorkflows() []*WorkflowSummary {
@@ -3091,7 +3299,7 @@ type WorkflowFile struct {
 
 func (x *WorkflowFile) Reset() {
 	*x = WorkflowFile{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[48]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3103,7 +3311,7 @@ func (x *WorkflowFile) String() string {
 func (*WorkflowFile) ProtoMessage() {}
 
 func (x *WorkflowFile) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[48]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3116,7 +3324,7 @@ func (x *WorkflowFile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowFile.ProtoReflect.Descriptor instead.
 func (*WorkflowFile) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{48}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *WorkflowFile) GetFormat() string {
@@ -3189,7 +3397,7 @@ type ExportedWorkflow struct {
 
 func (x *ExportedWorkflow) Reset() {
 	*x = ExportedWorkflow{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[49]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3201,7 +3409,7 @@ func (x *ExportedWorkflow) String() string {
 func (*ExportedWorkflow) ProtoMessage() {}
 
 func (x *ExportedWorkflow) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[49]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3214,7 +3422,7 @@ func (x *ExportedWorkflow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportedWorkflow.ProtoReflect.Descriptor instead.
 func (*ExportedWorkflow) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{49}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *ExportedWorkflow) GetName() string {
@@ -3264,7 +3472,7 @@ type ExportedRef struct {
 
 func (x *ExportedRef) Reset() {
 	*x = ExportedRef{}
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[50]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3276,7 +3484,7 @@ func (x *ExportedRef) String() string {
 func (*ExportedRef) ProtoMessage() {}
 
 func (x *ExportedRef) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_workflow_proto_msgTypes[50]
+	mi := &file_san_tower_v1_workflow_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3289,7 +3497,7 @@ func (x *ExportedRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportedRef.ProtoReflect.Descriptor instead.
 func (*ExportedRef) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{50}
+	return file_san_tower_v1_workflow_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ExportedRef) GetName() string {
@@ -3310,7 +3518,7 @@ var File_san_tower_v1_workflow_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\n" +
-	"\x1bsan/tower/v1/workflow.proto\x12\fsan.tower.v1\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcf\x02\n" +
+	"\x1bsan/tower/v1/workflow.proto\x12\fsan.tower.v1\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8d\x03\n" +
 	"\bStepKind\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
@@ -3322,21 +3530,42 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\vdescription\x18\b \x01(\tR\vdescription\x12\x14\n" +
 	"\x05group\x18\t \x01(\tR\x05group\x12\x18\n" +
 	"\atrigger\x18\n" +
-	" \x01(\bR\atrigger\"\x94\x01\n" +
+	" \x01(\bR\atrigger\x12<\n" +
+	"\foutputs_from\x18\v \x03(\v2\x19.san.tower.v1.SocketsFromR\voutputsFrom\"\x9a\x02\n" +
+	"\vSocketsFrom\x12\x18\n" +
+	"\asetting\x18\x01 \x01(\tR\asetting\x12\x16\n" +
+	"\x06column\x18\x02 \x01(\tR\x06column\x12\x16\n" +
+	"\x06prefix\x18\x03 \x01(\tR\x06prefix\x12\x12\n" +
+	"\x04type\x18\x04 \x01(\tR\x04type\x12\x1f\n" +
+	"\vtype_column\x18\x05 \x01(\tR\n" +
+	"typeColumn\x12:\n" +
+	"\x05types\x18\x06 \x03(\v2$.san.tower.v1.SocketsFrom.TypesEntryR\x05types\x12\x16\n" +
+	"\x06before\x18\a \x01(\tR\x06before\x1a8\n" +
+	"\n" +
+	"TypesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x94\x01\n" +
 	"\x06Socket\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x14\n" +
 	"\x05field\x18\x03 \x01(\bR\x05field\x12\x16\n" +
 	"\x06picker\x18\x04 \x01(\tR\x06picker\x12\x12\n" +
 	"\x04when\x18\x05 \x01(\tR\x04when\x12 \n" +
-	"\vplaceholder\x18\x06 \x01(\tR\vplaceholder\"\xba\x01\n" +
+	"\vplaceholder\x18\x06 \x01(\tR\vplaceholder\"\xea\x01\n" +
 	"\aSetting\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aoptions\x18\x02 \x03(\tR\aoptions\x12 \n" +
 	"\vplaceholder\x18\x03 \x01(\tR\vplaceholder\x12'\n" +
 	"\x0fconnection_type\x18\x04 \x01(\tR\x0econnectionType\x12\x18\n" +
 	"\astorage\x18\x05 \x01(\bR\astorage\x12\x1c\n" +
-	"\tknowledge\x18\x06 \x01(\bR\tknowledge\"\xd6\x03\n" +
+	"\tknowledge\x18\x06 \x01(\bR\tknowledge\x12.\n" +
+	"\acolumns\x18\a \x03(\v2\x14.san.tower.v1.ColumnR\acolumns\"\x80\x01\n" +
+	"\x06Column\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aoptions\x18\x02 \x03(\tR\aoptions\x12 \n" +
+	"\vplaceholder\x18\x03 \x01(\tR\vplaceholder\x12\x12\n" +
+	"\x04when\x18\x04 \x01(\tR\x04when\x12\x12\n" +
+	"\x04help\x18\x05 \x01(\tR\x04help\"\xd6\x03\n" +
 	"\bWorkflow\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12(\n" +
@@ -3599,160 +3828,166 @@ func file_san_tower_v1_workflow_proto_rawDescGZIP() []byte {
 }
 
 var file_san_tower_v1_workflow_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_san_tower_v1_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 56)
+var file_san_tower_v1_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 59)
 var file_san_tower_v1_workflow_proto_goTypes = []any{
 	(RunStatus)(0),                    // 0: san.tower.v1.RunStatus
 	(LogLevel)(0),                     // 1: san.tower.v1.LogLevel
 	(*StepKind)(nil),                  // 2: san.tower.v1.StepKind
-	(*Socket)(nil),                    // 3: san.tower.v1.Socket
-	(*Setting)(nil),                   // 4: san.tower.v1.Setting
-	(*Workflow)(nil),                  // 5: san.tower.v1.Workflow
-	(*Step)(nil),                      // 6: san.tower.v1.Step
-	(*Link)(nil),                      // 7: san.tower.v1.Link
-	(*Graph)(nil),                     // 8: san.tower.v1.Graph
-	(*TriggerState)(nil),              // 9: san.tower.v1.TriggerState
-	(*WorkflowSummary)(nil),           // 10: san.tower.v1.WorkflowSummary
-	(*Folder)(nil),                    // 11: san.tower.v1.Folder
-	(*ListFoldersRequest)(nil),        // 12: san.tower.v1.ListFoldersRequest
-	(*ListFoldersResponse)(nil),       // 13: san.tower.v1.ListFoldersResponse
-	(*CreateFolderRequest)(nil),       // 14: san.tower.v1.CreateFolderRequest
-	(*CreateFolderResponse)(nil),      // 15: san.tower.v1.CreateFolderResponse
-	(*UpdateFolderRequest)(nil),       // 16: san.tower.v1.UpdateFolderRequest
-	(*UpdateFolderResponse)(nil),      // 17: san.tower.v1.UpdateFolderResponse
-	(*DeleteFolderRequest)(nil),       // 18: san.tower.v1.DeleteFolderRequest
-	(*DeleteFolderResponse)(nil),      // 19: san.tower.v1.DeleteFolderResponse
-	(*MoveWorkflowsRequest)(nil),      // 20: san.tower.v1.MoveWorkflowsRequest
-	(*MoveWorkflowsResponse)(nil),     // 21: san.tower.v1.MoveWorkflowsResponse
-	(*Run)(nil),                       // 22: san.tower.v1.Run
-	(*StepRun)(nil),                   // 23: san.tower.v1.StepRun
-	(*RunSteps)(nil),                  // 24: san.tower.v1.RunSteps
-	(*RunSummary)(nil),                // 25: san.tower.v1.RunSummary
-	(*ListStepKindsRequest)(nil),      // 26: san.tower.v1.ListStepKindsRequest
-	(*ListStepKindsResponse)(nil),     // 27: san.tower.v1.ListStepKindsResponse
-	(*ListWorkflowsRequest)(nil),      // 28: san.tower.v1.ListWorkflowsRequest
-	(*ListWorkflowsResponse)(nil),     // 29: san.tower.v1.ListWorkflowsResponse
-	(*CreateWorkflowRequest)(nil),     // 30: san.tower.v1.CreateWorkflowRequest
-	(*CreateWorkflowResponse)(nil),    // 31: san.tower.v1.CreateWorkflowResponse
-	(*GetWorkflowRequest)(nil),        // 32: san.tower.v1.GetWorkflowRequest
-	(*GetWorkflowResponse)(nil),       // 33: san.tower.v1.GetWorkflowResponse
-	(*UpdateWorkflowRequest)(nil),     // 34: san.tower.v1.UpdateWorkflowRequest
-	(*UpdateWorkflowResponse)(nil),    // 35: san.tower.v1.UpdateWorkflowResponse
-	(*SetWorkflowActiveRequest)(nil),  // 36: san.tower.v1.SetWorkflowActiveRequest
-	(*SetWorkflowActiveResponse)(nil), // 37: san.tower.v1.SetWorkflowActiveResponse
-	(*DeleteWorkflowRequest)(nil),     // 38: san.tower.v1.DeleteWorkflowRequest
-	(*DeleteWorkflowResponse)(nil),    // 39: san.tower.v1.DeleteWorkflowResponse
-	(*RunWorkflowRequest)(nil),        // 40: san.tower.v1.RunWorkflowRequest
-	(*RunWorkflowResponse)(nil),       // 41: san.tower.v1.RunWorkflowResponse
-	(*ListRunsRequest)(nil),           // 42: san.tower.v1.ListRunsRequest
-	(*ListRunsResponse)(nil),          // 43: san.tower.v1.ListRunsResponse
-	(*GetRunRequest)(nil),             // 44: san.tower.v1.GetRunRequest
-	(*GetRunResponse)(nil),            // 45: san.tower.v1.GetRunResponse
-	(*ExportWorkflowsRequest)(nil),    // 46: san.tower.v1.ExportWorkflowsRequest
-	(*ExportWorkflowsResponse)(nil),   // 47: san.tower.v1.ExportWorkflowsResponse
-	(*ImportWorkflowsRequest)(nil),    // 48: san.tower.v1.ImportWorkflowsRequest
-	(*ImportWorkflowsResponse)(nil),   // 49: san.tower.v1.ImportWorkflowsResponse
-	(*WorkflowFile)(nil),              // 50: san.tower.v1.WorkflowFile
-	(*ExportedWorkflow)(nil),          // 51: san.tower.v1.ExportedWorkflow
-	(*ExportedRef)(nil),               // 52: san.tower.v1.ExportedRef
-	nil,                               // 53: san.tower.v1.Step.ValuesEntry
-	nil,                               // 54: san.tower.v1.StepRun.OutputsEntry
-	nil,                               // 55: san.tower.v1.WorkflowFile.ConnectionsEntry
-	nil,                               // 56: san.tower.v1.WorkflowFile.StoragesEntry
-	nil,                               // 57: san.tower.v1.WorkflowFile.KnowledgeEntry
-	(*timestamppb.Timestamp)(nil),     // 58: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),       // 59: google.protobuf.Duration
-	(*anypb.Any)(nil),                 // 60: google.protobuf.Any
+	(*SocketsFrom)(nil),               // 3: san.tower.v1.SocketsFrom
+	(*Socket)(nil),                    // 4: san.tower.v1.Socket
+	(*Setting)(nil),                   // 5: san.tower.v1.Setting
+	(*Column)(nil),                    // 6: san.tower.v1.Column
+	(*Workflow)(nil),                  // 7: san.tower.v1.Workflow
+	(*Step)(nil),                      // 8: san.tower.v1.Step
+	(*Link)(nil),                      // 9: san.tower.v1.Link
+	(*Graph)(nil),                     // 10: san.tower.v1.Graph
+	(*TriggerState)(nil),              // 11: san.tower.v1.TriggerState
+	(*WorkflowSummary)(nil),           // 12: san.tower.v1.WorkflowSummary
+	(*Folder)(nil),                    // 13: san.tower.v1.Folder
+	(*ListFoldersRequest)(nil),        // 14: san.tower.v1.ListFoldersRequest
+	(*ListFoldersResponse)(nil),       // 15: san.tower.v1.ListFoldersResponse
+	(*CreateFolderRequest)(nil),       // 16: san.tower.v1.CreateFolderRequest
+	(*CreateFolderResponse)(nil),      // 17: san.tower.v1.CreateFolderResponse
+	(*UpdateFolderRequest)(nil),       // 18: san.tower.v1.UpdateFolderRequest
+	(*UpdateFolderResponse)(nil),      // 19: san.tower.v1.UpdateFolderResponse
+	(*DeleteFolderRequest)(nil),       // 20: san.tower.v1.DeleteFolderRequest
+	(*DeleteFolderResponse)(nil),      // 21: san.tower.v1.DeleteFolderResponse
+	(*MoveWorkflowsRequest)(nil),      // 22: san.tower.v1.MoveWorkflowsRequest
+	(*MoveWorkflowsResponse)(nil),     // 23: san.tower.v1.MoveWorkflowsResponse
+	(*Run)(nil),                       // 24: san.tower.v1.Run
+	(*StepRun)(nil),                   // 25: san.tower.v1.StepRun
+	(*RunSteps)(nil),                  // 26: san.tower.v1.RunSteps
+	(*RunSummary)(nil),                // 27: san.tower.v1.RunSummary
+	(*ListStepKindsRequest)(nil),      // 28: san.tower.v1.ListStepKindsRequest
+	(*ListStepKindsResponse)(nil),     // 29: san.tower.v1.ListStepKindsResponse
+	(*ListWorkflowsRequest)(nil),      // 30: san.tower.v1.ListWorkflowsRequest
+	(*ListWorkflowsResponse)(nil),     // 31: san.tower.v1.ListWorkflowsResponse
+	(*CreateWorkflowRequest)(nil),     // 32: san.tower.v1.CreateWorkflowRequest
+	(*CreateWorkflowResponse)(nil),    // 33: san.tower.v1.CreateWorkflowResponse
+	(*GetWorkflowRequest)(nil),        // 34: san.tower.v1.GetWorkflowRequest
+	(*GetWorkflowResponse)(nil),       // 35: san.tower.v1.GetWorkflowResponse
+	(*UpdateWorkflowRequest)(nil),     // 36: san.tower.v1.UpdateWorkflowRequest
+	(*UpdateWorkflowResponse)(nil),    // 37: san.tower.v1.UpdateWorkflowResponse
+	(*SetWorkflowActiveRequest)(nil),  // 38: san.tower.v1.SetWorkflowActiveRequest
+	(*SetWorkflowActiveResponse)(nil), // 39: san.tower.v1.SetWorkflowActiveResponse
+	(*DeleteWorkflowRequest)(nil),     // 40: san.tower.v1.DeleteWorkflowRequest
+	(*DeleteWorkflowResponse)(nil),    // 41: san.tower.v1.DeleteWorkflowResponse
+	(*RunWorkflowRequest)(nil),        // 42: san.tower.v1.RunWorkflowRequest
+	(*RunWorkflowResponse)(nil),       // 43: san.tower.v1.RunWorkflowResponse
+	(*ListRunsRequest)(nil),           // 44: san.tower.v1.ListRunsRequest
+	(*ListRunsResponse)(nil),          // 45: san.tower.v1.ListRunsResponse
+	(*GetRunRequest)(nil),             // 46: san.tower.v1.GetRunRequest
+	(*GetRunResponse)(nil),            // 47: san.tower.v1.GetRunResponse
+	(*ExportWorkflowsRequest)(nil),    // 48: san.tower.v1.ExportWorkflowsRequest
+	(*ExportWorkflowsResponse)(nil),   // 49: san.tower.v1.ExportWorkflowsResponse
+	(*ImportWorkflowsRequest)(nil),    // 50: san.tower.v1.ImportWorkflowsRequest
+	(*ImportWorkflowsResponse)(nil),   // 51: san.tower.v1.ImportWorkflowsResponse
+	(*WorkflowFile)(nil),              // 52: san.tower.v1.WorkflowFile
+	(*ExportedWorkflow)(nil),          // 53: san.tower.v1.ExportedWorkflow
+	(*ExportedRef)(nil),               // 54: san.tower.v1.ExportedRef
+	nil,                               // 55: san.tower.v1.SocketsFrom.TypesEntry
+	nil,                               // 56: san.tower.v1.Step.ValuesEntry
+	nil,                               // 57: san.tower.v1.StepRun.OutputsEntry
+	nil,                               // 58: san.tower.v1.WorkflowFile.ConnectionsEntry
+	nil,                               // 59: san.tower.v1.WorkflowFile.StoragesEntry
+	nil,                               // 60: san.tower.v1.WorkflowFile.KnowledgeEntry
+	(*timestamppb.Timestamp)(nil),     // 61: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),       // 62: google.protobuf.Duration
+	(*anypb.Any)(nil),                 // 63: google.protobuf.Any
 }
 var file_san_tower_v1_workflow_proto_depIdxs = []int32{
-	3,  // 0: san.tower.v1.StepKind.outputs:type_name -> san.tower.v1.Socket
-	4,  // 1: san.tower.v1.StepKind.settings:type_name -> san.tower.v1.Setting
-	3,  // 2: san.tower.v1.StepKind.inputs:type_name -> san.tower.v1.Socket
-	6,  // 3: san.tower.v1.Workflow.steps:type_name -> san.tower.v1.Step
-	7,  // 4: san.tower.v1.Workflow.links:type_name -> san.tower.v1.Link
-	58, // 5: san.tower.v1.Workflow.created_at:type_name -> google.protobuf.Timestamp
-	58, // 6: san.tower.v1.Workflow.updated_at:type_name -> google.protobuf.Timestamp
-	9,  // 7: san.tower.v1.Workflow.triggers:type_name -> san.tower.v1.TriggerState
-	53, // 8: san.tower.v1.Step.values:type_name -> san.tower.v1.Step.ValuesEntry
-	6,  // 9: san.tower.v1.Graph.steps:type_name -> san.tower.v1.Step
-	7,  // 10: san.tower.v1.Graph.links:type_name -> san.tower.v1.Link
-	58, // 11: san.tower.v1.TriggerState.next:type_name -> google.protobuf.Timestamp
-	58, // 12: san.tower.v1.WorkflowSummary.created_at:type_name -> google.protobuf.Timestamp
-	58, // 13: san.tower.v1.WorkflowSummary.updated_at:type_name -> google.protobuf.Timestamp
-	11, // 14: san.tower.v1.ListFoldersResponse.folders:type_name -> san.tower.v1.Folder
-	11, // 15: san.tower.v1.CreateFolderResponse.folder:type_name -> san.tower.v1.Folder
-	11, // 16: san.tower.v1.UpdateFolderResponse.folder:type_name -> san.tower.v1.Folder
-	0,  // 17: san.tower.v1.Run.status:type_name -> san.tower.v1.RunStatus
-	58, // 18: san.tower.v1.Run.started_at:type_name -> google.protobuf.Timestamp
-	58, // 19: san.tower.v1.Run.finished_at:type_name -> google.protobuf.Timestamp
-	23, // 20: san.tower.v1.Run.steps:type_name -> san.tower.v1.StepRun
-	1,  // 21: san.tower.v1.Run.log_levels:type_name -> san.tower.v1.LogLevel
-	54, // 22: san.tower.v1.StepRun.outputs:type_name -> san.tower.v1.StepRun.OutputsEntry
-	59, // 23: san.tower.v1.StepRun.duration:type_name -> google.protobuf.Duration
-	1,  // 24: san.tower.v1.StepRun.log_levels:type_name -> san.tower.v1.LogLevel
-	23, // 25: san.tower.v1.RunSteps.steps:type_name -> san.tower.v1.StepRun
-	1,  // 26: san.tower.v1.RunSummary.log_levels:type_name -> san.tower.v1.LogLevel
-	2,  // 27: san.tower.v1.ListStepKindsResponse.kinds:type_name -> san.tower.v1.StepKind
-	10, // 28: san.tower.v1.ListWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
-	5,  // 29: san.tower.v1.CreateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
-	5,  // 30: san.tower.v1.GetWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
-	5,  // 31: san.tower.v1.UpdateWorkflowRequest.workflow:type_name -> san.tower.v1.Workflow
-	5,  // 32: san.tower.v1.UpdateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
-	5,  // 33: san.tower.v1.SetWorkflowActiveResponse.workflow:type_name -> san.tower.v1.Workflow
-	22, // 34: san.tower.v1.RunWorkflowResponse.run:type_name -> san.tower.v1.Run
-	0,  // 35: san.tower.v1.ListRunsRequest.statuses:type_name -> san.tower.v1.RunStatus
-	22, // 36: san.tower.v1.ListRunsResponse.runs:type_name -> san.tower.v1.Run
-	22, // 37: san.tower.v1.GetRunResponse.run:type_name -> san.tower.v1.Run
-	10, // 38: san.tower.v1.ImportWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
-	58, // 39: san.tower.v1.WorkflowFile.exported_at:type_name -> google.protobuf.Timestamp
-	51, // 40: san.tower.v1.WorkflowFile.workflows:type_name -> san.tower.v1.ExportedWorkflow
-	55, // 41: san.tower.v1.WorkflowFile.connections:type_name -> san.tower.v1.WorkflowFile.ConnectionsEntry
-	56, // 42: san.tower.v1.WorkflowFile.storages:type_name -> san.tower.v1.WorkflowFile.StoragesEntry
-	57, // 43: san.tower.v1.WorkflowFile.knowledge:type_name -> san.tower.v1.WorkflowFile.KnowledgeEntry
-	6,  // 44: san.tower.v1.ExportedWorkflow.steps:type_name -> san.tower.v1.Step
-	7,  // 45: san.tower.v1.ExportedWorkflow.links:type_name -> san.tower.v1.Link
-	60, // 46: san.tower.v1.StepRun.OutputsEntry.value:type_name -> google.protobuf.Any
-	52, // 47: san.tower.v1.WorkflowFile.ConnectionsEntry.value:type_name -> san.tower.v1.ExportedRef
-	52, // 48: san.tower.v1.WorkflowFile.StoragesEntry.value:type_name -> san.tower.v1.ExportedRef
-	52, // 49: san.tower.v1.WorkflowFile.KnowledgeEntry.value:type_name -> san.tower.v1.ExportedRef
-	26, // 50: san.tower.v1.WorkflowService.ListStepKinds:input_type -> san.tower.v1.ListStepKindsRequest
-	28, // 51: san.tower.v1.WorkflowService.ListWorkflows:input_type -> san.tower.v1.ListWorkflowsRequest
-	12, // 52: san.tower.v1.WorkflowService.ListFolders:input_type -> san.tower.v1.ListFoldersRequest
-	14, // 53: san.tower.v1.WorkflowService.CreateFolder:input_type -> san.tower.v1.CreateFolderRequest
-	16, // 54: san.tower.v1.WorkflowService.UpdateFolder:input_type -> san.tower.v1.UpdateFolderRequest
-	18, // 55: san.tower.v1.WorkflowService.DeleteFolder:input_type -> san.tower.v1.DeleteFolderRequest
-	20, // 56: san.tower.v1.WorkflowService.MoveWorkflows:input_type -> san.tower.v1.MoveWorkflowsRequest
-	30, // 57: san.tower.v1.WorkflowService.CreateWorkflow:input_type -> san.tower.v1.CreateWorkflowRequest
-	32, // 58: san.tower.v1.WorkflowService.GetWorkflow:input_type -> san.tower.v1.GetWorkflowRequest
-	34, // 59: san.tower.v1.WorkflowService.UpdateWorkflow:input_type -> san.tower.v1.UpdateWorkflowRequest
-	36, // 60: san.tower.v1.WorkflowService.SetWorkflowActive:input_type -> san.tower.v1.SetWorkflowActiveRequest
-	38, // 61: san.tower.v1.WorkflowService.DeleteWorkflow:input_type -> san.tower.v1.DeleteWorkflowRequest
-	40, // 62: san.tower.v1.WorkflowService.RunWorkflow:input_type -> san.tower.v1.RunWorkflowRequest
-	42, // 63: san.tower.v1.WorkflowService.ListRuns:input_type -> san.tower.v1.ListRunsRequest
-	44, // 64: san.tower.v1.WorkflowService.GetRun:input_type -> san.tower.v1.GetRunRequest
-	46, // 65: san.tower.v1.WorkflowService.ExportWorkflows:input_type -> san.tower.v1.ExportWorkflowsRequest
-	48, // 66: san.tower.v1.WorkflowService.ImportWorkflows:input_type -> san.tower.v1.ImportWorkflowsRequest
-	27, // 67: san.tower.v1.WorkflowService.ListStepKinds:output_type -> san.tower.v1.ListStepKindsResponse
-	29, // 68: san.tower.v1.WorkflowService.ListWorkflows:output_type -> san.tower.v1.ListWorkflowsResponse
-	13, // 69: san.tower.v1.WorkflowService.ListFolders:output_type -> san.tower.v1.ListFoldersResponse
-	15, // 70: san.tower.v1.WorkflowService.CreateFolder:output_type -> san.tower.v1.CreateFolderResponse
-	17, // 71: san.tower.v1.WorkflowService.UpdateFolder:output_type -> san.tower.v1.UpdateFolderResponse
-	19, // 72: san.tower.v1.WorkflowService.DeleteFolder:output_type -> san.tower.v1.DeleteFolderResponse
-	21, // 73: san.tower.v1.WorkflowService.MoveWorkflows:output_type -> san.tower.v1.MoveWorkflowsResponse
-	31, // 74: san.tower.v1.WorkflowService.CreateWorkflow:output_type -> san.tower.v1.CreateWorkflowResponse
-	33, // 75: san.tower.v1.WorkflowService.GetWorkflow:output_type -> san.tower.v1.GetWorkflowResponse
-	35, // 76: san.tower.v1.WorkflowService.UpdateWorkflow:output_type -> san.tower.v1.UpdateWorkflowResponse
-	37, // 77: san.tower.v1.WorkflowService.SetWorkflowActive:output_type -> san.tower.v1.SetWorkflowActiveResponse
-	39, // 78: san.tower.v1.WorkflowService.DeleteWorkflow:output_type -> san.tower.v1.DeleteWorkflowResponse
-	41, // 79: san.tower.v1.WorkflowService.RunWorkflow:output_type -> san.tower.v1.RunWorkflowResponse
-	43, // 80: san.tower.v1.WorkflowService.ListRuns:output_type -> san.tower.v1.ListRunsResponse
-	45, // 81: san.tower.v1.WorkflowService.GetRun:output_type -> san.tower.v1.GetRunResponse
-	47, // 82: san.tower.v1.WorkflowService.ExportWorkflows:output_type -> san.tower.v1.ExportWorkflowsResponse
-	49, // 83: san.tower.v1.WorkflowService.ImportWorkflows:output_type -> san.tower.v1.ImportWorkflowsResponse
-	67, // [67:84] is the sub-list for method output_type
-	50, // [50:67] is the sub-list for method input_type
-	50, // [50:50] is the sub-list for extension type_name
-	50, // [50:50] is the sub-list for extension extendee
-	0,  // [0:50] is the sub-list for field type_name
+	4,  // 0: san.tower.v1.StepKind.outputs:type_name -> san.tower.v1.Socket
+	5,  // 1: san.tower.v1.StepKind.settings:type_name -> san.tower.v1.Setting
+	4,  // 2: san.tower.v1.StepKind.inputs:type_name -> san.tower.v1.Socket
+	3,  // 3: san.tower.v1.StepKind.outputs_from:type_name -> san.tower.v1.SocketsFrom
+	55, // 4: san.tower.v1.SocketsFrom.types:type_name -> san.tower.v1.SocketsFrom.TypesEntry
+	6,  // 5: san.tower.v1.Setting.columns:type_name -> san.tower.v1.Column
+	8,  // 6: san.tower.v1.Workflow.steps:type_name -> san.tower.v1.Step
+	9,  // 7: san.tower.v1.Workflow.links:type_name -> san.tower.v1.Link
+	61, // 8: san.tower.v1.Workflow.created_at:type_name -> google.protobuf.Timestamp
+	61, // 9: san.tower.v1.Workflow.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 10: san.tower.v1.Workflow.triggers:type_name -> san.tower.v1.TriggerState
+	56, // 11: san.tower.v1.Step.values:type_name -> san.tower.v1.Step.ValuesEntry
+	8,  // 12: san.tower.v1.Graph.steps:type_name -> san.tower.v1.Step
+	9,  // 13: san.tower.v1.Graph.links:type_name -> san.tower.v1.Link
+	61, // 14: san.tower.v1.TriggerState.next:type_name -> google.protobuf.Timestamp
+	61, // 15: san.tower.v1.WorkflowSummary.created_at:type_name -> google.protobuf.Timestamp
+	61, // 16: san.tower.v1.WorkflowSummary.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 17: san.tower.v1.ListFoldersResponse.folders:type_name -> san.tower.v1.Folder
+	13, // 18: san.tower.v1.CreateFolderResponse.folder:type_name -> san.tower.v1.Folder
+	13, // 19: san.tower.v1.UpdateFolderResponse.folder:type_name -> san.tower.v1.Folder
+	0,  // 20: san.tower.v1.Run.status:type_name -> san.tower.v1.RunStatus
+	61, // 21: san.tower.v1.Run.started_at:type_name -> google.protobuf.Timestamp
+	61, // 22: san.tower.v1.Run.finished_at:type_name -> google.protobuf.Timestamp
+	25, // 23: san.tower.v1.Run.steps:type_name -> san.tower.v1.StepRun
+	1,  // 24: san.tower.v1.Run.log_levels:type_name -> san.tower.v1.LogLevel
+	57, // 25: san.tower.v1.StepRun.outputs:type_name -> san.tower.v1.StepRun.OutputsEntry
+	62, // 26: san.tower.v1.StepRun.duration:type_name -> google.protobuf.Duration
+	1,  // 27: san.tower.v1.StepRun.log_levels:type_name -> san.tower.v1.LogLevel
+	25, // 28: san.tower.v1.RunSteps.steps:type_name -> san.tower.v1.StepRun
+	1,  // 29: san.tower.v1.RunSummary.log_levels:type_name -> san.tower.v1.LogLevel
+	2,  // 30: san.tower.v1.ListStepKindsResponse.kinds:type_name -> san.tower.v1.StepKind
+	12, // 31: san.tower.v1.ListWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
+	7,  // 32: san.tower.v1.CreateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 33: san.tower.v1.GetWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 34: san.tower.v1.UpdateWorkflowRequest.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 35: san.tower.v1.UpdateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 36: san.tower.v1.SetWorkflowActiveResponse.workflow:type_name -> san.tower.v1.Workflow
+	24, // 37: san.tower.v1.RunWorkflowResponse.run:type_name -> san.tower.v1.Run
+	0,  // 38: san.tower.v1.ListRunsRequest.statuses:type_name -> san.tower.v1.RunStatus
+	24, // 39: san.tower.v1.ListRunsResponse.runs:type_name -> san.tower.v1.Run
+	24, // 40: san.tower.v1.GetRunResponse.run:type_name -> san.tower.v1.Run
+	12, // 41: san.tower.v1.ImportWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
+	61, // 42: san.tower.v1.WorkflowFile.exported_at:type_name -> google.protobuf.Timestamp
+	53, // 43: san.tower.v1.WorkflowFile.workflows:type_name -> san.tower.v1.ExportedWorkflow
+	58, // 44: san.tower.v1.WorkflowFile.connections:type_name -> san.tower.v1.WorkflowFile.ConnectionsEntry
+	59, // 45: san.tower.v1.WorkflowFile.storages:type_name -> san.tower.v1.WorkflowFile.StoragesEntry
+	60, // 46: san.tower.v1.WorkflowFile.knowledge:type_name -> san.tower.v1.WorkflowFile.KnowledgeEntry
+	8,  // 47: san.tower.v1.ExportedWorkflow.steps:type_name -> san.tower.v1.Step
+	9,  // 48: san.tower.v1.ExportedWorkflow.links:type_name -> san.tower.v1.Link
+	63, // 49: san.tower.v1.StepRun.OutputsEntry.value:type_name -> google.protobuf.Any
+	54, // 50: san.tower.v1.WorkflowFile.ConnectionsEntry.value:type_name -> san.tower.v1.ExportedRef
+	54, // 51: san.tower.v1.WorkflowFile.StoragesEntry.value:type_name -> san.tower.v1.ExportedRef
+	54, // 52: san.tower.v1.WorkflowFile.KnowledgeEntry.value:type_name -> san.tower.v1.ExportedRef
+	28, // 53: san.tower.v1.WorkflowService.ListStepKinds:input_type -> san.tower.v1.ListStepKindsRequest
+	30, // 54: san.tower.v1.WorkflowService.ListWorkflows:input_type -> san.tower.v1.ListWorkflowsRequest
+	14, // 55: san.tower.v1.WorkflowService.ListFolders:input_type -> san.tower.v1.ListFoldersRequest
+	16, // 56: san.tower.v1.WorkflowService.CreateFolder:input_type -> san.tower.v1.CreateFolderRequest
+	18, // 57: san.tower.v1.WorkflowService.UpdateFolder:input_type -> san.tower.v1.UpdateFolderRequest
+	20, // 58: san.tower.v1.WorkflowService.DeleteFolder:input_type -> san.tower.v1.DeleteFolderRequest
+	22, // 59: san.tower.v1.WorkflowService.MoveWorkflows:input_type -> san.tower.v1.MoveWorkflowsRequest
+	32, // 60: san.tower.v1.WorkflowService.CreateWorkflow:input_type -> san.tower.v1.CreateWorkflowRequest
+	34, // 61: san.tower.v1.WorkflowService.GetWorkflow:input_type -> san.tower.v1.GetWorkflowRequest
+	36, // 62: san.tower.v1.WorkflowService.UpdateWorkflow:input_type -> san.tower.v1.UpdateWorkflowRequest
+	38, // 63: san.tower.v1.WorkflowService.SetWorkflowActive:input_type -> san.tower.v1.SetWorkflowActiveRequest
+	40, // 64: san.tower.v1.WorkflowService.DeleteWorkflow:input_type -> san.tower.v1.DeleteWorkflowRequest
+	42, // 65: san.tower.v1.WorkflowService.RunWorkflow:input_type -> san.tower.v1.RunWorkflowRequest
+	44, // 66: san.tower.v1.WorkflowService.ListRuns:input_type -> san.tower.v1.ListRunsRequest
+	46, // 67: san.tower.v1.WorkflowService.GetRun:input_type -> san.tower.v1.GetRunRequest
+	48, // 68: san.tower.v1.WorkflowService.ExportWorkflows:input_type -> san.tower.v1.ExportWorkflowsRequest
+	50, // 69: san.tower.v1.WorkflowService.ImportWorkflows:input_type -> san.tower.v1.ImportWorkflowsRequest
+	29, // 70: san.tower.v1.WorkflowService.ListStepKinds:output_type -> san.tower.v1.ListStepKindsResponse
+	31, // 71: san.tower.v1.WorkflowService.ListWorkflows:output_type -> san.tower.v1.ListWorkflowsResponse
+	15, // 72: san.tower.v1.WorkflowService.ListFolders:output_type -> san.tower.v1.ListFoldersResponse
+	17, // 73: san.tower.v1.WorkflowService.CreateFolder:output_type -> san.tower.v1.CreateFolderResponse
+	19, // 74: san.tower.v1.WorkflowService.UpdateFolder:output_type -> san.tower.v1.UpdateFolderResponse
+	21, // 75: san.tower.v1.WorkflowService.DeleteFolder:output_type -> san.tower.v1.DeleteFolderResponse
+	23, // 76: san.tower.v1.WorkflowService.MoveWorkflows:output_type -> san.tower.v1.MoveWorkflowsResponse
+	33, // 77: san.tower.v1.WorkflowService.CreateWorkflow:output_type -> san.tower.v1.CreateWorkflowResponse
+	35, // 78: san.tower.v1.WorkflowService.GetWorkflow:output_type -> san.tower.v1.GetWorkflowResponse
+	37, // 79: san.tower.v1.WorkflowService.UpdateWorkflow:output_type -> san.tower.v1.UpdateWorkflowResponse
+	39, // 80: san.tower.v1.WorkflowService.SetWorkflowActive:output_type -> san.tower.v1.SetWorkflowActiveResponse
+	41, // 81: san.tower.v1.WorkflowService.DeleteWorkflow:output_type -> san.tower.v1.DeleteWorkflowResponse
+	43, // 82: san.tower.v1.WorkflowService.RunWorkflow:output_type -> san.tower.v1.RunWorkflowResponse
+	45, // 83: san.tower.v1.WorkflowService.ListRuns:output_type -> san.tower.v1.ListRunsResponse
+	47, // 84: san.tower.v1.WorkflowService.GetRun:output_type -> san.tower.v1.GetRunResponse
+	49, // 85: san.tower.v1.WorkflowService.ExportWorkflows:output_type -> san.tower.v1.ExportWorkflowsResponse
+	51, // 86: san.tower.v1.WorkflowService.ImportWorkflows:output_type -> san.tower.v1.ImportWorkflowsResponse
+	70, // [70:87] is the sub-list for method output_type
+	53, // [53:70] is the sub-list for method input_type
+	53, // [53:53] is the sub-list for extension type_name
+	53, // [53:53] is the sub-list for extension extendee
+	0,  // [0:53] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_workflow_proto_init() }
@@ -3760,14 +3995,14 @@ func file_san_tower_v1_workflow_proto_init() {
 	if File_san_tower_v1_workflow_proto != nil {
 		return
 	}
-	file_san_tower_v1_workflow_proto_msgTypes[3].OneofWrappers = []any{}
+	file_san_tower_v1_workflow_proto_msgTypes[5].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_workflow_proto_rawDesc), len(file_san_tower_v1_workflow_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   56,
+			NumMessages:   59,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

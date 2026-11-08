@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -231,6 +232,17 @@ func checkConnection(c *Connection) error {
 		if !telegramToken.MatchString(tb.Token) {
 			return fail(ErrInvalid, "the token is the bot's token from @BotFather, such as 123456:ABC-DEF1234")
 		}
+		// Allowed Users: people's ids, each once, in the order given.
+		var users []int64
+		for _, id := range tb.AllowedUsers {
+			if id <= 0 {
+				return fail(ErrInvalid, "an allowed user is a person's Telegram id, a positive number such as 123456789, not %d", id)
+			}
+			if !slices.Contains(users, id) {
+				users = append(users, id)
+			}
+		}
+		tb.AllowedUsers = users
 		return nil
 	case WhatsApp:
 		// Made by linking a device (PairWhatsApp), never typed in.

@@ -1,0 +1,540 @@
+{
+  "format": "san_tower.workflows",
+  "version": 1,
+  "exportedAt": "2026-11-08T03:15:35.673943100Z",
+  "tower": "dev",
+  "workflows": [
+    {
+      "name": "Telegram MovieMov",
+      "steps": [
+        {
+          "id": "cmd",
+          "kind": "telegram-command",
+          "y": 520,
+          "values": {
+            "Commands": "[{\"Command\": \"start\", \"Description\": \"Menu MovieMov\"}, {\"Command\": \"upload\", \"Description\": \"Upload film baru\"}, {\"Command\": \"laporan\", \"Description\": \"Cek laporan film rusak\"}, {\"Command\": \"hapus\", \"Description\": \"Hapus film\"}]",
+            "Connection": "1"
+          }
+        },
+        {
+          "id": "menu",
+          "kind": "telegram-menu",
+          "x": 320,
+          "values": {
+            "Buttons": "[{\"Button\": \"Upload film\", \"Command\": \"upload\"}, {\"Button\": \"Cek laporan\", \"Command\": \"laporan\"}, {\"Button\": \"Hapus film\", \"Command\": \"hapus\"}]",
+            "Connection": "1",
+            "Per Row": "2",
+            "Text": "MovieMov: mau ngapain?"
+          }
+        },
+        {
+          "id": "upload_form",
+          "kind": "telegram-form",
+          "x": 320,
+          "y": 440,
+          "values": {
+            "Connection": "1",
+            "Questions": "[{\"Name\": \"judul\", \"Question\": \"Judul filmnya apa?\", \"Type\": \"Text\", \"Required\": \"Yes\", \"Max\": \"255\", \"Field\": \"title, slug\"}, {\"Name\": \"link\", \"Question\": \"Link film (https) atau kode iframe-nya?\", \"Type\": \"Link or Iframe\", \"Required\": \"Yes\", \"Starts With\": \"https://\", \"Field\": \"embed_url\"}, {\"Name\": \"kategori\", \"Question\": \"Kategorinya?\", \"Type\": \"Multiple Choice\", \"Required\": \"No\", \"Choices\": \"Action, Drama, Horor, Komedi, Thriller, Sci-Fi\", \"Max\": \"10\", \"Field\": \"categories\"}, {\"Name\": \"tag\", \"Question\": \"Tag-nya?\", \"Type\": \"List\", \"Required\": \"No\", \"Max\": \"20\", \"Field\": \"tags\"}, {\"Name\": \"thumbnail\", \"Question\": \"Kirim thumbnail-nya\", \"Type\": \"Photo\", \"Required\": \"No\", \"Max\": \"2\", \"Field\": \"thumbnail\"}, {\"Name\": \"status\", \"Question\": \"Statusnya?\", \"Type\": \"Choice\", \"Required\": \"Yes\", \"Choices\": \"Draft, Published\", \"Default\": \"Draft\", \"Field\": \"status\"}]",
+            "Timeout": "10m",
+            "Tries": "3"
+          }
+        },
+        {
+          "id": "upload",
+          "kind": "moviemov-upload",
+          "x": 640,
+          "y": 440,
+          "values": {
+            "Connection": "2",
+            "Status": "From Input"
+          }
+        },
+        {
+          "id": "uploaded_text",
+          "kind": "format-text",
+          "x": 960,
+          "y": 440,
+          "values": {
+            "Format": "Sudah diupload: {{ text }}"
+          }
+        },
+        {
+          "id": "uploaded_send",
+          "kind": "telegram-send",
+          "x": 1280,
+          "y": 440,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "upload_failed_text",
+          "kind": "format-text",
+          "x": 960,
+          "y": 940,
+          "values": {
+            "Format": "Gagal upload: {{ text }}"
+          }
+        },
+        {
+          "id": "upload_failed_send",
+          "kind": "telegram-send",
+          "x": 1280,
+          "y": 940,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "reports",
+          "kind": "moviemov-reports",
+          "x": 320,
+          "y": 1460,
+          "values": {
+            "Connection": "2"
+          }
+        },
+        {
+          "id": "report_line",
+          "kind": "template",
+          "x": 640,
+          "y": 1460,
+          "values": {
+            "Text": "• {{ payload.movie.title }} ({{ payload.movie.slug }}): {{ payload.open_reports }} laporan"
+          }
+        },
+        {
+          "id": "report_send",
+          "kind": "telegram-send",
+          "x": 960,
+          "y": 1460,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "reports_count",
+          "kind": "format-text",
+          "x": 640,
+          "y": 1960,
+          "values": {
+            "Format": "{{ text }} film dilaporkan rusak."
+          }
+        },
+        {
+          "id": "reports_send",
+          "kind": "telegram-send",
+          "x": 960,
+          "y": 1960,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "delete_form",
+          "kind": "telegram-form",
+          "x": 320,
+          "y": 2480,
+          "values": {
+            "Connection": "1",
+            "Questions": "[{\"Name\": \"slug\", \"Question\": \"Slug filmnya? (contoh: night-train)\", \"Type\": \"Text\", \"Required\": \"Yes\", \"Field\": \"slug\"}, {\"Name\": \"yakin\", \"Question\": \"Yakin hapus film ini?\", \"Type\": \"Yes/No\", \"Required\": \"Yes\"}]",
+            "Timeout": "10m",
+            "Tries": "3"
+          }
+        },
+        {
+          "id": "sure",
+          "kind": "prefix-filter",
+          "x": 640,
+          "y": 2480,
+          "values": {
+            "Prefix": "Yes"
+          }
+        },
+        {
+          "id": "delete",
+          "kind": "moviemov-delete",
+          "x": 960,
+          "y": 2480,
+          "values": {
+            "Connection": "2"
+          }
+        },
+        {
+          "id": "deleted_text",
+          "kind": "format-text",
+          "x": 1280,
+          "y": 2480,
+          "values": {
+            "Format": "Sudah dihapus: {{ text }}"
+          }
+        },
+        {
+          "id": "deleted_send",
+          "kind": "telegram-send",
+          "x": 1600,
+          "y": 2480,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "missing_text",
+          "kind": "format-text",
+          "x": 1280,
+          "y": 2980,
+          "values": {
+            "Format": "Film tidak ditemukan: {{ text }}"
+          }
+        },
+        {
+          "id": "missing_send",
+          "kind": "telegram-send",
+          "x": 1600,
+          "y": 2980,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "kept_send",
+          "kind": "telegram-send",
+          "x": 960,
+          "y": 2840,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None",
+            "Text": "Tidak jadi dihapus."
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "cmd",
+          "sourceSocket": "/start",
+          "target": "menu",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "menu",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "/upload",
+          "target": "upload_form",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "upload_form",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "User",
+          "target": "upload_form",
+          "targetSocket": "User"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "Done",
+          "target": "upload",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "judul",
+          "target": "upload",
+          "targetSocket": "Title"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "link",
+          "target": "upload",
+          "targetSocket": "Embed URL"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "kategori",
+          "target": "upload",
+          "targetSocket": "Categories"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "tag",
+          "target": "upload",
+          "targetSocket": "Tags"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "thumbnail",
+          "target": "upload",
+          "targetSocket": "Thumbnail"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "status",
+          "target": "upload",
+          "targetSocket": "Status Value"
+        },
+        {
+          "source": "upload",
+          "sourceSocket": "Refused",
+          "target": "upload_form",
+          "targetSocket": "Fix"
+        },
+        {
+          "source": "upload",
+          "sourceSocket": "Errors",
+          "target": "upload_form",
+          "targetSocket": "Errors"
+        },
+        {
+          "source": "upload",
+          "sourceSocket": "Done",
+          "target": "uploaded_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "upload",
+          "sourceSocket": "URL",
+          "target": "uploaded_text",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "uploaded_text",
+          "sourceSocket": "Text",
+          "target": "uploaded_send",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "uploaded_send",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "upload",
+          "sourceSocket": "Failed",
+          "target": "upload_failed_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "upload",
+          "sourceSocket": "Error",
+          "target": "upload_failed_text",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "upload_failed_text",
+          "sourceSocket": "Text",
+          "target": "upload_failed_send",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "upload_failed_send",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "/laporan",
+          "target": "reports",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "reports",
+          "sourceSocket": "Each",
+          "target": "report_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "reports",
+          "sourceSocket": "Item",
+          "target": "report_line",
+          "targetSocket": "Payload"
+        },
+        {
+          "source": "report_line",
+          "sourceSocket": "Text",
+          "target": "report_send",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "report_send",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "reports",
+          "sourceSocket": "Done",
+          "target": "reports_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "reports",
+          "sourceSocket": "Count",
+          "target": "reports_count",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "reports_count",
+          "sourceSocket": "Text",
+          "target": "reports_send",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "reports_send",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "/hapus",
+          "target": "delete_form",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "delete_form",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "User",
+          "target": "delete_form",
+          "targetSocket": "User"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Text",
+          "target": "delete_form",
+          "targetSocket": "Prefill"
+        },
+        {
+          "source": "delete_form",
+          "sourceSocket": "Done",
+          "target": "sure",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "delete_form",
+          "sourceSocket": "yakin",
+          "target": "sure",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "sure",
+          "sourceSocket": "Match",
+          "target": "delete",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "delete_form",
+          "sourceSocket": "slug",
+          "target": "delete",
+          "targetSocket": "Slug"
+        },
+        {
+          "source": "delete",
+          "sourceSocket": "Deleted",
+          "target": "deleted_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "delete_form",
+          "sourceSocket": "slug",
+          "target": "deleted_text",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "deleted_text",
+          "sourceSocket": "Text",
+          "target": "deleted_send",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "deleted_send",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "delete",
+          "sourceSocket": "Not Found",
+          "target": "missing_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "delete_form",
+          "sourceSocket": "slug",
+          "target": "missing_text",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "missing_text",
+          "sourceSocket": "Text",
+          "target": "missing_send",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "missing_send",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "sure",
+          "sourceSocket": "Else",
+          "target": "kept_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "kept_send",
+          "targetSocket": "Chat"
+        }
+      ],
+      "description": "MovieMov from Telegram: /start shows a menu; /upload asks for a movie in a Telegram Form and uploads it; /laporan lists the broken-video reports; /hapus deletes a movie after asking. Only the bot connection's Allowed Users."
+    }
+  ],
+  "connections": {
+    "1": {
+      "name": "MovieMov Bot",
+      "type": "telegram_bot"
+    },
+    "2": {
+      "name": "MovieMov",
+      "type": "moviemov"
+    }
+  }
+}

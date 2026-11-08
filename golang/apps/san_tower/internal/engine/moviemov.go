@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -39,23 +40,33 @@ import (
 
 var movieMovStatuses = []string{"Draft", "Published", "Scheduled"}
 
+// statusFromInput is the Status that takes the status from the Status
+// Value input (2026-11-08: a Telegram Form's status answer).
+const statusFromInput = "From Input"
+
+// refusedNote is how Upload and Update say what a refusal does, in their
+// descriptions.
+const refusedNote = " With Refused linked, a refusal of the fields (422) fires Refused instead, with Reason and Errors, the refused fields' messages by field ({\"slug\": \"The slug has already been taken.\"}), which a Telegram Form's Fix and Errors take to ask those questions again."
+
 var movieMovKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: "moviemov-upload", Title: "MovieMov Upload Movie", Category: "Web", Group: "MovieMov",
-			Description: "Creates a movie on the MovieMov connection's site (a site made from web_movie) with Title and Embed URL (the player's https link or its <iframe> code), and optional Backup Embed URLs (up to 5, a line each), Thumbnail (a jpg, png or webp file of 2 MB at most, such as Video Thumbnail's File) or Thumbnail URL, Categories (up to 10) and Tags (up to 20), separated by commas or a list, Synopsis, Release Year, Duration (minutes) and Slug (empty: made from the title). Status Draft (the default) keeps it hidden; Published puts it live now, or at a past Publish At; Scheduled puts it live by itself at Publish At (WIB unless it says otherwise). Movie is the movie as the site gives it, URL its page and Slug its slug.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Movie", Object), sock("URL", Text), sock("Slug", Text)},
-			Settings:    []*v1.Setting{movieMovSetting(), {Name: "Status", Options: movieMovStatuses}},
-			Inputs:      append([]*v1.Socket{sock("Event", Event)}, movieMovInputs(false)...),
+			Description: "Creates a movie on the MovieMov connection's site (a site made from web_movie) with Title and Embed URL (the player's https link or its <iframe> code), and optional Backup Embed URLs (up to 5, a line each), Thumbnail (a jpg, png or webp file of 2 MB at most, such as Video Thumbnail's File) or Thumbnail URL, Categories (up to 10) and Tags (up to 20), separated by commas or a list, Synopsis, Release Year, Duration (minutes) and Slug (empty: made from the title). Status Draft (the default) keeps it hidden; Published puts it live now, or at a past Publish At; Scheduled puts it live by itself at Publish At (WIB unless it says otherwise). Status From Input takes it from Status Value (Draft, Published or Scheduled, any case). Movie is the movie as the site gives it, URL its page and Slug its slug." + refusedNote,
+			Outputs: []*v1.Socket{sock("Done", Event), sock("Refused", Event), sock("Movie", Object), sock("URL", Text), sock("Slug", Text),
+				sock("Reason", Text), sock("Errors", Object)},
+			Settings: []*v1.Setting{movieMovSetting(), {Name: "Status", Options: append(slices.Clone(movieMovStatuses), statusFromInput)}},
+			Inputs:   append([]*v1.Socket{sock("Event", Event)}, movieMovInputs(false)...),
 		},
 		run: movieMovUpload,
 	},
 	{
 		StepKind: &v1.StepKind{
 			Kind: "moviemov-update", Title: "MovieMov Update Movie", Category: "Web", Group: "MovieMov",
-			Description: "Changes the movie Slug (its slug, or its page's link) on the MovieMov connection's site: only the fields that are linked or typed are sent, the others stay as they are. Fields are as MovieMov Upload Movie's; New Slug changes its page's address; a list typed as [] empties it. A Thumbnail file replaces the picture (sent as a form, POST), else the change goes as JSON (PATCH); Remove Thumbnail Yes takes the picture off. Status Keep leaves it as it is; Draft hides it; Published puts it live (one already live keeps its date); Scheduled, at Publish At. Movie is the movie as it is now, URL its page and Slug its slug.",
-			Outputs:     []*v1.Socket{sock("Done", Event), sock("Movie", Object), sock("URL", Text), sock("Slug", Text)},
-			Settings: []*v1.Setting{movieMovSetting(), {Name: "Status", Options: append([]string{"Keep"}, movieMovStatuses...)},
+			Description: "Changes the movie Slug (its slug, or its page's link) on the MovieMov connection's site: only the fields that are linked or typed are sent, the others stay as they are. Fields are as MovieMov Upload Movie's; New Slug changes its page's address; a list typed as [] empties it. A Thumbnail file replaces the picture (sent as a form, POST), else the change goes as JSON (PATCH); Remove Thumbnail Yes takes the picture off. Status Keep leaves it as it is; Draft hides it; Published puts it live (one already live keeps its date); Scheduled, at Publish At; From Input takes it from Status Value (empty: Keep). Movie is the movie as it is now, URL its page and Slug its slug." + refusedNote,
+			Outputs: []*v1.Socket{sock("Done", Event), sock("Refused", Event), sock("Movie", Object), sock("URL", Text), sock("Slug", Text),
+				sock("Reason", Text), sock("Errors", Object)},
+			Settings: []*v1.Setting{movieMovSetting(), {Name: "Status", Options: append(append([]string{"Keep"}, movieMovStatuses...), statusFromInput)},
 				{Name: "Remove Thumbnail", Options: []string{"No", "Yes"}}},
 			Inputs: append([]*v1.Socket{sock("Event", Event), hint("night-train, or its page's link", field("Slug"))}, movieMovInputs(true)...),
 		},
@@ -135,6 +146,7 @@ func movieMovInputs(update bool) []*v1.Socket {
 		publish = only("Status!=Keep,Status!=Draft", picker("Publish At", "datetime"))
 	}
 	return []*v1.Socket{
+		only("Status="+statusFromInput, hint("Draft, Published or Scheduled (a Telegram Form's answer)", field("Status Value"))),
 		hint("Night Train", field("Title")),
 		hint("https://vidara.to/e/8SdwOuKAAk92t, or the <iframe> code", field("Embed URL")),
 		hint("Up to 5, a line each (Server 2, 3, ...)", listField("Backup Embed URLs")),
@@ -308,6 +320,18 @@ func movieMovInput(c *call, update bool) (m moviemov.Movie, what []string, err e
 	}
 
 	status := c.setting("Status")
+	if status == statusFromInput {
+		v := strings.TrimSpace(c.text("Status Value"))
+		status = ""
+		for _, s := range append([]string{"Keep"}, movieMovStatuses...) {
+			if strings.EqualFold(v, s) && (update || s != "Keep") {
+				status = s
+			}
+		}
+		if status == "" && v != "" {
+			return m, nil, fmt.Errorf("Status Value %q: give Draft, Published or Scheduled", v)
+		}
+	}
 	if status == "" {
 		status = "Draft"
 		if update {
@@ -528,10 +552,33 @@ func movieMovUpload(c *call) error {
 		return err
 	}
 	raw, err := cl.CreateMovie(c.ctx, m)
+	if refused(c, err) {
+		return nil
+	}
 	if err != nil {
 		return movieMovErr(cl, "", err)
 	}
 	return movieOut(c, raw, "uploaded", what)
+}
+
+// refused fires Refused, with Reason and Errors, when the site refused the
+// fields (422) and Refused is linked, and says whether it did: a refusal a
+// workflow handles, such as by asking a Telegram Form's questions again.
+func refused(c *call, err error) bool {
+	var e *moviemov.Error
+	if !errors.As(err, &e) || e.Status != 422 || c.linked == nil || !c.linked("Refused") {
+		return false
+	}
+	fields := &structpb.Struct{Fields: map[string]*structpb.Value{}}
+	for _, f := range e.Fields {
+		fields.Fields[f.Field] = structpb.NewStringValue(strings.Join(f.Messages, " "))
+	}
+	reason := strings.TrimSuffix(strings.TrimPrefix(e.Error(), "MovieMov: "), " (422)")
+	c.outputs["Errors"] = structpb.NewStructValue(fields)
+	c.outputs["Reason"] = stringValue(reason)
+	c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "the site refused it: %s", reason)
+	c.fire("Refused")
+	return true
 }
 
 func movieMovUpdate(c *call) error {
@@ -558,6 +605,9 @@ func movieMovUpdate(c *call) error {
 		return err
 	}
 	raw, err := cl.UpdateMovie(c.ctx, slug, m)
+	if refused(c, err) {
+		return nil
+	}
 	if err != nil {
 		return movieMovErr(cl, slug, err)
 	}

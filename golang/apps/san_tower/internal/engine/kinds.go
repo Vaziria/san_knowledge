@@ -82,10 +82,10 @@ func sock(name, typ string) *v1.Socket { return &v1.Socket{Name: name, Type: typ
 // the datetime ones (datetime.go), the san_remote ones (social.go, then
 // sites.go), the OpenAI API ones (openai.go), then the Tower Chat ones
 // (towerchat.go), the Telegram ones
-// (telegram.go), the WhatsApp ones (whatsapp.go), the SSH ones (ssh.go),
+// (telegram.go, telegramform.go), the WhatsApp ones (whatsapp.go), the SSH ones (ssh.go),
 // the GitHub ones (github.go), the MovieMov ones (moviemov.go) and the
 // knowledge ones (knowledge.go).
-var kinds = slices.Concat(coreKinds, dataFileKinds, progressKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, openAIKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, sshKinds, githubKinds, shopeeKinds, gmapsKinds, movieMovKinds, knowledgeKinds, toolKinds, moreToolKinds, indicatorKinds, tradingKinds, tradeLoopKinds)
+var kinds = slices.Concat(coreKinds, dataFileKinds, progressKinds, watchKinds, logKinds, towerKinds, datetimeKinds, socialKinds, siteKinds, claudeKinds, browserChatKinds, openAIKinds, remoteShellKinds, towerChatKinds, telegramKinds, telegramFormKinds, telegramWebKinds, whatsappKinds, financeKinds, bashKinds, sshKinds, githubKinds, shopeeKinds, gmapsKinds, movieMovKinds, knowledgeKinds, toolKinds, moreToolKinds, indicatorKinds, tradingKinds, tradeLoopKinds)
 
 var coreKinds = []*kind{
 	{
@@ -550,6 +550,14 @@ type call struct {
 	// failed is the error of the run's last step whose Failed output fired
 	// (Fail Run).
 	failed error
+	// via is the event input that reached the step this time (a Telegram
+	// Form's Fix), "" for a trigger or a pure step.
+	via string
+	// memo is what the step keeps from one of its runs to the next in this
+	// run; tempDir is the run's own folder, removed when the run ends. Nil
+	// outside a run.
+	memo    map[string]any
+	tempDir func() (string, error)
 	// logMu guards logs and levels for log, which several goroutines may
 	// call; dropped counts the earliest lines log let go.
 	logMu   sync.Mutex

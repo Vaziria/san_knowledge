@@ -51,6 +51,52 @@ func (s *Store) AddTelegramMessage(m TelegramMessage) (bool, error) {
 	return added, err
 }
 
+// TelegramConversation is a Telegram Form talking with someone now: a small
+// record of it, so that a tower that stopped during the form tells that
+// chat it was cut off once it is back (the user, 2026-11-08: a restart
+// during a form loses it, and the bot says so). It is removed as the form
+// ends; one left is of a tower that stopped.
+type TelegramConversation struct {
+	ID           uint32 `gorm:"primaryKey"`
+	ConnectionID uint32 `gorm:"not null;index"`
+	ChatID       int64  `gorm:"not null"`
+	UserID       int64  `gorm:"not null"`
+	RunID        uint32 `gorm:"not null"`
+	StepID       string `gorm:"not null"`
+	StartedAt    time.Time
+}
+
+// OpenTelegramConversation keeps the record of a form that starts talking,
+// and returns it with its id.
+func (s *Store) OpenTelegramConversation(c TelegramConversation) (TelegramConversation, error) {
+	c.ID = 0
+	if c.StartedAt.IsZero() {
+		c.StartedAt = time.Now()
+	}
+	return c, s.db.Create(&c).Error
+}
+
+// CloseTelegramConversation removes a form's record, as the form ends.
+func (s *Store) CloseTelegramConversation(id uint32) error {
+	return s.db.Delete(&TelegramConversation{}, id).Error
+}
+
+// TakeTelegramConversations removes every form's record and returns them:
+// on start, those of the forms the last stop cut off.
+func (s *Store) TakeTelegramConversations() ([]TelegramConversation, error) {
+	var list []TelegramConversation
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Order("id").Find(&list).Error; err != nil {
+			return err
+		}
+		if len(list) == 0 {
+			return nil
+		}
+		return tx.Where("1 = 1").Delete(&TelegramConversation{}).Error
+	})
+	return list, err
+}
+
 // TelegramMessages lists a connection's kept messages, newest first: of
 // every chat, or of one, given as its id ("-1001234567890") or @username.
 func (s *Store) TelegramMessages(connectionID uint32, chat string, limit int) ([]TelegramMessage, error) {

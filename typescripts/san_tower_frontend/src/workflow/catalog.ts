@@ -1,9 +1,18 @@
+import { create } from '@bufbuild/protobuf';
 import type { Connection, Edge, Node, XYPosition } from '@xyflow/react';
 import { connections, knowledge, storages, workflows } from '../api';
 import type { Connection as TowerConnection } from '../gen/san/tower/v1/connection_pb';
 import type { Knowledge as TowerKnowledge } from '../gen/san/tower/v1/knowledge_pb';
 import type { Storage as TowerStorage } from '../gen/san/tower/v1/storage_pb';
-import type { Link, Socket, StepKind, Step as StoredStep } from '../gen/san/tower/v1/workflow_pb';
+import {
+  SocketSchema,
+  type Column,
+  type Link,
+  type Socket,
+  type SocketsFrom,
+  type StepKind,
+  type Step as StoredStep,
+} from '../gen/san/tower/v1/workflow_pb';
 
 // A workflow is a graph of steps, drawn the way Blender's node editors draw
 // one: each step has typed sockets, outputs at the top and inputs at the
@@ -11,7 +20,7 @@ import type { Link, Socket, StepKind, Step as StoredStep } from '../gen/san/towe
 // tower defines the kinds of step (ListStepKinds), stores the workflows, and
 // runs them.
 
-export type { Setting, Socket, StepKind } from '../gen/san/tower/v1/workflow_pb';
+export type { Column, Setting, Socket, StepKind } from '../gen/san/tower/v1/workflow_pb';
 
 // socketColor follows Blender's socket colours: the flow (event) is green
 // like geometry, structured data (object) purple like a vector, text blue
@@ -145,6 +154,73 @@ export function loadKnowledge(): Promise<TowerKnowledge[]> {
 
 export const forgetKnowledge = () => (knowledgeList = undefined);
 
+// A table setting (Setting.columns: a Telegram Form's Questions) is a JSON
+// list of rows, each an object of column name to text. tableRows reads one;
+// anything else is no rows.
+export type Row = Record<string, string>;
+
+export function tableRows(value: string | undefined): Row[] {
+  if (!value?.trim()) return [];
+  try {
+    const rows: unknown = JSON.parse(value);
+    if (!Array.isArray(rows)) return [];
+    return rows
+      .filter((r): r is Record<string, unknown> => !!r && typeof r === 'object' && !Array.isArray(r))
+      .map((r) =>
+        Object.fromEntries(
+          Object.entries(r).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v == null ? '' : JSON.stringify(v)]),
+        ),
+      );
+  } catch {
+    return [];
+  }
+}
+
+// rowHolds says whether a table column's when ("Type=Choice|Multiple
+// Choice", "Type!=Photo", several joined by commas) holds for a row: the
+// column's value, or its first option while it has none, is one of them (or,
+// with !=, none of them).
+export function rowHolds(when: string, row: Row, columns: Column[]) {
+  if (!when) return true;
+  return when.split(',').every((cond) => {
+    const not = cond.includes('!=');
+    const [name, want] = cond.split(not ? '!=' : '=');
+    const value = row[name] || columns.find((c) => c.name === name)?.options[0] || '';
+    const any = want.split('|').includes(value);
+    return not ? !any : any;
+  });
+}
+
+// rowSocketName is the socket a row makes (StepKind.outputsFrom): the
+// prefix, then the row's value without it; empty for none.
+export function rowSocketName(from: SocketsFrom, row: Row) {
+  const v = (row[from.column] ?? '').trim();
+  if (!v) return '';
+  return from.prefix + (from.prefix && v.startsWith(from.prefix) ? v.slice(from.prefix.length) : v);
+}
+
+// rowSocketType is the type of the socket a row makes.
+export const rowSocketType = (from: SocketsFrom, row: Row) => from.types[row[from.typeColumn] ?? ''] || from.type;
+
+// stepOutputs are a step's outputs: its kind's, with those its settings
+// make (a Telegram Form's per question, a Telegram Command's per command),
+// as the engine works them out (engine.StepOutputs).
+export function stepOutputs(kind: StepKind, values: Record<string, string>): Socket[] {
+  const out = [...kind.outputs];
+  for (const from of kind.outputsFrom) {
+    const made: Socket[] = [];
+    for (const row of tableRows(values[from.setting])) {
+      const name = rowSocketName(from, row);
+      if (!name || out.some((s) => s.name === name) || made.some((s) => s.name === name)) continue;
+      made.push(create(SocketSchema, { name, type: rowSocketType(from, row) }));
+    }
+    let at = out.findIndex((s) => s.name === from.before);
+    if (at < 0) at = out.length;
+    out.splice(at, 0, ...made);
+  }
+  return out;
+}
+
 // StepData is what a step holds: its kind, and the values of its settings
 // and of its unlinked fields, by name.
 export type StepData = { kind: string; values: Record<string, string> };
@@ -186,6 +262,12 @@ export function newStep(kind: string, position: XYPosition): Step {
 // and edges. A link whose socket is no longer in the catalogue is left out.
 export function toFlow(w: Graph): { nodes: Step[]; edges: Edge[] } {
   const kinds = new Map(w.steps.map((s) => [s.id, stepKind(s.kind)]));
+  const outputs = new Map(
+    w.steps.map((s) => {
+      const k = stepKind(s.kind);
+      return [s.id, k ? stepOutputs(k, s.values) : []];
+    }),
+  );
   const nodes = w.steps.map((s): Step => ({
     id: s.id,
     type: 'step',
@@ -193,7 +275,7 @@ export function toFlow(w: Graph): { nodes: Step[]; edges: Edge[] } {
     data: { kind: s.kind, values: { ...s.values } },
   }));
   const edges = w.links.flatMap((l) => {
-    const out = kinds.get(l.source)?.outputs.find((o) => o.name === l.sourceSocket);
+    const out = outputs.get(l.source)?.find((o) => o.name === l.sourceSocket);
     const input = kinds.get(l.target)?.inputs.find((i) => i.name === l.targetSocket);
     if (!out || !input) return [];
     return [link({ source: l.source, sourceHandle: handleId(out), target: l.target, targetHandle: handleId(input) })];

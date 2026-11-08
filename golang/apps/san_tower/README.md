@@ -1325,6 +1325,15 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     answers it (`payload.slug`, `payload.url`, `payload.thumbnail_url`,
     `payload.status`, `payload.published_at` in UTC), URL its page and
     Slug its slug.
+  - Upload and Update take Status From Input (the user, 2026-11-08, for a
+    Telegram Form's status question): the status is Status Value's,
+    Draft, Published or Scheduled in any case. With their **Refused**
+    output linked, a refusal of the fields (422) fires Refused instead of
+    failing, with Reason (the site's message) and Errors (the refused
+    fields' messages by field, `{"slug": "The slug has already been
+    taken."}`), which a Telegram Form's Fix and Errors take to ask those
+    questions again (see Telegram forms, below). Unlinked, a 422 fails the
+    step as before.
   - **MovieMov Update Movie** changes the movie Slug (its slug or its
     page's link): only the fields that are typed or linked are sent; New
     Slug changes its address; a list typed as `[]` empties it. A Thumbnail
@@ -1426,6 +1435,128 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     makes Telegram answer 409 Conflict, which the trigger's state shows. In
     a group the bot gets every message only with its privacy mode off
     (@BotFather, /setprivacy); otherwise commands, replies and mentions.
+    With Allowed Users on the connection (Connections, below), only those
+    people's messages start Telegram Message runs (and a channel's posts,
+    which have no person); someone else writing to the bot in a private
+    chat is told their id. With the list empty, every message runs, as
+    before the list.
+- Telegram forms (the user, 2026-11-08: fill in data through a Telegram
+  chat so a workflow can use it, such as uploading a movie to MovieMov,
+  without opening the tower or the site; `engine/telegramform.go`,
+  `engine/telegramformtalk.go`, the design in `docs/telegram-forms.md`,
+  an example in `examples/telegram-moviemov`). Three steps in
+  Messengers › Telegram, on a Telegram Bot connection with **Allowed
+  Users**:
+  - **Telegram Command** (a trigger) has Commands, a table of Command
+    (`upload`, a to z, 0 to 9 and _, up to 32) and Description: each
+    command is an output of its own (`/upload`) that fires when a listed
+    person sends it, as `/upload`, `/upload@thebot` or with text after it;
+    Text is that text (`/hapus night-train` gives `night-train`), Chat and
+    User who sent it, Command the command, Message the message. The
+    commands of the active workflows' Command steps, with their
+    descriptions and `/cancel` ("Batalkan form yang sedang diisi"), are the
+    bot's / menu (setMyCommands, set again only when they change). A run's
+    trigger reads "telegram, chat @heri, /upload".
+  - **Telegram Menu** sends Text to Chat with Buttons, a table of Button
+    (the label) and Command (`upload`, or `hapus night-train` with its
+    text), Per Row 2 (or 1, 3) to a row. A tap is as if the person sent
+    the command: it starts that command's output of the Telegram Command
+    trigger, so the button and the command lead to the same steps, built
+    once (link Command's `/start` to the menu, and `/upload` to the form).
+    The tap is answered (answerCallbackQuery) and the menu message shows
+    the pick ("MovieMov: mau ngapain?\n\n→ Upload film"), without buttons.
+    Done fires once it is sent; Message is the message.
+  - **Telegram Form** asks User (the Command's User; empty: Chat's, for a
+    private chat) in Chat its Questions, one by one, and gives each answer
+    as an output of the question's name. Questions is a table, edited
+    row by row on the step (Edit): Name (the output: letters, digits and
+    _, not one of the form's own outputs), Question (what the bot asks),
+    Type, Required (Yes; No gets a **Lewati** button), Default (a button,
+    "Pakai Draft"), Choices, Min, Max, Starts With, File Types and Field
+    (below). The types, their checks and outputs:
+    - Text (Min and Max characters, Starts With) and Number (Min, Max; a
+      comma is a decimal point: "1,5" is 1.5), text outputs.
+    - Link (http or https, Max characters, Starts With: "Link harus
+      diawali https://") and Link or Iframe (an https link or a whole
+      `<iframe>` code, as MovieMov's Embed URL takes).
+    - Choice (a button per choice, or the choice typed in any case) and
+      Multiple Choice (buttons that tick ✅, then **Selesai**; Min and
+      Max items; an object output, the list of picks).
+    - List: items typed, separated by commas or lines, each once (Min,
+      Max items; an object output), as MovieMov's Tags take.
+    - Yes/No: buttons **Ya** and **Tidak**, or typed (ya, iya, y, yes, ok, oke;
+      tidak, t, gak, nggak, enggak, no, n); the output is `Yes` or `No` (a Prefix Filter
+      on Yes branches on it).
+    - Photo: a Telegram photo, or an image sent as a file (jpg, png, webp
+      or gif by its bytes) for full quality; Max MB (default 10). File:
+      any file, File Types (`pdf, docx`) and Max MB (default 20; a bot can
+      fetch at most 20 MB). Both are downloaded (getFile) into the run's
+      own folder (`<data>/tmp/run-<id>-…`), removed when the run ends; the
+      output is the file's path, so a thumbnail links straight into
+      MovieMov Upload Movie's Thumbnail.
+    - Date (2026-11-09, 9/11/2026, 9-11-2026, 9 Nov 2026, 17 Agustus 2026)
+      and Date Time (the same with a time: 20:00, 20.00, "jam 20.30", "pukul
+      07:05 WIB"; or RFC 3339), read in WIB: a date outputs `2026-11-09`, a
+      date time RFC 3339 with +07:00, as MovieMov's Publish At takes.
+    A wrong answer is asked again, the reason first ("Maksimal 40 karakter
+    (ini 41).", "Harus angka, misalnya 2024.", "Pilih dari tombol: Draft,
+    Published", "Foto maksimal 2 MB (ini 2.5 MB).", "File ini bukan gambar
+    (jpg, png, webp atau gif).", "Tanggal tidak terbaca. Contoh: 2026-11-09
+    atau 9/11/2026."). Prefill (link the Command's Text) answers the first
+    question (`/hapus night-train`), or several when it is JSON by name.
+    After the last question the bot sends "Cek dulu ya:" with each answer
+    (its question's name as a label, a file as its name and size) and
+    **Kirim**, **Ubah** and **Batal**: Kirim fires Done with the outputs
+    and Answers (all of them, by name); Ubah asks "Mau ubah yang mana?" with
+    a button per question, asks that one again and shows the summary
+    again; Batal and `/cancel`, at any time, say "Dibatalkan" and fire
+    Cancelled. No answer within Timeout (default 10m, 10s to 24h) says
+    "Waktu habis, form dibatalkan" and fires Timed Out. Each pick edits
+    its message to show it ("→ Drama, Thriller") and drops its buttons.
+  - A site's refusal goes back to the form: link MovieMov Upload Movie's
+    Refused to the form's **Fix** and its Errors to the form's **Errors**.
+    Each question's Field names the site's fields it is sent as (`title,
+    slug` for a title the slug is made from; `embed_url`; `categories`,
+    which also takes `categories.0`; empty: the question's name). The form
+    says "Ditolak: The slug has already been taken." and asks that
+    question again (the other answers it keeps), then fires Done again,
+    without a second summary, so the upload is tried again. A refusal of
+    no question's field is shown ("Ditolak: …") with the summary, to
+    change any answer (Ubah) and Kirim again. After Tries
+    (default 3) refusals it says "Masih ditolak setelah 3 kali coba: …
+    Form dibatalkan." and fails the step.
+  - Who: only the bot connection's Allowed Users (the user's answer "a").
+    Someone else who sends a command, taps a menu or writes to the bot in
+    a private chat is told "Maaf, tidak punya akses (ID kamu: 777)" (a
+    tap's answer shows it), to copy the id into the list; nothing runs.
+    In a group, other people's plain messages get no answer. **An empty
+    list** keeps old workflows working: the Telegram Message trigger takes
+    every message, as before; Telegram Command refuses every command (its
+    trigger state says why, "Allowed Users is empty on the bot
+    connection…"), and Telegram Menu and Form fail, saying so, since a
+    form that anyone could fill is not what the user asked for.
+  - Routing: a person (bot, chat and user) has at most one open form. While
+    it is open their messages and taps go to it, not to new runs; other
+    people and other chats work as usual, and their commands start runs
+    of their own. A command sent during a form (or a menu tap) asks "Form
+    yang tadi belum selesai. Batalkan dan mulai baru?" with Ya (the form
+    is cancelled, "Dibatalkan", and the command runs) and Tidak ("Oke,
+    lanjut.", and the question is asked again). A form's buttons carry
+    `f:<run>:<step>:<n>:` and an action in callback_data (the run and a
+    form count in base 36, the step id's first 8 characters: well within
+    Telegram's 64 bytes): a tap on a button of a form
+    that has ended is answered "Form ini sudah selesai", its buttons
+    removed, and nothing runs; another person's tap on it, "Form ini bukan
+    untukmu". getUpdates asks for callback_query besides message and
+    channel_post, so the Telegram Message trigger is as it was.
+  - A stop of the tower during a form loses the form (its run is
+    interrupted, as every run is). Each open form is a row in the store
+    (TelegramConversation), removed when it ends; the rows left at start
+    are forms the stop cut off, and the bot tells each chat "Maaf, form
+    terputus, silakan mulai lagi".
+  - A step can wait like this because a form's run blocks in the form
+    step until it ends, as OpenAI Reply waits for its request: the poller
+    hands that person's updates to the form (`tgConv`), not to triggers.
 - Telegram account steps (the user, 2026-10-27: "In telegram add node
   create bot, delete bot, create group, delete group, add user to group,
   remove user to group", then "We use San remote, not telegram API") work
@@ -1766,6 +1897,17 @@ connection is gone fails, saying so.
   (getMe), which reads no messages. Deleting the connection deletes the
   messages it kept. The token is a secret: it is stored and listed as it
   is (the tower only answers on loopback), and kept out of errors.
+  **Allowed Users** (the user, 2026-11-08) are the Telegram user ids, typed
+  separated by commas, that may use the bot, in every workflow of it:
+  Telegram Command, Menu and Form talk only with them, and while the list
+  has anyone, only their messages start Telegram Message runs. Someone
+  else gets "Maaf, tidak punya akses (ID kamu: 123456789)": send the bot a
+  command and copy your id from the answer. An id is a person's, a
+  positive number (a group's, negative, is refused); each is kept once.
+  Empty: Telegram Message takes everyone, as before the list, and
+  Command, Menu and Form refuse to run. The list is read as it is saved,
+  without a restart. `SAN_TOWER_TELEGRAM_API` points every bot at another
+  Bot API (a fake one, for a throwaway tower's test).
 - **Binance** (the user, 2026-10-27, as autotrade reaches Binance): a USD-M
   futures account through an API key and its secret, on a network:
   testnet (testnet.binancefuture.com, the default), demo

@@ -244,12 +244,17 @@ func (c *Client) GetMe(ctx context.Context) (User, error) {
 }
 
 // Update is one update from getUpdates. A message is kept as Telegram sent
-// it; the tower takes messages and channel posts.
+// it; the tower takes messages, channel posts and the taps on its messages'
+// buttons (callback queries: Telegram Menu and Telegram Form).
 type Update struct {
-	UpdateID    int64           `json:"update_id"`
-	Message     json.RawMessage `json:"message"`
-	ChannelPost json.RawMessage `json:"channel_post"`
+	UpdateID      int64           `json:"update_id"`
+	Message       json.RawMessage `json:"message"`
+	ChannelPost   json.RawMessage `json:"channel_post"`
+	CallbackQuery json.RawMessage `json:"callback_query"`
 }
+
+// AllowedUpdates are the updates getUpdates asks for.
+var AllowedUpdates = []string{"message", "channel_post", "callback_query"}
 
 // GetUpdates waits up to timeout seconds for the updates after offset - 1,
 // which it confirms: those before offset are not sent again.
@@ -258,7 +263,7 @@ func (c *Client) GetUpdates(ctx context.Context, offset int64, timeout int) ([]U
 	return ups, c.call(ctx, "getUpdates", map[string]any{
 		"offset":          offset,
 		"timeout":         timeout,
-		"allowed_updates": []string{"message", "channel_post"},
+		"allowed_updates": AllowedUpdates,
 	}, &ups)
 }
 
@@ -267,8 +272,61 @@ type Message struct {
 	MessageID int64  `json:"message_id"`
 	Date      int64  `json:"date"`
 	Chat      Chat   `json:"chat"`
+	From      *User  `json:"from"`
 	Text      string `json:"text"`
 	Caption   string `json:"caption"`
+	// Photo is a photo in the sizes Telegram made of it, the largest last;
+	// Document a file sent as a file (an image so is in full quality).
+	Photo    []PhotoSize `json:"photo"`
+	Document *Document   `json:"document"`
+	// ReplyMarkup is a bot's message's buttons, as a tap's message has them.
+	ReplyMarkup *struct {
+		Keyboard [][]Button `json:"inline_keyboard"`
+	} `json:"reply_markup"`
+}
+
+// PhotoSize is one size of a photo.
+type PhotoSize struct {
+	FileID   string `json:"file_id"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
+	FileSize int64  `json:"file_size"`
+}
+
+// Document is a file sent as a file.
+type Document struct {
+	FileID   string `json:"file_id"`
+	FileName string `json:"file_name"`
+	MimeType string `json:"mime_type"`
+	FileSize int64  `json:"file_size"`
+}
+
+// CallbackQuery is a tap on a button of a bot's message: Data is the
+// button's callback_data, Message the message it is on.
+type CallbackQuery struct {
+	ID      string   `json:"id"`
+	From    User     `json:"from"`
+	Message *Message `json:"message"`
+	Data    string   `json:"data"`
+}
+
+// Button is a button under a message (an inline keyboard's): Data comes
+// back in the CallbackQuery of a tap, up to 64 bytes.
+type Button struct {
+	Text string `json:"text"`
+	Data string `json:"callback_data"`
+}
+
+// MaxCallbackData is the most bytes a button's Data may have.
+const MaxCallbackData = 64
+
+// keyboard is an inline keyboard of rows of buttons; no rows remove a
+// message's keyboard.
+func keyboard(rows [][]Button) map[string]any {
+	if rows == nil {
+		rows = [][]Button{}
+	}
+	return map[string]any{"inline_keyboard": rows}
 }
 
 // Chat is a private chat, a group, a supergroup or a channel.
@@ -303,6 +361,8 @@ type Send struct {
 	ReplyTo int64
 	// Media is what SendMedia sends.
 	Media Media
+	// Buttons are rows of buttons under the message, none when nil.
+	Buttons [][]Button
 }
 
 // Media is a photo, video or other file to send.
@@ -334,6 +394,9 @@ func (m Send) params() map[string]any {
 	if m.ReplyTo != 0 {
 		p["reply_parameters"] = map[string]any{"message_id": m.ReplyTo, "allow_sending_without_reply": true}
 	}
+	if m.Buttons != nil {
+		p["reply_markup"] = keyboard(m.Buttons)
+	}
 	return p
 }
 
@@ -363,6 +426,113 @@ func (c *Client) EditMessageText(ctx context.Context, chat string, id int64, tex
 	p["message_id"] = id
 	p["text"] = text
 	return c.call(ctx, "editMessageText", p, nil)
+}
+
+// EditMessage replaces the text of message id in chat and its buttons
+// (none when buttons is nil), once.
+func (c *Client) EditMessage(ctx context.Context, chat string, id int64, text string, buttons [][]Button) error {
+	p := Send{Chat: chat}.params()
+	p["message_id"] = id
+	p["text"] = text
+	if buttons != nil {
+		p["reply_markup"] = keyboard(buttons)
+	}
+	return c.call(ctx, "editMessageText", p, nil)
+}
+
+// EditButtons replaces the buttons of message id in chat: nil removes them.
+func (c *Client) EditButtons(ctx context.Context, chat string, id int64, buttons [][]Button) error {
+	p := Send{Chat: chat}.params()
+	p["message_id"] = id
+	p["reply_markup"] = keyboard(buttons)
+	return c.call(ctx, "editMessageReplyMarkup", p, nil)
+}
+
+// AnswerCallback answers a button's tap, as Telegram wants each answered
+// (the button stops showing it waits); a text shows at the top of the
+// chat for a moment.
+func (c *Client) AnswerCallback(ctx context.Context, id, text string) error {
+	p := map[string]any{"callback_query_id": id}
+	if text != "" {
+		p["text"] = text
+	}
+	return c.call(ctx, "answerCallbackQuery", p, nil)
+}
+
+// BotCommand is a command in the bot's / menu, with its description.
+type BotCommand struct {
+	Command     string `json:"command"`
+	Description string `json:"description"`
+}
+
+// SetCommands sets the bot's / menu (setMyCommands); none deletes it.
+func (c *Client) SetCommands(ctx context.Context, cmds []BotCommand) error {
+	if len(cmds) == 0 {
+		return c.call(ctx, "deleteMyCommands", struct{}{}, nil)
+	}
+	return c.call(ctx, "setMyCommands", map[string]any{"commands": cmds}, nil)
+}
+
+// File is a file Telegram keeps, as getFile tells it: FilePath is where to
+// download it from, for an hour.
+type File struct {
+	FileID   string `json:"file_id"`
+	FileSize int64  `json:"file_size"`
+	FilePath string `json:"file_path"`
+}
+
+// MaxDownload is the largest file the Bot API lets a bot download.
+const MaxDownload = 20 << 20
+
+// GetFile asks where the file file_id is.
+func (c *Client) GetFile(ctx context.Context, fileID string) (File, error) {
+	var f File
+	return f, c.call(ctx, "getFile", map[string]any{"file_id": fileID}, &f)
+}
+
+// Download saves the file at Telegram's filePath (GetFile's) to dst, up to
+// max bytes, and returns its size. Errors never hold the token.
+func (c *Client) Download(ctx context.Context, filePath, dst string, max int64) (int64, error) {
+	base := c.Base
+	if base == "" {
+		base = API
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(base, "/")+"/file/bot"+c.Token+"/"+filePath, nil)
+	if err != nil {
+		return 0, errors.New("Telegram: bad token or file path")
+	}
+	hc := c.HTTP
+	if hc == nil {
+		hc = http.DefaultClient
+	}
+	res, err := hc.Do(req)
+	if err != nil {
+		var ue *url.Error
+		if errors.As(err, &ue) {
+			err = ue.Err
+		}
+		return 0, fmt.Errorf("Telegram does not answer: %v", err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("Telegram: the file download answered %s", res.Status)
+	}
+	out, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	n, err := io.Copy(out, io.LimitReader(res.Body, max+1))
+	if cerr := out.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil && n > max {
+		err = fmt.Errorf("Telegram: the file is over %d bytes", max)
+	}
+	if err != nil {
+		os.Remove(dst)
+		return 0, err
+	}
+	return n, nil
 }
 
 // SendMedia sends m's Media, with its Text as the caption, and returns the

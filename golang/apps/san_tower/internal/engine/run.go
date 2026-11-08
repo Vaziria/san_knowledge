@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"slices"
 	"time"
 
@@ -87,6 +89,12 @@ type Env struct {
 	// ChatSend keeps a Tower Chat Send's text in the chat of the Chat page
 	// that chat names, its id or its name, as this run's (towerchat.go).
 	ChatSend func(chat, text string, markdown bool) (chatMessage, error)
+	// TelegramTalk opens a conversation of a Telegram Form step (step, in
+	// run run) with user in chat of bot connection conn: their messages and
+	// taps come to it until it is closed (telegramform.go). TelegramCommands
+	// are the commands of the active Telegram Command steps on a bot.
+	TelegramTalk     func(conn uint32, chat, user int64, run uint32, step string) (*tgConv, error)
+	TelegramCommands func(conn uint32) []string
 	// OpenAIReply answers the OpenAI API request this run is for (OpenAI
 	// Reply; openai.go), with text or tool calls: a note to log when the
 	// answer is not sent (a second one, or a request no longer waiting), an
@@ -115,6 +123,7 @@ type Env struct {
 // Steps reach connections through env.
 func Execute(ctx context.Context, g *v1.Graph, trigger string, data []byte, env Env) ([]*v1.StepRun, error) {
 	x := newExecution(ctx, g, env)
+	defer x.removeTemp()
 	st := x.steps[trigger]
 	if st == nil {
 		return nil, fmt.Errorf("%w: no step %s", ErrBadStart, trigger)
@@ -135,9 +144,9 @@ func Execute(ctx context.Context, g *v1.Graph, trigger string, data []byte, env 
 
 // drain runs the steps in queue, and those their fired outputs link to, until
 // none is left or one fails.
-func (x *execution) drain(queue []string) error {
+func (x *execution) drain(queue []hop) error {
 	for len(queue) > 0 {
-		id := queue[0]
+		h := queue[0]
 		queue = queue[1:]
 		if x.budget--; x.budget < 0 {
 			return fmt.Errorf("the run went past %d steps: do the links make a loop?", MaxSteps)
@@ -145,14 +154,17 @@ func (x *execution) drain(queue []string) error {
 		if err := x.ctx.Err(); err != nil {
 			return err
 		}
-		fired, err := x.call(id)
+		fired, err := x.call(h.step, h.via)
 		if err != nil {
 			return err
 		}
-		queue = append(queue, x.next(id, fired)...)
+		queue = append(queue, x.next(h.step, fired)...)
 	}
 	return nil
 }
+
+// hop is a step an event link reaches, and the event input it reaches.
+type hop struct{ step, via string }
 
 type execution struct {
 	ctx    context.Context
@@ -168,6 +180,13 @@ type execution struct {
 	// failed is the error of the last step whose Failed output fired, for
 	// Fail Run.
 	failed error
+	// memo is what each step keeps from one of its runs to the next in
+	// this run (call.memo), by step id: a Telegram Form's answers, when a
+	// refusal brings the run back to it.
+	memo map[string]map[string]any
+	// temp is the run's own folder (call.tempDir), made when a step asks
+	// for it and removed when the run ends; "" until then.
+	temp string
 }
 
 func newExecution(ctx context.Context, g *v1.Graph, env Env) *execution {
@@ -181,6 +200,7 @@ func newExecution(ctx context.Context, g *v1.Graph, env Env) *execution {
 		values: make(map[string]map[string]proto.Message),
 		busy:   make(map[string]bool),
 		budget: MaxSteps,
+		memo:   make(map[string]map[string]any),
 	}
 	for _, st := range g.GetSteps() {
 		x.steps[st.GetId()] = st
@@ -202,25 +222,60 @@ func newExecution(ctx context.Context, g *v1.Graph, env Env) *execution {
 	return x
 }
 
-// next lists the steps the fired outputs of step id link to.
-func (x *execution) next(id string, fired []string) []string {
-	var ids []string
+// next lists the steps the fired outputs of step id link to, each with the
+// input the link reaches.
+func (x *execution) next(id string, fired []string) []hop {
+	var hops []hop
 	for _, socket := range fired {
 		for _, l := range x.out[id][socket] {
 			if x.steps[l.GetTarget()] != nil {
-				ids = append(ids, l.GetTarget())
+				hops = append(hops, hop{l.GetTarget(), l.GetTargetSocket()})
 			}
 		}
 	}
-	return ids
+	return hops
 }
 
-// call runs a step and returns the event outputs it fired. A linked In
+// tempDir is the run's own folder, made on first use in the data folder's
+// tmp (the system's when the run has none) and removed when the run ends:
+// for files a step gets that only the run needs, such as a Telegram Form's
+// photos.
+func (x *execution) tempDir() (string, error) {
+	if x.temp != "" {
+		return x.temp, nil
+	}
+	parent := os.TempDir()
+	if x.env.DataDir != "" {
+		parent = filepath.Join(filepath.FromSlash(x.env.DataDir), runTempDir)
+	}
+	if err := os.MkdirAll(parent, 0o755); err != nil {
+		return "", err
+	}
+	dir, err := os.MkdirTemp(parent, fmt.Sprintf("run-%d-", x.env.Run))
+	if err != nil {
+		return "", err
+	}
+	x.temp = dir
+	return dir, nil
+}
+
+// runTempDir is where in the data folder runs have their own folders.
+const runTempDir = "tmp"
+
+func (x *execution) removeTemp() {
+	if x.temp != "" {
+		_ = os.RemoveAll(x.temp)
+	}
+}
+
+// call runs a step, reached by its event input via ("" for a pure step run
+// for its outputs), and returns the event outputs it fired. A linked In
 // Progress output fires first: the steps it links to run, to the end of
 // their branch, before the step does. A step that fails with its Failed
 // output linked fires Failed, with Error the error, and is recorded with its
-// error; one without ends the run.
-func (x *execution) call(id string) ([]string, error) {
+// error; one without ends the run. A step that runs again in the run (a
+// link back to it) has its new outputs read afresh by the pure steps.
+func (x *execution) call(id, via string) ([]string, error) {
 	st := x.steps[id]
 	k := byKind[st.GetKind()]
 	if k == nil {
@@ -232,7 +287,12 @@ func (x *execution) call(id string) ([]string, error) {
 			return nil, err
 		}
 	}
-	c := &call{ctx: x.ctx, env: x.env, step: st, inputs: make(map[string]proto.Message), outputs: make(map[string]proto.Message), failed: x.failed}
+	c := &call{ctx: x.ctx, env: x.env, step: st, inputs: make(map[string]proto.Message), outputs: make(map[string]proto.Message), failed: x.failed, via: via}
+	if x.memo[id] == nil {
+		x.memo[id] = make(map[string]any)
+	}
+	c.memo = x.memo[id]
+	c.tempDir = x.tempDir
 	c.linked = func(output string) bool { return len(x.out[id][output]) > 0 }
 	c.inLinked = func(input string) bool { return x.in[id][input] != nil }
 	c.back = func(input string) (proto.Message, error) {
@@ -294,6 +354,9 @@ func (x *execution) call(id string) ([]string, error) {
 	r.Fired = append(slices.Clone(looped), r.Fired...)
 	if progress {
 		r.Fired = append([]string{InProgress}, r.Fired...)
+	}
+	if _, again := x.values[id]; again {
+		x.forget(id)
 	}
 	x.values[id] = c.outputs
 	return c.fired, nil
@@ -394,7 +457,7 @@ func (x *execution) from(l *v1.Link, s *v1.Socket) (proto.Message, error) {
 			return nil, fmt.Errorf("input %s: the data links make a loop", s.Name)
 		}
 		x.busy[src.GetId()] = true
-		_, err := x.call(src.GetId())
+		_, err := x.call(src.GetId(), "")
 		delete(x.busy, src.GetId())
 		if err != nil {
 			return nil, err

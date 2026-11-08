@@ -67,8 +67,10 @@ const address = (s?: ConnectionSettings) => {
   switch (s?.type.case) {
     case 'sanRemote':
       return s.type.value.browser ? `${s.type.value.url} · ${s.type.value.browser}` : s.type.value.url;
-    case 'telegramBot':
-      return `bot ${s.type.value.token.split(':')[0]}`;
+    case 'telegramBot': {
+      const n = s.type.value.allowedUsers.length;
+      return `bot ${s.type.value.token.split(':')[0]}${n ? ` · ${n} allowed user${n === 1 ? '' : 's'}` : ''}`;
+    }
     case 'whatsapp':
       return `+${s.type.value.phone}`;
     case 'binance':
@@ -294,6 +296,13 @@ function ConnectionDialog({
   // The browser its steps drive, by id or name; empty for the only one.
   const [browser, setBrowser] = useState(old?.case === 'sanRemote' ? old.value.browser : '');
   const [token, setToken] = useState(old?.case === 'telegramBot' ? old.value.token : '');
+  // A bot's Allowed Users, as typed: Telegram ids separated by commas,
+  // spaces or lines.
+  const [allowed, setAllowed] = useState(old?.case === 'telegramBot' ? old.value.allowedUsers.join(', ') : '');
+  const allowedIds = allowed
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map((s) => (/^\d+$/.test(s) ? BigInt(s) : BigInt(-1)));
   const [apiKey, setApiKey] = useState(old?.case === 'binance' ? old.value.apiKey : '');
   const [apiSecret, setApiSecret] = useState(old?.case === 'binance' ? old.value.apiSecret : '');
   const [network, setNetwork] = useState(old?.case === 'binance' ? old.value.network || 'testnet' : 'testnet');
@@ -353,7 +362,7 @@ function ConnectionDialog({
     type === 'sanRemote'
       ? { type: { case: 'sanRemote' as const, value: { url: url.trim(), browser: browser.trim() } } }
       : type === 'telegramBot'
-        ? { type: { case: 'telegramBot' as const, value: { token: token.trim() } } }
+        ? { type: { case: 'telegramBot' as const, value: { token: token.trim(), allowedUsers: allowedIds } } }
         : type === 'binance'
           ? { type: { case: 'binance' as const, value: { apiKey: apiKey.trim(), apiSecret: apiSecret.trim(), network } } }
           : type === 'github'
@@ -664,18 +673,28 @@ function ConnectionDialog({
           </FormField>
         </>
       ) : (
-        <FormField
-          label="Token"
-          help="From @BotFather in Telegram: /newbot makes a bot and gives its token. In a group the bot sees every message only with its privacy mode off (/setprivacy)."
-        >
-          <Input
-            type="password"
-            fontFamily="mono"
-            value={token}
-            onChange={(e) => setToken(e.currentTarget.value)}
-            placeholder="123456:ABC-DEF1234"
-          />
-        </FormField>
+        <>
+          <FormField
+            label="Token"
+            help="From @BotFather in Telegram: /newbot makes a bot and gives its token. In a group the bot sees every message only with its privacy mode off (/setprivacy)."
+          >
+            <Input
+              type="password"
+              fontFamily="mono"
+              value={token}
+              onChange={(e) => setToken(e.currentTarget.value)}
+              placeholder="123456:ABC-DEF1234"
+            />
+          </FormField>
+          <FormField
+            label="Allowed Users"
+            help={
+              "Telegram user ids, separated by commas, who may use the bot's commands, menus and forms, in every workflow of this bot; their messages alone start Telegram Message triggers too. Anyone else is told 'Maaf, tidak punya akses (ID kamu: …)': send the bot a command and copy your id from its answer. Empty: Telegram Message triggers take every message, as before, and Telegram Command, Menu and Form refuse to run."
+            }
+          >
+            <Input fontFamily="mono" value={allowed} onChange={(e) => setAllowed(e.currentTarget.value)} placeholder="123456789, 987654321" />
+          </FormField>
+        </>
       )}
       {!linking && (
         <HStack gap="3" align="flex-start">

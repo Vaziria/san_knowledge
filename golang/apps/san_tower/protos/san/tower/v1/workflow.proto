@@ -83,6 +83,32 @@ message StepKind {
   // Trigger category; a messenger's (Telegram Message, WhatsApp Message)
   // is in Messengers, with the messenger's other steps (2026-10-27).
   bool trigger = 10;
+  // outputs_from are outputs a step of this kind has by its settings: one
+  // per row of a table setting, such as a Telegram Form's per question
+  // (the user, 2026-11-08: "adding a question named judul adds a judul
+  // output"). The editor and the engine work them out from the step's
+  // values (engine.StepOutputs); renaming a row renames its output.
+  repeated SocketsFrom outputs_from = 11;
+}
+
+// SocketsFrom makes a socket of each row of a table setting (a Setting with
+// columns) that names one.
+message SocketsFrom {
+  // setting is the table setting.
+  string setting = 1;
+  // column is the column whose value names a row's socket: prefix, then the
+  // value trimmed, without the prefix if it has it already ("/" and
+  // "upload" or "/upload" give "/upload"). A row without one makes none,
+  // and a name made twice is one socket.
+  string column = 2;
+  string prefix = 3;
+  // type is the sockets' type; types gives another for some values of the
+  // column type_column (Telegram Form: "Multiple Choice" is object).
+  string type = 4;
+  string type_column = 5;
+  map<string, string> types = 6;
+  // before is the output they go before; empty: after the others.
+  string before = 7;
 }
 
 // Socket is an input or output of a step. A link joins sockets of the same
@@ -122,6 +148,24 @@ message Setting {
   string connection_type = 4;
   bool storage = 5;
   bool knowledge = 6;
+  // columns make it a table, edited as rows (Telegram Form's Questions):
+  // its value is a JSON list of objects, each a row, keyed by the columns'
+  // names, every value a string ("[{"Name": "judul", ...}]").
+  repeated Column columns = 7;
+}
+
+// Column is a column of a table setting.
+message Column {
+  string name = 1;
+  // options make it a select, starting at the first one.
+  repeated string options = 2;
+  string placeholder = 3;
+  // when: the column matters only when another column of the row has a
+  // value, as "Type=Choice", any of several, as "Type=Choice|Multiple
+  // Choice", or any but one, as "Type!=Photo"; the editor shows it then.
+  string when = 4;
+  // help says what it is for, under it in the editor.
+  string help = 5;
 }
 
 message Workflow {

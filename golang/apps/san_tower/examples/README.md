@@ -16,6 +16,11 @@ switched off.
 - [moviemov](moviemov/README.md): a video's 16:9 thumbnail (Video
   Thumbnail) and the movie uploaded as a draft to MovieMov, a site made
   from web_movie (MovieMov Upload Movie).
+- [telegram-moviemov](telegram-moviemov/README.md): MovieMov from a
+  Telegram chat: `/start`'s menu, `/upload` (a Telegram Form, then MovieMov
+  Upload Movie, a refusal asking again), `/laporan` (the broken-video
+  reports) and `/hapus` (a slug and Yakin?, then MovieMov Delete Movie),
+  only for the bot's Allowed Users.
 
 The trading workflows, with their setup script, are in
 [../workflows/trading](../workflows/trading/README.md).

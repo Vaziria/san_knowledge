@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -405,6 +406,17 @@ type poller struct {
 	bot    string // its @username, once getMe answered; guarded by Engine.mu
 	ok     bool   // its last getUpdates answered; guarded by Engine.mu
 	err    string // why not; guarded by Engine.mu
+	// allowed is how many people the connection's Allowed Users lists, for
+	// the Telegram Command steps' states; guarded by Engine.mu.
+	allowed int
+	// The bot's / menu (setMyCommands, telegramform.go): the commands the
+	// active Telegram Command steps want and their key, guarded by
+	// Engine.mu; done is the key last set, guarded by cmdMu, which keeps
+	// one set at a time.
+	cmdWant []telegram.BotCommand
+	cmdKey  string
+	cmdMu   sync.Mutex
+	cmdDone string
 }
 
 // tgStep is a Telegram Message step of an active workflow, for its state.
@@ -437,8 +449,10 @@ func (e *Engine) SyncConnections() {
 		return
 	}
 	want := make(map[uint32]string, len(conns))
+	allowed := make(map[uint32]int, len(conns))
 	for _, c := range conns {
 		want[c.ID] = c.Settings.GetTelegramBot().GetToken()
+		allowed[c.ID] = len(c.Settings.GetTelegramBot().GetAllowedUsers())
 	}
 	for id, p := range e.pollers {
 		if token, ok := want[id]; !ok || token != p.token {
@@ -450,7 +464,11 @@ func (e *Engine) SyncConnections() {
 		if e.pollers[id] == nil {
 			e.startPoller(id, token)
 		}
+		if p := e.pollers[id]; p != nil {
+			p.allowed = allowed[id]
+		}
 	}
+	e.syncCommands()
 }
 
 // startPoller starts connection id's poller. Called with e.mu held.
@@ -510,6 +528,8 @@ func (e *Engine) poll(ctx context.Context, id uint32, p *poller, cl *telegram.Cl
 			e.mu.Lock()
 			p.bot, p.ok, p.err = me.Username, true, ""
 			e.mu.Unlock()
+			// The chats whose forms the last stop cut off hear of it.
+			e.sendNotices(ctx, id, cl)
 		}
 		c, cancel := context.WithTimeout(ctx, time.Duration(pollTimeout)*time.Second+callTimeout)
 		ups, err := cl.GetUpdates(c, offset, pollTimeout)
@@ -536,14 +556,23 @@ func (e *Engine) poll(ctx context.Context, id uint32, p *poller, cl *telegram.Cl
 	}
 }
 
-// received keeps an update's message and starts the runs of the active
-// workflows' Telegram Message steps that take it. Only a message that
-// cannot be kept is an error; one kept already (sent again after a
-// restart) is skipped, since its runs started then.
+// received keeps an update's message and hands it on (dispatch): to the
+// form that talks with its sender, else to the active workflows' Telegram
+// Message and Telegram Command steps that take it. A tap on a button goes
+// to tapped (telegramform.go). Only a message that cannot be kept is an
+// error; one kept already (sent again after a restart) is skipped, since
+// it was handed on then.
 func (e *Engine) received(id uint32, u telegram.Update) error {
-	raw := u.Message
+	if len(u.CallbackQuery) > 0 {
+		var cb telegram.CallbackQuery
+		if json.Unmarshal(u.CallbackQuery, &cb) == nil {
+			e.tapped(id, cb)
+		}
+		return nil
+	}
+	raw, channel := u.Message, false
 	if len(raw) == 0 {
-		raw = u.ChannelPost
+		raw, channel = u.ChannelPost, true
 	}
 	var m telegram.Message
 	if len(raw) == 0 || json.Unmarshal(raw, &m) != nil {
@@ -556,21 +585,27 @@ func (e *Engine) received(id uint32, u telegram.Update) error {
 	if err != nil || !added {
 		return err
 	}
+	e.dispatch(id, m, raw, channel)
+	return nil
+}
+
+// startTelegramRuns starts a run of each active workflow's step that want
+// says takes the message raw, with trigger saying what started it.
+func (e *Engine) startTelegramRuns(id uint32, raw json.RawMessage, trigger string, want func(st *v1.Step) bool) {
 	list, err := e.store.Workflows()
 	if err != nil {
 		e.log.Error("start a Telegram message's runs", "connection", id, "err", err)
-		return nil
+		return
 	}
 	for _, w := range list {
 		if !w.Active {
 			continue
 		}
 		for _, st := range w.Graph.GetSteps() {
-			if st.GetKind() != TelegramMessage || st.GetValues()["Connection"] != strconv.FormatUint(uint64(id), 10) ||
-				!chatMatches(st.GetValues()["Chat"], m.Chat) {
+			if st.GetValues()["Connection"] != strconv.FormatUint(uint64(id), 10) || !want(st) {
 				continue
 			}
-			run, err := e.begin(w, st.GetId(), fmt.Sprintf("telegram, chat %s, message %d", m.Chat.Name(), m.MessageID), raw)
+			run, err := e.begin(w, st.GetId(), trigger, raw)
 			if err != nil {
 				e.log.Error("record a workflow run", "workflow", w.ID, "err", err)
 				continue
@@ -581,7 +616,6 @@ func (e *Engine) received(id uint32, u telegram.Update) error {
 			}
 		}
 	}
-	return nil
 }
 
 // chatMatches says whether a Telegram Message step whose Chat is filter
@@ -597,9 +631,11 @@ func chatMatches(filter string, chat telegram.Chat) bool {
 	return filter == strconv.FormatInt(chat.ID, 10)
 }
 
-// syncTelegram keeps the Telegram Message steps of workflow w while it is
-// active, for their states. Called with e.mu held.
+// syncTelegram keeps the Telegram Message and Telegram Command steps of
+// workflow w while it is active, for their states and the bots' / menus.
+// Called with e.mu held.
 func (e *Engine) syncTelegram(w store.Workflow) {
+	e.syncCommandSteps(w)
 	var steps []tgStep
 	if w.Active {
 		for _, st := range w.Graph.GetSteps() {
@@ -645,5 +681,5 @@ func (e *Engine) telegramStates(id uint32) []*v1.TriggerState {
 		}
 		out = append(out, ts)
 	}
-	return out
+	return append(out, e.commandStates(id)...)
 }

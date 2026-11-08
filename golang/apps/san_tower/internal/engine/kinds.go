@@ -378,6 +378,17 @@ var coreKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
+			Kind: "parse-json", Title: "Parse JSON", Category: "Data",
+			Description: "Reads Text as JSON into Object, the other way from Stringify: {\"title\": \"Night Train\", \"year\": 2024} becomes an object for Template, Filter, HTTP Request or MovieMov. Goes on by Done; text that is not JSON goes on by Not JSON with Error, or fails the step when Not JSON is not linked. Read: Only JSON takes the whole text (a lone ```json block too); JSON in Text also finds it inside other text, such as an AI's answer. Expect: Object or List refuses other JSON.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Not JSON", Event), sock("Object", Object), sock("Error", Text)},
+			Settings: []*v1.Setting{{Name: "Read", Options: []string{"Only JSON", "JSON in Text"}},
+				{Name: "Expect", Options: []string{"Any", "Object", "List"}}},
+			Inputs: []*v1.Socket{sock("Event", Event), hint(`{"title": "Night Train", "year": 2024}`, field("Text"))},
+		},
+		run: parseJSON,
+	},
+	{
+		StepKind: &v1.StepKind{
 			Kind: "http-request", Title: "HTTP Request", Category: "Action",
 			Description: "Calls a URL with GET, POST, PUT or DELETE, sending Body as JSON; Response is the answer.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Response", Object)},

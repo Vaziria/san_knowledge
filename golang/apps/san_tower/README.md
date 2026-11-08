@@ -174,7 +174,7 @@ icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
 a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart, Tower Chat, OpenAI API and
 Telegram Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
-Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Now, Datetime,
+Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Parse JSON, Now, Datetime,
 Datetime Operation, String to Datetime, Wait, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Video Thumbnail, Delete File, Delete Folder and Log,
 and
 the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
@@ -646,6 +646,23 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   without a decimal point, `< > &` as they are (it is for messages), and
   null when nothing is linked. Template's `{{ payload }}` gives the compact
   form too.
+- Parse JSON (Data; the user, 2026-11-08: "have we node to string ->
+  compose object", then "2", the Parse JSON proposed) is Stringify's other
+  way: it reads its Text (linked, or typed in the step) as JSON into
+  Object, e.g. `{"title": "Night Train", "year": 2024}` from a Telegram
+  message, an HTTP body or a file, for Template, Filter, HTTP Request or
+  MovieMov, and goes on by Done. Text that is not JSON goes on by Not JSON,
+  with Error saying why and where (`Text is not JSON: invalid character
+  'h' looking for beginning of value (at character 1)`); when Not JSON is
+  not linked the step fails with it. Read: Only JSON (the default) takes
+  the whole text, trimmed, or a text that is one fenced ```json block; JSON
+  in Text also finds it inside other text, such as an AI's answer: its
+  first code block that holds JSON, else from the first `{` to the last `}`
+  (or `[` to `]`), repaired as the OpenAI API steps repair a chat site's
+  copy. Expect: Any (the default), Object or List, so a list where an
+  object is wanted goes by Not JSON too. Numbers are read as decimals, so a
+  whole number past 2^53 (as some ids) loses its last digits: send those as
+  text.
 - Delete File (Action) deletes the file at Path (a field input, e.g. File
   Path's Absolute Path; a relative path is in the tower's data folder) and
   goes on by Done. A file that is not there counts as done too, since it

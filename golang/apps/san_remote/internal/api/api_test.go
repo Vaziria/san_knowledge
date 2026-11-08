@@ -186,6 +186,8 @@ func TestRefused(t *testing.T) {
 		"x no post":                second(xc.SchedulePost(ctx, connect.NewRequest(&xv1.SchedulePostRequest{At: later}))),
 		"x download relative out":  second(xc.DownloadPost(ctx, connect.NewRequest(&xv1.DownloadPostRequest{Link: "https://x.com/a/status/1", Out: "posts"}))),
 		"x download bad link":      second(xc.DownloadPost(ctx, connect.NewRequest(&xv1.DownloadPostRequest{Link: "https://x.com/a", Out: t.TempDir()}))),
+		"x unrepost bad link":      second(xc.Unrepost(ctx, connect.NewRequest(&xv1.UnrepostRequest{Link: "https://x.com/a"}))),
+		"x reposts bad handle":     second(xc.ListReposts(ctx, connect.NewRequest(&xv1.ListRepostsRequest{Handle: "not a handle"}))),
 		"facebook group":           second(fb.SchedulePost(ctx, connect.NewRequest(&facebookv1.SchedulePostRequest{To: "group: Freelancer", Text: "hi", At: later}))),
 		"facebook too soon":        second(fb.SchedulePost(ctx, connect.NewRequest(&facebookv1.SchedulePostRequest{Text: "hi", At: soon}))),
 		"vidara no file":           second(vd.UploadVideo(ctx, connect.NewRequest(&vidarav1.UploadVideoRequest{File: "nope.mp4"}))),

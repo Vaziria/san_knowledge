@@ -67,6 +67,12 @@ globalThis.__sanX = (() => {
   const line = () => (dialog()?.innerText ?? '').split('\n').map((l) => l.trim()).find((l) => /^Will send on /.test(l)) ?? '';
   const unsent = () => [...(dialog()?.querySelectorAll('[data-testid=unsentTweet]') ?? [])].filter(vis);
   const textButton = (label) => [...(dialog()?.querySelectorAll('[role=button], button') ?? [])].filter(vis).find((b) => (b.innerText ?? '').trim() === label);
+  // statusOf is the post id a link such as /user/status/123 names.
+  const statusOf = (href) => /\/status\/(\d+)$/.exec(href ?? '')?.[1] ?? '';
+  // focal is post id's article on its page: the one whose time links to it.
+  // Replies under it and the post it answers have their own.
+  const focal = (id) =>
+    [...document.querySelectorAll('article[data-testid=tweet]')].find((a) => [...a.querySelectorAll('time')].some((t) => statusOf(t.closest('a')?.getAttribute('href')) === id));
   const toasts = () => [...document.querySelectorAll('[data-testid=toast], [role=alert]')].filter(vis).map((t) => t.innerText.trim()).filter(Boolean);
   const staged = new Map();
   const bytes = (b64) => {
@@ -249,5 +255,45 @@ globalThis.__sanX = (() => {
     // profileLoaded says the profile's header is there: its post count line
     // or its empty state.
     profileLoaded: () => !!tid(document, 'UserName') || !!tid(document, 'emptyState'),
+
+    // ---- reposts (2026-11-08) ----
+    // repostsTab says what a profile's Reposts tab (/<handle>/reposts, next
+    // to Posts, Replies and Media) shows: 'posts' once it lists any, 'empty'
+    // for "You haven't reposted yet", 'none' when the profile has no such
+    // tab, 'gone' with X's words for a profile that is not there, and ''
+    // while it loads.
+    repostsTab(handle) {
+      const tabs = [...document.querySelectorAll('[role=tab]')];
+      const empty = tid(document, 'emptyState');
+      const href = (t) => (t.getAttribute('href') ?? t.closest('a')?.getAttribute('href') ?? '').toLowerCase();
+      const tab = tabs.find((t) => href(t) === `/${handle.toLowerCase()}/reposts`);
+      if (!tabs.length) return empty && !tid(document, 'UserName') ? { state: 'gone', text: empty.innerText.trim() } : { state: '' };
+      if (!tab) return { state: tabs.some((t) => href(t) === `/${handle.toLowerCase()}`) ? 'none' : '' };
+      return { state: tab.getAttribute('aria-selected') !== 'true' ? '' : document.querySelector('article[data-testid=tweet]') ? 'posts' : empty ? 'empty' : '' };
+    },
+    // timelineLoaded says a timeline shows its posts, or that it has none.
+    timelineLoaded: () => !!document.querySelector('article[data-testid=tweet]') || !!tid(document, 'emptyState'),
+    // postState says what a post's page (x.com/<user>/status/<id>) shows of
+    // post id: found, its link, and its Repost button, green (data-testid
+    // unretweet) when the account has reposted it; else gone, with X's
+    // words for a post that is not there.
+    postState(id) {
+      const a = focal(id);
+      if (!a) {
+        const gone = [...document.querySelectorAll('[data-testid="error-detail"], [data-testid="emptyState"]')].filter(vis).map((e) => e.innerText.trim()).find(Boolean);
+        return { found: false, gone: gone ?? '' };
+      }
+      const link = [...a.querySelectorAll('time')].map((t) => t.closest('a')?.getAttribute('href') ?? '').find((h) => statusOf(h) === id);
+      return { found: true, link, reposted: !!tid(a, 'unretweet'), repost: !!tid(a, 'retweet') };
+    },
+    // openUnrepost presses post id's green Repost button, which opens a menu
+    // of Undo repost and Quote. Only that post's: tid would look in the
+    // whole page without it.
+    openUnrepost(id) {
+      const a = focal(id);
+      return !!a && press(tid(a, 'unretweet'));
+    },
+    undoOffered: () => !!tid(document, 'unretweetConfirm'),
+    confirmUnrepost: () => press(tid(document, 'unretweetConfirm')),
   };
 })();

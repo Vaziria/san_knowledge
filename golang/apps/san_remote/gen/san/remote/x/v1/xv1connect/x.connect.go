@@ -43,6 +43,10 @@ const (
 	XServiceListPostsProcedure = "/san.remote.x.v1.XService/ListPosts"
 	// XServiceDownloadPostProcedure is the fully-qualified name of the XService's DownloadPost RPC.
 	XServiceDownloadPostProcedure = "/san.remote.x.v1.XService/DownloadPost"
+	// XServiceListRepostsProcedure is the fully-qualified name of the XService's ListReposts RPC.
+	XServiceListRepostsProcedure = "/san.remote.x.v1.XService/ListReposts"
+	// XServiceUnrepostProcedure is the fully-qualified name of the XService's Unrepost RPC.
+	XServiceUnrepostProcedure = "/san.remote.x.v1.XService/Unrepost"
 )
 
 // XServiceClient is a client for the san.remote.x.v1.XService service.
@@ -59,6 +63,13 @@ type XServiceClient interface {
 	// DownloadPost reads any post by its link, in a background tab, and saves
 	// its images and videos (an X Article's cover and images too) in a folder.
 	DownloadPost(context.Context, *connect.Request[v1.DownloadPostRequest]) (*connect.Response[v1.DownloadPostResponse], error)
+	// ListReposts lists the account's reposts, the latest repost first, from
+	// its profile's Reposts tab, in a background tab.
+	ListReposts(context.Context, *connect.Request[v1.ListRepostsRequest]) (*connect.Response[v1.ListRepostsResponse], error)
+	// Unrepost undoes the account's repost of a post: the post opens in a tab
+	// brought to the front, and its green Repost button, then Undo repost, is
+	// pressed. A post the account has not reposted is left as it is.
+	Unrepost(context.Context, *connect.Request[v1.UnrepostRequest]) (*connect.Response[v1.UnrepostResponse], error)
 }
 
 // NewXServiceClient constructs a client for the san.remote.x.v1.XService service. By default, it
@@ -102,6 +113,18 @@ func NewXServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 			connect.WithSchema(xServiceMethods.ByName("DownloadPost")),
 			connect.WithClientOptions(opts...),
 		),
+		listReposts: connect.NewClient[v1.ListRepostsRequest, v1.ListRepostsResponse](
+			httpClient,
+			baseURL+XServiceListRepostsProcedure,
+			connect.WithSchema(xServiceMethods.ByName("ListReposts")),
+			connect.WithClientOptions(opts...),
+		),
+		unrepost: connect.NewClient[v1.UnrepostRequest, v1.UnrepostResponse](
+			httpClient,
+			baseURL+XServiceUnrepostProcedure,
+			connect.WithSchema(xServiceMethods.ByName("Unrepost")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -112,6 +135,8 @@ type xServiceClient struct {
 	listScheduled *connect.Client[v1.ListScheduledRequest, v1.ListScheduledResponse]
 	listPosts     *connect.Client[v1.ListPostsRequest, v1.ListPostsResponse]
 	downloadPost  *connect.Client[v1.DownloadPostRequest, v1.DownloadPostResponse]
+	listReposts   *connect.Client[v1.ListRepostsRequest, v1.ListRepostsResponse]
+	unrepost      *connect.Client[v1.UnrepostRequest, v1.UnrepostResponse]
 }
 
 // GetStatus calls san.remote.x.v1.XService.GetStatus.
@@ -139,6 +164,16 @@ func (c *xServiceClient) DownloadPost(ctx context.Context, req *connect.Request[
 	return c.downloadPost.CallUnary(ctx, req)
 }
 
+// ListReposts calls san.remote.x.v1.XService.ListReposts.
+func (c *xServiceClient) ListReposts(ctx context.Context, req *connect.Request[v1.ListRepostsRequest]) (*connect.Response[v1.ListRepostsResponse], error) {
+	return c.listReposts.CallUnary(ctx, req)
+}
+
+// Unrepost calls san.remote.x.v1.XService.Unrepost.
+func (c *xServiceClient) Unrepost(ctx context.Context, req *connect.Request[v1.UnrepostRequest]) (*connect.Response[v1.UnrepostResponse], error) {
+	return c.unrepost.CallUnary(ctx, req)
+}
+
 // XServiceHandler is an implementation of the san.remote.x.v1.XService service.
 type XServiceHandler interface {
 	// GetStatus says whether the browser is signed in to X, and as whom.
@@ -153,6 +188,13 @@ type XServiceHandler interface {
 	// DownloadPost reads any post by its link, in a background tab, and saves
 	// its images and videos (an X Article's cover and images too) in a folder.
 	DownloadPost(context.Context, *connect.Request[v1.DownloadPostRequest]) (*connect.Response[v1.DownloadPostResponse], error)
+	// ListReposts lists the account's reposts, the latest repost first, from
+	// its profile's Reposts tab, in a background tab.
+	ListReposts(context.Context, *connect.Request[v1.ListRepostsRequest]) (*connect.Response[v1.ListRepostsResponse], error)
+	// Unrepost undoes the account's repost of a post: the post opens in a tab
+	// brought to the front, and its green Repost button, then Undo repost, is
+	// pressed. A post the account has not reposted is left as it is.
+	Unrepost(context.Context, *connect.Request[v1.UnrepostRequest]) (*connect.Response[v1.UnrepostResponse], error)
 }
 
 // NewXServiceHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -192,6 +234,18 @@ func NewXServiceHandler(svc XServiceHandler, opts ...connect.HandlerOption) (str
 		connect.WithSchema(xServiceMethods.ByName("DownloadPost")),
 		connect.WithHandlerOptions(opts...),
 	)
+	xServiceListRepostsHandler := connect.NewUnaryHandler(
+		XServiceListRepostsProcedure,
+		svc.ListReposts,
+		connect.WithSchema(xServiceMethods.ByName("ListReposts")),
+		connect.WithHandlerOptions(opts...),
+	)
+	xServiceUnrepostHandler := connect.NewUnaryHandler(
+		XServiceUnrepostProcedure,
+		svc.Unrepost,
+		connect.WithSchema(xServiceMethods.ByName("Unrepost")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.remote.x.v1.XService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case XServiceGetStatusProcedure:
@@ -204,6 +258,10 @@ func NewXServiceHandler(svc XServiceHandler, opts ...connect.HandlerOption) (str
 			xServiceListPostsHandler.ServeHTTP(w, r)
 		case XServiceDownloadPostProcedure:
 			xServiceDownloadPostHandler.ServeHTTP(w, r)
+		case XServiceListRepostsProcedure:
+			xServiceListRepostsHandler.ServeHTTP(w, r)
+		case XServiceUnrepostProcedure:
+			xServiceUnrepostHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -231,4 +289,12 @@ func (UnimplementedXServiceHandler) ListPosts(context.Context, *connect.Request[
 
 func (UnimplementedXServiceHandler) DownloadPost(context.Context, *connect.Request[v1.DownloadPostRequest]) (*connect.Response[v1.DownloadPostResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.remote.x.v1.XService.DownloadPost is not implemented"))
+}
+
+func (UnimplementedXServiceHandler) ListReposts(context.Context, *connect.Request[v1.ListRepostsRequest]) (*connect.Response[v1.ListRepostsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.remote.x.v1.XService.ListReposts is not implemented"))
+}
+
+func (UnimplementedXServiceHandler) Unrepost(context.Context, *connect.Request[v1.UnrepostRequest]) (*connect.Response[v1.UnrepostResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.remote.x.v1.XService.Unrepost is not implemented"))
 }

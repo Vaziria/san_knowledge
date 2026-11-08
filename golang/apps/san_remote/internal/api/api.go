@@ -332,6 +332,33 @@ func (s xAPI) DownloadPost(ctx context.Context, req *connect.Request[xv1.Downloa
 	return reply(&xv1.DownloadPostResponse{Post: p}, nil)
 }
 
+func (s xAPI) ListReposts(ctx context.Context, req *connect.Request[xv1.ListRepostsRequest]) (*connect.Response[xv1.ListRepostsResponse], error) {
+	who, rows, err := s.a.X.Reposts(ctx, req.Msg.Browser, req.Msg.Handle, int(req.Msg.Limit))
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	res := &xv1.ListRepostsResponse{Account: who}
+	for _, r := range rows {
+		p := &xv1.Repost{Link: r.Link, Id: r.ID, Author: r.Author, Handle: r.Handle, Text: r.Text, HasMedia: r.HasMedia, Media: r.Media}
+		if !r.Created.IsZero() {
+			p.Created = timestamppb.New(r.Created)
+		}
+		if !r.Reposted.IsZero() {
+			p.Reposted = timestamppb.New(r.Reposted)
+		}
+		res.Reposts = append(res.Reposts, p)
+	}
+	return reply(res, nil)
+}
+
+func (s xAPI) Unrepost(ctx context.Context, req *connect.Request[xv1.UnrepostRequest]) (*connect.Response[xv1.UnrepostResponse], error) {
+	u, err := s.a.X.Unrepost(ctx, req.Msg.Browser, req.Msg.Link)
+	if err != nil {
+		return nil, s.a.fail(err)
+	}
+	return reply(&xv1.UnrepostResponse{Link: u.Link, Undone: u.Undone}, nil)
+}
+
 // ---- Facebook ------------------------------------------------------------------------
 
 type facebookAPI struct{ a *API }

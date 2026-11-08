@@ -21,6 +21,38 @@ service XService {
   // DownloadPost reads any post by its link, in a background tab, and saves
   // its images and videos (an X Article's cover and images too) in a folder.
   rpc DownloadPost(DownloadPostRequest) returns (DownloadPostResponse);
+  // ListReposts lists the account's reposts, the latest repost first, from
+  // its profile's Reposts tab, in a background tab.
+  rpc ListReposts(ListRepostsRequest) returns (ListRepostsResponse);
+  // Unrepost undoes the account's repost of a post: the post opens in a tab
+  // brought to the front, and its green Repost button, then Undo repost, is
+  // pressed. A post the account has not reposted is left as it is.
+  rpc Unrepost(UnrepostRequest) returns (UnrepostResponse);
+}
+
+// Repost is a post the account reposted, as its profile's Reposts tab shows
+// it.
+message Repost {
+  // The reposted post's link, https://x.com/<handle>/status/<id>, without a
+  // query.
+  string link = 1;
+  string id = 2;
+  // The post's author: the name shown, and the handle without the @.
+  string author = 3;
+  string handle = 4;
+  // The post's text as its author wrote it (not X's translation), its links
+  // written out, trimmed.
+  string text = 5;
+  // When the post was made.
+  google.protobuf.Timestamp created = 6;
+  // When the account reposted it. X's page does not show it; it is read
+  // from X's own app data (the repost's time), and unset when that is not
+  // there.
+  google.protobuf.Timestamp reposted = 7;
+  // Whether it has images or videos, and their types as X names them
+  // (photo, video, animated_gif).
+  bool has_media = 8;
+  repeated string media = 9;
 }
 
 // DownloadedPost is a post read and its media saved by DownloadPost.
@@ -151,4 +183,35 @@ message DownloadPostRequest {
 
 message DownloadPostResponse {
   DownloadedPost post = 1;
+}
+
+message ListRepostsRequest {
+  string browser = 1;
+  // The most reposts to list; 0 means the service's default, 20.
+  uint32 limit = 2;
+  // Whose reposts, without the @; empty means the signed-in account's.
+  // Another account's are read from its public Reposts tab.
+  string handle = 3;
+}
+
+message ListRepostsResponse {
+  // The latest repost first.
+  repeated Repost reposts = 1;
+  // Whose reposts they are, without the @.
+  string account = 2;
+}
+
+message UnrepostRequest {
+  string browser = 1;
+  // The post's link (https://x.com/<user>/status/<id>; twitter.com,
+  // mobile., /photo/1 and ?s= forms too) or its id.
+  string link = 2;
+}
+
+message UnrepostResponse {
+  // The post's link, https://x.com/<handle>/status/<id>.
+  string link = 1;
+  // True when the repost was undone; false when the account had not
+  // reposted the post, so nothing was pressed.
+  bool undone = 2;
 }

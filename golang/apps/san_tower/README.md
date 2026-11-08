@@ -837,6 +837,40 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     Threads, X or Facebook Post with Format Markdown posts it again with its
     media. First links into TikTok Post's Video; Text or Markdown into a
     Medium or LinkedIn Article with Source = Text.
+  - X Reposts and X Undo Repost (Social › X; `xreposts.go`; the user,
+    2026-11-08: "Can we have node to get reposted post, and cancel reposted
+    post", then "get reposts and process to workflow, and after finish, it
+    derepost"): a workflow takes each post the account reposted, does its
+    work with it, and undoes the repost, so the next run does not take it
+    again.
+    - X Reposts lists the reposts of the X account signed in in the San
+      Remote connection's browser (whichever account X shows there), from
+      its profile's Reposts tab, read in a background tab: the latest
+      repost first, up to Limit (default 20, 1 to 200). It only reads.
+      Each fires once per repost, with Item that repost and Link its link,
+      then Done; Reposts is the list and Count how many (Done fires with
+      Count 0 when there are none). Item is the reposted post: `link`
+      (`https://x.com/<author>/status/<id>`, without `?s=`), `id`,
+      `author` (the name shown), `handle` (without @), `text` (as its
+      author wrote it, not X's translation), `created` (when it was
+      posted), `hasMedia` and `media` (photo, video, animated_gif), and
+      `reposted`. **The repost time is not on X's page**: `reposted` is
+      read from X's own app data and is missing when that cannot be read,
+      so a workflow should not depend on it; the list's order is the order
+      of the reposts. The account's own posts, its pinned post and ads are
+      not in the list.
+    - X Undo Repost undoes the account's repost of the post at Link (any
+      of X's forms of a link: twitter.com, `mobile.`, `/photo/1`,
+      `/video/1`, `?s=...`, or the bare id; X Reposts' Link on its Each).
+      San Remote opens the post in a tab brought to the front (X's menus
+      only open in a shown page) and, when its Repost button is green,
+      presses it and Undo repost, then checks the button turned back:
+      Undone fires. When the account had not reposted the post, nothing is
+      pressed and Not Reposted fires. Done fires after either, and the log
+      says which, so it is safe to repeat (a run that stopped halfway can
+      run again). A post that is gone fails the step with X's words
+      ("Hmm...this page doesn’t exist."), Failed when it is linked; a Link
+      that is not an X post's link fails it before San Remote is asked.
   - Vidara Download saves the video Link names (https://vidara.to/v/...,
     or its code) to Save To, a folder on this computer, where the file is
     named after the video's title, or a file; it must be an absolute path,

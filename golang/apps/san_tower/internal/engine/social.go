@@ -131,6 +131,31 @@ var socialKinds = []*kind{
 		run: xDownload,
 	},
 	{
+		// The user, 2026-11-08: "Can we have node to get reposted post, and
+		// cancel reposted post" (xreposts.go).
+		StepKind: &v1.StepKind{
+			Kind: "x-reposts", Title: "X Reposts", Category: "Social",
+			Group:       "X",
+			Description: "Lists the reposts of the X account signed in through San Remote, the latest repost first, from its profile's Reposts tab in a background tab, up to Limit (default 20). Each fires once per repost with Item it (link, id, author, handle, text, created, reposted, hasMedia, media) and Link its link, then Done; Reposts is the list and Count how many. X's page does not show when a post was reposted: Item's reposted comes from X's app data and may be missing. It only reads.",
+			Outputs: []*v1.Socket{sock("Done", Event), sock("Each", Event), sock("Item", Object), sock("Link", Text),
+				sock("Reposts", Object), sock("Count", Text)},
+			Settings: []*v1.Setting{connectionSetting(), {Name: "Limit", Placeholder: "20 (1 to 200)"}},
+			Inputs:   []*v1.Socket{sock("Event", Event)},
+		},
+		run: xReposts,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: "x-undo-repost", Title: "X Undo Repost", Category: "Social",
+			Group:       "X",
+			Description: "Undoes the X account's repost of the post at Link (its link in any of X's forms, or its id; X Reposts' Link) through San Remote: on the post's page, in a tab brought to the front, it presses the green Repost button, then Undo repost. Undone fires when it was undone, Not Reposted when the account had not reposted it (nothing is pressed), then Done either way, so it is safe to repeat. A post that is gone fails the step.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Undone", Event), sock("Not Reposted", Event)},
+			Settings:    []*v1.Setting{connectionSetting()},
+			Inputs:      []*v1.Socket{sock("Event", Event), hint("https://x.com/user/status/123, or X Reposts' Link", field("Link"))},
+		},
+		run: xUndoRepost,
+	},
+	{
 		StepKind: &v1.StepKind{
 			Kind: "facebook-post", Title: "Facebook Post", Category: "Social",
 			Group:       "Facebook",

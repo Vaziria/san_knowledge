@@ -52,6 +52,9 @@ type fakeRemote struct {
 	upload   *vidarav1.UploadVideoRequest
 	xget     *xv1.DownloadPostRequest
 	xpost    *xv1.SchedulePostRequest
+	// xreposts_test.go's
+	xreposts  *xv1.ListRepostsRequest
+	xunrepost []string
 	// sites_test.go's
 	medium    *mediumv1.CreateDraftRequest
 	linkedin  *linkedinv1.CreateDraftRequest

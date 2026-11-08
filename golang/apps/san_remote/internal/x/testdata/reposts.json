@@ -1,0 +1,66 @@
+[
+  {
+    "context": "You reposted", "by": "/BangsaPersatuan", "promoted": false, "app": true,
+    "reposter": "BangsaPersatuan", "repostedAt": "2026-11-08T06:19:04.000Z",
+    "id": "2118787984070005168", "handle": "dayamatest0607", "name": "lokal a joss",
+    "text": "Pergaulan anak jaman now \n", "created": "2026-11-06T19:29:55.000Z", "media": ["video"],
+    "href": "/dayamatest0607/status/2118787984070005168", "at": "2026-11-06T19:29:55.000Z",
+    "user": ["lokal a joss", "@dayamatest0607", "·", "Nov 7"], "shown": "How kids these days socialize", "drawnMedia": true
+  },
+  {
+    "context": "Pinned", "by": "", "promoted": false, "app": true,
+    "reposter": "", "repostedAt": "",
+    "id": "2117849320669986933", "handle": "BangsaPersatuan", "name": "Persatuan Bangsa",
+    "text": "Pinned post of the account", "created": "2026-11-04T05:20:00.000Z", "media": ["photo"],
+    "href": "/BangsaPersatuan/status/2117849320669986933", "at": "2026-11-04T05:20:00.000Z",
+    "user": ["Persatuan Bangsa", "@BangsaPersatuan", "·", "Nov 4"], "shown": "Pinned post of the account", "drawnMedia": true
+  },
+  {
+    "context": "Persatuan Bangsa reposted", "by": "/BangsaPersatuan", "promoted": false, "app": true,
+    "reposter": "BangsaPersatuan", "repostedAt": "Sun Nov 08 06:18:32 +0000 2026",
+    "id": "2119220613994995911", "handle": "Il6sekarwangi", "name": "Sekar Wangi",
+    "text": "  Teks asli, bukan terjemahan https://example.com/a  ", "created": "Sun Nov 08 00:09:02 +0000 2026", "media": [],
+    "href": "/Il6sekarwangi/status/2119220613994995911", "at": "2026-11-08T00:09:02.000Z",
+    "user": ["Sekar Wangi", "@Il6sekarwangi", "·", "7h"], "shown": "The original text, not a translation", "drawnMedia": false
+  },
+  {
+    "context": "", "by": "", "promoted": false, "app": true,
+    "reposter": "", "repostedAt": "",
+    "id": "2119298871277027578", "handle": "BangsaPersatuan", "name": "Persatuan Bangsa",
+    "text": "The account's own post", "created": "2026-11-08T05:20:00.000Z", "media": ["photo"],
+    "href": "/BangsaPersatuan/status/2119298871277027578", "at": "2026-11-08T05:20:00.000Z",
+    "user": ["Persatuan Bangsa", "@BangsaPersatuan", "·", "2h"], "shown": "The account's own post", "drawnMedia": true
+  },
+  {
+    "context": "", "by": "", "promoted": true, "app": true,
+    "reposter": "", "repostedAt": "",
+    "id": "1999000000000000001", "handle": "SomeBrand", "name": "Some Brand",
+    "text": "Buy now", "created": "2026-11-01T00:00:00.000Z", "media": ["photo"],
+    "href": "/SomeBrand/status/1999000000000000001", "at": "2026-11-01T00:00:00.000Z",
+    "user": ["Some Brand", "@SomeBrand", "Ad"], "shown": "Buy now", "drawnMedia": true
+  },
+  {
+    "context": "Persatuan Bangsa reposted", "by": "/BangsaPersatuan", "promoted": false, "app": false,
+    "reposter": "", "repostedAt": "",
+    "id": "", "handle": "", "name": "",
+    "text": "", "created": "", "media": [],
+    "href": "/nadamelinda26/status/2118925351212798285", "at": "2026-11-07T04:35:46.000Z",
+    "user": ["nada melinda", "@nadamelinda26", "·", "Nov 7"], "shown": " while walking around hehehe \r\n", "drawnMedia": true
+  },
+  {
+    "context": "Someone Else reposted", "by": "/someone_else", "promoted": false, "app": false,
+    "reposter": "", "repostedAt": "",
+    "id": "", "handle": "", "name": "",
+    "text": "", "created": "", "media": [],
+    "href": "/abc/status/1111", "at": "2026-11-07T04:35:46.000Z",
+    "user": ["A B C", "@abc"], "shown": "not ours", "drawnMedia": false
+  },
+  {
+    "context": "", "by": "", "promoted": false, "app": true,
+    "reposter": "someone_else", "repostedAt": "2026-11-08T06:00:00.000Z",
+    "id": "2222", "handle": "abc", "name": "A B C",
+    "text": "X's app says another account reposted it", "created": "2026-11-07T00:00:00.000Z", "media": [],
+    "href": "/abc/status/2222", "at": "2026-11-07T00:00:00.000Z",
+    "user": ["A B C", "@abc"], "shown": "", "drawnMedia": false
+  }
+]

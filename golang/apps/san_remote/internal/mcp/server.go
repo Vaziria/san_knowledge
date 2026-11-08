@@ -80,7 +80,7 @@ This is the user's real browser: read what the task needs, and ask the user befo
 threads_* post to the user's Threads account through that browser, as a person does in Threads' composer: threads_post schedules a thread (a markdown file, or one post's text), threads_scheduled lists what is scheduled, threads_reschedule and threads_unschedule change one, threads_status and threads_posts read. Schedule or post only what the user asked for; never use now unless the user asked to publish at once. A threads call that clicks through Threads brings Chrome to the front with a tab of its own for a minute or two.
 vidara_* work on the user's Vidara account (vidara.to, a video host) through that browser, as a person does on its pages: vidara_upload uploads a video on the Upload page (only what the user asked to upload), vidara_videos lists the account's videos, vidara_delete deletes one (Vidara says it cannot be undone: ask the user first), vidara_status reads. vidara_download saves a video from its link to a file on this computer, through Vidara's player. A video page's "Download file" button is an ad; never press it.
 facebook_* post to the user's Facebook (interface in Indonesian) through that browser, as a person does in its composers: facebook_post posts to the profile (with an audience), to a Page the user manages (from Meta Business Suite) or to a group, now or scheduled up to 29 days ahead (a group only now). Post only what the user asked for, where they asked. facebook_posts lists the profile's posts (published, scheduled, draft); facebook_delete deletes one (it cannot be undone: ask the user first); facebook_status reads the user's name, Pages and groups.
-x_* post to the user's X account (interface in English) through that browser, as a person does in X's composer: x_post posts a thread (a markdown file, or one post's text), now or scheduled up to 18 months ahead; x_scheduled lists the scheduled threads, x_reschedule and x_unschedule change one; x_status reads who is signed in; x_posts lists the account's published posts and x_delete deletes one; x_download reads any post from its link and saves its images and videos (and an X Article's). Schedule or post only what the user asked for; never use now unless the user asked to publish at once. Deletes cannot be undone: ask the user first.`
+x_* post to the user's X account (interface in English) through that browser, as a person does in X's composer: x_post posts a thread (a markdown file, or one post's text), now or scheduled up to 18 months ahead; x_scheduled lists the scheduled threads, x_reschedule and x_unschedule change one; x_status reads who is signed in; x_posts lists the account's published posts and x_delete deletes one; x_reposts lists its reposts and x_unrepost undoes one; x_download reads any post from its link and saves its images and videos (and an X Article's). Schedule or post only what the user asked for; never use now unless the user asked to publish at once. Deletes cannot be undone: ask the user first.`
 
 type request struct {
 	JSONRPC string          `json:"jsonrpc"`
@@ -390,6 +390,19 @@ func toolDefs() []any {
 				"match":   str("The post's link, its id, or part of its text"),
 				"browser": browserProp,
 			}, "match"), false, true),
+		tool("x_reposts", "X: my reposts",
+			"The account's reposts, the latest repost first, from its profile's Reposts tab: each reposted post's link, author, text, media, when it was posted, and when it was reposted (from X's app data; X's page does not show it). Reads in a background tab.",
+			schema(map[string]any{
+				"limit":   intg("How many (default 20)"),
+				"handle":  str("Whose reposts, without the @ (default: the signed-in account)"),
+				"browser": browserProp,
+			}), true, false),
+		tool("x_unrepost", "X: undo a repost",
+			"Undo the account's repost of one post, by its link (x.com or twitter.com, /photo/1 and ?s= forms too) or id: its green Repost button, then Undo repost. A post the account has not reposted is left as it is, and said so. Brings Chrome to the front briefly. Only when the user asked for it.",
+			schema(map[string]any{
+				"link":    str("The post's link or id"),
+				"browser": browserProp,
+			}, "link"), false, false),
 		tool("x_download", "X: download a post",
 			"Read any X post by its link, in a background tab, and save its images and videos (each video's best mp4), and for an X Article its cover and images, in a folder on this computer. Returns the author, time, caption, hashtags, the saved files, and an X Article's title and markdown.",
 			schema(map[string]any{
@@ -423,6 +436,7 @@ type args struct {
 	Folder     string   `json:"folder"`
 	Search     string   `json:"search"`
 	Link       string   `json:"link"`
+	Handle     string   `json:"handle"`
 	Out        string   `json:"out"`
 	Audience   string   `json:"audience"`
 	Tab        string   `json:"tab"`
@@ -1001,6 +1015,37 @@ func (s *Server) x(ctx context.Context, name string, a args) (string, error) {
 			return "", err
 		}
 		return fmt.Sprintf("Deleted the post of %s (%s):\n%s", p.At.Format("2006-01-02 15:04"), p.Link, p.Text), nil
+	case "x_reposts":
+		who, rows, err := s.X.Reposts(ctx, a.Browser, a.Handle, int(a.Limit))
+		if err != nil {
+			return "", err
+		}
+		if len(rows) == 0 {
+			return fmt.Sprintf("@%s has no reposts.", who), nil
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "%d reposts of @%s, the latest first:\n\n", len(rows), who)
+		for _, r := range rows {
+			at := "unknown"
+			if !r.Reposted.IsZero() {
+				at = r.Reposted.Local().Format("2006-01-02 15:04")
+			}
+			fmt.Fprintf(&b, "%s by %s (@%s), posted %s, reposted %s", r.Link, r.Author, r.Handle, r.Created.Local().Format("2006-01-02 15:04"), at)
+			if len(r.Media) > 0 {
+				fmt.Fprintf(&b, ", media: %s", strings.Join(r.Media, ", "))
+			}
+			fmt.Fprintf(&b, "\n%s\n\n", r.Text)
+		}
+		return b.String(), nil
+	case "x_unrepost":
+		u, err := s.X.Unrepost(ctx, a.Browser, a.Link)
+		if err != nil {
+			return "", err
+		}
+		if !u.Undone {
+			return "The account had not reposted " + u.Link + ": nothing was pressed.", nil
+		}
+		return "Undid the repost of " + u.Link + ".", nil
 	case "x_download":
 		d, err := s.X.Download(ctx, a.Browser, a.Link, a.Out)
 		if err != nil {

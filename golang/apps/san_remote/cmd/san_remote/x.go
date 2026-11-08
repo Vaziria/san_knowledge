@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -29,10 +30,10 @@ func xService(cmd *cli.Command) *x.Service {
 func xCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "x",
-		Usage: "post a thread to X, now or scheduled; list, move or delete scheduled threads; list or delete your posts",
-		Description: "X's interface must be in English. post brings Chrome to the front with a tab of its own;\n" +
-			"leave it alone until the command is done. status and posts read in a background tab.\n" +
-			"Steps are printed to stderr as \"== ...\".",
+		Usage: "post a thread to X, now or scheduled; list, move or delete scheduled threads; list or delete your posts; list or undo your reposts",
+		Description: "X's interface must be in English. post, delete and unrepost bring Chrome to the front with a tab of\n" +
+			"their own; leave it alone until the command is done. status, posts, reposts and download read in a\n" +
+			"background tab. Steps are printed to stderr as \"== ...\".",
 		Commands: []*cli.Command{
 			{
 				Name:  "status",
@@ -138,6 +139,62 @@ func xCommand() *cli.Command {
 						fmt.Fprintf(tw, "%s\t%s\t%s\n", r.At.Format("2006-01-02 15:04"), r.Link, clip(r.Text, 60))
 					}
 					return tw.Flush()
+				},
+			},
+			{
+				Name:  "reposts",
+				Usage: "list your reposts, the latest repost first: when reposted, link, author, media, text",
+				Description: "Reads your profile's Reposts tab in a background tab, scrolling down until it has --limit or no\n" +
+					"more come. LINK is the reposted post's; POSTED when its author posted it. X's page does not show\n" +
+					"when you reposted: REPOSTED comes from X's own app data, and is - when that is not there.\n" +
+					"--handle reads another account's public Reposts tab instead.",
+				Flags: []cli.Flag{
+					&cli.IntFlag{Name: "limit", Value: x.DefaultReposts, Usage: "how many"},
+					&cli.StringFlag{Name: "handle", Usage: "whose reposts, without the @ (default: the signed-in account)"},
+				},
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					who, rows, err := xService(cmd).Reposts(ctx, cmd.String("browser"), cmd.String("handle"), int(cmd.Int("limit")))
+					if err != nil {
+						return clientError(cmd, err)
+					}
+					fmt.Fprintf(os.Stderr, "== %d reposts of @%s\n", len(rows), who)
+					tw := tabwriter.NewWriter(cmd.Root().Writer, 0, 0, 2, ' ', 0)
+					fmt.Fprintln(tw, "REPOSTED\tPOSTED\tLINK\tAUTHOR\tMEDIA\tTEXT")
+					stamp := func(t time.Time) string {
+						if t.IsZero() {
+							return "-"
+						}
+						return t.Local().Format("2006-01-02 15:04")
+					}
+					for _, r := range rows {
+						media := strings.Join(r.Media, ",")
+						if media == "" && r.HasMedia {
+							media = "yes"
+						}
+						fmt.Fprintf(tw, "%s\t%s\t%s\t%s (@%s)\t%s\t%s\n", stamp(r.Reposted), stamp(r.Created), r.Link, r.Author, r.Handle,
+							cmp.Or(media, "-"), clip(firstLine(r.Text), 50))
+					}
+					return tw.Flush()
+				},
+			},
+			{
+				Name:      "unrepost",
+				Usage:     "undo your repost of a post: its green Repost button, then Undo repost",
+				ArgsUsage: "LINK | ID",
+				Description: "LINK is the post's link in any of X's forms (x.com, twitter.com, mobile., /photo/1, ?s=...).\n" +
+					"A post you have not reposted is left as it is: \"not reposted\", and the command succeeds.\n" +
+					"Brings Chrome to the front with a tab of its own: X's menus only open in a shown page.",
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					u, err := xService(cmd).Unrepost(ctx, cmd.String("browser"), cmd.Args().First())
+					if err != nil {
+						return clientError(cmd, err)
+					}
+					if !u.Undone {
+						_, err = fmt.Fprintf(cmd.Root().Writer, "not reposted: %s (nothing pressed)\n", u.Link)
+						return err
+					}
+					_, err = fmt.Fprintf(cmd.Root().Writer, "undone: %s\n", u.Link)
+					return err
 				},
 			},
 			{

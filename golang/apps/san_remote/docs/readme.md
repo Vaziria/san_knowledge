@@ -255,7 +255,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 |---|---|
 | `san.remote.v1.RemoteService` | everything `serve` has, passed through to it |
 | `san.remote.threads.v1.ThreadsService` | GetStatus, SchedulePost (posts with a topic on the first, or a markdown file or text), ListScheduled, ListPosts |
-| `san.remote.x.v1.XService` | GetStatus, SchedulePost (a thread, each post with its images or video by absolute path, or a markdown file or text), ListScheduled, ListPosts, DownloadPost (any post's media and text, into an absolute folder) |
+| `san.remote.x.v1.XService` | GetStatus, SchedulePost (a thread, each post with its images or video by absolute path, or a markdown file or text), ListScheduled, ListPosts, DownloadPost (any post's media and text, into an absolute folder), ListReposts (the latest repost first, `limit`, `handle`; with `account`), Unrepost (by link or id; `undone` false when it was not reposted) |
 | `san.remote.facebook.v1.FacebookService` | GetStatus, SchedulePost (to the profile or a Page, with an audience; text, or a markdown file or text), ListPosts (a Content Library tab) |
 | `san.remote.vidara.v1.VidaraService` | GetStatus, UploadVideo, ListVideos, DownloadVideo (by link or code, to an absolute folder or file) |
 | `san.remote.medium.v1.MediumService` | GetStatus, CreateDraft (an absolute article file, or its markdown; with `at`, scheduled too, with topics), ScheduleDraft, ListDrafts, ListScheduled |
@@ -591,6 +591,8 @@ would in its composer:
   scheduled threads, in the composer's Drafts → Scheduled.
 - **posts** lists your latest published posts from your profile, and
   **delete** deletes one.
+- **reposts** lists your reposts from your profile's Reposts tab, and
+  **unrepost** undoes one (below).
 - **download** reads anyone's post from its link and saves its images and
   videos, with its caption, hashtags and, for an X Article, the article
   as markdown (below).
@@ -608,6 +610,8 @@ bin\san_remote.exe x reschedule --match "Uji jadwal" "2026-11-22 10:30"
 bin\san_remote.exe x unschedule --match "Uji jadwal" --at "2026-11-22 10:30"
 bin\san_remote.exe x posts --limit 10                      # AT, LINK, TEXT: newest first
 bin\san_remote.exe x delete https://x.com/getresolvedid/status/2096950313257484398
+bin\san_remote.exe x reposts --limit 20                    # REPOSTED, POSTED, LINK, AUTHOR, MEDIA, TEXT: latest repost first
+bin\san_remote.exe x unrepost https://x.com/dayamatest0607/status/2118787984070005168   # undone: <link>, or not reposted: <link>
 bin\san_remote.exe x download --out D:\x --md https://x.com/IntEngineering/status/2113210739255070922
 ```
 
@@ -686,13 +690,48 @@ text, which must name exactly one of your latest 50 posts. From your
 profile it opens the post's "…" menu and presses Delete, and answers Delete
 when X asks. It cannot be undone.
 
+**Reposts** (`x reposts`, `x unrepost`; the user, 2026-11-08: "Can we
+have node to get reposted post, and cancel reposted post"):
+- `reposts` reads your profile's **Reposts** tab (`x.com/<you>/reposts`,
+  next to Posts, Replies and Media) in a background tab, the latest repost
+  first, scrolling down until it has `--limit` (default 20) or no more
+  come. Each is the reposted post: its link
+  (`https://x.com/<author>/status/<id>`, without `?s=`), its author's name
+  and @handle, its text as written (not X's translation, which the page
+  shows for other languages), when it was posted, and its media (photo,
+  video, animated_gif). Your own posts, a pinned post and ads are left
+  out. The posts are read from X's own app, the data the page is drawn
+  from, as `download` does; the page's own text fills in when that is not
+  there.
+- **The repost time** is not on X's page. REPOSTED comes from X's app
+  data (the repost's own time), and is `-` when that cannot be read, so
+  don't rely on it; the order of the tab is the order of your reposts.
+- A profile without a Reposts tab is read from its Posts tab instead,
+  where reposts carry "You reposted" over them.
+- `--handle` reads another account's public Reposts tab instead.
+- `unrepost LINK` opens the post (any of X's forms of its link:
+  twitter.com, `mobile.`, `/photo/1`, `/video/1`, `?s=...`, or its id) in a
+  tab of its own brought to the front, since X's menus only open in a shown
+  page. When its Repost button is green (you reposted it), it presses it,
+  then **Undo repost** in the menu, and checks the button turned back. When
+  you had not reposted it, nothing is pressed and it says `not reposted`;
+  that is not an error, so it is safe to run again. A post that is gone is
+  an error with X's words ("Hmm...this page doesn’t exist.").
+- Only what you reposted is undone: the post itself, its likes and your
+  other reposts stay as they are.
+
+Checked on 2026-11-08 by reading @BangsaPersatuan's Reposts tab (5 reposts,
+each with its repost time) and an empty one ("You haven’t reposted
+yet"); `unrepost` was tested against a fake page only.
+
 **While it runs:**
-- `post`, `scheduled`, `reschedule`, `unschedule` and `delete` open a tab
-  of their own in your current Chrome window and bring Chrome to the front:
+- `post`, `scheduled`, `reschedule`, `unschedule`, `delete` and `unrepost`
+  open a tab of their own in your current Chrome window and bring Chrome to
+  the front:
   X draws its composer, its dialogs and its menus only in a shown page.
   Leave Chrome alone until the command is done. If you work in another
   window, Windows may keep Chrome behind it, and the step waits.
-- `status` and `posts` read in a background tab.
+- `status`, `posts`, `reposts` and `download` read in a background tab.
 - Each step is printed to stderr as `== …`.
 - A failed step stops with a screenshot in the temp folder:
   `san_remote-x-150405.png`.

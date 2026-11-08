@@ -22,6 +22,127 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Repost is a post the account reposted, as its profile's Reposts tab shows
+// it.
+type Repost struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The reposted post's link, https://x.com/<handle>/status/<id>, without a
+	// query.
+	Link string `protobuf:"bytes,1,opt,name=link,proto3" json:"link,omitempty"`
+	Id   string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	// The post's author: the name shown, and the handle without the @.
+	Author string `protobuf:"bytes,3,opt,name=author,proto3" json:"author,omitempty"`
+	Handle string `protobuf:"bytes,4,opt,name=handle,proto3" json:"handle,omitempty"`
+	// The post's text as its author wrote it (not X's translation), its links
+	// written out, trimmed.
+	Text string `protobuf:"bytes,5,opt,name=text,proto3" json:"text,omitempty"`
+	// When the post was made.
+	Created *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created,proto3" json:"created,omitempty"`
+	// When the account reposted it. X's page does not show it; it is read
+	// from X's own app data (the repost's time), and unset when that is not
+	// there.
+	Reposted *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=reposted,proto3" json:"reposted,omitempty"`
+	// Whether it has images or videos, and their types as X names them
+	// (photo, video, animated_gif).
+	HasMedia      bool     `protobuf:"varint,8,opt,name=has_media,json=hasMedia,proto3" json:"has_media,omitempty"`
+	Media         []string `protobuf:"bytes,9,rep,name=media,proto3" json:"media,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Repost) Reset() {
+	*x = Repost{}
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Repost) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Repost) ProtoMessage() {}
+
+func (x *Repost) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Repost.ProtoReflect.Descriptor instead.
+func (*Repost) Descriptor() ([]byte, []int) {
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Repost) GetLink() string {
+	if x != nil {
+		return x.Link
+	}
+	return ""
+}
+
+func (x *Repost) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Repost) GetAuthor() string {
+	if x != nil {
+		return x.Author
+	}
+	return ""
+}
+
+func (x *Repost) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+func (x *Repost) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *Repost) GetCreated() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Created
+	}
+	return nil
+}
+
+func (x *Repost) GetReposted() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Reposted
+	}
+	return nil
+}
+
+func (x *Repost) GetHasMedia() bool {
+	if x != nil {
+		return x.HasMedia
+	}
+	return false
+}
+
+func (x *Repost) GetMedia() []string {
+	if x != nil {
+		return x.Media
+	}
+	return nil
+}
+
 // DownloadedPost is a post read and its media saved by DownloadPost.
 type DownloadedPost struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -47,7 +168,7 @@ type DownloadedPost struct {
 
 func (x *DownloadedPost) Reset() {
 	*x = DownloadedPost{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[0]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -59,7 +180,7 @@ func (x *DownloadedPost) String() string {
 func (*DownloadedPost) ProtoMessage() {}
 
 func (x *DownloadedPost) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[0]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -72,7 +193,7 @@ func (x *DownloadedPost) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadedPost.ProtoReflect.Descriptor instead.
 func (*DownloadedPost) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{0}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *DownloadedPost) GetId() string {
@@ -161,7 +282,7 @@ type DownloadedMedia struct {
 
 func (x *DownloadedMedia) Reset() {
 	*x = DownloadedMedia{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[1]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -173,7 +294,7 @@ func (x *DownloadedMedia) String() string {
 func (*DownloadedMedia) ProtoMessage() {}
 
 func (x *DownloadedMedia) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[1]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -186,7 +307,7 @@ func (x *DownloadedMedia) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadedMedia.ProtoReflect.Descriptor instead.
 func (*DownloadedMedia) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{1}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *DownloadedMedia) GetType() string {
@@ -230,7 +351,7 @@ type Status struct {
 
 func (x *Status) Reset() {
 	*x = Status{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[2]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -242,7 +363,7 @@ func (x *Status) String() string {
 func (*Status) ProtoMessage() {}
 
 func (x *Status) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[2]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +376,7 @@ func (x *Status) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Status.ProtoReflect.Descriptor instead.
 func (*Status) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{2}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Status) GetSignedIn() bool {
@@ -293,7 +414,7 @@ type Post struct {
 
 func (x *Post) Reset() {
 	*x = Post{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[3]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -305,7 +426,7 @@ func (x *Post) String() string {
 func (*Post) ProtoMessage() {}
 
 func (x *Post) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[3]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -318,7 +439,7 @@ func (x *Post) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Post.ProtoReflect.Descriptor instead.
 func (*Post) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{3}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Post) GetText() string {
@@ -351,7 +472,7 @@ type ScheduledThread struct {
 
 func (x *ScheduledThread) Reset() {
 	*x = ScheduledThread{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[4]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +484,7 @@ func (x *ScheduledThread) String() string {
 func (*ScheduledThread) ProtoMessage() {}
 
 func (x *ScheduledThread) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[4]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,7 +497,7 @@ func (x *ScheduledThread) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduledThread.ProtoReflect.Descriptor instead.
 func (*ScheduledThread) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{4}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ScheduledThread) GetAt() *timestamppb.Timestamp {
@@ -419,7 +540,7 @@ type PublishedPost struct {
 
 func (x *PublishedPost) Reset() {
 	*x = PublishedPost{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[5]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -431,7 +552,7 @@ func (x *PublishedPost) String() string {
 func (*PublishedPost) ProtoMessage() {}
 
 func (x *PublishedPost) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[5]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -444,7 +565,7 @@ func (x *PublishedPost) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishedPost.ProtoReflect.Descriptor instead.
 func (*PublishedPost) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{5}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *PublishedPost) GetText() string {
@@ -478,7 +599,7 @@ type GetStatusRequest struct {
 
 func (x *GetStatusRequest) Reset() {
 	*x = GetStatusRequest{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[6]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -490,7 +611,7 @@ func (x *GetStatusRequest) String() string {
 func (*GetStatusRequest) ProtoMessage() {}
 
 func (x *GetStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[6]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -503,7 +624,7 @@ func (x *GetStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetStatusRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{6}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetStatusRequest) GetBrowser() string {
@@ -522,7 +643,7 @@ type GetStatusResponse struct {
 
 func (x *GetStatusResponse) Reset() {
 	*x = GetStatusResponse{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[7]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -534,7 +655,7 @@ func (x *GetStatusResponse) String() string {
 func (*GetStatusResponse) ProtoMessage() {}
 
 func (x *GetStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[7]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -547,7 +668,7 @@ func (x *GetStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetStatusResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{7}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetStatusResponse) GetStatus() *Status {
@@ -579,7 +700,7 @@ type SchedulePostRequest struct {
 
 func (x *SchedulePostRequest) Reset() {
 	*x = SchedulePostRequest{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[8]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -591,7 +712,7 @@ func (x *SchedulePostRequest) String() string {
 func (*SchedulePostRequest) ProtoMessage() {}
 
 func (x *SchedulePostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[8]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -604,7 +725,7 @@ func (x *SchedulePostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulePostRequest.ProtoReflect.Descriptor instead.
 func (*SchedulePostRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{8}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SchedulePostRequest) GetBrowser() string {
@@ -653,7 +774,7 @@ type SchedulePostResponse struct {
 
 func (x *SchedulePostResponse) Reset() {
 	*x = SchedulePostResponse{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[9]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -665,7 +786,7 @@ func (x *SchedulePostResponse) String() string {
 func (*SchedulePostResponse) ProtoMessage() {}
 
 func (x *SchedulePostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[9]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +799,7 @@ func (x *SchedulePostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulePostResponse.ProtoReflect.Descriptor instead.
 func (*SchedulePostResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{9}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SchedulePostResponse) GetShown() string {
@@ -704,7 +825,7 @@ type ListScheduledRequest struct {
 
 func (x *ListScheduledRequest) Reset() {
 	*x = ListScheduledRequest{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[10]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -716,7 +837,7 @@ func (x *ListScheduledRequest) String() string {
 func (*ListScheduledRequest) ProtoMessage() {}
 
 func (x *ListScheduledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[10]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +850,7 @@ func (x *ListScheduledRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListScheduledRequest.ProtoReflect.Descriptor instead.
 func (*ListScheduledRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{10}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListScheduledRequest) GetBrowser() string {
@@ -748,7 +869,7 @@ type ListScheduledResponse struct {
 
 func (x *ListScheduledResponse) Reset() {
 	*x = ListScheduledResponse{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[11]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -760,7 +881,7 @@ func (x *ListScheduledResponse) String() string {
 func (*ListScheduledResponse) ProtoMessage() {}
 
 func (x *ListScheduledResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[11]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -773,7 +894,7 @@ func (x *ListScheduledResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListScheduledResponse.ProtoReflect.Descriptor instead.
 func (*ListScheduledResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{11}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListScheduledResponse) GetThreads() []*ScheduledThread {
@@ -794,7 +915,7 @@ type ListPostsRequest struct {
 
 func (x *ListPostsRequest) Reset() {
 	*x = ListPostsRequest{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[12]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -806,7 +927,7 @@ func (x *ListPostsRequest) String() string {
 func (*ListPostsRequest) ProtoMessage() {}
 
 func (x *ListPostsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[12]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -819,7 +940,7 @@ func (x *ListPostsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPostsRequest.ProtoReflect.Descriptor instead.
 func (*ListPostsRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{12}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListPostsRequest) GetBrowser() string {
@@ -845,7 +966,7 @@ type ListPostsResponse struct {
 
 func (x *ListPostsResponse) Reset() {
 	*x = ListPostsResponse{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[13]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -857,7 +978,7 @@ func (x *ListPostsResponse) String() string {
 func (*ListPostsResponse) ProtoMessage() {}
 
 func (x *ListPostsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[13]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -870,7 +991,7 @@ func (x *ListPostsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPostsResponse.ProtoReflect.Descriptor instead.
 func (*ListPostsResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{13}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListPostsResponse) GetPosts() []*PublishedPost {
@@ -895,7 +1016,7 @@ type DownloadPostRequest struct {
 
 func (x *DownloadPostRequest) Reset() {
 	*x = DownloadPostRequest{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[14]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -907,7 +1028,7 @@ func (x *DownloadPostRequest) String() string {
 func (*DownloadPostRequest) ProtoMessage() {}
 
 func (x *DownloadPostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[14]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -920,7 +1041,7 @@ func (x *DownloadPostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadPostRequest.ProtoReflect.Descriptor instead.
 func (*DownloadPostRequest) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{14}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DownloadPostRequest) GetBrowser() string {
@@ -953,7 +1074,7 @@ type DownloadPostResponse struct {
 
 func (x *DownloadPostResponse) Reset() {
 	*x = DownloadPostResponse{}
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[15]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -965,7 +1086,7 @@ func (x *DownloadPostResponse) String() string {
 func (*DownloadPostResponse) ProtoMessage() {}
 
 func (x *DownloadPostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_remote_x_v1_x_proto_msgTypes[15]
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -978,7 +1099,7 @@ func (x *DownloadPostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadPostResponse.ProtoReflect.Descriptor instead.
 func (*DownloadPostResponse) Descriptor() ([]byte, []int) {
-	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{15}
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *DownloadPostResponse) GetPost() *DownloadedPost {
@@ -988,11 +1109,247 @@ func (x *DownloadPostResponse) GetPost() *DownloadedPost {
 	return nil
 }
 
+type ListRepostsRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Browser string                 `protobuf:"bytes,1,opt,name=browser,proto3" json:"browser,omitempty"`
+	// The most reposts to list; 0 means the service's default, 20.
+	Limit uint32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Whose reposts, without the @; empty means the signed-in account's.
+	// Another account's are read from its public Reposts tab.
+	Handle        string `protobuf:"bytes,3,opt,name=handle,proto3" json:"handle,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRepostsRequest) Reset() {
+	*x = ListRepostsRequest{}
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepostsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepostsRequest) ProtoMessage() {}
+
+func (x *ListRepostsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepostsRequest.ProtoReflect.Descriptor instead.
+func (*ListRepostsRequest) Descriptor() ([]byte, []int) {
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ListRepostsRequest) GetBrowser() string {
+	if x != nil {
+		return x.Browser
+	}
+	return ""
+}
+
+func (x *ListRepostsRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListRepostsRequest) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+type ListRepostsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The latest repost first.
+	Reposts []*Repost `protobuf:"bytes,1,rep,name=reposts,proto3" json:"reposts,omitempty"`
+	// Whose reposts they are, without the @.
+	Account       string `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRepostsResponse) Reset() {
+	*x = ListRepostsResponse{}
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepostsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepostsResponse) ProtoMessage() {}
+
+func (x *ListRepostsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepostsResponse.ProtoReflect.Descriptor instead.
+func (*ListRepostsResponse) Descriptor() ([]byte, []int) {
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListRepostsResponse) GetReposts() []*Repost {
+	if x != nil {
+		return x.Reposts
+	}
+	return nil
+}
+
+func (x *ListRepostsResponse) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+type UnrepostRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Browser string                 `protobuf:"bytes,1,opt,name=browser,proto3" json:"browser,omitempty"`
+	// The post's link (https://x.com/<user>/status/<id>; twitter.com,
+	// mobile., /photo/1 and ?s= forms too) or its id.
+	Link          string `protobuf:"bytes,2,opt,name=link,proto3" json:"link,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnrepostRequest) Reset() {
+	*x = UnrepostRequest{}
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnrepostRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnrepostRequest) ProtoMessage() {}
+
+func (x *UnrepostRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnrepostRequest.ProtoReflect.Descriptor instead.
+func (*UnrepostRequest) Descriptor() ([]byte, []int) {
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *UnrepostRequest) GetBrowser() string {
+	if x != nil {
+		return x.Browser
+	}
+	return ""
+}
+
+func (x *UnrepostRequest) GetLink() string {
+	if x != nil {
+		return x.Link
+	}
+	return ""
+}
+
+type UnrepostResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The post's link, https://x.com/<handle>/status/<id>.
+	Link string `protobuf:"bytes,1,opt,name=link,proto3" json:"link,omitempty"`
+	// True when the repost was undone; false when the account had not
+	// reposted the post, so nothing was pressed.
+	Undone        bool `protobuf:"varint,2,opt,name=undone,proto3" json:"undone,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnrepostResponse) Reset() {
+	*x = UnrepostResponse{}
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnrepostResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnrepostResponse) ProtoMessage() {}
+
+func (x *UnrepostResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_remote_x_v1_x_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnrepostResponse.ProtoReflect.Descriptor instead.
+func (*UnrepostResponse) Descriptor() ([]byte, []int) {
+	return file_san_remote_x_v1_x_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *UnrepostResponse) GetLink() string {
+	if x != nil {
+		return x.Link
+	}
+	return ""
+}
+
+func (x *UnrepostResponse) GetUndone() bool {
+	if x != nil {
+		return x.Undone
+	}
+	return false
+}
+
 var File_san_remote_x_v1_x_proto protoreflect.FileDescriptor
 
 const file_san_remote_x_v1_x_proto_rawDesc = "" +
 	"\n" +
-	"\x17san/remote/x/v1/x.proto\x12\x0fsan.remote.x.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xaa\x02\n" +
+	"\x17san/remote/x/v1/x.proto\x12\x0fsan.remote.x.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x91\x02\n" +
+	"\x06Repost\x12\x12\n" +
+	"\x04link\x18\x01 \x01(\tR\x04link\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\x12\x16\n" +
+	"\x06author\x18\x03 \x01(\tR\x06author\x12\x16\n" +
+	"\x06handle\x18\x04 \x01(\tR\x06handle\x12\x12\n" +
+	"\x04text\x18\x05 \x01(\tR\x04text\x124\n" +
+	"\acreated\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\acreated\x126\n" +
+	"\breposted\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\breposted\x12\x1b\n" +
+	"\thas_media\x18\b \x01(\bR\bhasMedia\x12\x14\n" +
+	"\x05media\x18\t \x03(\tR\x05media\"\xaa\x02\n" +
 	"\x0eDownloadedPost\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04link\x18\x02 \x01(\tR\x04link\x12\x16\n" +
@@ -1053,13 +1410,28 @@ const file_san_remote_x_v1_x_proto_rawDesc = "" +
 	"\x04link\x18\x02 \x01(\tR\x04link\x12\x10\n" +
 	"\x03out\x18\x03 \x01(\tR\x03out\"K\n" +
 	"\x14DownloadPostResponse\x123\n" +
-	"\x04post\x18\x01 \x01(\v2\x1f.san.remote.x.v1.DownloadedPostR\x04post2\xcc\x03\n" +
+	"\x04post\x18\x01 \x01(\v2\x1f.san.remote.x.v1.DownloadedPostR\x04post\"\\\n" +
+	"\x12ListRepostsRequest\x12\x18\n" +
+	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\rR\x05limit\x12\x16\n" +
+	"\x06handle\x18\x03 \x01(\tR\x06handle\"b\n" +
+	"\x13ListRepostsResponse\x121\n" +
+	"\areposts\x18\x01 \x03(\v2\x17.san.remote.x.v1.RepostR\areposts\x12\x18\n" +
+	"\aaccount\x18\x02 \x01(\tR\aaccount\"?\n" +
+	"\x0fUnrepostRequest\x12\x18\n" +
+	"\abrowser\x18\x01 \x01(\tR\abrowser\x12\x12\n" +
+	"\x04link\x18\x02 \x01(\tR\x04link\">\n" +
+	"\x10UnrepostResponse\x12\x12\n" +
+	"\x04link\x18\x01 \x01(\tR\x04link\x12\x16\n" +
+	"\x06undone\x18\x02 \x01(\bR\x06undone2\xf7\x04\n" +
 	"\bXService\x12R\n" +
 	"\tGetStatus\x12!.san.remote.x.v1.GetStatusRequest\x1a\".san.remote.x.v1.GetStatusResponse\x12[\n" +
 	"\fSchedulePost\x12$.san.remote.x.v1.SchedulePostRequest\x1a%.san.remote.x.v1.SchedulePostResponse\x12^\n" +
 	"\rListScheduled\x12%.san.remote.x.v1.ListScheduledRequest\x1a&.san.remote.x.v1.ListScheduledResponse\x12R\n" +
 	"\tListPosts\x12!.san.remote.x.v1.ListPostsRequest\x1a\".san.remote.x.v1.ListPostsResponse\x12[\n" +
-	"\fDownloadPost\x12$.san.remote.x.v1.DownloadPostRequest\x1a%.san.remote.x.v1.DownloadPostResponseB\xb6\x01\n" +
+	"\fDownloadPost\x12$.san.remote.x.v1.DownloadPostRequest\x1a%.san.remote.x.v1.DownloadPostResponse\x12X\n" +
+	"\vListReposts\x12#.san.remote.x.v1.ListRepostsRequest\x1a$.san.remote.x.v1.ListRepostsResponse\x12O\n" +
+	"\bUnrepost\x12 .san.remote.x.v1.UnrepostRequest\x1a!.san.remote.x.v1.UnrepostResponseB\xb6\x01\n" +
 	"\x13com.san.remote.x.v1B\x06XProtoP\x01Z8github.com/wargasipil/san_remote/gen/san/remote/x/v1;xv1\xa2\x02\x03SRX\xaa\x02\x0fSan.Remote.X.V1\xca\x02\x0fSan\\Remote\\X\\V1\xe2\x02\x1bSan\\Remote\\X\\V1\\GPBMetadata\xea\x02\x12San::Remote::X::V1b\x06proto3"
 
 var (
@@ -1074,53 +1446,65 @@ func file_san_remote_x_v1_x_proto_rawDescGZIP() []byte {
 	return file_san_remote_x_v1_x_proto_rawDescData
 }
 
-var file_san_remote_x_v1_x_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_san_remote_x_v1_x_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_san_remote_x_v1_x_proto_goTypes = []any{
-	(*DownloadedPost)(nil),        // 0: san.remote.x.v1.DownloadedPost
-	(*DownloadedMedia)(nil),       // 1: san.remote.x.v1.DownloadedMedia
-	(*Status)(nil),                // 2: san.remote.x.v1.Status
-	(*Post)(nil),                  // 3: san.remote.x.v1.Post
-	(*ScheduledThread)(nil),       // 4: san.remote.x.v1.ScheduledThread
-	(*PublishedPost)(nil),         // 5: san.remote.x.v1.PublishedPost
-	(*GetStatusRequest)(nil),      // 6: san.remote.x.v1.GetStatusRequest
-	(*GetStatusResponse)(nil),     // 7: san.remote.x.v1.GetStatusResponse
-	(*SchedulePostRequest)(nil),   // 8: san.remote.x.v1.SchedulePostRequest
-	(*SchedulePostResponse)(nil),  // 9: san.remote.x.v1.SchedulePostResponse
-	(*ListScheduledRequest)(nil),  // 10: san.remote.x.v1.ListScheduledRequest
-	(*ListScheduledResponse)(nil), // 11: san.remote.x.v1.ListScheduledResponse
-	(*ListPostsRequest)(nil),      // 12: san.remote.x.v1.ListPostsRequest
-	(*ListPostsResponse)(nil),     // 13: san.remote.x.v1.ListPostsResponse
-	(*DownloadPostRequest)(nil),   // 14: san.remote.x.v1.DownloadPostRequest
-	(*DownloadPostResponse)(nil),  // 15: san.remote.x.v1.DownloadPostResponse
-	(*timestamppb.Timestamp)(nil), // 16: google.protobuf.Timestamp
+	(*Repost)(nil),                // 0: san.remote.x.v1.Repost
+	(*DownloadedPost)(nil),        // 1: san.remote.x.v1.DownloadedPost
+	(*DownloadedMedia)(nil),       // 2: san.remote.x.v1.DownloadedMedia
+	(*Status)(nil),                // 3: san.remote.x.v1.Status
+	(*Post)(nil),                  // 4: san.remote.x.v1.Post
+	(*ScheduledThread)(nil),       // 5: san.remote.x.v1.ScheduledThread
+	(*PublishedPost)(nil),         // 6: san.remote.x.v1.PublishedPost
+	(*GetStatusRequest)(nil),      // 7: san.remote.x.v1.GetStatusRequest
+	(*GetStatusResponse)(nil),     // 8: san.remote.x.v1.GetStatusResponse
+	(*SchedulePostRequest)(nil),   // 9: san.remote.x.v1.SchedulePostRequest
+	(*SchedulePostResponse)(nil),  // 10: san.remote.x.v1.SchedulePostResponse
+	(*ListScheduledRequest)(nil),  // 11: san.remote.x.v1.ListScheduledRequest
+	(*ListScheduledResponse)(nil), // 12: san.remote.x.v1.ListScheduledResponse
+	(*ListPostsRequest)(nil),      // 13: san.remote.x.v1.ListPostsRequest
+	(*ListPostsResponse)(nil),     // 14: san.remote.x.v1.ListPostsResponse
+	(*DownloadPostRequest)(nil),   // 15: san.remote.x.v1.DownloadPostRequest
+	(*DownloadPostResponse)(nil),  // 16: san.remote.x.v1.DownloadPostResponse
+	(*ListRepostsRequest)(nil),    // 17: san.remote.x.v1.ListRepostsRequest
+	(*ListRepostsResponse)(nil),   // 18: san.remote.x.v1.ListRepostsResponse
+	(*UnrepostRequest)(nil),       // 19: san.remote.x.v1.UnrepostRequest
+	(*UnrepostResponse)(nil),      // 20: san.remote.x.v1.UnrepostResponse
+	(*timestamppb.Timestamp)(nil), // 21: google.protobuf.Timestamp
 }
 var file_san_remote_x_v1_x_proto_depIdxs = []int32{
-	16, // 0: san.remote.x.v1.DownloadedPost.created:type_name -> google.protobuf.Timestamp
-	1,  // 1: san.remote.x.v1.DownloadedPost.media:type_name -> san.remote.x.v1.DownloadedMedia
-	16, // 2: san.remote.x.v1.ScheduledThread.at:type_name -> google.protobuf.Timestamp
-	16, // 3: san.remote.x.v1.PublishedPost.at:type_name -> google.protobuf.Timestamp
-	2,  // 4: san.remote.x.v1.GetStatusResponse.status:type_name -> san.remote.x.v1.Status
-	3,  // 5: san.remote.x.v1.SchedulePostRequest.posts:type_name -> san.remote.x.v1.Post
-	16, // 6: san.remote.x.v1.SchedulePostRequest.at:type_name -> google.protobuf.Timestamp
-	16, // 7: san.remote.x.v1.SchedulePostResponse.at:type_name -> google.protobuf.Timestamp
-	4,  // 8: san.remote.x.v1.ListScheduledResponse.threads:type_name -> san.remote.x.v1.ScheduledThread
-	5,  // 9: san.remote.x.v1.ListPostsResponse.posts:type_name -> san.remote.x.v1.PublishedPost
-	0,  // 10: san.remote.x.v1.DownloadPostResponse.post:type_name -> san.remote.x.v1.DownloadedPost
-	6,  // 11: san.remote.x.v1.XService.GetStatus:input_type -> san.remote.x.v1.GetStatusRequest
-	8,  // 12: san.remote.x.v1.XService.SchedulePost:input_type -> san.remote.x.v1.SchedulePostRequest
-	10, // 13: san.remote.x.v1.XService.ListScheduled:input_type -> san.remote.x.v1.ListScheduledRequest
-	12, // 14: san.remote.x.v1.XService.ListPosts:input_type -> san.remote.x.v1.ListPostsRequest
-	14, // 15: san.remote.x.v1.XService.DownloadPost:input_type -> san.remote.x.v1.DownloadPostRequest
-	7,  // 16: san.remote.x.v1.XService.GetStatus:output_type -> san.remote.x.v1.GetStatusResponse
-	9,  // 17: san.remote.x.v1.XService.SchedulePost:output_type -> san.remote.x.v1.SchedulePostResponse
-	11, // 18: san.remote.x.v1.XService.ListScheduled:output_type -> san.remote.x.v1.ListScheduledResponse
-	13, // 19: san.remote.x.v1.XService.ListPosts:output_type -> san.remote.x.v1.ListPostsResponse
-	15, // 20: san.remote.x.v1.XService.DownloadPost:output_type -> san.remote.x.v1.DownloadPostResponse
-	16, // [16:21] is the sub-list for method output_type
-	11, // [11:16] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	21, // 0: san.remote.x.v1.Repost.created:type_name -> google.protobuf.Timestamp
+	21, // 1: san.remote.x.v1.Repost.reposted:type_name -> google.protobuf.Timestamp
+	21, // 2: san.remote.x.v1.DownloadedPost.created:type_name -> google.protobuf.Timestamp
+	2,  // 3: san.remote.x.v1.DownloadedPost.media:type_name -> san.remote.x.v1.DownloadedMedia
+	21, // 4: san.remote.x.v1.ScheduledThread.at:type_name -> google.protobuf.Timestamp
+	21, // 5: san.remote.x.v1.PublishedPost.at:type_name -> google.protobuf.Timestamp
+	3,  // 6: san.remote.x.v1.GetStatusResponse.status:type_name -> san.remote.x.v1.Status
+	4,  // 7: san.remote.x.v1.SchedulePostRequest.posts:type_name -> san.remote.x.v1.Post
+	21, // 8: san.remote.x.v1.SchedulePostRequest.at:type_name -> google.protobuf.Timestamp
+	21, // 9: san.remote.x.v1.SchedulePostResponse.at:type_name -> google.protobuf.Timestamp
+	5,  // 10: san.remote.x.v1.ListScheduledResponse.threads:type_name -> san.remote.x.v1.ScheduledThread
+	6,  // 11: san.remote.x.v1.ListPostsResponse.posts:type_name -> san.remote.x.v1.PublishedPost
+	1,  // 12: san.remote.x.v1.DownloadPostResponse.post:type_name -> san.remote.x.v1.DownloadedPost
+	0,  // 13: san.remote.x.v1.ListRepostsResponse.reposts:type_name -> san.remote.x.v1.Repost
+	7,  // 14: san.remote.x.v1.XService.GetStatus:input_type -> san.remote.x.v1.GetStatusRequest
+	9,  // 15: san.remote.x.v1.XService.SchedulePost:input_type -> san.remote.x.v1.SchedulePostRequest
+	11, // 16: san.remote.x.v1.XService.ListScheduled:input_type -> san.remote.x.v1.ListScheduledRequest
+	13, // 17: san.remote.x.v1.XService.ListPosts:input_type -> san.remote.x.v1.ListPostsRequest
+	15, // 18: san.remote.x.v1.XService.DownloadPost:input_type -> san.remote.x.v1.DownloadPostRequest
+	17, // 19: san.remote.x.v1.XService.ListReposts:input_type -> san.remote.x.v1.ListRepostsRequest
+	19, // 20: san.remote.x.v1.XService.Unrepost:input_type -> san.remote.x.v1.UnrepostRequest
+	8,  // 21: san.remote.x.v1.XService.GetStatus:output_type -> san.remote.x.v1.GetStatusResponse
+	10, // 22: san.remote.x.v1.XService.SchedulePost:output_type -> san.remote.x.v1.SchedulePostResponse
+	12, // 23: san.remote.x.v1.XService.ListScheduled:output_type -> san.remote.x.v1.ListScheduledResponse
+	14, // 24: san.remote.x.v1.XService.ListPosts:output_type -> san.remote.x.v1.ListPostsResponse
+	16, // 25: san.remote.x.v1.XService.DownloadPost:output_type -> san.remote.x.v1.DownloadPostResponse
+	18, // 26: san.remote.x.v1.XService.ListReposts:output_type -> san.remote.x.v1.ListRepostsResponse
+	20, // 27: san.remote.x.v1.XService.Unrepost:output_type -> san.remote.x.v1.UnrepostResponse
+	21, // [21:28] is the sub-list for method output_type
+	14, // [14:21] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_san_remote_x_v1_x_proto_init() }
@@ -1134,7 +1518,7 @@ func file_san_remote_x_v1_x_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_remote_x_v1_x_proto_rawDesc), len(file_san_remote_x_v1_x_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

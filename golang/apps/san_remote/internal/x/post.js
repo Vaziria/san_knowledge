@@ -21,7 +21,19 @@ for (const a of document.querySelectorAll('article[data-testid="tweet"]')) {
   tweet = props(a, (p) => p.tweet?.id_str === ID)?.tweet ?? null;
   if (tweet) break;
 }
-if (!tweet) return null;
+if (!tweet) {
+  // X's tombstone for a post it will not show, in the post's own cell with
+  // no article (2026-11-08: "This Post is from a suspended account. Learn
+  // more"; San: "if is suspend, ignore retry"): gone, so the caller does
+  // not wait its minute for a post that never comes. The tombstone is an
+  // <article> too, without a post's data-testid.
+  const col = document.querySelector('[data-testid="primaryColumn"]');
+  const cells = col ? [...col.querySelectorAll('[data-testid="cellInnerDiv"]')].filter((c) => !c.querySelector('article[data-testid="tweet"]')) : [];
+  if (col && !col.querySelector('article[data-testid="tweet"]')) cells.push(col);
+  const tomb = /^(This Post (is|was|has been|violated)|This post (is|was|has been|violated)|You.re unable to view this Post)/;
+  const why = cells.flatMap((c) => c.innerText.split('\n')).map((s) => s.trim()).find((s) => tomb.test(s));
+  return why ? { gone: why.replace(/\s*Learn more\s*$/, '') } : null;
+}
 const t = tweet.retweeted_status?.id_str ? tweet.retweeted_status : tweet;
 
 const unescape = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');

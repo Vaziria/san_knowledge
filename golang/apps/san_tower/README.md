@@ -845,41 +845,76 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     stream ("1280x720, 3.0 Mbps") and size. It is Vidara's own encoding of
     the video, read through its player in a background tab, and takes as
     long as the stream does.
-  - Vidara Thumbnail (Social › Vidara; `vidarathumb.go`; the user,
-    2026-11-08: "can we have get thumbnail url from vidara video ?, use
-    this sample https://vidara.to/v/8SdwOuKAAk92t", then "Yes" to
-    downloading it by default) reads a video's thumbnail over plain HTTP,
-    without San Remote or a browser: a video's page (`/v/<code>`, and the
-    player's `/e/<code>`) carries it as `og:image`, with no login. Link is
-    the video's link on vidara.to, vidara.so or another of Vidara's domains
-    (`/v/`, `/e/` or `/d/` and the code), its `<iframe>` code (its src), or
-    the bare code. The link's own page is read first (a browser's
-    User-Agent, 20 seconds, 2 MB at most), then
-    `https://vidara.to/v/<code>` when that one does not load, is not there
-    or has no og:image. Mode **Download** (the default) fetches the picture
+  - Vidara Metadata (Social › Vidara; `vidarameta.go`; the user,
+    2026-11-08: "Can we have vidara metadata node video, it contain
+    thumbnail and duration, remove node thumbnail", in place of Vidara
+    Thumbnail: "can we have get thumbnail url from vidara video ?, use this
+    sample https://vidara.to/v/8SdwOuKAAk92t", then "Yes" to downloading
+    it by default) reads a video's details over plain HTTP, without San
+    Remote or a browser, the way Vidara's player does. Link is the video's
+    link on vidara.to, vidara.so or another of Vidara's domains (`/v/`,
+    `/e/` or `/d/` and the code), its `<iframe>` code (its src), or the
+    bare code. In order, each request as a browser (its User-Agent, 20
+    seconds, 2 MB at most):
+    1. The video's page, the link's own first, then
+       `https://vidara.to/v/<code>` when that one does not load, is not
+       there or lacks something: its `og:image` (the thumbnail), its title,
+       and the player's host, which Vidara rotates (`as9u7bgh9.com` for
+       the sample): the /v/ page's `<iframe>`, the /e/ page's `MIRROR`.
+    2. `POST <player host>/api/stream` with `{"filecode": "<code>",
+       "device": "web", "codecs": []}`, as the player sends it: the title,
+       thumbnail, subtitles and `streaming_url`, an HLS master playlist
+       whose token is bound to the IP that asked. vidara.to's own
+       `/api/stream` answers too, but from behind Vidara's front proxy, so
+       its token is the proxy's and its playlist answers 404: it is asked
+       only when the player's host does not answer.
+    3. The master playlist: its best stream (the most pixels, then the most
+       bits a second).
+    4. That stream's playlist: Duration is the sum of its segments
+       (`#EXTINF`), for a playlist that ends (`#EXT-X-ENDLIST`).
+    Setting Thumbnail **Download** (the default) then fetches the picture
     (JPEG, PNG or WebP by its bytes, 2 MB at most, as MovieMov takes) into
     the run's own folder (`<data>/tmp/run-<id>-…/vidara-<code>.jpg`,
     removed when the run ends): Thumbnail is its path, which links straight
     into MovieMov Upload Movie's Thumbnail, so the site keeps a copy of its
-    own. **External Link** fetches no picture and gives only Thumbnail URL
-    (for MovieMov's Thumbnail URL): the picture stays on Vidara's image
-    server, whose random-looking name (`m996yefd.s1q2105.com`) changes as
-    Vidara moves domains, so a kept link can break later. Thumbnail URL is
-    given in both modes: link Thumbnail or Thumbnail URL into the upload,
-    not both. Vidara's thumbnails are small and wide: the sample's is a
-    320x132 JPEG of 3.8 KB, not 16:9, and Vidara offers no bigger one.
-    Found fires when the video has a thumbnail, Not Found when it has none
-    (a link that is not a Vidara video's, such as another player's; a page
-    not there; a page without og:image; a picture not there), logged as a
-    warning, then Done either way. A page that never loads, or a picture
-    that is not one or is over 2 MB, fails the step. Own Thumbnail, when
-    given (a Telegram Form's photo answer), is passed on as Thumbnail and
-    Vidara is not read; only Done fires. So a form's optional photo
-    question and this step give the photo sent, or Vidara's thumbnail when
-    it was skipped (`examples/telegram-moviemov`). Title is the video's
-    title (og:title, else the page's title without the /v/ page's
-    "Watch "), Video ID its code, Embed URL `https://vidara.to/e/<code>`,
-    Width and Height the downloaded picture's size (JPEG and PNG).
+    own, and Thumbnail URL its link. **Link Only** fetches no picture and
+    gives only Thumbnail URL (for MovieMov's Thumbnail URL): the picture
+    stays on Vidara's image server, whose random-looking name
+    (`m996yefd.s1q2105.com`) changes as Vidara moves domains, so a kept
+    link can break later. Link Thumbnail or Thumbnail URL into the upload,
+    never both: given both, the upload refuses. Vidara's thumbnails are
+    small and wide: the sample's is a 320x132 JPEG of about 4 KB, not 16:9,
+    and Vidara offers no bigger one. The outputs, for the sample:
+    - Title (`test`: the API's, else og:title, else the page's title
+      without the /v/ page's "Watch "), Video ID (`8SdwOuKAAk92t`), Embed
+      URL (`https://vidara.to/e/8SdwOuKAAk92t`), Thumbnail, Thumbnail URL.
+    - Duration in seconds (`224.84`), Duration Minutes (whole minutes,
+      rounded, at least 1: `4`, for MovieMov Upload Movie's Duration),
+      Duration Text (`3:45`, or `1:02:03` past an hour).
+    - Width (`1920`), Height (`792`), Frame Rate (`30`), Bitrate (the
+      stream's BANDWIDTH, bits a second: `3000000`) and Codecs
+      (`avc1.640028,mp4a.40.2`) of the best stream. That stream is
+      Vidara's own encoding of the video (H.264), not the file uploaded.
+    - Subtitles: the API's list of subtitles, empty when there are none.
+    - Metadata: all of it as one object for Get Value or Stringify, keys in
+      snake_case (`duration`, `duration_minutes`, `width`, ...), numbers as
+      numbers, plus `thumbnail_width` and `thumbnail_height` of a
+      downloaded picture, `average_bitrate` and `default_subtitle`.
+    A value not found is empty, and left out of Metadata. Found fires when
+    Vidara has the video (a thumbnail or a stream), Not Found when it has
+    not (a link that is not a Vidara video's, such as another player's; a
+    video gone, whose pages answer 404; neither a thumbnail nor a stream),
+    logged as a warning, then Done either way. A part after the page that
+    fails (the API refusing, the playlist not there, a playlist that does
+    not end) only adds a warning naming it: Found still fires with what was
+    found, the stream's outputs empty. Pages that never load, or a picture
+    that is not one or is over 2 MB, fail the step. Own Thumbnail, when
+    given (a Telegram Form's photo answer), is passed on as Thumbnail
+    (Thumbnail URL stays empty) and Vidara's picture is not downloaded; the
+    rest is still read, and Vidara not answering at all is then a warning
+    with only Done, not a failure. So a form's optional photo question and
+    this step give the photo sent, or Vidara's thumbnail when it was
+    skipped, and Vidara's duration either way (`examples/telegram-moviemov`).
   - Medium Article (Social › Medium) writes File, a markdown article (an
     absolute path), or with Source Text the Article input (markdown whose
     images need absolute paths), into a Medium draft, images included; with At it is
@@ -1381,12 +1416,13 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     player's https link or its whole `<iframe>` code) are required; Backup
     Embed URLs (up to 5, Server 2, 3, ...), Thumbnail (a file: JPEG, PNG or
     WebP by its bytes, 2 MB at most as the site counts it, such as Video
-    Thumbnail's File with Aspect 16:9 or Vidara Thumbnail's Thumbnail; a
+    Thumbnail's File with Aspect 16:9 or Vidara Metadata's Thumbnail; a
     relative path is in the data folder) or Thumbnail URL, Categories (up
     to 10, unknown ones are made), Tags (up to 20), Synopsis, Release
     Year (1870 to 2100),
-    Duration (minutes, 1 to 1440) and Slug (empty: the site makes one from
-    the title) are optional. Status Draft (the default) keeps it hidden;
+    Duration (minutes, 1 to 1440, such as Vidara Metadata's Duration
+    Minutes) and Slug (empty: the site makes one from the title) are
+    optional. Status Draft (the default) keeps it hidden;
     Published puts it live now, or at Publish At when that has passed;
     Scheduled puts it live by itself at Publish At, which must be to come.
     Publish At is the picker's time in WIB (`2026-11-09T20:00`), or RFC 3339
@@ -1564,7 +1600,7 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
       fetch at most 20 MB). Both are downloaded (getFile) into the run's
       own folder (`<data>/tmp/run-<id>-…`), removed when the run ends; the
       output is the file's path, so a thumbnail links straight into
-      MovieMov Upload Movie's Thumbnail, or into Vidara Thumbnail's Own
+      MovieMov Upload Movie's Thumbnail, or into Vidara Metadata's Own
       Thumbnail, which gives the Vidara video's own when it was skipped.
     - Date (2026-11-09, 9/11/2026, 9-11-2026, 9 Nov 2026, 17 Agustus 2026)
       and Date Time (the same with a time: 20:00, 20.00, "jam 20.30", "pukul

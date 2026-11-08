@@ -18,10 +18,10 @@ switched off.
   from web_movie (MovieMov Upload Movie).
 - [telegram-moviemov](telegram-moviemov/README.md): MovieMov from a
   Telegram chat: `/start`'s menu, `/upload` (a Telegram Form, then MovieMov
-  Upload Movie, a refusal asking again; a skipped thumbnail is the Vidara
-  video's own, Vidara Thumbnail), `/laporan` (the broken-video
-  reports) and `/hapus` (a slug and Yakin?, then MovieMov Delete Movie),
-  only for the bot's Allowed Users.
+  Upload Movie, a refusal asking again; Vidara Metadata gives the Vidara
+  video's duration, and its thumbnail when none is sent), `/laporan` (the
+  broken-video reports) and `/hapus` (a slug and Yakin?, then MovieMov
+  Delete Movie), only for the bot's Allowed Users.
 
 The trading workflows, with their setup script, are in
 [../workflows/trading](../workflows/trading/README.md).

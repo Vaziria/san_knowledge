@@ -1,7 +1,7 @@
 {
   "format": "san_tower.workflows",
   "version": 1,
-  "exportedAt": "2026-11-08T04:24:40.002090100Z",
+  "exportedAt": "2026-11-08T04:58:16.571154200Z",
   "tower": "dev",
   "workflows": [
     {
@@ -40,12 +40,12 @@
           }
         },
         {
-          "id": "upload_thumb",
-          "kind": "vidara-thumbnail",
+          "id": "upload_vidara",
+          "kind": "vidara-metadata",
           "x": 640,
           "y": 440,
           "values": {
-            "Mode": "Download"
+            "Thumbnail": "Download"
           }
         },
         {
@@ -101,7 +101,7 @@
           }
         },
         {
-          "id": "thumb_failed_text",
+          "id": "vidara_failed_text",
           "kind": "format-text",
           "x": 1280,
           "y": 1440,
@@ -110,7 +110,7 @@
           }
         },
         {
-          "id": "thumb_failed_send",
+          "id": "vidara_failed_send",
           "kind": "telegram-send",
           "x": 1600,
           "y": 1440,
@@ -292,23 +292,23 @@
         {
           "source": "upload_form",
           "sourceSocket": "Done",
-          "target": "upload_thumb",
+          "target": "upload_vidara",
           "targetSocket": "Event"
         },
         {
           "source": "upload_form",
           "sourceSocket": "link",
-          "target": "upload_thumb",
+          "target": "upload_vidara",
           "targetSocket": "Link"
         },
         {
           "source": "upload_form",
           "sourceSocket": "thumbnail",
-          "target": "upload_thumb",
+          "target": "upload_vidara",
           "targetSocket": "Own Thumbnail"
         },
         {
-          "source": "upload_thumb",
+          "source": "upload_vidara",
           "sourceSocket": "Done",
           "target": "upload",
           "targetSocket": "Event"
@@ -338,10 +338,16 @@
           "targetSocket": "Tags"
         },
         {
-          "source": "upload_thumb",
+          "source": "upload_vidara",
           "sourceSocket": "Thumbnail",
           "target": "upload",
           "targetSocket": "Thumbnail"
+        },
+        {
+          "source": "upload_vidara",
+          "sourceSocket": "Duration Minutes",
+          "target": "upload",
+          "targetSocket": "Duration"
         },
         {
           "source": "upload_form",
@@ -410,27 +416,27 @@
           "targetSocket": "Chat"
         },
         {
-          "source": "upload_thumb",
+          "source": "upload_vidara",
           "sourceSocket": "Failed",
-          "target": "thumb_failed_send",
+          "target": "vidara_failed_send",
           "targetSocket": "Event"
         },
         {
-          "source": "upload_thumb",
+          "source": "upload_vidara",
           "sourceSocket": "Error",
-          "target": "thumb_failed_text",
+          "target": "vidara_failed_text",
           "targetSocket": "Text"
         },
         {
-          "source": "thumb_failed_text",
+          "source": "vidara_failed_text",
           "sourceSocket": "Text",
-          "target": "thumb_failed_send",
+          "target": "vidara_failed_send",
           "targetSocket": "Text"
         },
         {
           "source": "cmd",
           "sourceSocket": "Chat",
-          "target": "thumb_failed_send",
+          "target": "vidara_failed_send",
           "targetSocket": "Chat"
         },
         {
@@ -596,7 +602,7 @@
           "targetSocket": "Chat"
         }
       ],
-      "description": "MovieMov from Telegram: /start shows a menu; /upload asks for a movie in a Telegram Form and uploads it, with the Vidara video's own thumbnail when none is sent; /laporan lists the broken-video reports; /hapus deletes a movie after asking. Only the bot connection's Allowed Users."
+      "description": "MovieMov from Telegram: /start shows a menu; /upload asks for a movie in a Telegram Form and uploads it, with the Vidara video's duration, and its thumbnail when none is sent; /laporan lists the broken-video reports; /hapus deletes a movie after asking. Only the bot connection's Allowed Users."
     }
   ],
   "connections": {

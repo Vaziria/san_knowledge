@@ -232,7 +232,7 @@ var socialKinds = []*kind{
 			return nil
 		},
 	},
-	vidaraThumbnailKind, // vidarathumb.go: plain HTTP, no San Remote
+	vidaraMetadataKind, // vidarameta.go: plain HTTP, no San Remote
 	{
 		StepKind: &v1.StepKind{
 			Kind: "social-status", Title: "Social Status", Category: "Social",

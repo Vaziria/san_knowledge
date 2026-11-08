@@ -19,7 +19,7 @@ tower's README (Workflows › Telegram forms, and The MovieMov steps) and
   `laporan`, `hapus`), so the buttons and the commands lead to the same
   steps.
 - **`/upload`** (or Upload film) runs a Telegram Form, then Vidara
-  Thumbnail and MovieMov Upload Movie, then the bot says "Sudah diupload:
+  Metadata and MovieMov Upload Movie, then the bot says "Sudah diupload:
   <url>". The form's questions:
 
   | Name | Question | Type | Required | Checks |
@@ -32,23 +32,33 @@ tower's README (Workflows › Telegram forms, and The MovieMov steps) and
   | `status` | Statusnya? | Choice (Draft, Published) | yes | default Draft ("Pakai Draft") |
 
   Each answer is linked to the upload's input: Title, Embed URL,
-  Categories, Tags and Status Value (Status From Input). The thumbnail
-  goes through a **Vidara Thumbnail** step first (the user, 2026-11-08:
-  when the question is skipped, Vidara's thumbnail is used), whose
-  Thumbnail is the upload's:
-  - A photo sent is its Own Thumbnail, passed on as it is; Vidara is not
-    read.
-  - Skipped (Lewati), it reads the `link` answer's Vidara video and, with
-    Mode Download, saves its thumbnail in the run's folder, which MovieMov
-    Upload Movie sends as a file, so the site keeps its own copy. Vidara's
-    thumbnails are small and wide (320x132), not 16:9. Mode External Link
-    would give only Vidara's picture link (link its Thumbnail URL to the
-    upload's Thumbnail URL then), which breaks when Vidara moves domains.
-  - A link that is not a Vidara video's, or a video without a thumbnail,
-    goes up without one (Not Found, then Done).
-  - When Vidara's page does not load, the bot says "Gagal ambil thumbnail
-    dari Vidara: …. Coba /upload lagi dan kirim fotonya." and nothing is
-    uploaded.
+  Categories, Tags and Status Value (Status From Input). The `link` and
+  `thumbnail` answers go through a **Vidara Metadata** step first (the
+  user, 2026-11-08: a skipped thumbnail question means Vidara's
+  thumbnail; then "Can we have vidara metadata node video, it contain
+  thumbnail and duration"), whose Thumbnail is the upload's Thumbnail and
+  whose Duration Minutes is the upload's Duration:
+  - A photo sent is its Own Thumbnail, passed on as it is; Vidara's picture
+    is not downloaded, but the video's duration is still read.
+  - Skipped (Lewati), with Thumbnail Download it saves the Vidara video's
+    thumbnail in the run's folder, which MovieMov Upload Movie sends as a
+    file, so the site keeps its own copy. Vidara's thumbnails are small
+    and wide (320x132), not 16:9. Thumbnail Link Only would give only
+    Vidara's picture link, which breaks when Vidara moves domains: link
+    its Thumbnail URL to the upload's Thumbnail URL then, instead of
+    Thumbnail, since the upload refuses both.
+  - The duration is not asked: Vidara's stream gives it (224.84 seconds
+    for the sample, from its HLS playlist), sent as whole minutes,
+    rounded and at least 1 (4), as the site's `duration_minutes`. When
+    Vidara gives no stream, the movie goes up without a duration and the
+    step logs a warning; set it on the site if needed.
+  - A link that is not a Vidara video's, or a video Vidara no longer has,
+    goes up without a thumbnail (unless a photo was sent) and without a
+    duration (Not Found, then Done).
+  - When Vidara's page does not load and no photo was sent, the bot says
+    "Gagal ambil thumbnail dari Vidara: …. Coba /upload lagi dan kirim
+    fotonya." and nothing is uploaded. With a photo sent, the movie goes
+    up with it, without a duration.
 
   When the site refuses the movie (422, such as "The slug has already been
   taken."), Refused and Errors go back to the form's Fix and Errors. The

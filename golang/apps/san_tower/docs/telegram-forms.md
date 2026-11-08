@@ -46,8 +46,8 @@ them.
 ## 3. Questions: "b", written by hand in the Telegram Form
 
 - Questions are a table edited row by row on the step: Name, Question,
-  Type, Required, Default, Choices, Min, Max, Starts With, File Types and
-  Field.
+  Type, Required, Default, Choices, Custom, Min, Max, Starts With, File
+  Types and Field (Custom and the choices input: section 7).
 - Types:
   - Text, Number, Link, Link or Iframe
   - Choice, and Multiple Choice (buttons with ✅, then Selesai)
@@ -118,6 +118,48 @@ them.
     when the form ends.
   - At start, every row left over is a form the stop cut off. The bot
     tells that chat "Maaf, form terputus, silakan mulai lagi".
+
+## 7. Typed choices, and choices from the site
+
+Two asks of the same day, built together:
+
+- "In ask category can it optional to send custom text and create
+  automatically" (then "I mean in moviemov node"): the kategori question
+  took only its buttons. A question column **Custom** (No, the default, or
+  Yes), shown for Choice and Multiple Choice:
+  - Multiple Choice: the person may also type names, several separated by
+    commas or lines. A name that is a choice by its slug (`sci fi` is
+    `Sci-Fi`, any case) ticks it; any other becomes a ticked ✅ button of
+    its own, which unticks like the others. Empty names are dropped, the
+    same name twice is one (its first spelling), each is up to 50
+    characters (MovieMov's most for a tag). Max counts every tick.
+  - Typing does not end the question; Selesai does, tapped or typed. That
+    keeps one way to finish, lets the person mix taps and typing, and
+    shows each typed name as a button before it is sent, so a typo can be
+    unticked.
+  - The output is the picks in the buttons' order: the choices, then the
+    typed names.
+  - Choice: a text typed is the answer (a choice's spelling when it is one).
+  - Default and Prefill may be names that are none of the choices.
+  - Nothing is needed on the site: web_movie makes unknown categories and
+    tags on upload, matched by slug.
+- The tag buttons "from the tags already on moviemov.id" (San's "2"):
+  - Each Choice and Multiple Choice question has its own data input,
+    `<name> Choices` (`kategori Choices`, `tag Choices`), made from the
+    Questions table like the per-question outputs: `StepKind.inputs_from`,
+    worked out by `engine.StepInputs` (which the run reads the inputs
+    through) and the editor's `stepInputs`. Renaming a question moves the
+    input's link, and removing it, or making it another type, drops it.
+  - The buttons are the Choices column first, then the input's names that
+    are not there already (by slug), 60 at most. Choices may be empty when
+    the input or Custom gives them; with no buttons and no Custom the step
+    fails, saying so.
+  - **MovieMov Categories and Tags** (Web › MovieMov) reads the site's
+    public `GET /categories` and `GET /tags` (no login), Order Most Used
+    or Name, Limit 10 of each by default. Its Categories and Tags link
+    straight into `kategori Choices` and `tag Choices`. It needs an Event,
+    so it runs before the form, once per run (a Fix asks again with the
+    same buttons).
 
 ## Routing
 

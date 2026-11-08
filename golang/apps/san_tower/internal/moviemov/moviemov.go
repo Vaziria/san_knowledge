@@ -563,6 +563,29 @@ func (c *Client) Reports(ctx context.Context) ([]json.RawMessage, error) {
 	return a.Data, err
 }
 
+// Categories lists the site's categories by name (GET /categories, a
+// public list: no login): id, name, slug, description, movies_count (of
+// published movies) and url.
+func (c *Client) Categories(ctx context.Context) ([]json.RawMessage, error) {
+	return c.public(ctx, "/categories")
+}
+
+// Tags lists the tags of the site's published movies, the most used first
+// (GET /tags, a public list: no login): id, name, slug, movies_count and
+// url.
+func (c *Client) Tags(ctx context.Context) ([]json.RawMessage, error) {
+	return c.public(ctx, "/tags")
+}
+
+// public reads a public list's data, without a token.
+func (c *Client) public(ctx context.Context, p string) ([]json.RawMessage, error) {
+	var a struct {
+		Data []json.RawMessage `json:"data"`
+	}
+	_, err := c.send(ctx, http.MethodGet, p, nil, "", nil, "", &a)
+	return a.Data, err
+}
+
 // ResolveReport marks every open report of movie slug fixed (POST
 // /reports/{slug}/resolve) and says how many there were.
 func (c *Client) ResolveReport(ctx context.Context, slug string) (int, error) {

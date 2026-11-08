@@ -168,7 +168,14 @@ type StepKind struct {
 	// (the user, 2026-11-08: "adding a question named judul adds a judul
 	// output"). The editor and the engine work them out from the step's
 	// values (engine.StepOutputs); renaming a row renames its output.
-	OutputsFrom   []*SocketsFrom `protobuf:"bytes,11,rep,name=outputs_from,json=outputsFrom,proto3" json:"outputs_from,omitempty"`
+	OutputsFrom []*SocketsFrom `protobuf:"bytes,11,rep,name=outputs_from,json=outputsFrom,proto3" json:"outputs_from,omitempty"`
+	// inputs_from are inputs a step of this kind has by its settings, as
+	// outputs_from are outputs: a Telegram Form's "kategori Choices" for
+	// each Choice or Multiple Choice question, so its buttons can come from
+	// another step (the user, 2026-11-08: the tag buttons from the tags
+	// already on moviemov.id). engine.StepInputs and the editor's
+	// stepInputs work them out; renaming a row moves its input's link.
+	InputsFrom    []*SocketsFrom `protobuf:"bytes,12,rep,name=inputs_from,json=inputsFrom,proto3" json:"inputs_from,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -280,6 +287,13 @@ func (x *StepKind) GetOutputsFrom() []*SocketsFrom {
 	return nil
 }
 
+func (x *StepKind) GetInputsFrom() []*SocketsFrom {
+	if x != nil {
+		return x.InputsFrom
+	}
+	return nil
+}
+
 // SocketsFrom makes a socket of each row of a table setting (a Setting with
 // columns) that names one.
 type SocketsFrom struct {
@@ -297,8 +311,14 @@ type SocketsFrom struct {
 	Type       string            `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
 	TypeColumn string            `protobuf:"bytes,5,opt,name=type_column,json=typeColumn,proto3" json:"type_column,omitempty"`
 	Types      map[string]string `protobuf:"bytes,6,rep,name=types,proto3" json:"types,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// before is the output they go before; empty: after the others.
-	Before        string `protobuf:"bytes,7,opt,name=before,proto3" json:"before,omitempty"`
+	// before is the socket they go before; empty: after the others.
+	Before string `protobuf:"bytes,7,opt,name=before,proto3" json:"before,omitempty"`
+	// suffix goes after the row's value: " Choices" makes "kategori Choices".
+	Suffix string `protobuf:"bytes,8,opt,name=suffix,proto3" json:"suffix,omitempty"`
+	// when: only the rows it holds for make a socket, as a Column's when
+	// ("Type=Choice|Multiple Choice"; a column left empty is its first
+	// option).
+	When          string `protobuf:"bytes,9,opt,name=when,proto3" json:"when,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -378,6 +398,20 @@ func (x *SocketsFrom) GetTypes() map[string]string {
 func (x *SocketsFrom) GetBefore() string {
 	if x != nil {
 		return x.Before
+	}
+	return ""
+}
+
+func (x *SocketsFrom) GetSuffix() string {
+	if x != nil {
+		return x.Suffix
+	}
+	return ""
+}
+
+func (x *SocketsFrom) GetWhen() string {
+	if x != nil {
+		return x.When
 	}
 	return ""
 }
@@ -3518,7 +3552,7 @@ var File_san_tower_v1_workflow_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\n" +
-	"\x1bsan/tower/v1/workflow.proto\x12\fsan.tower.v1\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8d\x03\n" +
+	"\x1bsan/tower/v1/workflow.proto\x12\fsan.tower.v1\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc9\x03\n" +
 	"\bStepKind\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
@@ -3531,7 +3565,9 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\x05group\x18\t \x01(\tR\x05group\x12\x18\n" +
 	"\atrigger\x18\n" +
 	" \x01(\bR\atrigger\x12<\n" +
-	"\foutputs_from\x18\v \x03(\v2\x19.san.tower.v1.SocketsFromR\voutputsFrom\"\x9a\x02\n" +
+	"\foutputs_from\x18\v \x03(\v2\x19.san.tower.v1.SocketsFromR\voutputsFrom\x12:\n" +
+	"\vinputs_from\x18\f \x03(\v2\x19.san.tower.v1.SocketsFromR\n" +
+	"inputsFrom\"\xc6\x02\n" +
 	"\vSocketsFrom\x12\x18\n" +
 	"\asetting\x18\x01 \x01(\tR\asetting\x12\x16\n" +
 	"\x06column\x18\x02 \x01(\tR\x06column\x12\x16\n" +
@@ -3540,7 +3576,9 @@ const file_san_tower_v1_workflow_proto_rawDesc = "" +
 	"\vtype_column\x18\x05 \x01(\tR\n" +
 	"typeColumn\x12:\n" +
 	"\x05types\x18\x06 \x03(\v2$.san.tower.v1.SocketsFrom.TypesEntryR\x05types\x12\x16\n" +
-	"\x06before\x18\a \x01(\tR\x06before\x1a8\n" +
+	"\x06before\x18\a \x01(\tR\x06before\x12\x16\n" +
+	"\x06suffix\x18\b \x01(\tR\x06suffix\x12\x12\n" +
+	"\x04when\x18\t \x01(\tR\x04when\x1a8\n" +
 	"\n" +
 	"TypesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -3900,94 +3938,95 @@ var file_san_tower_v1_workflow_proto_depIdxs = []int32{
 	5,  // 1: san.tower.v1.StepKind.settings:type_name -> san.tower.v1.Setting
 	4,  // 2: san.tower.v1.StepKind.inputs:type_name -> san.tower.v1.Socket
 	3,  // 3: san.tower.v1.StepKind.outputs_from:type_name -> san.tower.v1.SocketsFrom
-	55, // 4: san.tower.v1.SocketsFrom.types:type_name -> san.tower.v1.SocketsFrom.TypesEntry
-	6,  // 5: san.tower.v1.Setting.columns:type_name -> san.tower.v1.Column
-	8,  // 6: san.tower.v1.Workflow.steps:type_name -> san.tower.v1.Step
-	9,  // 7: san.tower.v1.Workflow.links:type_name -> san.tower.v1.Link
-	61, // 8: san.tower.v1.Workflow.created_at:type_name -> google.protobuf.Timestamp
-	61, // 9: san.tower.v1.Workflow.updated_at:type_name -> google.protobuf.Timestamp
-	11, // 10: san.tower.v1.Workflow.triggers:type_name -> san.tower.v1.TriggerState
-	56, // 11: san.tower.v1.Step.values:type_name -> san.tower.v1.Step.ValuesEntry
-	8,  // 12: san.tower.v1.Graph.steps:type_name -> san.tower.v1.Step
-	9,  // 13: san.tower.v1.Graph.links:type_name -> san.tower.v1.Link
-	61, // 14: san.tower.v1.TriggerState.next:type_name -> google.protobuf.Timestamp
-	61, // 15: san.tower.v1.WorkflowSummary.created_at:type_name -> google.protobuf.Timestamp
-	61, // 16: san.tower.v1.WorkflowSummary.updated_at:type_name -> google.protobuf.Timestamp
-	13, // 17: san.tower.v1.ListFoldersResponse.folders:type_name -> san.tower.v1.Folder
-	13, // 18: san.tower.v1.CreateFolderResponse.folder:type_name -> san.tower.v1.Folder
-	13, // 19: san.tower.v1.UpdateFolderResponse.folder:type_name -> san.tower.v1.Folder
-	0,  // 20: san.tower.v1.Run.status:type_name -> san.tower.v1.RunStatus
-	61, // 21: san.tower.v1.Run.started_at:type_name -> google.protobuf.Timestamp
-	61, // 22: san.tower.v1.Run.finished_at:type_name -> google.protobuf.Timestamp
-	25, // 23: san.tower.v1.Run.steps:type_name -> san.tower.v1.StepRun
-	1,  // 24: san.tower.v1.Run.log_levels:type_name -> san.tower.v1.LogLevel
-	57, // 25: san.tower.v1.StepRun.outputs:type_name -> san.tower.v1.StepRun.OutputsEntry
-	62, // 26: san.tower.v1.StepRun.duration:type_name -> google.protobuf.Duration
-	1,  // 27: san.tower.v1.StepRun.log_levels:type_name -> san.tower.v1.LogLevel
-	25, // 28: san.tower.v1.RunSteps.steps:type_name -> san.tower.v1.StepRun
-	1,  // 29: san.tower.v1.RunSummary.log_levels:type_name -> san.tower.v1.LogLevel
-	2,  // 30: san.tower.v1.ListStepKindsResponse.kinds:type_name -> san.tower.v1.StepKind
-	12, // 31: san.tower.v1.ListWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
-	7,  // 32: san.tower.v1.CreateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
-	7,  // 33: san.tower.v1.GetWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
-	7,  // 34: san.tower.v1.UpdateWorkflowRequest.workflow:type_name -> san.tower.v1.Workflow
-	7,  // 35: san.tower.v1.UpdateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
-	7,  // 36: san.tower.v1.SetWorkflowActiveResponse.workflow:type_name -> san.tower.v1.Workflow
-	24, // 37: san.tower.v1.RunWorkflowResponse.run:type_name -> san.tower.v1.Run
-	0,  // 38: san.tower.v1.ListRunsRequest.statuses:type_name -> san.tower.v1.RunStatus
-	24, // 39: san.tower.v1.ListRunsResponse.runs:type_name -> san.tower.v1.Run
-	24, // 40: san.tower.v1.GetRunResponse.run:type_name -> san.tower.v1.Run
-	12, // 41: san.tower.v1.ImportWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
-	61, // 42: san.tower.v1.WorkflowFile.exported_at:type_name -> google.protobuf.Timestamp
-	53, // 43: san.tower.v1.WorkflowFile.workflows:type_name -> san.tower.v1.ExportedWorkflow
-	58, // 44: san.tower.v1.WorkflowFile.connections:type_name -> san.tower.v1.WorkflowFile.ConnectionsEntry
-	59, // 45: san.tower.v1.WorkflowFile.storages:type_name -> san.tower.v1.WorkflowFile.StoragesEntry
-	60, // 46: san.tower.v1.WorkflowFile.knowledge:type_name -> san.tower.v1.WorkflowFile.KnowledgeEntry
-	8,  // 47: san.tower.v1.ExportedWorkflow.steps:type_name -> san.tower.v1.Step
-	9,  // 48: san.tower.v1.ExportedWorkflow.links:type_name -> san.tower.v1.Link
-	63, // 49: san.tower.v1.StepRun.OutputsEntry.value:type_name -> google.protobuf.Any
-	54, // 50: san.tower.v1.WorkflowFile.ConnectionsEntry.value:type_name -> san.tower.v1.ExportedRef
-	54, // 51: san.tower.v1.WorkflowFile.StoragesEntry.value:type_name -> san.tower.v1.ExportedRef
-	54, // 52: san.tower.v1.WorkflowFile.KnowledgeEntry.value:type_name -> san.tower.v1.ExportedRef
-	28, // 53: san.tower.v1.WorkflowService.ListStepKinds:input_type -> san.tower.v1.ListStepKindsRequest
-	30, // 54: san.tower.v1.WorkflowService.ListWorkflows:input_type -> san.tower.v1.ListWorkflowsRequest
-	14, // 55: san.tower.v1.WorkflowService.ListFolders:input_type -> san.tower.v1.ListFoldersRequest
-	16, // 56: san.tower.v1.WorkflowService.CreateFolder:input_type -> san.tower.v1.CreateFolderRequest
-	18, // 57: san.tower.v1.WorkflowService.UpdateFolder:input_type -> san.tower.v1.UpdateFolderRequest
-	20, // 58: san.tower.v1.WorkflowService.DeleteFolder:input_type -> san.tower.v1.DeleteFolderRequest
-	22, // 59: san.tower.v1.WorkflowService.MoveWorkflows:input_type -> san.tower.v1.MoveWorkflowsRequest
-	32, // 60: san.tower.v1.WorkflowService.CreateWorkflow:input_type -> san.tower.v1.CreateWorkflowRequest
-	34, // 61: san.tower.v1.WorkflowService.GetWorkflow:input_type -> san.tower.v1.GetWorkflowRequest
-	36, // 62: san.tower.v1.WorkflowService.UpdateWorkflow:input_type -> san.tower.v1.UpdateWorkflowRequest
-	38, // 63: san.tower.v1.WorkflowService.SetWorkflowActive:input_type -> san.tower.v1.SetWorkflowActiveRequest
-	40, // 64: san.tower.v1.WorkflowService.DeleteWorkflow:input_type -> san.tower.v1.DeleteWorkflowRequest
-	42, // 65: san.tower.v1.WorkflowService.RunWorkflow:input_type -> san.tower.v1.RunWorkflowRequest
-	44, // 66: san.tower.v1.WorkflowService.ListRuns:input_type -> san.tower.v1.ListRunsRequest
-	46, // 67: san.tower.v1.WorkflowService.GetRun:input_type -> san.tower.v1.GetRunRequest
-	48, // 68: san.tower.v1.WorkflowService.ExportWorkflows:input_type -> san.tower.v1.ExportWorkflowsRequest
-	50, // 69: san.tower.v1.WorkflowService.ImportWorkflows:input_type -> san.tower.v1.ImportWorkflowsRequest
-	29, // 70: san.tower.v1.WorkflowService.ListStepKinds:output_type -> san.tower.v1.ListStepKindsResponse
-	31, // 71: san.tower.v1.WorkflowService.ListWorkflows:output_type -> san.tower.v1.ListWorkflowsResponse
-	15, // 72: san.tower.v1.WorkflowService.ListFolders:output_type -> san.tower.v1.ListFoldersResponse
-	17, // 73: san.tower.v1.WorkflowService.CreateFolder:output_type -> san.tower.v1.CreateFolderResponse
-	19, // 74: san.tower.v1.WorkflowService.UpdateFolder:output_type -> san.tower.v1.UpdateFolderResponse
-	21, // 75: san.tower.v1.WorkflowService.DeleteFolder:output_type -> san.tower.v1.DeleteFolderResponse
-	23, // 76: san.tower.v1.WorkflowService.MoveWorkflows:output_type -> san.tower.v1.MoveWorkflowsResponse
-	33, // 77: san.tower.v1.WorkflowService.CreateWorkflow:output_type -> san.tower.v1.CreateWorkflowResponse
-	35, // 78: san.tower.v1.WorkflowService.GetWorkflow:output_type -> san.tower.v1.GetWorkflowResponse
-	37, // 79: san.tower.v1.WorkflowService.UpdateWorkflow:output_type -> san.tower.v1.UpdateWorkflowResponse
-	39, // 80: san.tower.v1.WorkflowService.SetWorkflowActive:output_type -> san.tower.v1.SetWorkflowActiveResponse
-	41, // 81: san.tower.v1.WorkflowService.DeleteWorkflow:output_type -> san.tower.v1.DeleteWorkflowResponse
-	43, // 82: san.tower.v1.WorkflowService.RunWorkflow:output_type -> san.tower.v1.RunWorkflowResponse
-	45, // 83: san.tower.v1.WorkflowService.ListRuns:output_type -> san.tower.v1.ListRunsResponse
-	47, // 84: san.tower.v1.WorkflowService.GetRun:output_type -> san.tower.v1.GetRunResponse
-	49, // 85: san.tower.v1.WorkflowService.ExportWorkflows:output_type -> san.tower.v1.ExportWorkflowsResponse
-	51, // 86: san.tower.v1.WorkflowService.ImportWorkflows:output_type -> san.tower.v1.ImportWorkflowsResponse
-	70, // [70:87] is the sub-list for method output_type
-	53, // [53:70] is the sub-list for method input_type
-	53, // [53:53] is the sub-list for extension type_name
-	53, // [53:53] is the sub-list for extension extendee
-	0,  // [0:53] is the sub-list for field type_name
+	3,  // 4: san.tower.v1.StepKind.inputs_from:type_name -> san.tower.v1.SocketsFrom
+	55, // 5: san.tower.v1.SocketsFrom.types:type_name -> san.tower.v1.SocketsFrom.TypesEntry
+	6,  // 6: san.tower.v1.Setting.columns:type_name -> san.tower.v1.Column
+	8,  // 7: san.tower.v1.Workflow.steps:type_name -> san.tower.v1.Step
+	9,  // 8: san.tower.v1.Workflow.links:type_name -> san.tower.v1.Link
+	61, // 9: san.tower.v1.Workflow.created_at:type_name -> google.protobuf.Timestamp
+	61, // 10: san.tower.v1.Workflow.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 11: san.tower.v1.Workflow.triggers:type_name -> san.tower.v1.TriggerState
+	56, // 12: san.tower.v1.Step.values:type_name -> san.tower.v1.Step.ValuesEntry
+	8,  // 13: san.tower.v1.Graph.steps:type_name -> san.tower.v1.Step
+	9,  // 14: san.tower.v1.Graph.links:type_name -> san.tower.v1.Link
+	61, // 15: san.tower.v1.TriggerState.next:type_name -> google.protobuf.Timestamp
+	61, // 16: san.tower.v1.WorkflowSummary.created_at:type_name -> google.protobuf.Timestamp
+	61, // 17: san.tower.v1.WorkflowSummary.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 18: san.tower.v1.ListFoldersResponse.folders:type_name -> san.tower.v1.Folder
+	13, // 19: san.tower.v1.CreateFolderResponse.folder:type_name -> san.tower.v1.Folder
+	13, // 20: san.tower.v1.UpdateFolderResponse.folder:type_name -> san.tower.v1.Folder
+	0,  // 21: san.tower.v1.Run.status:type_name -> san.tower.v1.RunStatus
+	61, // 22: san.tower.v1.Run.started_at:type_name -> google.protobuf.Timestamp
+	61, // 23: san.tower.v1.Run.finished_at:type_name -> google.protobuf.Timestamp
+	25, // 24: san.tower.v1.Run.steps:type_name -> san.tower.v1.StepRun
+	1,  // 25: san.tower.v1.Run.log_levels:type_name -> san.tower.v1.LogLevel
+	57, // 26: san.tower.v1.StepRun.outputs:type_name -> san.tower.v1.StepRun.OutputsEntry
+	62, // 27: san.tower.v1.StepRun.duration:type_name -> google.protobuf.Duration
+	1,  // 28: san.tower.v1.StepRun.log_levels:type_name -> san.tower.v1.LogLevel
+	25, // 29: san.tower.v1.RunSteps.steps:type_name -> san.tower.v1.StepRun
+	1,  // 30: san.tower.v1.RunSummary.log_levels:type_name -> san.tower.v1.LogLevel
+	2,  // 31: san.tower.v1.ListStepKindsResponse.kinds:type_name -> san.tower.v1.StepKind
+	12, // 32: san.tower.v1.ListWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
+	7,  // 33: san.tower.v1.CreateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 34: san.tower.v1.GetWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 35: san.tower.v1.UpdateWorkflowRequest.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 36: san.tower.v1.UpdateWorkflowResponse.workflow:type_name -> san.tower.v1.Workflow
+	7,  // 37: san.tower.v1.SetWorkflowActiveResponse.workflow:type_name -> san.tower.v1.Workflow
+	24, // 38: san.tower.v1.RunWorkflowResponse.run:type_name -> san.tower.v1.Run
+	0,  // 39: san.tower.v1.ListRunsRequest.statuses:type_name -> san.tower.v1.RunStatus
+	24, // 40: san.tower.v1.ListRunsResponse.runs:type_name -> san.tower.v1.Run
+	24, // 41: san.tower.v1.GetRunResponse.run:type_name -> san.tower.v1.Run
+	12, // 42: san.tower.v1.ImportWorkflowsResponse.workflows:type_name -> san.tower.v1.WorkflowSummary
+	61, // 43: san.tower.v1.WorkflowFile.exported_at:type_name -> google.protobuf.Timestamp
+	53, // 44: san.tower.v1.WorkflowFile.workflows:type_name -> san.tower.v1.ExportedWorkflow
+	58, // 45: san.tower.v1.WorkflowFile.connections:type_name -> san.tower.v1.WorkflowFile.ConnectionsEntry
+	59, // 46: san.tower.v1.WorkflowFile.storages:type_name -> san.tower.v1.WorkflowFile.StoragesEntry
+	60, // 47: san.tower.v1.WorkflowFile.knowledge:type_name -> san.tower.v1.WorkflowFile.KnowledgeEntry
+	8,  // 48: san.tower.v1.ExportedWorkflow.steps:type_name -> san.tower.v1.Step
+	9,  // 49: san.tower.v1.ExportedWorkflow.links:type_name -> san.tower.v1.Link
+	63, // 50: san.tower.v1.StepRun.OutputsEntry.value:type_name -> google.protobuf.Any
+	54, // 51: san.tower.v1.WorkflowFile.ConnectionsEntry.value:type_name -> san.tower.v1.ExportedRef
+	54, // 52: san.tower.v1.WorkflowFile.StoragesEntry.value:type_name -> san.tower.v1.ExportedRef
+	54, // 53: san.tower.v1.WorkflowFile.KnowledgeEntry.value:type_name -> san.tower.v1.ExportedRef
+	28, // 54: san.tower.v1.WorkflowService.ListStepKinds:input_type -> san.tower.v1.ListStepKindsRequest
+	30, // 55: san.tower.v1.WorkflowService.ListWorkflows:input_type -> san.tower.v1.ListWorkflowsRequest
+	14, // 56: san.tower.v1.WorkflowService.ListFolders:input_type -> san.tower.v1.ListFoldersRequest
+	16, // 57: san.tower.v1.WorkflowService.CreateFolder:input_type -> san.tower.v1.CreateFolderRequest
+	18, // 58: san.tower.v1.WorkflowService.UpdateFolder:input_type -> san.tower.v1.UpdateFolderRequest
+	20, // 59: san.tower.v1.WorkflowService.DeleteFolder:input_type -> san.tower.v1.DeleteFolderRequest
+	22, // 60: san.tower.v1.WorkflowService.MoveWorkflows:input_type -> san.tower.v1.MoveWorkflowsRequest
+	32, // 61: san.tower.v1.WorkflowService.CreateWorkflow:input_type -> san.tower.v1.CreateWorkflowRequest
+	34, // 62: san.tower.v1.WorkflowService.GetWorkflow:input_type -> san.tower.v1.GetWorkflowRequest
+	36, // 63: san.tower.v1.WorkflowService.UpdateWorkflow:input_type -> san.tower.v1.UpdateWorkflowRequest
+	38, // 64: san.tower.v1.WorkflowService.SetWorkflowActive:input_type -> san.tower.v1.SetWorkflowActiveRequest
+	40, // 65: san.tower.v1.WorkflowService.DeleteWorkflow:input_type -> san.tower.v1.DeleteWorkflowRequest
+	42, // 66: san.tower.v1.WorkflowService.RunWorkflow:input_type -> san.tower.v1.RunWorkflowRequest
+	44, // 67: san.tower.v1.WorkflowService.ListRuns:input_type -> san.tower.v1.ListRunsRequest
+	46, // 68: san.tower.v1.WorkflowService.GetRun:input_type -> san.tower.v1.GetRunRequest
+	48, // 69: san.tower.v1.WorkflowService.ExportWorkflows:input_type -> san.tower.v1.ExportWorkflowsRequest
+	50, // 70: san.tower.v1.WorkflowService.ImportWorkflows:input_type -> san.tower.v1.ImportWorkflowsRequest
+	29, // 71: san.tower.v1.WorkflowService.ListStepKinds:output_type -> san.tower.v1.ListStepKindsResponse
+	31, // 72: san.tower.v1.WorkflowService.ListWorkflows:output_type -> san.tower.v1.ListWorkflowsResponse
+	15, // 73: san.tower.v1.WorkflowService.ListFolders:output_type -> san.tower.v1.ListFoldersResponse
+	17, // 74: san.tower.v1.WorkflowService.CreateFolder:output_type -> san.tower.v1.CreateFolderResponse
+	19, // 75: san.tower.v1.WorkflowService.UpdateFolder:output_type -> san.tower.v1.UpdateFolderResponse
+	21, // 76: san.tower.v1.WorkflowService.DeleteFolder:output_type -> san.tower.v1.DeleteFolderResponse
+	23, // 77: san.tower.v1.WorkflowService.MoveWorkflows:output_type -> san.tower.v1.MoveWorkflowsResponse
+	33, // 78: san.tower.v1.WorkflowService.CreateWorkflow:output_type -> san.tower.v1.CreateWorkflowResponse
+	35, // 79: san.tower.v1.WorkflowService.GetWorkflow:output_type -> san.tower.v1.GetWorkflowResponse
+	37, // 80: san.tower.v1.WorkflowService.UpdateWorkflow:output_type -> san.tower.v1.UpdateWorkflowResponse
+	39, // 81: san.tower.v1.WorkflowService.SetWorkflowActive:output_type -> san.tower.v1.SetWorkflowActiveResponse
+	41, // 82: san.tower.v1.WorkflowService.DeleteWorkflow:output_type -> san.tower.v1.DeleteWorkflowResponse
+	43, // 83: san.tower.v1.WorkflowService.RunWorkflow:output_type -> san.tower.v1.RunWorkflowResponse
+	45, // 84: san.tower.v1.WorkflowService.ListRuns:output_type -> san.tower.v1.ListRunsResponse
+	47, // 85: san.tower.v1.WorkflowService.GetRun:output_type -> san.tower.v1.GetRunResponse
+	49, // 86: san.tower.v1.WorkflowService.ExportWorkflows:output_type -> san.tower.v1.ExportWorkflowsResponse
+	51, // 87: san.tower.v1.WorkflowService.ImportWorkflows:output_type -> san.tower.v1.ImportWorkflowsResponse
+	71, // [71:88] is the sub-list for method output_type
+	54, // [54:71] is the sub-list for method input_type
+	54, // [54:54] is the sub-list for extension type_name
+	54, // [54:54] is the sub-list for extension extendee
+	0,  // [0:54] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_workflow_proto_init() }

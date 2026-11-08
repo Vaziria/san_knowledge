@@ -42,7 +42,9 @@ type Server struct {
 	movies   []map[string]any
 	nextID   int
 	requests []Request
-	reports  map[string]int // open reports by slug
+	reports  map[string]int      // open reports by slug
+	terms    map[string][]string // categories and tags without a movie, by kind
+	refuse   []string            // the next create's 422: field, message, ...
 	// LoginStatus, when not 0, is what every login answers, such as 429.
 	LoginStatus int
 	// RefuseTokens refuses every token, also a new one.
@@ -51,7 +53,7 @@ type Server struct {
 
 // New starts a fake site whose admin is email with password.
 func New(email, password string) *Server {
-	s := &Server{Email: email, Password: password, tokens: map[string]bool{}, reports: map[string]int{}, nextID: 1}
+	s := &Server{Email: email, Password: password, tokens: map[string]bool{}, reports: map[string]int{}, terms: map[string][]string{}, nextID: 1}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	return s
 }
@@ -120,6 +122,92 @@ func (s *Server) Report(slug string, n int) {
 	s.mu.Lock()
 	s.reports[slug] += n
 	s.mu.Unlock()
+}
+
+// AddTerm adds a category (kind "categories") or a tag ("tags") the
+// site has without a movie, as an admin's create does.
+func (s *Server) AddTerm(kind, name string) {
+	s.mu.Lock()
+	s.terms[kind] = append(s.terms[kind], name)
+	s.mu.Unlock()
+}
+
+// RefuseNext makes the next movie create answer 422 with these errors:
+// field, message, field, message...
+func (s *Server) RefuseNext(pairs ...string) {
+	s.mu.Lock()
+	s.refuse = pairs
+	s.mu.Unlock()
+}
+
+// SetTerms sets movie slug's categories or tags (kind) to names.
+func (s *Server) SetTerms(slug, kind string, names ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if i := s.find(slug); i >= 0 {
+		list := []any{}
+		for _, n := range names {
+			list = append(list, map[string]any{"name": n, "slug": slugOf(n)})
+		}
+		s.movies[i][kind] = list
+	}
+}
+
+// termList is GET /categories' or /tags' data (kind): each once by slug,
+// with its first name; movies_count counts published movies. Categories
+// by name; tags the most used first, then by name, and only those of
+// published movies unless all (an admin's all=1).
+func (s *Server) termList(kind string, all bool) []map[string]any {
+	type term struct {
+		name, slug string
+		count      int
+	}
+	var list []*term
+	get := func(name string) *term {
+		slug := slugOf(name)
+		if slug == "" {
+			slug = strings.ToLower(name)
+		}
+		for _, t := range list {
+			if t.slug == slug {
+				return t
+			}
+		}
+		t := &term{name: name, slug: slug}
+		list = append(list, t)
+		return t
+	}
+	for _, name := range s.terms[kind] {
+		get(name)
+	}
+	for _, m := range s.movies {
+		items, _ := m[kind].([]any)
+		for _, it := range items {
+			name, _ := it.(map[string]any)["name"].(string)
+			if t := get(name); m["status"] == "published" {
+				t.count++
+			}
+		}
+	}
+	slices.SortStableFunc(list, func(a, b *term) int {
+		if kind == "tags" && a.count != b.count {
+			return b.count - a.count
+		}
+		return strings.Compare(strings.ToLower(a.name), strings.ToLower(b.name))
+	})
+	page := map[string]string{"categories": "category", "tags": "tag"}[kind]
+	out := []map[string]any{}
+	for i, t := range list {
+		if kind == "tags" && t.count == 0 && !all {
+			continue
+		}
+		e := map[string]any{"id": i + 1, "name": t.name, "slug": t.slug, "movies_count": t.count, "url": s.URL + "/" + page + "/" + t.slug}
+		if kind == "categories" {
+			e["description"] = nil
+		}
+		out = append(out, e)
+	}
+	return out
 }
 
 func (s *Server) newMovie() map[string]any {
@@ -231,7 +319,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			fail(w, 403, "Only admins can list drafts and scheduled movies.")
 			return
 		}
-	} else if !admin {
+	} else if !admin && !(r.Method == "GET" && (r.URL.Path == "/api/categories" || r.URL.Path == "/api/tags")) {
 		fail(w, 401, "Unauthenticated.")
 		return
 	}
@@ -247,6 +335,11 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(missing) > 0 {
 			invalid(w, missing...)
+			return
+		}
+		if len(s.refuse) > 0 {
+			invalid(w, s.refuse...)
+			s.refuse = nil
 			return
 		}
 		if e, _ := fields["embed_url"].(string); strings.HasPrefix(e, "https://bad") {
@@ -306,6 +399,8 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		reply(w, 200, map[string]any{"data": data, "links": map[string]any{},
 			"meta": map[string]any{"current_page": page, "last_page": last, "per_page": per, "total": len(list)}})
+	case (r.URL.Path == "/api/categories" || r.URL.Path == "/api/tags") && r.Method == "GET":
+		reply(w, 200, map[string]any{"data": s.termList(strings.TrimPrefix(r.URL.Path, "/api/"), admin && r.URL.Query().Get("all") == "1")})
 	case r.URL.Path == "/api/reports" && r.Method == "GET":
 		data := []any{}
 		for _, mv := range s.movies {

@@ -20,7 +20,7 @@ import {
 // tower defines the kinds of step (ListStepKinds), stores the workflows, and
 // runs them.
 
-export type { Column, Setting, Socket, StepKind } from '../gen/san/tower/v1/workflow_pb';
+export type { Column, Setting, Socket, SocketsFrom, StepKind } from '../gen/san/tower/v1/workflow_pb';
 
 // socketColor follows Blender's socket colours: the flow (event) is green
 // like geometry, structured data (object) purple like a vector, text blue
@@ -191,13 +191,20 @@ export function rowHolds(when: string, row: Row, columns: Column[]) {
   });
 }
 
-// rowSocketName is the socket a row makes (StepKind.outputsFrom): the
-// prefix, then the row's value without it; empty for none.
-export function rowSocketName(from: SocketsFrom, row: Row) {
+// rowSocketName is the socket a row makes (StepKind.outputsFrom and
+// inputsFrom): the prefix, then the row's value without it, then the suffix
+// ("kategori Choices"); empty for none, or for a row the from's when does
+// not hold for (columns: its table's).
+export function rowSocketName(from: SocketsFrom, row: Row, columns: Column[]) {
+  if (!rowHolds(from.when, row, columns)) return '';
   const v = (row[from.column] ?? '').trim();
   if (!v) return '';
-  return from.prefix + (from.prefix && v.startsWith(from.prefix) ? v.slice(from.prefix.length) : v);
+  return from.prefix + (from.prefix && v.startsWith(from.prefix) ? v.slice(from.prefix.length) : v) + from.suffix;
 }
+
+// tableColumns are the columns of kind's table setting.
+export const tableColumns = (kind: StepKind, setting: string) =>
+  kind.settings.find((s) => s.name === setting)?.columns ?? [];
 
 // rowSocketType is the type of the socket a row makes.
 export const rowSocketType = (from: SocketsFrom, row: Row) => from.types[row[from.typeColumn] ?? ''] || from.type;
@@ -205,12 +212,22 @@ export const rowSocketType = (from: SocketsFrom, row: Row) => from.types[row[fro
 // stepOutputs are a step's outputs: its kind's, with those its settings
 // make (a Telegram Form's per question, a Telegram Command's per command),
 // as the engine works them out (engine.StepOutputs).
-export function stepOutputs(kind: StepKind, values: Record<string, string>): Socket[] {
-  const out = [...kind.outputs];
-  for (const from of kind.outputsFrom) {
+export const stepOutputs = (kind: StepKind, values: Record<string, string>) =>
+  withRows(kind, kind.outputs, kind.outputsFrom, values);
+
+// stepInputs are a step's inputs: its kind's, with those its settings make
+// (a Telegram Form's kategori Choices per choice question), as the engine
+// works them out (engine.StepInputs).
+export const stepInputs = (kind: StepKind, values: Record<string, string>) =>
+  withRows(kind, kind.inputs, kind.inputsFrom, values);
+
+function withRows(kind: StepKind, sockets: Socket[], froms: SocketsFrom[], values: Record<string, string>): Socket[] {
+  const out = [...sockets];
+  for (const from of froms) {
     const made: Socket[] = [];
+    const columns = tableColumns(kind, from.setting);
     for (const row of tableRows(values[from.setting])) {
-      const name = rowSocketName(from, row);
+      const name = rowSocketName(from, row, columns);
       if (!name || out.some((s) => s.name === name) || made.some((s) => s.name === name)) continue;
       made.push(create(SocketSchema, { name, type: rowSocketType(from, row) }));
     }
@@ -261,11 +278,16 @@ export function newStep(kind: string, position: XYPosition): Step {
 // toFlow turns a stored workflow (or a Graph, undo's) into the editor's nodes
 // and edges. A link whose socket is no longer in the catalogue is left out.
 export function toFlow(w: Graph): { nodes: Step[]; edges: Edge[] } {
-  const kinds = new Map(w.steps.map((s) => [s.id, stepKind(s.kind)]));
   const outputs = new Map(
     w.steps.map((s) => {
       const k = stepKind(s.kind);
       return [s.id, k ? stepOutputs(k, s.values) : []];
+    }),
+  );
+  const inputs = new Map(
+    w.steps.map((s) => {
+      const k = stepKind(s.kind);
+      return [s.id, k ? stepInputs(k, s.values) : []];
     }),
   );
   const nodes = w.steps.map((s): Step => ({
@@ -276,7 +298,7 @@ export function toFlow(w: Graph): { nodes: Step[]; edges: Edge[] } {
   }));
   const edges = w.links.flatMap((l) => {
     const out = outputs.get(l.source)?.find((o) => o.name === l.sourceSocket);
-    const input = kinds.get(l.target)?.inputs.find((i) => i.name === l.targetSocket);
+    const input = inputs.get(l.target)?.find((i) => i.name === l.targetSocket);
     if (!out || !input) return [];
     return [link({ source: l.source, sourceHandle: handleId(out), target: l.target, targetHandle: handleId(input) })];
   });

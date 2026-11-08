@@ -85,7 +85,7 @@ var telegramFormKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: TelegramForm, Title: "Telegram Form", Category: "Messengers", Group: "Telegram",
-			Description: "Asks User in Chat its Questions one by one, in Indonesian, each of a type (text, number, link, link or iframe, choice, multiple choice, list, yes/no, photo, file, date, date time WIB) and checked; a wrong answer is asked again, an optional one gets Lewati or its Default (Pakai Draft). Then \"Cek dulu ya:\" with Kirim, Ubah and Batal. Each question is an output of its name (a photo or file is a path, in the run's folder, removed when the run ends); Answers has them all. /cancel or Batal fires Cancelled, no answer within Timeout (10m) fires Timed Out. A site's refusal linked to Fix, with its Errors, asks the questions of those fields (Field) again and fires Done again, up to Tries (3) times. Only the bot connection's Allowed Users.",
+			Description: "Asks User in Chat its Questions one by one, in Indonesian, each of a type (text, number, link, link or iframe, choice, multiple choice, list, yes/no, photo, file, date, date time WIB) and checked; a wrong answer is asked again, an optional one gets Lewati or its Default (Pakai Draft). Then \"Cek dulu ya:\" with Kirim, Ubah and Batal. Each question is an output of its name (a photo or file is a path, in the run's folder, removed when the run ends); Answers has them all. A choice or multiple choice question also has an input of its name and Choices (kategori Choices): a list linked there, such as MovieMov Categories and Tags' Categories, adds buttons after its Choices; with Custom Yes the person may also type their own (a multiple choice: several, separated by commas). /cancel or Batal fires Cancelled, no answer within Timeout (10m) fires Timed Out. A site's refusal linked to Fix, with its Errors, asks the questions of those fields (Field) again and fires Done again, up to Tries (3) times. Only the bot connection's Allowed Users.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Cancelled", Event), sock("Timed Out", Event), sock("Answers", Object)},
 			Settings: []*v1.Setting{telegramSetting(), {Name: "Questions", Columns: questionColumns},
 				{Name: "Timeout", Placeholder: "10m"}, {Name: "Tries", Placeholder: "3"}},
@@ -94,6 +94,8 @@ var telegramFormKinds = []*kind{
 				hint("Telegram Command's Text: the first answer, or JSON by name", field("Prefill"))},
 			OutputsFrom: []*v1.SocketsFrom{{Setting: "Questions", Column: "Name", Type: Text, TypeColumn: "Type",
 				Types: map[string]string{qMulti: Object, qList: Object}, Before: ErrorOutput}},
+			InputsFrom: []*v1.SocketsFrom{{Setting: "Questions", Column: "Name", Suffix: choicesSuffix, Type: Object,
+				When: "Type=" + qChoice + "|" + qMulti}},
 		},
 		run:  telegramForm,
 		back: []string{"Errors"},
@@ -134,7 +136,10 @@ var questionColumns = []*v1.Column{
 	{Name: "Type", Options: questionTypes},
 	{Name: "Required", Options: []string{"Yes", "No"}},
 	{Name: "Default", Placeholder: "Draft", Help: "a button, Pakai Draft; an optional question without one gets Lewati"},
-	{Name: "Choices", Placeholder: "Draft, Published", When: "Type=Choice|Multiple Choice"},
+	{Name: "Choices", Placeholder: "Draft, Published", When: "Type=Choice|Multiple Choice",
+		Help: "its buttons; its <name> Choices input adds more (MovieMov Categories and Tags)"},
+	{Name: "Custom", Options: []string{"No", "Yes"}, When: "Type=Choice|Multiple Choice",
+		Help: "Yes: may type their own too (several, by commas), 50 characters each"},
 	{Name: "Min", Placeholder: "1", When: "Type=Text|Number|Multiple Choice|List",
 		Help: "Text: fewest characters; Number: lowest; Multiple Choice and List: fewest items"},
 	{Name: "Max", Placeholder: "255", When: "Type=Text|Number|Link|Link or Iframe|Multiple Choice|List|Photo|File",
@@ -181,11 +186,44 @@ func StepOutputs(st *v1.Step) []*v1.Socket {
 	if k == nil {
 		return nil
 	}
-	out := slices.Clone(k.Outputs)
-	for _, from := range k.OutputsFrom {
+	return k.withRows(st, k.Outputs, k.OutputsFrom)
+}
+
+// StepInputs are the inputs of step st: its kind's, with those its settings
+// make (StepKind.inputs_from: a Telegram Form's kategori Choices per choice
+// question), as the editor shows them. Nil for a kind the tower does not
+// have.
+func StepInputs(st *v1.Step) []*v1.Socket {
+	k := byKind[st.GetKind()]
+	if k == nil {
+		return nil
+	}
+	return k.stepInputs(st)
+}
+
+// stepInputs are step st's inputs, of kind k.
+func (k *kind) stepInputs(st *v1.Step) []*v1.Socket {
+	if len(k.InputsFrom) == 0 {
+		return k.Inputs
+	}
+	return k.withRows(st, k.Inputs, k.InputsFrom)
+}
+
+// withRows are sockets with those that step st's table settings make, one
+// per row (of those froms' when holds for) that names one.
+func (k *kind) withRows(st *v1.Step, sockets []*v1.Socket, froms []*v1.SocketsFrom) []*v1.Socket {
+	out := slices.Clone(sockets)
+	for _, from := range froms {
 		rows, _ := tableRows(from.Setting, st.GetValues()[from.Setting])
+		var cols []*v1.Column
+		if i := slices.IndexFunc(k.Settings, func(s *v1.Setting) bool { return s.Name == from.Setting }); i >= 0 {
+			cols = k.Settings[i].Columns
+		}
 		var made []*v1.Socket
 		for _, r := range rows {
+			if !rowHolds(from.When, r, cols) {
+				continue
+			}
 			name := socketName(from, r[from.Column])
 			if name == "" || slices.ContainsFunc(out, func(s *v1.Socket) bool { return s.Name == name }) ||
 				slices.ContainsFunc(made, func(s *v1.Socket) bool { return s.Name == name }) {
@@ -207,13 +245,39 @@ func StepOutputs(st *v1.Step) []*v1.Socket {
 }
 
 // socketName is the socket a row's value names: the prefix, then the value
-// without it.
+// without it, then the suffix.
 func socketName(from *v1.SocketsFrom, value string) string {
 	v := strings.TrimSpace(value)
 	if v == "" {
 		return ""
 	}
-	return from.Prefix + strings.TrimPrefix(v, from.Prefix)
+	return from.Prefix + strings.TrimPrefix(v, from.Prefix) + from.Suffix
+}
+
+// rowHolds says whether a column's when ("Type=Choice|Multiple Choice",
+// "Type!=Photo", several joined by commas) holds for row r: the column's
+// value, or its first option while it has none, is one of them (with !=,
+// none of them). The editor's rowHolds is the same.
+func rowHolds(when string, r map[string]string, cols []*v1.Column) bool {
+	if when == "" {
+		return true
+	}
+	for _, cond := range strings.Split(when, ",") {
+		not := strings.Contains(cond, "!=")
+		sep := "="
+		if not {
+			sep = "!="
+		}
+		name, want, _ := strings.Cut(cond, sep)
+		v := r[name]
+		if i := slices.IndexFunc(cols, func(c *v1.Column) bool { return c.Name == name }); v == "" && i >= 0 && len(cols[i].Options) > 0 {
+			v = cols[i].Options[0]
+		}
+		if slices.Contains(strings.Split(want, "|"), v) == not {
+			return false
+		}
+	}
+	return true
 }
 
 // commandName is what Telegram takes as a command: a to z, 0 to 9 and _,

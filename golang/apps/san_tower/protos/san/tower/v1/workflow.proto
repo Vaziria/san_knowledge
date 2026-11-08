@@ -89,6 +89,13 @@ message StepKind {
   // output"). The editor and the engine work them out from the step's
   // values (engine.StepOutputs); renaming a row renames its output.
   repeated SocketsFrom outputs_from = 11;
+  // inputs_from are inputs a step of this kind has by its settings, as
+  // outputs_from are outputs: a Telegram Form's "kategori Choices" for
+  // each Choice or Multiple Choice question, so its buttons can come from
+  // another step (the user, 2026-11-08: the tag buttons from the tags
+  // already on moviemov.id). engine.StepInputs and the editor's
+  // stepInputs work them out; renaming a row moves its input's link.
+  repeated SocketsFrom inputs_from = 12;
 }
 
 // SocketsFrom makes a socket of each row of a table setting (a Setting with
@@ -107,8 +114,14 @@ message SocketsFrom {
   string type = 4;
   string type_column = 5;
   map<string, string> types = 6;
-  // before is the output they go before; empty: after the others.
+  // before is the socket they go before; empty: after the others.
   string before = 7;
+  // suffix goes after the row's value: " Choices" makes "kategori Choices".
+  string suffix = 8;
+  // when: only the rows it holds for make a socket, as a Column's when
+  // ("Type=Choice|Multiple Choice"; a column left empty is its first
+  // option).
+  string when = 9;
 }
 
 // Socket is an input or output of a step. A link joins sockets of the same

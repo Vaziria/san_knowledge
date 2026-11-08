@@ -26,7 +26,7 @@ tower's README (Workflows › Telegram forms, and The MovieMov steps) and
   | --- | --- | --- | --- | --- |
   | `judul` | Judul filmnya apa? | Text | yes | at most 255 characters; Field `title, slug` |
   | `link` | Link film (https) atau kode iframe-nya? | Link or Iframe | yes | starts with https://; Field `embed_url` |
-  | `kategori` | Kategorinya? | Multiple Choice (Action, Drama, Horor, Komedi, Thriller, Sci-Fi) | no (Lewati) | at most 10 |
+  | `kategori` | Kategorinya? | Multiple Choice (Action, Drama, Horor, Komedi, Thriller, Sci-Fi), Custom | no (Lewati) | at most 10; other names may be typed, several by commas, and MovieMov makes the new categories |
   | `tag` | Tag-nya? | List | no (Lewati) | at most 20 |
   | `thumbnail` | Kirim thumbnail-nya (Lewati: pakai thumbnail dari Vidara) | Photo | no (Lewati) | at most 2 MB, a photo or an image file |
   | `status` | Statusnya? | Choice (Draft, Published) | yes | default Draft ("Pakai Draft") |

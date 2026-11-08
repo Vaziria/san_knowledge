@@ -1,7 +1,7 @@
 {
   "format": "san_tower.workflows",
   "version": 1,
-  "exportedAt": "2026-11-08T04:58:16.571154200Z",
+  "exportedAt": "2026-11-08T06:49:55.813645200Z",
   "tower": "dev",
   "workflows": [
     {
@@ -34,7 +34,7 @@
           "y": 440,
           "values": {
             "Connection": "1",
-            "Questions": "[{\"Name\": \"judul\", \"Question\": \"Judul filmnya apa?\", \"Type\": \"Text\", \"Required\": \"Yes\", \"Max\": \"255\", \"Field\": \"title, slug\"}, {\"Name\": \"link\", \"Question\": \"Link film (https) atau kode iframe-nya?\", \"Type\": \"Link or Iframe\", \"Required\": \"Yes\", \"Starts With\": \"https://\", \"Field\": \"embed_url\"}, {\"Name\": \"kategori\", \"Question\": \"Kategorinya?\", \"Type\": \"Multiple Choice\", \"Required\": \"No\", \"Choices\": \"Action, Drama, Horor, Komedi, Thriller, Sci-Fi\", \"Max\": \"10\", \"Field\": \"categories\"}, {\"Name\": \"tag\", \"Question\": \"Tag-nya?\", \"Type\": \"List\", \"Required\": \"No\", \"Max\": \"20\", \"Field\": \"tags\"}, {\"Name\": \"thumbnail\", \"Question\": \"Kirim thumbnail-nya (Lewati: pakai thumbnail dari Vidara)\", \"Type\": \"Photo\", \"Required\": \"No\", \"Max\": \"2\", \"Field\": \"thumbnail\"}, {\"Name\": \"status\", \"Question\": \"Statusnya?\", \"Type\": \"Choice\", \"Required\": \"Yes\", \"Choices\": \"Draft, Published\", \"Default\": \"Draft\", \"Field\": \"status\"}]",
+            "Questions": "[{\"Name\": \"judul\", \"Question\": \"Judul filmnya apa?\", \"Type\": \"Text\", \"Required\": \"Yes\", \"Max\": \"255\", \"Field\": \"title, slug\"}, {\"Name\": \"link\", \"Question\": \"Link film (https) atau kode iframe-nya?\", \"Type\": \"Link or Iframe\", \"Required\": \"Yes\", \"Starts With\": \"https://\", \"Field\": \"embed_url\"}, {\"Name\": \"kategori\", \"Question\": \"Kategorinya?\", \"Type\": \"Multiple Choice\", \"Required\": \"No\", \"Choices\": \"Action, Drama, Horor, Komedi, Thriller, Sci-Fi\", \"Custom\": \"Yes\", \"Max\": \"10\", \"Field\": \"categories\"}, {\"Name\": \"tag\", \"Question\": \"Tag-nya?\", \"Type\": \"List\", \"Required\": \"No\", \"Max\": \"20\", \"Field\": \"tags\"}, {\"Name\": \"thumbnail\", \"Question\": \"Kirim thumbnail-nya (Lewati: pakai thumbnail dari Vidara)\", \"Type\": \"Photo\", \"Required\": \"No\", \"Max\": \"2\", \"Field\": \"thumbnail\"}, {\"Name\": \"status\", \"Question\": \"Statusnya?\", \"Type\": \"Choice\", \"Required\": \"Yes\", \"Choices\": \"Draft, Published\", \"Default\": \"Draft\", \"Field\": \"status\"}]",
             "Timeout": "10m",
             "Tries": "3"
           }

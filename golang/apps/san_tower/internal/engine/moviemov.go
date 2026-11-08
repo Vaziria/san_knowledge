@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"cmp"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -92,6 +94,18 @@ var movieMovKinds = []*kind{
 				only("Pages=All", hint("1000 (movies at most)", field("Limit")))},
 		},
 		run: movieMovMovies,
+	},
+	{
+		StepKind: &v1.StepKind{
+			Kind: movieMovTermsKind, Title: "MovieMov Categories and Tags", Category: "Web", Group: "MovieMov",
+			Description: "Reads the categories and the tags on the MovieMov connection's site, from its public lists (no login): every category, and the tags of published movies. Order Most Used (the default) puts those with the most published movies first, Name orders them by name; Limit (default 10, 0: all) keeps that many of each. Categories and Tags are their names, as lists, which a Telegram Form's kategori Choices and tag Choices take as buttons; Category Items and Tag Items are the site's objects (name, slug, movies_count, url).",
+			Outputs: []*v1.Socket{sock("Done", Event), sock("Categories", Object), sock("Tags", Object),
+				sock("Category Items", Object), sock("Tag Items", Object)},
+			Settings: []*v1.Setting{movieMovSetting(), {Name: "Order", Options: []string{"Most Used", "Name"}},
+				{Name: "Limit", Placeholder: "10 (0: all)"}},
+			Inputs: []*v1.Socket{sock("Event", Event)},
+		},
+		run: movieMovTerms,
 	},
 	{
 		StepKind: &v1.StepKind{
@@ -757,6 +771,79 @@ func slugify(s string) string {
 		}
 	}
 	return b.String()
+}
+
+// movieMovTermsKind is MovieMov Categories and Tags (the user, 2026-11-08:
+// the tag question's buttons from the tags already on moviemov.id).
+const movieMovTermsKind = "moviemov-categories-tags"
+
+func movieMovTerms(c *call) error {
+	limit := 10
+	if s := c.setting("Limit"); s != "" {
+		n, err := strconv.Atoi(s)
+		if err != nil || n < 0 {
+			return fmt.Errorf("Limit %q: how many of each to keep, such as 10 (0: all)", s)
+		}
+		limit = n
+	}
+	order := c.setting("Order")
+	switch order {
+	case "":
+		order = "Most Used"
+	case "Most Used", "Name":
+	default:
+		return fmt.Errorf("Order %q: give Most Used or Name", order)
+	}
+	cl, err := c.movieMov()
+	if err != nil {
+		return err
+	}
+	var counts []string
+	for _, l := range []struct {
+		what, names, items string
+		read               func(context.Context) ([]json.RawMessage, error)
+	}{{"categories", "Categories", "Category Items", cl.Categories}, {"tags", "Tags", "Tag Items", cl.Tags}} {
+		raws, err := l.read(c.ctx)
+		if err != nil {
+			return movieMovErr(cl, "", err)
+		}
+		var items []*structpb.Value
+		for _, raw := range raws {
+			var v structpb.Value
+			if err := protojson.Unmarshal(raw, &v); err != nil || strings.TrimSpace(v.GetStructValue().GetFields()["name"].GetStringValue()) == "" {
+				return fmt.Errorf("MovieMov answered something else than its %s: %s", l.what, raw)
+			}
+			items = append(items, &v)
+		}
+		name := func(v *structpb.Value) string { return v.GetStructValue().GetFields()["name"].GetStringValue() }
+		slices.SortStableFunc(items, func(a, b *structpb.Value) int {
+			if order == "Most Used" {
+				na, nb := a.GetStructValue().GetFields()["movies_count"].GetNumberValue(), b.GetStructValue().GetFields()["movies_count"].GetNumberValue()
+				if na != nb {
+					return cmp.Compare(nb, na)
+				}
+			}
+			return cmp.Or(strings.Compare(strings.ToLower(name(a)), strings.ToLower(name(b))), strings.Compare(name(a), name(b)))
+		})
+		all := len(items)
+		if limit > 0 && len(items) > limit {
+			items = items[:limit]
+		}
+		names, objects := &structpb.ListValue{}, &structpb.ListValue{Values: items}
+		for _, v := range items {
+			names.Values = append(names.Values, structpb.NewStringValue(name(v)))
+		}
+		c.outputs[l.names] = structpb.NewListValue(names)
+		c.outputs[l.items] = structpb.NewListValue(objects)
+		counts = append(counts, fmt.Sprintf("%d of %d %s", len(items), all, l.what))
+	}
+	how := "the most used first"
+	if order == "Name" {
+		how = "by name"
+	}
+	c.logf(v1.LogLevel_LOG_LEVEL_INFO, "read %s from %s, %s", strings.Join(counts, " and "), cl.Base(), how)
+	c.fire("Done")
+	return nil
 }
 
 func movieMovDelete(c *call) error {

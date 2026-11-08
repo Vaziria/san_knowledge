@@ -385,7 +385,7 @@ func (x *execution) run(k *kind, st *v1.Step, c *call) error {
 	if k.run == nil {
 		return errors.New("this kind of step cannot run yet")
 	}
-	for _, s := range k.Inputs {
+	for _, s := range k.stepInputs(st) {
 		if s.Type == Event || slices.Contains(k.back, s.Name) {
 			continue
 		}

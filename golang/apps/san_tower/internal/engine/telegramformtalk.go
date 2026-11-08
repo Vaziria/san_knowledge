@@ -70,16 +70,66 @@ const (
 	txtDateTime  = "Waktu tidak terbaca. Contoh: 2026-11-09 20:00 (WIB)."
 )
 
+// What a choice question with Custom says (the user, 2026-11-08: "In ask
+// category can it optional to send custom text and create automatically").
+const (
+	txtPickOrType = "Pilih atau ketik sendiri (dipisah koma), lalu Selesai."
+	txtItemLong   = "Maksimal %d karakter per nama (ini %d: %s)."
+	txtMostTyped  = "Maksimal %d (sudah %d dipilih)."
+)
+
 // question is a question of a form, read from its Questions.
 type question struct {
 	Name, Question, Type string
 	Required             bool
 	Default              string
 	Choices              []string
-	Min, Max             *float64
-	StartsWith           string
-	FileTypes            []string // lower case, without the dot
-	Fields               []string // lower case
+	// Custom: a choice question that also takes a name typed in place of a
+	// button (a multiple choice, several).
+	Custom     bool
+	Min, Max   *float64
+	StartsWith string
+	FileTypes  []string // lower case, without the dot
+	Fields     []string // lower case
+	dropped    int      // choices of its input left out, past maxChoices
+}
+
+// choicesSuffix makes a choice question's input of more choices (kategori
+// Choices), StepKind.inputs_from.
+const choicesSuffix = " Choices"
+
+// customMax is the most characters of a name typed in place of a button
+// (Custom): MovieMov's most for a tag (a category takes 100).
+const customMax = 50
+
+// maxChoices is the most buttons a question gets from its Choices and its
+// input together: Telegram refuses a message with too many.
+const maxChoices = 60
+
+// choiceKey is how a name is matched to a choice and to the names typed
+// before it: by its slug, as MovieMov matches categories and tags (sci fi
+// is Sci-Fi), or in lower case when it has no letter or digit.
+func choiceKey(s string) string {
+	if k := slugify(s); k != "" {
+		return k
+	}
+	return strings.ToLower(strings.TrimSpace(s))
+}
+
+// addChoices adds the choices its input brought after the question's own,
+// each once by slug, up to maxChoices; dropped counts those left out.
+func (q *question) addChoices(more []string) {
+	for _, c := range more {
+		c = strings.TrimSpace(c)
+		key := choiceKey(c)
+		switch {
+		case c == "" || slices.ContainsFunc(q.Choices, func(o string) bool { return choiceKey(o) == key }):
+		case len(q.Choices) >= maxChoices:
+			q.dropped++
+		default:
+			q.Choices = append(q.Choices, c)
+		}
+	}
 }
 
 // object says whether its answer is a list (an object output).
@@ -92,8 +142,16 @@ func (q *question) label() string { return capitalize(strings.ReplaceAll(q.Name,
 // questionName is a question's name: its output's.
 var questionName = regexp.MustCompile(`^[\pL\pN_ ]{1,40}$`)
 
-// formQuestions reads and checks a form's Questions.
-func formQuestions(raw string) ([]*question, error) {
+// formQuestions reads and checks a form's Questions, without the choices
+// of their inputs.
+func formQuestions(raw string) ([]*question, error) { return readQuestions(raw, nil) }
+
+// readQuestions reads and checks a form's Questions. linked gives the
+// choices a choice question's input brings (nil: none): its buttons are its
+// Choices, then those of the input that are none of them (by slug), up to
+// maxChoices. A choice question with no buttons takes only typed names
+// (Custom), or is an error.
+func readQuestions(raw string, linked func(q *question) ([]string, error)) ([]*question, error) {
 	rows, err := tableRows("Questions", raw)
 	if err != nil {
 		return nil, err
@@ -126,8 +184,18 @@ func formQuestions(raw string) ([]*question, error) {
 				q.Choices = append(q.Choices, c)
 			}
 		}
-		if (q.Type == qChoice || q.Type == qMulti) && len(q.Choices) == 0 {
-			return nil, fmt.Errorf("%s: a %s needs its Choices, separated by commas (Draft, Published)", where, q.Type)
+		if q.Type == qChoice || q.Type == qMulti {
+			q.Custom = strings.EqualFold(r["Custom"], "Yes")
+			if linked != nil {
+				more, err := linked(q)
+				if err != nil {
+					return nil, fmt.Errorf("%s: %w", where, err)
+				}
+				q.addChoices(more)
+			}
+			if len(q.Choices) == 0 && !q.Custom {
+				return nil, fmt.Errorf("%s: a %s needs its Choices, separated by commas (Draft, Published), a list linked to its %s input, or Custom Yes to type them", where, q.Type, q.Name+choicesSuffix)
+			}
 		}
 		for _, f := range []struct {
 			name string
@@ -189,9 +257,17 @@ var (
 )
 
 func telegramForm(c *call) error {
-	qs, err := formQuestions(c.setting("Questions"))
+	qs, err := readQuestions(c.setting("Questions"), func(q *question) ([]string, error) {
+		items, _, err := c.list(q.Name+choicesSuffix, false)
+		return items, err
+	})
 	if err != nil {
 		return err
+	}
+	for _, q := range qs {
+		if q.dropped > 0 {
+			c.logf(v1.LogLevel_LOG_LEVEL_WARNING, "%s: %d of the choices from %s left out: a question gets %d buttons at most", q.Name, q.dropped, q.Name+choicesSuffix, maxChoices)
+		}
 	}
 	timeout := 10 * time.Minute
 	if s := c.setting("Timeout"); s != "" {
@@ -435,21 +511,33 @@ func (t *talk) prefill() map[string]string {
 	if raw == "" {
 		return notes
 	}
-	given := map[string]string{}
+	given := map[string]*structpb.Value{}
 	var obj structpb.Struct
 	if strings.HasPrefix(raw, "{") && protojson.Unmarshal([]byte(raw), &obj) == nil {
 		for k, v := range obj.GetFields() {
-			given[strings.ToLower(k)] = itemText(v)
+			given[strings.ToLower(k)] = v
 		}
 	} else {
-		given[strings.ToLower(t.qs[0].Name)] = raw
+		given[strings.ToLower(t.qs[0].Name)] = structpb.NewStringValue(raw)
 	}
 	for _, q := range t.qs {
-		s, ok := given[strings.ToLower(q.Name)]
+		v, ok := given[strings.ToLower(q.Name)]
 		if !ok || q.Type == qPhoto || q.Type == qFile {
 			continue
 		}
-		a, problem := t.parse(q, s)
+		var a answer
+		var problem string
+		if l := v.GetListValue(); l != nil && q.object() {
+			var items []string // a list given as a list: its items, as they are
+			for _, x := range l.GetValues() {
+				if s := strings.TrimSpace(itemText(x)); s != "" {
+					items = append(items, s)
+				}
+			}
+			a, problem = t.items(q, items)
+		} else {
+			a, problem = t.parse(q, itemText(v))
+		}
 		if problem != "" {
 			notes[q.Name] = problem
 			continue
@@ -612,8 +700,19 @@ func questionText(q *question, note string) string {
 		} else {
 			text += fmt.Sprintf("\n(kirim file, maks %s MB)", mbText(q.maxMB(20)))
 		}
+	case qChoice:
+		if q.Custom && len(q.Choices) > 0 {
+			text += "\n(pilih atau ketik sendiri)"
+		}
 	case qMulti:
-		text += "\n(pilih satu atau lebih, lalu Selesai)"
+		switch {
+		case q.Custom && len(q.Choices) == 0:
+			text += "\n(ketik sendiri, dipisah koma, lalu Selesai)"
+		case q.Custom:
+			text += "\n(pilih satu atau lebih, atau ketik sendiri dipisah koma, lalu Selesai)"
+		default:
+			text += "\n(pilih satu atau lebih, lalu Selesai)"
+		}
 	case qList:
 		text += "\n(pisahkan dengan koma)"
 	}
@@ -634,9 +733,10 @@ func (q *question) maxMB(def float64) float64 {
 // mbText writes MB as people do: 2, 2.5, 0.3.
 func mbText(mb float64) string { return strconv.FormatFloat(float64(int(mb*10+0.5))/10, 'f', -1, 64) }
 
-// buttons are question q's buttons: its choices (multiple ones ticked as
-// picked), Ya and Tidak, its Default as Pakai, or Lewati.
-func (t *talk) buttons(q *question, picked map[int]bool) [][]telegram.Button {
+// buttons are question q's buttons: its choices (a multiple choice's, with
+// the names typed, ticked as picked), Ya and Tidak, its Default as Pakai,
+// or Lewati.
+func (t *talk) buttons(q *question, tk *ticks) [][]telegram.Button {
 	s := t.conv.session
 	var rows [][]telegram.Button
 	switch q.Type {
@@ -648,8 +748,8 @@ func (t *talk) buttons(q *question, picked map[int]bool) [][]telegram.Button {
 		rows = rowsOf(bs, 2)
 	case qMulti:
 		var bs []telegram.Button
-		for i, c := range q.Choices {
-			if picked[i] {
+		for i, c := range tk.opts {
+			if tk.on[i] {
 				c = "✅ " + c
 			}
 			bs = append(bs, telegram.Button{Text: c, Data: s + "t" + strconv.Itoa(i)})
@@ -669,11 +769,12 @@ func (t *talk) buttons(q *question, picked map[int]bool) [][]telegram.Button {
 
 // ask asks question q, after note, until it has an answer that does.
 func (t *talk) ask(q *question, note string) error {
-	picked := map[int]bool{} // a multiple choice's ticks, kept when it is asked again
+	tk := newTicks(q, t.st.answers[q.Name]) // a multiple choice's ticks, kept when it is asked again
 	for {
+		tk.compact(q)
 		text := questionText(q, note)
 		send := func() error {
-			_, err := t.send(text, t.buttons(q, picked))
+			_, err := t.send(text, t.buttons(q, tk))
 			return err
 		}
 		t.prompt = send
@@ -686,13 +787,13 @@ func (t *talk) ask(q *question, note string) error {
 			if err != nil {
 				return err
 			}
-			a, problem, pick, done := t.read(q, in, action, picked)
+			a, problem, pick, done := t.read(q, in, action, tk)
 			switch {
 			case problem != "":
 				note = problem
 			case !done:
 				if t.live != 0 {
-					_ = t.cl.EditButtons(t.c.ctx, t.chat, t.live, t.buttons(q, picked))
+					_ = t.cl.EditButtons(t.c.ctx, t.chat, t.live, t.buttons(q, tk))
 				}
 			default:
 				t.unlive(pick)
@@ -704,9 +805,10 @@ func (t *talk) ask(q *question, note string) error {
 }
 
 // read reads an input as question q's answer: problem says why it does
-// not do, done false that more is to come (a multiple choice's tick); pick
-// is what a button picked, to show under the question.
-func (t *talk) read(q *question, in tgIn, action string, picked map[int]bool) (a answer, problem, pick string, done bool) {
+// not do, done false that more is to come (a multiple choice's tick, or
+// names typed with Custom); pick is what a button picked, to show under the
+// question.
+func (t *talk) read(q *question, in tgIn, action string, tk *ticks) (a answer, problem, pick string, done bool) {
 	if action != "" {
 		switch {
 		case action == "x" && !q.Required:
@@ -722,17 +824,12 @@ func (t *talk) read(q *question, in tgIn, action string, picked map[int]bool) (a
 				return answer{set: true, text: q.Choices[i], shown: q.Choices[i]}, "", q.Choices[i], true
 			}
 		case strings.HasPrefix(action, "t"):
-			if i, err := strconv.Atoi(action[1:]); err == nil && i >= 0 && i < len(q.Choices) {
-				picked[i] = !picked[i]
+			if i, err := strconv.Atoi(action[1:]); err == nil && i >= 0 && i < len(tk.opts) {
+				tk.on[i] = !tk.on[i]
 			}
 			return answer{}, "", "", false
 		case action == "d":
-			var list []string
-			for i, c := range q.Choices {
-				if picked[i] {
-					list = append(list, c)
-				}
-			}
+			list := tk.picked()
 			if problem := q.count(list); problem != "" {
 				return answer{}, problem, "", false
 			}
@@ -758,8 +855,137 @@ func (t *talk) read(q *question, in tgIn, action string, picked map[int]bool) (a
 	if !q.Required && strings.EqualFold(strings.TrimSpace(m.Text), btnSkip) {
 		return answer{set: true, shown: "-"}, "", "", true
 	}
+	if q.Type == qMulti && q.Custom {
+		// Names typed tick their buttons, or become buttons of their own;
+		// Selesai, tapped or typed, ends it.
+		if strings.EqualFold(strings.TrimSpace(m.Text), btnDone) {
+			return t.read(q, tgIn{}, "d", tk)
+		}
+		return answer{}, tk.add(q, splitItems(m.Text), true), "", false
+	}
 	a, problem = t.parse(q, m.Text)
 	return a, problem, "", true
+}
+
+// ticks are a multiple choice's buttons while it is asked: its Choices,
+// then the names typed that are none of them (Custom), and which are
+// ticked.
+type ticks struct {
+	opts []string
+	on   map[int]bool
+}
+
+// newTicks are question q's buttons, none ticked; with Custom, a question
+// asked again (Ubah, a refusal) has its answer ticked, typed names too.
+func newTicks(q *question, a answer) *ticks {
+	k := &ticks{opts: slices.Clone(q.Choices), on: map[int]bool{}}
+	if q.Type == qMulti && q.Custom {
+		for _, s := range a.list {
+			i := k.find(s)
+			if i < 0 {
+				k.opts = append(k.opts, s)
+				i = len(k.opts) - 1
+			}
+			k.on[i] = true
+		}
+	}
+	return k
+}
+
+// find is the button of name, by choiceKey; -1 for none.
+func (k *ticks) find(name string) int {
+	key := choiceKey(name)
+	return slices.IndexFunc(k.opts, func(o string) bool { return choiceKey(o) == key })
+}
+
+// picked are the ticked ones, in the buttons' order: the choices, then the
+// names typed, as typed. Nil for none.
+func (k *ticks) picked() []string {
+	var list []string
+	for i, o := range k.opts {
+		if k.on[i] {
+			list = append(list, o)
+		}
+	}
+	return list
+}
+
+// compact drops the typed names no longer ticked, for a question sent
+// again (its old message's buttons no longer work).
+func (k *ticks) compact(q *question) {
+	opts, on := slices.Clone(q.Choices), map[int]bool{}
+	for i, o := range k.opts {
+		switch {
+		case !k.on[i]:
+		case i < len(q.Choices):
+			on[i] = true
+		default:
+			opts = append(opts, o)
+			on[len(opts)-1] = true
+		}
+	}
+	k.opts, k.on = opts, on
+}
+
+// add ticks names typed for question q (Custom): a button's by its key
+// (sci fi is Sci-Fi), any other as a new button, each once (the first
+// spelling). most checks Max against all ticked then. problem says why
+// none was added.
+func (k *ticks) add(q *question, items []string, most bool) (problem string) {
+	var hit []int
+	var fresh []string
+	for _, item := range items {
+		if i := k.find(item); i >= 0 {
+			if !slices.Contains(hit, i) {
+				hit = append(hit, i)
+			}
+			continue
+		}
+		if n := utf8.RuneCountInString(item); n > customMax {
+			return fmt.Sprintf(txtItemLong, customMax, n, clip(item, 20))
+		}
+		key := choiceKey(item)
+		if !slices.ContainsFunc(fresh, func(f string) bool { return choiceKey(f) == key }) {
+			fresh = append(fresh, item)
+		}
+	}
+	if len(hit) == 0 && len(fresh) == 0 {
+		return txtPickOrType
+	}
+	if most && q.Max != nil {
+		n, ticked := len(fresh), 0
+		for i := range k.opts {
+			if k.on[i] {
+				ticked++
+			}
+			if k.on[i] || slices.Contains(hit, i) {
+				n++
+			}
+		}
+		if n > int(*q.Max) {
+			return fmt.Sprintf(txtMostTyped, int(*q.Max), ticked)
+		}
+	}
+	for _, i := range hit {
+		k.on[i] = true
+	}
+	for _, f := range fresh {
+		k.opts = append(k.opts, f)
+		k.on[len(k.opts)-1] = true
+	}
+	return ""
+}
+
+// splitItems are the items of a typed list: separated by commas or lines,
+// trimmed, the empty ones left out.
+func splitItems(s string) []string {
+	var out []string
+	for _, item := range strings.FieldsFunc(s, func(r rune) bool { return r == ',' || r == '\n' }) {
+		if item = strings.TrimSpace(item); item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
 }
 
 func listAnswer(list []string) answer {
@@ -773,6 +999,8 @@ func listAnswer(list []string) answer {
 // count checks a list's length against Min and Max (and Required).
 func (q *question) count(list []string) string {
 	switch {
+	case len(list) == 0 && q.Required && q.Type == qMulti && q.Custom:
+		return txtPickOrType
 	case len(list) == 0 && q.Required && q.Type == qMulti:
 		return txtPickSome
 	case len(list) == 0 && q.Required:
@@ -864,31 +1092,18 @@ func (t *talk) parse(q *question, s string) (answer, string) {
 				return ok(c)
 			}
 		}
+		if q.Custom { // a choice by its slug (sci fi is Sci-Fi), else the text typed
+			if i := slices.IndexFunc(q.Choices, func(c string) bool { return choiceKey(c) == choiceKey(s) }); i >= 0 {
+				return ok(q.Choices[i])
+			}
+			if n := utf8.RuneCountInString(s); n > customMax {
+				return answer{}, fmt.Sprintf(txtTooLong, customMax, n)
+			}
+			return ok(s)
+		}
 		return answer{}, fmt.Sprintf(txtPick, strings.Join(q.Choices, ", "))
 	case qMulti, qList:
-		list := []string{}
-		for _, item := range strings.FieldsFunc(s, func(r rune) bool { return r == ',' || r == '\n' }) {
-			if item = strings.TrimSpace(item); item == "" {
-				continue
-			}
-			if q.Type == qMulti {
-				i := slices.IndexFunc(q.Choices, func(c string) bool { return strings.EqualFold(c, item) })
-				if i < 0 {
-					return answer{}, txtPickSome
-				}
-				item = q.Choices[i]
-			}
-			if !slices.Contains(list, item) {
-				list = append(list, item)
-			}
-		}
-		if p := q.count(list); p != "" {
-			if len(list) == 0 && !q.Required {
-				return listAnswer(nil), ""
-			}
-			return answer{}, p
-		}
-		return listAnswer(list), ""
+		return t.items(q, splitItems(s))
 	case qYesNo:
 		switch strings.ToLower(s) {
 		case "ya", "y", "yes", "iya", "ok", "oke":
@@ -915,6 +1130,41 @@ func (t *talk) parse(q *question, s string) (answer, string) {
 		return answer{}, txtFile
 	}
 	return ok(s)
+}
+
+// items reads a list (typed, or given as Prefill) as question q's answer:
+// each item once; for a multiple choice, each a choice in any case, or with
+// Custom a choice by its slug or a name of its own (the choices first, in
+// their order, then the others as typed).
+func (t *talk) items(q *question, items []string) (answer, string) {
+	list := []string{}
+	if q.Type == qMulti && q.Custom {
+		k := newTicks(q, answer{})
+		if p := k.add(q, items, false); p != "" && p != txtPickOrType {
+			return answer{}, p
+		}
+		list = k.picked()
+	} else {
+		for _, item := range items {
+			if q.Type == qMulti {
+				i := slices.IndexFunc(q.Choices, func(c string) bool { return strings.EqualFold(c, item) })
+				if i < 0 {
+					return answer{}, txtPickSome
+				}
+				item = q.Choices[i]
+			}
+			if !slices.Contains(list, item) {
+				list = append(list, item)
+			}
+		}
+	}
+	if p := q.count(list); p != "" {
+		if len(list) == 0 && !q.Required {
+			return listAnswer(nil), ""
+		}
+		return answer{}, p
+	}
+	return listAnswer(list), ""
 }
 
 // months are the month names a date may be written with, Indonesian and

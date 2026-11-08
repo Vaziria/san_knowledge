@@ -1418,8 +1418,9 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     WebP by its bytes, 2 MB at most as the site counts it, such as Video
     Thumbnail's File with Aspect 16:9 or Vidara Metadata's Thumbnail; a
     relative path is in the data folder) or Thumbnail URL, Categories (up
-    to 10, unknown ones are made), Tags (up to 20), Synopsis, Release
-    Year (1870 to 2100),
+    to 10, unknown ones are made), Tags (up to 20, unknown ones are made
+    too; both are matched by slug, so Sci Fi is the site's Sci-Fi),
+    Synopsis, Release Year (1870 to 2100),
     Duration (minutes, 1 to 1440, such as Vidara Metadata's Duration
     Minutes) and Slug (empty: the site makes one from the title) are
     optional. Status Draft (the default) keeps it hidden;
@@ -1460,6 +1461,17 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     up to Limit movies (1000 by default, 100 pages at most). Each fires
     once per movie with Item it and Slug its slug, then Done; Movies is the
     list, Count how many came and Total how many the site has.
+  - **MovieMov Categories and Tags** (the user, 2026-11-08: a form's tag
+    buttons from the tags already on moviemov.id) reads the site's public
+    lists, without logging in: every category (`GET /categories`) and the
+    tags of published movies (`GET /tags`). Order Most Used (the default)
+    puts those with the most published movies first, then by name; Name
+    orders them by name. Limit (default 10, 0: all) keeps that many of
+    each. Categories and Tags are their names, as lists, which link
+    straight into a Telegram Form's `kategori Choices` and `tag Choices`
+    (Telegram forms, below); Category Items and Tag Items are the site's
+    objects (`id`, `name`, `slug`, `movies_count`, `url`, a category's
+    `description`). Done fires once both are read.
   - **MovieMov Delete Movie** deletes the movie Slug, with its ratings and
     its uploaded thumbnail. Deleted fires when it was deleted, Not Found
     (a warning in the log) when the site has no such movie, and Done either
@@ -1579,8 +1591,8 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     row by row on the step (Edit): Name (the output: letters, digits and
     _, not one of the form's own outputs), Question (what the bot asks),
     Type, Required (Yes; No gets a **Lewati** button), Default (a button,
-    "Pakai Draft"), Choices, Min, Max, Starts With, File Types and Field
-    (below). The types, their checks and outputs:
+    "Pakai Draft"), Choices, Custom, Min, Max, Starts With, File Types and
+    Field (below). The types, their checks and outputs:
     - Text (Min and Max characters, Starts With) and Number (Min, Max; a
       comma is a decimal point: "1,5" is 1.5), text outputs.
     - Link (http or https, Max characters, Starts With: "Link harus
@@ -1588,7 +1600,38 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
       `<iframe>` code, as MovieMov's Embed URL takes).
     - Choice (a button per choice, or the choice typed in any case) and
       Multiple Choice (buttons that tick ✅, then **Selesai**; Min and
-      Max items; an object output, the list of picks).
+      Max items; an object output, the list of picks). Their buttons are
+      Choices, then the names that a list linked to the question's own
+      input `<name> Choices` brings (`kategori Choices`: a list, or text
+      by commas or lines, such as MovieMov Categories and Tags'
+      Categories), each once by slug (`sci fi` is `Sci-Fi`), 60 at most.
+      Renaming the question moves that input's link; Choices may be left
+      empty when the input gives them. **Custom** Yes (the user,
+      2026-11-08: "In ask category can it optional to send custom text and
+      create automatically") also takes names typed, each up to 50
+      characters (MovieMov's most for a tag):
+      - Multiple Choice ("(pilih satu atau lebih, atau ketik sendiri
+        dipisah koma, lalu Selesai)"): a message of names, by commas or
+        lines, ticks them, a choice by its slug in any case and any other
+        name as a ✅ button of its own, which unticks like the others; empty
+        ones are left out and a name given twice is one, as first spelt.
+        Max counts every tick ("Maksimal 10 (sudah 9 dipilih)."), a name too
+        long is said ("Maksimal 50 karakter per nama (ini 61: …)."). Typing
+        does not end the question: Selesai, tapped or typed, does. The
+        output lists the picks as the buttons go, the choices first, then
+        the names typed. Ubah and a refusal (Fix) ask it again with the
+        picks still ticked; a typed name left unticked is dropped once the
+        question is sent again.
+      - Choice ("(pilih atau ketik sendiri)"): a text typed is the answer,
+        a choice's own spelling when it is one by its slug.
+      - A Default or Prefill may be a name that is none of the choices.
+        MovieMov makes the categories and tags it does not have, by slug,
+        so Custom pairs with MovieMov Upload Movie's Categories and Tags.
+      - A question with no buttons at all is typed only with Custom
+        ("(ketik sendiri, dipisah koma, lalu Selesai)" for a multiple
+        choice) and fails the step without it, saying so. Custom No (the
+        default) is as before: a typed choice must be a button's ("Pilih
+        dari tombol: Draft, Published").
     - List: items typed, separated by commas or lines, each once (Min,
       Max items; an object output), as MovieMov's Tags take.
     - Yes/No: buttons **Ya** and **Tidak**, or typed (ya, iya, y, yes, ok, oke;
@@ -1611,7 +1654,8 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     Published", "Foto maksimal 2 MB (ini 2.5 MB).", "File ini bukan gambar
     (jpg, png, webp atau gif).", "Tanggal tidak terbaca. Contoh: 2026-11-09
     atau 9/11/2026."). Prefill (link the Command's Text) answers the first
-    question (`/hapus night-train`), or several when it is JSON by name.
+    question (`/hapus night-train`), or several when it is JSON by name (a
+    list as text or a JSON list).
     After the last question the bot sends "Cek dulu ya:" with each answer
     (its question's name as a label, a file as its name and size) and
     **Kirim**, **Ubah** and **Batal**: Kirim fires Done with the outputs

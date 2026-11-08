@@ -33,11 +33,14 @@ import {
   rowSocketName,
   rowSocketType,
   socketColor,
+  stepInputs,
   stepKind,
   stepOutputs,
+  tableColumns,
   tableRows,
   type Setting,
   type Socket,
+  type SocketsFrom,
   type Step,
   type StepKind,
 } from './catalog';
@@ -56,10 +59,11 @@ export function StepNode({ id, data, selected }: NodeProps<Step>) {
   const updateInternals = useUpdateNodeInternals();
   const ran = useStepRun(id);
   const kind = stepKind(data.kind);
-  // Outputs a step's settings make (a form's questions) come and go with
-  // them: React Flow is told its handles changed.
+  // Outputs and inputs a step's settings make (a form's questions) come and
+  // go with them: React Flow is told its handles changed.
   const outputs = useMemo(() => (kind ? stepOutputs(kind, data.values) : []), [kind, data.values]);
-  const handles = outputs.map(handleId).join(',');
+  const inputs = useMemo(() => (kind ? stepInputs(kind, data.values) : []), [kind, data.values]);
+  const handles = [...outputs, ...inputs].map(handleId).join(',');
   useEffect(() => updateInternals(id), [id, handles, updateInternals]);
   if (!kind) {
     return (
@@ -70,8 +74,8 @@ export function StepNode({ id, data, selected }: NodeProps<Step>) {
   }
   const palette = categoryPalette(kind.category);
   const set = (name: string, value: string) => updateNodeData(id, { values: { ...data.values, [name]: value } });
-  // A table setting saved: the outputs its rows make follow them, so a
-  // renamed question keeps its links, and a removed one's go.
+  // A table setting saved: the outputs and inputs its rows make follow
+  // them, so a renamed question keeps its links, and a removed one's go.
   const setTable = (setting: Setting, rows: EditedRow[]) => {
     const before = tableRows(data.values[setting.name]);
     set(setting.name, rows.length ? JSON.stringify(rows.map((r) => r.values)) : '');
@@ -112,7 +116,7 @@ export function StepNode({ id, data, selected }: NodeProps<Step>) {
             <SettingField key={s.name} setting={s} value={data.values[s.name] ?? ''} onChange={(v) => set(s.name, v)} />
           ),
         )}
-        {kind.inputs.map((s) => (
+        {inputs.map((s) => (
           <InputRow
             key={s.name}
             socket={s}
@@ -126,10 +130,11 @@ export function StepNode({ id, data, selected }: NodeProps<Step>) {
   );
 }
 
-// followRows moves step id's links from the outputs a table setting's rows
-// made before to those its edited rows make: a renamed row's go to its new
-// name, those whose type changed stay only where the type still links, and
-// a removed row's are dropped.
+// followRows moves step id's links from the outputs and inputs a table
+// setting's rows made before to those its edited rows make: a renamed row's
+// go to its new name, those whose type changed stay only where the type
+// still links, and a removed row's (or one that no longer makes it, as a
+// question no longer a choice) are dropped.
 function followRows(
   edges: Edge[],
   id: string,
@@ -138,25 +143,38 @@ function followRows(
   before: Record<string, string>[],
   rows: EditedRow[],
 ) {
-  const moved = new Map<string, string | null>();
-  for (const from of kind.outputsFrom.filter((f) => f.setting === setting)) {
-    for (const [i, old] of before.entries()) {
-      const name = rowSocketName(from, old);
-      if (!name || kind.outputs.some((s) => s.name === name)) continue;
-      const now = rows.find((r) => r.from === i);
-      const next = now && rowSocketName(from, now.values);
-      moved.set(
-        `${rowSocketType(from, old)}:${name}`,
-        next ? `${rowSocketType(from, now.values)}:${next}` : null,
-      );
+  const columns = tableColumns(kind, setting);
+  const moves = (froms: SocketsFrom[], fixed: Socket[]) => {
+    const moved = new Map<string, string | null>();
+    for (const from of froms.filter((f) => f.setting === setting)) {
+      for (const [i, old] of before.entries()) {
+        const name = rowSocketName(from, old, columns);
+        if (!name || fixed.some((s) => s.name === name)) continue;
+        const now = rows.find((r) => r.from === i);
+        const next = now && rowSocketName(from, now.values, columns);
+        moved.set(
+          `${rowSocketType(from, old)}:${name}`,
+          next ? `${rowSocketType(from, now.values)}:${next}` : null,
+        );
+      }
     }
-  }
+    return moved;
+  };
+  const outs = moves(kind.outputsFrom, kind.outputs);
+  const ins = moves(kind.inputsFrom, kind.inputs);
   return edges.flatMap((e) => {
-    if (e.source !== id || !e.sourceHandle || !moved.has(e.sourceHandle)) return [e];
-    const to = moved.get(e.sourceHandle);
-    if (!to) return [];
-    if (to === e.sourceHandle) return [e];
-    const c = { source: e.source, sourceHandle: to, target: e.target, targetHandle: e.targetHandle ?? null };
+    let c = { source: e.source, sourceHandle: e.sourceHandle ?? null, target: e.target, targetHandle: e.targetHandle ?? null };
+    if (e.source === id && c.sourceHandle && outs.has(c.sourceHandle)) {
+      const to = outs.get(c.sourceHandle);
+      if (!to) return [];
+      c = { ...c, sourceHandle: to };
+    }
+    if (e.target === id && c.targetHandle && ins.has(c.targetHandle)) {
+      const to = ins.get(c.targetHandle);
+      if (!to) return [];
+      c = { ...c, targetHandle: to };
+    }
+    if (c.sourceHandle === e.sourceHandle && c.targetHandle === (e.targetHandle ?? null)) return [e];
     return canLink(c) ? [link(c)] : [];
   });
 }

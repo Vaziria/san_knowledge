@@ -41,7 +41,7 @@ type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance' | 'gi
 // typeHelp says what a connection of each type is, over its tab's list.
 const typeHelp: Record<ConnectionType, string> = {
   sanRemote:
-    '`san_remote api`, which posts to Threads, X, Facebook, Vidara and the other sites, and asks ChatGPT, Gemini and Claude, through your browser.',
+    '`san_remote api`, which posts to Threads, X, Facebook, Vidara and the other sites, and asks ChatGPT, Gemini, Grok and Claude, through your browser.',
   telegramBot: 'A bot from @BotFather, which the tower reads and sends Telegram messages as.',
   whatsapp: 'Your WhatsApp account, linked by scanning a QR code as WhatsApp Web is.',
   binance: 'A Binance futures account, through an API key, which the Finance steps read and trade on.',

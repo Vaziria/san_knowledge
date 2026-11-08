@@ -25,6 +25,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	grokv1 "github.com/wargasipil/san_remote/gen/san/remote/grok/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/broker"
@@ -662,6 +664,19 @@ func (f geminiAsks) Ask(_ context.Context, req *connect.Request[geminiv1.AskRequ
 	return connect.NewResponse(&geminiv1.AskResponse{Text: text, Chat: link, Temporary: link == ""}), nil
 }
 
+type grokAsks struct {
+	grokv1connect.UnimplementedGrokServiceHandler
+	*siteAsks
+}
+
+func (f grokAsks) Ask(_ context.Context, req *connect.Request[grokv1.AskRequest]) (*connect.Response[grokv1.AskResponse], error) {
+	text, link, err := f.ask("Grok", "https://grok.com/c/", req.Msg.Prompt, req.Msg.Chat, req.Msg.Keep)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&grokv1.AskResponse{Text: text, Chat: link, Private: link == ""}), nil
+}
+
 type claudeAsks struct {
 	claudev1connect.UnimplementedClaudeServiceHandler
 	*siteAsks
@@ -675,13 +690,14 @@ func (f claudeAsks) Ask(_ context.Context, req *connect.Request[claudev1.AskRequ
 	return connect.NewResponse(&claudev1.AskResponse{Text: text, Chat: link, Incognito: link == ""}), nil
 }
 
-// fakeSites serves the three sites' asks, on loopback.
+// fakeSites serves the four sites' asks, on loopback.
 func fakeSites(t *testing.T) (*siteAsks, string) {
 	t.Helper()
 	f := &siteAsks{}
 	mux := http.NewServeMux()
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(gptAsks{siteAsks: f}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAsks{siteAsks: f}))
+	mux.Handle(grokv1connect.NewGrokServiceHandler(grokAsks{siteAsks: f}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeAsks{siteAsks: f}))
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
@@ -707,6 +723,7 @@ func TestAskMessages(t *testing.T) {
 	for _, c := range []struct{ kind, site, base string }{
 		{"chatgpt-ask", "ChatGPT", "https://chatgpt.com/c/"},
 		{"gemini-ask", "Gemini", "https://gemini.google.com/app/"},
+		{"grok-ask", "Grok", "https://grok.com/c/"},
 		{"claude-ask-browser", "Claude", "https://claude.ai/chat/"},
 	} {
 		t.Run(c.site, func(t *testing.T) { testAskMessages(t, c.kind, c.site, c.base) })

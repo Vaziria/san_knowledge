@@ -9,6 +9,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/grok"
 )
 
 // tabBrowser opens a tab whose page never answers, and counts the tabs
@@ -48,6 +49,10 @@ func TestAskStay(t *testing.T) {
 			},
 			"gemini": func(b *tabBrowser) error {
 				_, err := (&gemini.Service{B: b}).Ask(ctx, gemini.Ask{Prompt: "halo", Stay: stay})
+				return err
+			},
+			"grok": func(b *tabBrowser) error {
+				_, err := (&grok.Service{B: b}).Ask(ctx, grok.Ask{Prompt: "halo", Stay: stay})
 				return err
 			},
 			"claude": func(b *tabBrowser) error {

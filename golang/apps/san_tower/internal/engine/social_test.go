@@ -19,6 +19,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	grokv1 "github.com/wargasipil/san_remote/gen/san/remote/grok/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
@@ -61,6 +63,7 @@ type fakeRemote struct {
 	tiktok    *tiktokv1.SchedulePostRequest
 	chatgpt   *chatgptv1.AskRequest
 	gemini    *geminiv1.AskRequest
+	grok      *grokv1.AskRequest
 	claude    *claudev1.AskRequest
 	youtube   *youtubev1.UploadVideoRequest
 	ig        *instagramv1.CreatePostRequest
@@ -175,6 +178,7 @@ func remote(t *testing.T) (*fakeRemote, Env) {
 	mux.Handle(instagramv1connect.NewInstagramServiceHandler(fakeInstagram{fakeRemote: f}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(fakeChatGPT{fakeRemote: f}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(fakeGemini{fakeRemote: f}))
+	mux.Handle(grokv1connect.NewGrokServiceHandler(fakeGrok{fakeRemote: f}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(fakeClaude{fakeRemote: f}))
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)

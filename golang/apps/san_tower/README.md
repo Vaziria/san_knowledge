@@ -770,10 +770,11 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   the step's error says so (a fine-grained token needs the repository and
   Issues: Read and write, a classic one the `repo` scope, or `public_repo`
   for a public repository).
-- Social steps (category Social, and AI for ChatGPT, Gemini and Claude)
-  work on the user's Threads, X, Facebook, Vidara, Medium, LinkedIn, TikTok,
-  YouTube, Instagram, ChatGPT, Gemini and claude.ai through
-  `san_remote api`, the San Remote connection their Connection setting names:
+- Social steps (category Social, and AI for ChatGPT, Gemini, Grok and
+  Claude) work on the user's Threads, X, Facebook, Vidara, Medium, LinkedIn,
+  TikTok, YouTube, Instagram, ChatGPT, Gemini, Grok (grok.com) and claude.ai
+  through `san_remote api`, the San Remote connection their Connection
+  setting names:
   - Threads Post, X Post, Facebook Post schedule a post: Text (lines that
     are only `---` split a thread into posts; Facebook takes one) and At.
     At is a datetime picker on every post step (the user, 2026-10-25), or a
@@ -1019,35 +1020,48 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   - Gemini Ask (AI › Gemini) does the same on Gemini, in a Temporary chat;
     it brings Chrome to the front while it asks, since Gemini sends a prompt
     only from a shown page.
+  - Grok Ask (AI › Grok; the user, 2026-11-08: "Can we have node ai that
+    supported grok ?", a browser node like Gemini Ask rather than xAI's API)
+    does the same on Grok at grok.com, signed in with the browser's X
+    account, in a Private chat, which Grok keeps out of the history
+    (Temporary Yes); Answer is its reply as markdown, from Grok's Copy
+    response button, links as `[text](url)`. It brings Chrome to the front
+    while it asks: a prompt sent from a hidden tab goes out, but Grok shows
+    the answer only once the page is on screen. Its Chat Link is
+    https://grok.com/c/... (empty for a Private chat), and images go in
+    through the prompt box's file input. Grok's interface must be in
+    English.
   - Claude Ask (Browser) (AI › Claude) does the same on claude.ai, in an
     incognito chat kept out of the history, in a background tab; Answer is
-    markdown. Social Status reads ChatGPT, Gemini and Claude too.
-  - Chat, on those three (the user's ask, 2026-10-25): Leave, the default,
+    markdown. Social Status reads ChatGPT, Gemini, Grok and Claude too.
+  - Chat, on those four (the user's ask, 2026-10-25): Leave, the default,
     closes the tab when the ask is over; Stay leaves it open on the chat,
     to read on or go on in it. A Temporary or incognito chat is gone once
     that tab is closed.
-  - Temporary, on those three (the user's ask, 2026-10-25): Yes, the
-    default, asks in a Temporary chat (incognito on claude.ai) that the site
-    does not keep; No asks in a normal chat, kept in the history.
-  - Chat Link, on those three (the user, 2026-10-27: sessions as Claude Ask
+  - Temporary, on those four (the user's ask, 2026-10-25): Yes, the
+    default, asks in a Temporary chat (incognito on claude.ai, Private on
+    Grok) that the site does not keep; No asks in a normal chat, kept in the
+    history.
+  - Chat Link, on those four (the user, 2026-10-27: sessions as Claude Ask
     (CLI) has; `browserchat.go`): an input that goes on in a kept chat, a
     chat's link (https://chatgpt.com/c/..., https://gemini.google.com/app/...,
-    https://claude.ai/chat/...) or a Browser Chat Session's; and an output,
-    the chat's link (empty for a Temporary chat). A chat that goes on is
-    always a kept one: Temporary does not apply, and the step's log says so.
+    https://grok.com/c/..., https://claude.ai/chat/...) or a Browser Chat
+    Session's; and an output, the chat's link (empty for a Temporary chat).
+    A chat that goes on is always a kept one: Temporary does not apply, and
+    the step's log says so.
   - Browser Chat Session (AI) is a chat that goes on from run to run: link
     its Chat Link to the asks' Chat Link. The first ask on a site starts a
     kept chat and the session keeps its link (the tower's database,
     `chat_sessions`, by session and site; a deleted workflow's go with it),
     so each later ask, in this run or another, goes on in it. One session
-    holds a chat per site, so the same session can go to ChatGPT, Gemini
-    and Claude. San Remote opens the chat by its link, as a person opens one
-    they kept. A session's chat deleted on the site (the user, 2026-10-28: "can it refresh when I delete session"; san_remote says NotFound, "the chat is not there") is started again: the ask goes to a new kept chat, the session keeps it, and the step logs a warning; Remote Shell does so for the user's message at the start of a run, the new chat getting the protocol. A chat's link typed in, not a session's, still fails.
+    holds a chat per site, so the same session can go to ChatGPT, Gemini,
+    Grok and Claude. San Remote opens the chat by its link, as a person
+    opens one they kept. A session's chat deleted on the site (the user, 2026-10-28: "can it refresh when I delete session"; san_remote says NotFound, "the chat is not there") is started again: the ask goes to a new kept chat, the session keeps it, and the step logs a warning; Remote Shell does so for the user's message at the start of a run, the new chat getting the protocol. A chat's link typed in, not a session's, still fails.
     New Chat (Never, Hourly, Daily; the user, 2026-10-30, for the trading
     tick every 5 minutes, whose one chat would soon be too long) makes the
     session one per hour or day (UTC): its Chat Link is the session's key
     with the hour or day after `@`, so a new hour starts a new kept chat.
-  - Messages, on those three (the user, 2026-11-03, for the OpenAI API
+  - Messages, on those four (the user, 2026-11-03, for the OpenAI API
     below; "Is Claude and Gemini supported it ?": the same on each): an
     object input for an OpenAI API's Messages, the conversation a client
     sent, asked instead of Prompt. How it reaches the chat (the user: "we
@@ -1076,7 +1090,7 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
       newest 10 at most; into a chat that goes on (method 2) those of the
       newest turn. Each message's text says `[image n]` where its image was,
       and the file is `image-<n>.<ext>`, so the chat can tell them apart.
-  - Tools and Tool Calls, on those three (the user, 2026-11-03: "Can we add
+  - Tools and Tool Calls, on those four (the user, 2026-11-03: "Can we add
     tool call and image ?", then "Yea I follow your recommendation, go
     ahead"; `engine/openaitools.go`). The web chats have no function
     calling a program can use, so it is a prompt protocol. Tools, linked to
@@ -2466,7 +2480,7 @@ is the tower's folder, git-ignored. It holds:
 For when nothing else runs san_remote on this machine, the tower can run it
 (the user, 2026-10-25): the hub the San Remote browser extension attaches to,
 on `127.0.0.1:7476`, and the site services (Threads, X, Facebook, Vidara,
-Medium, LinkedIn, TikTok, ChatGPT, Gemini, Claude), on
+Medium, LinkedIn, TikTok, ChatGPT, Gemini, Grok, Claude), on
 `127.0.0.1:7478`, as `san_remote serve` and `san_remote api` run them
 (through san_remote's `server` package), so the extension, the CLI, the MCP
 server and a San Remote connection find it at the usual addresses. The
@@ -2629,8 +2643,8 @@ second fails to listen before it opens the broker.
 - `internal/engine`: `kinds.go` the kinds of step and how each runs,
   `actions.go` HTTP Request and Publish to Topic, `social.go` the San Remote
   steps (clients of `san_remote api`, the At times), `sites.go` the Medium,
-  LinkedIn, TikTok, Instagram, YouTube, ChatGPT, Gemini and Claude (Browser)
-  steps, `claude.go`
+  LinkedIn, TikTok, Instagram, YouTube, ChatGPT, Gemini, Grok and Claude
+  (Browser) steps, `claude.go`
   Claude Ask (CLI), `run.go` running a
   graph (`Execute`, with an `Env` for connections, storages and publishing), `expr.go`
   CEL, `engine.go` runs (recorded in the store), the triggers' pull

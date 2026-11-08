@@ -20,6 +20,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	grokv1 "github.com/wargasipil/san_remote/gen/san/remote/grok/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
@@ -380,6 +382,16 @@ func (f geminiToolChats) Ask(_ context.Context, req *connect.Request[geminiv1.As
 	return connect.NewResponse(&geminiv1.AskResponse{Text: text, Chat: link, Temporary: link == ""}), nil
 }
 
+type grokToolChats struct {
+	grokv1connect.UnimplementedGrokServiceHandler
+	*toolChats
+}
+
+func (f grokToolChats) Ask(_ context.Context, req *connect.Request[grokv1.AskRequest]) (*connect.Response[grokv1.AskResponse], error) {
+	text, link := f.ask("Grok", "https://grok.com/c/", req.Msg.Prompt, req.Msg.Chat, req.Msg.Keep)
+	return connect.NewResponse(&grokv1.AskResponse{Text: text, Chat: link, Private: link == ""}), nil
+}
+
 type claudeToolChats struct {
 	claudev1connect.UnimplementedClaudeServiceHandler
 	*toolChats
@@ -390,13 +402,14 @@ func (f claudeToolChats) Ask(_ context.Context, req *connect.Request[claudev1.As
 	return connect.NewResponse(&claudev1.AskResponse{Text: text, Chat: link, Incognito: link == ""}), nil
 }
 
-// fakeToolChats serves the three sites' asks, on loopback.
+// fakeToolChats serves the four sites' asks, on loopback.
 func fakeToolChats(t *testing.T) (*toolChats, string) {
 	t.Helper()
 	f := &toolChats{}
 	mux := http.NewServeMux()
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(gptToolChats{toolChats: f}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiToolChats{toolChats: f}))
+	mux.Handle(grokv1connect.NewGrokServiceHandler(grokToolChats{toolChats: f}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeToolChats{toolChats: f}))
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
@@ -413,7 +426,7 @@ func toolRequest(more string, turns ...string) []byte {
 	return []byte("{" + testTools + more + `, "messages": ` + string(b) + "}")
 }
 
-// An Ask with Tools, the same on the three sites: the protocol goes with
+// An Ask with Tools, the same on the four sites: the protocol goes with
 // the prompt (all of it to a new chat, a reminder alone to a kept chat that
 // has these tools), the calls in the answer are Tool Calls, and a broken
 // call is corrected once, in the chat or, from a Temporary chat, in a new
@@ -422,6 +435,7 @@ func TestAskTools(t *testing.T) {
 	for _, c := range []struct{ kind, site, base string }{
 		{"chatgpt-ask", "ChatGPT", "https://chatgpt.com/c/"},
 		{"gemini-ask", "Gemini", "https://gemini.google.com/app/"},
+		{"grok-ask", "Grok", "https://grok.com/c/"},
 		{"claude-ask-browser", "Claude", "https://claude.ai/chat/"},
 	} {
 		t.Run(c.site, func(t *testing.T) { testAskTools(t, c.kind, c.site, c.base) })

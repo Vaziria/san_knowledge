@@ -10,6 +10,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
@@ -19,7 +20,7 @@ import (
 
 // The tools of the sites added on 2026-10-25: medium_*, linkedin_*, tiktok_*,
 // chatgpt_*, gemini_* and claude_*; youtube_* on 2026-10-26, telegram_* on
-// 2026-10-27, instagram_* on 2026-10-29.
+// 2026-10-27, instagram_* on 2026-10-29, grok_* on 2026-11-08.
 
 const sitesInstructions = `
 medium_* write the user's markdown articles into Medium (interface in English) through that browser, as a person does in Medium's editor: medium_draft makes a draft from an article file (title, subtitle, text, images with alt text and captions) and, with at, schedules it; medium_schedule schedules a draft, medium_unschedule cancels its time; medium_drafts, medium_scheduled, medium_get and medium_status read. Nothing is published at once. medium_delete deletes a draft (it cannot be undone: ask the user first).
@@ -30,6 +31,7 @@ instagram_* post the user's photos and videos to Instagram through that browser:
 telegram_* work in Telegram Web (interface in English) in that browser, as the user's own account: telegram_create_bot asks @BotFather for a new bot and returns its token (a secret: hand it to what needs it, never repeat it in chat); telegram_delete_bot deletes one of the account's bots; telegram_create_group makes a group with no other members yet and returns its id; telegram_delete_group deletes a group for all its members; telegram_add_member and telegram_remove_member add and remove a user by username; telegram_status reads. Deletes and removals cannot be undone, and adding someone to a group is seen by them: ask the user first. Each brings Chrome to the front with a tab of its own for a minute or so.
 chatgpt_* ask ChatGPT (interface in English) through that browser: chatgpt_ask sends a prompt and returns the answer as markdown, in a Temporary chat unless keep is set; chat continues a kept chat by its link. chatgpt_status reads the account and plan.
 gemini_* ask Gemini (gemini.google.com, interface in English) through that browser: gemini_ask sends a prompt and returns the answer, in a Temporary chat unless keep is set; it brings Chrome to the front while it asks, since Gemini sends only from a shown page. gemini_status reads the Google account's name.
+grok_* ask Grok (grok.com, interface in English) through that browser: grok_ask sends a prompt and returns the answer as markdown, in a Private chat (kept out of the history) unless keep is set; chat continues a kept chat by its link; it brings Chrome to the front while it asks, since Grok shows its answer only on a shown page. grok_status reads the account's name.
 claude_* ask Claude on claude.ai (interface in English) through that browser: claude_ask sends a prompt and returns the answer as markdown, in an incognito chat (kept out of the history) unless keep is set; claude_status reads the account and plan.`
 
 func siteToolDefs() []any {
@@ -282,6 +284,20 @@ func siteToolDefs() []any {
 				"prompt":       str("The prompt"),
 				"keep":         flag("A normal chat, kept in the history, instead of a Temporary chat; its link comes back"),
 				"chat":         str("Continue the kept chat at this link (https://gemini.google.com/app/<id>)"),
+				"images":       strs("Images to attach before the prompt is sent: absolute paths of png, jpg, webp or gif files, at most 10, each at most 20 MB"),
+				"wait_seconds": intg("How long to wait for the answer (default 600)"),
+				"browser":      browserProp,
+			}, "prompt"), false, false),
+
+		tool("grok_status", "Grok: who is signed in",
+			"Whether the browser is signed in to Grok (grok.com), and as whom (the account's name).",
+			schema(map[string]any{"browser": browserProp}), true, false),
+		tool("grok_ask", "Grok: ask",
+			"Send a prompt to Grok on grok.com and return its answer as markdown. A new chat is a Private chat (not kept in the user's history) unless keep is set; chat continues a kept chat by its link. Brings Chrome to the front while it asks.",
+			schema(map[string]any{
+				"prompt":       str("The prompt"),
+				"keep":         flag("A normal chat, kept in the history, instead of a Private chat; its link comes back"),
+				"chat":         str("Continue the kept chat at this link (https://grok.com/c/<id>)"),
 				"images":       strs("Images to attach before the prompt is sent: absolute paths of png, jpg, webp or gif files, at most 10, each at most 20 MB"),
 				"wait_seconds": intg("How long to wait for the answer (default 600)"),
 				"browser":      browserProp,
@@ -877,6 +893,32 @@ func (s *Server) gemini(ctx context.Context, name string, a args) (string, error
 		return "Signed in to Gemini as " + st.Name + ".", nil
 	case "gemini_ask":
 		ans, err := s.Gemini.Ask(ctx, gemini.Ask{
+			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second, Files: a.Images,
+		})
+		if err != nil {
+			return "", err
+		}
+		if ans.Chat != "" {
+			return ans.Text + "\n\n(chat: " + ans.Chat + ")", nil
+		}
+		return ans.Text, nil
+	}
+	return "", fmt.Errorf("unknown tool %q", name)
+}
+
+func (s *Server) grok(ctx context.Context, name string, a args) (string, error) {
+	switch name {
+	case "grok_status":
+		st, err := s.Grok.Status(ctx, a.Browser)
+		if err != nil {
+			return "", err
+		}
+		if !st.SignedIn {
+			return "The browser is not signed in to Grok.", nil
+		}
+		return "Signed in to Grok as " + st.Name + ".", nil
+	case "grok_ask":
+		ans, err := s.Grok.Ask(ctx, grok.Ask{
 			Browser: a.Browser, Prompt: a.Prompt, Chat: a.Chat, Keep: a.Keep, Wait: time.Duration(a.WaitSeconds) * time.Second, Files: a.Images,
 		})
 		if err != nil {

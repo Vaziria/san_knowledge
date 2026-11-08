@@ -1,16 +1,17 @@
 // Package attach is the images an ask sends with its prompt to ChatGPT,
-// Gemini or Claude on claude.ai (the user, 2026-11-03: "Can we add tool call
-// and image ?", for the tower's OpenAI API, whose clients send images): it
-// checks them before any tab opens, puts them into the page in base64
-// pieces, has the site's page script give them to the composer, and waits
-// until the composer shows each one, uploaded.
+// Gemini, Grok or Claude on claude.ai (the user, 2026-11-03: "Can we add
+// tool call and image ?", for the tower's OpenAI API, whose clients send
+// images): it checks them before any tab opens, puts them into the page in
+// base64 pieces, has the site's page script give them to the composer, and
+// waits until the composer shows each one, uploaded.
 //
-// A site's page script (chatgpt.js, gemini.js, claude.js) has three helpers
-// for it: stage(id, piece) keeps a piece of a file, attach(files) gives the
-// composer the staged files ([{id, name, type}]) and says "" or what went
-// wrong, and attachments() reports what the composer shows: the names of the
-// files it holds (its "Remove <name>" buttons), how many, whether one is
-// still uploading, and a problem the site shows instead (a dialog, a limit).
+// A site's page script (chatgpt.js, gemini.js, grok.js, claude.js) has three
+// helpers for it: stage(id, piece) keeps a piece of a file, attach(files)
+// gives the composer the staged files ([{id, name, type}]) and says "" or
+// what went wrong, and attachments() reports what the composer shows: the
+// names of the files it holds (its "Remove <name>" buttons), how many,
+// whether one is still uploading, and a problem the site shows instead (a
+// dialog, a limit).
 package attach
 
 import (

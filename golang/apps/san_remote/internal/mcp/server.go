@@ -28,6 +28,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/gmaps"
+	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
@@ -52,7 +53,7 @@ type Server struct {
 	// X runs the x_* tools in this process, through Client.
 	X *x.Service
 	// Medium, LinkedIn, TikTok and ChatGPT run the medium_*, linkedin_*,
-	// tiktok_*, chatgpt_*, gemini_* and claude_* tools in this process, through
+	// tiktok_*, chatgpt_*, gemini_*, grok_* and claude_* tools in this process, through
 	// Client.
 	Medium    *medium.Service
 	LinkedIn  *linkedin.Service
@@ -65,6 +66,7 @@ type Server struct {
 	GoogleMaps *gmaps.Service
 	ChatGPT    *chatgpt.Service
 	Gemini     *gemini.Service
+	Grok       *grok.Service
 	Claude     *claude.Service
 	// Server is the URL Client talks to, for error messages.
 	Server  string
@@ -529,6 +531,8 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.chatgpt(ctx, name, a)
 	case strings.HasPrefix(name, "gemini_"):
 		text, err = s.gemini(ctx, name, a)
+	case strings.HasPrefix(name, "grok_"):
+		text, err = s.grok(ctx, name, a)
 	case strings.HasPrefix(name, "claude_"):
 		text, err = s.claude(ctx, name, a)
 	default:

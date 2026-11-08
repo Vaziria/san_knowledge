@@ -14,6 +14,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/chatgpt"
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
+	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
@@ -216,6 +217,21 @@ func TestGeminiAsk(t *testing.T) {
 		t.Fatal(hub.ClientError(err, server))
 	}
 	if !ans.Temporary || ans.Chat != "" || strings.TrimSpace(ans.Text) == "" {
+		t.Errorf("answer %+v", ans)
+	}
+	t.Log(ans.Text)
+}
+
+// TestGrokAsk asks a short question in a Private chat, which Grok does not
+// keep. It needs SAN_REMOTE_E2E_GROK=1.
+func TestGrokAsk(t *testing.T) {
+	b, browser, server := remoteBrowser(t, "SAN_REMOTE_E2E_GROK", "asks Grok on grok.com a question in a Private chat")
+	s := &grok.Service{B: b, Progress: func(step string) { t.Log("== " + step) }}
+	ans, err := s.Ask(context.Background(), grok.Ask{Browser: browser, Prompt: "Jawab satu kata: ibu kota Indonesia?"})
+	if err != nil {
+		t.Fatal(hub.ClientError(err, server))
+	}
+	if !ans.Private || ans.Chat != "" || !strings.Contains(ans.Text, "Jakarta") {
 		t.Errorf("answer %+v", ans)
 	}
 	t.Log(ans.Text)

@@ -22,6 +22,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/gmaps"
+	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
 	"github.com/wargasipil/san_remote/internal/medium"
@@ -498,6 +499,7 @@ func siteCode(err error) (connect.Code, bool) {
 		gmaps.ErrInvalid,
 		chatgpt.ErrInvalidPrompt,
 		gemini.ErrInvalidPrompt,
+		grok.ErrInvalidPrompt,
 		claude.ErrInvalidPrompt,
 	} {
 		if errors.Is(err, e) {
@@ -515,6 +517,7 @@ func siteCode(err error) (connect.Code, bool) {
 		gmaps.ErrBlocked, gmaps.ErrConsent,
 		chatgpt.ErrNotSignedIn, chatgpt.ErrLanguage, chatgpt.ErrRefused,
 		gemini.ErrNotSignedIn, gemini.ErrLanguage, gemini.ErrRefused,
+		grok.ErrNotSignedIn, grok.ErrLanguage, grok.ErrRefused,
 		claude.ErrNotSignedIn, claude.ErrLanguage, claude.ErrRefused,
 	} {
 		if errors.Is(err, e) {

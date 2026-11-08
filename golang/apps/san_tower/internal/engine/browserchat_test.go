@@ -15,6 +15,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	grokv1 "github.com/wargasipil/san_remote/gen/san/remote/grok/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -22,7 +24,7 @@ import (
 	"github.com/wargasipil/san_tower/internal/store"
 )
 
-// chatSites are the three sites as San Remote would answer: a kept chat
+// chatSites are the four sites as San Remote would answer: a kept chat
 // gets a link, the same one when it goes on; a Temporary one none.
 type chatSites struct {
 	mu   sync.Mutex
@@ -66,6 +68,16 @@ func (f geminiChats) Ask(_ context.Context, req *connect.Request[geminiv1.AskReq
 	return connect.NewResponse(&geminiv1.AskResponse{Text: "gemini says", Chat: link, Temporary: link == ""}), nil
 }
 
+type grokChats struct {
+	grokv1connect.UnimplementedGrokServiceHandler
+	*chatSites
+}
+
+func (f grokChats) Ask(_ context.Context, req *connect.Request[grokv1.AskRequest]) (*connect.Response[grokv1.AskResponse], error) {
+	link := f.answer("Grok", "https://grok.com/c/", req.Msg.Chat, req.Msg.Keep)
+	return connect.NewResponse(&grokv1.AskResponse{Text: "grok says", Chat: link, Private: link == ""}), nil
+}
+
 type claudeChats struct {
 	claudev1connect.UnimplementedClaudeServiceHandler
 	*chatSites
@@ -84,6 +96,7 @@ func TestBrowserChatSession(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatGPTChats{chatSites: f}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiChats{chatSites: f}))
+	mux.Handle(grokv1connect.NewGrokServiceHandler(grokChats{chatSites: f}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeChats{chatSites: f}))
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
@@ -102,9 +115,11 @@ func TestBrowserChatSession(t *testing.T) {
 		Steps: []*v1.Step{step("go", Manual), step("session", "browser-chat-session"),
 			step("gpt", "chatgpt-ask", "Connection", "1", "Prompt", "hi"),
 			step("gem", "gemini-ask", "Connection", "1", "Prompt", "hi"),
+			step("grk", "grok-ask", "Connection", "1", "Prompt", "hi"),
 			step("cla", "claude-ask-browser", "Connection", "1", "Prompt", "hi")},
-		Links: []*v1.Link{link("go", "Event", "gpt", "Event"), link("gpt", "Done", "gem", "Event"), link("gem", "Done", "cla", "Event"),
-			link("session", "Chat Link", "gpt", "Chat Link"), link("session", "Chat Link", "gem", "Chat Link"), link("session", "Chat Link", "cla", "Chat Link")},
+		Links: []*v1.Link{link("go", "Event", "gpt", "Event"), link("gpt", "Done", "gem", "Event"), link("gem", "Done", "grk", "Event"), link("grk", "Done", "cla", "Event"),
+			link("session", "Chat Link", "gpt", "Chat Link"), link("session", "Chat Link", "gem", "Chat Link"), link("session", "Chat Link", "grk", "Chat Link"),
+			link("session", "Chat Link", "cla", "Chat Link")},
 	}
 	for range 2 { // two runs of the workflow
 		steps, err := Execute(context.Background(), g, "go", nil, env)
@@ -122,7 +137,7 @@ func TestBrowserChatSession(t *testing.T) {
 		}
 	}
 	for site, want := range map[string]string{
-		"ChatGPT": "https://chatgpt.com/c/new", "Gemini": "https://gemini.google.com/app/new", "Claude": "https://claude.ai/chat/new",
+		"ChatGPT": "https://chatgpt.com/c/new", "Gemini": "https://gemini.google.com/app/new", "Grok": "https://grok.com/c/new", "Claude": "https://claude.ai/chat/new",
 	} {
 		// Temporary was not set: a chat that goes on is kept anyway.
 		if got := f.asks[site]; len(got) != 2 || got[0] != " keep" || got[1] != want+" keep" {
@@ -143,7 +158,12 @@ func TestBrowserChatSession(t *testing.T) {
 	if err != nil || textOut(t, steps[1], "Chat Link") != "" || f.asks["Claude"][2] != " temporary" {
 		t.Errorf("temporary: %v, %q", err, f.asks["Claude"])
 	}
-	if len(kept) != 3 {
+	// No Chat Link on Grok: a Private chat, without a link.
+	steps, err = run(t, env, "grok-ask", "Connection", "1", "Prompt", "hi")
+	if err != nil || textOut(t, steps[1], "Chat Link") != "" || f.asks["Grok"][2] != " temporary" {
+		t.Errorf("grok private: %v, %q", err, f.asks["Grok"])
+	}
+	if len(kept) != 4 {
 		t.Errorf("kept %v", kept)
 	}
 

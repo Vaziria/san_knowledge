@@ -17,7 +17,7 @@ separate Chrome, no debugging port and no `browser_profiles/` profile: it is
 your real browser with your real sign-ins. Medium, LinkedIn, TikTok and
 ChatGPT have services of their own here too (2026-10-25), the chromedp
 tools' steps on your own browser, and so do Gemini and Claude (claude.ai,
-the same day).
+the same day), and Grok (grok.com, 2026-11-08).
 
 Why it is built this way is in the design doc,
 [docs/external_repo/san_remote.md](../../../../docs/external_repo/san_remote.md).
@@ -96,6 +96,7 @@ bin\san_remote.exe shopee ...                     # Shopee Seller Centre: see "S
 bin\san_remote.exe gmaps ...                      # Google Maps: see "Google Maps" below
 bin\san_remote.exe chatgpt ...                    # ChatGPT: see "ChatGPT" below
 bin\san_remote.exe gemini ...                     # Gemini: see "Gemini" below
+bin\san_remote.exe grok ...                       # Grok (grok.com): see "Grok" below
 bin\san_remote.exe claude ...                     # claude.ai: see "Claude" below
 bin\san_remote.exe mcp                            # MCP on stdio, for Claude
 bin\san_remote.exe api                            # the site services over Connect (gRPC), on 127.0.0.1:7478
@@ -211,6 +212,8 @@ rebuilding, reconnect with `/mcp`.
 | `chatgpt_ask` | prompt; keep, chat, wait_seconds, images, browser |
 | `gemini_status` | browser |
 | `gemini_ask` | prompt; keep, wait_seconds, browser |
+| `grok_status` | browser |
+| `grok_ask` | prompt; keep, chat, wait_seconds, images, browser |
 | `claude_status` | browser |
 | `claude_ask` | prompt; keep, wait_seconds, browser |
 
@@ -235,8 +238,8 @@ video keeps the product live or archived, and to ask before a delete.
 For Google Maps they say it only reads, and that a long list takes minutes,
 so to give a limit when the task needs only a few places.
 For ChatGPT
-and Gemini they say a new chat is a Temporary chat unless `keep` is set, and
-for Claude an incognito chat.
+and Gemini they say a new chat is a Temporary chat unless `keep` is set, for
+Claude an incognito chat, and for Grok a Private chat.
 
 ## API
 
@@ -268,6 +271,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.gmaps.v1.GoogleMapsService` | SearchPlaces (a `keyword` around `latitude` and `longitude` or a full `plus_code`, at `zoom`; every place listed or `limit`; each with its name, category, address, phone, website, social links, plus code, point, rating and Maps link; `visit_websites` reads each website for its social links; says `end_of_list` and `limited_view`) |
 | `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
+| `san.remote.grok.v1.GrokService` | GetStatus, Ask (in a Private chat unless `keep`; the answer as markdown, links as `[text](url)`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.claude.v1.ClaudeService` | GetStatus, Ask (in an incognito chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 
 - **Only scheduling.** A post's `at` is required, and there is no "now"
@@ -1553,6 +1557,46 @@ bin\san_remote.exe gemini ask --chat https://gemini.google.com/app/... "Lanjutka
 - `--wait` (default 10 minutes) bounds a long answer.
 - Gemini's interface must be in English.
 
+## Grok
+
+`san_remote grok` asks Grok on grok.com through your browser's Grok
+session (grok.com signs in with your X account), as `gemini` does Gemini
+(the user, 2026-11-08: "Can we have node ai that supported grok ?", a
+browser node rather than xAI's API):
+- **ask** starts a **Private chat** (Grok's own "Private" button: "This chat
+  won't appear in your history"), writes the prompt, presses Submit, waits
+  for the answer, and prints it as **markdown**: the answer's own Copy
+  response button gives it, links as `[text](url)`, caught in the page
+  before it reaches your clipboard.
+- `--keep` asks in a normal chat instead, and prints its link to stderr
+  (https://grok.com/c/<id>).
+- `--chat LINK` goes on in a kept chat: it opens the chat by its link, as a
+  person opens one they kept, and asks there.
+- `--image FILE` (repeatable) attaches an image first, through the prompt
+  box's file input.
+- **status** says which account is signed in (the name on its account
+  button).
+
+```powershell
+bin\san_remote.exe grok status                         # signed in as <your name>
+bin\san_remote.exe grok ask "Jawab satu kata: ibu kota Indonesia?"
+Get-Content prompt.md | bin\san_remote.exe grok ask -
+bin\san_remote.exe grok ask --file prompt.md --wait 20m
+bin\san_remote.exe grok ask --keep "Mulai topik baru"               # == chat https://grok.com/c/...
+bin\san_remote.exe grok ask --chat https://grok.com/c/... "Lanjutkan"
+bin\san_remote.exe grok ask --image C:\gambar\merah.png "Warna apa gambar ini?"
+```
+
+- **ask brings Chrome to the front** for as long as it asks: a prompt sent
+  from a background tab goes out, but Grok writes the answer on the page
+  only while it is shown (found 2026-11-08: the answer stayed blank until
+  the tab came to the front). status reads in a background tab.
+- A Private chat has no link: its address stays https://grok.com/, and it
+  is gone once its tab is closed.
+- `--wait` (default 10 minutes) bounds a long answer.
+- Grok's interface must be in English. The model is whatever Grok's model
+  menu shows (Fast on a Free account); the tool does not pick one.
+
 ## Claude
 
 `san_remote claude` asks Claude on claude.ai through your browser's
@@ -1583,20 +1627,21 @@ bin\san_remote.exe claude ask --chat https://claude.ai/chat/... "Lanjutkan"
 
 ### Images in an ask
 
-`--image` on `chatgpt ask`, `gemini ask` and `claude ask` (`files` in the
-API's AskRequest, `images` in the MCP tools; `internal/attach`) attaches
-images before the prompt is written, the way a person picks them in the
-composer:
+`--image` on `chatgpt ask`, `gemini ask`, `grok ask` and `claude ask`
+(`files` in the API's AskRequest, `images` in the MCP tools;
+`internal/attach`) attaches images before the prompt is written, the way a
+person picks them in the composer:
 - Each must be a png, jpg/jpeg, webp or gif whose bytes are that type, at
   most 20 MB, at most 10 per ask; the API and MCP take absolute paths (the
   CLI makes a relative one absolute). A bad one is refused before any tab
   opens.
 - The file goes into the page in base64 pieces, then to the composer:
-  ChatGPT's and claude.ai's hidden file input, as if chosen in the file
-  dialog; Gemini has no file input until its menu opens a dialog, so the
+  ChatGPT's, claude.ai's and Grok's hidden file input, as if chosen in the
+  file dialog; Gemini has no file input until its menu opens a dialog, so the
   images are pasted into its prompt box. The ask waits (up to 3 minutes)
   until the composer shows each one by name, uploaded (ChatGPT's "Uploading
-  <name>" progress bar gone, claude.ai's thumbnail no longer pending), then
+  <name>" progress bar gone, claude.ai's thumbnail no longer pending, Grok's
+  chip showing its preview from assets.grok.com), then
   writes the prompt and sends.
 - A site that shows something else instead fails the ask with it: Gemini's
   "Creating content from images and files" dialog, which asks each account
@@ -1730,6 +1775,9 @@ need a token and TLS first.
 | instagram: `waited … for Instagram to take the files` | A video in a tab that was never on screen is not loaded: click Chrome's flashing taskbar button, and run it again. |
 | chatgpt: `ChatGPT gave no answer: …` | ChatGPT's own words, such as a usage limit. |
 | gemini: `Gemini gave no answer: …` | Gemini's own words, such as a usage limit. |
+| grok: `Grok gave no answer: …` | Grok's own words, such as a usage limit. |
+| grok: `the browser is not signed in to Grok (grok.com)` | Sign in to grok.com in that browser (Sign in with X). |
+| grok: `waited … for the answer`, Chrome's taskbar button flashing | Grok writes the answer only on a shown page: click Chrome and leave it in front until the ask is done. |
 | claude: `the browser is not signed in to claude.ai` | Sign in to claude.ai in that browser (a lapsed session lands on the sign-in page). |
 | claude: `Claude gave no answer: …` | claude.ai's own words, such as a usage limit. |
 | vidara delete waits, then `the code did not finish` | With two-factor login on, Vidara asks for a code before a delete, in a prompt the tool cannot answer. Delete it on the page. |
@@ -1801,6 +1849,8 @@ not been reloaded yet.
 - `TestChatGPTAsk` (`SAN_REMOTE_E2E_CHATGPT=1`) asks a short question in a
   Temporary chat.
 - `TestGeminiAsk` (`SAN_REMOTE_E2E_GEMINI=1`) does the same on Gemini.
+- `TestGrokAsk` (`SAN_REMOTE_E2E_GROK=1`) does the same on Grok, in a
+  Private chat.
 - `TestClaudeAsk` (`SAN_REMOTE_E2E_CLAUDE=1`) does the same on claude.ai, in
   an incognito chat.
 
@@ -1879,6 +1929,11 @@ The layout of the code is in the design doc.
   regenerate. `--keep` and `--chat` have not been run live.
 - **Gemini:** text prompts only; no files, images, mode choice, continuing a
   chat or regenerate. `--keep` has not been run live.
+- **Grok (grok.com):** no model choice (Grok's model menu decides), no
+  regenerate, no reading Grok's thinking or its sources list. Run live on
+  2026-11-08 from the CLI: a one-word Private ask, a long one with a link,
+  a kept chat and its next ask through `--chat`, and an image. Not run
+  live through the tower: its node was tested with a fake san_remote.
 - **Claude (claude.ai):** text prompts only; no files, model choice,
   projects, continuing a chat or retry. `--keep` has not been run live.
 - **Google Maps:** reads only. One search a call, about 120 places at most

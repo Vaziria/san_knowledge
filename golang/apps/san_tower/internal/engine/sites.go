@@ -13,6 +13,7 @@ import (
 	chatgptv1 "github.com/wargasipil/san_remote/gen/san/remote/chatgpt/v1"
 	claudev1 "github.com/wargasipil/san_remote/gen/san/remote/claude/v1"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
+	grokv1 "github.com/wargasipil/san_remote/gen/san/remote/grok/v1"
 	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
 	mediumv1 "github.com/wargasipil/san_remote/gen/san/remote/medium/v1"
@@ -34,7 +35,9 @@ import (
 // scheduled, or without At saved as Private. ChatGPT asks in a Temporary chat (the user's
 // choice), which ChatGPT does not keep; Gemini too, in a tab brought to the
 // front, since Gemini sends only from a shown page; Claude (claude.ai) in an
-// incognito chat. Claude Ask (CLI) is claude.go's.
+// incognito chat. Grok (grok.com; the user, 2026-11-08: "Can we have node ai
+// that supported grok ?", a browser node like Gemini Ask) in a Private
+// chat, in a tab brought to the front too. Claude Ask (CLI) is claude.go's.
 
 var siteKinds = []*kind{
 	{
@@ -283,6 +286,19 @@ var siteKinds = []*kind{
 		run: askStep("Gemini", askGemini),
 	},
 	{
+		// Temporary Yes is Grok's Private chat, as it is claude.ai's
+		// incognito one.
+		StepKind: &v1.StepKind{
+			Kind: "grok-ask", Title: "Grok Ask", Category: "AI",
+			Group:       "Grok",
+			Description: "Asks Grok on grok.com the Prompt through San Remote, in a Private chat that Grok does not keep, or with Temporary No a normal chat kept in the history; Answer is its reply as markdown, links as [text](url). Brings Chrome to the front while it asks. Chat: Leave closes the tab afterwards, Stay leaves it open on the chat. Chat Link goes on in a kept chat: a chat's link, or a Browser Chat Session's, whose chat goes on from run to run; the Chat Link output is the chat's link (empty for a Private chat). Messages, linked to an OpenAI API's Messages, is asked instead of Prompt: into a chat that goes on (a Browser Chat Session's) only the newest message, else the whole conversation as one prompt in a new chat; the images of the messages sent are attached before the prompt (at most 10). Tools, linked to an OpenAI API's Tools, tells the chat the request's tools (a prompt protocol: a call is answered as a JSON object in a code block; a kept chat gets the list once, then a reminder) and reads the calls in the answer as Tool Calls, [{name, arguments}], empty for a plain answer, for OpenAI Reply's Tool Calls; a broken call is corrected once.",
+			Outputs:     []*v1.Socket{sock("Done", Event), sock("Answer", Text), sock("Tool Calls", Object), sock("Chat Link", Text)},
+			Settings:    askSettings(),
+			Inputs:      []*v1.Socket{sock("Event", Event), field("Prompt"), sock("Messages", Object), sock("Tools", Object), field("Chat Link")},
+		},
+		run: askStep("Grok", askGrok),
+	},
+	{
 		StepKind: &v1.StepKind{
 			Kind: "claude-ask-browser", Title: "Claude Ask (Browser)", Category: "AI",
 			Group:       "Claude",
@@ -392,7 +408,7 @@ func instagramDelete(c *call) error {
 }
 
 // browserAsks are the sites of the browser ask steps, and how each asks.
-var browserAsks = map[string]browserAsk{"ChatGPT": askChatGPT, "Gemini": askGemini, "Claude": askClaude}
+var browserAsks = map[string]browserAsk{"ChatGPT": askChatGPT, "Gemini": askGemini, "Grok": askGrok, "Claude": askClaude}
 
 func askChatGPT(c *call, r remoteClients, prompt string, files []string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
 	res, err := r.chatgpt.Ask(c.ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: prompt, Files: files, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
@@ -410,6 +426,14 @@ func askGemini(c *call, r remoteClients, prompt string, files []string, wait tim
 	return res.Msg.Text, res.Msg.Chat, nil
 }
 
+func askGrok(c *call, r remoteClients, prompt string, files []string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
+	res, err := r.grok.Ask(c.ctx, connect.NewRequest(&grokv1.AskRequest{Prompt: prompt, Files: files, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
+	if err != nil {
+		return "", "", err
+	}
+	return res.Msg.Text, res.Msg.Chat, nil
+}
+
 func askClaude(c *call, r remoteClients, prompt string, files []string, wait time.Duration, chat string, keep, stay bool, idle time.Duration) (string, string, error) {
 	res, err := r.claude.Ask(c.ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: prompt, Files: files, WaitSeconds: uint32(wait / time.Second), Chat: chat, Keep: keep, Stay: stay, IdleSeconds: uint32(idle / time.Second)}))
 	if err != nil {
@@ -419,12 +443,12 @@ func askClaude(c *call, r remoteClients, prompt string, files []string, wait tim
 }
 
 // statusSites are the sites a Social Status step reads: the posting sites,
-// ChatGPT, Gemini and Claude (claude.ai).
-var statusSites = append(slices.Clone(sites), "ChatGPT", "Gemini", "Claude")
+// ChatGPT, Gemini, Grok and Claude (claude.ai).
+var statusSites = append(slices.Clone(sites), "ChatGPT", "Gemini", "Grok", "Claude")
 
 // askSettings are a browser ask step's: its San Remote connection, Wait,
-// Temporary, whether the chat is a Temporary (incognito on claude.ai) one
-// the site does not keep (Yes) or a normal one kept in the history (No),
+// Temporary, whether the chat is a Temporary (incognito on claude.ai,
+// Private on Grok) one the site does not keep (Yes) or a normal one kept in the history (No),
 // and Chat, whether the tab is closed when the ask is over (Leave) or left
 // open on the chat, to read on or go on in it (Stay; the user, 2026-10-25).
 func askSettings() []*v1.Setting {
@@ -558,6 +582,12 @@ func (c *call) siteStatus(r remoteClients, site string) (proto.Message, error) {
 		return res.Msg.GetStatus(), nil
 	case "Gemini":
 		res, err := r.gemini.GetStatus(c.ctx, connect.NewRequest(&geminiv1.GetStatusRequest{}))
+		if err != nil {
+			return nil, err
+		}
+		return res.Msg.GetStatus(), nil
+	case "Grok":
+		res, err := r.grok.GetStatus(c.ctx, connect.NewRequest(&grokv1.GetStatusRequest{}))
 		if err != nil {
 			return nil, err
 		}

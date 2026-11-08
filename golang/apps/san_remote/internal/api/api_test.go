@@ -21,6 +21,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	grokv1 "github.com/wargasipil/san_remote/gen/san/remote/grok/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
@@ -46,6 +48,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/gmaps"
+	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/hubtest"
 	"github.com/wargasipil/san_remote/internal/instagram"
@@ -79,6 +82,7 @@ func start(t *testing.T, server string) *httptest.Server {
 		GoogleMaps: &gmaps.Service{B: b},
 		ChatGPT:    &chatgpt.Service{B: b},
 		Gemini:     &gemini.Service{B: b},
+		Grok:       &grok.Service{B: b},
 		Claude:     &claude.Service{B: b},
 	}
 	ts := httptest.NewServer(a.Handler())
@@ -136,6 +140,7 @@ func TestRefused(t *testing.T) {
 	tt := tiktokv1connect.NewTikTokServiceClient(ts.Client(), ts.URL)
 	cg := chatgptv1connect.NewChatGPTServiceClient(ts.Client(), ts.URL)
 	gm := geminiv1connect.NewGeminiServiceClient(ts.Client(), ts.URL)
+	gk := grokv1connect.NewGrokServiceClient(ts.Client(), ts.URL)
 	cl := claudev1connect.NewClaudeServiceClient(ts.Client(), ts.URL)
 	yt := youtubev1connect.NewYouTubeServiceClient(ts.Client(), ts.URL)
 	ig := instagramv1connect.NewInstagramServiceClient(ts.Client(), ts.URL)
@@ -217,6 +222,9 @@ func TestRefused(t *testing.T) {
 		"chatgpt no prompt":        second(cg.Ask(ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: "  "}))),
 		"chatgpt bad chat":         second(cg.Ask(ctx, connect.NewRequest(&chatgptv1.AskRequest{Prompt: "halo", Chat: "https://example.com/c/1"}))),
 		"gemini no prompt":         second(gm.Ask(ctx, connect.NewRequest(&geminiv1.AskRequest{Prompt: "   "}))),
+		"grok no prompt":           second(gk.Ask(ctx, connect.NewRequest(&grokv1.AskRequest{Prompt: "   "}))),
+		"grok bad chat":            second(gk.Ask(ctx, connect.NewRequest(&grokv1.AskRequest{Prompt: "halo", Chat: "https://grok.com/c/1"}))),
+		"grok relative image":      second(gk.Ask(ctx, connect.NewRequest(&grokv1.AskRequest{Prompt: "halo", Files: []string{"p.png"}}))),
 		"claude no prompt":         second(cl.Ask(ctx, connect.NewRequest(&claudev1.AskRequest{Prompt: "   "}))),
 		"shopee relative photo":    second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Photos = []string{"sq.png"} }))),
 		"shopee not square":        second(sp.CreateProduct(ctx, product(func(r *shopeev1.CreateProductRequest) { r.Photos = []string{photo} }))),

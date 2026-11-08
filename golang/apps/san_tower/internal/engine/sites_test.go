@@ -15,6 +15,8 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/claude/v1/claudev1connect"
 	geminiv1 "github.com/wargasipil/san_remote/gen/san/remote/gemini/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
+	grokv1 "github.com/wargasipil/san_remote/gen/san/remote/grok/v1"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	instagramv1 "github.com/wargasipil/san_remote/gen/san/remote/instagram/v1"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	linkedinv1 "github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1"
@@ -206,6 +208,7 @@ func TestChatGPTAsk(t *testing.T) {
 	for kind, req := range map[string]func() interface{ GetKeep() bool }{
 		"chatgpt-ask":        func() interface{ GetKeep() bool } { return f.chatgpt },
 		"gemini-ask":         func() interface{ GetKeep() bool } { return f.gemini },
+		"grok-ask":           func() interface{ GetKeep() bool } { return f.grok },
 		"claude-ask-browser": func() interface{ GetKeep() bool } { return f.claude },
 	} {
 		if _, err := run(t, env, kind, "Connection", "1", "Prompt", "x", "Temporary", "No"); err != nil || !req().GetKeep() {
@@ -219,6 +222,7 @@ func TestChatGPTAsk(t *testing.T) {
 	for kind, req := range map[string]func() interface{ GetStay() bool }{
 		"chatgpt-ask":        func() interface{ GetStay() bool } { return f.chatgpt },
 		"gemini-ask":         func() interface{ GetStay() bool } { return f.gemini },
+		"grok-ask":           func() interface{ GetStay() bool } { return f.grok },
 		"claude-ask-browser": func() interface{ GetStay() bool } { return f.claude },
 	} {
 		if _, err := run(t, env, kind, "Connection", "1", "Prompt", "x", "Chat", "Stay"); err != nil || !req().GetStay() {
@@ -270,6 +274,61 @@ func TestGeminiAsk(t *testing.T) {
 	steps, err = run(t, env, "social-status", "Connection", "1", "Site", "Gemini")
 	if err != nil || objectOut(t, steps[1], "Status").GetStructValue().Fields["name"].GetStringValue() != "Heri" {
 		t.Errorf("gemini status: %s, %v", ran(steps), err)
+	}
+}
+
+type fakeGrok struct {
+	grokv1connect.UnimplementedGrokServiceHandler
+	*fakeRemote
+}
+
+func (f fakeGrok) Ask(_ context.Context, req *connect.Request[grokv1.AskRequest]) (*connect.Response[grokv1.AskResponse], error) {
+	f.grok = req.Msg
+	if req.Msg.Keep {
+		return connect.NewResponse(&grokv1.AskResponse{Text: "Biru", Chat: "https://grok.com/c/afbd98ee-5e8e-4d7f-bea5-bccacc799205"}), nil
+	}
+	return connect.NewResponse(&grokv1.AskResponse{Text: "Jakarta\n\n[Jakarta - Wikipedia](https://id.wikipedia.org/wiki/Jakarta)", Private: true}), nil
+}
+
+func (fakeGrok) GetStatus(context.Context, *connect.Request[grokv1.GetStatusRequest]) (*connect.Response[grokv1.GetStatusResponse], error) {
+	return connect.NewResponse(&grokv1.GetStatusResponse{Status: &grokv1.Status{SignedIn: true, Name: "Persatuan Bangsa"}}), nil
+}
+
+// Grok Ask asks Grok through San Remote's GrokService: a Private chat by
+// default, with no Chat Link; Temporary No a kept one, whose link comes
+// out; the answer as San Remote gives it, links as markdown.
+func TestGrokAsk(t *testing.T) {
+	f, env := remote(t)
+	steps, err := run(t, env, "grok-ask", "Connection", "1", "Prompt", "Jawab satu kata: ibu kota Indonesia?", "Wait", "2m")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := f.grok; r.GetPrompt() != "Jawab satu kata: ibu kota Indonesia?" || r.GetWaitSeconds() != 120 || r.GetKeep() || r.GetStay() || r.GetChat() != "" {
+		t.Errorf("request = %v", r)
+	}
+	if got := textOut(t, steps[1], "Answer"); got != "Jakarta\n\n[Jakarta - Wikipedia](https://id.wikipedia.org/wiki/Jakarta)" {
+		t.Errorf("Answer = %q", got)
+	}
+	if got := textOut(t, steps[1], "Chat Link"); got != "" {
+		t.Errorf("a Private chat's Chat Link = %q", got)
+	}
+	steps, err = run(t, env, "grok-ask", "Connection", "1", "Prompt", "Warna langit?", "Temporary", "No")
+	if err != nil || !f.grok.GetKeep() || textOut(t, steps[1], "Chat Link") != "https://grok.com/c/afbd98ee-5e8e-4d7f-bea5-bccacc799205" {
+		t.Errorf("kept: %v, %v", err, f.grok)
+	}
+	// A chat's link goes on in that chat, kept.
+	if _, err := run(t, env, "grok-ask", "Connection", "1", "Prompt", "Lanjut", "Chat Link", "https://grok.com/c/afbd98ee-5e8e-4d7f-bea5-bccacc799205"); err != nil ||
+		f.grok.GetChat() != "https://grok.com/c/afbd98ee-5e8e-4d7f-bea5-bccacc799205" || !f.grok.GetKeep() {
+		t.Errorf("chat link: %v, %v", err, f.grok)
+	}
+	// Nothing to ask fails before San Remote is called.
+	f.grok = nil
+	if _, err := run(t, env, "grok-ask", "Connection", "1"); err == nil || !strings.Contains(err.Error(), "Prompt is empty") || f.grok != nil {
+		t.Errorf("no prompt: %v, %v", err, f.grok)
+	}
+	steps, err = run(t, env, "social-status", "Connection", "1", "Site", "Grok")
+	if err != nil || objectOut(t, steps[1], "Status").GetStructValue().Fields["name"].GetStringValue() != "Persatuan Bangsa" {
+		t.Errorf("grok status: %s, %v", ran(steps), err)
 	}
 }
 

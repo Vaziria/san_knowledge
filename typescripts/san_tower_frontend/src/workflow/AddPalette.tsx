@@ -29,6 +29,7 @@ import {
   CheckCheckIcon,
   ChevronsUpIcon,
   CircleDotIcon,
+  CircleSlash2Icon,
   CircleXIcon,
   ClipboardListIcon,
   ClapperboardIcon,
@@ -174,6 +175,7 @@ const groupIcons: Record<string, LucideIcon> = {
   SSH: ServerIcon,
   ChatGPT: BotIcon,
   Gemini: GemIcon,
+  Grok: CircleSlash2Icon,
   Claude: AsteriskIcon,
   'OpenAI API': WebhookIcon,
 };
@@ -251,6 +253,7 @@ const kindIcons: Record<string, LucideIcon> = {
   'instagram-delete': Trash2Icon,
   'chatgpt-ask': BotMessageSquareIcon,
   'gemini-ask': GemIcon,
+  'grok-ask': CircleSlash2Icon,
   'claude-ask-cli': TerminalIcon,
   'claude-chat-session': HistoryIcon,
   'browser-chat-session': HistoryIcon,

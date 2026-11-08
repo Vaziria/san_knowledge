@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package san.remote.grok.v1;
+
+// GrokService is the Grok service (internal/grok) over Connect, served by
+// `san_remote api` for other programs (the tower's workflows). Like the CLI,
+// it works in a tab of the user's browser on grok.com, the way a person asks
+// in Grok's prompt box; an ask brings the tab to the front, since Grok shows
+// its answer only on a shown page.
+service GrokService {
+  // GetStatus says whether the browser is signed in to Grok, and as whom.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // Ask sends a prompt and returns the answer, once Grok has written it.
+  rpc Ask(AskRequest) returns (AskResponse);
+}
+
+// Status is the browser's Grok session.
+message Status {
+  bool signed_in = 1;
+  // The account's name, as its account button shows it.
+  string name = 2;
+}
+
+message GetStatusRequest {
+  // The browser's id or name; may be empty when only one is attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  Status status = 1;
+}
+
+message AskRequest {
+  string browser = 1;
+  string prompt = 2;
+  // A normal chat, kept in the history, instead of a Private chat.
+  bool keep = 3;
+  // How long to wait for the answer; 0 is 10 minutes.
+  uint32 wait_seconds = 4;
+  // Leave the tab open on the chat once the ask is over, for the user to
+  // read on or go on in it; otherwise it is closed.
+  bool stay = 5;
+  // Continue the kept chat at this link (https://grok.com/c/<id>); empty
+  // starts a new chat.
+  string chat = 6;
+  // Keep the tab open on the kept chat for the chat's next ask, which goes on
+  // in it, and close it once this long goes by without one; 0 closes it
+  // (unless stay).
+  uint32 idle_seconds = 7;
+  // Images to attach before the prompt is sent: absolute paths of png, jpg,
+  // webp or gif files on the computer san_remote runs on, at most 10, each
+  // at most 20 MB.
+  repeated string files = 8;
+}
+
+message AskResponse {
+  // The answer as Grok's Copy response button gives it: markdown, links as
+  // [text](url).
+  string text = 1;
+  // The chat's link, for a kept chat.
+  string chat = 2;
+  // The chat was a Private chat, which Grok does not keep.
+  bool private = 3;
+}

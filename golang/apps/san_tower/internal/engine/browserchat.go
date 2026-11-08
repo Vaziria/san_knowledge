@@ -14,7 +14,7 @@ import (
 
 // Browser chats that go on (the user, 2026-10-27: ChatGPT, Gemini and Claude
 // on claude.ai with a session, as Claude Ask (CLI) has with Claude Chat
-// Session). An ask step's Chat Link is a chat's link, which it goes on in,
+// Session; Grok on grok.com since 2026-11-08). An ask step's Chat Link is a chat's link, which it goes on in,
 // or a Browser Chat Session's session: then its first ask starts a kept
 // chat, whose link the session keeps (the tower's database, by session and
 // site), and each later ask, in this run or another, goes on in it. Its
@@ -23,7 +23,7 @@ import (
 var browserChatKinds = []*kind{{
 	StepKind: &v1.StepKind{
 		Kind: "browser-chat-session", Title: "Browser Chat Session", Category: "AI",
-		Description: "A chat with ChatGPT, Gemini or Claude on claude.ai that goes on from run to run: link Chat Link to the Chat Link of their Ask steps. The first ask starts a chat kept in the history, whose link the session keeps; each later ask, in this run or another, goes on in it. A session keeps one chat per site. New Chat Hourly or Daily starts a new one each hour or day (UTC), for a workflow that runs often, whose chat would grow too long.",
+		Description: "A chat with ChatGPT, Gemini, Grok or Claude on claude.ai that goes on from run to run: link Chat Link to the Chat Link of their Ask steps. The first ask starts a chat kept in the history, whose link the session keeps; each later ask, in this run or another, goes on in it. A session keeps one chat per site. New Chat Hourly or Daily starts a new one each hour or day (UTC), for a workflow that runs often, whose chat would grow too long.",
 		Outputs:     []*v1.Socket{sock("Chat Link", Text)},
 		Settings:    []*v1.Setting{{Name: "New Chat", Options: []string{"Never", "Hourly", "Daily"}}},
 	},

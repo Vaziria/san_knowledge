@@ -35,7 +35,7 @@ import (
 // /v1/chat/completions, streamed or not, with tools (openaitools.go) and
 // images (openaiimages.go). Each request starts a run from
 // the step, and the run's OpenAI Reply answers it. Linked to the Messages of
-// a browser ask (ChatGPT, Gemini, Claude on claude.ai; browserchat.go), any
+// a browser ask (ChatGPT, Gemini, Grok, Claude on claude.ai; browserchat.go), any
 // OpenAI client talks with those sites through the tower. How a request's
 // conversation reaches the chat (the user: "we have session right ? If no
 // session, method 1 seem pretty", "But if it is have session connected node,
@@ -71,7 +71,7 @@ var openAIKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: OpenAIAPI, Title: "OpenAI API", Category: "AI", Group: "OpenAI API",
-			Description: "Serves an OpenAI-compatible chat API at http://Host:Port/v1 while the workflow is switched on (GET /v1/models, POST /v1/chat/completions, streamed or not, with tools): each request starts a run, and the run's OpenAI Reply answers it. Messages is the conversation (images in it saved as files for the run), for a ChatGPT, Gemini or Claude (Browser) Ask's Messages; Tools the request's tools, tool_choice and parallel_tool_calls (null without tools), for the Ask's Tools; Prompt all of it as one labelled text; Last Message the newest user message; Model the model asked for; Request the request's JSON. With API Key set, a request needs Authorization: Bearer <key>. Requests run one at a time, each answered within Timeout (10m).",
+			Description: "Serves an OpenAI-compatible chat API at http://Host:Port/v1 while the workflow is switched on (GET /v1/models, POST /v1/chat/completions, streamed or not, with tools): each request starts a run, and the run's OpenAI Reply answers it. Messages is the conversation (images in it saved as files for the run), for a ChatGPT, Gemini, Grok or Claude (Browser) Ask's Messages; Tools the request's tools, tool_choice and parallel_tool_calls (null without tools), for the Ask's Tools; Prompt all of it as one labelled text; Last Message the newest user message; Model the model asked for; Request the request's JSON. With API Key set, a request needs Authorization: Bearer <key>. Requests run one at a time, each answered within Timeout (10m).",
 			Outputs:     []*v1.Socket{sock("Event", Event), sock("Messages", Object), sock("Tools", Object), sock("Prompt", Text), sock("Last Message", Text), sock("Model", Text), sock("Request", Object)},
 			Settings: []*v1.Setting{
 				{Name: "Host", Placeholder: "127.0.0.1: this computer only"},

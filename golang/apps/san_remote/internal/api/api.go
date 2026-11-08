@@ -29,6 +29,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gmaps/v1/gmapsv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
@@ -49,6 +50,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/gmaps"
+	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
@@ -86,6 +88,7 @@ type API struct {
 	GoogleMaps *gmaps.Service
 	ChatGPT    *chatgpt.Service
 	Gemini     *gemini.Service
+	Grok       *grok.Service
 	Claude     *claude.Service
 	// LAN takes calls from the local network too (hub.GuardLAN), for a
 	// server that listens there.
@@ -112,6 +115,7 @@ func (a *API) Handler() http.Handler {
 	mux.Handle(gmapsv1connect.NewGoogleMapsServiceHandler(gmapsAPI{a}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatgptAPI{a}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAPI{a}))
+	mux.Handle(grokv1connect.NewGrokServiceHandler(grokAPI{a}))
 	mux.Handle(claudev1connect.NewClaudeServiceHandler(claudeAPI{a}))
 	if a.LAN {
 		return hub.GuardLAN(mux)
@@ -138,7 +142,7 @@ func (a *API) fail(err error) error {
 		errors.Is(err, facebook.ErrNotSignedIn), errors.Is(err, facebook.ErrLanguage), errors.Is(err, vidara.ErrNotSignedIn):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
 	case errors.Is(err, x.ErrNotFound), errors.Is(err, vidara.ErrNoFolder),
-		errors.Is(err, chatgpt.ErrChatGone), errors.Is(err, gemini.ErrChatGone), errors.Is(err, claude.ErrChatGone),
+		errors.Is(err, chatgpt.ErrChatGone), errors.Is(err, gemini.ErrChatGone), errors.Is(err, grok.ErrChatGone), errors.Is(err, claude.ErrChatGone),
 		errors.Is(err, instagram.ErrNoMatch), errors.Is(err, shopee.ErrNotFound):
 		return connect.NewError(connect.CodeNotFound, err)
 	}

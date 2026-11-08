@@ -19,6 +19,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gmaps/v1/gmapsv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/medium/v1/mediumv1connect"
@@ -52,7 +53,7 @@ import (
 // the user's browser brought to the front, for a minute or two.
 
 // Sites a Social Posts step reads; a Social Status step reads them and
-// ChatGPT (statusSites, sites.go).
+// the AI chats (statusSites, sites.go).
 var sites = []string{"Threads", "X", "Facebook", "Vidara", "Medium", "LinkedIn", "TikTok", "YouTube", "Instagram"}
 
 // The times each site's scheduler offers, onto which At is rounded up:
@@ -709,6 +710,7 @@ type remoteClients struct {
 	telegram  telegramv1connect.TelegramServiceClient
 	chatgpt   chatgptv1connect.ChatGPTServiceClient
 	gemini    geminiv1connect.GeminiServiceClient
+	grok      grokv1connect.GrokServiceClient
 	claude    claudev1connect.ClaudeServiceClient
 	shopee    shopeev1connect.ShopeeServiceClient
 	gmaps     gmapsv1connect.GoogleMapsServiceClient
@@ -756,6 +758,7 @@ func (c *call) sanRemote() (remoteClients, error) {
 		telegram:  telegramv1connect.NewTelegramServiceClient(hc, url, opt),
 		chatgpt:   chatgptv1connect.NewChatGPTServiceClient(hc, url, opt),
 		gemini:    geminiv1connect.NewGeminiServiceClient(hc, url, opt),
+		grok:      grokv1connect.NewGrokServiceClient(hc, url, opt),
 		claude:    claudev1connect.NewClaudeServiceClient(hc, url, opt),
 		shopee:    shopeev1connect.NewShopeeServiceClient(hc, url, opt),
 		gmaps:     gmapsv1connect.NewGoogleMapsServiceClient(hc, url, opt),

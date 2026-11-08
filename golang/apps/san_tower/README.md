@@ -174,7 +174,7 @@ icon (`catalog.ts`, `AddPalette.tsx`). A kind says whether it is a trigger
 (StepKind's `trigger`), which the UI reads rather than the category, since
 a messenger's trigger is in Messengers. All of them run: Manual, Topic Event, Schedule, Log Event, Tower Restart, Tower Chat, OpenAI API and
 Telegram Message (triggers), Filter, Prefix Filter, Regex Filter, Pick Greater, Template, Format
-Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Parse JSON, Now, Datetime,
+Text, Storage, File Path, Read File, Glob, UUID, MD5 Hash, Stringify, Parse JSON, Get Value, Now, Datetime,
 Datetime Operation, String to Datetime, Wait, HTTP Request, Bash, Publish to Topic, Download File, Cut Video, Crop Video, Video Thumbnail, Delete File, Delete Folder and Log,
 and
 the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messengers, below).
@@ -663,6 +663,24 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   object is wanted goes by Not JSON too. Numbers are read as decimals, so a
   whole number past 2^53 (as some ids) loses its last digits: send those as
   text.
+- Get Value (Data, pure; the user, 2026-11-08: "Can we have Json extract
+  value from path ?") takes the value at Path (typed or linked) in Object:
+  keys and list indexes split by dots, `body.items.0.title`; brackets too,
+  `items[0]`, `items[-1]` for the last, `["a.b"]` or `['a b']` for a key
+  with dots or spaces; `*` for every item of a list (or object, by key),
+  so `items.*.title` is the list of the titles, skipping items without
+  one; a leading `$.` (JSONPath's) is ignored, and an empty Path is the
+  whole Object. A text met on the way that holds JSON is read as JSON (a
+  tool call's arguments, an HTTP body sent as a string). Value keeps the
+  value's type (an object or list for later steps), Text is it as text
+  (as Template writes it: whole numbers without a decimal point, null as
+  nothing, objects and lists as compact JSON), Found is Yes or No. Missing:
+  Use Default (the default) gives Default (nothing typed: null, Text
+  empty), so a Filter or Regex Filter on Found can branch; Fail fails the
+  step saying why (`no "titel" in body.items.0 (it has: id, title,
+  year)`, `body.items has 3 items, no 5`). For a condition or a sum on the
+  object, Filter's and Template's expressions (`payload.items.size()`)
+  remain the way.
 - Delete File (Action) deletes the file at Path (a field input, e.g. File
   Path's Absolute Path; a relative path is in the tower's data folder) and
   goes on by Done. A file that is not there counts as done too, since it

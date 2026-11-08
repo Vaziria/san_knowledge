@@ -389,6 +389,17 @@ var coreKinds = []*kind{
 	},
 	{
 		StepKind: &v1.StepKind{
+			Kind: "get-value", Title: "Get Value", Category: "Data",
+			Description: "Takes the value at Path in Object, a JSON path such as body.items.0.title (items[0], items[-1] for the last, [\"a.b\"] for a key with a dot, * for every item: items.*.title gives the list of titles). Value keeps its type (text, number, object, list), Text is it as text, Found says Yes or No. A path not there gives Default, or fails the step when Missing is Fail.",
+			Outputs:     []*v1.Socket{sock("Value", Object), sock("Text", Text), sock("Found", Text)},
+			Settings:    []*v1.Setting{{Name: "Missing", Options: []string{"Use Default", "Fail"}}},
+			Inputs: []*v1.Socket{sock("Object", Object), hint("body.items.0.title", field("Path")),
+				only("Missing!=Fail", hint("when the path is not there", field("Default")))},
+		},
+		run: getValue,
+	},
+	{
+		StepKind: &v1.StepKind{
 			Kind: "http-request", Title: "HTTP Request", Category: "Action",
 			Description: "Calls a URL with GET, POST, PUT or DELETE, sending Body as JSON; Response is the answer.",
 			Outputs:     []*v1.Socket{sock("Done", Event), sock("Response", Object)},

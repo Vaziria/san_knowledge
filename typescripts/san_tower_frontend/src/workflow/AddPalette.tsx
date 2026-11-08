@@ -236,6 +236,7 @@ const kindIcons: Record<string, LucideIcon> = {
   'facebook-post': UsersIcon,
   'vidara-upload': UploadIcon,
   'vidara-download': DownloadIcon,
+  'vidara-thumbnail': ImageIcon,
   'medium-draft': NotebookPenIcon,
   'linkedin-draft': NewspaperIcon,
   'tiktok-post': ClapperboardIcon,

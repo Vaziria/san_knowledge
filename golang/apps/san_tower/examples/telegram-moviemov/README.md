@@ -18,9 +18,9 @@ tower's README (Workflows › Telegram forms, and The MovieMov steps) and
   film] [Cek laporan] [Hapus film]. Each button is a command (`upload`,
   `laporan`, `hapus`), so the buttons and the commands lead to the same
   steps.
-- **`/upload`** (or Upload film) runs a Telegram Form, then MovieMov
-  Upload Movie, then the bot says "Sudah diupload: <url>". The form's
-  questions:
+- **`/upload`** (or Upload film) runs a Telegram Form, then Vidara
+  Thumbnail and MovieMov Upload Movie, then the bot says "Sudah diupload:
+  <url>". The form's questions:
 
   | Name | Question | Type | Required | Checks |
   | --- | --- | --- | --- | --- |
@@ -28,12 +28,29 @@ tower's README (Workflows › Telegram forms, and The MovieMov steps) and
   | `link` | Link film (https) atau kode iframe-nya? | Link or Iframe | yes | starts with https://; Field `embed_url` |
   | `kategori` | Kategorinya? | Multiple Choice (Action, Drama, Horor, Komedi, Thriller, Sci-Fi) | no (Lewati) | at most 10 |
   | `tag` | Tag-nya? | List | no (Lewati) | at most 20 |
-  | `thumbnail` | Kirim thumbnail-nya | Photo | no (Lewati) | at most 2 MB, a photo or an image file |
+  | `thumbnail` | Kirim thumbnail-nya (Lewati: pakai thumbnail dari Vidara) | Photo | no (Lewati) | at most 2 MB, a photo or an image file |
   | `status` | Statusnya? | Choice (Draft, Published) | yes | default Draft ("Pakai Draft") |
 
   Each answer is linked to the upload's input: Title, Embed URL,
-  Categories, Tags, Thumbnail, and Status Value (Status From Input). When
-  the site refuses the movie (422, such as "The slug has already been
+  Categories, Tags and Status Value (Status From Input). The thumbnail
+  goes through a **Vidara Thumbnail** step first (the user, 2026-11-08:
+  when the question is skipped, Vidara's thumbnail is used), whose
+  Thumbnail is the upload's:
+  - A photo sent is its Own Thumbnail, passed on as it is; Vidara is not
+    read.
+  - Skipped (Lewati), it reads the `link` answer's Vidara video and, with
+    Mode Download, saves its thumbnail in the run's folder, which MovieMov
+    Upload Movie sends as a file, so the site keeps its own copy. Vidara's
+    thumbnails are small and wide (320x132), not 16:9. Mode External Link
+    would give only Vidara's picture link (link its Thumbnail URL to the
+    upload's Thumbnail URL then), which breaks when Vidara moves domains.
+  - A link that is not a Vidara video's, or a video without a thumbnail,
+    goes up without one (Not Found, then Done).
+  - When Vidara's page does not load, the bot says "Gagal ambil thumbnail
+    dari Vidara: …. Coba /upload lagi dan kirim fotonya." and nothing is
+    uploaded.
+
+  When the site refuses the movie (422, such as "The slug has already been
   taken."), Refused and Errors go back to the form's Fix and Errors. The
   bot says "Ditolak: …", asks that question again, and uploads again, at
   most 3 times. Any other failure says "Gagal upload: …".

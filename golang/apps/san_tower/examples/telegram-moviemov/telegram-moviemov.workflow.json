@@ -1,7 +1,7 @@
 {
   "format": "san_tower.workflows",
   "version": 1,
-  "exportedAt": "2026-11-08T03:15:35.673943100Z",
+  "exportedAt": "2026-11-08T04:24:40.002090100Z",
   "tower": "dev",
   "workflows": [
     {
@@ -34,15 +34,24 @@
           "y": 440,
           "values": {
             "Connection": "1",
-            "Questions": "[{\"Name\": \"judul\", \"Question\": \"Judul filmnya apa?\", \"Type\": \"Text\", \"Required\": \"Yes\", \"Max\": \"255\", \"Field\": \"title, slug\"}, {\"Name\": \"link\", \"Question\": \"Link film (https) atau kode iframe-nya?\", \"Type\": \"Link or Iframe\", \"Required\": \"Yes\", \"Starts With\": \"https://\", \"Field\": \"embed_url\"}, {\"Name\": \"kategori\", \"Question\": \"Kategorinya?\", \"Type\": \"Multiple Choice\", \"Required\": \"No\", \"Choices\": \"Action, Drama, Horor, Komedi, Thriller, Sci-Fi\", \"Max\": \"10\", \"Field\": \"categories\"}, {\"Name\": \"tag\", \"Question\": \"Tag-nya?\", \"Type\": \"List\", \"Required\": \"No\", \"Max\": \"20\", \"Field\": \"tags\"}, {\"Name\": \"thumbnail\", \"Question\": \"Kirim thumbnail-nya\", \"Type\": \"Photo\", \"Required\": \"No\", \"Max\": \"2\", \"Field\": \"thumbnail\"}, {\"Name\": \"status\", \"Question\": \"Statusnya?\", \"Type\": \"Choice\", \"Required\": \"Yes\", \"Choices\": \"Draft, Published\", \"Default\": \"Draft\", \"Field\": \"status\"}]",
+            "Questions": "[{\"Name\": \"judul\", \"Question\": \"Judul filmnya apa?\", \"Type\": \"Text\", \"Required\": \"Yes\", \"Max\": \"255\", \"Field\": \"title, slug\"}, {\"Name\": \"link\", \"Question\": \"Link film (https) atau kode iframe-nya?\", \"Type\": \"Link or Iframe\", \"Required\": \"Yes\", \"Starts With\": \"https://\", \"Field\": \"embed_url\"}, {\"Name\": \"kategori\", \"Question\": \"Kategorinya?\", \"Type\": \"Multiple Choice\", \"Required\": \"No\", \"Choices\": \"Action, Drama, Horor, Komedi, Thriller, Sci-Fi\", \"Max\": \"10\", \"Field\": \"categories\"}, {\"Name\": \"tag\", \"Question\": \"Tag-nya?\", \"Type\": \"List\", \"Required\": \"No\", \"Max\": \"20\", \"Field\": \"tags\"}, {\"Name\": \"thumbnail\", \"Question\": \"Kirim thumbnail-nya (Lewati: pakai thumbnail dari Vidara)\", \"Type\": \"Photo\", \"Required\": \"No\", \"Max\": \"2\", \"Field\": \"thumbnail\"}, {\"Name\": \"status\", \"Question\": \"Statusnya?\", \"Type\": \"Choice\", \"Required\": \"Yes\", \"Choices\": \"Draft, Published\", \"Default\": \"Draft\", \"Field\": \"status\"}]",
             "Timeout": "10m",
             "Tries": "3"
           }
         },
         {
+          "id": "upload_thumb",
+          "kind": "vidara-thumbnail",
+          "x": 640,
+          "y": 440,
+          "values": {
+            "Mode": "Download"
+          }
+        },
+        {
           "id": "upload",
           "kind": "moviemov-upload",
-          "x": 640,
+          "x": 960,
           "y": 440,
           "values": {
             "Connection": "2",
@@ -52,7 +61,7 @@
         {
           "id": "uploaded_text",
           "kind": "format-text",
-          "x": 960,
+          "x": 1280,
           "y": 440,
           "values": {
             "Format": "Sudah diupload: {{ text }}"
@@ -61,7 +70,7 @@
         {
           "id": "uploaded_send",
           "kind": "telegram-send",
-          "x": 1280,
+          "x": 1600,
           "y": 440,
           "values": {
             "Connection": "1",
@@ -73,7 +82,7 @@
         {
           "id": "upload_failed_text",
           "kind": "format-text",
-          "x": 960,
+          "x": 1280,
           "y": 940,
           "values": {
             "Format": "Gagal upload: {{ text }}"
@@ -82,8 +91,29 @@
         {
           "id": "upload_failed_send",
           "kind": "telegram-send",
-          "x": 1280,
+          "x": 1600,
           "y": 940,
+          "values": {
+            "Connection": "1",
+            "Format": "Plain",
+            "Long Text": "Split",
+            "Media": "None"
+          }
+        },
+        {
+          "id": "thumb_failed_text",
+          "kind": "format-text",
+          "x": 1280,
+          "y": 1440,
+          "values": {
+            "Format": "Gagal ambil thumbnail dari Vidara: {{ text }}. Coba /upload lagi dan kirim fotonya."
+          }
+        },
+        {
+          "id": "thumb_failed_send",
+          "kind": "telegram-send",
+          "x": 1600,
+          "y": 1440,
           "values": {
             "Connection": "1",
             "Format": "Plain",
@@ -262,6 +292,24 @@
         {
           "source": "upload_form",
           "sourceSocket": "Done",
+          "target": "upload_thumb",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "link",
+          "target": "upload_thumb",
+          "targetSocket": "Link"
+        },
+        {
+          "source": "upload_form",
+          "sourceSocket": "thumbnail",
+          "target": "upload_thumb",
+          "targetSocket": "Own Thumbnail"
+        },
+        {
+          "source": "upload_thumb",
+          "sourceSocket": "Done",
           "target": "upload",
           "targetSocket": "Event"
         },
@@ -290,8 +338,8 @@
           "targetSocket": "Tags"
         },
         {
-          "source": "upload_form",
-          "sourceSocket": "thumbnail",
+          "source": "upload_thumb",
+          "sourceSocket": "Thumbnail",
           "target": "upload",
           "targetSocket": "Thumbnail"
         },
@@ -359,6 +407,30 @@
           "source": "cmd",
           "sourceSocket": "Chat",
           "target": "upload_failed_send",
+          "targetSocket": "Chat"
+        },
+        {
+          "source": "upload_thumb",
+          "sourceSocket": "Failed",
+          "target": "thumb_failed_send",
+          "targetSocket": "Event"
+        },
+        {
+          "source": "upload_thumb",
+          "sourceSocket": "Error",
+          "target": "thumb_failed_text",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "thumb_failed_text",
+          "sourceSocket": "Text",
+          "target": "thumb_failed_send",
+          "targetSocket": "Text"
+        },
+        {
+          "source": "cmd",
+          "sourceSocket": "Chat",
+          "target": "thumb_failed_send",
           "targetSocket": "Chat"
         },
         {
@@ -524,7 +596,7 @@
           "targetSocket": "Chat"
         }
       ],
-      "description": "MovieMov from Telegram: /start shows a menu; /upload asks for a movie in a Telegram Form and uploads it; /laporan lists the broken-video reports; /hapus deletes a movie after asking. Only the bot connection's Allowed Users."
+      "description": "MovieMov from Telegram: /start shows a menu; /upload asks for a movie in a Telegram Form and uploads it, with the Vidara video's own thumbnail when none is sent; /laporan lists the broken-video reports; /hapus deletes a movie after asking. Only the bot connection's Allowed Users."
     }
   ],
   "connections": {

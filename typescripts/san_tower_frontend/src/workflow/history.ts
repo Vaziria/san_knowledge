@@ -9,7 +9,8 @@ const limit = 200;
 // saved) as it was after each change; undo and redo hand one back to apply.
 // A change is recorded once the editing pauses, and not while busy (a step
 // is being dragged), so a whole drag is one step back. Undo and redo first
-// record a change not yet recorded.
+// record a change not yet recorded; so does record, called before a change
+// that must be a step back of its own (a paste right after a drag).
 export function useHistory(graph: string, busy: boolean, apply: (graph: string) => void) {
   const past = useRef<string[]>([]);
   const future = useRef<string[]>([]);
@@ -53,5 +54,5 @@ export function useHistory(graph: string, busy: boolean, apply: (graph: string) 
   const redo = useCallback(() => step(future, past), [step]);
 
   const pending = graph !== base.current;
-  return { undo, redo, canUndo: sizes.past > 0 || pending, canRedo: sizes.future > 0 && !pending };
+  return { undo, redo, record, canUndo: sizes.past > 0 || pending, canRedo: sizes.future > 0 && !pending };
 }

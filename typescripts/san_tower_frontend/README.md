@@ -205,10 +205,40 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     Shift+A opens the Add menu at the pointer (the Add button opens it under
     itself, and adds in the middle of the canvas), a link goes from an output
     socket to an input of the same type and an input takes one link,
-    right-clicking a step (or the selection) offers Duplicate, Disconnect
-    links and Delete, and right-clicking a link Delete link. Dragging on empty
-    space pans, with any button (the user's ask, 2026-10-25); Shift+drag
-    box-selects. While steps are selected, their links are bolder and
+    right-clicking a step (or the selection) offers Copy, Cut, Duplicate,
+    Disconnect links and Delete, and right-clicking a link Delete link.
+    Dragging on empty space pans, with any button (the user's ask,
+    2026-10-25); Shift+drag box-selects. The hand in the canvas's controls
+    (the user, 2026-11-08) switches a left-drag on empty space to Select: it
+    draws a selection box, and the middle and right buttons pan; Shift+drag
+    selects in both. Its icon is the mode it is in (a hand, or a dashed box
+    with a pointer), the browser remembers it (localStorage
+    `san-tower-editor-drag`), and the line of keys under the canvas follows
+    it. Ctrl+A selects every step; Delete or Backspace deletes the selection
+    (React Flow's keys, one step back). Copy and paste (the user, 2026-11-08:
+    "can workflow have select area and copy paste ?";
+    `src/workflow/clipboard.ts`): Ctrl+C puts the selected steps, with their
+    values, places and the links between them, on the system clipboard as
+    JSON marked as the tower's,
+    `{"sanTower":"steps","version":1,"steps":[...],"links":[...]}` (steps
+    and links as WorkflowService takes them); Ctrl+X copies and deletes
+    them; Ctrl+V pastes them into this workflow or another (in another tab
+    too), with new ids as Duplicate gives and their links between them, the
+    middle of them at the pointer (offset as Shift+A places a step), or in
+    the middle of the canvas when the pointer is off it. The pasted steps
+    become the selection, the paste is one step back and saves like any
+    change. A step of a kind this tower does not have is skipped with its
+    links, and a notice says how many; text that is not the tower's is left
+    alone; values (a Connection's or a Storage's id) are kept as they are.
+    The keys go by the browser's copy, cut and paste events, which need no
+    permission and work on the tower's LAN address over http too; the menu's
+    Copy and Cut use `navigator.clipboard`, and a copy event (execCommand)
+    when it is missing or refused. Every copy is also kept in localStorage
+    (`san-tower-copied-steps`), which a paste event without clipboard data
+    uses. A field being typed in, or a dialog, keeps its own Ctrl+A, C, X
+    and V; text picked outside the canvas (an error under the header) is the
+    browser's to copy, until a press on the canvas lets go of it. While
+    steps are selected, their links are bolder and
     glow a little, and the other links fade (the user's ask, 2026-10-25;
     a class on the edges drawn, not saved). Undo and Redo (the arrows in the header, Ctrl+Z, and
     Ctrl+Shift+Z or Ctrl+Y; the user's ask, 2026-10-25) step through the
@@ -253,7 +283,7 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     workflow alone: its runs as they come, switched on or not, with their
     log lines, without the workflow's name on each. The canvas stays
     mounted while Runs or Logs shows, so nothing typed or undoable is
-    lost; there Undo, Redo, Add and the canvas's keys are off.
+    lost; there Undo, Redo, Add and the canvas's keys (Delete too) are off.
   - `NotFound.tsx`.
 - `src/knowledge/GraphCanvas.tsx`: a knowledge's graph in cytoscape, drawn
   as the knowledge tool's view draws one: domains blue hexagons, docs
@@ -284,7 +314,9 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   is `<type>:<socket>`); `StepNode.tsx`, how a step is drawn; `history.ts`,
   the editor's undo and redo (`useHistory`): the graph as saved (JSON)
   after each change, recorded once the editing pauses for 0.5 s and not
-  during a drag, up to 200 back; `runs.tsx`,
+  during a drag (`record` first, so a paste or cut is a step of its own),
+  up to 200 back; `clipboard.ts`, copy and paste of steps: the clipboard's
+  format, reading it, and the pasted steps with new ids; `runs.tsx`,
   run statuses, durations and output values, log lines in their type's
   colour (`LogLine`), and the context that marks the picked run on the
   canvas; `RunsPanel.tsx`, the editor's Runs tab and

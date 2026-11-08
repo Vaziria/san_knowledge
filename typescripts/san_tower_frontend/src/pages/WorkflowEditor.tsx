@@ -19,6 +19,7 @@ import {
 import {
   Background,
   BackgroundVariant,
+  ControlButton,
   Controls,
   MiniMap,
   Panel,
@@ -35,12 +36,14 @@ import '@xyflow/react/dist/style.css';
 import {
   ArrowLeftIcon,
   DownloadIcon,
+  HandIcon,
   HistoryIcon,
   PencilIcon,
   PlayIcon,
   PlusIcon,
   Redo2Icon,
   ScrollTextIcon,
+  SquareDashedMousePointerIcon,
   Undo2Icon,
   WorkflowIcon,
 } from 'lucide-react';
@@ -67,6 +70,7 @@ import {
   type Graph,
   type Step,
 } from '../workflow/catalog';
+import { clipText, keepClip, keptClip, pasteSteps, readClip, writeClip } from '../workflow/clipboard';
 import { useHistory } from '../workflow/history';
 import { runStatus, StepRunContext } from '../workflow/runs';
 import { RunLog } from '../workflow/RunLog';
@@ -133,13 +137,38 @@ type SaveState = { state: 'saved' | 'unsaved' | 'saving' } | { state: 'error'; m
 // (right-click). Adding a step has its own menu, AddPalette.
 type MenuTarget = { type: 'steps'; ids: string[] } | { type: 'link'; id: string };
 
+// DragMode is what a left-drag on empty space does (the user, 2026-11-08: a
+// drag/select toggle in the canvas's controls): pan, as before, or draw a
+// selection box, with the middle and right buttons still panning. The
+// browser remembers it (dragModeKey).
+type DragMode = 'pan' | 'select';
+const dragModeKey = 'san-tower-editor-drag';
+
+function loadDragMode(): DragMode {
+  try {
+    return localStorage.getItem(dragModeKey) === 'select' ? 'select' : 'pan';
+  } catch {
+    return 'pan';
+  }
+}
+
+function saveDragMode(mode: DragMode) {
+  try {
+    localStorage.setItem(dragModeKey, mode);
+  } catch {
+    // Storage blocked: the editor just starts in Pan next time.
+  }
+}
+
 // Canvas is the editor, made to look and handle like Blender's node editors:
 // Shift+A adds a step at the pointer, links go from an output socket to an
 // input of its type, an input takes one link (a new one replaces it),
 // right-clicking a step or a link opens its menu, dragging on empty space
-// pans (Shift+drag box-selects) and the wheel zooms. Ctrl+Z undoes a change,
-// Ctrl+Shift+Z or Ctrl+Y redoes it. A change is saved once the editing
-// pauses, and when the editor closes. Run, and
+// pans (Shift+drag box-selects; the hand in the controls makes a left-drag
+// select instead) and the wheel zooms. Ctrl+Z undoes a change, Ctrl+Shift+Z
+// or Ctrl+Y redoes it. Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste steps,
+// into this workflow or another (clipboard.ts); Ctrl+A selects every step.
+// A change is saved once the editing pauses, and when the editor closes. Run, and
 // switching it on, first save what is not saved: the tower runs the saved
 // steps. The canvas stays mounted while the other tabs show, so nothing typed
 // or undoable is lost, and the run picked in Runs marks its steps on it.
@@ -154,6 +183,12 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
   // palette is the open Add menu: where it shows, and where the step goes
   // (null: the middle of the canvas).
   const [palette, setPalette] = useState<{ at: XYPosition; place: XYPosition | null } | null>(null);
+  const [dragMode, setDragMode] = useState(loadDragMode);
+  const switchDragMode = () => {
+    const next = dragMode === 'pan' ? 'select' : 'pan';
+    setDragMode(next);
+    saveDragMode(next);
+  };
   const [deleting, setDeleting] = useState(false);
   const [active, setActive] = useState(workflow.active);
   const [triggers, setTriggers] = useState(workflow.triggers);
@@ -200,7 +235,7 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
       setEdges(next.edges.map((e) => oldEdges.get(e.id) ?? e));
     },
   );
-  const { undo, redo } = history;
+  const { undo, redo, record } = history;
   const [save, setSave] = useState<SaveState>({ state: 'saved' });
   // The name goes with every save; renaming changes it (rename). The
   // description and one at a time are not sent with the graph's saves,
@@ -381,11 +416,68 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
     ]);
   };
 
+  // copyText is the clipboard's text for steps: them, and the links between
+  // them.
+  const copyText = (ids: string[]) => {
+    const copied = new Set(ids);
+    const g = fromFlow(
+      getNodes().filter((n) => copied.has(n.id)),
+      getEdges().filter((e) => copied.has(e.source) && copied.has(e.target)),
+    );
+    return clipText(g);
+  };
+  const stepsText = (n: number) => (n === 1 ? '1 step' : `${n} steps`);
+  // cut deletes copied steps, with their links, as one step back.
+  const cut = (ids: string[]) => {
+    record();
+    void deleteElements({ nodes: ids.map((id) => ({ id })) });
+  };
+  // copyFromMenu copies the menu's steps from a click (Copy, Cut), which
+  // has no copy event to carry them; Cut deletes them once they are copied.
+  const copyFromMenu = async (ids: string[], cutting: boolean) => {
+    if (!(await writeClip(copyText(ids)))) {
+      toast('Not copied: the browser refused the clipboard', true);
+      return;
+    }
+    if (cutting) cut(ids);
+    toast(`${cutting ? 'Cut' : 'Copied'} ${stepsText(ids.length)}`);
+  };
+  // paste adds the steps in a clipboard's text where the pointer is: the
+  // middle of their places goes there, as Shift+A places one step (its
+  // header under the pointer). With the pointer off the canvas they go to
+  // its middle. The pasted steps become the selection, and the paste is one
+  // step back. It says whether the text was ours: other text is left alone.
+  const paste = (text: string) => {
+    const clip = readClip(text);
+    if (!clip) return false;
+    if (clip === 'newer') {
+      toast('Not pasted: the steps come from a newer San Tower; update this one first', true);
+      return true;
+    }
+    const r = canvas.current!.getBoundingClientRect();
+    const p = screenToFlowPosition(pointer.current ?? { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    const { nodes: added, edges: linked, skipped } = pasteSteps(clip, { x: p.x - 112, y: p.y - 12 });
+    if (skipped.length > 0) {
+      const kinds = [...new Set(skipped)].join(', ');
+      toast(`Skipped ${stepsText(skipped.length)} of a kind this tower does not have (${kinds})`, true);
+    }
+    if (added.length === 0) return true;
+    record();
+    setNodes((ns) => [...ns.map((n) => ({ ...n, selected: false })), ...added]);
+    setEdges((es) => [...es.map((e) => ({ ...e, selected: false })), ...linked]);
+    return true;
+  };
+  const selectAll = () => {
+    setNodes((ns) => ns.map((n) => ({ ...n, selected: true })));
+    setEdges((es) => es.map((e) => ({ ...e, selected: false })));
+  };
+
   const onMenuSelect = (value: string) => {
     if (!menu) return;
     const { target } = menu;
     if (target.type === 'steps') {
       const ids = new Set(target.ids);
+      if (value === 'copy' || value === 'cut') void copyFromMenu(target.ids, value === 'cut');
       if (value === 'duplicate') duplicate(target.ids);
       if (value === 'disconnect') setEdges((es) => es.filter((e) => !ids.has(e.source) && !ids.has(e.target)));
       if (value === 'delete') void deleteElements({ nodes: target.ids.map((id) => ({ id })) });
@@ -408,9 +500,9 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // A field being typed in keeps its own keys, and its own undo; the
-      // other tabs have none of the canvas's.
-      if (isTyping(e.target) || tab !== 'workflow') return;
+      // A field being typed in keeps its own keys, and its own undo, and so
+      // does a dialog; the other tabs have none of the canvas's.
+      if (keepsKeys(e.target) || tab !== 'workflow') return;
       const key = e.key.toLowerCase();
       if (e.ctrlKey || e.metaKey) {
         if (key === 'z' || key === 'y') {
@@ -418,14 +510,48 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
           if (key === 'y' || e.shiftKey) redo();
           else undo();
         }
+        // Ctrl+A selects every step, not the page's text.
+        if (key === 'a' && !e.shiftKey && !e.altKey) {
+          e.preventDefault();
+          selectAll();
+        }
         return;
       }
       if (!e.shiftKey || key !== 'a' || !pointer.current) return;
       e.preventDefault();
       setPalette({ at: pointer.current, place: pointer.current });
     };
+    // Ctrl+C, Ctrl+X and Ctrl+V go by the browser's copy, cut and paste
+    // events, which reach the clipboard without asking for permission, on
+    // the tower's LAN address too. With no step selected, or text picked
+    // outside the canvas, a copy is the browser's own.
+    const onCopy = (e: ClipboardEvent) => {
+      if (keepsKeys(e.target) || tab !== 'workflow' || textPicked(canvas.current)) return;
+      const ids = getNodes()
+        .filter((n) => n.selected)
+        .map((n) => n.id);
+      if (ids.length === 0) return;
+      const text = copyText(ids);
+      e.clipboardData?.setData('text/plain', text);
+      keepClip(text);
+      e.preventDefault();
+      if (e.type === 'cut') cut(ids);
+      toast(`${e.type === 'cut' ? 'Cut' : 'Copied'} ${stepsText(ids.length)}`);
+    };
+    const onPaste = (e: ClipboardEvent) => {
+      if (keepsKeys(e.target) || tab !== 'workflow') return;
+      if (paste(e.clipboardData ? e.clipboardData.getData('text/plain') : keptClip())) e.preventDefault();
+    };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('copy', onCopy);
+    window.addEventListener('cut', onCopy);
+    window.addEventListener('paste', onPaste);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('copy', onCopy);
+      window.removeEventListener('cut', onCopy);
+      window.removeEventListener('paste', onPaste);
+    };
   }, [undo, redo, tab]);
 
   const dark = document.documentElement.classList.contains('dark');
@@ -562,6 +688,12 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
         overflow="hidden"
         onMouseMove={(e) => (pointer.current = { x: e.clientX, y: e.clientY })}
         onMouseLeave={() => (pointer.current = null)}
+        // Pressing on the canvas lets go of text picked elsewhere on the page,
+        // as a click on a page does (React Flow's drags keep it), so a later
+        // Ctrl+C copies the steps.
+        onPointerDownCapture={(e) => {
+          if (!isTyping(e.target) && textPicked(canvas.current)) window.getSelection()?.removeAllRanges();
+        }}
         css={{
           // Steps stand out from the canvas: lighter than it, as in Blender.
           '--xy-background-color': 'var(--chakra-colors-bg-muted)',
@@ -603,11 +735,15 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
               setMenu({ at: { x: e.clientX, y: e.clientY }, target: { type: 'link', id: edge.id } });
             }}
             colorMode={dark ? 'dark' : 'light'}
-            deleteKeyCode={['Backspace', 'Delete']}
+            // Delete and Backspace delete the selected steps and links (React
+            // Flow's own keys, one step back); not while Runs or Logs shows.
+            deleteKeyCode={tab === 'workflow' ? ['Backspace', 'Delete'] : null}
             // Dragging empty space pans, with any button; Shift+drag
-            // (selectionKeyCode) box-selects.
+            // (selectionKeyCode) box-selects. In Select (dragMode) a left-drag
+            // box-selects, and the middle and right buttons pan.
             selectionMode={SelectionMode.Partial}
-            panOnDrag={[0, 1, 2]}
+            panOnDrag={dragMode === 'pan' ? [0, 1, 2] : [1, 2]}
+            selectionOnDrag={dragMode === 'select'}
             onPaneContextMenu={(e) => e.preventDefault()}
             minZoom={0.2}
             maxZoom={1.5}
@@ -617,7 +753,26 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
             fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
           >
             <Background variant={BackgroundVariant.Dots} gap={20} />
-            <Controls />
+            <Controls>
+              {/* The icon is the mode it is in; a click switches. Lucide's
+                  icons are drawn by their strokes, and React Flow fills a
+                  control's icon: fill none keeps them outlines. */}
+              <ControlButton
+                aria-label={dragMode === 'pan' ? 'Drag pans' : 'Drag selects'}
+                title={
+                  dragMode === 'pan'
+                    ? 'Drag on empty space pans (Shift+drag selects). Click to make a drag select.'
+                    : 'Drag on empty space selects (middle- or right-drag pans). Click to make a drag pan.'
+                }
+                onClick={switchDragMode}
+              >
+                {dragMode === 'pan' ? (
+                  <HandIcon style={{ fill: 'none' }} strokeWidth={2.5} />
+                ) : (
+                  <SquareDashedMousePointerIcon style={{ fill: 'none' }} strokeWidth={2.5} />
+                )}
+              </ControlButton>
+            </Controls>
             <MiniMap pannable zoomable style={{ width: 150, height: 100 }} />
             {picked && (
               <Panel position="top-left">
@@ -648,7 +803,12 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
       )}
       <Text fontSize="xs" color="fg.muted" display={tab === 'workflow' ? undefined : 'none'}>
         Shift+A add a step · drag from a socket to link · right-click a step or link for its menu · Delete removes ·
-        Ctrl+Z undo · Ctrl+Shift+Z redo · drag on empty space to pan · Shift+drag to select · wheel to zoom
+        Ctrl+C copy · Ctrl+X cut · Ctrl+V paste at the pointer, in any workflow · Ctrl+A select all · Ctrl+Z undo ·
+        Ctrl+Shift+Z redo ·{' '}
+        {dragMode === 'pan'
+          ? 'drag on empty space to pan · Shift+drag to select'
+          : 'drag on empty space to select · middle- or right-drag to pan'}{' '}
+        · wheel to zoom
       </Text>
       {/* The pointer menu's trigger is an empty box at the pointer: a menu
           opened from code ignores its anchorPoint prop. A new key per opening
@@ -671,6 +831,14 @@ function Canvas({ workflow, onDeleted }: { workflow: StoredWorkflow; onDeleted: 
                   <Menu.ItemGroupLabel>
                     {menu.target.ids.length === 1 ? 'Step' : `${menu.target.ids.length} steps`}
                   </Menu.ItemGroupLabel>
+                  <Menu.Item value="copy">
+                    Copy
+                    <Menu.ItemCommand>Ctrl+C</Menu.ItemCommand>
+                  </Menu.Item>
+                  <Menu.Item value="cut">
+                    Cut
+                    <Menu.ItemCommand>Ctrl+X</Menu.ItemCommand>
+                  </Menu.Item>
                   <Menu.Item value="duplicate">Duplicate</Menu.Item>
                   <Menu.Item value="disconnect">Disconnect links</Menu.Item>
                 </Menu.ItemGroup>
@@ -862,3 +1030,15 @@ function MenuPanel({ children }: { children: ReactNode }) {
 
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
+
+// keepsKeys says whether a key (or a copy or paste) belongs to where it
+// was pressed: a field being typed in, or a dialog over the canvas.
+const keepsKeys = (t: EventTarget | null) =>
+  isTyping(t) || (t instanceof Element && !!t.closest('[role=dialog], [role=alertdialog]'));
+
+// textPicked says whether text is picked on the page outside the canvas (an
+// error under the header).
+function textPicked(canvas: HTMLElement | null) {
+  const s = window.getSelection();
+  return !!s && !s.isCollapsed && !!s.anchorNode && !canvas?.contains(s.anchorNode);
+}

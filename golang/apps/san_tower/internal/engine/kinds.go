@@ -101,9 +101,10 @@ var coreKinds = []*kind{
 	{
 		StepKind: &v1.StepKind{
 			Kind: TopicEvent, Title: "Topic Event", Category: "Trigger",
-			Description: "Starts the workflow on each event published to a topic of the message broker; Payload is the event's data.",
+			Description: "Starts the workflow on each event published to a topic of the message broker; Payload is the event's data. Ack On Start (the default) acks each event as soon as its run starts, so runs go side by side. Ack After Run takes one event at a time and acks it when its run ends, succeeded or failed (or earlier, at an Ack step): the next events wait in the topic, not as runs, and an event whose run the tower stopped runs again after the restart. Ack Time is how long the broker waits for the ack (\"30s\", \"6h\", \"1d\"; at most 24h; empty: 30s for On Start, 6h for After Run): a run longer than that gets its event sent again, which the tower acks without running it again unless it restarted in between.",
 			Outputs:     []*v1.Socket{sock("Event", Event), sock("Payload", Object)},
-			Settings:    []*v1.Setting{{Name: "Topic", Placeholder: "orders"}},
+			Settings: []*v1.Setting{{Name: "Topic", Placeholder: "orders"}, {Name: "Ack", Options: []string{AckOnStart, AckAfterRun}},
+				{Name: "Ack Time", Placeholder: "30s for On Start, 6h for After Run"}},
 		},
 		trigger: func(_ *v1.Step, data []byte) (map[string]proto.Message, []string, error) {
 			return map[string]proto.Message{"Payload": payload(data)}, []string{"Event"}, nil
@@ -460,17 +461,17 @@ var coreKinds = []*kind{
 		// The user, 2026-10-27: "And we add ack node" (queue.go).
 		StepKind: &v1.StepKind{
 			Kind: "ack", Title: "Ack", Category: "Action",
-			Description: "In a one-at-a-time workflow, tells its queue in the message broker that this run is done with now: a tower that stops after it does not run it again. Without it a run is acked when it ends, succeeded or failed. Put it after the step that must not happen twice (an X Post). The next run still waits for this one to end; outside a queued run it does nothing.",
+			Description: "In a one-at-a-time workflow, or a run of a Topic Event trigger with Ack After Run, tells the message broker that this run's event is done with now: a tower that stops after it does not run it again. Without it the event is acked when the run ends, succeeded or failed. Put it after the step that must not happen twice (an X Post). The next run still waits for this one to end; in any other run it does nothing.",
 			Outputs:     []*v1.Socket{sock("Done", Event)},
 			Inputs:      []*v1.Socket{sock("Event", Event)},
 		},
 		run: func(c *call) error {
 			switch {
 			case c.env.Ack == nil:
-				c.logs = append(c.logs, "not a queued run (one run at a time is off, or it ran by itself): nothing to ack")
+				c.logs = append(c.logs, "nothing to ack: not a queued run (one run at a time is off, or it ran by itself), nor an After Run topic event's")
 				c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_INFO)
 			case c.env.Ack() != nil:
-				c.logs = append(c.logs, "the queue did not take the ack now; the run is acked when it ends")
+				c.logs = append(c.logs, "the broker did not take the ack now; the run is acked when it ends")
 				c.levels = append(c.levels, v1.LogLevel_LOG_LEVEL_WARNING)
 			default:
 				c.logs = append(c.logs, "acked: a tower that stops now does not run it again")

@@ -117,6 +117,11 @@ type Engine struct {
 	readers map[uint32]context.CancelFunc
 	queues  map[uint32]string
 	qbase   string
+	// Also guarded by qmu (topicack.go): the turns that keep a one-at-a-time
+	// workflow's runs, and an After Run trigger's, apart, by key; and the
+	// events each After Run trigger's runs ended for, by subscriber key.
+	turns    map[string]chan struct{}
+	afterRan map[string][]eventStamp
 
 	// ssh are the shells SSH Session steps keep open from run to run,
 	// closed when the engine closes.
@@ -150,6 +155,11 @@ type listener struct {
 	url    string // the broker's
 	topic  string
 	state  *v1.TriggerState // guarded by Engine.mu
+	// The trigger's Ack (After Run) and Ack Time (topicack.go).
+	afterRun bool
+	ackTime  time.Duration
+	// done is closed when its goroutine has ended, its stream with it.
+	done chan struct{}
 }
 
 func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
@@ -164,6 +174,7 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		watchers: make(map[string]*watcher), watchStates: make(map[uint32][]*v1.TriggerState),
 		oaServers: make(map[string]*openAIServer), oaStates: make(map[uint32][]*v1.TriggerState), oaWaiting: make(map[string]*openAIWait),
 		waiting: make(map[uint32]*waiter), readers: make(map[uint32]context.CancelFunc), queues: make(map[uint32]string),
+		turns: make(map[string]chan struct{}), afterRan: make(map[string][]eventStamp),
 		ssh: NewSSHShells(), movieMov: moviemov.NewSessions(),
 	}
 }
@@ -410,14 +421,18 @@ func (e *Engine) Sync(id uint32) {
 	}
 }
 
-// trigger is a Topic Event step of an active workflow, as its subscriber.
+// trigger is a Topic Event step of an active workflow, as its subscriber,
+// with its Ack and Ack Time (topicack.go).
 type trigger struct {
 	key, topic string
 	state      *v1.TriggerState
+	afterRun   bool
+	ackTime    time.Duration // 0: the broker's own
 }
 
 // triggers are workflow w's Topic Event steps while it is active, each with
-// its state; those without a topic say so and are left out.
+// its state; those without a topic, or with an Ack or Ack Time it cannot
+// take, say so and are left out.
 func triggers(w store.Workflow) (map[string]trigger, []*v1.TriggerState) {
 	wanted := make(map[string]trigger)
 	var states []*v1.TriggerState
@@ -435,8 +450,15 @@ func triggers(w store.Workflow) (map[string]trigger, []*v1.TriggerState) {
 			ts.Source, ts.Error = "topic", "no topic set"
 			continue
 		}
+		afterRun, ackTime, err := topicAck(st.GetValues())
+		if err != nil {
+			ts.Error = err.Error()
+			continue
+		}
 		key := fmt.Sprintf("%s%d-%s", subscriberPrefix, w.ID, st.GetId())
-		wanted[key] = trigger{key, topic, ts}
+		t := trigger{key: key, topic: topic, state: ts, afterRun: afterRun, ackTime: ackTime}
+		ts.Source = t.source()
+		wanted[key] = t
 	}
 	return wanted, states
 }
@@ -500,7 +522,8 @@ func (e *Engine) sync(url string, w store.Workflow, subs []*messagev1.Subscriber
 			}
 		}
 		t.state.Listening = true
-		if l := e.listeners[key]; l != nil && l.url == url && l.topic == t.topic {
+		// A changed Ack or Ack Time opens the stream again, with its Hello.
+		if l := e.listeners[key]; l != nil && l.url == url && l.topic == t.topic && l.afterRun == t.afterRun && l.ackTime == t.ackTime {
 			l.state = t.state
 			continue
 		}
@@ -542,20 +565,40 @@ func (e *Engine) deleteSubscriber(url, key string) {
 
 // listen opens trigger t's stream from the broker at url, and opens it
 // again whenever it ends, until the trigger is synced away or the engine
-// closes. Called with e.mu held.
+// closes. The stream it replaces ends first: an After Run run going on
+// there ends, and its event is acked, before this one opens (stream).
+// Called with e.mu held.
 func (e *Engine) listen(url string, workflowID uint32, t trigger) {
-	if l := e.listeners[t.key]; l != nil {
-		l.cancel()
+	prev := e.listeners[t.key]
+	if prev != nil {
+		prev.cancel()
 	}
 	ctx, cancel := context.WithCancel(e.ctx)
-	l := &listener{cancel: cancel, url: url, topic: t.topic, state: t.state}
+	l := &listener{cancel: cancel, url: url, topic: t.topic, state: t.state, afterRun: t.afterRun, ackTime: t.ackTime, done: make(chan struct{})}
 	e.listeners[t.key] = l
 	stepID := strings.TrimPrefix(t.key, fmt.Sprintf("%s%d-", subscriberPrefix, workflowID))
 	err := e.background(func() {
+		defer close(l.done)
+		if prev != nil {
+			select {
+			case <-prev.done:
+			default:
+				e.mu.Lock()
+				if ctx.Err() == nil {
+					l.state.Listening, l.state.Error = false, "waiting for the run going on to end: it started before the trigger changed"
+				}
+				e.mu.Unlock()
+				select {
+				case <-prev.done:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
 		wait := minRetry
 		for {
 			began := time.Now()
-			err := e.stream(ctx, l, t.key, workflowID, stepID)
+			err := e.stream(ctx, l, t, workflowID, stepID)
 			if ctx.Err() != nil {
 				return
 			}
@@ -579,35 +622,48 @@ func (e *Engine) listen(url string, workflowID uint32, t trigger) {
 	})
 	if err != nil {
 		cancel()
+		close(l.done)
 		delete(e.listeners, t.key)
 	}
 }
 
-// stream reads trigger events from one Subscribe stream until it ends. Each
-// event is acked once its run is recorded as started. An event that cannot
-// be recorded is not acked: the stream ends, and the broker sends the event
-// again on the next.
-func (e *Engine) stream(ctx context.Context, l *listener, key string, workflowID uint32, stepID string) error {
-	ctx, cancel := context.WithCancel(ctx)
+// stream reads trigger t's events from one Subscribe stream until it ends.
+// With Ack On Start, each event is acked once its run is recorded as
+// started; an event that cannot be recorded is not acked: the stream ends,
+// and the broker sends the event again on the next. With After Run, each
+// event's run goes on here, and the event is acked when it ends
+// (topicack.go). The stream lives on the engine's context, not ctx: a
+// trigger synced away or changed during an After Run run keeps its stream
+// until the run's event is acked, so the broker cannot send the event to
+// the next stream while it runs (it refuses a second stream of the
+// subscriber until then).
+func (e *Engine) stream(ctx context.Context, l *listener, t trigger, workflowID uint32, stepID string) error {
+	sctx, cancel := context.WithCancel(e.ctx)
 	defer cancel()
-	s := broker.NewClient(l.url).Subscribe(ctx)
+	s := broker.NewClient(l.url).Subscribe(sctx)
 	defer s.CloseResponse()
 	defer s.CloseRequest()
 	// A Receive waiting for the next event does not see ctx end once an
-	// event came (queue.go): end the request then. The acks are sent from
-	// this goroutine, so sendMu keeps the two apart.
+	// event came (queue.go): end the request then, unless an After Run run
+	// goes on, which ends the stream once its event is acked. The acks are
+	// sent from this goroutine and an Ack step's, so sendMu keeps them apart.
 	var sendMu sync.Mutex
+	running := false // an After Run run goes on; guarded by sendMu
+	send := func(m *messagev1.SubscribeRequest) error {
+		sendMu.Lock()
+		defer sendMu.Unlock()
+		return s.Send(m)
+	}
 	stop := context.AfterFunc(ctx, func() {
 		sendMu.Lock()
 		defer sendMu.Unlock()
-		_ = s.CloseRequest()
+		if !running {
+			_ = s.CloseRequest()
+			cancel()
+		}
 	})
 	defer stop()
-	hello := &messagev1.SubscribeRequest{Payload: &messagev1.SubscribeRequest_Hello{Hello: &messagev1.Hello{Subscriber: key}}}
-	sendMu.Lock()
-	err := s.Send(hello)
-	sendMu.Unlock()
-	if err != nil {
+	if err := send(t.hello()); err != nil {
 		return err
 	}
 	e.mu.Lock()
@@ -621,15 +677,48 @@ func (e *Engine) stream(ctx context.Context, l *listener, key string, workflowID
 			return err
 		}
 		ev := r.GetEvent()
-		if err := e.deliver(workflowID, stepID, ev); err != nil {
+		ackEvent := &messagev1.SubscribeRequest{Payload: &messagev1.SubscribeRequest_Ack{Ack: &messagev1.Ack{EventId: ev.GetId()}}}
+		if !t.afterRun {
+			if err := e.deliver(workflowID, stepID, ev); err != nil {
+				return err
+			}
+			if err := send(ackEvent); err != nil {
+				return err
+			}
+			continue
+		}
+		sendMu.Lock()
+		if ctx.Err() != nil { // synced away as it came: the next stream gets it
+			sendMu.Unlock()
+			return ctx.Err()
+		}
+		running = true
+		sendMu.Unlock()
+		acked := false // guarded by sendMu
+		ack := func() error {
+			sendMu.Lock()
+			defer sendMu.Unlock()
+			if acked {
+				return nil
+			}
+			err := s.Send(ackEvent)
+			acked = err == nil
 			return err
 		}
-		ack := &messagev1.SubscribeRequest{Payload: &messagev1.SubscribeRequest_Ack{Ack: &messagev1.Ack{EventId: ev.GetId()}}}
+		done, err := e.runAfter(ctx, t.key, workflowID, stepID, ev, ack)
+		if err == nil && done {
+			err = ack()
+		}
 		sendMu.Lock()
-		err = s.Send(ack)
+		running = false
 		sendMu.Unlock()
-		if err != nil {
+		switch {
+		case err != nil:
 			return err
+		case !done:
+			return errors.New("the event is left to come again: the tower is stopping, or the trigger changed")
+		case ctx.Err() != nil:
+			return ctx.Err()
 		}
 	}
 }
@@ -731,16 +820,7 @@ func (e *Engine) Run(ctx context.Context, workflowID uint32, stepID string, data
 // in the message broker (queue.go) in the order begin is called; one that
 // cannot is recorded as failed.
 func (e *Engine) begin(w store.Workflow, stepID, trigger string, data []byte) (store.Run, error) {
-	var st *v1.Step
-	for _, s := range w.Graph.GetSteps() {
-		if s.GetId() == stepID {
-			st = s
-		}
-	}
-	if st == nil || !IsTrigger(st.GetKind()) {
-		return store.Run{}, fmt.Errorf("%w: step %s is not a trigger of workflow %d", ErrBadStart, stepID, w.ID)
-	}
-	r, err := e.store.StartRun(w.ID, trigger)
+	r, err := e.record(w, stepID, trigger)
 	if err != nil || !w.OneAtATime {
 		return r, err
 	}
@@ -750,6 +830,22 @@ func (e *Engine) begin(w store.Workflow, stepID, trigger string, data []byte) (s
 		return r, err
 	}
 	return r, nil
+}
+
+// record checks that stepID is a trigger step of w, and records that a run
+// of it started: begin, and an After Run trigger's run (topicack.go), which
+// runs on its trigger's stream and never joins the workflow's queue.
+func (e *Engine) record(w store.Workflow, stepID, trigger string) (store.Run, error) {
+	var st *v1.Step
+	for _, s := range w.Graph.GetSteps() {
+		if s.GetId() == stepID {
+			st = s
+		}
+	}
+	if st == nil || !IsTrigger(st.GetKind()) {
+		return store.Run{}, fmt.Errorf("%w: step %s is not a trigger of workflow %d", ErrBadStart, stepID, w.ID)
+	}
+	return e.store.StartRun(w.ID, trigger)
 }
 
 // finish runs a begun run's steps under the engine's context, and records

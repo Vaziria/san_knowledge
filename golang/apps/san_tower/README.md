@@ -1878,6 +1878,54 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
   active workflow, are rebuilt on start and when the tower switches
   brokers, and say whether they listen (Workflow.triggers: "topic orders
   does not exist", "not connected to the broker: ...").
+- Topic Event's Ack says when its events are acked (the user, 2026-11-08,
+  for upload twitter to vidara: the events waiting stay in the topic
+  instead of becoming runs that wait; `engine/topicack.go`):
+  - On Start (the default, and what a step saved before it had) is as
+    above: an event is acked once its run is recorded, so the broker sends
+    the next at once and the runs go side by side.
+  - After Run: the trigger's stream takes one event, runs the workflow on
+    it there, and acks it when the run ends, succeeded or failed, or
+    earlier at an Ack step. San Message holds one unacked event per pull
+    stream and one stream per subscriber, so the next event stays in the
+    topic (its backlog) until then, not as a run: one run at a time per
+    trigger, in the topic's order. A tower that stops during the run leaves
+    its event unacked: the run is Interrupted, and the broker sends the
+    event again after the restart, which runs it as a new run whose trigger
+    ends "(again: the tower stopped before it was done)". An event sent
+    again while the tower still runs, after its run ended (its ack late or
+    lost), is acked without a run: the tower remembers each trigger's last
+    16 events.
+  - Ack Time is how long the broker waits for the ack before it sends the
+    event again (the stream's `Hello.ack_timeout_seconds`), in the Wait
+    step's format ("30s", "6h", "1d"): empty is the broker's own 30 s for
+    On Start and 6 h for After Run, and it is at most 24 h, the broker's
+    limit. A run longer than its Ack Time gets its event sent again: the
+    tower acks that copy without running it, unless it restarted in
+    between; after its tries (10 by default) the broker gives up on the
+    event and sends the next, which waits in the stream until the run
+    ends. A trigger with an Ack or Ack
+    Time it cannot take does not listen, and says why (`Ack Time "2 days":
+    give a time such as "30s", "6h" or "1d", at most 24h`). An After Run
+    trigger's state reads "topic jobs, ack after run (6h)".
+  - Changing Ack or Ack Time on an active workflow opens the trigger's
+    stream again. A run going on ends on the old stream, which stays open
+    until its event is acked, and the new one opens only then (the trigger
+    says "waiting for the run going on to end: it started before the
+    trigger changed" meanwhile), so the event is not run twice.
+  - With One run at a time (below), an After Run trigger's events do not
+    go through the workflow's queue too, where they would wait twice. Every
+    run of a one-at-a-time workflow takes the workflow's turn before it
+    runs, the queue's and the After Run trigger's alike, in the order they
+    asked for it: a manual run or a Telegram message that comes during a
+    topic run waits in the queue, the topic's next event waits for the
+    queue's run going on, and two runs of the workflow never overlap. The
+    time an event waits for its turn counts toward its Ack Time.
+  - Runs in progress (GetStatus's `runs_in_progress`, which Restart and
+    `dev --watch` wait on) count an After Run trigger's run going on, not
+    the events waiting in its topic. The next event follows an ack within
+    moments, so with a backlog a rebuild seldom finds no run in progress; a
+    forced restart cuts only the run going on, whose event comes again.
 - Folder Watch and File Watch (Trigger; `watch.go`; the user, 2026-10-27:
   "add node that can watch file add, edited, deleted in folder and
   subfolder with base storage. And add node file watch too") start a run
@@ -1978,6 +2026,9 @@ the Tower Chat Send, San Remote, Telegram and WhatsApp steps (Social and Messeng
     recorded as failed. Switching the setting off leaves a queue that
     still holds runs being read until it is empty; deleting the workflow
     deletes its queue. Runs of other workflows are not held up.
+  - A Topic Event trigger with Ack After Run runs its events on its own
+    stream, not through the queue; the queue's runs and its runs take the
+    workflow's turn, so they never overlap (see Topic Event's Ack above).
   - Queue Progress (Data; the user, 2026-10-29: "add progress state node,
     so underground flow can chat me 1/2 completed"; `engine/progress.go`,
     `store.RunBatch`) says how far the run's batch has got: the runs of
@@ -2537,7 +2588,9 @@ second fails to listen before it opens the broker.
     scripts, go:embed); not hidden folders, node_modules or the data
     folder. Once they changed and then stayed the same for 2 s, it builds
     again, so several saves give one build, but only once the tower has no
-    run in progress (TowerService's GetStatus, `runs_in_progress`; the
+    run in progress (TowerService's GetStatus, `runs_in_progress`, which
+    counts an After Run topic trigger's run going on but not the events
+    waiting in its topic; the
     user, 2026-10-27, before the PC runs out of memory): a build takes a few
     hundred MB for a minute, and Claude editing the tower through one of its
     runs would otherwise make one at each pause, of which only the last is

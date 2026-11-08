@@ -36,6 +36,10 @@ import (
 //     keeps an event that is not acked, so a run the tower stopped before
 //     its ack runs again, as a new run, when the tower starts; one that ran
 //     to its end, but whose ack was lost, is not run twice.
+//   - A Topic Event trigger with Ack After Run does not queue its runs here:
+//     its stream already gives one event at a time (topicack.go). Every run
+//     of the workflow takes the workflow's turn before it runs, the queue's
+//     and those, so they never overlap.
 
 // queueAckTimeout is how long a queue's reader may hold a run's event, its
 // run going, before the broker sends it again: longer than any run.
@@ -292,7 +296,7 @@ func (e *Engine) queueStream(ctx context.Context, id uint32) error {
 			acked = err == nil
 			return err
 		}
-		done, err := e.take(id, ev.GetData(), ack)
+		done, err := e.take(ctx, id, ev.GetData(), ack)
 		if err != nil {
 			return err
 		}
@@ -307,8 +311,10 @@ func (e *Engine) queueStream(ctx context.Context, id uint32) error {
 
 // take runs a run its queue gave, and says whether its event is done with.
 // A run that ended already (its ack was lost) or is gone is done with; one
-// the tower stopped (Interrupted) runs again as a new run.
-func (e *Engine) take(workflowID uint32, data []byte, ack func() error) (bool, error) {
+// the tower stopped (Interrupted) runs again as a new run. It runs once the
+// workflow's turn is free (an After Run trigger's run may hold it), unless
+// ctx ends first.
+func (e *Engine) take(ctx context.Context, workflowID uint32, data []byte, ack func() error) (bool, error) {
 	var q queued
 	if err := json.Unmarshal(data, &q); err != nil || q.Run == 0 {
 		e.log.Warn("not a queued run: skipped", "workflow", workflowID)
@@ -329,7 +335,13 @@ func (e *Engine) take(workflowID uint32, data []byte, ack func() error) (bool, e
 		return false, err
 	case r.Status == v1.RunStatus_RUN_STATUS_SUCCEEDED || r.Status == v1.RunStatus_RUN_STATUS_FAILED:
 		return true, nil
-	case r.Status != v1.RunStatus_RUN_STATUS_RUNNING:
+	}
+	release, ok := e.takeTurn(ctx, workflowTurn(w.ID))
+	if !ok {
+		return false, nil
+	}
+	defer release()
+	if r.Status != v1.RunStatus_RUN_STATUS_RUNNING {
 		trigger := strings.TrimSuffix(r.Trigger, againNote) + againNote
 		if r, err = e.store.StartRun(w.ID, trigger); err != nil {
 			return false, err

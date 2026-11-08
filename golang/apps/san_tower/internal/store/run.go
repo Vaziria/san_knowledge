@@ -71,6 +71,17 @@ func (s *Store) GetRun(id uint32) (Run, error) {
 	return r, err
 }
 
+// LastRunByTrigger is the newest kept run of a workflow whose trigger is one
+// of triggers, without its steps or summary; found is false for none.
+func (s *Store) LastRunByTrigger(workflowID uint32, triggers ...string) (r Run, found bool, err error) {
+	// A map condition quotes its column: trigger is an SQL keyword.
+	err = s.db.Omit("Steps", "Summary").Where("workflow_id = ?", workflowID).Where(map[string]any{"trigger": triggers}).Order("id DESC").First(&r).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return r, false, nil
+	}
+	return r, err == nil, err
+}
+
 // RunHeads are the runs of ids that are still kept, without their steps or
 // summaries: how a chat's runs are doing.
 func (s *Store) RunHeads(ids []uint32) ([]Run, error) {

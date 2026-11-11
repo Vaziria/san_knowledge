@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/keyword_research.proto.
  */
 export const file_san_tower_v1_keyword_research: GenFile = /*@__PURE__*/
-  fileDesc("CiNzYW4vdG93ZXIvdjEva2V5d29yZF9yZXNlYXJjaC5wcm90bxIMc2FuLnRvd2VyLnYxIk8KDktleXdvcmRGaWx0ZXJzEgsKA2dlbxgBIAEoCRIMCgR0aW1lGAIgASgJEhAKCGNhdGVnb3J5GAMgASgFEhAKCHByb3BlcnR5GAQgASgJInYKD0tleXdvcmRQcm9ncmVzcxIPCgdrZXl3b3JkGAEgASgJEg0KBWRlcHRoGAIgASgNEg8KB2xvb2t1cHMYAyABKA0SDAoEdG9kbxgEIAEoDRIMCgRub3RlGAUgASgJEhYKDnF1ZXVlX3Bvc2l0aW9uGAYgASgNIp0ECg9LZXl3b3JkUmVzZWFyY2gSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0SDAoEc2VlZBgFIAEoCRISCgpkZWVwX2xpbWl0GAYgASgNEi0KB2ZpbHRlcnMYByABKAsyHC5zYW4udG93ZXIudjEuS2V5d29yZEZpbHRlcnMSFQoNY29ubmVjdGlvbl9pZBgIIAEoDRIzCgZzdGF0dXMYCSABKA4yIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoU3RhdHVzEg8KB21lc3NhZ2UYCiABKAkSLwoLbGFzdF9ydW5fYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhIKCm5vZGVfY291bnQYDCABKA0SEgoKZWRnZV9jb3VudBgNIAEoDRIWCg5leHBsb3JlZF9jb3VudBgOIAEoDRIYChBzZXR0aW5nc19jaGFuZ2VkGA8gASgIEi8KCHByb2dyZXNzGBAgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRQcm9ncmVzcxIuCgpjcmVhdGVkX2F0GBEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GBIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJyChVLZXl3b3JkUmVzZWFyY2hGb2xkZXISCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIRCglwYXJlbnRfaWQYAyABKA0SFgoOcmVzZWFyY2hfY291bnQYBCABKA0SFAoMZm9sZGVyX2NvdW50GAUgASgNIj8KFUxpc3RSZXNlYXJjaGVzUmVxdWVzdBIRCglmb2xkZXJfaWQYASABKA0SEwoLYWxsX2ZvbGRlcnMYAiABKAgiSwoWTGlzdFJlc2VhcmNoZXNSZXNwb25zZRIxCgpyZXNlYXJjaGVzGAEgAygLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaCIgChJHZXRSZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0iRgoTR2V0UmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giWwoVQ3JlYXRlUmVzZWFyY2hSZXF1ZXN0EgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDAoEc2VlZBgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0iSQoWQ3JlYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2girgEKFVVwZGF0ZVJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEgwKBHNlZWQYBCABKAkSEgoKZGVlcF9saW1pdBgFIAEoDRItCgdmaWx0ZXJzGAYgASgLMhwuc2FuLnRvd2VyLnYxLktleXdvcmRGaWx0ZXJzEhUKDWNvbm5lY3Rpb25faWQYByABKA0iSQoWVXBkYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIwoVRGVsZXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIhgKFkRlbGV0ZVJlc2VhcmNoUmVzcG9uc2UiJgoYRHVwbGljYXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIkwKGUR1cGxpY2F0ZVJlc2VhcmNoUmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoIjcKFU1vdmVSZXNlYXJjaGVzUmVxdWVzdBILCgNpZHMYASADKA0SEQoJZm9sZGVyX2lkGAIgASgNIhgKFk1vdmVSZXNlYXJjaGVzUmVzcG9uc2UiHAoaTGlzdFJlc2VhcmNoRm9sZGVyc1JlcXVlc3QiUwobTGlzdFJlc2VhcmNoRm9sZGVyc1Jlc3BvbnNlEjQKB2ZvbGRlcnMYASADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoRm9sZGVyIj4KG0NyZWF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhEKCXBhcmVudF9pZBgCIAEoDSJTChxDcmVhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEjMKBmZvbGRlchgBIAEoCzIjLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2hGb2xkZXIiSgobVXBkYXRlUmVzZWFyY2hGb2xkZXJSZXF1ZXN0EgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSEQoJcGFyZW50X2lkGAMgASgNIlMKHFVwZGF0ZVJlc2VhcmNoRm9sZGVyUmVzcG9uc2USMwoGZm9sZGVyGAEgASgLMiMuc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEZvbGRlciIpChtEZWxldGVSZXNlYXJjaEZvbGRlclJlcXVlc3QSCgoCaWQYASABKA0iHgocRGVsZXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZSIvChJSdW5SZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0SDQoFY2xlYXIYAiABKAgiRgoTUnVuUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giNAoVRXhwbG9yZUtleXdvcmRSZXF1ZXN0EgoKAmlkGAEgASgNEg8KB2tleXdvcmQYAiABKAkiSQoWRXhwbG9yZUtleXdvcmRSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIQoTU3RvcFJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDSJHChRTdG9wUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giJwoZQ2xlYXJSZXNlYXJjaEdyYXBoUmVxdWVzdBIKCgJpZBgBIAEoDSJNChpDbGVhclJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giqQIKC0tleXdvcmROb2RlEgwKBG5hbWUYASABKAkSFwoPc2VhcmNoX2ludGVyZXN0GAIgASgFEg4KBmNoYW5nZRgDIAEoBRITCgtjaGFuZ2VfdGV4dBgEIAEoCRIQCghicmVha291dBgFIAEoCBINCgVkZXB0aBgGIAEoDRIQCghleHBsb3JlZBgHIAEoCBIMCgRzZWVkGAggASgIEgsKA3RvcBgJIAEoCBIOCgZyaXNpbmcYCiABKAgSEQoJY29tbXVuaXR5GAsgASgNEiwKCGZvdW5kX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtleHBsb3JlZF9hdBgNIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAihAEKC0tleXdvcmRFZGdlEgwKBGZyb20YASABKAkSCgoCdG8YAiABKAkSCwoDcmVsGAMgASgJEhcKD3NlYXJjaF9pbnRlcmVzdBgEIAEoBRIOCgZjaGFuZ2UYBSABKAUSEwoLY2hhbmdlX3RleHQYBiABKAkSEAoIYnJlYWtvdXQYByABKAgiOgoQS2V5d29yZENvbW11bml0eRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEgwKBHNpemUYAyABKA0iJQoXR2V0UmVzZWFyY2hHcmFwaFJlcXVlc3QSCgoCaWQYASABKA0i1AEKGEdldFJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2gSKAoFbm9kZXMYAiADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZE5vZGUSKAoFZWRnZXMYAyADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZEVkZ2USMwoLY29tbXVuaXRpZXMYBCADKAsyHi5zYW4udG93ZXIudjEuS2V5d29yZENvbW11bml0eSI8CglUcmVuZHNHZW8SDAoEY29kZRgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2hhc19yZWdpb25zGAMgASgIIloKDlRyZW5kc0NhdGVnb3J5EgoKAmlkGAEgASgFEgwKBG5hbWUYAiABKAkSLgoIY2hpbGRyZW4YAyADKAsyHC5zYW4udG93ZXIudjEuVHJlbmRzQ2F0ZWdvcnkiLAoMVHJlbmRzT3B0aW9uEg0KBXZhbHVlGAEgASgJEg0KBWxhYmVsGAIgASgJIlIKF0dldFRyZW5kc09wdGlvbnNSZXF1ZXN0EhUKDWNvbm5lY3Rpb25faWQYASABKA0SDwoHY291bnRyeRgCIAEoCRIPCgdyZWZyZXNoGAMgASgIIqUCChhHZXRUcmVuZHNPcHRpb25zUmVzcG9uc2USJQoEZ2VvcxgBIAMoCzIXLnNhbi50b3dlci52MS5UcmVuZHNHZW8SMAoKY2F0ZWdvcmllcxgCIAMoCzIcLnNhbi50b3dlci52MS5UcmVuZHNDYXRlZ29yeRIpCgV0aW1lcxgDIAMoCzIaLnNhbi50b3dlci52MS5UcmVuZHNPcHRpb24SLgoKcHJvcGVydGllcxgEIAMoCzIaLnNhbi50b3dlci52MS5UcmVuZHNPcHRpb24SKAoHcmVnaW9ucxgFIAMoCzIXLnNhbi50b3dlci52MS5UcmVuZHNHZW8SKwoHcmVhZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiIgoUV2F0Y2hSZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0i6wEKFVdhdGNoUmVzZWFyY2hSZXNwb25zZRI6CghzbmFwc2hvdBgBIAEoCzImLnNhbi50b3dlci52MS5HZXRSZXNlYXJjaEdyYXBoUmVzcG9uc2VIABIxCghyZXNlYXJjaBgCIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2hIABIyCgZjaGFuZ2UYAyABKAsyIC5zYW4udG93ZXIudjEuS2V5d29yZEdyYXBoQ2hhbmdlSAASEwoJaGVhcnRiZWF0GAQgASgISAASEQoHZGVsZXRlZBgFIAEoCEgAQgcKBWV2ZW50IpgCChJLZXl3b3JkR3JhcGhDaGFuZ2USDwoHa2V5d29yZBgBIAEoCRIoCgVub2RlcxgCIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkTm9kZRIoCgVlZGdlcxgDIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkRWRnZRIzCgtjb21tdW5pdGllcxgEIAMoCzIeLnNhbi50b3dlci52MS5LZXl3b3JkQ29tbXVuaXR5EjoKBW1vdmVkGAUgAygLMisuc2FuLnRvd2VyLnYxLktleXdvcmRHcmFwaENoYW5nZS5Nb3ZlZEVudHJ5GiwKCk1vdmVkRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgNOgI4ASIYChZXYXRjaFJlc2VhcmNoZXNSZXF1ZXN0IpYBChdXYXRjaFJlc2VhcmNoZXNSZXNwb25zZRIqCgRsaXN0GAEgASgLMhouc2FuLnRvd2VyLnYxLlJlc2VhcmNoTGlzdEgAEjEKCHJlc2VhcmNoGAIgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEgAEhMKCWhlYXJ0YmVhdBgDIAEoCEgAQgcKBWV2ZW50IncKDFJlc2VhcmNoTGlzdBIxCgpyZXNlYXJjaGVzGAEgAygLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaBI0Cgdmb2xkZXJzGAIgAygLMiMuc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEZvbGRlciqXAgoVS2V5d29yZFJlc2VhcmNoU3RhdHVzEicKI0tFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX1VOU1BFQ0lGSUVEEAASIAocS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfSURMRRABEiMKH0tFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX1dBSVRJTkcQAhIjCh9LRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19SVU5OSU5HEAMSIwofS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfU1RPUFBFRBAEEiAKHEtFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX0RPTkUQBRIiCh5LRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19GQUlMRUQQBjLRDgoWS2V5d29yZFJlc2VhcmNoU2VydmljZRJbCg5MaXN0UmVzZWFyY2hlcxIjLnNhbi50b3dlci52MS5MaXN0UmVzZWFyY2hlc1JlcXVlc3QaJC5zYW4udG93ZXIudjEuTGlzdFJlc2VhcmNoZXNSZXNwb25zZRJSCgtHZXRSZXNlYXJjaBIgLnNhbi50b3dlci52MS5HZXRSZXNlYXJjaFJlcXVlc3QaIS5zYW4udG93ZXIudjEuR2V0UmVzZWFyY2hSZXNwb25zZRJbCg5DcmVhdGVSZXNlYXJjaBIjLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaFJlcXVlc3QaJC5zYW4udG93ZXIudjEuQ3JlYXRlUmVzZWFyY2hSZXNwb25zZRJbCg5VcGRhdGVSZXNlYXJjaBIjLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaFJlcXVlc3QaJC5zYW4udG93ZXIudjEuVXBkYXRlUmVzZWFyY2hSZXNwb25zZRJbCg5EZWxldGVSZXNlYXJjaBIjLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaFJlcXVlc3QaJC5zYW4udG93ZXIudjEuRGVsZXRlUmVzZWFyY2hSZXNwb25zZRJkChFEdXBsaWNhdGVSZXNlYXJjaBImLnNhbi50b3dlci52MS5EdXBsaWNhdGVSZXNlYXJjaFJlcXVlc3QaJy5zYW4udG93ZXIudjEuRHVwbGljYXRlUmVzZWFyY2hSZXNwb25zZRJbCg5Nb3ZlUmVzZWFyY2hlcxIjLnNhbi50b3dlci52MS5Nb3ZlUmVzZWFyY2hlc1JlcXVlc3QaJC5zYW4udG93ZXIudjEuTW92ZVJlc2VhcmNoZXNSZXNwb25zZRJqChNMaXN0UmVzZWFyY2hGb2xkZXJzEiguc2FuLnRvd2VyLnYxLkxpc3RSZXNlYXJjaEZvbGRlcnNSZXF1ZXN0Gikuc2FuLnRvd2VyLnYxLkxpc3RSZXNlYXJjaEZvbGRlcnNSZXNwb25zZRJtChRDcmVhdGVSZXNlYXJjaEZvbGRlchIpLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaEZvbGRlclJlcXVlc3QaKi5zYW4udG93ZXIudjEuQ3JlYXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZRJtChRVcGRhdGVSZXNlYXJjaEZvbGRlchIpLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaEZvbGRlclJlcXVlc3QaKi5zYW4udG93ZXIudjEuVXBkYXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZRJtChREZWxldGVSZXNlYXJjaEZvbGRlchIpLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaEZvbGRlclJlcXVlc3QaKi5zYW4udG93ZXIudjEuRGVsZXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZRJSCgtSdW5SZXNlYXJjaBIgLnNhbi50b3dlci52MS5SdW5SZXNlYXJjaFJlcXVlc3QaIS5zYW4udG93ZXIudjEuUnVuUmVzZWFyY2hSZXNwb25zZRJbCg5FeHBsb3JlS2V5d29yZBIjLnNhbi50b3dlci52MS5FeHBsb3JlS2V5d29yZFJlcXVlc3QaJC5zYW4udG93ZXIudjEuRXhwbG9yZUtleXdvcmRSZXNwb25zZRJVCgxTdG9wUmVzZWFyY2gSIS5zYW4udG93ZXIudjEuU3RvcFJlc2VhcmNoUmVxdWVzdBoiLnNhbi50b3dlci52MS5TdG9wUmVzZWFyY2hSZXNwb25zZRJnChJDbGVhclJlc2VhcmNoR3JhcGgSJy5zYW4udG93ZXIudjEuQ2xlYXJSZXNlYXJjaEdyYXBoUmVxdWVzdBooLnNhbi50b3dlci52MS5DbGVhclJlc2VhcmNoR3JhcGhSZXNwb25zZRJhChBHZXRSZXNlYXJjaEdyYXBoEiUuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoR3JhcGhSZXF1ZXN0GiYuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoR3JhcGhSZXNwb25zZRJhChBHZXRUcmVuZHNPcHRpb25zEiUuc2FuLnRvd2VyLnYxLkdldFRyZW5kc09wdGlvbnNSZXF1ZXN0GiYuc2FuLnRvd2VyLnYxLkdldFRyZW5kc09wdGlvbnNSZXNwb25zZRJaCg1XYXRjaFJlc2VhcmNoEiIuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hSZXNwb25zZTABEmAKD1dhdGNoUmVzZWFyY2hlcxIkLnNhbi50b3dlci52MS5XYXRjaFJlc2VhcmNoZXNSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hlc1Jlc3BvbnNlMAFCtAEKEGNvbS5zYW4udG93ZXIudjFCFEtleXdvcmRSZXNlYXJjaFByb3RvUAFaOGdpdGh1Yi5jb20vd2FyZ2FzaXBpbC9zYW5fdG93ZXIvZ2VuL3Nhbi90b3dlci92MTt0b3dlcnYxogIDU1RYqgIMU2FuLlRvd2VyLlYxygIMU2FuXFRvd2VyXFYx4gIYU2FuXFRvd2VyXFYxXEdQQk1ldGFkYXRh6gIOU2FuOjpUb3dlcjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("CiNzYW4vdG93ZXIvdjEva2V5d29yZF9yZXNlYXJjaC5wcm90bxIMc2FuLnRvd2VyLnYxIk8KDktleXdvcmRGaWx0ZXJzEgsKA2dlbxgBIAEoCRIMCgR0aW1lGAIgASgJEhAKCGNhdGVnb3J5GAMgASgFEhAKCHByb3BlcnR5GAQgASgJInYKD0tleXdvcmRQcm9ncmVzcxIPCgdrZXl3b3JkGAEgASgJEg0KBWRlcHRoGAIgASgNEg8KB2xvb2t1cHMYAyABKA0SDAoEdG9kbxgEIAEoDRIMCgRub3RlGAUgASgJEhYKDnF1ZXVlX3Bvc2l0aW9uGAYgASgNItUECg9LZXl3b3JkUmVzZWFyY2gSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0SDAoEc2VlZBgFIAEoCRISCgpkZWVwX2xpbWl0GAYgASgNEi0KB2ZpbHRlcnMYByABKAsyHC5zYW4udG93ZXIudjEuS2V5d29yZEZpbHRlcnMSFQoNY29ubmVjdGlvbl9pZBgIIAEoDRIzCgZzdGF0dXMYCSABKA4yIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoU3RhdHVzEg8KB21lc3NhZ2UYCiABKAkSLwoLbGFzdF9ydW5fYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhIKCm5vZGVfY291bnQYDCABKA0SEgoKZWRnZV9jb3VudBgNIAEoDRIWCg5leHBsb3JlZF9jb3VudBgOIAEoDRIYChBzZXR0aW5nc19jaGFuZ2VkGA8gASgIEi8KCHByb2dyZXNzGBAgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRQcm9ncmVzcxIuCgpjcmVhdGVkX2F0GBEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GBIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI2CglibGFja2xpc3QYEyADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZEJsYWNrbGlzdEVudHJ5ImUKFUtleXdvcmRCbGFja2xpc3RFbnRyeRINCgVlbnRyeRgBIAEoCRIsCghhZGRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHcmVtb3ZlZBgDIAEoDSJyChVLZXl3b3JkUmVzZWFyY2hGb2xkZXISCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIRCglwYXJlbnRfaWQYAyABKA0SFgoOcmVzZWFyY2hfY291bnQYBCABKA0SFAoMZm9sZGVyX2NvdW50GAUgASgNIj8KFUxpc3RSZXNlYXJjaGVzUmVxdWVzdBIRCglmb2xkZXJfaWQYASABKA0SEwoLYWxsX2ZvbGRlcnMYAiABKAgiSwoWTGlzdFJlc2VhcmNoZXNSZXNwb25zZRIxCgpyZXNlYXJjaGVzGAEgAygLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaCIgChJHZXRSZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0iRgoTR2V0UmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giWwoVQ3JlYXRlUmVzZWFyY2hSZXF1ZXN0EgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDAoEc2VlZBgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0iSQoWQ3JlYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2girgEKFVVwZGF0ZVJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEgwKBHNlZWQYBCABKAkSEgoKZGVlcF9saW1pdBgFIAEoDRItCgdmaWx0ZXJzGAYgASgLMhwuc2FuLnRvd2VyLnYxLktleXdvcmRGaWx0ZXJzEhUKDWNvbm5lY3Rpb25faWQYByABKA0iSQoWVXBkYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIwoVRGVsZXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIhgKFkRlbGV0ZVJlc2VhcmNoUmVzcG9uc2UiJgoYRHVwbGljYXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIkwKGUR1cGxpY2F0ZVJlc2VhcmNoUmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoIjcKFU1vdmVSZXNlYXJjaGVzUmVxdWVzdBILCgNpZHMYASADKA0SEQoJZm9sZGVyX2lkGAIgASgNIhgKFk1vdmVSZXNlYXJjaGVzUmVzcG9uc2UiHAoaTGlzdFJlc2VhcmNoRm9sZGVyc1JlcXVlc3QiUwobTGlzdFJlc2VhcmNoRm9sZGVyc1Jlc3BvbnNlEjQKB2ZvbGRlcnMYASADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoRm9sZGVyIj4KG0NyZWF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhEKCXBhcmVudF9pZBgCIAEoDSJTChxDcmVhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEjMKBmZvbGRlchgBIAEoCzIjLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2hGb2xkZXIiSgobVXBkYXRlUmVzZWFyY2hGb2xkZXJSZXF1ZXN0EgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSEQoJcGFyZW50X2lkGAMgASgNIlMKHFVwZGF0ZVJlc2VhcmNoRm9sZGVyUmVzcG9uc2USMwoGZm9sZGVyGAEgASgLMiMuc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEZvbGRlciIpChtEZWxldGVSZXNlYXJjaEZvbGRlclJlcXVlc3QSCgoCaWQYASABKA0iHgocRGVsZXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZSIvChJSdW5SZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0SDQoFY2xlYXIYAiABKAgiRgoTUnVuUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giNAoVRXhwbG9yZUtleXdvcmRSZXF1ZXN0EgoKAmlkGAEgASgNEg8KB2tleXdvcmQYAiABKAkiSQoWRXhwbG9yZUtleXdvcmRSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIQoTU3RvcFJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDSJHChRTdG9wUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giJwoZQ2xlYXJSZXNlYXJjaEdyYXBoUmVxdWVzdBIKCgJpZBgBIAEoDSJNChpDbGVhclJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giqQIKC0tleXdvcmROb2RlEgwKBG5hbWUYASABKAkSFwoPc2VhcmNoX2ludGVyZXN0GAIgASgFEg4KBmNoYW5nZRgDIAEoBRITCgtjaGFuZ2VfdGV4dBgEIAEoCRIQCghicmVha291dBgFIAEoCBINCgVkZXB0aBgGIAEoDRIQCghleHBsb3JlZBgHIAEoCBIMCgRzZWVkGAggASgIEgsKA3RvcBgJIAEoCBIOCgZyaXNpbmcYCiABKAgSEQoJY29tbXVuaXR5GAsgASgNEiwKCGZvdW5kX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtleHBsb3JlZF9hdBgNIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAihAEKC0tleXdvcmRFZGdlEgwKBGZyb20YASABKAkSCgoCdG8YAiABKAkSCwoDcmVsGAMgASgJEhcKD3NlYXJjaF9pbnRlcmVzdBgEIAEoBRIOCgZjaGFuZ2UYBSABKAUSEwoLY2hhbmdlX3RleHQYBiABKAkSEAoIYnJlYWtvdXQYByABKAgiOgoQS2V5d29yZENvbW11bml0eRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEgwKBHNpemUYAyABKA0iJQoXR2V0UmVzZWFyY2hHcmFwaFJlcXVlc3QSCgoCaWQYASABKA0i1AEKGEdldFJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2gSKAoFbm9kZXMYAiADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZE5vZGUSKAoFZWRnZXMYAyADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZEVkZ2USMwoLY29tbXVuaXRpZXMYBCADKAsyHi5zYW4udG93ZXIudjEuS2V5d29yZENvbW11bml0eSJFChVBZGRUb0JsYWNrbGlzdFJlcXVlc3QSCgoCaWQYASABKA0SDwoHZW50cmllcxgCIAMoCRIPCgdkcnlfcnVuGAMgASgIInoKFkFkZFRvQmxhY2tsaXN0UmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoEg0KBWFkZGVkGAIgAygJEg8KB3JlbW92ZWQYAyADKAkSDwoHbWF0Y2hlZBgEIAEoDSI3ChpSZW1vdmVGcm9tQmxhY2tsaXN0UmVxdWVzdBIKCgJpZBgBIAEoDRINCgVlbnRyeRgCIAEoCSJOChtSZW1vdmVGcm9tQmxhY2tsaXN0UmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoIjwKCVRyZW5kc0dlbxIMCgRjb2RlGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLaGFzX3JlZ2lvbnMYAyABKAgiWgoOVHJlbmRzQ2F0ZWdvcnkSCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRIuCghjaGlsZHJlbhgDIAMoCzIcLnNhbi50b3dlci52MS5UcmVuZHNDYXRlZ29yeSIsCgxUcmVuZHNPcHRpb24SDQoFdmFsdWUYASABKAkSDQoFbGFiZWwYAiABKAkiUgoXR2V0VHJlbmRzT3B0aW9uc1JlcXVlc3QSFQoNY29ubmVjdGlvbl9pZBgBIAEoDRIPCgdjb3VudHJ5GAIgASgJEg8KB3JlZnJlc2gYAyABKAgipQIKGEdldFRyZW5kc09wdGlvbnNSZXNwb25zZRIlCgRnZW9zGAEgAygLMhcuc2FuLnRvd2VyLnYxLlRyZW5kc0dlbxIwCgpjYXRlZ29yaWVzGAIgAygLMhwuc2FuLnRvd2VyLnYxLlRyZW5kc0NhdGVnb3J5EikKBXRpbWVzGAMgAygLMhouc2FuLnRvd2VyLnYxLlRyZW5kc09wdGlvbhIuCgpwcm9wZXJ0aWVzGAQgAygLMhouc2FuLnRvd2VyLnYxLlRyZW5kc09wdGlvbhIoCgdyZWdpb25zGAUgAygLMhcuc2FuLnRvd2VyLnYxLlRyZW5kc0dlbxIrCgdyZWFkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIiChRXYXRjaFJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDSKhAgoVV2F0Y2hSZXNlYXJjaFJlc3BvbnNlEjoKCHNuYXBzaG90GAEgASgLMiYuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoR3JhcGhSZXNwb25zZUgAEjEKCHJlc2VhcmNoGAIgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEgAEjIKBmNoYW5nZRgDIAEoCzIgLnNhbi50b3dlci52MS5LZXl3b3JkR3JhcGhDaGFuZ2VIABITCgloZWFydGJlYXQYBCABKAhIABIRCgdkZWxldGVkGAUgASgISAASNAoHcmVtb3ZhbBgGIAEoCzIhLnNhbi50b3dlci52MS5LZXl3b3JkR3JhcGhSZW1vdmFsSABCBwoFZXZlbnQimgIKE0tleXdvcmRHcmFwaFJlbW92YWwSDwoHcmVtb3ZlZBgBIAMoCRIoCgVlZGdlcxgCIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkRWRnZRIoCgVub2RlcxgDIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkTm9kZRIzCgtjb21tdW5pdGllcxgEIAMoCzIeLnNhbi50b3dlci52MS5LZXl3b3JkQ29tbXVuaXR5EjsKBW1vdmVkGAUgAygLMiwuc2FuLnRvd2VyLnYxLktleXdvcmRHcmFwaFJlbW92YWwuTW92ZWRFbnRyeRosCgpNb3ZlZEVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoDToCOAEimAIKEktleXdvcmRHcmFwaENoYW5nZRIPCgdrZXl3b3JkGAEgASgJEigKBW5vZGVzGAIgAygLMhkuc2FuLnRvd2VyLnYxLktleXdvcmROb2RlEigKBWVkZ2VzGAMgAygLMhkuc2FuLnRvd2VyLnYxLktleXdvcmRFZGdlEjMKC2NvbW11bml0aWVzGAQgAygLMh4uc2FuLnRvd2VyLnYxLktleXdvcmRDb21tdW5pdHkSOgoFbW92ZWQYBSADKAsyKy5zYW4udG93ZXIudjEuS2V5d29yZEdyYXBoQ2hhbmdlLk1vdmVkRW50cnkaLAoKTW92ZWRFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKA06AjgBIhgKFldhdGNoUmVzZWFyY2hlc1JlcXVlc3QilgEKF1dhdGNoUmVzZWFyY2hlc1Jlc3BvbnNlEioKBGxpc3QYASABKAsyGi5zYW4udG93ZXIudjEuUmVzZWFyY2hMaXN0SAASMQoIcmVzZWFyY2gYAiABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoSAASEwoJaGVhcnRiZWF0GAMgASgISABCBwoFZXZlbnQidwoMUmVzZWFyY2hMaXN0EjEKCnJlc2VhcmNoZXMYASADKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoEjQKB2ZvbGRlcnMYAiADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoRm9sZGVyKpcCChVLZXl3b3JkUmVzZWFyY2hTdGF0dXMSJwojS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfVU5TUEVDSUZJRUQQABIgChxLRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19JRExFEAESIwofS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfV0FJVElORxACEiMKH0tFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX1JVTk5JTkcQAxIjCh9LRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19TVE9QUEVEEAQSIAocS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfRE9ORRAFEiIKHktFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX0ZBSUxFRBAGMpoQChZLZXl3b3JkUmVzZWFyY2hTZXJ2aWNlElsKDkxpc3RSZXNlYXJjaGVzEiMuc2FuLnRvd2VyLnYxLkxpc3RSZXNlYXJjaGVzUmVxdWVzdBokLnNhbi50b3dlci52MS5MaXN0UmVzZWFyY2hlc1Jlc3BvbnNlElIKC0dldFJlc2VhcmNoEiAuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoUmVxdWVzdBohLnNhbi50b3dlci52MS5HZXRSZXNlYXJjaFJlc3BvbnNlElsKDkNyZWF0ZVJlc2VhcmNoEiMuc2FuLnRvd2VyLnYxLkNyZWF0ZVJlc2VhcmNoUmVxdWVzdBokLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaFJlc3BvbnNlElsKDlVwZGF0ZVJlc2VhcmNoEiMuc2FuLnRvd2VyLnYxLlVwZGF0ZVJlc2VhcmNoUmVxdWVzdBokLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaFJlc3BvbnNlElsKDkRlbGV0ZVJlc2VhcmNoEiMuc2FuLnRvd2VyLnYxLkRlbGV0ZVJlc2VhcmNoUmVxdWVzdBokLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaFJlc3BvbnNlEmQKEUR1cGxpY2F0ZVJlc2VhcmNoEiYuc2FuLnRvd2VyLnYxLkR1cGxpY2F0ZVJlc2VhcmNoUmVxdWVzdBonLnNhbi50b3dlci52MS5EdXBsaWNhdGVSZXNlYXJjaFJlc3BvbnNlElsKDk1vdmVSZXNlYXJjaGVzEiMuc2FuLnRvd2VyLnYxLk1vdmVSZXNlYXJjaGVzUmVxdWVzdBokLnNhbi50b3dlci52MS5Nb3ZlUmVzZWFyY2hlc1Jlc3BvbnNlEmoKE0xpc3RSZXNlYXJjaEZvbGRlcnMSKC5zYW4udG93ZXIudjEuTGlzdFJlc2VhcmNoRm9sZGVyc1JlcXVlc3QaKS5zYW4udG93ZXIudjEuTGlzdFJlc2VhcmNoRm9sZGVyc1Jlc3BvbnNlEm0KFENyZWF0ZVJlc2VhcmNoRm9sZGVyEikuc2FuLnRvd2VyLnYxLkNyZWF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBoqLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEm0KFFVwZGF0ZVJlc2VhcmNoRm9sZGVyEikuc2FuLnRvd2VyLnYxLlVwZGF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBoqLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEm0KFERlbGV0ZVJlc2VhcmNoRm9sZGVyEikuc2FuLnRvd2VyLnYxLkRlbGV0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBoqLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlElIKC1J1blJlc2VhcmNoEiAuc2FuLnRvd2VyLnYxLlJ1blJlc2VhcmNoUmVxdWVzdBohLnNhbi50b3dlci52MS5SdW5SZXNlYXJjaFJlc3BvbnNlElsKDkV4cGxvcmVLZXl3b3JkEiMuc2FuLnRvd2VyLnYxLkV4cGxvcmVLZXl3b3JkUmVxdWVzdBokLnNhbi50b3dlci52MS5FeHBsb3JlS2V5d29yZFJlc3BvbnNlElUKDFN0b3BSZXNlYXJjaBIhLnNhbi50b3dlci52MS5TdG9wUmVzZWFyY2hSZXF1ZXN0GiIuc2FuLnRvd2VyLnYxLlN0b3BSZXNlYXJjaFJlc3BvbnNlEmcKEkNsZWFyUmVzZWFyY2hHcmFwaBInLnNhbi50b3dlci52MS5DbGVhclJlc2VhcmNoR3JhcGhSZXF1ZXN0Giguc2FuLnRvd2VyLnYxLkNsZWFyUmVzZWFyY2hHcmFwaFJlc3BvbnNlEmEKEEdldFJlc2VhcmNoR3JhcGgSJS5zYW4udG93ZXIudjEuR2V0UmVzZWFyY2hHcmFwaFJlcXVlc3QaJi5zYW4udG93ZXIudjEuR2V0UmVzZWFyY2hHcmFwaFJlc3BvbnNlElsKDkFkZFRvQmxhY2tsaXN0EiMuc2FuLnRvd2VyLnYxLkFkZFRvQmxhY2tsaXN0UmVxdWVzdBokLnNhbi50b3dlci52MS5BZGRUb0JsYWNrbGlzdFJlc3BvbnNlEmoKE1JlbW92ZUZyb21CbGFja2xpc3QSKC5zYW4udG93ZXIudjEuUmVtb3ZlRnJvbUJsYWNrbGlzdFJlcXVlc3QaKS5zYW4udG93ZXIudjEuUmVtb3ZlRnJvbUJsYWNrbGlzdFJlc3BvbnNlEmEKEEdldFRyZW5kc09wdGlvbnMSJS5zYW4udG93ZXIudjEuR2V0VHJlbmRzT3B0aW9uc1JlcXVlc3QaJi5zYW4udG93ZXIudjEuR2V0VHJlbmRzT3B0aW9uc1Jlc3BvbnNlEloKDVdhdGNoUmVzZWFyY2gSIi5zYW4udG93ZXIudjEuV2F0Y2hSZXNlYXJjaFJlcXVlc3QaIy5zYW4udG93ZXIudjEuV2F0Y2hSZXNlYXJjaFJlc3BvbnNlMAESYAoPV2F0Y2hSZXNlYXJjaGVzEiQuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hlc1JlcXVlc3QaJS5zYW4udG93ZXIudjEuV2F0Y2hSZXNlYXJjaGVzUmVzcG9uc2UwAUK0AQoQY29tLnNhbi50b3dlci52MUIUS2V5d29yZFJlc2VhcmNoUHJvdG9QAVo4Z2l0aHViLmNvbS93YXJnYXNpcGlsL3Nhbl90b3dlci9nZW4vc2FuL3Rvd2VyL3YxO3Rvd2VydjGiAgNTVFiqAgxTYW4uVG93ZXIuVjHKAgxTYW5cVG93ZXJcVjHiAhhTYW5cVG93ZXJcVjFcR1BCTWV0YWRhdGHqAg5TYW46OlRvd2VyOjpWMWIGcHJvdG8z", [file_google_protobuf_timestamp]);
 
 /**
  * KeywordFilters are Google Trends' filters, as its Explore page has them.
@@ -224,6 +224,13 @@ export type KeywordResearch = Message<"san.tower.v1.KeywordResearch"> & {
    * @generated from field: google.protobuf.Timestamp updated_at = 18;
    */
   updatedAt?: Timestamp;
+
+  /**
+   * blacklist is its blacklist, oldest first (AddToBlacklist).
+   *
+   * @generated from field: repeated san.tower.v1.KeywordBlacklistEntry blacklist = 19;
+   */
+  blacklist: KeywordBlacklistEntry[];
 };
 
 /**
@@ -232,6 +239,40 @@ export type KeywordResearch = Message<"san.tower.v1.KeywordResearch"> & {
  */
 export const KeywordResearchSchema: GenMessage<KeywordResearch> = /*@__PURE__*/
   messageDesc(file_san_tower_v1_keyword_research, 2);
+
+/**
+ * KeywordBlacklistEntry is an entry of a research's blacklist.
+ *
+ * @generated from message san.tower.v1.KeywordBlacklistEntry
+ */
+export type KeywordBlacklistEntry = Message<"san.tower.v1.KeywordBlacklistEntry"> & {
+  /**
+   * entry is the keyword or phrase, trimmed, in lower case, its spaces
+   * collapsed, as keywords are.
+   *
+   * @generated from field: string entry = 1;
+   */
+  entry: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp added_at = 2;
+   */
+  addedAt?: Timestamp;
+
+  /**
+   * removed is how many keywords adding it took out of the graph.
+   *
+   * @generated from field: uint32 removed = 3;
+   */
+  removed: number;
+};
+
+/**
+ * Describes the message san.tower.v1.KeywordBlacklistEntry.
+ * Use `create(KeywordBlacklistEntrySchema)` to create a new message.
+ */
+export const KeywordBlacklistEntrySchema: GenMessage<KeywordBlacklistEntry> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_keyword_research, 3);
 
 /**
  * KeywordResearchFolder is a folder of researches; folders nest.
@@ -274,7 +315,7 @@ export type KeywordResearchFolder = Message<"san.tower.v1.KeywordResearchFolder"
  * Use `create(KeywordResearchFolderSchema)` to create a new message.
  */
 export const KeywordResearchFolderSchema: GenMessage<KeywordResearchFolder> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 3);
+  messageDesc(file_san_tower_v1_keyword_research, 4);
 
 /**
  * @generated from message san.tower.v1.ListResearchesRequest
@@ -300,7 +341,7 @@ export type ListResearchesRequest = Message<"san.tower.v1.ListResearchesRequest"
  * Use `create(ListResearchesRequestSchema)` to create a new message.
  */
 export const ListResearchesRequestSchema: GenMessage<ListResearchesRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 4);
+  messageDesc(file_san_tower_v1_keyword_research, 5);
 
 /**
  * @generated from message san.tower.v1.ListResearchesResponse
@@ -317,7 +358,7 @@ export type ListResearchesResponse = Message<"san.tower.v1.ListResearchesRespons
  * Use `create(ListResearchesResponseSchema)` to create a new message.
  */
 export const ListResearchesResponseSchema: GenMessage<ListResearchesResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 5);
+  messageDesc(file_san_tower_v1_keyword_research, 6);
 
 /**
  * @generated from message san.tower.v1.GetResearchRequest
@@ -334,7 +375,7 @@ export type GetResearchRequest = Message<"san.tower.v1.GetResearchRequest"> & {
  * Use `create(GetResearchRequestSchema)` to create a new message.
  */
 export const GetResearchRequestSchema: GenMessage<GetResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 6);
+  messageDesc(file_san_tower_v1_keyword_research, 7);
 
 /**
  * @generated from message san.tower.v1.GetResearchResponse
@@ -351,7 +392,7 @@ export type GetResearchResponse = Message<"san.tower.v1.GetResearchResponse"> & 
  * Use `create(GetResearchResponseSchema)` to create a new message.
  */
 export const GetResearchResponseSchema: GenMessage<GetResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 7);
+  messageDesc(file_san_tower_v1_keyword_research, 8);
 
 /**
  * @generated from message san.tower.v1.CreateResearchRequest
@@ -383,7 +424,7 @@ export type CreateResearchRequest = Message<"san.tower.v1.CreateResearchRequest"
  * Use `create(CreateResearchRequestSchema)` to create a new message.
  */
 export const CreateResearchRequestSchema: GenMessage<CreateResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 8);
+  messageDesc(file_san_tower_v1_keyword_research, 9);
 
 /**
  * @generated from message san.tower.v1.CreateResearchResponse
@@ -400,7 +441,7 @@ export type CreateResearchResponse = Message<"san.tower.v1.CreateResearchRespons
  * Use `create(CreateResearchResponseSchema)` to create a new message.
  */
 export const CreateResearchResponseSchema: GenMessage<CreateResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 9);
+  messageDesc(file_san_tower_v1_keyword_research, 10);
 
 /**
  * @generated from message san.tower.v1.UpdateResearchRequest
@@ -447,7 +488,7 @@ export type UpdateResearchRequest = Message<"san.tower.v1.UpdateResearchRequest"
  * Use `create(UpdateResearchRequestSchema)` to create a new message.
  */
 export const UpdateResearchRequestSchema: GenMessage<UpdateResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 10);
+  messageDesc(file_san_tower_v1_keyword_research, 11);
 
 /**
  * @generated from message san.tower.v1.UpdateResearchResponse
@@ -464,7 +505,7 @@ export type UpdateResearchResponse = Message<"san.tower.v1.UpdateResearchRespons
  * Use `create(UpdateResearchResponseSchema)` to create a new message.
  */
 export const UpdateResearchResponseSchema: GenMessage<UpdateResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 11);
+  messageDesc(file_san_tower_v1_keyword_research, 12);
 
 /**
  * @generated from message san.tower.v1.DeleteResearchRequest
@@ -481,7 +522,7 @@ export type DeleteResearchRequest = Message<"san.tower.v1.DeleteResearchRequest"
  * Use `create(DeleteResearchRequestSchema)` to create a new message.
  */
 export const DeleteResearchRequestSchema: GenMessage<DeleteResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 12);
+  messageDesc(file_san_tower_v1_keyword_research, 13);
 
 /**
  * @generated from message san.tower.v1.DeleteResearchResponse
@@ -494,7 +535,7 @@ export type DeleteResearchResponse = Message<"san.tower.v1.DeleteResearchRespons
  * Use `create(DeleteResearchResponseSchema)` to create a new message.
  */
 export const DeleteResearchResponseSchema: GenMessage<DeleteResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 13);
+  messageDesc(file_san_tower_v1_keyword_research, 14);
 
 /**
  * @generated from message san.tower.v1.DuplicateResearchRequest
@@ -511,7 +552,7 @@ export type DuplicateResearchRequest = Message<"san.tower.v1.DuplicateResearchRe
  * Use `create(DuplicateResearchRequestSchema)` to create a new message.
  */
 export const DuplicateResearchRequestSchema: GenMessage<DuplicateResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 14);
+  messageDesc(file_san_tower_v1_keyword_research, 15);
 
 /**
  * @generated from message san.tower.v1.DuplicateResearchResponse
@@ -528,7 +569,7 @@ export type DuplicateResearchResponse = Message<"san.tower.v1.DuplicateResearchR
  * Use `create(DuplicateResearchResponseSchema)` to create a new message.
  */
 export const DuplicateResearchResponseSchema: GenMessage<DuplicateResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 15);
+  messageDesc(file_san_tower_v1_keyword_research, 16);
 
 /**
  * @generated from message san.tower.v1.MoveResearchesRequest
@@ -550,7 +591,7 @@ export type MoveResearchesRequest = Message<"san.tower.v1.MoveResearchesRequest"
  * Use `create(MoveResearchesRequestSchema)` to create a new message.
  */
 export const MoveResearchesRequestSchema: GenMessage<MoveResearchesRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 16);
+  messageDesc(file_san_tower_v1_keyword_research, 17);
 
 /**
  * @generated from message san.tower.v1.MoveResearchesResponse
@@ -563,7 +604,7 @@ export type MoveResearchesResponse = Message<"san.tower.v1.MoveResearchesRespons
  * Use `create(MoveResearchesResponseSchema)` to create a new message.
  */
 export const MoveResearchesResponseSchema: GenMessage<MoveResearchesResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 17);
+  messageDesc(file_san_tower_v1_keyword_research, 18);
 
 /**
  * @generated from message san.tower.v1.ListResearchFoldersRequest
@@ -576,7 +617,7 @@ export type ListResearchFoldersRequest = Message<"san.tower.v1.ListResearchFolde
  * Use `create(ListResearchFoldersRequestSchema)` to create a new message.
  */
 export const ListResearchFoldersRequestSchema: GenMessage<ListResearchFoldersRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 18);
+  messageDesc(file_san_tower_v1_keyword_research, 19);
 
 /**
  * @generated from message san.tower.v1.ListResearchFoldersResponse
@@ -593,7 +634,7 @@ export type ListResearchFoldersResponse = Message<"san.tower.v1.ListResearchFold
  * Use `create(ListResearchFoldersResponseSchema)` to create a new message.
  */
 export const ListResearchFoldersResponseSchema: GenMessage<ListResearchFoldersResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 19);
+  messageDesc(file_san_tower_v1_keyword_research, 20);
 
 /**
  * @generated from message san.tower.v1.CreateResearchFolderRequest
@@ -615,7 +656,7 @@ export type CreateResearchFolderRequest = Message<"san.tower.v1.CreateResearchFo
  * Use `create(CreateResearchFolderRequestSchema)` to create a new message.
  */
 export const CreateResearchFolderRequestSchema: GenMessage<CreateResearchFolderRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 20);
+  messageDesc(file_san_tower_v1_keyword_research, 21);
 
 /**
  * @generated from message san.tower.v1.CreateResearchFolderResponse
@@ -632,7 +673,7 @@ export type CreateResearchFolderResponse = Message<"san.tower.v1.CreateResearchF
  * Use `create(CreateResearchFolderResponseSchema)` to create a new message.
  */
 export const CreateResearchFolderResponseSchema: GenMessage<CreateResearchFolderResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 21);
+  messageDesc(file_san_tower_v1_keyword_research, 22);
 
 /**
  * @generated from message san.tower.v1.UpdateResearchFolderRequest
@@ -659,7 +700,7 @@ export type UpdateResearchFolderRequest = Message<"san.tower.v1.UpdateResearchFo
  * Use `create(UpdateResearchFolderRequestSchema)` to create a new message.
  */
 export const UpdateResearchFolderRequestSchema: GenMessage<UpdateResearchFolderRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 22);
+  messageDesc(file_san_tower_v1_keyword_research, 23);
 
 /**
  * @generated from message san.tower.v1.UpdateResearchFolderResponse
@@ -676,7 +717,7 @@ export type UpdateResearchFolderResponse = Message<"san.tower.v1.UpdateResearchF
  * Use `create(UpdateResearchFolderResponseSchema)` to create a new message.
  */
 export const UpdateResearchFolderResponseSchema: GenMessage<UpdateResearchFolderResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 23);
+  messageDesc(file_san_tower_v1_keyword_research, 24);
 
 /**
  * @generated from message san.tower.v1.DeleteResearchFolderRequest
@@ -693,7 +734,7 @@ export type DeleteResearchFolderRequest = Message<"san.tower.v1.DeleteResearchFo
  * Use `create(DeleteResearchFolderRequestSchema)` to create a new message.
  */
 export const DeleteResearchFolderRequestSchema: GenMessage<DeleteResearchFolderRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 24);
+  messageDesc(file_san_tower_v1_keyword_research, 25);
 
 /**
  * @generated from message san.tower.v1.DeleteResearchFolderResponse
@@ -706,7 +747,7 @@ export type DeleteResearchFolderResponse = Message<"san.tower.v1.DeleteResearchF
  * Use `create(DeleteResearchFolderResponseSchema)` to create a new message.
  */
 export const DeleteResearchFolderResponseSchema: GenMessage<DeleteResearchFolderResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 25);
+  messageDesc(file_san_tower_v1_keyword_research, 26);
 
 /**
  * @generated from message san.tower.v1.RunResearchRequest
@@ -730,7 +771,7 @@ export type RunResearchRequest = Message<"san.tower.v1.RunResearchRequest"> & {
  * Use `create(RunResearchRequestSchema)` to create a new message.
  */
 export const RunResearchRequestSchema: GenMessage<RunResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 26);
+  messageDesc(file_san_tower_v1_keyword_research, 27);
 
 /**
  * @generated from message san.tower.v1.RunResearchResponse
@@ -747,7 +788,7 @@ export type RunResearchResponse = Message<"san.tower.v1.RunResearchResponse"> & 
  * Use `create(RunResearchResponseSchema)` to create a new message.
  */
 export const RunResearchResponseSchema: GenMessage<RunResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 27);
+  messageDesc(file_san_tower_v1_keyword_research, 28);
 
 /**
  * @generated from message san.tower.v1.ExploreKeywordRequest
@@ -771,7 +812,7 @@ export type ExploreKeywordRequest = Message<"san.tower.v1.ExploreKeywordRequest"
  * Use `create(ExploreKeywordRequestSchema)` to create a new message.
  */
 export const ExploreKeywordRequestSchema: GenMessage<ExploreKeywordRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 28);
+  messageDesc(file_san_tower_v1_keyword_research, 29);
 
 /**
  * @generated from message san.tower.v1.ExploreKeywordResponse
@@ -788,7 +829,7 @@ export type ExploreKeywordResponse = Message<"san.tower.v1.ExploreKeywordRespons
  * Use `create(ExploreKeywordResponseSchema)` to create a new message.
  */
 export const ExploreKeywordResponseSchema: GenMessage<ExploreKeywordResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 29);
+  messageDesc(file_san_tower_v1_keyword_research, 30);
 
 /**
  * @generated from message san.tower.v1.StopResearchRequest
@@ -805,7 +846,7 @@ export type StopResearchRequest = Message<"san.tower.v1.StopResearchRequest"> & 
  * Use `create(StopResearchRequestSchema)` to create a new message.
  */
 export const StopResearchRequestSchema: GenMessage<StopResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 30);
+  messageDesc(file_san_tower_v1_keyword_research, 31);
 
 /**
  * @generated from message san.tower.v1.StopResearchResponse
@@ -822,7 +863,7 @@ export type StopResearchResponse = Message<"san.tower.v1.StopResearchResponse"> 
  * Use `create(StopResearchResponseSchema)` to create a new message.
  */
 export const StopResearchResponseSchema: GenMessage<StopResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 31);
+  messageDesc(file_san_tower_v1_keyword_research, 32);
 
 /**
  * @generated from message san.tower.v1.ClearResearchGraphRequest
@@ -839,7 +880,7 @@ export type ClearResearchGraphRequest = Message<"san.tower.v1.ClearResearchGraph
  * Use `create(ClearResearchGraphRequestSchema)` to create a new message.
  */
 export const ClearResearchGraphRequestSchema: GenMessage<ClearResearchGraphRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 32);
+  messageDesc(file_san_tower_v1_keyword_research, 33);
 
 /**
  * @generated from message san.tower.v1.ClearResearchGraphResponse
@@ -856,7 +897,7 @@ export type ClearResearchGraphResponse = Message<"san.tower.v1.ClearResearchGrap
  * Use `create(ClearResearchGraphResponseSchema)` to create a new message.
  */
 export const ClearResearchGraphResponseSchema: GenMessage<ClearResearchGraphResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 33);
+  messageDesc(file_san_tower_v1_keyword_research, 34);
 
 /**
  * KeywordNode is a keyword of a research's graph (a Keyword node).
@@ -950,7 +991,7 @@ export type KeywordNode = Message<"san.tower.v1.KeywordNode"> & {
  * Use `create(KeywordNodeSchema)` to create a new message.
  */
 export const KeywordNodeSchema: GenMessage<KeywordNode> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 34);
+  messageDesc(file_san_tower_v1_keyword_research, 35);
 
 /**
  * KeywordEdge is a relationship: to was found in from's Top (TOP) or Rising
@@ -1002,7 +1043,7 @@ export type KeywordEdge = Message<"san.tower.v1.KeywordEdge"> & {
  * Use `create(KeywordEdgeSchema)` to create a new message.
  */
 export const KeywordEdgeSchema: GenMessage<KeywordEdge> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 35);
+  messageDesc(file_san_tower_v1_keyword_research, 36);
 
 /**
  * KeywordCommunity is a Leiden community of a research's graph, named after
@@ -1032,7 +1073,7 @@ export type KeywordCommunity = Message<"san.tower.v1.KeywordCommunity"> & {
  * Use `create(KeywordCommunitySchema)` to create a new message.
  */
 export const KeywordCommunitySchema: GenMessage<KeywordCommunity> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 36);
+  messageDesc(file_san_tower_v1_keyword_research, 37);
 
 /**
  * @generated from message san.tower.v1.GetResearchGraphRequest
@@ -1049,7 +1090,7 @@ export type GetResearchGraphRequest = Message<"san.tower.v1.GetResearchGraphRequ
  * Use `create(GetResearchGraphRequestSchema)` to create a new message.
  */
 export const GetResearchGraphRequestSchema: GenMessage<GetResearchGraphRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 37);
+  messageDesc(file_san_tower_v1_keyword_research, 38);
 
 /**
  * @generated from message san.tower.v1.GetResearchGraphResponse
@@ -1081,7 +1122,119 @@ export type GetResearchGraphResponse = Message<"san.tower.v1.GetResearchGraphRes
  * Use `create(GetResearchGraphResponseSchema)` to create a new message.
  */
 export const GetResearchGraphResponseSchema: GenMessage<GetResearchGraphResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 38);
+  messageDesc(file_san_tower_v1_keyword_research, 39);
+
+/**
+ * @generated from message san.tower.v1.AddToBlacklistRequest
+ */
+export type AddToBlacklistRequest = Message<"san.tower.v1.AddToBlacklistRequest"> & {
+  /**
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+
+  /**
+   * entries are the keywords or phrases, each as it is: the page splits
+   * what is typed at line breaks and commas.
+   *
+   * @generated from field: repeated string entries = 2;
+   */
+  entries: string[];
+
+  /**
+   * dry_run changes nothing: the response says what adding would do.
+   *
+   * @generated from field: bool dry_run = 3;
+   */
+  dryRun: boolean;
+};
+
+/**
+ * Describes the message san.tower.v1.AddToBlacklistRequest.
+ * Use `create(AddToBlacklistRequestSchema)` to create a new message.
+ */
+export const AddToBlacklistRequestSchema: GenMessage<AddToBlacklistRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_keyword_research, 40);
+
+/**
+ * @generated from message san.tower.v1.AddToBlacklistResponse
+ */
+export type AddToBlacklistResponse = Message<"san.tower.v1.AddToBlacklistResponse"> & {
+  /**
+   * @generated from field: san.tower.v1.KeywordResearch research = 1;
+   */
+  research?: KeywordResearch;
+
+  /**
+   * added are the entries added (or that would be), normalized; those the
+   * blacklist had already are left out.
+   *
+   * @generated from field: repeated string added = 2;
+   */
+  added: string[];
+
+  /**
+   * removed are the keywords taken out of the graph (or that would be):
+   * those an entry matches, then those left without a path from the seed.
+   *
+   * @generated from field: repeated string removed = 3;
+   */
+  removed: string[];
+
+  /**
+   * matched is how many of removed an entry matches; the others were found
+   * only through them.
+   *
+   * @generated from field: uint32 matched = 4;
+   */
+  matched: number;
+};
+
+/**
+ * Describes the message san.tower.v1.AddToBlacklistResponse.
+ * Use `create(AddToBlacklistResponseSchema)` to create a new message.
+ */
+export const AddToBlacklistResponseSchema: GenMessage<AddToBlacklistResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_keyword_research, 41);
+
+/**
+ * @generated from message san.tower.v1.RemoveFromBlacklistRequest
+ */
+export type RemoveFromBlacklistRequest = Message<"san.tower.v1.RemoveFromBlacklistRequest"> & {
+  /**
+   * @generated from field: uint32 id = 1;
+   */
+  id: number;
+
+  /**
+   * @generated from field: string entry = 2;
+   */
+  entry: string;
+};
+
+/**
+ * Describes the message san.tower.v1.RemoveFromBlacklistRequest.
+ * Use `create(RemoveFromBlacklistRequestSchema)` to create a new message.
+ */
+export const RemoveFromBlacklistRequestSchema: GenMessage<RemoveFromBlacklistRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_keyword_research, 42);
+
+/**
+ * @generated from message san.tower.v1.RemoveFromBlacklistResponse
+ */
+export type RemoveFromBlacklistResponse = Message<"san.tower.v1.RemoveFromBlacklistResponse"> & {
+  /**
+   * @generated from field: san.tower.v1.KeywordResearch research = 1;
+   */
+  research?: KeywordResearch;
+};
+
+/**
+ * Describes the message san.tower.v1.RemoveFromBlacklistResponse.
+ * Use `create(RemoveFromBlacklistResponseSchema)` to create a new message.
+ */
+export const RemoveFromBlacklistResponseSchema: GenMessage<RemoveFromBlacklistResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_keyword_research, 43);
 
 /**
  * TrendsGeo is a location of Trends' location menu.
@@ -1112,7 +1265,7 @@ export type TrendsGeo = Message<"san.tower.v1.TrendsGeo"> & {
  * Use `create(TrendsGeoSchema)` to create a new message.
  */
 export const TrendsGeoSchema: GenMessage<TrendsGeo> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 39);
+  messageDesc(file_san_tower_v1_keyword_research, 44);
 
 /**
  * TrendsCategory is a category of Trends, with those inside it.
@@ -1141,7 +1294,7 @@ export type TrendsCategory = Message<"san.tower.v1.TrendsCategory"> & {
  * Use `create(TrendsCategorySchema)` to create a new message.
  */
 export const TrendsCategorySchema: GenMessage<TrendsCategory> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 40);
+  messageDesc(file_san_tower_v1_keyword_research, 45);
 
 /**
  * @generated from message san.tower.v1.TrendsOption
@@ -1163,7 +1316,7 @@ export type TrendsOption = Message<"san.tower.v1.TrendsOption"> & {
  * Use `create(TrendsOptionSchema)` to create a new message.
  */
 export const TrendsOptionSchema: GenMessage<TrendsOption> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 41);
+  messageDesc(file_san_tower_v1_keyword_research, 46);
 
 /**
  * @generated from message san.tower.v1.GetTrendsOptionsRequest
@@ -1197,7 +1350,7 @@ export type GetTrendsOptionsRequest = Message<"san.tower.v1.GetTrendsOptionsRequ
  * Use `create(GetTrendsOptionsRequestSchema)` to create a new message.
  */
 export const GetTrendsOptionsRequestSchema: GenMessage<GetTrendsOptionsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 42);
+  messageDesc(file_san_tower_v1_keyword_research, 47);
 
 /**
  * @generated from message san.tower.v1.GetTrendsOptionsResponse
@@ -1245,7 +1398,7 @@ export type GetTrendsOptionsResponse = Message<"san.tower.v1.GetTrendsOptionsRes
  * Use `create(GetTrendsOptionsResponseSchema)` to create a new message.
  */
 export const GetTrendsOptionsResponseSchema: GenMessage<GetTrendsOptionsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 43);
+  messageDesc(file_san_tower_v1_keyword_research, 48);
 
 /**
  * @generated from message san.tower.v1.WatchResearchRequest
@@ -1262,7 +1415,7 @@ export type WatchResearchRequest = Message<"san.tower.v1.WatchResearchRequest"> 
  * Use `create(WatchResearchRequestSchema)` to create a new message.
  */
 export const WatchResearchRequestSchema: GenMessage<WatchResearchRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 44);
+  messageDesc(file_san_tower_v1_keyword_research, 49);
 
 /**
  * WatchResearchResponse is a message of WatchResearch.
@@ -1316,6 +1469,15 @@ export type WatchResearchResponse = Message<"san.tower.v1.WatchResearchResponse"
      */
     value: boolean;
     case: "deleted";
+  } | {
+    /**
+     * removal is what a blacklist entry took out of the graph, sent right
+     * after it was taken out.
+     *
+     * @generated from field: san.tower.v1.KeywordGraphRemoval removal = 6;
+     */
+    value: KeywordGraphRemoval;
+    case: "removal";
   } | { case: undefined; value?: undefined };
 };
 
@@ -1324,7 +1486,64 @@ export type WatchResearchResponse = Message<"san.tower.v1.WatchResearchResponse"
  * Use `create(WatchResearchResponseSchema)` to create a new message.
  */
 export const WatchResearchResponseSchema: GenMessage<WatchResearchResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 45);
+  messageDesc(file_san_tower_v1_keyword_research, 50);
+
+/**
+ * KeywordGraphRemoval is what adding blacklist entries took out of a
+ * research's graph (AddToBlacklist): the keywords and relationships taken
+ * out, the kept keywords whose values changed with them, and the Leiden
+ * communities worked out again.
+ *
+ * @generated from message san.tower.v1.KeywordGraphRemoval
+ */
+export type KeywordGraphRemoval = Message<"san.tower.v1.KeywordGraphRemoval"> & {
+  /**
+   * removed are the keywords taken out.
+   *
+   * @generated from field: repeated string removed = 1;
+   */
+  removed: string[];
+
+  /**
+   * edges are the relationships taken out with them.
+   *
+   * @generated from field: repeated san.tower.v1.KeywordEdge edges = 2;
+   */
+  edges: KeywordEdge[];
+
+  /**
+   * nodes are kept keywords as they are now, whose values changed: one
+   * found from a removed keyword keeps only what the keywords it is still
+   * found from give it (Top, Rising, search interest, change), and one
+   * whose shortest path from the seed went through a removed keyword gets
+   * a deeper depth.
+   *
+   * @generated from field: repeated san.tower.v1.KeywordNode nodes = 3;
+   */
+  nodes: KeywordNode[];
+
+  /**
+   * communities are every community of the graph now.
+   *
+   * @generated from field: repeated san.tower.v1.KeywordCommunity communities = 4;
+   */
+  communities: KeywordCommunity[];
+
+  /**
+   * moved are the other keywords whose community changed, to their new
+   * community.
+   *
+   * @generated from field: map<string, uint32> moved = 5;
+   */
+  moved: { [key: string]: number };
+};
+
+/**
+ * Describes the message san.tower.v1.KeywordGraphRemoval.
+ * Use `create(KeywordGraphRemovalSchema)` to create a new message.
+ */
+export const KeywordGraphRemovalSchema: GenMessage<KeywordGraphRemoval> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_keyword_research, 51);
 
 /**
  * KeywordGraphChange is what one lookup wrote to a research's graph, sent
@@ -1378,7 +1597,7 @@ export type KeywordGraphChange = Message<"san.tower.v1.KeywordGraphChange"> & {
  * Use `create(KeywordGraphChangeSchema)` to create a new message.
  */
 export const KeywordGraphChangeSchema: GenMessage<KeywordGraphChange> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 46);
+  messageDesc(file_san_tower_v1_keyword_research, 52);
 
 /**
  * @generated from message san.tower.v1.WatchResearchesRequest
@@ -1391,7 +1610,7 @@ export type WatchResearchesRequest = Message<"san.tower.v1.WatchResearchesReques
  * Use `create(WatchResearchesRequestSchema)` to create a new message.
  */
 export const WatchResearchesRequestSchema: GenMessage<WatchResearchesRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 47);
+  messageDesc(file_san_tower_v1_keyword_research, 53);
 
 /**
  * WatchResearchesResponse is a message of WatchResearches.
@@ -1437,7 +1656,7 @@ export type WatchResearchesResponse = Message<"san.tower.v1.WatchResearchesRespo
  * Use `create(WatchResearchesResponseSchema)` to create a new message.
  */
 export const WatchResearchesResponseSchema: GenMessage<WatchResearchesResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 48);
+  messageDesc(file_san_tower_v1_keyword_research, 54);
 
 /**
  * @generated from message san.tower.v1.ResearchList
@@ -1459,7 +1678,7 @@ export type ResearchList = Message<"san.tower.v1.ResearchList"> & {
  * Use `create(ResearchListSchema)` to create a new message.
  */
 export const ResearchListSchema: GenMessage<ResearchList> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_keyword_research, 49);
+  messageDesc(file_san_tower_v1_keyword_research, 55);
 
 /**
  * @generated from enum san.tower.v1.KeywordResearchStatus
@@ -1529,7 +1748,7 @@ export const KeywordResearchStatusSchema: GenEnum<KeywordResearchStatus> = /*@__
  * rising keyword"). The lookups go through a San Remote connection, in the
  * user's Chrome (san.remote.trends.v1.TrendsService), one at a time in the
  * whole tower.
- *
+ * 
  * The researches, their folders and filters are in the tower's database;
  * each research's graph is a goraphdb graph of its own, in
  * <data>/keyword_research/<id> (the user, 2026-11-11: "Every research is
@@ -1711,6 +1930,42 @@ export const KeywordResearchService: GenService<{
     output: typeof GetResearchGraphResponseSchema;
   },
   /**
+   * AddToBlacklist adds keywords or phrases to a research's blacklist (the
+   * user, 2026-11-12: "Add tab blacklist keyword"; "And in node when right
+   * click add context menu add to blacklist, and remove the node and
+   * child"). An entry matches a keyword when its words are in it as whole
+   * words, in order and next to each other ("kode pos" matches "kode pos",
+   * "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
+   * Adding one takes every keyword it matches out of the graph with its
+   * relationships, and every keyword then left without a path from the seed
+   * (those found only through them); one also found from a keyword that
+   * stays, stays. A crawl never adds a keyword it matches again: it reads
+   * the blacklist at each lookup, so an entry added while it runs counts
+   * from its next lookup. An entry that matches the seed keyword is refused
+   * (InvalidArgument). With dry_run nothing changes: it says what adding
+   * would take out. The research's pages get the removal live
+   * (WatchResearch's removal) and the blacklist with the research.
+   *
+   * @generated from rpc san.tower.v1.KeywordResearchService.AddToBlacklist
+   */
+  addToBlacklist: {
+    methodKind: "unary";
+    input: typeof AddToBlacklistRequestSchema;
+    output: typeof AddToBlacklistResponseSchema;
+  },
+  /**
+   * RemoveFromBlacklist takes an entry out of a research's blacklist. The
+   * keywords it took out of the graph do not come back; a later lookup may
+   * find them again.
+   *
+   * @generated from rpc san.tower.v1.KeywordResearchService.RemoveFromBlacklist
+   */
+  removeFromBlacklist: {
+    methodKind: "unary";
+    input: typeof RemoveFromBlacklistRequestSchema;
+    output: typeof RemoveFromBlacklistResponseSchema;
+  },
+  /**
    * GetTrendsOptions gives Google Trends' own filter lists (locations,
    * categories, time ranges, search types), read from Trends through a
    * San Remote connection the first time, then kept in the tower's data
@@ -1728,9 +1983,10 @@ export const KeywordResearchService: GenService<{
    * 2026-11-11: "is crawl realtime update the graph? make it realtime"):
    * first a snapshot (the research, its whole graph and communities), then
    * each change as it happens: the research (status, progress, counts,
-   * settings), what each lookup wrote to the graph right after it was
-   * written, with the communities worked out again, a new snapshot when the
-   * graph was cleared, and a heartbeat every 15 seconds. Several pages can
+   * settings, blacklist), what each lookup wrote to the graph right after it
+   * was written, with the communities worked out again, what a blacklist
+   * entry took out, a new snapshot when the graph was cleared, and a
+   * heartbeat every 15 seconds. Several pages can
    * watch one research. A page that falls behind is dropped (Unavailable),
    * never waited for, so it cannot hold the crawl: it watches again and
    * starts from a new snapshot. The stream ends after deleted, and when the

@@ -74,9 +74,12 @@ func (s *Server) WatchResearch(ctx context.Context, req *connect.Request[v1.Watc
 				err = stream.Send(&v1.WatchResearchResponse{Event: &v1.WatchResearchResponse_Research{Research: s.researchToProto(k)}})
 			case ch.Kind == keywordresearch.Wrote && ch.Delta != nil:
 				err = stream.Send(&v1.WatchResearchResponse{Event: &v1.WatchResearchResponse_Change{Change: graphChangeToProto(ch.Delta)}})
+			case ch.Kind == keywordresearch.Blacklisted && ch.Delta != nil:
+				err = stream.Send(&v1.WatchResearchResponse{Event: &v1.WatchResearchResponse_Removal{Removal: graphRemovalToProto(ch.Delta)}})
 			default:
-				// Reset, or a lookup written while no page watched yet
-				// (no Delta): the whole graph again.
+				// Reset, or a lookup written (or keywords blacklisted)
+				// while no page watched yet (no Delta): the whole graph
+				// again.
 				err = snapshot()
 			}
 		}
@@ -103,6 +106,30 @@ func graphChangeToProto(d *keywordresearch.Delta) *v1.KeywordGraphChange {
 	}
 	for name, c := range d.Community {
 		if !written[name] {
+			out.Moved[name] = uint32(c)
+		}
+	}
+	return out
+}
+
+// graphRemovalToProto is a Blacklisted Delta as its pages get it: the
+// keywords and relationships taken out, the kept keywords changed with
+// their community, and the other keywords whose community changed.
+func graphRemovalToProto(d *keywordresearch.Delta) *v1.KeywordGraphRemoval {
+	out := &v1.KeywordGraphRemoval{Removed: d.Removed, Moved: map[string]uint32{}}
+	changed := map[string]bool{}
+	for _, n := range d.Nodes {
+		changed[n.Name] = true
+		out.Nodes = append(out.Nodes, keywordNodeToProto(n, d.Community[n.Name]))
+	}
+	for _, e := range d.RemovedEdges {
+		out.Edges = append(out.Edges, keywordEdgeToProto(e))
+	}
+	for _, c := range d.Communities {
+		out.Communities = append(out.Communities, &v1.KeywordCommunity{Id: uint32(c.ID), Name: c.Name, Size: uint32(c.Size)})
+	}
+	for name, c := range d.Community {
+		if !changed[name] {
 			out.Moved[name] = uint32(c)
 		}
 	}
@@ -170,10 +197,7 @@ func (s *Server) researchList() (*v1.ResearchList, error) {
 	if err != nil {
 		return nil, storeError(err)
 	}
-	out := &v1.ResearchList{}
-	for _, k := range list {
-		out.Researches = append(out.Researches, s.researchToProto(k))
-	}
+	out := &v1.ResearchList{Researches: s.researchesToProto(list)}
 	for _, f := range folders {
 		out.Folders = append(out.Folders, &v1.KeywordResearchFolder{Id: f.ID, Name: f.Name, ParentId: f.ParentID, ResearchCount: uint32(f.Items), FolderCount: uint32(f.Folders)})
 	}

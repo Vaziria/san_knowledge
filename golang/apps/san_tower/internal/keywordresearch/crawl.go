@@ -92,6 +92,9 @@ type job struct {
 	// prior is the research's status before an Explore, which it goes
 	// back to.
 	prior, priorMessage string
+	// gone: an Explore's keyword was taken out of the graph (blacklisted)
+	// before its lookup was written.
+	gone bool
 }
 
 // The pace's defaults: 3 to 7 seconds between lookups, on top of the
@@ -457,6 +460,9 @@ func (c *Crawler) run(j *job) {
 			status = store.ResearchStopped
 		}
 		msg = fmt.Sprintf("Looked up %q.", j.keyword)
+		if j.gone {
+			msg = fmt.Sprintf("%q was blacklisted: its lookup was dropped.", j.keyword)
+		}
 	case j.stop:
 		status, msg = store.ResearchStopped, fmt.Sprintf("Stopped after %d lookups. Run goes on from there.", lookups)
 	default:
@@ -527,6 +533,7 @@ func (c *Crawler) crawl(j *job) (lookups int, err error) {
 						next, todo, ok = n, 1, true
 					}
 				}
+				j.gone = !ok && !slices.ContainsFunc(nodes, func(n Node) bool { return n.Name == j.keyword })
 				return nil
 			}
 			next, todo, ok = Next(nodes, int(k.DeepLimit))
@@ -565,8 +572,25 @@ func (c *Crawler) crawl(j *job) (lookups int, err error) {
 		at := time.Now()
 		var n Counts
 		var d *Delta
+		gone := false
 		err = With(dir, func(g *Graph) error {
+			// A blacklist entry added during the lookup may have taken the
+			// keyword out (the user, 2026-11-12: "remove the node and
+			// child"): what it found is not written then.
+			if _, ok, err := g.Find(next.Name); err != nil || !ok {
+				gone = !ok
+				return err
+			}
 			if !skipped {
+				// The blacklist is read here, in the graph's turn: an entry
+				// added while this lookup ran counts already, and one being
+				// added waits for this write and then takes out what it
+				// matches, so no blacklisted keyword stays.
+				entries, err := c.blacklist(j.id)
+				if err != nil {
+					return err
+				}
+				top, rising = allowed(entries, top), allowed(entries, rising)
 				if _, err := g.Add(next.Name, top, rising, at); err != nil {
 					return err
 				}
@@ -581,10 +605,16 @@ func (c *Crawler) crawl(j *job) (lookups int, err error) {
 		if err != nil {
 			return lookups, err
 		}
-		// The pages get what it wrote right away, then the counts.
 		c.mu.Lock()
 		j.progress.Lookups = lookups
 		c.mu.Unlock()
+		if gone {
+			c.Log.Info("keyword research: a keyword blacklisted during its lookup", "research", j.id, "keyword", next.Name)
+			j.gone = j.keyword != ""
+			c.changed(j.id)
+			continue
+		}
+		// The pages get what it wrote right away, then the counts.
 		if err := c.wrote(j.id, n, d); err != nil {
 			return lookups, err
 		}
@@ -592,6 +622,35 @@ func (c *Crawler) crawl(j *job) (lookups int, err error) {
 			return lookups, fmt.Errorf("the seed or the filters changed during the crawl: Run again, which asks to clear the graph")
 		}
 	}
+}
+
+// blacklist is research id's blacklist entries, as the crawl reads them
+// before each write.
+func (c *Crawler) blacklist(id uint32) ([]string, error) {
+	list, err := c.Store.ListBlacklist(id)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]string, len(list))
+	for i, e := range list {
+		out[i] = e.Entry
+	}
+	return out, nil
+}
+
+// allowed are the queries of a lookup's list that no blacklist entry
+// matches: the crawl never adds the others, so they are never looked up.
+func allowed(entries []string, list []Found) []Found {
+	if len(entries) == 0 {
+		return list
+	}
+	var out []Found
+	for _, f := range list {
+		if matchesAny(entries, store.NormalizeKeyword(f.Query)) == "" {
+			out = append(out, f)
+		}
+	}
+	return out
 }
 
 // queries are the names of the queries a lookup found.

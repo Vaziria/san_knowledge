@@ -283,9 +283,11 @@ type KeywordResearch struct {
 	// filters.
 	SettingsChanged bool `protobuf:"varint,15,opt,name=settings_changed,json=settingsChanged,proto3" json:"settings_changed,omitempty"`
 	// progress is set while it runs or waits.
-	Progress      *KeywordProgress       `protobuf:"bytes,16,opt,name=progress,proto3" json:"progress,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Progress  *KeywordProgress       `protobuf:"bytes,16,opt,name=progress,proto3" json:"progress,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// blacklist is its blacklist, oldest first (AddToBlacklist).
+	Blacklist     []*KeywordBlacklistEntry `protobuf:"bytes,19,rep,name=blacklist,proto3" json:"blacklist,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -446,6 +448,77 @@ func (x *KeywordResearch) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *KeywordResearch) GetBlacklist() []*KeywordBlacklistEntry {
+	if x != nil {
+		return x.Blacklist
+	}
+	return nil
+}
+
+// KeywordBlacklistEntry is an entry of a research's blacklist.
+type KeywordBlacklistEntry struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// entry is the keyword or phrase, trimmed, in lower case, its spaces
+	// collapsed, as keywords are.
+	Entry   string                 `protobuf:"bytes,1,opt,name=entry,proto3" json:"entry,omitempty"`
+	AddedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=added_at,json=addedAt,proto3" json:"added_at,omitempty"`
+	// removed is how many keywords adding it took out of the graph.
+	Removed       uint32 `protobuf:"varint,3,opt,name=removed,proto3" json:"removed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KeywordBlacklistEntry) Reset() {
+	*x = KeywordBlacklistEntry{}
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KeywordBlacklistEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KeywordBlacklistEntry) ProtoMessage() {}
+
+func (x *KeywordBlacklistEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KeywordBlacklistEntry.ProtoReflect.Descriptor instead.
+func (*KeywordBlacklistEntry) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *KeywordBlacklistEntry) GetEntry() string {
+	if x != nil {
+		return x.Entry
+	}
+	return ""
+}
+
+func (x *KeywordBlacklistEntry) GetAddedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AddedAt
+	}
+	return nil
+}
+
+func (x *KeywordBlacklistEntry) GetRemoved() uint32 {
+	if x != nil {
+		return x.Removed
+	}
+	return 0
+}
+
 // KeywordResearchFolder is a folder of researches; folders nest.
 type KeywordResearchFolder struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -462,7 +535,7 @@ type KeywordResearchFolder struct {
 
 func (x *KeywordResearchFolder) Reset() {
 	*x = KeywordResearchFolder{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[3]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -474,7 +547,7 @@ func (x *KeywordResearchFolder) String() string {
 func (*KeywordResearchFolder) ProtoMessage() {}
 
 func (x *KeywordResearchFolder) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[3]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,7 +560,7 @@ func (x *KeywordResearchFolder) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeywordResearchFolder.ProtoReflect.Descriptor instead.
 func (*KeywordResearchFolder) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{3}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *KeywordResearchFolder) GetId() uint32 {
@@ -537,7 +610,7 @@ type ListResearchesRequest struct {
 
 func (x *ListResearchesRequest) Reset() {
 	*x = ListResearchesRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[4]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -549,7 +622,7 @@ func (x *ListResearchesRequest) String() string {
 func (*ListResearchesRequest) ProtoMessage() {}
 
 func (x *ListResearchesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[4]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -562,7 +635,7 @@ func (x *ListResearchesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResearchesRequest.ProtoReflect.Descriptor instead.
 func (*ListResearchesRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{4}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListResearchesRequest) GetFolderId() uint32 {
@@ -588,7 +661,7 @@ type ListResearchesResponse struct {
 
 func (x *ListResearchesResponse) Reset() {
 	*x = ListResearchesResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[5]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -600,7 +673,7 @@ func (x *ListResearchesResponse) String() string {
 func (*ListResearchesResponse) ProtoMessage() {}
 
 func (x *ListResearchesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[5]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -613,7 +686,7 @@ func (x *ListResearchesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResearchesResponse.ProtoReflect.Descriptor instead.
 func (*ListResearchesResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{5}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListResearchesResponse) GetResearches() []*KeywordResearch {
@@ -632,7 +705,7 @@ type GetResearchRequest struct {
 
 func (x *GetResearchRequest) Reset() {
 	*x = GetResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[6]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -644,7 +717,7 @@ func (x *GetResearchRequest) String() string {
 func (*GetResearchRequest) ProtoMessage() {}
 
 func (x *GetResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[6]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -657,7 +730,7 @@ func (x *GetResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResearchRequest.ProtoReflect.Descriptor instead.
 func (*GetResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{6}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetResearchRequest) GetId() uint32 {
@@ -676,7 +749,7 @@ type GetResearchResponse struct {
 
 func (x *GetResearchResponse) Reset() {
 	*x = GetResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[7]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -688,7 +761,7 @@ func (x *GetResearchResponse) String() string {
 func (*GetResearchResponse) ProtoMessage() {}
 
 func (x *GetResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[7]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -701,7 +774,7 @@ func (x *GetResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResearchResponse.ProtoReflect.Descriptor instead.
 func (*GetResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{7}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetResearchResponse) GetResearch() *KeywordResearch {
@@ -723,7 +796,7 @@ type CreateResearchRequest struct {
 
 func (x *CreateResearchRequest) Reset() {
 	*x = CreateResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[8]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -735,7 +808,7 @@ func (x *CreateResearchRequest) String() string {
 func (*CreateResearchRequest) ProtoMessage() {}
 
 func (x *CreateResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[8]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -748,7 +821,7 @@ func (x *CreateResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResearchRequest.ProtoReflect.Descriptor instead.
 func (*CreateResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{8}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CreateResearchRequest) GetName() string {
@@ -788,7 +861,7 @@ type CreateResearchResponse struct {
 
 func (x *CreateResearchResponse) Reset() {
 	*x = CreateResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[9]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -800,7 +873,7 @@ func (x *CreateResearchResponse) String() string {
 func (*CreateResearchResponse) ProtoMessage() {}
 
 func (x *CreateResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[9]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -813,7 +886,7 @@ func (x *CreateResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResearchResponse.ProtoReflect.Descriptor instead.
 func (*CreateResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{9}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CreateResearchResponse) GetResearch() *KeywordResearch {
@@ -838,7 +911,7 @@ type UpdateResearchRequest struct {
 
 func (x *UpdateResearchRequest) Reset() {
 	*x = UpdateResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[10]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +923,7 @@ func (x *UpdateResearchRequest) String() string {
 func (*UpdateResearchRequest) ProtoMessage() {}
 
 func (x *UpdateResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[10]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +936,7 @@ func (x *UpdateResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResearchRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{10}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateResearchRequest) GetId() uint32 {
@@ -924,7 +997,7 @@ type UpdateResearchResponse struct {
 
 func (x *UpdateResearchResponse) Reset() {
 	*x = UpdateResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[11]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -936,7 +1009,7 @@ func (x *UpdateResearchResponse) String() string {
 func (*UpdateResearchResponse) ProtoMessage() {}
 
 func (x *UpdateResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[11]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -949,7 +1022,7 @@ func (x *UpdateResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResearchResponse.ProtoReflect.Descriptor instead.
 func (*UpdateResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{11}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UpdateResearchResponse) GetResearch() *KeywordResearch {
@@ -968,7 +1041,7 @@ type DeleteResearchRequest struct {
 
 func (x *DeleteResearchRequest) Reset() {
 	*x = DeleteResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[12]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -980,7 +1053,7 @@ func (x *DeleteResearchRequest) String() string {
 func (*DeleteResearchRequest) ProtoMessage() {}
 
 func (x *DeleteResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[12]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -993,7 +1066,7 @@ func (x *DeleteResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResearchRequest.ProtoReflect.Descriptor instead.
 func (*DeleteResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{12}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DeleteResearchRequest) GetId() uint32 {
@@ -1011,7 +1084,7 @@ type DeleteResearchResponse struct {
 
 func (x *DeleteResearchResponse) Reset() {
 	*x = DeleteResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[13]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1023,7 +1096,7 @@ func (x *DeleteResearchResponse) String() string {
 func (*DeleteResearchResponse) ProtoMessage() {}
 
 func (x *DeleteResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[13]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1036,7 +1109,7 @@ func (x *DeleteResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResearchResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{13}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{14}
 }
 
 type DuplicateResearchRequest struct {
@@ -1048,7 +1121,7 @@ type DuplicateResearchRequest struct {
 
 func (x *DuplicateResearchRequest) Reset() {
 	*x = DuplicateResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[14]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1060,7 +1133,7 @@ func (x *DuplicateResearchRequest) String() string {
 func (*DuplicateResearchRequest) ProtoMessage() {}
 
 func (x *DuplicateResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[14]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1073,7 +1146,7 @@ func (x *DuplicateResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DuplicateResearchRequest.ProtoReflect.Descriptor instead.
 func (*DuplicateResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{14}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DuplicateResearchRequest) GetId() uint32 {
@@ -1092,7 +1165,7 @@ type DuplicateResearchResponse struct {
 
 func (x *DuplicateResearchResponse) Reset() {
 	*x = DuplicateResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[15]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1104,7 +1177,7 @@ func (x *DuplicateResearchResponse) String() string {
 func (*DuplicateResearchResponse) ProtoMessage() {}
 
 func (x *DuplicateResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[15]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1117,7 +1190,7 @@ func (x *DuplicateResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DuplicateResearchResponse.ProtoReflect.Descriptor instead.
 func (*DuplicateResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{15}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *DuplicateResearchResponse) GetResearch() *KeywordResearch {
@@ -1137,7 +1210,7 @@ type MoveResearchesRequest struct {
 
 func (x *MoveResearchesRequest) Reset() {
 	*x = MoveResearchesRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[16]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1149,7 +1222,7 @@ func (x *MoveResearchesRequest) String() string {
 func (*MoveResearchesRequest) ProtoMessage() {}
 
 func (x *MoveResearchesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[16]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1162,7 +1235,7 @@ func (x *MoveResearchesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveResearchesRequest.ProtoReflect.Descriptor instead.
 func (*MoveResearchesRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{16}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *MoveResearchesRequest) GetIds() []uint32 {
@@ -1187,7 +1260,7 @@ type MoveResearchesResponse struct {
 
 func (x *MoveResearchesResponse) Reset() {
 	*x = MoveResearchesResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[17]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1199,7 +1272,7 @@ func (x *MoveResearchesResponse) String() string {
 func (*MoveResearchesResponse) ProtoMessage() {}
 
 func (x *MoveResearchesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[17]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1212,7 +1285,7 @@ func (x *MoveResearchesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveResearchesResponse.ProtoReflect.Descriptor instead.
 func (*MoveResearchesResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{17}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{18}
 }
 
 type ListResearchFoldersRequest struct {
@@ -1223,7 +1296,7 @@ type ListResearchFoldersRequest struct {
 
 func (x *ListResearchFoldersRequest) Reset() {
 	*x = ListResearchFoldersRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[18]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1235,7 +1308,7 @@ func (x *ListResearchFoldersRequest) String() string {
 func (*ListResearchFoldersRequest) ProtoMessage() {}
 
 func (x *ListResearchFoldersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[18]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1248,7 +1321,7 @@ func (x *ListResearchFoldersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResearchFoldersRequest.ProtoReflect.Descriptor instead.
 func (*ListResearchFoldersRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{18}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{19}
 }
 
 type ListResearchFoldersResponse struct {
@@ -1260,7 +1333,7 @@ type ListResearchFoldersResponse struct {
 
 func (x *ListResearchFoldersResponse) Reset() {
 	*x = ListResearchFoldersResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[19]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1272,7 +1345,7 @@ func (x *ListResearchFoldersResponse) String() string {
 func (*ListResearchFoldersResponse) ProtoMessage() {}
 
 func (x *ListResearchFoldersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[19]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1285,7 +1358,7 @@ func (x *ListResearchFoldersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResearchFoldersResponse.ProtoReflect.Descriptor instead.
 func (*ListResearchFoldersResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{19}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListResearchFoldersResponse) GetFolders() []*KeywordResearchFolder {
@@ -1305,7 +1378,7 @@ type CreateResearchFolderRequest struct {
 
 func (x *CreateResearchFolderRequest) Reset() {
 	*x = CreateResearchFolderRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[20]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1317,7 +1390,7 @@ func (x *CreateResearchFolderRequest) String() string {
 func (*CreateResearchFolderRequest) ProtoMessage() {}
 
 func (x *CreateResearchFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[20]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1330,7 +1403,7 @@ func (x *CreateResearchFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResearchFolderRequest.ProtoReflect.Descriptor instead.
 func (*CreateResearchFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{20}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateResearchFolderRequest) GetName() string {
@@ -1356,7 +1429,7 @@ type CreateResearchFolderResponse struct {
 
 func (x *CreateResearchFolderResponse) Reset() {
 	*x = CreateResearchFolderResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[21]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1368,7 +1441,7 @@ func (x *CreateResearchFolderResponse) String() string {
 func (*CreateResearchFolderResponse) ProtoMessage() {}
 
 func (x *CreateResearchFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[21]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1381,7 +1454,7 @@ func (x *CreateResearchFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResearchFolderResponse.ProtoReflect.Descriptor instead.
 func (*CreateResearchFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{21}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CreateResearchFolderResponse) GetFolder() *KeywordResearchFolder {
@@ -1402,7 +1475,7 @@ type UpdateResearchFolderRequest struct {
 
 func (x *UpdateResearchFolderRequest) Reset() {
 	*x = UpdateResearchFolderRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[22]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1414,7 +1487,7 @@ func (x *UpdateResearchFolderRequest) String() string {
 func (*UpdateResearchFolderRequest) ProtoMessage() {}
 
 func (x *UpdateResearchFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[22]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1427,7 +1500,7 @@ func (x *UpdateResearchFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResearchFolderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResearchFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{22}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateResearchFolderRequest) GetId() uint32 {
@@ -1460,7 +1533,7 @@ type UpdateResearchFolderResponse struct {
 
 func (x *UpdateResearchFolderResponse) Reset() {
 	*x = UpdateResearchFolderResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[23]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1472,7 +1545,7 @@ func (x *UpdateResearchFolderResponse) String() string {
 func (*UpdateResearchFolderResponse) ProtoMessage() {}
 
 func (x *UpdateResearchFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[23]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1485,7 +1558,7 @@ func (x *UpdateResearchFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResearchFolderResponse.ProtoReflect.Descriptor instead.
 func (*UpdateResearchFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{23}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateResearchFolderResponse) GetFolder() *KeywordResearchFolder {
@@ -1504,7 +1577,7 @@ type DeleteResearchFolderRequest struct {
 
 func (x *DeleteResearchFolderRequest) Reset() {
 	*x = DeleteResearchFolderRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[24]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1516,7 +1589,7 @@ func (x *DeleteResearchFolderRequest) String() string {
 func (*DeleteResearchFolderRequest) ProtoMessage() {}
 
 func (x *DeleteResearchFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[24]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1529,7 +1602,7 @@ func (x *DeleteResearchFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResearchFolderRequest.ProtoReflect.Descriptor instead.
 func (*DeleteResearchFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{24}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DeleteResearchFolderRequest) GetId() uint32 {
@@ -1547,7 +1620,7 @@ type DeleteResearchFolderResponse struct {
 
 func (x *DeleteResearchFolderResponse) Reset() {
 	*x = DeleteResearchFolderResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[25]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1559,7 +1632,7 @@ func (x *DeleteResearchFolderResponse) String() string {
 func (*DeleteResearchFolderResponse) ProtoMessage() {}
 
 func (x *DeleteResearchFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[25]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1572,7 +1645,7 @@ func (x *DeleteResearchFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResearchFolderResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResearchFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{25}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{26}
 }
 
 type RunResearchRequest struct {
@@ -1586,7 +1659,7 @@ type RunResearchRequest struct {
 
 func (x *RunResearchRequest) Reset() {
 	*x = RunResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[26]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1598,7 +1671,7 @@ func (x *RunResearchRequest) String() string {
 func (*RunResearchRequest) ProtoMessage() {}
 
 func (x *RunResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[26]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1611,7 +1684,7 @@ func (x *RunResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunResearchRequest.ProtoReflect.Descriptor instead.
 func (*RunResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{26}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *RunResearchRequest) GetId() uint32 {
@@ -1637,7 +1710,7 @@ type RunResearchResponse struct {
 
 func (x *RunResearchResponse) Reset() {
 	*x = RunResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[27]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1649,7 +1722,7 @@ func (x *RunResearchResponse) String() string {
 func (*RunResearchResponse) ProtoMessage() {}
 
 func (x *RunResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[27]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1662,7 +1735,7 @@ func (x *RunResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunResearchResponse.ProtoReflect.Descriptor instead.
 func (*RunResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{27}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *RunResearchResponse) GetResearch() *KeywordResearch {
@@ -1683,7 +1756,7 @@ type ExploreKeywordRequest struct {
 
 func (x *ExploreKeywordRequest) Reset() {
 	*x = ExploreKeywordRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[28]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1695,7 +1768,7 @@ func (x *ExploreKeywordRequest) String() string {
 func (*ExploreKeywordRequest) ProtoMessage() {}
 
 func (x *ExploreKeywordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[28]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1708,7 +1781,7 @@ func (x *ExploreKeywordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExploreKeywordRequest.ProtoReflect.Descriptor instead.
 func (*ExploreKeywordRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{28}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ExploreKeywordRequest) GetId() uint32 {
@@ -1734,7 +1807,7 @@ type ExploreKeywordResponse struct {
 
 func (x *ExploreKeywordResponse) Reset() {
 	*x = ExploreKeywordResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[29]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1746,7 +1819,7 @@ func (x *ExploreKeywordResponse) String() string {
 func (*ExploreKeywordResponse) ProtoMessage() {}
 
 func (x *ExploreKeywordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[29]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1759,7 +1832,7 @@ func (x *ExploreKeywordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExploreKeywordResponse.ProtoReflect.Descriptor instead.
 func (*ExploreKeywordResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{29}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ExploreKeywordResponse) GetResearch() *KeywordResearch {
@@ -1778,7 +1851,7 @@ type StopResearchRequest struct {
 
 func (x *StopResearchRequest) Reset() {
 	*x = StopResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[30]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1790,7 +1863,7 @@ func (x *StopResearchRequest) String() string {
 func (*StopResearchRequest) ProtoMessage() {}
 
 func (x *StopResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[30]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1803,7 +1876,7 @@ func (x *StopResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopResearchRequest.ProtoReflect.Descriptor instead.
 func (*StopResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{30}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *StopResearchRequest) GetId() uint32 {
@@ -1822,7 +1895,7 @@ type StopResearchResponse struct {
 
 func (x *StopResearchResponse) Reset() {
 	*x = StopResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[31]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1834,7 +1907,7 @@ func (x *StopResearchResponse) String() string {
 func (*StopResearchResponse) ProtoMessage() {}
 
 func (x *StopResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[31]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1847,7 +1920,7 @@ func (x *StopResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopResearchResponse.ProtoReflect.Descriptor instead.
 func (*StopResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{31}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *StopResearchResponse) GetResearch() *KeywordResearch {
@@ -1866,7 +1939,7 @@ type ClearResearchGraphRequest struct {
 
 func (x *ClearResearchGraphRequest) Reset() {
 	*x = ClearResearchGraphRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[32]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1878,7 +1951,7 @@ func (x *ClearResearchGraphRequest) String() string {
 func (*ClearResearchGraphRequest) ProtoMessage() {}
 
 func (x *ClearResearchGraphRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[32]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1891,7 +1964,7 @@ func (x *ClearResearchGraphRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearResearchGraphRequest.ProtoReflect.Descriptor instead.
 func (*ClearResearchGraphRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{32}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ClearResearchGraphRequest) GetId() uint32 {
@@ -1910,7 +1983,7 @@ type ClearResearchGraphResponse struct {
 
 func (x *ClearResearchGraphResponse) Reset() {
 	*x = ClearResearchGraphResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[33]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1922,7 +1995,7 @@ func (x *ClearResearchGraphResponse) String() string {
 func (*ClearResearchGraphResponse) ProtoMessage() {}
 
 func (x *ClearResearchGraphResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[33]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1935,7 +2008,7 @@ func (x *ClearResearchGraphResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearResearchGraphResponse.ProtoReflect.Descriptor instead.
 func (*ClearResearchGraphResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{33}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ClearResearchGraphResponse) GetResearch() *KeywordResearch {
@@ -1975,7 +2048,7 @@ type KeywordNode struct {
 
 func (x *KeywordNode) Reset() {
 	*x = KeywordNode{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[34]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1987,7 +2060,7 @@ func (x *KeywordNode) String() string {
 func (*KeywordNode) ProtoMessage() {}
 
 func (x *KeywordNode) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[34]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2000,7 +2073,7 @@ func (x *KeywordNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeywordNode.ProtoReflect.Descriptor instead.
 func (*KeywordNode) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{34}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *KeywordNode) GetName() string {
@@ -2112,7 +2185,7 @@ type KeywordEdge struct {
 
 func (x *KeywordEdge) Reset() {
 	*x = KeywordEdge{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[35]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2124,7 +2197,7 @@ func (x *KeywordEdge) String() string {
 func (*KeywordEdge) ProtoMessage() {}
 
 func (x *KeywordEdge) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[35]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2137,7 +2210,7 @@ func (x *KeywordEdge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeywordEdge.ProtoReflect.Descriptor instead.
 func (*KeywordEdge) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{35}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *KeywordEdge) GetFrom() string {
@@ -2202,7 +2275,7 @@ type KeywordCommunity struct {
 
 func (x *KeywordCommunity) Reset() {
 	*x = KeywordCommunity{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[36]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2214,7 +2287,7 @@ func (x *KeywordCommunity) String() string {
 func (*KeywordCommunity) ProtoMessage() {}
 
 func (x *KeywordCommunity) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[36]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2227,7 +2300,7 @@ func (x *KeywordCommunity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeywordCommunity.ProtoReflect.Descriptor instead.
 func (*KeywordCommunity) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{36}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *KeywordCommunity) GetId() uint32 {
@@ -2260,7 +2333,7 @@ type GetResearchGraphRequest struct {
 
 func (x *GetResearchGraphRequest) Reset() {
 	*x = GetResearchGraphRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[37]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2272,7 +2345,7 @@ func (x *GetResearchGraphRequest) String() string {
 func (*GetResearchGraphRequest) ProtoMessage() {}
 
 func (x *GetResearchGraphRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[37]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2285,7 +2358,7 @@ func (x *GetResearchGraphRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResearchGraphRequest.ProtoReflect.Descriptor instead.
 func (*GetResearchGraphRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{37}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetResearchGraphRequest) GetId() uint32 {
@@ -2307,7 +2380,7 @@ type GetResearchGraphResponse struct {
 
 func (x *GetResearchGraphResponse) Reset() {
 	*x = GetResearchGraphResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[38]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2319,7 +2392,7 @@ func (x *GetResearchGraphResponse) String() string {
 func (*GetResearchGraphResponse) ProtoMessage() {}
 
 func (x *GetResearchGraphResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[38]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2332,7 +2405,7 @@ func (x *GetResearchGraphResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResearchGraphResponse.ProtoReflect.Descriptor instead.
 func (*GetResearchGraphResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{38}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *GetResearchGraphResponse) GetResearch() *KeywordResearch {
@@ -2363,6 +2436,239 @@ func (x *GetResearchGraphResponse) GetCommunities() []*KeywordCommunity {
 	return nil
 }
 
+type AddToBlacklistRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// entries are the keywords or phrases, each as it is: the page splits
+	// what is typed at line breaks and commas.
+	Entries []string `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
+	// dry_run changes nothing: the response says what adding would do.
+	DryRun        bool `protobuf:"varint,3,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddToBlacklistRequest) Reset() {
+	*x = AddToBlacklistRequest{}
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddToBlacklistRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddToBlacklistRequest) ProtoMessage() {}
+
+func (x *AddToBlacklistRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddToBlacklistRequest.ProtoReflect.Descriptor instead.
+func (*AddToBlacklistRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *AddToBlacklistRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AddToBlacklistRequest) GetEntries() []string {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *AddToBlacklistRequest) GetDryRun() bool {
+	if x != nil {
+		return x.DryRun
+	}
+	return false
+}
+
+type AddToBlacklistResponse struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Research *KeywordResearch       `protobuf:"bytes,1,opt,name=research,proto3" json:"research,omitempty"`
+	// added are the entries added (or that would be), normalized; those the
+	// blacklist had already are left out.
+	Added []string `protobuf:"bytes,2,rep,name=added,proto3" json:"added,omitempty"`
+	// removed are the keywords taken out of the graph (or that would be):
+	// those an entry matches, then those left without a path from the seed.
+	Removed []string `protobuf:"bytes,3,rep,name=removed,proto3" json:"removed,omitempty"`
+	// matched is how many of removed an entry matches; the others were found
+	// only through them.
+	Matched       uint32 `protobuf:"varint,4,opt,name=matched,proto3" json:"matched,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddToBlacklistResponse) Reset() {
+	*x = AddToBlacklistResponse{}
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddToBlacklistResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddToBlacklistResponse) ProtoMessage() {}
+
+func (x *AddToBlacklistResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddToBlacklistResponse.ProtoReflect.Descriptor instead.
+func (*AddToBlacklistResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *AddToBlacklistResponse) GetResearch() *KeywordResearch {
+	if x != nil {
+		return x.Research
+	}
+	return nil
+}
+
+func (x *AddToBlacklistResponse) GetAdded() []string {
+	if x != nil {
+		return x.Added
+	}
+	return nil
+}
+
+func (x *AddToBlacklistResponse) GetRemoved() []string {
+	if x != nil {
+		return x.Removed
+	}
+	return nil
+}
+
+func (x *AddToBlacklistResponse) GetMatched() uint32 {
+	if x != nil {
+		return x.Matched
+	}
+	return 0
+}
+
+type RemoveFromBlacklistRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Entry         string                 `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveFromBlacklistRequest) Reset() {
+	*x = RemoveFromBlacklistRequest{}
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveFromBlacklistRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveFromBlacklistRequest) ProtoMessage() {}
+
+func (x *RemoveFromBlacklistRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveFromBlacklistRequest.ProtoReflect.Descriptor instead.
+func (*RemoveFromBlacklistRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *RemoveFromBlacklistRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *RemoveFromBlacklistRequest) GetEntry() string {
+	if x != nil {
+		return x.Entry
+	}
+	return ""
+}
+
+type RemoveFromBlacklistResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Research      *KeywordResearch       `protobuf:"bytes,1,opt,name=research,proto3" json:"research,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveFromBlacklistResponse) Reset() {
+	*x = RemoveFromBlacklistResponse{}
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveFromBlacklistResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveFromBlacklistResponse) ProtoMessage() {}
+
+func (x *RemoveFromBlacklistResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveFromBlacklistResponse.ProtoReflect.Descriptor instead.
+func (*RemoveFromBlacklistResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *RemoveFromBlacklistResponse) GetResearch() *KeywordResearch {
+	if x != nil {
+		return x.Research
+	}
+	return nil
+}
+
 // TrendsGeo is a location of Trends' location menu.
 type TrendsGeo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2376,7 +2682,7 @@ type TrendsGeo struct {
 
 func (x *TrendsGeo) Reset() {
 	*x = TrendsGeo{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[39]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2388,7 +2694,7 @@ func (x *TrendsGeo) String() string {
 func (*TrendsGeo) ProtoMessage() {}
 
 func (x *TrendsGeo) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[39]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2401,7 +2707,7 @@ func (x *TrendsGeo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TrendsGeo.ProtoReflect.Descriptor instead.
 func (*TrendsGeo) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{39}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *TrendsGeo) GetCode() string {
@@ -2437,7 +2743,7 @@ type TrendsCategory struct {
 
 func (x *TrendsCategory) Reset() {
 	*x = TrendsCategory{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[40]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2449,7 +2755,7 @@ func (x *TrendsCategory) String() string {
 func (*TrendsCategory) ProtoMessage() {}
 
 func (x *TrendsCategory) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[40]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2462,7 +2768,7 @@ func (x *TrendsCategory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TrendsCategory.ProtoReflect.Descriptor instead.
 func (*TrendsCategory) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{40}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *TrendsCategory) GetId() int32 {
@@ -2496,7 +2802,7 @@ type TrendsOption struct {
 
 func (x *TrendsOption) Reset() {
 	*x = TrendsOption{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[41]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2508,7 +2814,7 @@ func (x *TrendsOption) String() string {
 func (*TrendsOption) ProtoMessage() {}
 
 func (x *TrendsOption) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[41]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2521,7 +2827,7 @@ func (x *TrendsOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TrendsOption.ProtoReflect.Descriptor instead.
 func (*TrendsOption) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{41}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *TrendsOption) GetValue() string {
@@ -2553,7 +2859,7 @@ type GetTrendsOptionsRequest struct {
 
 func (x *GetTrendsOptionsRequest) Reset() {
 	*x = GetTrendsOptionsRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[42]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2565,7 +2871,7 @@ func (x *GetTrendsOptionsRequest) String() string {
 func (*GetTrendsOptionsRequest) ProtoMessage() {}
 
 func (x *GetTrendsOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[42]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2578,7 +2884,7 @@ func (x *GetTrendsOptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTrendsOptionsRequest.ProtoReflect.Descriptor instead.
 func (*GetTrendsOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{42}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetTrendsOptionsRequest) GetConnectionId() uint32 {
@@ -2619,7 +2925,7 @@ type GetTrendsOptionsResponse struct {
 
 func (x *GetTrendsOptionsResponse) Reset() {
 	*x = GetTrendsOptionsResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[43]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2631,7 +2937,7 @@ func (x *GetTrendsOptionsResponse) String() string {
 func (*GetTrendsOptionsResponse) ProtoMessage() {}
 
 func (x *GetTrendsOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[43]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2644,7 +2950,7 @@ func (x *GetTrendsOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTrendsOptionsResponse.ProtoReflect.Descriptor instead.
 func (*GetTrendsOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{43}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetTrendsOptionsResponse) GetGeos() []*TrendsGeo {
@@ -2698,7 +3004,7 @@ type WatchResearchRequest struct {
 
 func (x *WatchResearchRequest) Reset() {
 	*x = WatchResearchRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[44]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2710,7 +3016,7 @@ func (x *WatchResearchRequest) String() string {
 func (*WatchResearchRequest) ProtoMessage() {}
 
 func (x *WatchResearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[44]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2723,7 +3029,7 @@ func (x *WatchResearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResearchRequest.ProtoReflect.Descriptor instead.
 func (*WatchResearchRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{44}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *WatchResearchRequest) GetId() uint32 {
@@ -2743,6 +3049,7 @@ type WatchResearchResponse struct {
 	//	*WatchResearchResponse_Change
 	//	*WatchResearchResponse_Heartbeat
 	//	*WatchResearchResponse_Deleted
+	//	*WatchResearchResponse_Removal
 	Event         isWatchResearchResponse_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2750,7 +3057,7 @@ type WatchResearchResponse struct {
 
 func (x *WatchResearchResponse) Reset() {
 	*x = WatchResearchResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[45]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2762,7 +3069,7 @@ func (x *WatchResearchResponse) String() string {
 func (*WatchResearchResponse) ProtoMessage() {}
 
 func (x *WatchResearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[45]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2775,7 +3082,7 @@ func (x *WatchResearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResearchResponse.ProtoReflect.Descriptor instead.
 func (*WatchResearchResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{45}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *WatchResearchResponse) GetEvent() isWatchResearchResponse_Event {
@@ -2830,6 +3137,15 @@ func (x *WatchResearchResponse) GetDeleted() bool {
 	return false
 }
 
+func (x *WatchResearchResponse) GetRemoval() *KeywordGraphRemoval {
+	if x != nil {
+		if x, ok := x.Event.(*WatchResearchResponse_Removal); ok {
+			return x.Removal
+		}
+	}
+	return nil
+}
+
 type isWatchResearchResponse_Event interface {
 	isWatchResearchResponse_Event()
 }
@@ -2862,6 +3178,12 @@ type WatchResearchResponse_Deleted struct {
 	Deleted bool `protobuf:"varint,5,opt,name=deleted,proto3,oneof"`
 }
 
+type WatchResearchResponse_Removal struct {
+	// removal is what a blacklist entry took out of the graph, sent right
+	// after it was taken out.
+	Removal *KeywordGraphRemoval `protobuf:"bytes,6,opt,name=removal,proto3,oneof"`
+}
+
 func (*WatchResearchResponse_Snapshot) isWatchResearchResponse_Event() {}
 
 func (*WatchResearchResponse_Research) isWatchResearchResponse_Event() {}
@@ -2871,6 +3193,98 @@ func (*WatchResearchResponse_Change) isWatchResearchResponse_Event() {}
 func (*WatchResearchResponse_Heartbeat) isWatchResearchResponse_Event() {}
 
 func (*WatchResearchResponse_Deleted) isWatchResearchResponse_Event() {}
+
+func (*WatchResearchResponse_Removal) isWatchResearchResponse_Event() {}
+
+// KeywordGraphRemoval is what adding blacklist entries took out of a
+// research's graph (AddToBlacklist): the keywords and relationships taken
+// out, the kept keywords whose values changed with them, and the Leiden
+// communities worked out again.
+type KeywordGraphRemoval struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// removed are the keywords taken out.
+	Removed []string `protobuf:"bytes,1,rep,name=removed,proto3" json:"removed,omitempty"`
+	// edges are the relationships taken out with them.
+	Edges []*KeywordEdge `protobuf:"bytes,2,rep,name=edges,proto3" json:"edges,omitempty"`
+	// nodes are kept keywords as they are now, whose values changed: one
+	// found from a removed keyword keeps only what the keywords it is still
+	// found from give it (Top, Rising, search interest, change), and one
+	// whose shortest path from the seed went through a removed keyword gets
+	// a deeper depth.
+	Nodes []*KeywordNode `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	// communities are every community of the graph now.
+	Communities []*KeywordCommunity `protobuf:"bytes,4,rep,name=communities,proto3" json:"communities,omitempty"`
+	// moved are the other keywords whose community changed, to their new
+	// community.
+	Moved         map[string]uint32 `protobuf:"bytes,5,rep,name=moved,proto3" json:"moved,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KeywordGraphRemoval) Reset() {
+	*x = KeywordGraphRemoval{}
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KeywordGraphRemoval) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KeywordGraphRemoval) ProtoMessage() {}
+
+func (x *KeywordGraphRemoval) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KeywordGraphRemoval.ProtoReflect.Descriptor instead.
+func (*KeywordGraphRemoval) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *KeywordGraphRemoval) GetRemoved() []string {
+	if x != nil {
+		return x.Removed
+	}
+	return nil
+}
+
+func (x *KeywordGraphRemoval) GetEdges() []*KeywordEdge {
+	if x != nil {
+		return x.Edges
+	}
+	return nil
+}
+
+func (x *KeywordGraphRemoval) GetNodes() []*KeywordNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+func (x *KeywordGraphRemoval) GetCommunities() []*KeywordCommunity {
+	if x != nil {
+		return x.Communities
+	}
+	return nil
+}
+
+func (x *KeywordGraphRemoval) GetMoved() map[string]uint32 {
+	if x != nil {
+		return x.Moved
+	}
+	return nil
+}
 
 // KeywordGraphChange is what one lookup wrote to a research's graph, sent
 // right after it was written: the keywords and relationships it added or
@@ -2896,7 +3310,7 @@ type KeywordGraphChange struct {
 
 func (x *KeywordGraphChange) Reset() {
 	*x = KeywordGraphChange{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[46]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2908,7 +3322,7 @@ func (x *KeywordGraphChange) String() string {
 func (*KeywordGraphChange) ProtoMessage() {}
 
 func (x *KeywordGraphChange) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[46]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2921,7 +3335,7 @@ func (x *KeywordGraphChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeywordGraphChange.ProtoReflect.Descriptor instead.
 func (*KeywordGraphChange) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{46}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *KeywordGraphChange) GetKeyword() string {
@@ -2967,7 +3381,7 @@ type WatchResearchesRequest struct {
 
 func (x *WatchResearchesRequest) Reset() {
 	*x = WatchResearchesRequest{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[47]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2979,7 +3393,7 @@ func (x *WatchResearchesRequest) String() string {
 func (*WatchResearchesRequest) ProtoMessage() {}
 
 func (x *WatchResearchesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[47]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2992,7 +3406,7 @@ func (x *WatchResearchesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResearchesRequest.ProtoReflect.Descriptor instead.
 func (*WatchResearchesRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{47}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{53}
 }
 
 // WatchResearchesResponse is a message of WatchResearches.
@@ -3010,7 +3424,7 @@ type WatchResearchesResponse struct {
 
 func (x *WatchResearchesResponse) Reset() {
 	*x = WatchResearchesResponse{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[48]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3022,7 +3436,7 @@ func (x *WatchResearchesResponse) String() string {
 func (*WatchResearchesResponse) ProtoMessage() {}
 
 func (x *WatchResearchesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[48]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3035,7 +3449,7 @@ func (x *WatchResearchesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResearchesResponse.ProtoReflect.Descriptor instead.
 func (*WatchResearchesResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{48}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *WatchResearchesResponse) GetEvent() isWatchResearchesResponse_Event {
@@ -3110,7 +3524,7 @@ type ResearchList struct {
 
 func (x *ResearchList) Reset() {
 	*x = ResearchList{}
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[49]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3122,7 +3536,7 @@ func (x *ResearchList) String() string {
 func (*ResearchList) ProtoMessage() {}
 
 func (x *ResearchList) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[49]
+	mi := &file_san_tower_v1_keyword_research_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3135,7 +3549,7 @@ func (x *ResearchList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResearchList.ProtoReflect.Descriptor instead.
 func (*ResearchList) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{49}
+	return file_san_tower_v1_keyword_research_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ResearchList) GetResearches() []*KeywordResearch {
@@ -3168,7 +3582,7 @@ const file_san_tower_v1_keyword_research_proto_rawDesc = "" +
 	"\alookups\x18\x03 \x01(\rR\alookups\x12\x12\n" +
 	"\x04todo\x18\x04 \x01(\rR\x04todo\x12\x12\n" +
 	"\x04note\x18\x05 \x01(\tR\x04note\x12%\n" +
-	"\x0equeue_position\x18\x06 \x01(\rR\rqueuePosition\"\xd8\x05\n" +
+	"\x0equeue_position\x18\x06 \x01(\rR\rqueuePosition\"\x9b\x06\n" +
 	"\x0fKeywordResearch\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -3193,7 +3607,12 @@ const file_san_tower_v1_keyword_research_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa2\x01\n" +
+	"updated_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12A\n" +
+	"\tblacklist\x18\x13 \x03(\v2#.san.tower.v1.KeywordBlacklistEntryR\tblacklist\"~\n" +
+	"\x15KeywordBlacklistEntry\x12\x14\n" +
+	"\x05entry\x18\x01 \x01(\tR\x05entry\x125\n" +
+	"\badded_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aaddedAt\x12\x18\n" +
+	"\aremoved\x18\x03 \x01(\rR\aremoved\"\xa2\x01\n" +
 	"\x15KeywordResearchFolder\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
@@ -3312,7 +3731,21 @@ const file_san_tower_v1_keyword_research_proto_rawDesc = "" +
 	"\bresearch\x18\x01 \x01(\v2\x1d.san.tower.v1.KeywordResearchR\bresearch\x12/\n" +
 	"\x05nodes\x18\x02 \x03(\v2\x19.san.tower.v1.KeywordNodeR\x05nodes\x12/\n" +
 	"\x05edges\x18\x03 \x03(\v2\x19.san.tower.v1.KeywordEdgeR\x05edges\x12@\n" +
-	"\vcommunities\x18\x04 \x03(\v2\x1e.san.tower.v1.KeywordCommunityR\vcommunities\"T\n" +
+	"\vcommunities\x18\x04 \x03(\v2\x1e.san.tower.v1.KeywordCommunityR\vcommunities\"Z\n" +
+	"\x15AddToBlacklistRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x18\n" +
+	"\aentries\x18\x02 \x03(\tR\aentries\x12\x17\n" +
+	"\adry_run\x18\x03 \x01(\bR\x06dryRun\"\x9d\x01\n" +
+	"\x16AddToBlacklistResponse\x129\n" +
+	"\bresearch\x18\x01 \x01(\v2\x1d.san.tower.v1.KeywordResearchR\bresearch\x12\x14\n" +
+	"\x05added\x18\x02 \x03(\tR\x05added\x12\x18\n" +
+	"\aremoved\x18\x03 \x03(\tR\aremoved\x12\x18\n" +
+	"\amatched\x18\x04 \x01(\rR\amatched\"B\n" +
+	"\x1aRemoveFromBlacklistRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x14\n" +
+	"\x05entry\x18\x02 \x01(\tR\x05entry\"X\n" +
+	"\x1bRemoveFromBlacklistResponse\x129\n" +
+	"\bresearch\x18\x01 \x01(\v2\x1d.san.tower.v1.KeywordResearchR\bresearch\"T\n" +
 	"\tTrendsGeo\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
@@ -3341,14 +3774,25 @@ const file_san_tower_v1_keyword_research_proto_rawDesc = "" +
 	"\aregions\x18\x05 \x03(\v2\x17.san.tower.v1.TrendsGeoR\aregions\x123\n" +
 	"\aread_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\x06readAt\"&\n" +
 	"\x14WatchResearchRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id\"\x9b\x02\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\"\xda\x02\n" +
 	"\x15WatchResearchResponse\x12D\n" +
 	"\bsnapshot\x18\x01 \x01(\v2&.san.tower.v1.GetResearchGraphResponseH\x00R\bsnapshot\x12;\n" +
 	"\bresearch\x18\x02 \x01(\v2\x1d.san.tower.v1.KeywordResearchH\x00R\bresearch\x12:\n" +
 	"\x06change\x18\x03 \x01(\v2 .san.tower.v1.KeywordGraphChangeH\x00R\x06change\x12\x1e\n" +
 	"\theartbeat\x18\x04 \x01(\bH\x00R\theartbeat\x12\x1a\n" +
-	"\adeleted\x18\x05 \x01(\bH\x00R\adeletedB\a\n" +
-	"\x05event\"\xcf\x02\n" +
+	"\adeleted\x18\x05 \x01(\bH\x00R\adeleted\x12=\n" +
+	"\aremoval\x18\x06 \x01(\v2!.san.tower.v1.KeywordGraphRemovalH\x00R\aremovalB\a\n" +
+	"\x05event\"\xd1\x02\n" +
+	"\x13KeywordGraphRemoval\x12\x18\n" +
+	"\aremoved\x18\x01 \x03(\tR\aremoved\x12/\n" +
+	"\x05edges\x18\x02 \x03(\v2\x19.san.tower.v1.KeywordEdgeR\x05edges\x12/\n" +
+	"\x05nodes\x18\x03 \x03(\v2\x19.san.tower.v1.KeywordNodeR\x05nodes\x12@\n" +
+	"\vcommunities\x18\x04 \x03(\v2\x1e.san.tower.v1.KeywordCommunityR\vcommunities\x12B\n" +
+	"\x05moved\x18\x05 \x03(\v2,.san.tower.v1.KeywordGraphRemoval.MovedEntryR\x05moved\x1a8\n" +
+	"\n" +
+	"MovedEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\rR\x05value:\x028\x01\"\xcf\x02\n" +
 	"\x12KeywordGraphChange\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12/\n" +
 	"\x05nodes\x18\x02 \x03(\v2\x19.san.tower.v1.KeywordNodeR\x05nodes\x12/\n" +
@@ -3377,7 +3821,7 @@ const file_san_tower_v1_keyword_research_proto_rawDesc = "" +
 	"\x1fKEYWORD_RESEARCH_STATUS_RUNNING\x10\x03\x12#\n" +
 	"\x1fKEYWORD_RESEARCH_STATUS_STOPPED\x10\x04\x12 \n" +
 	"\x1cKEYWORD_RESEARCH_STATUS_DONE\x10\x05\x12\"\n" +
-	"\x1eKEYWORD_RESEARCH_STATUS_FAILED\x10\x062\xd1\x0e\n" +
+	"\x1eKEYWORD_RESEARCH_STATUS_FAILED\x10\x062\x9a\x10\n" +
 	"\x16KeywordResearchService\x12[\n" +
 	"\x0eListResearches\x12#.san.tower.v1.ListResearchesRequest\x1a$.san.tower.v1.ListResearchesResponse\x12R\n" +
 	"\vGetResearch\x12 .san.tower.v1.GetResearchRequest\x1a!.san.tower.v1.GetResearchResponse\x12[\n" +
@@ -3394,7 +3838,9 @@ const file_san_tower_v1_keyword_research_proto_rawDesc = "" +
 	"\x0eExploreKeyword\x12#.san.tower.v1.ExploreKeywordRequest\x1a$.san.tower.v1.ExploreKeywordResponse\x12U\n" +
 	"\fStopResearch\x12!.san.tower.v1.StopResearchRequest\x1a\".san.tower.v1.StopResearchResponse\x12g\n" +
 	"\x12ClearResearchGraph\x12'.san.tower.v1.ClearResearchGraphRequest\x1a(.san.tower.v1.ClearResearchGraphResponse\x12a\n" +
-	"\x10GetResearchGraph\x12%.san.tower.v1.GetResearchGraphRequest\x1a&.san.tower.v1.GetResearchGraphResponse\x12a\n" +
+	"\x10GetResearchGraph\x12%.san.tower.v1.GetResearchGraphRequest\x1a&.san.tower.v1.GetResearchGraphResponse\x12[\n" +
+	"\x0eAddToBlacklist\x12#.san.tower.v1.AddToBlacklistRequest\x1a$.san.tower.v1.AddToBlacklistResponse\x12j\n" +
+	"\x13RemoveFromBlacklist\x12(.san.tower.v1.RemoveFromBlacklistRequest\x1a).san.tower.v1.RemoveFromBlacklistResponse\x12a\n" +
 	"\x10GetTrendsOptions\x12%.san.tower.v1.GetTrendsOptionsRequest\x1a&.san.tower.v1.GetTrendsOptionsResponse\x12Z\n" +
 	"\rWatchResearch\x12\".san.tower.v1.WatchResearchRequest\x1a#.san.tower.v1.WatchResearchResponse0\x01\x12`\n" +
 	"\x0fWatchResearches\x12$.san.tower.v1.WatchResearchesRequest\x1a%.san.tower.v1.WatchResearchesResponse0\x01B\xb4\x01\n" +
@@ -3413,149 +3859,169 @@ func file_san_tower_v1_keyword_research_proto_rawDescGZIP() []byte {
 }
 
 var file_san_tower_v1_keyword_research_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_san_tower_v1_keyword_research_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
+var file_san_tower_v1_keyword_research_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
 var file_san_tower_v1_keyword_research_proto_goTypes = []any{
 	(KeywordResearchStatus)(0),           // 0: san.tower.v1.KeywordResearchStatus
 	(*KeywordFilters)(nil),               // 1: san.tower.v1.KeywordFilters
 	(*KeywordProgress)(nil),              // 2: san.tower.v1.KeywordProgress
 	(*KeywordResearch)(nil),              // 3: san.tower.v1.KeywordResearch
-	(*KeywordResearchFolder)(nil),        // 4: san.tower.v1.KeywordResearchFolder
-	(*ListResearchesRequest)(nil),        // 5: san.tower.v1.ListResearchesRequest
-	(*ListResearchesResponse)(nil),       // 6: san.tower.v1.ListResearchesResponse
-	(*GetResearchRequest)(nil),           // 7: san.tower.v1.GetResearchRequest
-	(*GetResearchResponse)(nil),          // 8: san.tower.v1.GetResearchResponse
-	(*CreateResearchRequest)(nil),        // 9: san.tower.v1.CreateResearchRequest
-	(*CreateResearchResponse)(nil),       // 10: san.tower.v1.CreateResearchResponse
-	(*UpdateResearchRequest)(nil),        // 11: san.tower.v1.UpdateResearchRequest
-	(*UpdateResearchResponse)(nil),       // 12: san.tower.v1.UpdateResearchResponse
-	(*DeleteResearchRequest)(nil),        // 13: san.tower.v1.DeleteResearchRequest
-	(*DeleteResearchResponse)(nil),       // 14: san.tower.v1.DeleteResearchResponse
-	(*DuplicateResearchRequest)(nil),     // 15: san.tower.v1.DuplicateResearchRequest
-	(*DuplicateResearchResponse)(nil),    // 16: san.tower.v1.DuplicateResearchResponse
-	(*MoveResearchesRequest)(nil),        // 17: san.tower.v1.MoveResearchesRequest
-	(*MoveResearchesResponse)(nil),       // 18: san.tower.v1.MoveResearchesResponse
-	(*ListResearchFoldersRequest)(nil),   // 19: san.tower.v1.ListResearchFoldersRequest
-	(*ListResearchFoldersResponse)(nil),  // 20: san.tower.v1.ListResearchFoldersResponse
-	(*CreateResearchFolderRequest)(nil),  // 21: san.tower.v1.CreateResearchFolderRequest
-	(*CreateResearchFolderResponse)(nil), // 22: san.tower.v1.CreateResearchFolderResponse
-	(*UpdateResearchFolderRequest)(nil),  // 23: san.tower.v1.UpdateResearchFolderRequest
-	(*UpdateResearchFolderResponse)(nil), // 24: san.tower.v1.UpdateResearchFolderResponse
-	(*DeleteResearchFolderRequest)(nil),  // 25: san.tower.v1.DeleteResearchFolderRequest
-	(*DeleteResearchFolderResponse)(nil), // 26: san.tower.v1.DeleteResearchFolderResponse
-	(*RunResearchRequest)(nil),           // 27: san.tower.v1.RunResearchRequest
-	(*RunResearchResponse)(nil),          // 28: san.tower.v1.RunResearchResponse
-	(*ExploreKeywordRequest)(nil),        // 29: san.tower.v1.ExploreKeywordRequest
-	(*ExploreKeywordResponse)(nil),       // 30: san.tower.v1.ExploreKeywordResponse
-	(*StopResearchRequest)(nil),          // 31: san.tower.v1.StopResearchRequest
-	(*StopResearchResponse)(nil),         // 32: san.tower.v1.StopResearchResponse
-	(*ClearResearchGraphRequest)(nil),    // 33: san.tower.v1.ClearResearchGraphRequest
-	(*ClearResearchGraphResponse)(nil),   // 34: san.tower.v1.ClearResearchGraphResponse
-	(*KeywordNode)(nil),                  // 35: san.tower.v1.KeywordNode
-	(*KeywordEdge)(nil),                  // 36: san.tower.v1.KeywordEdge
-	(*KeywordCommunity)(nil),             // 37: san.tower.v1.KeywordCommunity
-	(*GetResearchGraphRequest)(nil),      // 38: san.tower.v1.GetResearchGraphRequest
-	(*GetResearchGraphResponse)(nil),     // 39: san.tower.v1.GetResearchGraphResponse
-	(*TrendsGeo)(nil),                    // 40: san.tower.v1.TrendsGeo
-	(*TrendsCategory)(nil),               // 41: san.tower.v1.TrendsCategory
-	(*TrendsOption)(nil),                 // 42: san.tower.v1.TrendsOption
-	(*GetTrendsOptionsRequest)(nil),      // 43: san.tower.v1.GetTrendsOptionsRequest
-	(*GetTrendsOptionsResponse)(nil),     // 44: san.tower.v1.GetTrendsOptionsResponse
-	(*WatchResearchRequest)(nil),         // 45: san.tower.v1.WatchResearchRequest
-	(*WatchResearchResponse)(nil),        // 46: san.tower.v1.WatchResearchResponse
-	(*KeywordGraphChange)(nil),           // 47: san.tower.v1.KeywordGraphChange
-	(*WatchResearchesRequest)(nil),       // 48: san.tower.v1.WatchResearchesRequest
-	(*WatchResearchesResponse)(nil),      // 49: san.tower.v1.WatchResearchesResponse
-	(*ResearchList)(nil),                 // 50: san.tower.v1.ResearchList
-	nil,                                  // 51: san.tower.v1.KeywordGraphChange.MovedEntry
-	(*timestamppb.Timestamp)(nil),        // 52: google.protobuf.Timestamp
+	(*KeywordBlacklistEntry)(nil),        // 4: san.tower.v1.KeywordBlacklistEntry
+	(*KeywordResearchFolder)(nil),        // 5: san.tower.v1.KeywordResearchFolder
+	(*ListResearchesRequest)(nil),        // 6: san.tower.v1.ListResearchesRequest
+	(*ListResearchesResponse)(nil),       // 7: san.tower.v1.ListResearchesResponse
+	(*GetResearchRequest)(nil),           // 8: san.tower.v1.GetResearchRequest
+	(*GetResearchResponse)(nil),          // 9: san.tower.v1.GetResearchResponse
+	(*CreateResearchRequest)(nil),        // 10: san.tower.v1.CreateResearchRequest
+	(*CreateResearchResponse)(nil),       // 11: san.tower.v1.CreateResearchResponse
+	(*UpdateResearchRequest)(nil),        // 12: san.tower.v1.UpdateResearchRequest
+	(*UpdateResearchResponse)(nil),       // 13: san.tower.v1.UpdateResearchResponse
+	(*DeleteResearchRequest)(nil),        // 14: san.tower.v1.DeleteResearchRequest
+	(*DeleteResearchResponse)(nil),       // 15: san.tower.v1.DeleteResearchResponse
+	(*DuplicateResearchRequest)(nil),     // 16: san.tower.v1.DuplicateResearchRequest
+	(*DuplicateResearchResponse)(nil),    // 17: san.tower.v1.DuplicateResearchResponse
+	(*MoveResearchesRequest)(nil),        // 18: san.tower.v1.MoveResearchesRequest
+	(*MoveResearchesResponse)(nil),       // 19: san.tower.v1.MoveResearchesResponse
+	(*ListResearchFoldersRequest)(nil),   // 20: san.tower.v1.ListResearchFoldersRequest
+	(*ListResearchFoldersResponse)(nil),  // 21: san.tower.v1.ListResearchFoldersResponse
+	(*CreateResearchFolderRequest)(nil),  // 22: san.tower.v1.CreateResearchFolderRequest
+	(*CreateResearchFolderResponse)(nil), // 23: san.tower.v1.CreateResearchFolderResponse
+	(*UpdateResearchFolderRequest)(nil),  // 24: san.tower.v1.UpdateResearchFolderRequest
+	(*UpdateResearchFolderResponse)(nil), // 25: san.tower.v1.UpdateResearchFolderResponse
+	(*DeleteResearchFolderRequest)(nil),  // 26: san.tower.v1.DeleteResearchFolderRequest
+	(*DeleteResearchFolderResponse)(nil), // 27: san.tower.v1.DeleteResearchFolderResponse
+	(*RunResearchRequest)(nil),           // 28: san.tower.v1.RunResearchRequest
+	(*RunResearchResponse)(nil),          // 29: san.tower.v1.RunResearchResponse
+	(*ExploreKeywordRequest)(nil),        // 30: san.tower.v1.ExploreKeywordRequest
+	(*ExploreKeywordResponse)(nil),       // 31: san.tower.v1.ExploreKeywordResponse
+	(*StopResearchRequest)(nil),          // 32: san.tower.v1.StopResearchRequest
+	(*StopResearchResponse)(nil),         // 33: san.tower.v1.StopResearchResponse
+	(*ClearResearchGraphRequest)(nil),    // 34: san.tower.v1.ClearResearchGraphRequest
+	(*ClearResearchGraphResponse)(nil),   // 35: san.tower.v1.ClearResearchGraphResponse
+	(*KeywordNode)(nil),                  // 36: san.tower.v1.KeywordNode
+	(*KeywordEdge)(nil),                  // 37: san.tower.v1.KeywordEdge
+	(*KeywordCommunity)(nil),             // 38: san.tower.v1.KeywordCommunity
+	(*GetResearchGraphRequest)(nil),      // 39: san.tower.v1.GetResearchGraphRequest
+	(*GetResearchGraphResponse)(nil),     // 40: san.tower.v1.GetResearchGraphResponse
+	(*AddToBlacklistRequest)(nil),        // 41: san.tower.v1.AddToBlacklistRequest
+	(*AddToBlacklistResponse)(nil),       // 42: san.tower.v1.AddToBlacklistResponse
+	(*RemoveFromBlacklistRequest)(nil),   // 43: san.tower.v1.RemoveFromBlacklistRequest
+	(*RemoveFromBlacklistResponse)(nil),  // 44: san.tower.v1.RemoveFromBlacklistResponse
+	(*TrendsGeo)(nil),                    // 45: san.tower.v1.TrendsGeo
+	(*TrendsCategory)(nil),               // 46: san.tower.v1.TrendsCategory
+	(*TrendsOption)(nil),                 // 47: san.tower.v1.TrendsOption
+	(*GetTrendsOptionsRequest)(nil),      // 48: san.tower.v1.GetTrendsOptionsRequest
+	(*GetTrendsOptionsResponse)(nil),     // 49: san.tower.v1.GetTrendsOptionsResponse
+	(*WatchResearchRequest)(nil),         // 50: san.tower.v1.WatchResearchRequest
+	(*WatchResearchResponse)(nil),        // 51: san.tower.v1.WatchResearchResponse
+	(*KeywordGraphRemoval)(nil),          // 52: san.tower.v1.KeywordGraphRemoval
+	(*KeywordGraphChange)(nil),           // 53: san.tower.v1.KeywordGraphChange
+	(*WatchResearchesRequest)(nil),       // 54: san.tower.v1.WatchResearchesRequest
+	(*WatchResearchesResponse)(nil),      // 55: san.tower.v1.WatchResearchesResponse
+	(*ResearchList)(nil),                 // 56: san.tower.v1.ResearchList
+	nil,                                  // 57: san.tower.v1.KeywordGraphRemoval.MovedEntry
+	nil,                                  // 58: san.tower.v1.KeywordGraphChange.MovedEntry
+	(*timestamppb.Timestamp)(nil),        // 59: google.protobuf.Timestamp
 }
 var file_san_tower_v1_keyword_research_proto_depIdxs = []int32{
 	1,  // 0: san.tower.v1.KeywordResearch.filters:type_name -> san.tower.v1.KeywordFilters
 	0,  // 1: san.tower.v1.KeywordResearch.status:type_name -> san.tower.v1.KeywordResearchStatus
-	52, // 2: san.tower.v1.KeywordResearch.last_run_at:type_name -> google.protobuf.Timestamp
+	59, // 2: san.tower.v1.KeywordResearch.last_run_at:type_name -> google.protobuf.Timestamp
 	2,  // 3: san.tower.v1.KeywordResearch.progress:type_name -> san.tower.v1.KeywordProgress
-	52, // 4: san.tower.v1.KeywordResearch.created_at:type_name -> google.protobuf.Timestamp
-	52, // 5: san.tower.v1.KeywordResearch.updated_at:type_name -> google.protobuf.Timestamp
-	3,  // 6: san.tower.v1.ListResearchesResponse.researches:type_name -> san.tower.v1.KeywordResearch
-	3,  // 7: san.tower.v1.GetResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
-	3,  // 8: san.tower.v1.CreateResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
-	1,  // 9: san.tower.v1.UpdateResearchRequest.filters:type_name -> san.tower.v1.KeywordFilters
-	3,  // 10: san.tower.v1.UpdateResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
-	3,  // 11: san.tower.v1.DuplicateResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
-	4,  // 12: san.tower.v1.ListResearchFoldersResponse.folders:type_name -> san.tower.v1.KeywordResearchFolder
-	4,  // 13: san.tower.v1.CreateResearchFolderResponse.folder:type_name -> san.tower.v1.KeywordResearchFolder
-	4,  // 14: san.tower.v1.UpdateResearchFolderResponse.folder:type_name -> san.tower.v1.KeywordResearchFolder
-	3,  // 15: san.tower.v1.RunResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
-	3,  // 16: san.tower.v1.ExploreKeywordResponse.research:type_name -> san.tower.v1.KeywordResearch
-	3,  // 17: san.tower.v1.StopResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
-	3,  // 18: san.tower.v1.ClearResearchGraphResponse.research:type_name -> san.tower.v1.KeywordResearch
-	52, // 19: san.tower.v1.KeywordNode.found_at:type_name -> google.protobuf.Timestamp
-	52, // 20: san.tower.v1.KeywordNode.explored_at:type_name -> google.protobuf.Timestamp
-	3,  // 21: san.tower.v1.GetResearchGraphResponse.research:type_name -> san.tower.v1.KeywordResearch
-	35, // 22: san.tower.v1.GetResearchGraphResponse.nodes:type_name -> san.tower.v1.KeywordNode
-	36, // 23: san.tower.v1.GetResearchGraphResponse.edges:type_name -> san.tower.v1.KeywordEdge
-	37, // 24: san.tower.v1.GetResearchGraphResponse.communities:type_name -> san.tower.v1.KeywordCommunity
-	41, // 25: san.tower.v1.TrendsCategory.children:type_name -> san.tower.v1.TrendsCategory
-	40, // 26: san.tower.v1.GetTrendsOptionsResponse.geos:type_name -> san.tower.v1.TrendsGeo
-	41, // 27: san.tower.v1.GetTrendsOptionsResponse.categories:type_name -> san.tower.v1.TrendsCategory
-	42, // 28: san.tower.v1.GetTrendsOptionsResponse.times:type_name -> san.tower.v1.TrendsOption
-	42, // 29: san.tower.v1.GetTrendsOptionsResponse.properties:type_name -> san.tower.v1.TrendsOption
-	40, // 30: san.tower.v1.GetTrendsOptionsResponse.regions:type_name -> san.tower.v1.TrendsGeo
-	52, // 31: san.tower.v1.GetTrendsOptionsResponse.read_at:type_name -> google.protobuf.Timestamp
-	39, // 32: san.tower.v1.WatchResearchResponse.snapshot:type_name -> san.tower.v1.GetResearchGraphResponse
-	3,  // 33: san.tower.v1.WatchResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
-	47, // 34: san.tower.v1.WatchResearchResponse.change:type_name -> san.tower.v1.KeywordGraphChange
-	35, // 35: san.tower.v1.KeywordGraphChange.nodes:type_name -> san.tower.v1.KeywordNode
-	36, // 36: san.tower.v1.KeywordGraphChange.edges:type_name -> san.tower.v1.KeywordEdge
-	37, // 37: san.tower.v1.KeywordGraphChange.communities:type_name -> san.tower.v1.KeywordCommunity
-	51, // 38: san.tower.v1.KeywordGraphChange.moved:type_name -> san.tower.v1.KeywordGraphChange.MovedEntry
-	50, // 39: san.tower.v1.WatchResearchesResponse.list:type_name -> san.tower.v1.ResearchList
-	3,  // 40: san.tower.v1.WatchResearchesResponse.research:type_name -> san.tower.v1.KeywordResearch
-	3,  // 41: san.tower.v1.ResearchList.researches:type_name -> san.tower.v1.KeywordResearch
-	4,  // 42: san.tower.v1.ResearchList.folders:type_name -> san.tower.v1.KeywordResearchFolder
-	5,  // 43: san.tower.v1.KeywordResearchService.ListResearches:input_type -> san.tower.v1.ListResearchesRequest
-	7,  // 44: san.tower.v1.KeywordResearchService.GetResearch:input_type -> san.tower.v1.GetResearchRequest
-	9,  // 45: san.tower.v1.KeywordResearchService.CreateResearch:input_type -> san.tower.v1.CreateResearchRequest
-	11, // 46: san.tower.v1.KeywordResearchService.UpdateResearch:input_type -> san.tower.v1.UpdateResearchRequest
-	13, // 47: san.tower.v1.KeywordResearchService.DeleteResearch:input_type -> san.tower.v1.DeleteResearchRequest
-	15, // 48: san.tower.v1.KeywordResearchService.DuplicateResearch:input_type -> san.tower.v1.DuplicateResearchRequest
-	17, // 49: san.tower.v1.KeywordResearchService.MoveResearches:input_type -> san.tower.v1.MoveResearchesRequest
-	19, // 50: san.tower.v1.KeywordResearchService.ListResearchFolders:input_type -> san.tower.v1.ListResearchFoldersRequest
-	21, // 51: san.tower.v1.KeywordResearchService.CreateResearchFolder:input_type -> san.tower.v1.CreateResearchFolderRequest
-	23, // 52: san.tower.v1.KeywordResearchService.UpdateResearchFolder:input_type -> san.tower.v1.UpdateResearchFolderRequest
-	25, // 53: san.tower.v1.KeywordResearchService.DeleteResearchFolder:input_type -> san.tower.v1.DeleteResearchFolderRequest
-	27, // 54: san.tower.v1.KeywordResearchService.RunResearch:input_type -> san.tower.v1.RunResearchRequest
-	29, // 55: san.tower.v1.KeywordResearchService.ExploreKeyword:input_type -> san.tower.v1.ExploreKeywordRequest
-	31, // 56: san.tower.v1.KeywordResearchService.StopResearch:input_type -> san.tower.v1.StopResearchRequest
-	33, // 57: san.tower.v1.KeywordResearchService.ClearResearchGraph:input_type -> san.tower.v1.ClearResearchGraphRequest
-	38, // 58: san.tower.v1.KeywordResearchService.GetResearchGraph:input_type -> san.tower.v1.GetResearchGraphRequest
-	43, // 59: san.tower.v1.KeywordResearchService.GetTrendsOptions:input_type -> san.tower.v1.GetTrendsOptionsRequest
-	45, // 60: san.tower.v1.KeywordResearchService.WatchResearch:input_type -> san.tower.v1.WatchResearchRequest
-	48, // 61: san.tower.v1.KeywordResearchService.WatchResearches:input_type -> san.tower.v1.WatchResearchesRequest
-	6,  // 62: san.tower.v1.KeywordResearchService.ListResearches:output_type -> san.tower.v1.ListResearchesResponse
-	8,  // 63: san.tower.v1.KeywordResearchService.GetResearch:output_type -> san.tower.v1.GetResearchResponse
-	10, // 64: san.tower.v1.KeywordResearchService.CreateResearch:output_type -> san.tower.v1.CreateResearchResponse
-	12, // 65: san.tower.v1.KeywordResearchService.UpdateResearch:output_type -> san.tower.v1.UpdateResearchResponse
-	14, // 66: san.tower.v1.KeywordResearchService.DeleteResearch:output_type -> san.tower.v1.DeleteResearchResponse
-	16, // 67: san.tower.v1.KeywordResearchService.DuplicateResearch:output_type -> san.tower.v1.DuplicateResearchResponse
-	18, // 68: san.tower.v1.KeywordResearchService.MoveResearches:output_type -> san.tower.v1.MoveResearchesResponse
-	20, // 69: san.tower.v1.KeywordResearchService.ListResearchFolders:output_type -> san.tower.v1.ListResearchFoldersResponse
-	22, // 70: san.tower.v1.KeywordResearchService.CreateResearchFolder:output_type -> san.tower.v1.CreateResearchFolderResponse
-	24, // 71: san.tower.v1.KeywordResearchService.UpdateResearchFolder:output_type -> san.tower.v1.UpdateResearchFolderResponse
-	26, // 72: san.tower.v1.KeywordResearchService.DeleteResearchFolder:output_type -> san.tower.v1.DeleteResearchFolderResponse
-	28, // 73: san.tower.v1.KeywordResearchService.RunResearch:output_type -> san.tower.v1.RunResearchResponse
-	30, // 74: san.tower.v1.KeywordResearchService.ExploreKeyword:output_type -> san.tower.v1.ExploreKeywordResponse
-	32, // 75: san.tower.v1.KeywordResearchService.StopResearch:output_type -> san.tower.v1.StopResearchResponse
-	34, // 76: san.tower.v1.KeywordResearchService.ClearResearchGraph:output_type -> san.tower.v1.ClearResearchGraphResponse
-	39, // 77: san.tower.v1.KeywordResearchService.GetResearchGraph:output_type -> san.tower.v1.GetResearchGraphResponse
-	44, // 78: san.tower.v1.KeywordResearchService.GetTrendsOptions:output_type -> san.tower.v1.GetTrendsOptionsResponse
-	46, // 79: san.tower.v1.KeywordResearchService.WatchResearch:output_type -> san.tower.v1.WatchResearchResponse
-	49, // 80: san.tower.v1.KeywordResearchService.WatchResearches:output_type -> san.tower.v1.WatchResearchesResponse
-	62, // [62:81] is the sub-list for method output_type
-	43, // [43:62] is the sub-list for method input_type
-	43, // [43:43] is the sub-list for extension type_name
-	43, // [43:43] is the sub-list for extension extendee
-	0,  // [0:43] is the sub-list for field type_name
+	59, // 4: san.tower.v1.KeywordResearch.created_at:type_name -> google.protobuf.Timestamp
+	59, // 5: san.tower.v1.KeywordResearch.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 6: san.tower.v1.KeywordResearch.blacklist:type_name -> san.tower.v1.KeywordBlacklistEntry
+	59, // 7: san.tower.v1.KeywordBlacklistEntry.added_at:type_name -> google.protobuf.Timestamp
+	3,  // 8: san.tower.v1.ListResearchesResponse.researches:type_name -> san.tower.v1.KeywordResearch
+	3,  // 9: san.tower.v1.GetResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
+	3,  // 10: san.tower.v1.CreateResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
+	1,  // 11: san.tower.v1.UpdateResearchRequest.filters:type_name -> san.tower.v1.KeywordFilters
+	3,  // 12: san.tower.v1.UpdateResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
+	3,  // 13: san.tower.v1.DuplicateResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
+	5,  // 14: san.tower.v1.ListResearchFoldersResponse.folders:type_name -> san.tower.v1.KeywordResearchFolder
+	5,  // 15: san.tower.v1.CreateResearchFolderResponse.folder:type_name -> san.tower.v1.KeywordResearchFolder
+	5,  // 16: san.tower.v1.UpdateResearchFolderResponse.folder:type_name -> san.tower.v1.KeywordResearchFolder
+	3,  // 17: san.tower.v1.RunResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
+	3,  // 18: san.tower.v1.ExploreKeywordResponse.research:type_name -> san.tower.v1.KeywordResearch
+	3,  // 19: san.tower.v1.StopResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
+	3,  // 20: san.tower.v1.ClearResearchGraphResponse.research:type_name -> san.tower.v1.KeywordResearch
+	59, // 21: san.tower.v1.KeywordNode.found_at:type_name -> google.protobuf.Timestamp
+	59, // 22: san.tower.v1.KeywordNode.explored_at:type_name -> google.protobuf.Timestamp
+	3,  // 23: san.tower.v1.GetResearchGraphResponse.research:type_name -> san.tower.v1.KeywordResearch
+	36, // 24: san.tower.v1.GetResearchGraphResponse.nodes:type_name -> san.tower.v1.KeywordNode
+	37, // 25: san.tower.v1.GetResearchGraphResponse.edges:type_name -> san.tower.v1.KeywordEdge
+	38, // 26: san.tower.v1.GetResearchGraphResponse.communities:type_name -> san.tower.v1.KeywordCommunity
+	3,  // 27: san.tower.v1.AddToBlacklistResponse.research:type_name -> san.tower.v1.KeywordResearch
+	3,  // 28: san.tower.v1.RemoveFromBlacklistResponse.research:type_name -> san.tower.v1.KeywordResearch
+	46, // 29: san.tower.v1.TrendsCategory.children:type_name -> san.tower.v1.TrendsCategory
+	45, // 30: san.tower.v1.GetTrendsOptionsResponse.geos:type_name -> san.tower.v1.TrendsGeo
+	46, // 31: san.tower.v1.GetTrendsOptionsResponse.categories:type_name -> san.tower.v1.TrendsCategory
+	47, // 32: san.tower.v1.GetTrendsOptionsResponse.times:type_name -> san.tower.v1.TrendsOption
+	47, // 33: san.tower.v1.GetTrendsOptionsResponse.properties:type_name -> san.tower.v1.TrendsOption
+	45, // 34: san.tower.v1.GetTrendsOptionsResponse.regions:type_name -> san.tower.v1.TrendsGeo
+	59, // 35: san.tower.v1.GetTrendsOptionsResponse.read_at:type_name -> google.protobuf.Timestamp
+	40, // 36: san.tower.v1.WatchResearchResponse.snapshot:type_name -> san.tower.v1.GetResearchGraphResponse
+	3,  // 37: san.tower.v1.WatchResearchResponse.research:type_name -> san.tower.v1.KeywordResearch
+	53, // 38: san.tower.v1.WatchResearchResponse.change:type_name -> san.tower.v1.KeywordGraphChange
+	52, // 39: san.tower.v1.WatchResearchResponse.removal:type_name -> san.tower.v1.KeywordGraphRemoval
+	37, // 40: san.tower.v1.KeywordGraphRemoval.edges:type_name -> san.tower.v1.KeywordEdge
+	36, // 41: san.tower.v1.KeywordGraphRemoval.nodes:type_name -> san.tower.v1.KeywordNode
+	38, // 42: san.tower.v1.KeywordGraphRemoval.communities:type_name -> san.tower.v1.KeywordCommunity
+	57, // 43: san.tower.v1.KeywordGraphRemoval.moved:type_name -> san.tower.v1.KeywordGraphRemoval.MovedEntry
+	36, // 44: san.tower.v1.KeywordGraphChange.nodes:type_name -> san.tower.v1.KeywordNode
+	37, // 45: san.tower.v1.KeywordGraphChange.edges:type_name -> san.tower.v1.KeywordEdge
+	38, // 46: san.tower.v1.KeywordGraphChange.communities:type_name -> san.tower.v1.KeywordCommunity
+	58, // 47: san.tower.v1.KeywordGraphChange.moved:type_name -> san.tower.v1.KeywordGraphChange.MovedEntry
+	56, // 48: san.tower.v1.WatchResearchesResponse.list:type_name -> san.tower.v1.ResearchList
+	3,  // 49: san.tower.v1.WatchResearchesResponse.research:type_name -> san.tower.v1.KeywordResearch
+	3,  // 50: san.tower.v1.ResearchList.researches:type_name -> san.tower.v1.KeywordResearch
+	5,  // 51: san.tower.v1.ResearchList.folders:type_name -> san.tower.v1.KeywordResearchFolder
+	6,  // 52: san.tower.v1.KeywordResearchService.ListResearches:input_type -> san.tower.v1.ListResearchesRequest
+	8,  // 53: san.tower.v1.KeywordResearchService.GetResearch:input_type -> san.tower.v1.GetResearchRequest
+	10, // 54: san.tower.v1.KeywordResearchService.CreateResearch:input_type -> san.tower.v1.CreateResearchRequest
+	12, // 55: san.tower.v1.KeywordResearchService.UpdateResearch:input_type -> san.tower.v1.UpdateResearchRequest
+	14, // 56: san.tower.v1.KeywordResearchService.DeleteResearch:input_type -> san.tower.v1.DeleteResearchRequest
+	16, // 57: san.tower.v1.KeywordResearchService.DuplicateResearch:input_type -> san.tower.v1.DuplicateResearchRequest
+	18, // 58: san.tower.v1.KeywordResearchService.MoveResearches:input_type -> san.tower.v1.MoveResearchesRequest
+	20, // 59: san.tower.v1.KeywordResearchService.ListResearchFolders:input_type -> san.tower.v1.ListResearchFoldersRequest
+	22, // 60: san.tower.v1.KeywordResearchService.CreateResearchFolder:input_type -> san.tower.v1.CreateResearchFolderRequest
+	24, // 61: san.tower.v1.KeywordResearchService.UpdateResearchFolder:input_type -> san.tower.v1.UpdateResearchFolderRequest
+	26, // 62: san.tower.v1.KeywordResearchService.DeleteResearchFolder:input_type -> san.tower.v1.DeleteResearchFolderRequest
+	28, // 63: san.tower.v1.KeywordResearchService.RunResearch:input_type -> san.tower.v1.RunResearchRequest
+	30, // 64: san.tower.v1.KeywordResearchService.ExploreKeyword:input_type -> san.tower.v1.ExploreKeywordRequest
+	32, // 65: san.tower.v1.KeywordResearchService.StopResearch:input_type -> san.tower.v1.StopResearchRequest
+	34, // 66: san.tower.v1.KeywordResearchService.ClearResearchGraph:input_type -> san.tower.v1.ClearResearchGraphRequest
+	39, // 67: san.tower.v1.KeywordResearchService.GetResearchGraph:input_type -> san.tower.v1.GetResearchGraphRequest
+	41, // 68: san.tower.v1.KeywordResearchService.AddToBlacklist:input_type -> san.tower.v1.AddToBlacklistRequest
+	43, // 69: san.tower.v1.KeywordResearchService.RemoveFromBlacklist:input_type -> san.tower.v1.RemoveFromBlacklistRequest
+	48, // 70: san.tower.v1.KeywordResearchService.GetTrendsOptions:input_type -> san.tower.v1.GetTrendsOptionsRequest
+	50, // 71: san.tower.v1.KeywordResearchService.WatchResearch:input_type -> san.tower.v1.WatchResearchRequest
+	54, // 72: san.tower.v1.KeywordResearchService.WatchResearches:input_type -> san.tower.v1.WatchResearchesRequest
+	7,  // 73: san.tower.v1.KeywordResearchService.ListResearches:output_type -> san.tower.v1.ListResearchesResponse
+	9,  // 74: san.tower.v1.KeywordResearchService.GetResearch:output_type -> san.tower.v1.GetResearchResponse
+	11, // 75: san.tower.v1.KeywordResearchService.CreateResearch:output_type -> san.tower.v1.CreateResearchResponse
+	13, // 76: san.tower.v1.KeywordResearchService.UpdateResearch:output_type -> san.tower.v1.UpdateResearchResponse
+	15, // 77: san.tower.v1.KeywordResearchService.DeleteResearch:output_type -> san.tower.v1.DeleteResearchResponse
+	17, // 78: san.tower.v1.KeywordResearchService.DuplicateResearch:output_type -> san.tower.v1.DuplicateResearchResponse
+	19, // 79: san.tower.v1.KeywordResearchService.MoveResearches:output_type -> san.tower.v1.MoveResearchesResponse
+	21, // 80: san.tower.v1.KeywordResearchService.ListResearchFolders:output_type -> san.tower.v1.ListResearchFoldersResponse
+	23, // 81: san.tower.v1.KeywordResearchService.CreateResearchFolder:output_type -> san.tower.v1.CreateResearchFolderResponse
+	25, // 82: san.tower.v1.KeywordResearchService.UpdateResearchFolder:output_type -> san.tower.v1.UpdateResearchFolderResponse
+	27, // 83: san.tower.v1.KeywordResearchService.DeleteResearchFolder:output_type -> san.tower.v1.DeleteResearchFolderResponse
+	29, // 84: san.tower.v1.KeywordResearchService.RunResearch:output_type -> san.tower.v1.RunResearchResponse
+	31, // 85: san.tower.v1.KeywordResearchService.ExploreKeyword:output_type -> san.tower.v1.ExploreKeywordResponse
+	33, // 86: san.tower.v1.KeywordResearchService.StopResearch:output_type -> san.tower.v1.StopResearchResponse
+	35, // 87: san.tower.v1.KeywordResearchService.ClearResearchGraph:output_type -> san.tower.v1.ClearResearchGraphResponse
+	40, // 88: san.tower.v1.KeywordResearchService.GetResearchGraph:output_type -> san.tower.v1.GetResearchGraphResponse
+	42, // 89: san.tower.v1.KeywordResearchService.AddToBlacklist:output_type -> san.tower.v1.AddToBlacklistResponse
+	44, // 90: san.tower.v1.KeywordResearchService.RemoveFromBlacklist:output_type -> san.tower.v1.RemoveFromBlacklistResponse
+	49, // 91: san.tower.v1.KeywordResearchService.GetTrendsOptions:output_type -> san.tower.v1.GetTrendsOptionsResponse
+	51, // 92: san.tower.v1.KeywordResearchService.WatchResearch:output_type -> san.tower.v1.WatchResearchResponse
+	55, // 93: san.tower.v1.KeywordResearchService.WatchResearches:output_type -> san.tower.v1.WatchResearchesResponse
+	73, // [73:94] is the sub-list for method output_type
+	52, // [52:73] is the sub-list for method input_type
+	52, // [52:52] is the sub-list for extension type_name
+	52, // [52:52] is the sub-list for extension extendee
+	0,  // [0:52] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_keyword_research_proto_init() }
@@ -3563,14 +4029,15 @@ func file_san_tower_v1_keyword_research_proto_init() {
 	if File_san_tower_v1_keyword_research_proto != nil {
 		return
 	}
-	file_san_tower_v1_keyword_research_proto_msgTypes[45].OneofWrappers = []any{
+	file_san_tower_v1_keyword_research_proto_msgTypes[50].OneofWrappers = []any{
 		(*WatchResearchResponse_Snapshot)(nil),
 		(*WatchResearchResponse_Research)(nil),
 		(*WatchResearchResponse_Change)(nil),
 		(*WatchResearchResponse_Heartbeat)(nil),
 		(*WatchResearchResponse_Deleted)(nil),
+		(*WatchResearchResponse_Removal)(nil),
 	}
-	file_san_tower_v1_keyword_research_proto_msgTypes[48].OneofWrappers = []any{
+	file_san_tower_v1_keyword_research_proto_msgTypes[54].OneofWrappers = []any{
 		(*WatchResearchesResponse_List)(nil),
 		(*WatchResearchesResponse_Research)(nil),
 		(*WatchResearchesResponse_Heartbeat)(nil),
@@ -3581,7 +4048,7 @@ func file_san_tower_v1_keyword_research_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_keyword_research_proto_rawDesc), len(file_san_tower_v1_keyword_research_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   51,
+			NumMessages:   58,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

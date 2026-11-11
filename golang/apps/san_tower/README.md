@@ -2558,6 +2558,54 @@ connection, in the user's Chrome (San Remote's Trends site,
   six connections to the tower for all its tabs) and opens it again when
   it shows. The streams are Connect server streams, through Vite's proxy in
   dev too.
+- **The blacklist** (the user, 2026-11-12: "Add tab blacklist keyword";
+  "And in node when right click add context menu add to blacklist, and
+  remove the node and child"; "Add select area and right click add to
+  blacklist too"; `keywordresearch/blacklist.go`, AddToBlacklist and
+  RemoveFromBlacklist): one blacklist per research, kept in `tower.db`
+  (`keyword_blacklist_entries`) with the research, not in its graph file;
+  Duplicate copies it and Delete deletes it. An entry is a keyword or
+  phrase, normalized as keywords are; it matches a keyword when its words
+  are in it as whole words, in order and next to each other ("kode pos"
+  matches "kode pos", "kode pos jakarta" and "cek kode pos"; "pos" does not
+  match "posisi"; "kode pos" does not match "kode jakarta pos"). Adding
+  entries is one removal from the graph: each entry in turn takes out the
+  keywords it matches with their relationships, then every keyword left
+  without a path from the seed (those found only through them); a keyword
+  also found from one that stays, stays, with only what the keywords it is
+  still found from give it (Top, Rising, search interest, change), and one
+  whose shortest path from the seed went through a removed keyword gets the
+  depth of its shortest path now. The seed is never taken out: an entry
+  that matches it is refused ("... matches the seed keyword ...: the seed
+  cannot be blacklisted"). Each entry keeps when it was added and how many
+  keywords it took out then. A crawl never adds a keyword an entry matches
+  from a lookup's Top or Rising queries, so it is never looked up: it reads
+  the blacklist in its graph write, after each lookup, so an entry added
+  while it runs counts from the lookup it is doing; a keyword blacklisted
+  during its own lookup is dropped with what it found, and the crawl goes on
+  to the next. Removing an entry does not bring back what it took out; a
+  later lookup may find those keywords again. AddToBlacklist's `dry_run`
+  says what adding would take out, for the page's count before Add and its
+  confirm. The removal goes out on WatchResearch as `removal`
+  (KeywordGraphRemoval: the keywords and relationships taken out, the kept
+  keywords changed, the communities worked out again), then the research
+  with its counts and blacklist, so every open tab follows. On the page:
+  two tabs, Graph (all of the above) and Blacklist (N): a box for entries,
+  one per line or comma separated, with "Adds 2 entries, removes 12
+  keywords from the graph" before Add, how matching works, and the entries
+  (when added, how many keywords each removed, a delete button each). A
+  right-click on a keyword opens a small menu: Add to blacklist (not on the
+  seed), Open in Google Trends, Explore from here, Copy keyword; its panel
+  has Add to blacklist too. Several keywords can be selected: Shift+drag on
+  empty space (or a plain drag in Select: the graph's Pan / Select toggle,
+  remembered by the browser), Ctrl/Cmd+click one more, Escape or a click
+  on empty space for none; a right-click on one of them opens the
+  selection's menu: Add N keywords to blacklist (each an entry, the seed
+  left out) and Copy keywords (one per line). Blacklisting from the graph
+  asks first ("Blacklist 'kode pos' and remove 14 keywords?", "Blacklist 6
+  keywords and remove 23?") when it removes more than three keywords, and
+  always for a selection; the keywords fade out live, the rest of the graph
+  stays where it is.
 
 ### The graph file
 
@@ -2582,6 +2630,8 @@ file is open in another program").
 - The Leiden communities (san_knowledge's `graph.Leiden`, relationships
   undirected, once per pair) are worked out when read, not stored: 0 is the
   largest, each named after its keyword of the highest search interest.
+- The blacklist is not in the graph: it is in `tower.db`. A blacklisted
+  keyword is deleted from the graph with its relationships.
 
 Cypher on it (goraphdb takes one relationship per pattern; `TestCypher`
 runs these):
@@ -2607,8 +2657,9 @@ is the tower's folder, git-ignored. It holds:
 - `tower.json`, the settings changed from the UI. A broken file stops the
   tower from starting rather than falling back to the defaults.
 - `tower.db` (with its `-wal` and `-shm` files), the tower's SQLite
-  database: the workflows, their runs, the connections, the storages and
-  the messages the Telegram bots got. Its tables are brought up to date
+  database: the workflows, their runs, the connections, the storages, the
+  messages the Telegram bots got, and the keyword researches with their
+  blacklists. Its tables are brought up to date
   when the tower starts (GORM's AutoMigrate).
 - the topic and subscriber metadata and event logs of the broker inside
   the tower, in `<data>/san_message` unless the broker's data directory

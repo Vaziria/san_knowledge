@@ -153,7 +153,21 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     keywords and links drawn in at once, the status, progress and legend
     with them; the whole graph laid out again once when a crawl ends. A
     dropped stream is opened again with backoff and starts from a new
-    snapshot; only while it is down the page asks every 15 s.
+    snapshot; only while it is down the page asks every 15 s. Two tabs
+    (the user, 2026-11-12: "Add tab blacklist keyword"; `?tab=blacklist`):
+    Graph, all of that (kept drawn while hidden, so it stays live), and
+    Blacklist (N) (`src/keywordresearch/Blacklist.tsx`): a box for
+    entries, one per line or comma separated, with what adding them removes
+    (a dry run of AddToBlacklist as the typing pauses), how matching works,
+    and the entries (added, keywords removed, delete). A right-click on a
+    keyword opens its menu (Add to blacklist, not on the seed; Open in
+    Google Trends; Explore from here; Copy keyword), a right-click in a
+    selection of several the selection's (Add N keywords to blacklist, the
+    seed left out; Copy keywords); the node panel has Add to blacklist too.
+    Blacklisting from the graph asks first with the dry run's count when it
+    removes more than three keywords, and always for a selection. A Pan /
+    Select toggle in the graph's toolbar (`san-tower-keywords-drag` in
+    localStorage) says what a drag on empty space does.
   - `MessageBroker.tsx`: the San Message broker the tower uses. A status
     bar on top (BrokerService.GetBrokerStatus): Running or Not answering,
     inside the tower or a separate server and since when, topics and events
@@ -356,9 +370,18 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   found from, a short layout spreads only the new ones (the ones they came
   from held still, the rest untouched), and they fade in with a pulse of
   the accent colour. The whole graph is kept in view as it grows until the
-  user zooms or pans (fitting zooms in 1.5 times at most). `live.ts`, the
-  page's graph and `applyChange`, which puts in what a lookup wrote,
-  keeping the objects it did not touch. `trends.ts`, Trends' time ranges
+  user zooms or pans (fitting zooms in 1.5 times at most). Keywords taken
+  out (blacklisted) fade out, the rest left where it is. Several can be
+  selected (the user, 2026-11-12: "Add select area"): Shift+drag on empty
+  space, or a plain drag in Select (`dragMode`), boxes them, Ctrl/Cmd+click
+  adds or takes out one, with an outline in the accent colour; Escape or a
+  click on empty space clears them. A right-click on a keyword gives
+  `onMenu` the pointer and the whole selection when it is in one of
+  several, else it alone (then selected alone); the browser's own menu is
+  kept off the graph. Hidden (the Blacklist tab), it fits itself when it
+  shows again. `live.ts`, the page's graph, `applyChange`, which puts in
+  what a lookup wrote, and `applyRemoval`, which takes out what a blacklist
+  removed, both keeping the objects they did not touch. `trends.ts`, Trends' time ranges
   and search types, the new Explore's link for a keyword, the statuses, the
   progress line and the estimate of a Run (about 50 Top queries a keyword
   while the graph has none).

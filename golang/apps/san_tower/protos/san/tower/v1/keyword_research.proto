@@ -69,6 +69,26 @@ service KeywordResearchService {
   // GetResearchGraph gives every keyword and relationship of a research's
   // graph, with the Leiden communities of its keywords.
   rpc GetResearchGraph(GetResearchGraphRequest) returns (GetResearchGraphResponse);
+  // AddToBlacklist adds keywords or phrases to a research's blacklist (the
+  // user, 2026-11-12: "Add tab blacklist keyword"; "And in node when right
+  // click add context menu add to blacklist, and remove the node and
+  // child"). An entry matches a keyword when its words are in it as whole
+  // words, in order and next to each other ("kode pos" matches "kode pos",
+  // "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
+  // Adding one takes every keyword it matches out of the graph with its
+  // relationships, and every keyword then left without a path from the seed
+  // (those found only through them); one also found from a keyword that
+  // stays, stays. A crawl never adds a keyword it matches again: it reads
+  // the blacklist at each lookup, so an entry added while it runs counts
+  // from its next lookup. An entry that matches the seed keyword is refused
+  // (InvalidArgument). With dry_run nothing changes: it says what adding
+  // would take out. The research's pages get the removal live
+  // (WatchResearch's removal) and the blacklist with the research.
+  rpc AddToBlacklist(AddToBlacklistRequest) returns (AddToBlacklistResponse);
+  // RemoveFromBlacklist takes an entry out of a research's blacklist. The
+  // keywords it took out of the graph do not come back; a later lookup may
+  // find them again.
+  rpc RemoveFromBlacklist(RemoveFromBlacklistRequest) returns (RemoveFromBlacklistResponse);
   // GetTrendsOptions gives Google Trends' own filter lists (locations,
   // categories, time ranges, search types), read from Trends through a
   // San Remote connection the first time, then kept in the tower's data
@@ -78,9 +98,10 @@ service KeywordResearchService {
   // 2026-11-11: "is crawl realtime update the graph? make it realtime"):
   // first a snapshot (the research, its whole graph and communities), then
   // each change as it happens: the research (status, progress, counts,
-  // settings), what each lookup wrote to the graph right after it was
-  // written, with the communities worked out again, a new snapshot when the
-  // graph was cleared, and a heartbeat every 15 seconds. Several pages can
+  // settings, blacklist), what each lookup wrote to the graph right after it
+  // was written, with the communities worked out again, what a blacklist
+  // entry took out, a new snapshot when the graph was cleared, and a
+  // heartbeat every 15 seconds. Several pages can
   // watch one research. A page that falls behind is dropped (Unavailable),
   // never waited for, so it cannot hold the crawl: it watches again and
   // starts from a new snapshot. The stream ends after deleted, and when the
@@ -170,6 +191,18 @@ message KeywordResearch {
   KeywordProgress progress = 16;
   google.protobuf.Timestamp created_at = 17;
   google.protobuf.Timestamp updated_at = 18;
+  // blacklist is its blacklist, oldest first (AddToBlacklist).
+  repeated KeywordBlacklistEntry blacklist = 19;
+}
+
+// KeywordBlacklistEntry is an entry of a research's blacklist.
+message KeywordBlacklistEntry {
+  // entry is the keyword or phrase, trimmed, in lower case, its spaces
+  // collapsed, as keywords are.
+  string entry = 1;
+  google.protobuf.Timestamp added_at = 2;
+  // removed is how many keywords adding it took out of the graph.
+  uint32 removed = 3;
 }
 
 // KeywordResearchFolder is a folder of researches; folders nest.
@@ -372,6 +405,37 @@ message GetResearchGraphResponse {
   repeated KeywordCommunity communities = 4;
 }
 
+message AddToBlacklistRequest {
+  uint32 id = 1;
+  // entries are the keywords or phrases, each as it is: the page splits
+  // what is typed at line breaks and commas.
+  repeated string entries = 2;
+  // dry_run changes nothing: the response says what adding would do.
+  bool dry_run = 3;
+}
+
+message AddToBlacklistResponse {
+  KeywordResearch research = 1;
+  // added are the entries added (or that would be), normalized; those the
+  // blacklist had already are left out.
+  repeated string added = 2;
+  // removed are the keywords taken out of the graph (or that would be):
+  // those an entry matches, then those left without a path from the seed.
+  repeated string removed = 3;
+  // matched is how many of removed an entry matches; the others were found
+  // only through them.
+  uint32 matched = 4;
+}
+
+message RemoveFromBlacklistRequest {
+  uint32 id = 1;
+  string entry = 2;
+}
+
+message RemoveFromBlacklistResponse {
+  KeywordResearch research = 1;
+}
+
 // TrendsGeo is a location of Trends' location menu.
 message TrendsGeo {
   // code is "" for Worldwide, a country's (ID) or a region's (ID-JK).
@@ -434,7 +498,32 @@ message WatchResearchResponse {
     bool heartbeat = 4;
     // deleted: the research was deleted; the stream ends.
     bool deleted = 5;
+    // removal is what a blacklist entry took out of the graph, sent right
+    // after it was taken out.
+    KeywordGraphRemoval removal = 6;
   }
+}
+
+// KeywordGraphRemoval is what adding blacklist entries took out of a
+// research's graph (AddToBlacklist): the keywords and relationships taken
+// out, the kept keywords whose values changed with them, and the Leiden
+// communities worked out again.
+message KeywordGraphRemoval {
+  // removed are the keywords taken out.
+  repeated string removed = 1;
+  // edges are the relationships taken out with them.
+  repeated KeywordEdge edges = 2;
+  // nodes are kept keywords as they are now, whose values changed: one
+  // found from a removed keyword keeps only what the keywords it is still
+  // found from give it (Top, Rising, search interest, change), and one
+  // whose shortest path from the seed went through a removed keyword gets
+  // a deeper depth.
+  repeated KeywordNode nodes = 3;
+  // communities are every community of the graph now.
+  repeated KeywordCommunity communities = 4;
+  // moved are the other keywords whose community changed, to their new
+  // community.
+  map<string, uint32> moved = 5;
 }
 
 // KeywordGraphChange is what one lookup wrote to a research's graph, sent

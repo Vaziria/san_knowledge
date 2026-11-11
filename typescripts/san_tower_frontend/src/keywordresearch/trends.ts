@@ -56,7 +56,9 @@ export const explorable = (n: KeywordNode, limit: number) => !n.explored && (n.s
 // estimate is how many lookups Run makes at most: each explorable keyword,
 // and below each, up to perKeyword Top keywords a level, to the deep limit.
 // perKeyword is the graph's own average of Top keywords per lookup, or
-// MAX_TOP while it has none.
+// MAX_TOP while it has none. It is worked out from the page's graph, so a
+// blacklist's removal lowers it at once, and the average counts only the
+// Top keywords kept, as a crawl skips blacklisted ones.
 export function estimate(nodes: KeywordNode[], edges: KeywordEdge[], limit: number) {
   const explored = nodes.filter((n) => n.explored).length;
   const tops = edges.filter((e) => e.rel === 'TOP').length;

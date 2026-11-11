@@ -32,6 +32,9 @@ const (
 	// Listed: researches or folders were made, moved or deleted: the list's
 	// watchers read the list again.
 	Listed
+	// Blacklisted: a blacklist entry took keywords out of the graph; Delta
+	// says which (Removed, RemovedEdges) and the kept keywords it changed.
+	Blacklisted
 )
 
 // Change is a change of research ID (0 for Listed).
@@ -45,12 +48,18 @@ type Change struct {
 
 // Delta is what one lookup wrote to a graph: the keywords it added or
 // changed (the one looked up and each it found) and its relationships, as
-// they are now, and the graph's Leiden communities after it.
+// they are now, and the graph's Leiden communities after it. For a
+// Blacklisted change: the keywords and relationships taken out, and in
+// Nodes the kept keywords whose values changed with them.
 type Delta struct {
 	// Keyword is the keyword looked up; "" for the seed put in.
 	Keyword string
 	Nodes   []Node
 	Edges   []Edge
+	// Removed are the keywords a blacklist entry took out, and RemovedEdges
+	// the relationships that went with them.
+	Removed      []string
+	RemovedEdges []Edge
 	// Communities are every community of the graph.
 	Communities []Community
 	// Community is each keyword's community: of every keyword as the
@@ -170,14 +179,14 @@ func (w *Watch) Publish(ch Change) {
 		return
 	}
 	switch ch.Kind {
-	case Wrote:
+	case Wrote, Blacklisted:
 		ch.Delta = w.moved(ch.ID, ch.Delta)
 	case Reset, Deleted:
 		delete(w.of, ch.ID)
 	}
 	for x := range w.subs {
 		switch {
-		case x.ID == 0 && (ch.Kind == Wrote || ch.Kind == Reset):
+		case x.ID == 0 && (ch.Kind == Wrote || ch.Kind == Reset || ch.Kind == Blacklisted):
 			continue // the list has no graph
 		case x.ID != 0 && (x.ID != ch.ID || ch.Kind == Listed):
 			continue

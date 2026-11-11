@@ -202,8 +202,8 @@ func (s *Store) SetResearchState(id uint32, fields map[string]any) error {
 }
 
 // DuplicateResearch copies research id as "<name> (copy)" (then "(copy 2)"
-// and on) in the same folder, with its status and graph counts; a running
-// or waiting one's copy is stopped. The caller copies the graph.
+// and on) in the same folder, with its status, graph counts and blacklist;
+// a running or waiting one's copy is stopped. The caller copies the graph.
 func (s *Store) DuplicateResearch(id uint32) (KeywordResearch, error) {
 	var k KeywordResearch
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -229,21 +229,39 @@ func (s *Store) DuplicateResearch(id uint32) (KeywordResearch, error) {
 				break
 			}
 		}
-		return tx.Create(&k).Error
+		if err := tx.Create(&k).Error; err != nil {
+			return err
+		}
+		// The copy gets the research's blacklist: one blacklist per
+		// research, with it.
+		var list []KeywordBlacklistEntry
+		if err := tx.Where("research_id = ?", id).Order("id").Find(&list).Error; err != nil {
+			return err
+		}
+		for _, e := range list {
+			e.ID, e.ResearchID = 0, k.ID
+			if err := tx.Create(&e).Error; err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 	return k, err
 }
 
-// DeleteResearch deletes a research; the caller deletes its graph.
+// DeleteResearch deletes a research and its blacklist; the caller deletes
+// its graph.
 func (s *Store) DeleteResearch(id uint32) error {
-	res := s.db.Delete(&KeywordResearch{}, id)
-	if res.Error != nil {
-		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return fail(ErrNotFound, "no keyword research %d", id)
-	}
-	return nil
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		res := tx.Delete(&KeywordResearch{}, id)
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 0 {
+			return fail(ErrNotFound, "no keyword research %d", id)
+		}
+		return tx.Where("research_id = ?", id).Delete(&KeywordBlacklistEntry{}).Error
+	})
 }
 
 // MoveResearches puts researches in folder (0: at the top).

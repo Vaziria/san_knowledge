@@ -81,6 +81,12 @@ const (
 	// KeywordResearchServiceGetResearchGraphProcedure is the fully-qualified name of the
 	// KeywordResearchService's GetResearchGraph RPC.
 	KeywordResearchServiceGetResearchGraphProcedure = "/san.tower.v1.KeywordResearchService/GetResearchGraph"
+	// KeywordResearchServiceAddToBlacklistProcedure is the fully-qualified name of the
+	// KeywordResearchService's AddToBlacklist RPC.
+	KeywordResearchServiceAddToBlacklistProcedure = "/san.tower.v1.KeywordResearchService/AddToBlacklist"
+	// KeywordResearchServiceRemoveFromBlacklistProcedure is the fully-qualified name of the
+	// KeywordResearchService's RemoveFromBlacklist RPC.
+	KeywordResearchServiceRemoveFromBlacklistProcedure = "/san.tower.v1.KeywordResearchService/RemoveFromBlacklist"
 	// KeywordResearchServiceGetTrendsOptionsProcedure is the fully-qualified name of the
 	// KeywordResearchService's GetTrendsOptions RPC.
 	KeywordResearchServiceGetTrendsOptionsProcedure = "/san.tower.v1.KeywordResearchService/GetTrendsOptions"
@@ -140,6 +146,26 @@ type KeywordResearchServiceClient interface {
 	// GetResearchGraph gives every keyword and relationship of a research's
 	// graph, with the Leiden communities of its keywords.
 	GetResearchGraph(context.Context, *connect.Request[v1.GetResearchGraphRequest]) (*connect.Response[v1.GetResearchGraphResponse], error)
+	// AddToBlacklist adds keywords or phrases to a research's blacklist (the
+	// user, 2026-11-12: "Add tab blacklist keyword"; "And in node when right
+	// click add context menu add to blacklist, and remove the node and
+	// child"). An entry matches a keyword when its words are in it as whole
+	// words, in order and next to each other ("kode pos" matches "kode pos",
+	// "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
+	// Adding one takes every keyword it matches out of the graph with its
+	// relationships, and every keyword then left without a path from the seed
+	// (those found only through them); one also found from a keyword that
+	// stays, stays. A crawl never adds a keyword it matches again: it reads
+	// the blacklist at each lookup, so an entry added while it runs counts
+	// from its next lookup. An entry that matches the seed keyword is refused
+	// (InvalidArgument). With dry_run nothing changes: it says what adding
+	// would take out. The research's pages get the removal live
+	// (WatchResearch's removal) and the blacklist with the research.
+	AddToBlacklist(context.Context, *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error)
+	// RemoveFromBlacklist takes an entry out of a research's blacklist. The
+	// keywords it took out of the graph do not come back; a later lookup may
+	// find them again.
+	RemoveFromBlacklist(context.Context, *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error)
 	// GetTrendsOptions gives Google Trends' own filter lists (locations,
 	// categories, time ranges, search types), read from Trends through a
 	// San Remote connection the first time, then kept in the tower's data
@@ -149,9 +175,10 @@ type KeywordResearchServiceClient interface {
 	// 2026-11-11: "is crawl realtime update the graph? make it realtime"):
 	// first a snapshot (the research, its whole graph and communities), then
 	// each change as it happens: the research (status, progress, counts,
-	// settings), what each lookup wrote to the graph right after it was
-	// written, with the communities worked out again, a new snapshot when the
-	// graph was cleared, and a heartbeat every 15 seconds. Several pages can
+	// settings, blacklist), what each lookup wrote to the graph right after it
+	// was written, with the communities worked out again, what a blacklist
+	// entry took out, a new snapshot when the graph was cleared, and a
+	// heartbeat every 15 seconds. Several pages can
 	// watch one research. A page that falls behind is dropped (Unavailable),
 	// never waited for, so it cannot hold the crawl: it watches again and
 	// starts from a new snapshot. The stream ends after deleted, and when the
@@ -272,6 +299,18 @@ func NewKeywordResearchServiceClient(httpClient connect.HTTPClient, baseURL stri
 			connect.WithSchema(keywordResearchServiceMethods.ByName("GetResearchGraph")),
 			connect.WithClientOptions(opts...),
 		),
+		addToBlacklist: connect.NewClient[v1.AddToBlacklistRequest, v1.AddToBlacklistResponse](
+			httpClient,
+			baseURL+KeywordResearchServiceAddToBlacklistProcedure,
+			connect.WithSchema(keywordResearchServiceMethods.ByName("AddToBlacklist")),
+			connect.WithClientOptions(opts...),
+		),
+		removeFromBlacklist: connect.NewClient[v1.RemoveFromBlacklistRequest, v1.RemoveFromBlacklistResponse](
+			httpClient,
+			baseURL+KeywordResearchServiceRemoveFromBlacklistProcedure,
+			connect.WithSchema(keywordResearchServiceMethods.ByName("RemoveFromBlacklist")),
+			connect.WithClientOptions(opts...),
+		),
 		getTrendsOptions: connect.NewClient[v1.GetTrendsOptionsRequest, v1.GetTrendsOptionsResponse](
 			httpClient,
 			baseURL+KeywordResearchServiceGetTrendsOptionsProcedure,
@@ -311,6 +350,8 @@ type keywordResearchServiceClient struct {
 	stopResearch         *connect.Client[v1.StopResearchRequest, v1.StopResearchResponse]
 	clearResearchGraph   *connect.Client[v1.ClearResearchGraphRequest, v1.ClearResearchGraphResponse]
 	getResearchGraph     *connect.Client[v1.GetResearchGraphRequest, v1.GetResearchGraphResponse]
+	addToBlacklist       *connect.Client[v1.AddToBlacklistRequest, v1.AddToBlacklistResponse]
+	removeFromBlacklist  *connect.Client[v1.RemoveFromBlacklistRequest, v1.RemoveFromBlacklistResponse]
 	getTrendsOptions     *connect.Client[v1.GetTrendsOptionsRequest, v1.GetTrendsOptionsResponse]
 	watchResearch        *connect.Client[v1.WatchResearchRequest, v1.WatchResearchResponse]
 	watchResearches      *connect.Client[v1.WatchResearchesRequest, v1.WatchResearchesResponse]
@@ -396,6 +437,16 @@ func (c *keywordResearchServiceClient) GetResearchGraph(ctx context.Context, req
 	return c.getResearchGraph.CallUnary(ctx, req)
 }
 
+// AddToBlacklist calls san.tower.v1.KeywordResearchService.AddToBlacklist.
+func (c *keywordResearchServiceClient) AddToBlacklist(ctx context.Context, req *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error) {
+	return c.addToBlacklist.CallUnary(ctx, req)
+}
+
+// RemoveFromBlacklist calls san.tower.v1.KeywordResearchService.RemoveFromBlacklist.
+func (c *keywordResearchServiceClient) RemoveFromBlacklist(ctx context.Context, req *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error) {
+	return c.removeFromBlacklist.CallUnary(ctx, req)
+}
+
 // GetTrendsOptions calls san.tower.v1.KeywordResearchService.GetTrendsOptions.
 func (c *keywordResearchServiceClient) GetTrendsOptions(ctx context.Context, req *connect.Request[v1.GetTrendsOptionsRequest]) (*connect.Response[v1.GetTrendsOptionsResponse], error) {
 	return c.getTrendsOptions.CallUnary(ctx, req)
@@ -460,6 +511,26 @@ type KeywordResearchServiceHandler interface {
 	// GetResearchGraph gives every keyword and relationship of a research's
 	// graph, with the Leiden communities of its keywords.
 	GetResearchGraph(context.Context, *connect.Request[v1.GetResearchGraphRequest]) (*connect.Response[v1.GetResearchGraphResponse], error)
+	// AddToBlacklist adds keywords or phrases to a research's blacklist (the
+	// user, 2026-11-12: "Add tab blacklist keyword"; "And in node when right
+	// click add context menu add to blacklist, and remove the node and
+	// child"). An entry matches a keyword when its words are in it as whole
+	// words, in order and next to each other ("kode pos" matches "kode pos",
+	// "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
+	// Adding one takes every keyword it matches out of the graph with its
+	// relationships, and every keyword then left without a path from the seed
+	// (those found only through them); one also found from a keyword that
+	// stays, stays. A crawl never adds a keyword it matches again: it reads
+	// the blacklist at each lookup, so an entry added while it runs counts
+	// from its next lookup. An entry that matches the seed keyword is refused
+	// (InvalidArgument). With dry_run nothing changes: it says what adding
+	// would take out. The research's pages get the removal live
+	// (WatchResearch's removal) and the blacklist with the research.
+	AddToBlacklist(context.Context, *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error)
+	// RemoveFromBlacklist takes an entry out of a research's blacklist. The
+	// keywords it took out of the graph do not come back; a later lookup may
+	// find them again.
+	RemoveFromBlacklist(context.Context, *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error)
 	// GetTrendsOptions gives Google Trends' own filter lists (locations,
 	// categories, time ranges, search types), read from Trends through a
 	// San Remote connection the first time, then kept in the tower's data
@@ -469,9 +540,10 @@ type KeywordResearchServiceHandler interface {
 	// 2026-11-11: "is crawl realtime update the graph? make it realtime"):
 	// first a snapshot (the research, its whole graph and communities), then
 	// each change as it happens: the research (status, progress, counts,
-	// settings), what each lookup wrote to the graph right after it was
-	// written, with the communities worked out again, a new snapshot when the
-	// graph was cleared, and a heartbeat every 15 seconds. Several pages can
+	// settings, blacklist), what each lookup wrote to the graph right after it
+	// was written, with the communities worked out again, what a blacklist
+	// entry took out, a new snapshot when the graph was cleared, and a
+	// heartbeat every 15 seconds. Several pages can
 	// watch one research. A page that falls behind is dropped (Unavailable),
 	// never waited for, so it cannot hold the crawl: it watches again and
 	// starts from a new snapshot. The stream ends after deleted, and when the
@@ -588,6 +660,18 @@ func NewKeywordResearchServiceHandler(svc KeywordResearchServiceHandler, opts ..
 		connect.WithSchema(keywordResearchServiceMethods.ByName("GetResearchGraph")),
 		connect.WithHandlerOptions(opts...),
 	)
+	keywordResearchServiceAddToBlacklistHandler := connect.NewUnaryHandler(
+		KeywordResearchServiceAddToBlacklistProcedure,
+		svc.AddToBlacklist,
+		connect.WithSchema(keywordResearchServiceMethods.ByName("AddToBlacklist")),
+		connect.WithHandlerOptions(opts...),
+	)
+	keywordResearchServiceRemoveFromBlacklistHandler := connect.NewUnaryHandler(
+		KeywordResearchServiceRemoveFromBlacklistProcedure,
+		svc.RemoveFromBlacklist,
+		connect.WithSchema(keywordResearchServiceMethods.ByName("RemoveFromBlacklist")),
+		connect.WithHandlerOptions(opts...),
+	)
 	keywordResearchServiceGetTrendsOptionsHandler := connect.NewUnaryHandler(
 		KeywordResearchServiceGetTrendsOptionsProcedure,
 		svc.GetTrendsOptions,
@@ -640,6 +724,10 @@ func NewKeywordResearchServiceHandler(svc KeywordResearchServiceHandler, opts ..
 			keywordResearchServiceClearResearchGraphHandler.ServeHTTP(w, r)
 		case KeywordResearchServiceGetResearchGraphProcedure:
 			keywordResearchServiceGetResearchGraphHandler.ServeHTTP(w, r)
+		case KeywordResearchServiceAddToBlacklistProcedure:
+			keywordResearchServiceAddToBlacklistHandler.ServeHTTP(w, r)
+		case KeywordResearchServiceRemoveFromBlacklistProcedure:
+			keywordResearchServiceRemoveFromBlacklistHandler.ServeHTTP(w, r)
 		case KeywordResearchServiceGetTrendsOptionsProcedure:
 			keywordResearchServiceGetTrendsOptionsHandler.ServeHTTP(w, r)
 		case KeywordResearchServiceWatchResearchProcedure:
@@ -717,6 +805,14 @@ func (UnimplementedKeywordResearchServiceHandler) ClearResearchGraph(context.Con
 
 func (UnimplementedKeywordResearchServiceHandler) GetResearchGraph(context.Context, *connect.Request[v1.GetResearchGraphRequest]) (*connect.Response[v1.GetResearchGraphResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KeywordResearchService.GetResearchGraph is not implemented"))
+}
+
+func (UnimplementedKeywordResearchServiceHandler) AddToBlacklist(context.Context, *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KeywordResearchService.AddToBlacklist is not implemented"))
+}
+
+func (UnimplementedKeywordResearchServiceHandler) RemoveFromBlacklist(context.Context, *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.KeywordResearchService.RemoveFromBlacklist is not implemented"))
 }
 
 func (UnimplementedKeywordResearchServiceHandler) GetTrendsOptions(context.Context, *connect.Request[v1.GetTrendsOptionsRequest]) (*connect.Response[v1.GetTrendsOptionsResponse], error) {

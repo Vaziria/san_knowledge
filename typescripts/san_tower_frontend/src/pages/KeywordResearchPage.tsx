@@ -14,24 +14,30 @@ import {
   NativeSelect,
   Portal,
   Stack,
+  Tabs,
   Text,
   Wrap,
 } from '@chakra-ui/react';
 import {
   ArrowLeftIcon,
+  BanIcon,
+  CopyIcon,
   DownloadIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
+  HandIcon,
   LayoutGridIcon,
   PlayIcon,
   RefreshCwIcon,
   RotateCcwIcon,
   ScanIcon,
   SearchIcon,
+  SquareDashedMousePointerIcon,
   SquareIcon,
+  WaypointsIcon,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link as RouterLink, useParams } from 'react-router';
+import { Link as RouterLink, useParams, useSearchParams } from 'react-router';
 import { connections, errorText, keywordResearch } from '../api';
 import type { Connection } from '../gen/san/tower/v1/connection_pb';
 import type {
@@ -45,8 +51,9 @@ import type {
 } from '../gen/san/tower/v1/keyword_research_pb';
 import { useDark } from '../knowledge/GraphCanvas';
 import { downloadCsv, keywordsCsv } from '../keywordresearch/csv';
-import { communityColor, KeywordGraph, keywordColors } from '../keywordresearch/KeywordGraph';
-import { applyChange, emptyGraph, type Graph } from '../keywordresearch/live';
+import { BlacklistPanel, copyText, plural } from '../keywordresearch/Blacklist';
+import { communityColor, KeywordGraph, keywordColors, type DragMode } from '../keywordresearch/KeywordGraph';
+import { applyChange, applyRemoval, emptyGraph, type Graph } from '../keywordresearch/live';
 import {
   active,
   changeText,
@@ -113,6 +120,31 @@ function flatCategories(list: TrendsCategory[], depth = 0, out: { c: TrendsCateg
 // MAX_LISTED is how many keywords a node's panel lists under "found here".
 const MAX_LISTED = 60;
 
+// FEW is how many keywords blacklisting one keyword of the graph may remove
+// without asking first.
+const FEW = 3;
+
+// What a drag on the graph's empty space does, Pan or Select (the user,
+// 2026-11-12: "Add select area"), as the workflow editor's toggle; the
+// browser remembers it.
+const dragModeKey = 'san-tower-keywords-drag';
+
+function loadDragMode(): DragMode {
+  try {
+    return localStorage.getItem(dragModeKey) === 'select' ? 'select' : 'pan';
+  } catch {
+    return 'pan';
+  }
+}
+
+function saveDragMode(mode: DragMode) {
+  try {
+    localStorage.setItem(dragModeKey, mode);
+  } catch {
+    // Storage blocked: the graph just starts in Pan next time.
+  }
+}
+
 // KeywordResearchPage is a research's page (/keyword-research/<id>; the
 // user, 2026-11-11): its seed keyword, deep limit, Google Trends' filters
 // (location, date range, category, search type, as Trends lists them) and
@@ -127,8 +159,30 @@ const MAX_LISTED = 60;
 // new snapshot; meanwhile the page asks every 15 s. A click on a keyword
 // shows where it was found and what it found, with Open in Google Trends and
 // Explore from here.
+//
+// Two tabs (the user, 2026-11-12: "Add tab blacklist keyword"): Graph, all of
+// the above, and Blacklist (BlacklistPanel), with its count; the tab is in
+// the address (?tab=blacklist). The graph stays drawn while the Blacklist tab
+// shows, so it keeps up live and comes back as it was. A right-click on a
+// keyword opens its menu (the user, 2026-11-12: "And in node when right
+// click add context menu add to blacklist, and remove the node and child"):
+// Add to blacklist (not on the seed), Open in Google Trends, Explore from
+// here, Copy keyword; on a selection of several (Shift+drag, Select, or
+// Ctrl+click: "Add select area and right click add to blacklist too"), Add N
+// keywords to blacklist and Copy keywords. Blacklisting from the graph asks
+// first with what it removes (a dry run) when that is more than a few
+// keywords, and always for several; the keywords and those found only
+// through them fade out live, in every tab.
 export function KeywordResearchPage() {
   const id = Number(useParams().id);
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'blacklist' ? 'blacklist' : 'graph';
+  // shown is the display of what belongs to the Graph tab: none while the
+  // Blacklist tab shows (given always: a layout's own display is a prop).
+  const shown = (display: 'flex' | 'block') => (tab === 'graph' ? display : 'none');
+  const [menu, setMenu] = useState<{ name: string; names: string[]; at: { x: number; y: number } }>();
+  const [confirm, setConfirm] = useState<{ entries: string[]; removed: string[]; seedStays: boolean }>();
+  const [dragMode, setDragMode] = useState(loadDragMode);
   const dark = useDark();
   const [k, setK] = useState<KeywordResearch>();
   const [graph, setGraph] = useState<Graph>();
@@ -182,6 +236,13 @@ export function KeywordResearchPage() {
         case 'change': {
           const ch = e.value;
           setGraph((g) => applyChange(g ?? emptyGraph, ch));
+          break;
+        }
+        case 'removal': {
+          const r = e.value;
+          setGraph((g) => applyRemoval(g ?? emptyGraph, r));
+          setSelected((s) => (s && r.removed.includes(s) ? undefined : s));
+          setMenu((m) => (m && m.names.some((n) => r.removed.includes(n)) ? undefined : m));
           break;
         }
         case 'deleted':
@@ -329,6 +390,45 @@ export function KeywordResearchPage() {
     }
   };
 
+  // blacklist blacklists keywords of the graph, each one an entry, the seed
+  // left out: at once when it removes a few keywords, else after asking,
+  // and always after asking for several.
+  const blacklist = async (names: string[]) => {
+    const seed = graph?.nodes.find((n) => n.seed)?.name;
+    const entries = names.filter((n) => n !== seed);
+    if (!entries.length) return;
+    try {
+      const r = await keywordResearch.addToBlacklist({ id, entries, dryRun: true });
+      if (names.length > 1 || r.removed.length > FEW) {
+        setConfirm({ entries, removed: r.removed, seedStays: entries.length < names.length });
+      } else {
+        await addBlacklist(entries);
+      }
+    } catch (err) {
+      toast(`Not blacklisted: ${errorText(err)}`, true);
+    }
+  };
+  const addBlacklist = async (entries: string[]) => {
+    const r = await keywordResearch.addToBlacklist({ id, entries });
+    fromCall(r.research);
+    toast(
+      `Blacklisted ${entries.length === 1 ? `'${entries[0]}'` : plural(entries.length, 'keyword')}: removed ${plural(r.removed.length, 'keyword')}`,
+    );
+  };
+  const copy = async (names: string[]) => {
+    try {
+      await copyText(names.join('\n'));
+      toast(names.length === 1 ? `Copied '${names[0]}'` : `Copied ${plural(names.length, 'keyword')}`);
+    } catch (err) {
+      toast(`Not copied: ${errorText(err)}`, true);
+    }
+  };
+  const switchDragMode = () => {
+    const next = dragMode === 'pan' ? 'select' : 'pan';
+    setDragMode(next);
+    saveDragMode(next);
+  };
+
   const est = useMemo(() => {
     if (!graph || !form) return undefined;
     const limit = Number(form.deepLimit) || 0;
@@ -392,7 +492,20 @@ export function KeywordResearchPage() {
             </Menu.Root>
           </HStack>
 
-          <Wrap gap="3" align="flex-end">
+          <Tabs.Root size="sm" value={tab} onValueChange={(e) => setParams(e.value === 'graph' ? {} : { tab: e.value })}>
+            <Tabs.List>
+              <Tabs.Trigger value="graph">
+                <WaypointsIcon />
+                Graph
+              </Tabs.Trigger>
+              <Tabs.Trigger value="blacklist">
+                <BanIcon />
+                Blacklist ({k.blacklist.length})
+              </Tabs.Trigger>
+            </Tabs.List>
+          </Tabs.Root>
+
+          <Wrap gap="3" align="flex-end" display={shown('flex')}>
             <Field label="Seed keyword" w="56">
               <Input
                 size="sm"
@@ -547,7 +660,7 @@ export function KeywordResearchPage() {
             </HStack>
           </Wrap>
 
-          <HStack gap="2" wrap="wrap" textStyle="sm" minH="6">
+          <HStack gap="2" wrap="wrap" textStyle="sm" minH="6" display={shown('flex')}>
             {st && <Badge colorPalette={st.color}>{st.label}</Badge>}
             {running ? (
               <Text color="fg.muted">{progressText(k)}</Text>
@@ -573,7 +686,7 @@ export function KeywordResearchPage() {
             </Box>
           </HStack>
           {(optsError || optsLoading) && (
-            <Text textStyle="xs" color={optsError ? 'fg.warning' : 'fg.muted'}>
+            <Text textStyle="xs" color={optsError ? 'fg.warning' : 'fg.muted'} display={shown('block')}>
               {optsLoading
                 ? "Reading Trends' locations and categories through San Remote (once; the tower keeps them)..."
                 : `Trends' locations and categories are not read yet: ${optsError}`}{' '}
@@ -585,7 +698,16 @@ export function KeywordResearchPage() {
             </Text>
           )}
 
-          <Box flex="1" minH="80" position="relative" borderWidth="1px" rounded="md" bg="bg.panel" overflow="hidden">
+          <Box
+            flex="1"
+            minH="80"
+            position="relative"
+            borderWidth="1px"
+            rounded="md"
+            bg="bg.panel"
+            overflow="hidden"
+            display={shown('block')}
+          >
             {graph.nodes.length === 0 ? (
               <Text color="fg.muted" p="4">
                 No keywords yet: Run looks up the seed keyword's related queries first.
@@ -600,9 +722,27 @@ export function KeywordResearchPage() {
                   focus={focus}
                   layout={layout}
                   fit={fit}
+                  dragMode={dragMode}
                   onSelect={setSelected}
+                  onMenu={(name, at, names) => setMenu({ name, at, names })}
                 />
                 <HStack position="absolute" top="2" left="2" gap="1">
+                  {/* Pan or Select: the icon is the mode it is in; a click
+                      switches. */}
+                  <IconButton
+                    size="xs"
+                    variant="outline"
+                    bg="bg.panel"
+                    aria-label={dragMode === 'pan' ? 'Drag pans' : 'Drag selects'}
+                    title={
+                      dragMode === 'pan'
+                        ? 'Drag on empty space pans (Shift+drag selects). Click to make a drag select.'
+                        : 'Drag on empty space selects keywords (the wheel zooms). Click to make a drag pan.'
+                    }
+                    onClick={switchDragMode}
+                  >
+                    {dragMode === 'pan' ? <HandIcon /> : <SquareDashedMousePointerIcon />}
+                  </IconButton>
                   {/* Relayout, Fit and Download CSV (the user, 2026-11-12). */}
                   <Button
                     size="xs"
@@ -676,18 +816,56 @@ export function KeywordResearchPage() {
                     color={communityColor(p, node.community)}
                     onSelect={setSelected}
                     onExplore={(name) => void explore(name)}
+                    onBlacklist={(name) => void blacklist([name])}
                     onClose={() => setSelected(undefined)}
                   />
                 )}
               </>
             )}
           </Box>
-          <Text fontSize="xs" color="fg.muted">
+          <Text fontSize="xs" color="fg.muted" display={shown('block')}>
             {graph.nodes.length} keywords, {graph.edges.length} links, {graph.communities.length} communities · fill:
             community · size: search interest · solid link: Top · dashed link: Rising · dashed border: found only as
-            Rising · thick border: the seed · click a keyword for where it was found · drag to pan · wheel to zoom
+            Rising · thick border: the seed · click a keyword for where it was found · right-click for its menu ·
+            Shift+drag (or Select) picks several, Ctrl+click one more, Escape none · drag to pan · wheel to zoom
           </Text>
+          {tab === 'blacklist' && <BlacklistPanel research={k} keywords={graph.nodes.length} />}
         </>
+      )}
+      {menu && graph && k && (
+        <KeywordMenu
+          menu={menu}
+          graph={graph}
+          research={k}
+          onClose={() => setMenu(undefined)}
+          onBlacklist={(names) => void blacklist(names)}
+          onExplore={(name) => void explore(name)}
+          onCopy={(names) => void copy(names)}
+        />
+      )}
+      {confirm && (
+        <FormDialog
+          title={
+            confirm.entries.length === 1
+              ? `Blacklist '${confirm.entries[0]}' and remove ${plural(confirm.removed.length, 'keyword')}?`
+              : `Blacklist ${confirm.entries.length} keywords and remove ${confirm.removed.length}?`
+          }
+          submitText="Blacklist"
+          danger
+          onClose={() => setConfirm(undefined)}
+          onSubmit={() => addBlacklist(confirm.entries)}
+        >
+          <Text>
+            {confirm.entries.length === 1 ? 'It becomes a blacklist entry' : 'Each becomes a blacklist entry'}: the
+            keywords that have its words and those found only through them leave the graph, and a crawl never adds them
+            again. Taking an entry out of the blacklist later does not bring them back.
+          </Text>
+          {confirm.seedStays && <Text color="fg.warning">The seed stays: it cannot be blacklisted.</Text>}
+          <Text textStyle="sm" color="fg.muted" data-testid="blacklist-removes">
+            Removes: {confirm.removed.slice(0, 12).join(', ')}
+            {confirm.removed.length > 12 ? ` and ${confirm.removed.length - 12} more` : ''}
+          </Text>
+        </FormDialog>
       )}
       {asking === 'clear' && (
         <FormDialog
@@ -728,6 +906,90 @@ export function KeywordResearchPage() {
         </FormDialog>
       )}
     </Stack>
+  );
+}
+
+// KeywordMenu is a right-click's menu on the graph, at the pointer: for one
+// keyword Add to blacklist (never the seed), Open in Google Trends, Explore
+// from here and Copy keyword; for a selection of several, Add N keywords to
+// blacklist (the seed left out) and Copy keywords, one per line. Its
+// trigger is an empty box at the pointer, as the Knowledge graph's: a menu
+// opened from code ignores its anchorPoint prop. A new key per opening
+// places it afresh.
+function KeywordMenu({
+  menu,
+  graph,
+  research,
+  onClose,
+  onBlacklist,
+  onExplore,
+  onCopy,
+}: {
+  menu: { name: string; names: string[]; at: { x: number; y: number } };
+  graph: Graph;
+  research: KeywordResearch;
+  onClose: () => void;
+  onBlacklist: (names: string[]) => void;
+  onExplore: (name: string) => void;
+  onCopy: (names: string[]) => void;
+}) {
+  const node = graph.nodes.find((n) => n.name === menu.name);
+  if (!node) return null;
+  const several = menu.names.length > 1;
+  const seed = graph.nodes.find((n) => n.seed)?.name;
+  const blacklistable = menu.names.filter((n) => n !== seed).length;
+  const queued = research.progress?.keyword === node.name;
+  return (
+    <Menu.Root
+      key={`${menu.at.x},${menu.at.y}`}
+      open
+      positioning={{ placement: 'bottom-start', gutter: 2 }}
+      onOpenChange={(e) => !e.open && onClose()}
+      onSelect={(e) => {
+        if (e.value === 'blacklist') onBlacklist(menu.names);
+        if (e.value === 'explore') onExplore(node.name);
+        if (e.value === 'copy') onCopy(menu.names);
+      }}
+    >
+      <Menu.Trigger asChild>
+        <Box position="fixed" left={`${menu.at.x}px`} top={`${menu.at.y}px`} w="0" h="0" pointerEvents="none" />
+      </Menu.Trigger>
+      <Portal>
+        <Menu.Positioner>
+          <Menu.Content minW="52">
+            <Menu.ItemGroup>
+              <Menu.ItemGroupLabel maxW="72" truncate>
+                {several ? `${menu.names.length} keywords selected` : node.name}
+              </Menu.ItemGroupLabel>
+              {blacklistable > 0 && (
+                <Menu.Item value="blacklist" color="fg.error">
+                  <BanIcon />
+                  {several ? `Add ${plural(blacklistable, 'keyword')} to blacklist` : 'Add to blacklist'}
+                </Menu.Item>
+              )}
+              {!several && (
+                <>
+                  <Menu.Item value="trends" asChild>
+                    <a href={exploreLink(node.name, research.filters)} target="_blank" rel="noreferrer">
+                      <ExternalLinkIcon />
+                      Open in Google Trends
+                    </a>
+                  </Menu.Item>
+                  <Menu.Item value="explore" disabled={node.explored || queued || research.settingsChanged}>
+                    <SearchIcon />
+                    Explore from here
+                  </Menu.Item>
+                </>
+              )}
+              <Menu.Item value="copy">
+                <CopyIcon />
+                {several ? 'Copy keywords' : 'Copy keyword'}
+              </Menu.Item>
+            </Menu.ItemGroup>
+          </Menu.Content>
+        </Menu.Positioner>
+      </Portal>
+    </Menu.Root>
   );
 }
 
@@ -828,8 +1090,8 @@ function Legend({
 
 // NodePanel is a keyword's side panel: its values, the keywords it was found
 // from with the value it had in each (the user, 2026-11-11: "from
-// 'aplikasi kasir' (interest 80)"), the ones it found, Open in Google Trends
-// and Explore from here.
+// 'aplikasi kasir' (interest 80)"), the ones it found, Open in Google Trends,
+// Explore from here and Add to blacklist (not on the seed).
 function NodePanel({
   node,
   graph,
@@ -837,6 +1099,7 @@ function NodePanel({
   color,
   onSelect,
   onExplore,
+  onBlacklist,
   onClose,
 }: {
   node: KeywordNode;
@@ -845,6 +1108,7 @@ function NodePanel({
   color: string;
   onSelect: (name: string) => void;
   onExplore: (name: string) => void;
+  onBlacklist: (name: string) => void;
   onClose: () => void;
 }) {
   const from = graph.edges.filter((e) => e.to === node.name);
@@ -915,6 +1179,18 @@ function NodePanel({
           <SearchIcon />
           Explore from here
         </Button>
+        {!node.seed && (
+          <Button
+            size="xs"
+            variant="outline"
+            colorPalette="red"
+            title="Blacklist this keyword: it and the keywords found only through it leave the graph, and a crawl never adds them again"
+            onClick={() => onBlacklist(node.name)}
+          >
+            <BanIcon />
+            Add to blacklist
+          </Button>
+        )}
       </HStack>
       {from.length > 0 && (
         <Stack gap="0.5">

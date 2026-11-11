@@ -1,6 +1,14 @@
 import { Box, Text } from '@chakra-ui/react';
 import cytoscape from 'cytoscape';
-import type { Core, CoseLayoutOptions, EdgeSingular, NodeCollection, NodeSingular, StylesheetJson } from 'cytoscape';
+import type {
+  CollectionReturnValue,
+  Core,
+  CoseLayoutOptions,
+  EdgeSingular,
+  NodeCollection,
+  NodeSingular,
+  StylesheetJson,
+} from 'cytoscape';
 import { useEffect, useRef, useState } from 'react';
 import type { KeywordCommunity, KeywordEdge, KeywordNode } from '../gen/san/tower/v1/keyword_research_pb';
 import { useDark } from '../knowledge/GraphCanvas';
@@ -104,6 +112,41 @@ function pulse(els: NodeCollection, p: Colors) {
   });
 }
 
+// FADE_MS is how long a keyword taken out (blacklisted) takes to fade out.
+const FADE_MS = 350;
+
+// fadeOut takes keywords and links out with a quick fade (the user,
+// 2026-11-12: blacklisted ones, "remove the node and child"); nothing else
+// moves. One that comes back during the fade (revive) stays.
+function fadeOut(els: CollectionReturnValue) {
+  els.unselect();
+  els.forEach((el) => {
+    el.scratch('_fading', true);
+    el.animate(
+      { style: { opacity: 0 } },
+      {
+        duration: FADE_MS,
+        complete: () => {
+          if (el.scratch('_fading') && !el.removed()) el.remove();
+        },
+      },
+    );
+  });
+}
+
+// revive keeps an element that was fading out.
+function revive(el: CollectionReturnValue) {
+  if (!el.scratch('_fading')) return;
+  el.scratch('_fading', false);
+  el.stop(true, false);
+  el.removeStyle('opacity');
+}
+
+// DragMode is what a drag on empty space does (the user, 2026-11-12: "Add
+// select area"): pan the view, or draw a box that selects the keywords in
+// it. In Pan, Shift+drag selects too.
+export type DragMode = 'pan' | 'select';
+
 function style(p: Colors): StylesheetJson {
   return [
     {
@@ -156,19 +199,44 @@ function style(p: Colors): StylesheetJson {
       style: { 'border-color': p.accent, 'border-width': 5, 'border-style': 'solid', 'font-weight': 700 },
     },
     { selector: '.faded', style: { opacity: 0.15 } },
+    // The keywords picked by a box, Ctrl+click or a click: an outline.
+    {
+      selector: 'node:selected',
+      style: { 'outline-width': 3, 'outline-color': p.accent, 'outline-offset': 3, 'outline-opacity': 0.9 },
+    },
+    // The selection box in the accent colour (cytoscape's types ask every
+    // core property).
+    {
+      selector: 'core',
+      style: {
+        'selection-box-color': p.accent,
+        'selection-box-border-color': p.accent,
+        'selection-box-opacity': 0.12,
+        'selection-box-border-width': 1,
+      },
+    } as unknown as StylesheetJson[number],
   ];
 }
 
 type Tip = { x: number; y: number; node: KeywordNode };
 
 // KeywordGraph draws a research's keywords and links. A click on a keyword
-// selects it (onSelect), on the background nothing. It draws changes, not
+// selects it (onSelect), on the background nothing. Several keywords can be
+// selected too (the user, 2026-11-12: "Add select area and right click add
+// to blacklist too"): Shift+drag on empty space (or a plain drag in Select,
+// dragMode) draws a box that selects the keywords in it, Ctrl/Cmd+click
+// adds or takes out one, and they get an outline; Escape or a click on
+// empty space clears them. A right-click on a keyword asks for its menu at
+// the pointer (onMenu): with the whole selection when the keyword is in a
+// selection of several, else with it alone, which it then selects; the
+// browser's own menu is kept off the graph. It draws changes, not
 // the whole graph again: nodes and edges are compared with what it drew by
 // object (the page replaces only what a change touched, live.ts), so a
 // changed keyword is updated in place (size, colour, community, kind), a
 // new one is put next to the keyword it was found from, fades in with a
 // pulse, and a short layout of only the new ones and the keywords they came
-// from (held still) spreads them; one that is gone is taken out. A new
+// from (held still) spreads them; one that is gone (blacklisted) fades out,
+// the rest left where it is (all at once when every one is gone). A new
 // layout number lays the whole graph out again by community; a new fit
 // number fits it in view. While a crawl grows it, the whole graph is kept
 // in view after each change until the user zooms or pans by hand (then the
@@ -182,7 +250,9 @@ export function KeywordGraph({
   focus,
   layout,
   fit,
+  dragMode,
   onSelect,
+  onMenu,
 }: {
   nodes: KeywordNode[];
   edges: KeywordEdge[];
@@ -191,12 +261,18 @@ export function KeywordGraph({
   focus?: number;
   layout: number;
   fit: number;
+  dragMode: DragMode;
   onSelect: (name?: string) => void;
+  onMenu?: (name: string, at: { x: number; y: number }, selection: string[]) => void;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const cy = useRef<Core>(null);
   const select = useRef(onSelect);
   select.current = onSelect;
+  const menu = useRef(onMenu);
+  menu.current = onMenu;
+  const mode = useRef(dragMode);
+  mode.current = dragMode;
   const byName = useRef(new Map<string, KeywordNode>());
   // What it drew: each keyword and relationship as last given.
   const drawnNodes = useRef(new Map<string, KeywordNode>());
@@ -208,11 +284,50 @@ export function KeywordGraph({
   const dark = useDark();
 
   useEffect(() => {
-    const c = cytoscape({ container: box.current, minZoom: 0.05, maxZoom: 3, hideEdgesOnViewport: true });
-    c.on('tap', 'node', (e) => select.current(e.target.id()));
-    c.on('tap', (e) => {
-      if (e.target === c) select.current(undefined);
+    const c = cytoscape({
+      container: box.current,
+      minZoom: 0.05,
+      maxZoom: 3,
+      hideEdgesOnViewport: true,
+      boxSelectionEnabled: true,
+      selectionType: 'single',
     });
+    // Ctrl/Cmd (or Shift) + click only adds to or takes from the selection
+    // (cytoscape does that itself); a plain click opens the keyword.
+    const adding = (ev: Event | undefined) => {
+      const m = ev as MouseEvent | undefined;
+      return !!m && (m.ctrlKey || m.metaKey || m.shiftKey);
+    };
+    c.on('tap', 'node', (e) => {
+      if (!adding(e.originalEvent)) select.current(e.target.id());
+    });
+    c.on('tap', (e) => {
+      if (e.target === c && !adding(e.originalEvent)) select.current(undefined);
+    });
+    c.on('cxttap', 'node', (e) => {
+      setTip(undefined);
+      const at = e.originalEvent as MouseEvent;
+      const n = e.target as NodeSingular;
+      const picked = c.nodes(':selected');
+      let names = [n.id()];
+      if (n.selected() && picked.length > 1) {
+        names = picked.map((x) => x.id());
+      } else {
+        picked.unselect();
+        n.select();
+        select.current(n.id());
+      }
+      menu.current?.(n.id(), { x: at.clientX, y: at.clientY }, names);
+    });
+    // Escape clears the selection, unless it closes a menu or is typed.
+    const onKey = (ev: KeyboardEvent) => {
+      const t = ev.target as HTMLElement | null;
+      if (ev.key !== 'Escape' || ev.defaultPrevented || !box.current?.offsetParent) return;
+      if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+      if (document.querySelector('[role=menu][data-state=open], [role=dialog][data-state=open]')) return;
+      c.nodes(':selected').unselect();
+    };
+    window.addEventListener('keydown', onKey);
     c.on('mouseover', 'node', (e) => {
       const n = byName.current.get(e.target.id());
       const p = e.target.renderedPosition();
@@ -221,12 +336,21 @@ export function KeywordGraph({
     c.on('mouseout', 'node', () => setTip(undefined));
     c.on('viewport', () => setTip(undefined));
     c.on('tapstart', (e) => {
-      if (e.target === c) moved.current = true; // a pan starts on the background
+      // A pan starts on the background (in Pan, without Shift).
+      if (e.target === c && mode.current === 'pan' && !adding(e.originalEvent)) moved.current = true;
     });
     const wheel = () => (moved.current = true);
     const el = box.current!;
     el.addEventListener('wheel', wheel, { passive: true });
-    const resized = new ResizeObserver(() => c.resize());
+    // Hidden (another tab of the page) it has no size: shown again, it is
+    // fitted unless the view was moved by hand.
+    let hidden = false;
+    const resized = new ResizeObserver(() => {
+      c.resize();
+      const none = c.width() === 0 || c.height() === 0;
+      if (hidden && !none && !moved.current && c.nodes().nonempty()) fitView(c, 0);
+      hidden = none;
+    });
     resized.observe(el);
     cy.current = c;
     // A new instance has drawn nothing (React's StrictMode makes it twice in
@@ -236,11 +360,18 @@ export function KeywordGraph({
     plain.current = false;
     return () => {
       el.removeEventListener('wheel', wheel);
+      window.removeEventListener('keydown', onKey);
       resized.disconnect();
       c.destroy();
       cy.current = null;
     };
   }, []);
+
+  // Pan or Select: in Select a drag on empty space draws the box (cytoscape
+  // box-selects when panning is off), in Pan it pans and Shift+drag boxes.
+  useEffect(() => {
+    cy.current?.userPanningEnabled(dragMode === 'pan');
+  }, [dragMode]);
 
   useEffect(() => {
     const c = cy.current;
@@ -266,11 +397,14 @@ export function KeywordGraph({
     const parentOf = new Map<string, string>();
     for (const e of edges) if (!parentOf.has(e.to)) parentOf.set(e.to, e.from);
     const ring = new Map<string, string[]>();
+    let fading = c.collection();
     c.batch(() => {
-      // Gone (the graph was cleared or read again): taken out.
+      // Gone (blacklisted, or the graph cleared or read again): faded out,
+      // or taken out at once when nothing is left.
       for (const name of [...drawnNodes.current.keys()]) {
         if (!byName.current.has(name)) {
-          c.getElementById(name).remove();
+          const el = c.getElementById(name);
+          fading = fading.union(el).union(el.connectedEdges());
           drawnNodes.current.delete(name);
           placed.delete(name);
         }
@@ -278,9 +412,13 @@ export function KeywordGraph({
       const keys = new Set(edges.map(edgeKey));
       for (const k of [...drawnEdges.current.keys()]) {
         if (!keys.has(k)) {
-          c.getElementById(k).remove();
+          fading = fading.union(c.getElementById(k));
           drawnEdges.current.delete(k);
         }
+      }
+      if (nodes.length === 0) {
+        fading.remove();
+        fading = c.collection();
       }
       // New keywords added, changed ones updated in place.
       for (const n of nodes) {
@@ -289,6 +427,8 @@ export function KeywordGraph({
         if (was === n && drawn.nonempty()) continue;
         drawnNodes.current.set(n.name, n);
         if (drawn.nonempty()) {
+          revive(drawn);
+          fading = fading.difference(drawn);
           drawn.data(nodeData(n, p));
           setClasses(drawn, n);
           continue;
@@ -316,13 +456,17 @@ export function KeywordGraph({
         if (c.getElementById(e.from).empty() || c.getElementById(e.to).empty()) continue;
         if (drawn.empty()) {
           const data = { id: k, source: e.from, target: e.to, rel: e.rel };
-          c.add({ group: 'edges', data, classes: big ? 'plain' : '' });
+          c.add({ group: 'edges', data, classes: big ? 'plain' : '', selectable: false });
+        } else {
+          revive(drawn);
+          fading = fading.difference(drawn);
         }
         drawnEdges.current.set(k, e);
       }
       if (big !== plain.current) c.edges().toggleClass('plain', big);
       plain.current = big;
     });
+    if (fading.nonempty()) fadeOut(fading);
     if (first) {
       if (c.nodes().nonempty()) runLayout(c, true);
       moved.current = false;
@@ -398,7 +542,7 @@ export function KeywordGraph({
   const communityName = (id: number) => communities.find((x) => x.id === id)?.name;
   return (
     <>
-      <Box ref={box} position="absolute" inset="0" />
+      <Box ref={box} position="absolute" inset="0" onContextMenu={(e) => e.preventDefault()} />
       {tip && (
         <Box
           position="absolute"
@@ -490,8 +634,9 @@ function runLayout(c: Core, first: boolean) {
 const FIT_ZOOM = 1.5;
 
 // fitView fits the whole graph in view, animated over duration ms (0: at
-// once).
+// once). Hidden (no size), it waits until it shows (the ResizeObserver).
 function fitView(c: Core, duration: number) {
+  if (c.width() === 0 || c.height() === 0) return;
   const max = c.maxZoom();
   c.maxZoom(FIT_ZOOM); // the fit's zoom is worked out now, within it
   if (duration) c.animate({ fit: { eles: c.elements(), padding: 40 }, duration });

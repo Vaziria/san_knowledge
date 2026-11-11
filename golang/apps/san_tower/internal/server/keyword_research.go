@@ -143,7 +143,30 @@ var researchStatuses = map[string]v1.KeywordResearchStatus{
 	store.ResearchFailed:  v1.KeywordResearchStatus_KEYWORD_RESEARCH_STATUS_FAILED,
 }
 
+// researchToProto is research k as the pages get it, with its blacklist.
 func (s *Server) researchToProto(k store.KeywordResearch) *v1.KeywordResearch {
+	bl, err := s.store.ListBlacklist(k.ID)
+	if err != nil {
+		slog.Warn("keyword research: read the blacklist", "research", k.ID, "err", err)
+	}
+	return s.researchProto(k, bl)
+}
+
+// researchesToProto is researches as researchToProto, their blacklists read
+// at once.
+func (s *Server) researchesToProto(list []store.KeywordResearch) []*v1.KeywordResearch {
+	bls, err := s.store.ListBlacklists()
+	if err != nil {
+		slog.Warn("keyword research: read the blacklists", "err", err)
+	}
+	out := make([]*v1.KeywordResearch, len(list))
+	for i, k := range list {
+		out[i] = s.researchProto(k, bls[k.ID])
+	}
+	return out
+}
+
+func (s *Server) researchProto(k store.KeywordResearch, blacklist []store.KeywordBlacklistEntry) *v1.KeywordResearch {
 	p := &v1.KeywordResearch{
 		Id: k.ID, Name: k.Name, Description: k.Description, FolderId: k.FolderID, Seed: k.Seed, DeepLimit: k.DeepLimit,
 		Filters:      &v1.KeywordFilters{Geo: k.Geo, Time: k.Time, Category: k.Category, Property: k.Property},
@@ -154,6 +177,9 @@ func (s *Server) researchToProto(k store.KeywordResearch) *v1.KeywordResearch {
 	}
 	if k.LastRunAt != nil {
 		p.LastRunAt = timestamppb.New(*k.LastRunAt)
+	}
+	for _, e := range blacklist {
+		p.Blacklist = append(p.Blacklist, &v1.KeywordBlacklistEntry{Entry: e.Entry, AddedAt: timestamppb.New(e.CreatedAt), Removed: e.Removed})
 	}
 	if s.crawler != nil {
 		if pr, ok := s.crawler.Progress(k.ID); ok {
@@ -185,11 +211,7 @@ func (s *Server) ListResearches(_ context.Context, req *connect.Request[v1.ListR
 	if err != nil {
 		return nil, storeError(err)
 	}
-	res := &v1.ListResearchesResponse{Researches: make([]*v1.KeywordResearch, len(list))}
-	for i, k := range list {
-		res.Researches[i] = s.researchToProto(k)
-	}
-	return connect.NewResponse(res), nil
+	return connect.NewResponse(&v1.ListResearchesResponse{Researches: s.researchesToProto(list)}), nil
 }
 
 func (s *Server) GetResearch(_ context.Context, req *connect.Request[v1.GetResearchRequest]) (*connect.Response[v1.GetResearchResponse], error) {
@@ -371,6 +393,36 @@ func (s *Server) ClearResearchGraph(_ context.Context, req *connect.Request[v1.C
 		return nil, err
 	}
 	return connect.NewResponse(&v1.ClearResearchGraphResponse{Research: k}), nil
+}
+
+// AddToBlacklist adds entries to a research's blacklist and takes what they
+// match out of its graph, with the keywords found only through them
+// (keywordresearch.Crawler.Blacklist); dry_run only says what it would take
+// out, for the page's count before Add.
+func (s *Server) AddToBlacklist(_ context.Context, req *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error) {
+	m := req.Msg
+	r, err := s.crawler.Blacklist(m.GetId(), m.GetEntries(), m.GetDryRun())
+	if err != nil {
+		return nil, researchError(err)
+	}
+	k, err := s.research(m.GetId())
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&v1.AddToBlacklistResponse{Research: k, Added: r.Added, Removed: r.Removed, Matched: uint32(r.Matched)}), nil
+}
+
+// RemoveFromBlacklist takes an entry out of a research's blacklist; what it
+// took out of the graph stays out.
+func (s *Server) RemoveFromBlacklist(_ context.Context, req *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error) {
+	if err := s.crawler.Unblacklist(req.Msg.GetId(), req.Msg.GetEntry()); err != nil {
+		return nil, researchError(err)
+	}
+	k, err := s.research(req.Msg.GetId())
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&v1.RemoveFromBlacklistResponse{Research: k}), nil
 }
 
 // GetResearchGraph gives the graph with its Leiden communities. A research

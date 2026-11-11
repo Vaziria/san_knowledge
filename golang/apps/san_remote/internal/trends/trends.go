@@ -269,8 +269,10 @@ const relatedRPC = "fXqlme"
 // payload is [[[term, rising, top]]]: rising rows are [query, change,
 // interest] by change, top rows [query, interest, change] by interest
 // (2026-11-11, "aplikasi kasir": the same 48 queries in both, sorted two
-// ways). A term with too little data gives an empty payload, "[]", which is
-// no queries, not an error. link makes each item's link.
+// ways). A term with too little data gives an empty payload, "[]", or a
+// term without its rising and top parts (2026-11-12, "gamis rompi lepas
+// 2026": the page's tables empty): no queries, not an error (the user: "if
+// it dont have child query just skip"). link makes each item's link.
 func ParseRelated(body string, link func(query string) string) (top, rising []Item, err error) {
 	payload, err := rpcPayload(body, relatedRPC)
 	if err != nil {
@@ -288,8 +290,12 @@ func ParseRelated(body string, link func(query string) string) (top, rising []It
 		return []Item{}, []Item{}, nil
 	}
 	term, ok := terms[0].([]any)
-	if !ok || len(term) < 3 {
+	if terms[0] != nil && !ok {
 		return nil, nil, fmt.Errorf("%w: the related queries have an unknown shape", ErrPage)
+	}
+	// A part the term lacks, or holds as null, has no queries.
+	for len(term) < 3 {
+		term = append(term, nil)
 	}
 	rows := func(v any, interestAt, changeAt int) ([]Item, error) {
 		list, _ := v.([]any)

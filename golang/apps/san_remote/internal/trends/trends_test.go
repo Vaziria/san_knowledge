@@ -136,6 +136,23 @@ func TestParseRelated(t *testing.T) {
 	if err != nil || top == nil || rising == nil || len(top)+len(rising) != 0 {
 		t.Errorf("empty: %v %v %v", top, rising, err)
 	}
+	// A term without its rising and top parts, or with them null, is a term
+	// with no related queries (2026-11-12, "gamis rompi lepas 2026").
+	for _, payload := range []string{`[[null]]`, `[[[\"gamis rompi lepas 2026\"]]]`, `[[[\"gamis rompi lepas 2026\",null]]]`, `[[[\"gamis rompi lepas 2026\",null,null]]]`, `[[[\"gamis rompi lepas 2026\",[],[]]]]`} {
+		body := ")]}'\n\n99\n[[\"wrb.fr\",\"fXqlme\",\"" + payload + "\",null,null,null,\"generic\"]]\n"
+		top, rising, err := ParseRelated(body, nil)
+		if err != nil || top == nil || rising == nil || len(top)+len(rising) != 0 {
+			t.Errorf("%s: %v %v %v", payload, top, rising, err)
+		}
+	}
+	// A term that is no list, or a query row of another shape, is still the
+	// page's error: Trends changed.
+	for _, payload := range []string{`[[\"x\"]]`, `[[[\"x\",[[\"q\"]],[]]]]`} {
+		body := ")]}'\n\n99\n[[\"wrb.fr\",\"fXqlme\",\"" + payload + "\",null,null,null,\"generic\"]]\n"
+		if _, _, err := ParseRelated(body, nil); !errors.Is(err, ErrPage) {
+			t.Errorf("%s: %v, want ErrPage", payload, err)
+		}
+	}
 	// Trends' error reply, or none, is the page's error.
 	for _, body := range []string{
 		")]}'\n\n50\n[[\"er\",\"fXqlme\",null,null,null,429,\"generic\"]]\n",

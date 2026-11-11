@@ -433,16 +433,55 @@ export function KeywordGraph({
   );
 }
 
-// runLayout lays the whole graph out by community; first, from random
-// places. Then it fits it in view.
+// runLayout lays the whole graph out sorted by Leiden community (the user,
+// 2026-11-12: "Is Leiden sorted?"): each community is laid out on its own,
+// with the force layout inside it, then the communities are packed in rows,
+// the largest first (Leiden's 0), so each stands apart in its own place and
+// the links between them show how they touch. first: from random places.
+// Then it fits it in view.
 function runLayout(c: Core, first: boolean) {
-  c.layout({
-    ...COSE,
-    numIter: c.nodes().length > 300 ? 1200 : 2500,
-    randomize: first,
-    animate: false,
-    fit: false,
-  }).run();
+  const groups = new Map<number, NodeCollection>();
+  c.nodes().forEach((n) => {
+    const id = n.data('community') as number;
+    groups.set(id, (groups.get(id) ?? c.collection()).union(n));
+  });
+  const order = [...groups.entries()].sort((a, b) => a[0] - b[0] || b[1].length - a[1].length);
+  const boxes = order.map(([, nodes]) => {
+    if (nodes.length > 1) {
+      nodes.union(nodes.edgesWith(nodes)).layout({
+        ...COSE,
+        idealEdgeLength: () => 55,
+        edgeElasticity: () => 80,
+        componentSpacing: 40,
+        numIter: nodes.length > 300 ? 1200 : 2500,
+        randomize: first,
+        animate: false,
+        fit: false,
+      }).run();
+    }
+    return { nodes, bb: nodes.boundingBox({ includeLabels: true }) };
+  });
+  // Rows about as wide as the whole is tall, so it fits a screen.
+  const gap = 120;
+  const area = boxes.reduce((sum, b) => sum + (b.bb.w + gap) * (b.bb.h + gap), 0);
+  const width = Math.max(Math.sqrt(area) * 1.4, ...boxes.map((b) => b.bb.w));
+  let x = 0;
+  let y = 0;
+  let row = 0;
+  c.batch(() => {
+    for (const b of boxes) {
+      if (x > 0 && x + b.bb.w > width) {
+        x = 0;
+        y += row + gap;
+        row = 0;
+      }
+      const dx = x - b.bb.x1;
+      const dy = y - b.bb.y1;
+      b.nodes.positions((n) => ({ x: n.position('x') + dx, y: n.position('y') + dy }));
+      x += b.bb.w + gap;
+      row = Math.max(row, b.bb.h);
+    }
+  });
   fitView(c, 0);
 }
 

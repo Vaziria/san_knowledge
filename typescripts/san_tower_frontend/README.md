@@ -142,11 +142,12 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     now: ...`, a pause, Google's backoff, the place in the queue), or how it
     ended, and before a Run an estimate of the lookups and time; Live /
     Reconnecting... at its right. The graph (`src/keywordresearch/
-    KeywordGraph.tsx`) with Lay out again, Fit, Find a keyword, the
+    KeywordGraph.tsx`) with Relayout, Fit, Download CSV
+    (`src/keywordresearch/csv.ts`), Find a keyword, the
     communities' legend (a click shows one) and, on a click, a keyword's
     panel: its values, where it was found (with each value), what it found
-    (links left-aligned), Open in Google Trends and Explore from here. The
-    menu's Clear graph asks first. It follows the research live (the user,
+    (links left-aligned), Open in Google Trends and Explore from here.
+    Reset, by Run, empties the graph (it asks first). It follows the research live (the user,
     2026-11-11: "make it realtime"): WatchResearch's snapshot, then each
     change applied as it comes (`src/keywordresearch/live.ts`): a lookup's
     keywords and links drawn in at once, the status, progress and legend
@@ -342,9 +343,10 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   right-click on a node asks for its menu (`onMenu`, at the pointer); the
   browser's own menu is kept off the graph.
 - `src/keywordresearch/`: `KeywordGraph.tsx`, a research's graph in
-  cytoscape, grouped by Leiden community as san_knowledge's view groups one
-  (its cose layout: links in a community short and stiff, between
-  communities long and loose; its palette, light and dark): fill is the
+  cytoscape, sorted by Leiden community (the user, 2026-11-12): a full
+  layout lays each community out on its own with san_knowledge's cose
+  layout, then packs the communities in rows, the largest first (its
+  palette, light and dark); fill is the
   community, size the search interest, the seed biggest with a thick
   border, TOP links solid and RISING dashed, a keyword found only as Rising
   with a dashed border; over 600 keywords and links plain lines. It draws

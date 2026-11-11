@@ -19,12 +19,13 @@ import {
 } from '@chakra-ui/react';
 import {
   ArrowLeftIcon,
+  DownloadIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
-  EraserIcon,
   LayoutGridIcon,
   PlayIcon,
   RefreshCwIcon,
+  RotateCcwIcon,
   ScanIcon,
   SearchIcon,
   SquareIcon,
@@ -43,6 +44,7 @@ import type {
   TrendsGeo,
 } from '../gen/san/tower/v1/keyword_research_pb';
 import { useDark } from '../knowledge/GraphCanvas';
+import { downloadCsv, keywordsCsv } from '../keywordresearch/csv';
 import { communityColor, KeywordGraph, keywordColors } from '../keywordresearch/KeywordGraph';
 import { applyChange, emptyGraph, type Graph } from '../keywordresearch/live';
 import {
@@ -369,7 +371,6 @@ export function KeywordResearchPage() {
             <Menu.Root
               positioning={{ placement: 'bottom-end' }}
               onSelect={(e) => {
-                if (e.value === 'clear') setAsking('clear');
                 if (e.value === 'lists') void loadOptions(true);
               }}
             >
@@ -384,10 +385,6 @@ export function KeywordResearchPage() {
                     <Menu.Item value="lists">
                       <RefreshCwIcon />
                       Read Trends' lists again
-                    </Menu.Item>
-                    <Menu.Item value="clear" disabled={locked || graph.nodes.length === 0} color="fg.error">
-                      <EraserIcon />
-                      Clear graph
                     </Menu.Item>
                   </Menu.Content>
                 </Menu.Positioner>
@@ -535,6 +532,18 @@ export function KeywordResearchPage() {
                   Run
                 </Button>
               )}
+              {/* Reset (the user, 2026-11-12): the graph emptied, to start
+                  again from the seed; it asks first. */}
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={locked || graph.nodes.length === 0}
+                title="Delete the graph's keywords, to start again from the seed"
+                onClick={() => setAsking('clear')}
+              >
+                <RotateCcwIcon />
+                Reset
+              </Button>
             </HStack>
           </Wrap>
 
@@ -594,26 +603,37 @@ export function KeywordResearchPage() {
                   onSelect={setSelected}
                 />
                 <HStack position="absolute" top="2" left="2" gap="1">
-                  <IconButton
-                    aria-label="Lay the graph out again"
-                    title="Lay out again, by community"
+                  {/* Relayout, Fit and Download CSV (the user, 2026-11-12). */}
+                  <Button
                     size="xs"
                     variant="outline"
                     bg="bg.panel"
+                    title="Lay the graph out again, sorted by Leiden community: the largest first"
                     onClick={() => setLayout((n) => n + 1)}
                   >
                     <LayoutGridIcon />
-                  </IconButton>
-                  <IconButton
-                    aria-label="Fit the graph in view"
-                    title="Fit"
+                    Relayout
+                  </Button>
+                  <Button
                     size="xs"
                     variant="outline"
                     bg="bg.panel"
+                    title="Fit the whole graph in view"
                     onClick={() => setFit((n) => n + 1)}
                   >
                     <ScanIcon />
-                  </IconButton>
+                    Fit
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    bg="bg.panel"
+                    title="Every keyword as a CSV file: community, search interest, change, depth, where it was found"
+                    onClick={() => downloadCsv(k.name, keywordsCsv(graph.nodes, graph.edges, graph.communities))}
+                  >
+                    <DownloadIcon />
+                    Download CSV
+                  </Button>
                   {/* Find a keyword: picking one selects it, as a click does. */}
                   <Input
                     size="xs"
@@ -671,8 +691,8 @@ export function KeywordResearchPage() {
       )}
       {asking === 'clear' && (
         <FormDialog
-          title="Clear the graph?"
-          submitText="Clear graph"
+          title="Reset the graph?"
+          submitText="Reset"
           danger
           onClose={() => setAsking(undefined)}
           onSubmit={async () => {
@@ -681,7 +701,7 @@ export function KeywordResearchPage() {
             setGraph(emptyGraph);
             setSelected(undefined);
             seen.current = '';
-            toast('Cleared the graph');
+            toast('Reset the graph: Run starts again from the seed');
           }}
         >
           <Text>

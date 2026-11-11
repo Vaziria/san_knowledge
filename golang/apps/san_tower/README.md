@@ -2489,14 +2489,20 @@ connection, in the user's Chrome (San Remote's Trends site,
   · now: aplikasi kasir android`, or the place in the queue), and before a
   Run an estimate: up to N lookups and how long, from the graph's own
   average of Top queries per lookup (about 50 while it has none). The graph
-  is drawn with cytoscape, grouped by Leiden community (the cose layout of
-  san_knowledge's view): fill is the community, size the search interest,
+  is drawn with cytoscape, sorted by Leiden community (the user,
+  2026-11-12: "Is Leiden sorted?"): each community laid out on its own
+  (san_knowledge's cose layout inside it), the communities packed in rows,
+  the largest first; fill is the community, size the search interest,
   solid links Top, dashed links Rising, a dashed border a keyword found only
   as Rising, a thick border the seed. A legend of the communities (a click
-  shows only one), Lay out again, Fit, and Find a keyword. A click on a
-  keyword opens its panel: its values, the keywords it was found from with
-  the value it had in each, those it found, Open in Google Trends and
-  Explore from here. The menu's Clear graph asks first.
+  shows only one), Relayout, Fit, Download CSV (every keyword: community
+  and its name, keyword, type, search interest, change, breakout, depth,
+  looked up, found from; sorted by community, then search interest; UTF-8
+  with a byte order mark for Excel; made in the page from the graph it
+  shows) and Find a keyword. A click on a keyword opens its panel: its
+  values, the keywords it was found from with the value it had in each,
+  those it found, Open in Google Trends and Explore from here. Reset, by
+  Run, empties the graph to start again from the seed; it asks first.
 - **The crawl** (`keywordresearch/crawl.go`): the seed is depth 0. Each
   keyword looked up maps both its Top and its Rising queries (a Keyword
   node each, and a TOP or RISING relationship); only Top ones are looked up

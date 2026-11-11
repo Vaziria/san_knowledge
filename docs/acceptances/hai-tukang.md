@@ -41,6 +41,7 @@ Hai Tukang connects people who need home repairs or similar services with repair
 - Frontend: React + TypeScript with Chakra UI.
 - Primary database: PostgreSQL.
 - API: Connect RPC, defined with Buf (`golang/apps/hai-tukang/protos/`), like San Tower.
+- Hosting (agreed 2026-11-11): a small VPS in Indonesia for the pilot, running Postgres, the app and Caddy (automatic HTTPS). The owner: "And it bigger, there is possible to b": built so it can move to a managed platform later. Settings come from the environment, product photos go through a storage interface (the VPS's disk now, S3-compatible storage such as Cloudflare R2 later), and the database is backed up with pg_dump, which a managed Postgres can restore.
 
 ## Business rules
 
@@ -59,7 +60,7 @@ Proposed defaults, built so the scenarios can be checked end to end; each awaits
 - Signing up needs a one-time code sent to the phone number; without it no account is created. This comes before penalty points, so a suspended account cannot simply sign up again with an unverified number.
 - Proposed: 6-digit code, valid 5 minutes, at most 5 wrong tries, a new code after 60 seconds, at most 5 codes per number per hour.
 - Proposed: the same code flow lets a person reset a forgotten password.
-- Channel: WhatsApp. Provider: TBD, possibly Twilio later. Until chosen, development uses a sender that only writes the code to the server log. (If the provider is Twilio Verify, it makes and checks the codes itself; the code rules above then become its settings.)
+- Channel: WhatsApp. **Provider agreed (2026-11-11): Twilio**, over Meta's official WhatsApp Business platform, from Hai Tukang's own WhatsApp sender (a number not on the WhatsApp app) with an approved authentication template. Proposed: Hai Tukang keeps making and checking the codes (the rules above) and Twilio only sends them, through its Messaging API; Twilio Verify, which makes and checks codes itself, stays an option. Until the account is ready, the app keeps the mock: a sender that only writes the code to the server log (the owner, 2026-11-11: "I don't have twillio account, can we mock first"; the Twilio sender is written once there is an account).
 
 ### Visits (first release: agreed time, arrival code, no-show report)
 
@@ -160,6 +161,15 @@ Details proposed (awaiting approval; the open ones are also asked as decisions):
 - No commission during the pilot.
 - Admins can suspend a store, as any account, and hide a product.
 - **Agreed build order:** side by side. The owner sets up the pilot's accounts (domain and server, a WhatsApp Business number, a Google client ID), which mostly means waiting for approvals; meanwhile the marketplace is built: stores and products (HT-015), then orders (HT-016), then materials with a repair (HT-017).
+- Details chosen while building HT-015 (awaiting approval):
+  - Store profile: name 2–80 characters, area 2–80, address 5–300, pickup and/or delivery (at least one); delivery fee Rp 0–10.000.000 and delivery areas up to 200 characters, dropped when the store does not deliver.
+  - Product: name 2–120 characters, one kind of work, price Rp 1–1.000.000.000 per unit, unit 1–20 characters (free text), available or sold out, description up to 1000 characters. No limit yet on the number of products.
+  - Photos: JPEG, PNG or WebP, up to 10 MB and 40 million pixels; the phone shrinks a photo before upload and the server keeps it as JPEG, at most 1600 pixels on its longer side, without anything else the file carried (a phone photo's GPS position). Photos are served at a random, unguessable address that anyone with the link can open.
+  - Search needs a sign-in, as for repairmen: available products first, then sold out, newest change first, at most 50. A hidden product, or any product of a suspended store, is not found; the store still sees it, marked "Disembunyikan admin".
+  - Hiding or showing a product is an admin decision with a reason, logged with the product and its store; the admin sees a store's profile and all its products when looking the store up.
+  - Until orders (HT-016), customers ask the store on WhatsApp from the product page. Customers shop in a "Belanja bahan" tab; repairmen do not have it yet (HT-017).
+  - Stores do not see the push-notification prompt (it is about visits) and have no penalty points; they can be suspended by hand.
+  - The Terms and Policies got a new version (11 November 2026) with a "Toko dan bahan" section; everyone agrees again.
 - Later, not in this step: payment in the app (DOKU), courier booking (GoSend/GrabExpress), stock counts, ratings.
 
 ## Acceptance scenarios
@@ -182,7 +192,7 @@ Add one scenario per agreed business outcome. Each criterion should be observabl
 | HT-012 | An account was closed after its third suspension | An admin reviews it | The account is reopened or stays closed, with the reason recorded | Built, with suspending and lifting by hand — awaiting approval |
 | HT-013 | A person wants to sign up without making a password | They continue with Google, choose customer or repairman, and verify their phone number by WhatsApp code | The account is created and signed in; later, "Lanjutkan dengan Google" signs them straight in | Built — awaiting approval |
 | HT-014 | A person signs up, or the terms change | They read the Terms and Policies and agree | No account is created without agreeing; the agreed version and time are recorded; after a change, the app asks again before it can be used | Built — awaiting approval |
-| HT-015 | A store owner wants to sell repair materials | They sign up as a store and list products with prices | Customers in its area can find those products | Agreed — details proposed, not built |
+| HT-015 | A store owner wants to sell repair materials | They sign up as a store and list products with prices | Customers in its area can find those products | Built: store sign-up (third choice "Jual bahan"), store profile with pickup and/or its own delivery (fee, areas), products with up to 5 photos, search by words, kind of work and area (the store's or where it delivers), product page with WhatsApp to the store; an admin can hide a product or suspend the store — awaiting approval |
 | HT-016 | A customer needs materials but no repairman | They find a product, order it from the store for pickup or delivery, and the store accepts | The order goes through ready or delivered to received, with its total shown to both; payment happens between them | Agreed — details proposed, not built |
 | HT-017 | A repairman responds to a request and the job needs materials | He adds a material list from a store; the customer orders it with the visit | The store prepares it, the repairman picks it up with the order code (or the store delivers before the visit), and the customer sees materials and labour as separate lines | Agreed — details proposed, not built |
 
@@ -199,4 +209,4 @@ Add one scenario per agreed business outcome. Each criterion should be observabl
 - Are payments, fees, reviews, or dispute handling part of the app?
 - What kinds of work count as "similar" to home repair?
 - What specific outcome will the business approver use to accept the first release?
-- Which WhatsApp provider sends the codes (possibly Twilio), and from which business number? Each message costs money.
+- Which business number sends the WhatsApp codes through Twilio? Each message costs money (Meta's fee plus Twilio's).

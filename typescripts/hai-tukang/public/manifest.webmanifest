@@ -1,0 +1,10 @@
+{
+  "name": "Hai Tukang",
+  "short_name": "Hai Tukang",
+  "lang": "id",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FCF6E9",
+  "theme_color": "#FCF6E9"
+}

@@ -169,6 +169,9 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	// Runs still going are cut short and recorded before the database closes.
 	defer eng.Close()
 	s := server.New(version, b, st, eng, rm)
+	// The keyword research crawl that runs is recorded as stopped before
+	// the database closes.
+	defer s.Close()
 	s.LAN, s.OnRestart = lan, restart
 	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
 	// HTTP/2 without TLS for the broker's Subscribe stream, and pings that
@@ -192,9 +195,12 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	case <-ctx.Done():
 	}
 	// The triggers' streams stop first, then the broker inside the tower ends
-	// the Subscribe streams still open, so Shutdown does not wait on them.
+	// the Subscribe streams still open, and the keyword research pages'
+	// watch streams end (with the crawl that runs), so Shutdown does not
+	// wait on them.
 	eng.Close()
 	b.Close()
+	s.Close()
 	sctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return srv.Shutdown(sctx)

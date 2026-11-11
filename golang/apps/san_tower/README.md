@@ -2459,6 +2459,141 @@ storage, message broker, browser remote, knowledge, deploying), with
 frontmatter domains and summaries and links between them; its sections
 wait for Summarize.
 
+## Keyword Research
+
+A keyword research (the user, 2026-11-11; `store/keyword_research.go`,
+`keywordresearch/`, `server/keyword_research.go`, KeywordResearchService)
+maps a seed keyword's related queries on Google Trends into a graph, on the
+Keyword Research page, after Knowledge. The lookups go through a San Remote
+connection, in the user's Chrome (San Remote's Trends site,
+`san.remote.trends.v1.TrendsService`, which reads Trends' new Explore).
+
+- **The list** (`/keyword-research`): the researches one folder at a time,
+  in a tree of their own (`keyword_research_folders`; the same folder code
+  as the workflows' and the knowledge's), with search across every folder,
+  New research (name, description, seed keyword), Rename, Move to...,
+  Duplicate (with its graph, as "<name> (copy)"; a running one's copy is
+  Stopped) and Delete (with its graph; a running one stops first). Its
+  status column (Idle, Waiting, Running, Stopped, Done, Failed) and keyword
+  counts are live.
+- **A research's page** (`/keyword-research/<id>`): across the top the seed
+  keyword, the deep limit (1 to 6), Trends' filters as Trends lists them
+  (Location and Region, Date range with Custom range, Category, Search
+  type), the San Remote connection, saved as they change, and Run or Stop.
+  The filters start at Indonesia, Past 12 months, All categories, Web Search
+  and deep limit 2. Trends' lists are read through San Remote the first
+  time (a Pickers call, which shows a Trends tab for some seconds) and kept
+  in `<data>/keyword_research/trends_options.json` (a country's regions
+  when it is picked; "Read Trends' lists again" in the page's menu reads
+  them again). Under them the status line (`Running · 48 keywords · depth 1
+  · now: aplikasi kasir android`, or the place in the queue), and before a
+  Run an estimate: up to N lookups and how long, from the graph's own
+  average of Top queries per lookup (about 50 while it has none). The graph
+  is drawn with cytoscape, grouped by Leiden community (the cose layout of
+  san_knowledge's view): fill is the community, size the search interest,
+  solid links Top, dashed links Rising, a dashed border a keyword found only
+  as Rising, a thick border the seed. A legend of the communities (a click
+  shows only one), Lay out again, Fit, and Find a keyword. A click on a
+  keyword opens its panel: its values, the keywords it was found from with
+  the value it had in each, those it found, Open in Google Trends and
+  Explore from here. The menu's Clear graph asks first.
+- **The crawl** (`keywordresearch/crawl.go`): the seed is depth 0. Each
+  keyword looked up maps both its Top and its Rising queries (a Keyword
+  node each, and a TOP or RISING relationship); only Top ones are looked up
+  in turn, breadth first, until the deep limit (the user, 2026-11-11: "from
+  parent we explore top queries until deep limit"). A keyword is never
+  looked up twice. Run on a graph that has keywords goes on from where it
+  was; Stop ends the crawl after the lookup it is doing (what was found
+  stays), and Run then goes on. Explore from here looks up one keyword once,
+  past the deep limit or a Rising one too. A graph made with another seed or
+  other filters is not continued: Run asks to clear it ("The graph was made
+  with other settings: clear it and start over?"). Between lookups it
+  pauses 3 to 7 s (the user, 2026-11-11: "Never hammer it"). A lookup may
+  take up to 240 s (the tab is shown for it, and Windows may keep Chrome
+  behind until the user clicks its flashing taskbar button). Google limiting
+  the browser (San Remote's ResourceExhausted) waits 1, 3 and 10 minutes
+  and tries again, then fails with what to do; a keyword Trends refuses is
+  passed over; another failure is tried once more. The deep limit is read
+  again before each lookup, so raising it while it runs goes deeper.
+- **One crawl at a time** in the whole tower (they share the user's
+  Chrome): another research's Run or Explore waits its turn (Waiting, with
+  its place in the queue), and Stop takes a waiting one out. A running crawl
+  counts as a run in progress (GetStatus's `runs_in_progress`), so `dev
+  --watch` and Restart wait for it. The tower stopping ends it (recorded as
+  Stopped: Run goes on); one left Running by a killed tower is marked
+  Stopped when the tower starts.
+- **Live** (the user, 2026-11-11: "is crawl realtime update the graph? make
+  it realtime"): the pages do not poll. WatchResearch streams a research:
+  first a snapshot (the research, its whole graph and communities), then
+  each change as it happens: the research again when its status, progress,
+  counts or settings change; what each lookup wrote (KeywordGraphChange:
+  the keyword looked up and each keyword it found, as they are now, its
+  TOP and RISING relationships, every Leiden community worked out again,
+  and the other keywords whose community changed) right after it is
+  written to the graph file; a new snapshot after Clear; `deleted`; and a
+  heartbeat every 15 s. WatchResearches streams the list: every research
+  and folder, then a research as it changes, and the whole list again when
+  researches or folders are made, moved or deleted. Behind them is
+  `keywordresearch.Watch` (`watch.go`), an in-process hub: the crawler and
+  the service tell it of each change, and each watcher (several tabs can
+  watch one research) has a buffered channel of its own; one that falls
+  128 changes behind (a slow or gone page) is dropped (its stream ends with
+  Unavailable), never waited for, so a page cannot hold the crawl. A change
+  carries its values as they are, so one that comes twice changes nothing.
+  The page draws each change into the graph without laying it out again:
+  new keywords start next to the keyword they were found from, a short
+  layout spreads only them (the others stay put), and they fade in with a
+  pulse; changed ones are updated in place (size, colour, community), with
+  the legend and the status line. The full community layout runs on the
+  button and once when a crawl ends. A dropped stream (a tower restart) is
+  opened again after 1, 2, 4 ... 30 s and starts from a new snapshot; a
+  small Live / Reconnecting... shows which, and only while it is down the
+  page asks every 15 s. A hidden tab closes its stream (the browser keeps
+  six connections to the tower for all its tabs) and opens it again when
+  it shows. The streams are Connect server streams, through Vite's proxy in
+  dev too.
+
+### The graph file
+
+Each research's graph is a goraphdb graph of its own (the user,
+2026-11-11: "Every research is independent graph file that using goraph"),
+in `<data>/keyword_research/<id>/shard_0000.db` (one bbolt file), opened
+per use (bbolt lets one opener at a time, so the crawl's writes and the
+page's reads take turns; another program holding it gives "the graph's
+file is open in another program").
+
+- A node labelled `Keyword` per unique keyword, by its normalized `name`
+  (trimmed, lower case, spaces collapsed; indexed), with `search_interest`
+  (the highest seen, 0-100), `change` (the highest seen, in percent),
+  `change_text` (as Trends writes it: "+350%", "Breakout"), `breakout`,
+  `depth` (the smallest it was found at; the seed is 0), `explored` and
+  `explored_at`, `seed`, `top` and `rising` (found in a Top list, in a
+  Rising list), and `found_at`.
+- A `TOP` or `RISING` relationship from the keyword looked up to each
+  keyword it found, with that list's `search_interest`, `change`,
+  `change_text`, `breakout` and `found_at`. A keyword found from several
+  keywords has several: it is a graph, not a tree.
+- The Leiden communities (san_knowledge's `graph.Leiden`, relationships
+  undirected, once per pair) are worked out when read, not stored: 0 is the
+  largest, each named after its keyword of the highest search interest.
+
+Cypher on it (goraphdb takes one relationship per pattern; `TestCypher`
+runs these):
+
+```cypher
+MATCH (a:Keyword)-[r:RISING]->(b) RETURN b.name, r.change
+MATCH (k:Keyword) WHERE k.depth = 1 RETURN k.name, k.search_interest ORDER BY k.search_interest DESC LIMIT 2
+MATCH (s:Keyword {seed: true})-[r:TOP]->(k) RETURN k.name, r.search_interest
+MATCH (k:Keyword {breakout: true}) RETURN k.name
+MATCH (k:Keyword {explored: false}) WHERE k.depth < 2 RETURN k.name
+```
+
+A live check (2026-11-11): seed "aplikasi kasir", Indonesia, Past 12
+months gave 138 keywords and 240 links in three communities ("kode pos",
+"aplikasi kasir", "pos kasir") after 6 lookups. Trends lists about 48-50 Top
+queries a keyword, so deep limit 2 is about 51 lookups (some 7-12 minutes),
+and each level more multiplies that by about 50.
+
 ## Data
 
 `--data` (default `data`, relative to where the tower runs; `$env:SAN_TOWER_DATA`)
@@ -2474,6 +2609,11 @@ is the tower's folder, git-ignored. It holds:
   setting names another folder (Settings > Message Broker). A relative
   setting is inside `<data>`; an absolute one can be anywhere whose parent
   folder exists.
+- `keyword_research/`: each keyword research's graph,
+  `keyword_research/<id>/shard_0000.db` (Keyword Research above), deleted
+  with its research, and `trends_options.json`, Google Trends' filter lists
+  (locations, categories, time ranges, search types, and the regions of
+  each country picked) as San Remote read them.
 
 ## Browser Remote Server
 
@@ -2569,9 +2709,13 @@ second fails to listen before it opens the broker.
   (StorageService: list, with the tower's data folder, create, update,
   delete; a storage's absolute path), `chat.proto` (ChatService: the
   chats, the workflows they can talk with, their messages and how the runs
-  are doing, sending) and `knowledge.proto` (KnowledgeService: list,
+  are doing, sending), `knowledge.proto` (KnowledgeService: list,
   create with its storage, delete, move, the knowledge's folders, and a
-  knowledge's graph: sync, its nodes and links, a node, summarize). `buf.gen.yaml` makes their Go
+  knowledge's graph: sync, its nodes and links, a node, summarize) and
+  `keyword_research.proto` (KeywordResearchService: the researches and
+  their folders, Run, Explore from here, Stop, Clear, a research's graph,
+  Trends' filter lists, and the WatchResearch and WatchResearches
+  streams). `buf.gen.yaml` makes their Go
   code (`gen/`) and the UI's TS client. `buf.gen.san_message.yaml` makes
   the UI's TS client for san_message's proto; the Go side uses san_message's
   own generated code.
@@ -2638,8 +2782,17 @@ second fails to listen before it opens the broker.
   WorkflowService (`workflow.go` the database's half, `engine.go` the
   engine's), ConnectionService (`connection.go`), BrowserRemoteService
   (`browser_remote.go`), StorageService (`storage.go`), ChatService
-  (`chat.go`), KnowledgeService (`knowledge.go`), MessageService and the UI
-  behind `Guard`, which only accepts a loopback Host and loopback pages.
+  (`chat.go`), KnowledgeService (`knowledge.go`), KeywordResearchService
+  (`keyword_research.go`, its streams in `keyword_research_watch.go`; the
+  lookups through a San Remote connection's TrendsService), MessageService
+  and the UI behind `Guard`, which only accepts a loopback Host and
+  loopback pages. `Close` ends the keyword research crawl and the watch
+  streams before the HTTP server shuts down.
+- `internal/keywordresearch`: Keyword Research's graphs (`graph.go`: a
+  research's goraphdb graph, opened per use, its nodes and relationships,
+  Leiden communities), the crawl (`crawl.go`: one at a time in the tower,
+  the queue, Stop, the pace and backoff) and the watchers (`watch.go`: the
+  in-process hub the pages' streams read).
 - `internal/engine`: `kinds.go` the kinds of step and how each runs,
   `actions.go` HTTP Request and Publish to Topic, `social.go` the San Remote
   steps (clients of `san_remote api`, the At times), `sites.go` the Medium,
@@ -2692,8 +2845,12 @@ second fails to listen before it opens the broker.
   (`towerchat.go`) is a row (name, workflow), and so is each of its
   messages (chat, from the user or the workflow, text, Markdown or not, the
   runs, time). A knowledge (`knowledge.go`) is a row: name, its storage and
-  its folder. Folders (`folder.go`) are two trees, the workflows'
-  (`folders`) and the knowledge's (`knowledge_folders`), with the same
+  its folder. A keyword research (`keyword_research.go`) is a row: name,
+  description, folder, seed, deep limit, Trends' filters, connection,
+  status and message, last run, its graph's counts and the seed and
+  filters it was made with (`graph_key`). Folders (`folder.go`) are three
+  trees, the workflows' (`folders`), the knowledge's (`knowledge_folders`)
+  and the keyword researches' (`keyword_research_folders`), with the same
   code (`folderTree`). Errors wrap `ErrNotFound`,
   `ErrInvalid` or `ErrExists`, which the server turns into Connect codes.
 - `internal/web`: the embedded UI. `dist/` is the Vite build (git-ignored but

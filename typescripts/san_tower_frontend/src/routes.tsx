@@ -7,6 +7,7 @@ import {
   MessageSquareTextIcon,
   MessagesSquareIcon,
   SettingsIcon,
+  TrendingUpIcon,
   WorkflowIcon,
 } from 'lucide-react';
 import { createBrowserRouter } from 'react-router';
@@ -15,6 +16,8 @@ import { BrowserRemoteServer } from './pages/BrowserRemoteServer';
 import { Chat } from './pages/Chat';
 import { Connections } from './pages/Connections';
 import { Home } from './pages/Home';
+import { KeywordResearchList } from './pages/KeywordResearchList';
+import { KeywordResearchPage } from './pages/KeywordResearchPage';
 import { Knowledge } from './pages/Knowledge';
 import { KnowledgeGraph } from './pages/KnowledgeGraph';
 import { MessageBroker } from './pages/MessageBroker';
@@ -33,6 +36,8 @@ const pages: Page[] = [
   { path: '/chat', label: 'Chat', icon: MessageSquareTextIcon, element: <Chat /> },
   // After Chat, empty for now (the user, 2026-10-28).
   { path: '/knowledge', label: 'Knowledge', icon: BrainIcon, element: <Knowledge /> },
+  // After Knowledge (the user, 2026-11-11): Google Trends keyword maps.
+  { path: '/keyword-research', label: 'Keyword Research', icon: TrendingUpIcon, element: <KeywordResearchList /> },
   { path: '/workflow', label: 'Workflow', icon: WorkflowIcon, element: <WorkflowList /> },
   { path: '/message-broker', label: 'Message Broker', icon: MessagesSquareIcon, element: <MessageBroker /> },
   { path: '/connections', label: 'Connections', icon: CableIcon, element: <Connections /> },
@@ -46,6 +51,7 @@ const pages: Page[] = [
 const subpages = [
   { path: '/workflow/:id', element: <WorkflowEditor /> },
   { path: '/knowledge/:id', element: <KnowledgeGraph /> },
+  { path: '/keyword-research/:id', element: <KeywordResearchPage /> },
 ];
 
 export const router = createBrowserRouter([

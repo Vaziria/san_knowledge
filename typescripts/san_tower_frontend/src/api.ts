@@ -7,6 +7,7 @@ import { BrokerService } from './gen/san/tower/v1/broker_pb';
 import { BrowserRemoteService } from './gen/san/tower/v1/browser_remote_pb';
 import { ChatService } from './gen/san/tower/v1/chat_pb';
 import { ConnectionService } from './gen/san/tower/v1/connection_pb';
+import { KeywordResearchService } from './gen/san/tower/v1/keyword_research_pb';
 import { KnowledgeService } from './gen/san/tower/v1/knowledge_pb';
 import { StorageService } from './gen/san/tower/v1/storage_pb';
 import { TowerService } from './gen/san/tower/v1/tower_pb';
@@ -47,6 +48,10 @@ export const chats = createClient(ChatService, transport);
 // knowledge is the Knowledge page's knowledge, each with its storage, and
 // their folders.
 export const knowledge = createClient(KnowledgeService, transport);
+
+// keywordResearch is the Keyword Research page's researches, their folders,
+// crawls and graphs.
+export const keywordResearch = createClient(KeywordResearchService, transport);
 
 // errorText is an error as a sentence: the server's own message, without
 // Connect's "[code]" prefix.

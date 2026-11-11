@@ -1,5 +1,6 @@
 import { Breadcrumb, IconButton, Input, Menu, NativeSelect, Portal, Table, Text } from '@chakra-ui/react';
 import {
+  CopyIcon,
   DownloadIcon,
   EllipsisVerticalIcon,
   FolderIcon,
@@ -142,13 +143,15 @@ export function FolderCrumbs({
   );
 }
 
-// FolderRow is a folder in a page's table, in its five columns: a click opens
-// it, and a row dragged onto it moves there. counts says what is in it, in
-// the third column.
+// FolderRow is a folder in a page's table, in its five columns (pad more
+// empty ones before the menu for a wider table): a click opens it, and a row
+// dragged onto it moves there. counts says what is in it, in the third
+// column.
 export function FolderRow({
   folder,
   counts,
   align = 'end',
+  pad = 0,
   onOpen,
   onDrop,
   onRename,
@@ -158,6 +161,7 @@ export function FolderRow({
   folder: AnyFolder;
   counts: string;
   align?: 'start' | 'end';
+  pad?: number;
   onOpen: () => void;
   onDrop: (id: number) => void;
   onRename: () => void;
@@ -175,6 +179,9 @@ export function FolderRow({
         {counts}
       </Table.Cell>
       <Table.Cell />
+      {Array.from({ length: pad }, (_, i) => (
+        <Table.Cell key={i} />
+      ))}
       <Table.Cell textAlign="end" py="0" onClick={(e) => e.stopPropagation()}>
         <RowMenu name={folder.name} items={{ rename: onRename, move: onMove, delete: onDelete }} />
       </Table.Cell>
@@ -184,13 +191,13 @@ export function FolderRow({
 
 // RowMenu is a row's actions, behind the three dots at the end of it: those
 // given of Rename (Settings for a workflow, which has Export), Move to...,
-// Export and Delete.
+// Duplicate (a keyword research), Export and Delete.
 export function RowMenu({
   name,
   items,
 }: {
   name: string;
-  items: Partial<Record<'rename' | 'move' | 'export' | 'delete', () => void>>;
+  items: Partial<Record<'rename' | 'move' | 'duplicate' | 'export' | 'delete', () => void>>;
 }) {
   return (
     <Menu.Root positioning={{ placement: 'bottom-end' }} onSelect={(e) => items[e.value as keyof typeof items]?.()}>
@@ -212,6 +219,12 @@ export function RowMenu({
               <Menu.Item value="move">
                 <FolderInputIcon />
                 Move to...
+              </Menu.Item>
+            )}
+            {items.duplicate && (
+              <Menu.Item value="duplicate">
+                <CopyIcon />
+                Duplicate
               </Menu.Item>
             )}
             {items.export && (

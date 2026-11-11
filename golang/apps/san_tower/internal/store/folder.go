@@ -46,6 +46,7 @@ type folderTree struct {
 var (
 	workflowFolders  = folderTree{folders: "folders", items: "workflows", noun: "workflows"}
 	knowledgeFolders = folderTree{folders: "knowledge_folders", items: "knowledge", noun: "knowledge"}
+	researchFolders  = folderTree{folders: "keyword_research_folders", items: "keyword_researches", noun: "researches"}
 )
 
 // ListFolders lists every folder of workflows, by name ignoring case.

@@ -120,6 +120,39 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     says how many nodes are shown. The legend sits on the graph, buttons
     collapse all (back to the 30) and fit it in view, and a line under it
     says what the mouse does.
+  - `KeywordResearchList.tsx` (`/keyword-research`, after Knowledge; the
+    user, 2026-11-11): the keyword researches (KeywordResearchService), one
+    folder at a time as the Knowledge page (`src/folders.tsx`, `?folder=`),
+    with a search in every folder (`?q=`): name, seed keyword, status,
+    keywords, last run, and a row menu with Rename, Move to..., Duplicate
+    (with its graph) and Delete (asks). New research asks a name, a
+    description and the seed keyword and opens it. The list is live
+    (WatchResearches, `src/stream.tsx`): each research's status and counts
+    as they change, the whole list again when another page makes, moves or
+    deletes one; a small Live / Reconnecting... beside New folder, and only
+    while the stream is down it asks every 15 s. A row opens the research.
+  - `KeywordResearchPage.tsx` (`/keyword-research/<id>`, a page of its own):
+    a research. Across the top its seed keyword, deep limit, Trends'
+    filters as Trends lists them (Location, Region, Date range with Custom
+    range, Category, Search type; read through San Remote once, kept by the
+    tower; the menu's "Read Trends' lists again"), its San Remote
+    connection, saved as they change (locked while it runs), and Run or
+    Stop; Run on a graph of other settings asks to clear it first. A status
+    line: the status, what it does now (`Running · 48 keywords · depth 1 ·
+    now: ...`, a pause, Google's backoff, the place in the queue), or how it
+    ended, and before a Run an estimate of the lookups and time; Live /
+    Reconnecting... at its right. The graph (`src/keywordresearch/
+    KeywordGraph.tsx`) with Lay out again, Fit, Find a keyword, the
+    communities' legend (a click shows one) and, on a click, a keyword's
+    panel: its values, where it was found (with each value), what it found
+    (links left-aligned), Open in Google Trends and Explore from here. The
+    menu's Clear graph asks first. It follows the research live (the user,
+    2026-11-11: "make it realtime"): WatchResearch's snapshot, then each
+    change applied as it comes (`src/keywordresearch/live.ts`): a lookup's
+    keywords and links drawn in at once, the status, progress and legend
+    with them; the whole graph laid out again once when a crawl ends. A
+    dropped stream is opened again with backoff and starts from a new
+    snapshot; only while it is down the page asks every 15 s.
   - `MessageBroker.tsx`: the San Message broker the tower uses. A status
     bar on top (BrokerService.GetBrokerStatus): Running or Not answering,
     inside the tower or a separate server and since when, topics and events
@@ -308,6 +341,33 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   to read are not drawn. The selected node's links are labelled. A
   right-click on a node asks for its menu (`onMenu`, at the pointer); the
   browser's own menu is kept off the graph.
+- `src/keywordresearch/`: `KeywordGraph.tsx`, a research's graph in
+  cytoscape, grouped by Leiden community as san_knowledge's view groups one
+  (its cose layout: links in a community short and stiff, between
+  communities long and loose; its palette, light and dark): fill is the
+  community, size the search interest, the seed biggest with a thick
+  border, TOP links solid and RISING dashed, a keyword found only as Rising
+  with a dashed border; over 600 keywords and links plain lines. It draws
+  changes, not the whole graph: keywords and links are compared with what
+  it drew by object, so a changed keyword is updated in place (size,
+  colour, community), a new one starts in a ring around the keyword it was
+  found from, a short layout spreads only the new ones (the ones they came
+  from held still, the rest untouched), and they fade in with a pulse of
+  the accent colour. The whole graph is kept in view as it grows until the
+  user zooms or pans (fitting zooms in 1.5 times at most). `live.ts`, the
+  page's graph and `applyChange`, which puts in what a lookup wrote,
+  keeping the objects it did not touch. `trends.ts`, Trends' time ranges
+  and search types, the new Explore's link for a keyword, the statuses, the
+  progress line and the estimate of a Run (about 50 Top queries a keyword
+  while the graph has none).
+- `src/stream.tsx`: `useStream`, a server stream kept open while the page
+  shows it: each message to the page (the first after each connect is the
+  server's snapshot); opened again after 1, 2, 4 ... 30 s when it drops or
+  stays silent for 32 s (two heartbeats missed; a tower that died behind
+  Vite's proxy leaves it open and silent); closed while the tab is hidden
+  (the browser keeps six connections to the tower for all its tabs); a
+  NotFound ends it. `StreamIndicator`, Live or Reconnecting... in a few
+  words.
 - `src/workflow/`: `catalog.ts`, the step kinds (loaded once from the
   tower), the connections a step can pick (asked once per type, forgotten
   when the Connections page changes one), the storages (asked once,
@@ -358,15 +418,18 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   that opens, or moves in to stay on screen, under a still pointer leaves
   the keys in charge. Icons: `categoryIcons`, `groupIcons` and `kindIcons`
   (a kind or group without one shows its category's).
-- `src/folders.tsx`: the folders of the Workflow and Knowledge pages, two
-  trees, each page passing its own (`FolderApi`: what the top is called,
-  making and changing a folder): the breadcrumb, a folder's row and a
-  row's menu, the New folder / Rename and Move to... dialogs, and dragging
-  a row onto a folder.
+- `src/folders.tsx`: the folders of the Workflow, Knowledge and Keyword
+  Research pages, three trees, each page passing its own (`FolderApi`: what
+  the top is called, making and changing a folder): the breadcrumb, a
+  folder's row (`pad`: empty cells for a wider table) and a row's menu
+  (Rename, Move to..., Duplicate, Export, Delete: those the page gives),
+  the New folder / Rename and Move to... dialogs, and dragging a row onto
+  a folder.
 - `src/ui.tsx`: the toaster, and `FormDialog`, a form in a modal that shows
   the server's error and closes when it succeeds.
 - `src/api.ts`: the TowerService, BrokerService, WorkflowService,
-  ConnectionService, BrowserRemoteService, StorageService, ChatService, KnowledgeService and MessageService clients, same origin as the page,
+  ConnectionService, BrowserRemoteService, StorageService, ChatService, KnowledgeService,
+  KeywordResearchService and MessageService clients, same origin as the page,
   and `errorText`. Their
   JSON reading knows the types a run's `Any` outputs hold (Value,
   StringValue).

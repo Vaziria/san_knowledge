@@ -1,0 +1,479 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// KeywordResearchService keeps the tower's keyword researches, on its
+// Keyword Research page (the user, 2026-11-11). A research maps the related
+// queries of a seed keyword on Google Trends: it looks up the seed's related
+// queries (Top and Rising) with the research's filters, then the Top ones'
+// in turn, level by level, until its deep limit (the user, 2026-11-11: "When
+// it run, if graph empty, it explore parent, from parent we explore top
+// queries until deep limit"). Rising queries are mapped but not looked up
+// themselves (the user, 2026-11-11: "We mapping top queries keyword and
+// rising keyword"). The lookups go through a San Remote connection, in the
+// user's Chrome (san.remote.trends.v1.TrendsService), one at a time in the
+// whole tower.
+//
+// The researches, their folders and filters are in the tower's database;
+// each research's graph is a goraphdb graph of its own, in
+// <data>/keyword_research/<id> (the user, 2026-11-11: "Every research is
+// independent graph file that using goraph"): a node labelled Keyword per
+// unique keyword, and TOP and RISING relationships from the keyword it was
+// found from.
+service KeywordResearchService {
+  // ListResearches lists the researches right in a folder, or of every
+  // folder, by name.
+  rpc ListResearches(ListResearchesRequest) returns (ListResearchesResponse);
+  rpc GetResearch(GetResearchRequest) returns (GetResearchResponse);
+  // CreateResearch makes a research in folder_id (0: at the top), with the
+  // default filters (Indonesia, Past 12 months, All categories, Web
+  // Search) and deep limit 2. Names are unique, ignoring case.
+  rpc CreateResearch(CreateResearchRequest) returns (CreateResearchResponse);
+  // UpdateResearch changes a research's name, description, seed, deep
+  // limit, filters and connection. Its graph stays: Run asks before it
+  // clears a graph made with another seed or other filters.
+  rpc UpdateResearch(UpdateResearchRequest) returns (UpdateResearchResponse);
+  // DeleteResearch deletes a research and its graph. A research that is
+  // running or waiting is stopped first.
+  rpc DeleteResearch(DeleteResearchRequest) returns (DeleteResearchResponse);
+  // DuplicateResearch copies a research, its graph included, as "<name>
+  // (copy)" in the same folder. A running research's graph is copied as it
+  // is at that moment.
+  rpc DuplicateResearch(DuplicateResearchRequest) returns (DuplicateResearchResponse);
+  // MoveResearches puts researches in a folder (0: at the top).
+  rpc MoveResearches(MoveResearchesRequest) returns (MoveResearchesResponse);
+  // The folders of researches, a tree of their own, as the workflows' and
+  // the knowledge's. Deleting a folder moves what was in it up one level.
+  rpc ListResearchFolders(ListResearchFoldersRequest) returns (ListResearchFoldersResponse);
+  rpc CreateResearchFolder(CreateResearchFolderRequest) returns (CreateResearchFolderResponse);
+  rpc UpdateResearchFolder(UpdateResearchFolderRequest) returns (UpdateResearchFolderResponse);
+  rpc DeleteResearchFolder(DeleteResearchFolderRequest) returns (DeleteResearchFolderResponse);
+  // RunResearch starts the crawl: from the seed when the graph is empty,
+  // else it goes on from where it was, looking up the Top keywords not yet
+  // looked up within the deep limit. A keyword is never looked up twice.
+  // Only one crawl runs in the tower at a time: another research's makes
+  // it wait (WAITING). A graph made with another seed or other filters is
+  // refused (FailedPrecondition) unless clear is set, which clears it
+  // first. It goes on when the page closes.
+  rpc RunResearch(RunResearchRequest) returns (RunResearchResponse);
+  // ExploreKeyword looks up one keyword of the graph once, past the deep
+  // limit or a Rising one too; it waits its turn as a Run does.
+  rpc ExploreKeyword(ExploreKeywordRequest) returns (ExploreKeywordResponse);
+  // StopResearch ends a crawl after the lookup it is doing, or takes a
+  // waiting one out of the queue. What was found stays.
+  rpc StopResearch(StopResearchRequest) returns (StopResearchResponse);
+  // ClearResearchGraph empties a research's graph. Refused while it runs.
+  rpc ClearResearchGraph(ClearResearchGraphRequest) returns (ClearResearchGraphResponse);
+  // GetResearchGraph gives every keyword and relationship of a research's
+  // graph, with the Leiden communities of its keywords.
+  rpc GetResearchGraph(GetResearchGraphRequest) returns (GetResearchGraphResponse);
+  // GetTrendsOptions gives Google Trends' own filter lists (locations,
+  // categories, time ranges, search types), read from Trends through a
+  // San Remote connection the first time, then kept in the tower's data
+  // folder. With country, that country's regions too.
+  rpc GetTrendsOptions(GetTrendsOptionsRequest) returns (GetTrendsOptionsResponse);
+  // WatchResearch streams a research as it changes, for its page (the user,
+  // 2026-11-11: "is crawl realtime update the graph? make it realtime"):
+  // first a snapshot (the research, its whole graph and communities), then
+  // each change as it happens: the research (status, progress, counts,
+  // settings), what each lookup wrote to the graph right after it was
+  // written, with the communities worked out again, a new snapshot when the
+  // graph was cleared, and a heartbeat every 15 seconds. Several pages can
+  // watch one research. A page that falls behind is dropped (Unavailable),
+  // never waited for, so it cannot hold the crawl: it watches again and
+  // starts from a new snapshot. The stream ends after deleted, and when the
+  // tower stops.
+  rpc WatchResearch(WatchResearchRequest) returns (stream WatchResearchResponse);
+  // WatchResearches streams the list of researches for the list page: first
+  // every research of every folder and every folder, then a research each
+  // time it changes (status, progress, counts, name), the whole list again
+  // when researches or folders are made, moved or deleted, and a heartbeat
+  // every 15 seconds.
+  rpc WatchResearches(WatchResearchesRequest) returns (stream WatchResearchesResponse);
+}
+
+enum KeywordResearchStatus {
+  KEYWORD_RESEARCH_STATUS_UNSPECIFIED = 0;
+  // IDLE: never run.
+  KEYWORD_RESEARCH_STATUS_IDLE = 1;
+  // WAITING: its turn comes after the crawl that runs now.
+  KEYWORD_RESEARCH_STATUS_WAITING = 2;
+  KEYWORD_RESEARCH_STATUS_RUNNING = 3;
+  // STOPPED: stopped by Stop, or by the tower stopping; Run goes on.
+  KEYWORD_RESEARCH_STATUS_STOPPED = 4;
+  // DONE: every Top keyword within the deep limit is looked up.
+  KEYWORD_RESEARCH_STATUS_DONE = 5;
+  // FAILED: message says why; Run goes on from there.
+  KEYWORD_RESEARCH_STATUS_FAILED = 6;
+}
+
+// KeywordFilters are Google Trends' filters, as its Explore page has them.
+message KeywordFilters {
+  // geo is the location: "" Worldwide, a country (ID) or a region (ID-JK).
+  string geo = 1;
+  // time is the time range as Trends writes it: "now 1-H", "now 4-H",
+  // "now 1-d", "now 7-d", "today 1-m", "today 3-m", "today 12-m", "today
+  // 5-y", "all" (2004 - present), or "YYYY-MM-DD YYYY-MM-DD".
+  string time = 2;
+  // category is the category's id, 0 for All categories.
+  int32 category = 3;
+  // property is the search type: "" Web Search, "images", "news",
+  // "froogle" (Google Shopping) or "youtube".
+  string property = 4;
+}
+
+// KeywordProgress is what a running or waiting research is doing.
+message KeywordProgress {
+  // keyword is the one being looked up, and depth its depth.
+  string keyword = 1;
+  uint32 depth = 2;
+  // lookups is how many this crawl has made; todo how many Top keywords
+  // within the deep limit are still to look up (it grows as they are
+  // found).
+  uint32 lookups = 3;
+  uint32 todo = 4;
+  // note is what it waits for, such as "pausing 6s" or "Google asked to
+  // slow down: trying again in 2m (1 of 3)".
+  string note = 5;
+  // queue_position is its place in the queue while it waits, 1 first.
+  uint32 queue_position = 6;
+}
+
+message KeywordResearch {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  // folder_id is the folder it is in, 0 at the top.
+  uint32 folder_id = 4;
+  string seed = 5;
+  // deep_limit is how deep Top keywords are looked up: the seed is depth 0.
+  uint32 deep_limit = 6;
+  KeywordFilters filters = 7;
+  // connection_id is the San Remote connection its lookups go through; 0
+  // the first one.
+  uint32 connection_id = 8;
+  KeywordResearchStatus status = 9;
+  // message is why it failed, or a note on how it ended.
+  string message = 10;
+  google.protobuf.Timestamp last_run_at = 11;
+  // How many keywords and relationships its graph has, and how many of its
+  // keywords were looked up.
+  uint32 node_count = 12;
+  uint32 edge_count = 13;
+  uint32 explored_count = 14;
+  // settings_changed: the graph was made with another seed or other
+  // filters.
+  bool settings_changed = 15;
+  // progress is set while it runs or waits.
+  KeywordProgress progress = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+// KeywordResearchFolder is a folder of researches; folders nest.
+message KeywordResearchFolder {
+  uint32 id = 1;
+  string name = 2;
+  // parent_id is the folder it is in, 0 at the top.
+  uint32 parent_id = 3;
+  // How many researches and folders are right in it.
+  uint32 research_count = 4;
+  uint32 folder_count = 5;
+}
+
+message ListResearchesRequest {
+  // folder_id is the folder, 0 the top.
+  uint32 folder_id = 1;
+  // all_folders lists every folder's instead (the page's search).
+  bool all_folders = 2;
+}
+
+message ListResearchesResponse {
+  repeated KeywordResearch researches = 1;
+}
+
+message GetResearchRequest {
+  uint32 id = 1;
+}
+
+message GetResearchResponse {
+  KeywordResearch research = 1;
+}
+
+message CreateResearchRequest {
+  string name = 1;
+  string description = 2;
+  string seed = 3;
+  uint32 folder_id = 4;
+}
+
+message CreateResearchResponse {
+  KeywordResearch research = 1;
+}
+
+message UpdateResearchRequest {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  string seed = 4;
+  uint32 deep_limit = 5;
+  KeywordFilters filters = 6;
+  uint32 connection_id = 7;
+}
+
+message UpdateResearchResponse {
+  KeywordResearch research = 1;
+}
+
+message DeleteResearchRequest {
+  uint32 id = 1;
+}
+
+message DeleteResearchResponse {}
+
+message DuplicateResearchRequest {
+  uint32 id = 1;
+}
+
+message DuplicateResearchResponse {
+  KeywordResearch research = 1;
+}
+
+message MoveResearchesRequest {
+  repeated uint32 ids = 1;
+  uint32 folder_id = 2;
+}
+
+message MoveResearchesResponse {}
+
+message ListResearchFoldersRequest {}
+
+message ListResearchFoldersResponse {
+  repeated KeywordResearchFolder folders = 1;
+}
+
+message CreateResearchFolderRequest {
+  string name = 1;
+  uint32 parent_id = 2;
+}
+
+message CreateResearchFolderResponse {
+  KeywordResearchFolder folder = 1;
+}
+
+message UpdateResearchFolderRequest {
+  uint32 id = 1;
+  string name = 2;
+  uint32 parent_id = 3;
+}
+
+message UpdateResearchFolderResponse {
+  KeywordResearchFolder folder = 1;
+}
+
+message DeleteResearchFolderRequest {
+  uint32 id = 1;
+}
+
+message DeleteResearchFolderResponse {}
+
+message RunResearchRequest {
+  uint32 id = 1;
+  // clear empties a graph made with another seed or other filters first.
+  bool clear = 2;
+}
+
+message RunResearchResponse {
+  KeywordResearch research = 1;
+}
+
+message ExploreKeywordRequest {
+  uint32 id = 1;
+  // keyword is a keyword of the graph.
+  string keyword = 2;
+}
+
+message ExploreKeywordResponse {
+  KeywordResearch research = 1;
+}
+
+message StopResearchRequest {
+  uint32 id = 1;
+}
+
+message StopResearchResponse {
+  KeywordResearch research = 1;
+}
+
+message ClearResearchGraphRequest {
+  uint32 id = 1;
+}
+
+message ClearResearchGraphResponse {
+  KeywordResearch research = 1;
+}
+
+// KeywordNode is a keyword of a research's graph (a Keyword node).
+message KeywordNode {
+  // name is the keyword, trimmed, in lower case, its spaces collapsed.
+  string name = 1;
+  // search_interest is its highest search interest seen (0-100).
+  int32 search_interest = 2;
+  // change is its highest change seen, in percent; change_text as Trends
+  // writes it ("+350%", "Breakout"); breakout when it is Breakout.
+  int32 change = 3;
+  string change_text = 4;
+  bool breakout = 5;
+  // depth is the smallest depth it was found at; the seed is 0.
+  uint32 depth = 6;
+  // explored: its related queries were looked up.
+  bool explored = 7;
+  bool seed = 8;
+  // top and rising: found in a Top list, in a Rising list.
+  bool top = 9;
+  bool rising = 10;
+  // community is its Leiden community, 0 the largest.
+  uint32 community = 11;
+  google.protobuf.Timestamp found_at = 12;
+  google.protobuf.Timestamp explored_at = 13;
+}
+
+// KeywordEdge is a relationship: to was found in from's Top (TOP) or Rising
+// (RISING) queries, with its value there.
+message KeywordEdge {
+  string from = 1;
+  string to = 2;
+  // rel is TOP or RISING.
+  string rel = 3;
+  int32 search_interest = 4;
+  int32 change = 5;
+  string change_text = 6;
+  bool breakout = 7;
+}
+
+// KeywordCommunity is a Leiden community of a research's graph, named after
+// its keyword with the highest search interest.
+message KeywordCommunity {
+  uint32 id = 1;
+  string name = 2;
+  uint32 size = 3;
+}
+
+message GetResearchGraphRequest {
+  uint32 id = 1;
+}
+
+message GetResearchGraphResponse {
+  KeywordResearch research = 1;
+  repeated KeywordNode nodes = 2;
+  repeated KeywordEdge edges = 3;
+  repeated KeywordCommunity communities = 4;
+}
+
+// TrendsGeo is a location of Trends' location menu.
+message TrendsGeo {
+  // code is "" for Worldwide, a country's (ID) or a region's (ID-JK).
+  string code = 1;
+  string name = 2;
+  bool has_regions = 3;
+}
+
+// TrendsCategory is a category of Trends, with those inside it.
+message TrendsCategory {
+  int32 id = 1;
+  string name = 2;
+  repeated TrendsCategory children = 3;
+}
+
+message TrendsOption {
+  string value = 1;
+  string label = 2;
+}
+
+message GetTrendsOptionsRequest {
+  // connection_id is the San Remote connection to read them with when
+  // they are not kept yet; 0 the first one.
+  uint32 connection_id = 1;
+  // country gives that country's regions too.
+  string country = 2;
+  // refresh reads them from Trends again.
+  bool refresh = 3;
+}
+
+message GetTrendsOptionsResponse {
+  // geos are Worldwide and the countries.
+  repeated TrendsGeo geos = 1;
+  repeated TrendsCategory categories = 2;
+  repeated TrendsOption times = 3;
+  repeated TrendsOption properties = 4;
+  // regions are country's, when it was given.
+  repeated TrendsGeo regions = 5;
+  // read_at is when they were read from Trends.
+  google.protobuf.Timestamp read_at = 6;
+}
+
+message WatchResearchRequest {
+  uint32 id = 1;
+}
+
+// WatchResearchResponse is a message of WatchResearch.
+message WatchResearchResponse {
+  oneof event {
+    // snapshot is the research with its whole graph and communities: the
+    // first message, and again after the graph was cleared or when a lookup
+    // was written while no page watched.
+    GetResearchGraphResponse snapshot = 1;
+    // research is the research after a change of its status, progress,
+    // counts or settings.
+    KeywordResearch research = 2;
+    // change is what one lookup (or the seed put in) wrote to the graph.
+    KeywordGraphChange change = 3;
+    // heartbeat comes every 15 seconds, so the page sees a dead stream.
+    bool heartbeat = 4;
+    // deleted: the research was deleted; the stream ends.
+    bool deleted = 5;
+  }
+}
+
+// KeywordGraphChange is what one lookup wrote to a research's graph, sent
+// right after it was written: the keywords and relationships it added or
+// changed, as they are now, and the Leiden communities worked out again.
+message KeywordGraphChange {
+  // keyword is the keyword looked up, now explored; "" when the crawl put
+  // the seed in.
+  string keyword = 1;
+  // nodes are the keywords it added or changed: the one looked up and each
+  // one it found, with their community.
+  repeated KeywordNode nodes = 2;
+  // edges are its relationships: the TOP and RISING ones from keyword.
+  repeated KeywordEdge edges = 3;
+  // communities are every community of the graph now.
+  repeated KeywordCommunity communities = 4;
+  // moved are the other keywords whose community changed, to their new
+  // community.
+  map<string, uint32> moved = 5;
+}
+
+message WatchResearchesRequest {}
+
+// WatchResearchesResponse is a message of WatchResearches.
+message WatchResearchesResponse {
+  oneof event {
+    // list is every research of every folder, and every folder: the first
+    // message, and again when researches or folders are made, moved or
+    // deleted.
+    ResearchList list = 1;
+    // research is a research after a change of its status, progress, counts
+    // or settings.
+    KeywordResearch research = 2;
+    // heartbeat comes every 15 seconds.
+    bool heartbeat = 3;
+  }
+}
+
+message ResearchList {
+  repeated KeywordResearch researches = 1;
+  repeated KeywordResearchFolder folders = 2;
+}

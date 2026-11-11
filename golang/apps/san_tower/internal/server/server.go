@@ -25,6 +25,7 @@ import (
 	"github.com/wargasipil/san_tower/internal/broker"
 	"github.com/wargasipil/san_tower/internal/browserremote"
 	"github.com/wargasipil/san_tower/internal/engine"
+	"github.com/wargasipil/san_tower/internal/keywordresearch"
 	"github.com/wargasipil/san_tower/internal/settings"
 	"github.com/wargasipil/san_tower/internal/store"
 	"github.com/wargasipil/san_tower/internal/web"
@@ -49,6 +50,11 @@ type Server struct {
 	store      *store.Store
 	engine     *engine.Engine
 	remote     *browserremote.Remote
+	// crawler runs the keyword researches' crawls (keyword_research.go),
+	// and watch hands their changes on to the pages that watch them
+	// (keyword_research_watch.go).
+	crawler *keywordresearch.Crawler
+	watch   *keywordresearch.Watch
 
 	// LAN answers on the network too, behind GuardLAN, not only on
 	// loopback (serve --lan; the user's choice, 2026-10-26).
@@ -59,20 +65,25 @@ type Server struct {
 }
 
 var (
-	_ towerv1connect.TowerServiceHandler         = (*Server)(nil)
-	_ towerv1connect.BrokerServiceHandler        = (*Server)(nil)
-	_ towerv1connect.WorkflowServiceHandler      = (*Server)(nil)
-	_ towerv1connect.ConnectionServiceHandler    = (*Server)(nil)
-	_ towerv1connect.BrowserRemoteServiceHandler = (*Server)(nil)
-	_ towerv1connect.StorageServiceHandler       = (*Server)(nil)
-	_ towerv1connect.ChatServiceHandler          = (*Server)(nil)
-	_ towerv1connect.KnowledgeServiceHandler     = (*Server)(nil)
+	_ towerv1connect.TowerServiceHandler           = (*Server)(nil)
+	_ towerv1connect.BrokerServiceHandler          = (*Server)(nil)
+	_ towerv1connect.WorkflowServiceHandler        = (*Server)(nil)
+	_ towerv1connect.ConnectionServiceHandler      = (*Server)(nil)
+	_ towerv1connect.BrowserRemoteServiceHandler   = (*Server)(nil)
+	_ towerv1connect.StorageServiceHandler         = (*Server)(nil)
+	_ towerv1connect.ChatServiceHandler            = (*Server)(nil)
+	_ towerv1connect.KnowledgeServiceHandler       = (*Server)(nil)
+	_ towerv1connect.KeywordResearchServiceHandler = (*Server)(nil)
 )
 
 func New(version string, broker *broker.Broker, store *store.Store, engine *engine.Engine, remote *browserremote.Remote) *Server {
 	host, _ := os.Hostname()
 	exe, _ := os.Executable()
-	return &Server{version: version, hostname: host, executable: exe, started: time.Now(), broker: broker, store: store, engine: engine, remote: remote}
+	s := &Server{version: version, hostname: host, executable: exe, started: time.Now(), broker: broker, store: store, engine: engine, remote: remote}
+	s.watch = &keywordresearch.Watch{}
+	s.crawler = s.newCrawler()
+	s.crawler.Start()
+	return s
 }
 
 // Handler serves TowerService, BrokerService, WorkflowService,
@@ -90,6 +101,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle(towerv1connect.NewStorageServiceHandler(s))
 	mux.Handle(towerv1connect.NewChatServiceHandler(s))
 	mux.Handle(towerv1connect.NewKnowledgeServiceHandler(s))
+	mux.Handle(towerv1connect.NewKeywordResearchServiceHandler(s))
 	mux.Handle(s.broker.Handler())
 	// /api/claude-health is the UI startup banner's probe: a plain-JSON
 	// endpoint because the frontend's proto codegen (@bufbuild/protoc-gen-es)
@@ -126,7 +138,7 @@ func (s *Server) claudeHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetStatus(context.Context, *connect.Request[v1.GetStatusRequest]) (*connect.Response[v1.GetStatusResponse], error) {
-	n, err := s.store.CountRunning()
+	n, err := s.runsInProgress()
 	if err != nil {
 		return nil, storeError(err)
 	}
@@ -139,6 +151,18 @@ func (s *Server) GetStatus(context.Context, *connect.Request[v1.GetStatusRequest
 	}), nil
 }
 
+// runsInProgress counts the workflow runs in progress and the keyword
+// research crawl that runs: a crawl holds a restart (`dev --watch`'s
+// rebuild, Restart) as a run does, since a restart cuts it.
+func (s *Server) runsInProgress() (int64, error) {
+	n, err := s.store.CountRunning()
+	if err != nil {
+		return 0, err
+	}
+	c, err := s.store.CountCrawling()
+	return n + c, err
+}
+
 // Restart answers, then restarts the tower a moment later, so the answer
 // gets out first; in between, the Tower Restart steps' Before runs go
 // (engine.BeforeRestart), for up to a minute.
@@ -147,7 +171,7 @@ func (s *Server) Restart(_ context.Context, req *connect.Request[v1.RestartReque
 		return nil, connect.NewError(connect.CodeUnimplemented, errors.New("this tower cannot restart itself"))
 	}
 	if !req.Msg.GetForce() {
-		n, err := s.store.CountRunning()
+		n, err := s.runsInProgress()
 		if err != nil {
 			return nil, storeError(err)
 		}

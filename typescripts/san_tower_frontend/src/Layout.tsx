@@ -1,101 +1,205 @@
-import { Alert, Box, Button, Code, CloseButton, Flex, Heading, IconButton, Image, Stack } from '@chakra-ui/react';
-import { PanelLeftCloseIcon, PanelLeftOpenIcon, type LucideIcon } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import {
+  Alert,
+  Box,
+  Code,
+  CloseButton,
+  Flex,
+  Heading,
+  IconButton,
+  Image,
+  Input,
+  InputGroup,
+  Kbd,
+  Popover,
+  Portal,
+  SimpleGrid,
+  Text,
+} from '@chakra-ui/react';
+import { SearchIcon, type LucideIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { claudeHealth, cmpVersion, type ClaudeHealth } from './api';
 
 export type Page = { path: string; label: string; icon: LucideIcon; element: ReactNode };
 
-// collapsedKey keeps, per browser, whether the sidebar is collapsed.
-const collapsedKey = 'san-tower-sidebar-collapsed';
-
-function loadCollapsed() {
-  try {
-    return localStorage.getItem(collapsedKey) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function saveCollapsed(collapsed: boolean) {
-  try {
-    localStorage.setItem(collapsedKey, collapsed ? '1' : '0');
-  } catch {
-    // Storage blocked: the sidebar just starts expanded next time.
-  }
-}
-
-// Layout is the frame every page shares: the menu in a sidebar on the left,
-// and the current page beside it. The sidebar collapses to its icons.
+// Layout is the frame every page shares: the page over the whole window, and
+// the menu behind a round San Tower button floating at the top left (the
+// user, 2026-11-11: no sidebar; a menu button that shows the pages in a
+// grid, with a search). The button, or Ctrl+K anywhere, opens and closes it.
 export function Layout({ pages }: { pages: Page[] }) {
-  const [collapsed, setCollapsed] = useState(loadCollapsed);
-  const toggle = () => {
-    setCollapsed(!collapsed);
-    saveCollapsed(!collapsed);
-  };
+  const [open, setOpen] = useState(false);
+  // opened counts the openings: each one starts a fresh Menu (empty search,
+  // the current page marked), even while the last one is still fading out.
+  const [opened, setOpened] = useState(0);
+  const openNow = useRef(false);
+  const show = useCallback((next: boolean) => {
+    if (next && !openNow.current) setOpened((n) => n + 1);
+    openNow.current = next;
+    setOpen(next);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        show(!openNow.current);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [show]);
 
   return (
-    <Flex minH="100vh" bg="bg" color="fg">
-      <Stack
-        as="aside"
-        w={collapsed ? '16' : '56'}
-        transition="width 0.15s"
-        flexShrink={0}
-        h="100vh"
-        position="sticky"
-        top="0"
-        overflowX="hidden"
-        overflowY="auto"
-        gap="4"
-        p="3"
-        bg="bg.subtle"
-        borderEndWidth="1px"
+    <Box minH="100vh" bg="bg" color="fg">
+      <Popover.Root
+        open={open}
+        onOpenChange={(e) => show(e.open)}
+        positioning={{ placement: 'bottom-start', gutter: 8 }}
+        lazyMount
+        unmountOnExit
       >
-        <Flex align="center" justify="space-between" direction={collapsed ? 'column' : 'row'} gap="2">
-          <Flex align="center" gap="2" px={collapsed ? '0' : '2.5'}>
-            <Image src="/logo.svg" alt="San Tower" boxSize="7" />
-            {!collapsed && (
-              <Heading size="md" whiteSpace="nowrap">
-                San Tower
-              </Heading>
-            )}
-          </Flex>
+        <Popover.Trigger asChild>
           <IconButton
-            aria-label={collapsed ? 'Expand the menu' : 'Collapse the menu'}
-            title={collapsed ? 'Expand the menu' : 'Collapse the menu'}
-            variant="ghost"
-            size="sm"
-            color="fg.muted"
-            onClick={toggle}
+            aria-label="Menu (Ctrl+K)"
+            title="Menu (Ctrl+K)"
+            position="fixed"
+            top="3"
+            left="3"
+            zIndex="sticky"
+            rounded="full"
+            variant="outline"
+            bg="bg.panel"
+            shadow="md"
           >
-            {collapsed ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
+            <Image src="/logo.svg" alt="" boxSize="6" />
           </IconButton>
-        </Flex>
-        <Stack as="nav" gap="1">
-          {pages.map((p) => (
-            <Button
-              key={p.path}
-              asChild
-              variant="ghost"
-              justifyContent={collapsed ? 'center' : 'flex-start'}
-              px={collapsed ? '0' : undefined}
-              whiteSpace="nowrap"
-              color="fg.muted"
-              _currentPage={{ bg: 'bg.emphasized', color: 'fg', fontWeight: 'semibold' }}
-            >
-              <NavLink to={p.path} end={p.path === '/'} title={collapsed ? p.label : undefined} aria-label={p.label}>
-                <p.icon />
-                {!collapsed && p.label}
-              </NavLink>
-            </Button>
-          ))}
-        </Stack>
-      </Stack>
-      <Box as="main" flex="1" minW="0" p="6">
+        </Popover.Trigger>
+        <Portal>
+          <Popover.Positioner>
+            <Popover.Content w="md" maxW="calc(100vw - 24px)">
+              <Popover.Body p="3">
+                <Menu key={opened} pages={pages} onDone={() => show(false)} />
+              </Popover.Body>
+            </Popover.Content>
+          </Popover.Positioner>
+        </Portal>
+      </Popover.Root>
+      {/* The page starts right of the button, which stays over the top left. */}
+      <Box as="main" minW="0" p="6" ps="16">
         <ClaudeHealthBanner />
         <Outlet />
       </Box>
-    </Flex>
+    </Box>
+  );
+}
+
+// columns is how many pages the menu shows in a row.
+const columns = 3;
+
+// isCurrent says whether path is the page open now, or a page under it (a
+// workflow marks Workflow).
+function isCurrent(path: string, pathname: string) {
+  return path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(path + '/');
+}
+
+// Menu is the popup: a search box over the pages in a grid. The search keeps
+// the pages whose name has every word typed. The arrows move the marked page
+// (it starts on the page open now), Enter opens it; Escape and a click
+// outside close the popup.
+function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+  const [marked, setMarked] = useState(() => Math.max(0, pages.findIndex((p) => isCurrent(p.path, pathname))));
+
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const shown = pages.filter((p) => words.every((w) => p.label.toLowerCase().includes(w)));
+  const at = Math.min(marked, shown.length - 1);
+
+  const onKeyDown = (e: ReactKeyboardEvent) => {
+    const step = ({ ArrowRight: 1, ArrowLeft: -1, ArrowDown: columns, ArrowUp: -columns } as Record<string, number>)[
+      e.key
+    ];
+    if (step !== undefined) {
+      e.preventDefault();
+      const next = at + step;
+      if (next >= 0 && next < shown.length) setMarked(next);
+      return;
+    }
+    if (e.key === 'Enter' && shown[at]) {
+      e.preventDefault();
+      navigate(shown[at].path);
+      onDone();
+    }
+  };
+
+  return (
+    <>
+      <Flex align="center" gap="2" mb="3">
+        <Image src="/logo.svg" alt="" boxSize="6" />
+        <Heading size="sm" flex="1">
+          San Tower
+        </Heading>
+        <Kbd size="sm">Ctrl+K</Kbd>
+      </Flex>
+      <InputGroup startElement={<SearchIcon />} mb="3">
+        <Input
+          autoFocus
+          size="sm"
+          placeholder="Search pages"
+          aria-label="Search pages"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setMarked(0);
+          }}
+          onKeyDown={onKeyDown}
+        />
+      </InputGroup>
+      {shown.length === 0 ? (
+        <Text color="fg.muted" textStyle="sm" textAlign="center" py="6">
+          No page matches "{query}"
+        </Text>
+      ) : (
+        <SimpleGrid as="nav" columns={columns} gap="2">
+          {shown.map((p, i) => {
+            const current = isCurrent(p.path, pathname);
+            return (
+              <Flex
+                key={p.path}
+                asChild
+                direction="column"
+                align="center"
+                justify="center"
+                gap="1.5"
+                minH="20"
+                px="1"
+                py="3"
+                rounded="md"
+                borderWidth="1px"
+                borderColor={i === at ? 'border.emphasized' : 'transparent'}
+                bg={current ? 'bg.emphasized' : i === at ? 'bg.muted' : undefined}
+                color={current ? 'fg' : 'fg.muted'}
+                fontWeight={current ? 'semibold' : undefined}
+                textAlign="center"
+                _hover={{ color: 'fg' }}
+                onMouseEnter={() => setMarked(i)}
+              >
+                <NavLink to={p.path} onClick={onDone} aria-current={current ? 'page' : undefined}>
+                  <p.icon size={24} />
+                  <Text textStyle="xs" lineHeight="short">
+                    {p.label}
+                  </Text>
+                </NavLink>
+              </Flex>
+            );
+          })}
+        </SimpleGrid>
+      )}
+      <Text color="fg.subtle" textStyle="2xs" mt="3">
+        Arrows to move · Enter to open · Esc to close
+      </Text>
+    </>
   );
 }
 

@@ -18,17 +18,21 @@ npm run gen        # regenerate src/gen from the protos (runs buf in golang/apps
 
 `logo-candidates/` holds five logo ideas for the tower (open its `index.html`
 to compare them at 16 to 128 px). The user chose 1, the watchtower
-(2026-10-24): it is `public/logo.svg`, the sidebar's brand and the favicon.
+(2026-10-24): it is `public/logo.svg`, the menu button and the favicon.
 
 ## Files
 
 - `src/routes.tsx`: the pages and the router. A new page is one entry in
   `pages`, which also puts it in the menu, with its icon (from
   `lucide-react`, the icon set for the tower).
-- `src/Layout.tsx`: the menu in a sidebar on the left, and the current page
-  beside it. The button by the title collapses the sidebar to its icons (the
-  label shows on hover); the browser remembers it (localStorage
-  `san-tower-sidebar-collapsed`).
+- `src/Layout.tsx`: the current page over the whole window, and the menu
+  behind a round button with the logo floating at the top left (the user,
+  2026-11-11: no sidebar). The button, or Ctrl+K anywhere, opens a popup: a
+  search box over the pages in a grid, three to a row, the page open now
+  marked (a workflow marks Workflow). Typing keeps the pages whose name has
+  every word; the arrows move the marked page, Enter opens it, Escape or a
+  click outside closes it. The page leaves room on the left (`ps="16"`) so
+  the button never covers it.
 - `src/pages/`:
   - `Home.tsx`: the tower's status.
   - `Chat.tsx` (`/chat`, after Home; the user, 2026-10-28): the tower's

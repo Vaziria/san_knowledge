@@ -1,4 +1,5 @@
-import { Box, Button, Field, Heading, HStack, Input, Separator, Spinner, Stack, Tabs, Text } from '@chakra-ui/react'
+import { Box, Button, Field, Heading, HStack, Input, Separator, SimpleGrid, Spinner, Stack, Tabs, Text } from '@chakra-ui/react'
+import type { TFunction } from 'i18next'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { accounts, errorCode } from './api'
@@ -149,7 +150,10 @@ function GoogleButton({ clientId, onCredential }: { clientId: string; onCredenti
   return <Box ref={box} minH="11" display="flex" justifyContent="center" data-testid="google-button" />
 }
 
-// RoleChoice picks customer or repairman.
+const submitLabel = (t: TFunction, role: Role) =>
+  role === Role.CUSTOMER ? t('auth.submitCustomer') : role === Role.REPAIRMAN ? t('auth.submitRepairman') : t('auth.submitStore')
+
+// RoleChoice picks customer, repairman or store.
 function RoleChoice({ role, onRole }: { role: Role; onRole: (role: Role) => void }) {
   const { t } = useTranslation()
   return (
@@ -157,22 +161,27 @@ function RoleChoice({ role, onRole }: { role: Role; onRole: (role: Role) => void
       <Text fontWeight="semibold" mb="3">
         {t('auth.rolePrompt')}
       </Text>
-      <HStack gap="3">
-        {[Role.CUSTOMER, Role.REPAIRMAN].map((value) => (
+      <SimpleGrid columns={3} gap="2">
+        {[Role.CUSTOMER, Role.REPAIRMAN, Role.STORE].map((value) => (
           <Button
             key={value}
             type="button"
-            flex="1"
             size="lg"
+            h="auto"
+            minH="14"
+            py="2"
+            px="2"
+            whiteSpace="normal"
+            lineHeight="1.25"
             colorPalette="ink"
             variant={role === value ? 'solid' : 'outline'}
             aria-pressed={role === value}
             onClick={() => onRole(value)}
           >
-            {value === Role.CUSTOMER ? t('auth.roleCustomer') : t('auth.roleRepairman')}
+            {value === Role.CUSTOMER ? t('auth.roleCustomer') : value === Role.REPAIRMAN ? t('auth.roleRepairman') : t('auth.roleStore')}
           </Button>
         ))}
-      </HStack>
+      </SimpleGrid>
     </Box>
   )
 }
@@ -259,7 +268,7 @@ function GoogleSignUp({ newcomer, onSignedIn, onCancel }: { newcomer: GoogleNewc
         phone={phone}
         code={code}
         onCode={setCode}
-        submitLabel={role === Role.CUSTOMER ? t('auth.submitCustomer') : t('auth.submitRepairman')}
+        submitLabel={submitLabel(t, role)}
         pending={pending}
         error={error}
         resent={resent}
@@ -390,7 +399,7 @@ function RegisterForm({ onSignedIn }: { onSignedIn: () => void }) {
         phone={phone}
         code={code}
         onCode={setCode}
-        submitLabel={role === Role.CUSTOMER ? t('auth.submitCustomer') : t('auth.submitRepairman')}
+        submitLabel={submitLabel(t, role)}
         pending={pending}
         error={error}
         resent={resent}

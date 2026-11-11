@@ -48,8 +48,12 @@ export function Standing({ role }: { role: Role }) {
             </Alert.Title>
             {!suspension.closed && (
               <Alert.Description>
-                {role === Role.REPAIRMAN ? t('penalties.suspendedRepairman') : t('penalties.suspendedCustomer')}{' '}
-                {t('penalties.confirmedGoAhead')}
+                {role === Role.REPAIRMAN
+                  ? t('penalties.suspendedRepairman')
+                  : role === Role.STORE
+                    ? t('penalties.suspendedStore')
+                    : t('penalties.suspendedCustomer')}{' '}
+                {role !== Role.STORE && t('penalties.confirmedGoAhead')}
               </Alert.Description>
             )}
           </Alert.Content>

@@ -1,14 +1,17 @@
-import { Badge, Box, Button, Card, Field, Heading, Input, Link, Stack, Tabs, Text, Textarea } from '@chakra-ui/react'
+import { Badge, Box, Button, Card, Field, Flex, Heading, Input, Link, Stack, Tabs, Text, Textarea } from '@chakra-ui/react'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { adminClient, errorCode } from './api'
 import { serviceName } from './catalog'
 import { ErrorAlert, PhoneField, SuccessAlert, useFormatDate } from './components'
-import { Role, type Account } from './gen/haitukang/v1/account_pb'
+import type { Account } from './gen/haitukang/v1/account_pb'
 import { AdminAction, type ClosedAccount, type Decision, type Dispute, type FindAccountResponse } from './gen/haitukang/v1/admin_pb'
 import { VisitStatus } from './gen/haitukang/v1/visit_pb'
 import type { ErrorCode } from './i18n/id'
 import { fullPhone, localPhone } from './phone'
+import type { GetMyStoreResponse, Product } from './gen/haitukang/v1/store_pb'
+import { roleName } from './roles'
+import { PhotoBox, PriceLine } from './Shop'
 import { PointRow } from './Standing'
 import { whatsappLink } from './whatsapp'
 
@@ -237,7 +240,7 @@ function AccountLine({ account }: { account: Account }) {
     <Box>
       <Text fontWeight="semibold">{account.fullName}</Text>
       <Text fontSize="sm" color="ink.600">
-        {account.role === Role.REPAIRMAN ? t('roles.repairman') : t('roles.customer')} · {account.phone}
+        {roleName(t, account.role)} · {account.phone}
       </Text>
     </Box>
   )
@@ -390,10 +393,97 @@ function FindAccount() {
                 ]}
               />
             )}
+            {found?.store && (
+              <StoreReview
+                store={found.store}
+                onDecided={() => {
+                  setDone(t('admin.decided'))
+                  void find(phone)
+                }}
+              />
+            )}
           </Card.Body>
         </Card.Root>
       )}
     </Stack>
+  )
+}
+
+// StoreReview is a store's profile and all its products, hidden ones too,
+// each of which an admin can hide or show again (HT-015).
+function StoreReview({ store, onDecided }: { store: GetMyStoreResponse; onDecided: () => void }) {
+  const { t } = useTranslation()
+  const profile = store.profile
+  return (
+    <Stack gap="3" borderTopWidth="1px" borderColor="ink.100" pt="3" data-testid="store-review">
+      {profile ? (
+        <Box>
+          <Text fontWeight="semibold">{profile.name}</Text>
+          <Line>
+            {profile.area} · {profile.address}
+          </Line>
+        </Box>
+      ) : (
+        <Line>{t('admin.storeNoProfile')}</Line>
+      )}
+      <Text fontSize="sm" fontWeight="semibold">
+        {t('admin.storeProducts', { count: store.products.length })}
+      </Text>
+      {store.products.map((p) => (
+        <ProductReview key={p.id.toString()} product={p} onDecided={onDecided} />
+      ))}
+    </Stack>
+  )
+}
+
+function ProductReview({ product, onDecided }: { product: Product; onDecided: () => void }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  return (
+    <Box borderWidth="1px" borderColor="ink.100" rounded="lg" p="3" data-testid="product-review">
+      <Flex gap="3" align="flex-start">
+        <PhotoBox photo={product.photos[0]} alt={product.details?.name ?? ''} size="16" />
+        <Stack gap="1" minW="0" flex="1">
+          <Text fontWeight="semibold" fontSize="sm">
+            {product.details?.name}
+          </Text>
+          <PriceLine product={product} size="sm" />
+          {product.hidden && (
+            <Badge alignSelf="flex-start" colorPalette="orange" variant="solid">
+              {t('admin.productHidden')}
+            </Badge>
+          )}
+        </Stack>
+        {!open && (
+          <Button size="sm" minH="11" variant="outline" colorPalette="ink" onClick={() => setOpen(true)}>
+            {t('admin.review')}
+          </Button>
+        )}
+      </Flex>
+      {open && (
+        <Box mt="3">
+          <DecisionForm
+            onDecided={() => {
+              setOpen(false)
+              onDecided()
+            }}
+            choices={[
+              product.hidden
+                ? {
+                    label: t('admin.showProduct'),
+                    palette: 'ink',
+                    decide: (reason) => adminClient.setProductHidden({ productId: product.id, hidden: false, reason }),
+                  }
+                : {
+                    label: t('admin.hideProduct'),
+                    palette: 'red',
+                    decide: (reason) => adminClient.setProductHidden({ productId: product.id, hidden: true, reason }),
+                  },
+            ]}
+          />
+        </Box>
+      )}
+    </Box>
   )
 }
 
@@ -404,6 +494,8 @@ const actionKey = {
   [AdminAction.KEEP_CLOSED]: 'keep_closed',
   [AdminAction.SUSPEND]: 'suspend',
   [AdminAction.LIFT]: 'lift',
+  [AdminAction.HIDE_PRODUCT]: 'hide_product',
+  [AdminAction.SHOW_PRODUCT]: 'show_product',
 } as const
 
 function DecisionLog() {
@@ -422,6 +514,7 @@ function DecisionLog() {
           <Box key={d.id.toString()} bg="white" borderWidth="1px" borderColor="ink.100" rounded="lg" p="3" data-decision={d.id.toString()}>
             <Text fontSize="sm" fontWeight="semibold">
               {key ? t(`admin.action.${key}`) : ''} · {d.accountName}
+              {d.productName && ` · ${d.productName}`}
             </Text>
             <Text fontSize="sm">“{d.reason}”</Text>
             <Text fontSize="xs" color="ink.600">

@@ -1,6 +1,6 @@
 # Hai Tukang frontend
 
-React + TypeScript + Chakra UI v3, built with Vite. Mobile-web first: check every screen at phone width (390px) before larger ones. The Vite dev server proxies the Connect services (`/haitukang.*`) and `/healthz` to the Go backend (`HAI_TUKANG_API`, default `http://127.0.0.1:8087`). It runs on port 5175, fixed (`strictPort`), since 5173 belongs to another project.
+React + TypeScript + Chakra UI v3, built with Vite. Mobile-web first: check every screen at phone width (390px) before larger ones. The Vite dev server proxies the Connect services (`/haitukang.*`), the product photos (`/photos/`) and `/healthz` to the Go backend (`HAI_TUKANG_API`, default `http://127.0.0.1:8087`). It runs on port 5175, fixed (`strictPort`), since 5173 belongs to another project.
 
 ## Run locally
 

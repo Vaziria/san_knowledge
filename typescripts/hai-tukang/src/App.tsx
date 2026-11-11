@@ -12,6 +12,8 @@ import type { ErrorCode } from './i18n/id'
 import { forgetPush, keepPush } from './push'
 import { PushPrompt } from './PushPrompt'
 import { RepairmanHome } from './RepairmanHome'
+import { roleName } from './roles'
+import { StoreHome } from './StoreHome'
 import { termsHash, useHash } from './route'
 import { Standing } from './Standing'
 import { TermsGate } from './terms/TermsGate'
@@ -111,7 +113,8 @@ export default function App() {
         )}
         {needsTerms && <TermsGate onAgreed={() => void load()} />}
         {session.state === 'signedIn' && !needsTerms && session.account.role !== Role.ADMIN && <Standing role={session.account.role} />}
-        {session.state === 'signedIn' && !needsTerms && session.account.role !== Role.ADMIN && <PushPrompt />}
+        {/* Notifications are about visits, which stores do not have (yet). */}
+        {session.state === 'signedIn' && !needsTerms && (session.account.role === Role.CUSTOMER || session.account.role === Role.REPAIRMAN) && <PushPrompt />}
         {session.state === 'signedIn' && !needsTerms && session.account.role === Role.ADMIN && <AdminHome />}
         {session.state === 'signedIn' &&
           !needsTerms &&
@@ -122,6 +125,8 @@ export default function App() {
               profile={session.profile}
               onProfileSaved={(profile) => setSession({ ...session, profile })}
             />
+          ) : session.account.role === Role.STORE ? (
+            <StoreHome />
           ) : (
             <CustomerHome />
           ))}
@@ -169,11 +174,7 @@ function Header({ session, onSignOut }: { session: Session; onSignOut: () => voi
               {session.account.fullName}
             </Text>
             <Badge colorPalette="ink" variant="subtle">
-              {session.account.role === Role.ADMIN
-                ? t('roles.admin')
-                : session.account.role === Role.REPAIRMAN
-                  ? t('roles.repairman')
-                  : t('roles.customer')}
+              {roleName(t, session.account.role)}
             </Badge>
           </HStack>
           <Button size="sm" minH="11" variant="ghost" colorPalette="ink" onClick={onSignOut}>

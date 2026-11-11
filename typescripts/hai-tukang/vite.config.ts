@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '^/haitukang\\.': api,
         '/healthz': api,
+        '/photos/': api,
       },
     },
   }

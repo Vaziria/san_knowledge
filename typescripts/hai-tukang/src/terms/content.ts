@@ -6,14 +6,14 @@ export type TermsSection = { heading: string; blocks: (string | string[])[] }
 export type TermsText = { title: string; updated: string; draft: string; intro: string; sections: TermsSection[] }
 
 // The Terms and Policies (acceptance HT-014), from the app's actual rules:
-// the numbers are internal/penalties' and internal/visits'. A draft for the
+// the numbers are internal/penalties', internal/visits' and internal/stores'. A draft for the
 // pilot: to be reviewed, legally too (UU PDP No. 27/2022), with the
 // operator's contact filled in, before launch. Changing it means a new
 // TERMS_VERSION (version.ts).
 export const terms: Record<Language, TermsText> = {
   id: {
     title: 'Syarat dan Kebijakan',
-    updated: 'Versi 7 November 2026',
+    updated: 'Versi 11 November 2026',
     draft: 'Draf untuk masa uji coba. Teks ini akan ditinjau, termasuk secara hukum, sebelum Hai Tukang diluncurkan.',
     intro:
       'Halaman ini menjelaskan aturan memakai Hai Tukang dan bagaimana data Anda digunakan. Bacalah sebelum mendaftar: akun hanya dibuat jika Anda menyetujuinya.',
@@ -27,6 +27,7 @@ export const terms: Record<Language, TermsText> = {
             'Hai Tukang tidak memeriksa keahlian, identitas, atau hasil kerja tukang. Yang diperiksa hanya bahwa nomor HP-nya aktif di WhatsApp ("Nomor HP terverifikasi").',
             'Hai Tukang tidak menerima atau menyimpan pembayaran. Berhati-hatilah membayar di muka.',
           ],
+          'Toko mitra juga menjual bahan perbaikan lewat Hai Tukang. Barang, harga, pembayaran, dan pengirimannya disepakati langsung antara pembeli dan toko.',
         ],
       },
       {
@@ -58,6 +59,18 @@ export const terms: Record<Language, TermsText> = {
         ],
       },
       {
+        heading: 'Toko dan bahan',
+        blocks: [
+          [
+            'Toko mendaftar sendiri dengan nomor HP yang diverifikasi lewat WhatsApp. Hai Tukang tidak memeriksa toko, barang, maupun harganya.',
+            'Hai Tukang bukan pihak dalam jual beli bahan. Toko bertanggung jawab atas barang yang dijualnya: kebenaran keterangan, harga, dan fotonya.',
+            'Toko hanya memakai foto miliknya sendiri, atau foto yang boleh ia pakai.',
+            'Pembayaran bahan langsung kepada toko (misalnya tunai, transfer, atau QRIS toko). Hai Tukang tidak menerima atau menyimpan pembayaran.',
+            'Admin dapat menyembunyikan produk yang melanggar aturan ini, atau menangguhkan toko. Selama ditangguhkan, produk toko tidak tampil di pencarian.',
+          ],
+        ],
+      },
+      {
         heading: 'Poin pelanggaran',
         blocks: [
           'Agar janji kunjungan ditepati, pelanggaran memberi poin:',
@@ -83,15 +96,17 @@ export const terms: Record<Language, TermsText> = {
         blocks: [
           'Yang kami simpan:',
           [
-            'Data akun: nama, nomor HP, peran (pelanggan atau tukang), dan kata sandi dalam bentuk tersandi.',
+            'Data akun: nama, nomor HP, peran (pelanggan, tukang, atau toko), dan kata sandi dalam bentuk tersandi.',
             'Jika mendaftar dengan Google: ID akun Google, alamat email, dan nama dari Google.',
             'Profil tukang: jenis pekerjaan, wilayah, dan keterangan tentang dirinya.',
+            'Profil toko (nama, wilayah, alamat, cara barang diterima pembeli) dan produknya, termasuk foto. Foto disimpan ulang tanpa data lain dari berkasnya, seperti lokasi pengambilan foto.',
             'Permintaan perbaikan, tanggapan, kunjungan, laporan, bantahan, poin, dan keputusan admin.',
             'Untuk notifikasi, alamat langganan push dari browser Anda; untuk tetap masuk, cookie sesi.',
           ],
           'Siapa melihat apa:',
           [
             'Nama, nomor HP, dan profil tukang dapat dilihat pengguna yang sudah masuk.',
+            'Profil toko, nomor HP, dan produknya dapat dilihat pengguna yang sudah masuk. Foto produk dapat dibuka oleh siapa pun yang punya tautannya.',
             'Permintaan pelanggan (jenis pekerjaan, wilayah, dan keterangan) dapat dilihat tukang. Nomor HP pelanggan hanya dilihat tukang yang sudah menanggapi permintaannya.',
             'Alamat email Google tidak ditampilkan kepada pengguna lain.',
             'Admin Hai Tukang dapat melihat data akun untuk meninjau laporan, bantahan, dan penangguhan.',
@@ -110,7 +125,7 @@ export const terms: Record<Language, TermsText> = {
   },
   en: {
     title: 'Terms and Policies',
-    updated: 'Version of 7 November 2026',
+    updated: 'Version of 11 November 2026',
     draft: 'Draft for the pilot. This text will be reviewed, legally too, before Hai Tukang launches.',
     intro:
       'This page sets out the rules for using Hai Tukang and how your data is used. Read it before you sign up: an account is only made if you agree to it.',
@@ -124,6 +139,7 @@ export const terms: Record<Language, TermsText> = {
             'Hai Tukang does not check repairmen’s skills, identity or work. It only checks that their phone number is active on WhatsApp ("Phone number verified").',
             'Hai Tukang does not take or hold payments. Be careful about paying in advance.',
           ],
+          'Partner stores also sell repair materials through Hai Tukang. The goods, price, payment and delivery are agreed directly between the buyer and the store.',
         ],
       },
       {
@@ -155,6 +171,18 @@ export const terms: Record<Language, TermsText> = {
         ],
       },
       {
+        heading: 'Stores and materials',
+        blocks: [
+          [
+            'Stores sign up themselves, with a phone number verified on WhatsApp. Hai Tukang does not check stores, their goods or their prices.',
+            'Hai Tukang is not a party to the sale of materials. The store is responsible for what it sells: that its descriptions, prices and photos are true.',
+            'A store only uses photos that are its own, or that it is allowed to use.',
+            'Materials are paid for directly to the store (for example in cash, by transfer, or with the store’s QRIS). Hai Tukang does not take or hold payments.',
+            'Admins can hide a product that breaks these rules, or suspend a store. While a store is suspended, its products are not shown in search.',
+          ],
+        ],
+      },
+      {
         heading: 'Penalty points',
         blocks: [
           'So that visits happen as agreed, breaking an agreement gives points:',
@@ -180,15 +208,17 @@ export const terms: Record<Language, TermsText> = {
         blocks: [
           'What we keep:',
           [
-            'Account details: name, phone number, role (customer or repairman), and your password in hashed form.',
+            'Account details: name, phone number, role (customer, repairman or store), and your password in hashed form.',
             'If you sign up with Google: your Google account ID, email address, and the name Google gives.',
             'A repairman’s profile: kinds of work, area, and what he writes about himself.',
+            'A store’s profile (name, area, address, how buyers get their items) and its products, with their photos. Photos are saved again without anything else from the file, such as where the photo was taken.',
             'Repair requests, responses, visits, reports, disputes, points, and admin decisions.',
             'For notifications, your browser’s push subscription address; to keep you signed in, a session cookie.',
           ],
           'Who sees what:',
           [
             'A repairman’s name, phone number and profile can be seen by signed-in users.',
+            'A store’s profile, phone number and products can be seen by signed-in users. A product photo can be opened by anyone who has its link.',
             'A customer’s request (kind of work, area and description) can be seen by repairmen. The customer’s phone number is only seen by repairmen who responded to the request.',
             'Your Google email address is not shown to other users.',
             'Hai Tukang’s admins can see account details to review reports, disputes and suspensions.',

@@ -95,12 +95,12 @@ export function ServiceSelect({
   )
 }
 
-export function WhatsAppButton({ phone, text }: { phone: string; text: string }) {
+export function WhatsAppButton({ phone, text, label }: { phone: string; text: string; label?: string }) {
   const { t } = useTranslation()
   return (
     <Button asChild size="lg" colorPalette="green" w="full">
       <a href={whatsappLink(phone, text)} target="_blank" rel="noopener noreferrer">
-        {t('common.whatsapp')}
+        {label ?? t('common.whatsapp')}
       </a>
     </Button>
   )

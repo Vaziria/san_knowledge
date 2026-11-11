@@ -7,21 +7,27 @@ import { ErrorAlert, ServiceSelect, SuccessAlert, useFormatDate, WhatsAppButton 
 import type { Repairman } from './gen/haitukang/v1/account_pb'
 import type { RepairRequest } from './gen/haitukang/v1/repair_request_pb'
 import type { ErrorCode } from './i18n/id'
+import { Shop } from './Shop'
 import { CustomerVisit, EarlierReports, isActive, latestFirst, ScheduleVisit, useVisits } from './Visits'
 
-// CustomerHome: find a repairman and contact him (HT-003), or post a
-// request, see who responded (HT-004) and arrange a visit (HT-005 to HT-007).
+// CustomerHome: find a repairman and contact him (HT-003), shop for
+// materials (HT-015), or post a request, see who responded (HT-004) and
+// arrange a visit (HT-005 to HT-007).
 export function CustomerHome() {
   const { t } = useTranslation()
   const [tab, setTab] = useState('find')
   return (
     <Tabs.Root value={tab} onValueChange={(e) => setTab(e.value)} fitted colorPalette="ink" lazyMount>
       <Tabs.List mb="5">
-        <Tabs.Trigger value="find">{t('customer.tabFind')}</Tabs.Trigger>
-        <Tabs.Trigger value="requests">{t('customer.tabRequests')}</Tabs.Trigger>
+        <Tabs.Trigger value="find" px="1">{t('customer.tabFind')}</Tabs.Trigger>
+        <Tabs.Trigger value="shop" px="1">{t('customer.tabShop')}</Tabs.Trigger>
+        <Tabs.Trigger value="requests" px="1">{t('customer.tabRequests')}</Tabs.Trigger>
       </Tabs.List>
       <Tabs.Content value="find">
         <FindRepairmen />
+      </Tabs.Content>
+      <Tabs.Content value="shop">
+        <Shop />
       </Tabs.Content>
       <Tabs.Content value="requests">
         <MyRequests />

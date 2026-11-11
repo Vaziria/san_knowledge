@@ -10,6 +10,8 @@ import type { Account } from "./account_pb";
 import { file_haitukang_v1_account } from "./account_pb";
 import type { GetMyStandingResponse } from "./penalty_pb";
 import { file_haitukang_v1_penalty } from "./penalty_pb";
+import type { GetMyStoreResponse } from "./store_pb";
+import { file_haitukang_v1_store } from "./store_pb";
 import type { Visit, VisitStatus } from "./visit_pb";
 import { file_haitukang_v1_visit } from "./visit_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -18,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file haitukang/v1/admin.proto.
  */
 export const file_haitukang_v1_admin: GenFile = /*@__PURE__*/
-  fileDesc("ChhoYWl0dWthbmcvdjEvYWRtaW4ucHJvdG8SDGhhaXR1a2FuZy52MSLlAQoHRGlzcHV0ZRIiCgV2aXNpdBgBIAEoCzITLmhhaXR1a2FuZy52MS5WaXNpdBIpCgZyZXBvcnQYAiABKA4yGS5oYWl0dWthbmcudjEuVmlzaXRTdGF0dXMSLwoLcmVwb3J0ZWRfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjAKDGNvbmZpcm1lZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASGAoQYXJyaXZhbF9hdHRlbXB0cxgFIAEoBRIOCgZwb2ludHMYBiABKAUiFQoTTGlzdERpc3B1dGVzUmVxdWVzdCI/ChRMaXN0RGlzcHV0ZXNSZXNwb25zZRInCghkaXNwdXRlcxgBIAMoCzIVLmhhaXR1a2FuZy52MS5EaXNwdXRlIk4KFERlY2lkZURpc3B1dGVSZXF1ZXN0EhAKCHZpc2l0X2lkGAEgASgDEhQKDHBvaW50c19zdGFuZBgCIAEoCBIOCgZyZWFzb24YAyABKAkiFwoVRGVjaWRlRGlzcHV0ZVJlc3BvbnNlIrwBCg1DbG9zZWRBY2NvdW50EiYKB2FjY291bnQYASABKAsyFS5oYWl0dWthbmcudjEuQWNjb3VudBIOCgZudW1iZXIYAiABKAUSLQoJY2xvc2VkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtyZXZpZXdlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEwoLbGFzdF9yZWFzb24YBSABKAkiGwoZTGlzdENsb3NlZEFjY291bnRzUmVxdWVzdCJLChpMaXN0Q2xvc2VkQWNjb3VudHNSZXNwb25zZRItCghhY2NvdW50cxgBIAMoCzIbLmhhaXR1a2FuZy52MS5DbG9zZWRBY2NvdW50IlAKGkRlY2lkZUNsb3NlZEFjY291bnRSZXF1ZXN0EhIKCmFjY291bnRfaWQYASABKAMSDgoGcmVvcGVuGAIgASgIEg4KBnJlYXNvbhgDIAEoCSIdChtEZWNpZGVDbG9zZWRBY2NvdW50UmVzcG9uc2UiIwoSRmluZEFjY291bnRSZXF1ZXN0Eg0KBXBob25lGAEgASgJInQKE0ZpbmRBY2NvdW50UmVzcG9uc2USJgoHYWNjb3VudBgBIAEoCzIVLmhhaXR1a2FuZy52MS5BY2NvdW50EjUKCHN0YW5kaW5nGAIgASgLMiMuaGFpdHVrYW5nLnYxLkdldE15U3RhbmRpbmdSZXNwb25zZSJJChVTdXNwZW5kQWNjb3VudFJlcXVlc3QSEgoKYWNjb3VudF9pZBgBIAEoAxIMCgRkYXlzGAIgASgFEg4KBnJlYXNvbhgDIAEoCSIYChZTdXNwZW5kQWNjb3VudFJlc3BvbnNlIjsKFUxpZnRTdXNwZW5zaW9uUmVxdWVzdBISCgphY2NvdW50X2lkGAEgASgDEg4KBnJlYXNvbhgCIAEoCSIYChZMaWZ0U3VzcGVuc2lvblJlc3BvbnNlItEBCghEZWNpc2lvbhIKCgJpZBgBIAEoAxISCgphZG1pbl9uYW1lGAIgASgJEikKBmFjdGlvbhgDIAEoDjIZLmhhaXR1a2FuZy52MS5BZG1pbkFjdGlvbhISCgphY2NvdW50X2lkGAQgASgDEhQKDGFjY291bnRfbmFtZRgFIAEoCRIQCgh2aXNpdF9pZBgGIAEoAxIOCgZyZWFzb24YByABKAkSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiFgoUTGlzdERlY2lzaW9uc1JlcXVlc3QiQgoVTGlzdERlY2lzaW9uc1Jlc3BvbnNlEikKCWRlY2lzaW9ucxgBIAMoCzIWLmhhaXR1a2FuZy52MS5EZWNpc2lvbirTAQoLQWRtaW5BY3Rpb24SHAoYQURNSU5fQUNUSU9OX1VOU1BFQ0lGSUVEEAASHQoZQURNSU5fQUNUSU9OX1BPSU5UU19TVEFORBABEh8KG0FETUlOX0FDVElPTl9QT0lOVFNfUkVNT1ZFRBACEhcKE0FETUlOX0FDVElPTl9SRU9QRU4QAxIcChhBRE1JTl9BQ1RJT05fS0VFUF9DTE9TRUQQBBIYChRBRE1JTl9BQ1RJT05fU1VTUEVORBAFEhUKEUFETUlOX0FDVElPTl9MSUZUEAYy/AUKDEFkbWluU2VydmljZRJVCgxMaXN0RGlzcHV0ZXMSIS5oYWl0dWthbmcudjEuTGlzdERpc3B1dGVzUmVxdWVzdBoiLmhhaXR1a2FuZy52MS5MaXN0RGlzcHV0ZXNSZXNwb25zZRJYCg1EZWNpZGVEaXNwdXRlEiIuaGFpdHVrYW5nLnYxLkRlY2lkZURpc3B1dGVSZXF1ZXN0GiMuaGFpdHVrYW5nLnYxLkRlY2lkZURpc3B1dGVSZXNwb25zZRJnChJMaXN0Q2xvc2VkQWNjb3VudHMSJy5oYWl0dWthbmcudjEuTGlzdENsb3NlZEFjY291bnRzUmVxdWVzdBooLmhhaXR1a2FuZy52MS5MaXN0Q2xvc2VkQWNjb3VudHNSZXNwb25zZRJqChNEZWNpZGVDbG9zZWRBY2NvdW50EiguaGFpdHVrYW5nLnYxLkRlY2lkZUNsb3NlZEFjY291bnRSZXF1ZXN0GikuaGFpdHVrYW5nLnYxLkRlY2lkZUNsb3NlZEFjY291bnRSZXNwb25zZRJSCgtGaW5kQWNjb3VudBIgLmhhaXR1a2FuZy52MS5GaW5kQWNjb3VudFJlcXVlc3QaIS5oYWl0dWthbmcudjEuRmluZEFjY291bnRSZXNwb25zZRJbCg5TdXNwZW5kQWNjb3VudBIjLmhhaXR1a2FuZy52MS5TdXNwZW5kQWNjb3VudFJlcXVlc3QaJC5oYWl0dWthbmcudjEuU3VzcGVuZEFjY291bnRSZXNwb25zZRJbCg5MaWZ0U3VzcGVuc2lvbhIjLmhhaXR1a2FuZy52MS5MaWZ0U3VzcGVuc2lvblJlcXVlc3QaJC5oYWl0dWthbmcudjEuTGlmdFN1c3BlbnNpb25SZXNwb25zZRJYCg1MaXN0RGVjaXNpb25zEiIuaGFpdHVrYW5nLnYxLkxpc3REZWNpc2lvbnNSZXF1ZXN0GiMuaGFpdHVrYW5nLnYxLkxpc3REZWNpc2lvbnNSZXNwb25zZUKuAQoQY29tLmhhaXR1a2FuZy52MUIKQWRtaW5Qcm90b1ABWj1naXRodWIuY29tL3dhcmdhc2lwaWwvaGFpLXR1a2FuZy9nZW4vaGFpdHVrYW5nL3YxO2hhaXR1a2FuZ3YxogIDSFhYqgIMSGFpdHVrYW5nLlYxygIMSGFpdHVrYW5nXFYx4gIYSGFpdHVrYW5nXFYxXEdQQk1ldGFkYXRh6gINSGFpdHVrYW5nOjpWMWIGcHJvdG8z", [file_google_protobuf_timestamp, file_haitukang_v1_account, file_haitukang_v1_penalty, file_haitukang_v1_visit]);
+  fileDesc("ChhoYWl0dWthbmcvdjEvYWRtaW4ucHJvdG8SDGhhaXR1a2FuZy52MSLlAQoHRGlzcHV0ZRIiCgV2aXNpdBgBIAEoCzITLmhhaXR1a2FuZy52MS5WaXNpdBIpCgZyZXBvcnQYAiABKA4yGS5oYWl0dWthbmcudjEuVmlzaXRTdGF0dXMSLwoLcmVwb3J0ZWRfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjAKDGNvbmZpcm1lZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASGAoQYXJyaXZhbF9hdHRlbXB0cxgFIAEoBRIOCgZwb2ludHMYBiABKAUiFQoTTGlzdERpc3B1dGVzUmVxdWVzdCI/ChRMaXN0RGlzcHV0ZXNSZXNwb25zZRInCghkaXNwdXRlcxgBIAMoCzIVLmhhaXR1a2FuZy52MS5EaXNwdXRlIk4KFERlY2lkZURpc3B1dGVSZXF1ZXN0EhAKCHZpc2l0X2lkGAEgASgDEhQKDHBvaW50c19zdGFuZBgCIAEoCBIOCgZyZWFzb24YAyABKAkiFwoVRGVjaWRlRGlzcHV0ZVJlc3BvbnNlIrwBCg1DbG9zZWRBY2NvdW50EiYKB2FjY291bnQYASABKAsyFS5oYWl0dWthbmcudjEuQWNjb3VudBIOCgZudW1iZXIYAiABKAUSLQoJY2xvc2VkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtyZXZpZXdlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEwoLbGFzdF9yZWFzb24YBSABKAkiGwoZTGlzdENsb3NlZEFjY291bnRzUmVxdWVzdCJLChpMaXN0Q2xvc2VkQWNjb3VudHNSZXNwb25zZRItCghhY2NvdW50cxgBIAMoCzIbLmhhaXR1a2FuZy52MS5DbG9zZWRBY2NvdW50IlAKGkRlY2lkZUNsb3NlZEFjY291bnRSZXF1ZXN0EhIKCmFjY291bnRfaWQYASABKAMSDgoGcmVvcGVuGAIgASgIEg4KBnJlYXNvbhgDIAEoCSIdChtEZWNpZGVDbG9zZWRBY2NvdW50UmVzcG9uc2UiIwoSRmluZEFjY291bnRSZXF1ZXN0Eg0KBXBob25lGAEgASgJIqUBChNGaW5kQWNjb3VudFJlc3BvbnNlEiYKB2FjY291bnQYASABKAsyFS5oYWl0dWthbmcudjEuQWNjb3VudBI1CghzdGFuZGluZxgCIAEoCzIjLmhhaXR1a2FuZy52MS5HZXRNeVN0YW5kaW5nUmVzcG9uc2USLwoFc3RvcmUYAyABKAsyIC5oYWl0dWthbmcudjEuR2V0TXlTdG9yZVJlc3BvbnNlIk0KF1NldFByb2R1Y3RIaWRkZW5SZXF1ZXN0EhIKCnByb2R1Y3RfaWQYASABKAMSDgoGaGlkZGVuGAIgASgIEg4KBnJlYXNvbhgDIAEoCSIaChhTZXRQcm9kdWN0SGlkZGVuUmVzcG9uc2UiSQoVU3VzcGVuZEFjY291bnRSZXF1ZXN0EhIKCmFjY291bnRfaWQYASABKAMSDAoEZGF5cxgCIAEoBRIOCgZyZWFzb24YAyABKAkiGAoWU3VzcGVuZEFjY291bnRSZXNwb25zZSI7ChVMaWZ0U3VzcGVuc2lvblJlcXVlc3QSEgoKYWNjb3VudF9pZBgBIAEoAxIOCgZyZWFzb24YAiABKAkiGAoWTGlmdFN1c3BlbnNpb25SZXNwb25zZSL7AQoIRGVjaXNpb24SCgoCaWQYASABKAMSEgoKYWRtaW5fbmFtZRgCIAEoCRIpCgZhY3Rpb24YAyABKA4yGS5oYWl0dWthbmcudjEuQWRtaW5BY3Rpb24SEgoKYWNjb3VudF9pZBgEIAEoAxIUCgxhY2NvdW50X25hbWUYBSABKAkSEAoIdmlzaXRfaWQYBiABKAMSDgoGcmVhc29uGAcgASgJEi4KCmNyZWF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhIKCnByb2R1Y3RfaWQYCSABKAMSFAoMcHJvZHVjdF9uYW1lGAogASgJIhYKFExpc3REZWNpc2lvbnNSZXF1ZXN0IkIKFUxpc3REZWNpc2lvbnNSZXNwb25zZRIpCglkZWNpc2lvbnMYASADKAsyFi5oYWl0dWthbmcudjEuRGVjaXNpb24qkQIKC0FkbWluQWN0aW9uEhwKGEFETUlOX0FDVElPTl9VTlNQRUNJRklFRBAAEh0KGUFETUlOX0FDVElPTl9QT0lOVFNfU1RBTkQQARIfChtBRE1JTl9BQ1RJT05fUE9JTlRTX1JFTU9WRUQQAhIXChNBRE1JTl9BQ1RJT05fUkVPUEVOEAMSHAoYQURNSU5fQUNUSU9OX0tFRVBfQ0xPU0VEEAQSGAoUQURNSU5fQUNUSU9OX1NVU1BFTkQQBRIVChFBRE1JTl9BQ1RJT05fTElGVBAGEh0KGUFETUlOX0FDVElPTl9ISURFX1BST0RVQ1QQBxIdChlBRE1JTl9BQ1RJT05fU0hPV19QUk9EVUNUEAgy3wYKDEFkbWluU2VydmljZRJVCgxMaXN0RGlzcHV0ZXMSIS5oYWl0dWthbmcudjEuTGlzdERpc3B1dGVzUmVxdWVzdBoiLmhhaXR1a2FuZy52MS5MaXN0RGlzcHV0ZXNSZXNwb25zZRJYCg1EZWNpZGVEaXNwdXRlEiIuaGFpdHVrYW5nLnYxLkRlY2lkZURpc3B1dGVSZXF1ZXN0GiMuaGFpdHVrYW5nLnYxLkRlY2lkZURpc3B1dGVSZXNwb25zZRJnChJMaXN0Q2xvc2VkQWNjb3VudHMSJy5oYWl0dWthbmcudjEuTGlzdENsb3NlZEFjY291bnRzUmVxdWVzdBooLmhhaXR1a2FuZy52MS5MaXN0Q2xvc2VkQWNjb3VudHNSZXNwb25zZRJqChNEZWNpZGVDbG9zZWRBY2NvdW50EiguaGFpdHVrYW5nLnYxLkRlY2lkZUNsb3NlZEFjY291bnRSZXF1ZXN0GikuaGFpdHVrYW5nLnYxLkRlY2lkZUNsb3NlZEFjY291bnRSZXNwb25zZRJSCgtGaW5kQWNjb3VudBIgLmhhaXR1a2FuZy52MS5GaW5kQWNjb3VudFJlcXVlc3QaIS5oYWl0dWthbmcudjEuRmluZEFjY291bnRSZXNwb25zZRJbCg5TdXNwZW5kQWNjb3VudBIjLmhhaXR1a2FuZy52MS5TdXNwZW5kQWNjb3VudFJlcXVlc3QaJC5oYWl0dWthbmcudjEuU3VzcGVuZEFjY291bnRSZXNwb25zZRJbCg5MaWZ0U3VzcGVuc2lvbhIjLmhhaXR1a2FuZy52MS5MaWZ0U3VzcGVuc2lvblJlcXVlc3QaJC5oYWl0dWthbmcudjEuTGlmdFN1c3BlbnNpb25SZXNwb25zZRJYCg1MaXN0RGVjaXNpb25zEiIuaGFpdHVrYW5nLnYxLkxpc3REZWNpc2lvbnNSZXF1ZXN0GiMuaGFpdHVrYW5nLnYxLkxpc3REZWNpc2lvbnNSZXNwb25zZRJhChBTZXRQcm9kdWN0SGlkZGVuEiUuaGFpdHVrYW5nLnYxLlNldFByb2R1Y3RIaWRkZW5SZXF1ZXN0GiYuaGFpdHVrYW5nLnYxLlNldFByb2R1Y3RIaWRkZW5SZXNwb25zZUKuAQoQY29tLmhhaXR1a2FuZy52MUIKQWRtaW5Qcm90b1ABWj1naXRodWIuY29tL3dhcmdhc2lwaWwvaGFpLXR1a2FuZy9nZW4vaGFpdHVrYW5nL3YxO2hhaXR1a2FuZ3YxogIDSFhYqgIMSGFpdHVrYW5nLlYxygIMSGFpdHVrYW5nXFYx4gIYSGFpdHVrYW5nXFYxXEdQQk1ldGFkYXRh6gINSGFpdHVrYW5nOjpWMWIGcHJvdG8z", [file_google_protobuf_timestamp, file_haitukang_v1_account, file_haitukang_v1_penalty, file_haitukang_v1_store, file_haitukang_v1_visit]);
 
 /**
  * @generated from message haitukang.v1.Dispute
@@ -283,6 +285,13 @@ export type FindAccountResponse = Message<"haitukang.v1.FindAccountResponse"> & 
    * @generated from field: haitukang.v1.GetMyStandingResponse standing = 2;
    */
   standing?: GetMyStandingResponse | undefined;
+
+  /**
+   * store: a store's profile (unset until it fills one in) and products.
+   *
+   * @generated from field: haitukang.v1.GetMyStoreResponse store = 3;
+   */
+  store?: GetMyStoreResponse | undefined;
 };
 
 /**
@@ -291,6 +300,46 @@ export type FindAccountResponse = Message<"haitukang.v1.FindAccountResponse"> & 
  */
 export const FindAccountResponseSchema: GenMessage<FindAccountResponse> = /*@__PURE__*/
   messageDesc(file_haitukang_v1_admin, 11);
+
+/**
+ * @generated from message haitukang.v1.SetProductHiddenRequest
+ */
+export type SetProductHiddenRequest = Message<"haitukang.v1.SetProductHiddenRequest"> & {
+  /**
+   * @generated from field: int64 product_id = 1;
+   */
+  productId: bigint;
+
+  /**
+   * @generated from field: bool hidden = 2;
+   */
+  hidden: boolean;
+
+  /**
+   * @generated from field: string reason = 3;
+   */
+  reason: string;
+};
+
+/**
+ * Describes the message haitukang.v1.SetProductHiddenRequest.
+ * Use `create(SetProductHiddenRequestSchema)` to create a new message.
+ */
+export const SetProductHiddenRequestSchema: GenMessage<SetProductHiddenRequest> = /*@__PURE__*/
+  messageDesc(file_haitukang_v1_admin, 12);
+
+/**
+ * @generated from message haitukang.v1.SetProductHiddenResponse
+ */
+export type SetProductHiddenResponse = Message<"haitukang.v1.SetProductHiddenResponse"> & {
+};
+
+/**
+ * Describes the message haitukang.v1.SetProductHiddenResponse.
+ * Use `create(SetProductHiddenResponseSchema)` to create a new message.
+ */
+export const SetProductHiddenResponseSchema: GenMessage<SetProductHiddenResponse> = /*@__PURE__*/
+  messageDesc(file_haitukang_v1_admin, 13);
 
 /**
  * @generated from message haitukang.v1.SuspendAccountRequest
@@ -317,7 +366,7 @@ export type SuspendAccountRequest = Message<"haitukang.v1.SuspendAccountRequest"
  * Use `create(SuspendAccountRequestSchema)` to create a new message.
  */
 export const SuspendAccountRequestSchema: GenMessage<SuspendAccountRequest> = /*@__PURE__*/
-  messageDesc(file_haitukang_v1_admin, 12);
+  messageDesc(file_haitukang_v1_admin, 14);
 
 /**
  * @generated from message haitukang.v1.SuspendAccountResponse
@@ -330,7 +379,7 @@ export type SuspendAccountResponse = Message<"haitukang.v1.SuspendAccountRespons
  * Use `create(SuspendAccountResponseSchema)` to create a new message.
  */
 export const SuspendAccountResponseSchema: GenMessage<SuspendAccountResponse> = /*@__PURE__*/
-  messageDesc(file_haitukang_v1_admin, 13);
+  messageDesc(file_haitukang_v1_admin, 15);
 
 /**
  * @generated from message haitukang.v1.LiftSuspensionRequest
@@ -352,7 +401,7 @@ export type LiftSuspensionRequest = Message<"haitukang.v1.LiftSuspensionRequest"
  * Use `create(LiftSuspensionRequestSchema)` to create a new message.
  */
 export const LiftSuspensionRequestSchema: GenMessage<LiftSuspensionRequest> = /*@__PURE__*/
-  messageDesc(file_haitukang_v1_admin, 14);
+  messageDesc(file_haitukang_v1_admin, 16);
 
 /**
  * @generated from message haitukang.v1.LiftSuspensionResponse
@@ -365,7 +414,7 @@ export type LiftSuspensionResponse = Message<"haitukang.v1.LiftSuspensionRespons
  * Use `create(LiftSuspensionResponseSchema)` to create a new message.
  */
 export const LiftSuspensionResponseSchema: GenMessage<LiftSuspensionResponse> = /*@__PURE__*/
-  messageDesc(file_haitukang_v1_admin, 15);
+  messageDesc(file_haitukang_v1_admin, 17);
 
 /**
  * @generated from message haitukang.v1.Decision
@@ -414,6 +463,19 @@ export type Decision = Message<"haitukang.v1.Decision"> & {
    * @generated from field: google.protobuf.Timestamp created_at = 8;
    */
   createdAt?: Timestamp | undefined;
+
+  /**
+   * product_id and product_name: the product hidden or shown (its store is
+   * the account).
+   *
+   * @generated from field: int64 product_id = 9;
+   */
+  productId: bigint;
+
+  /**
+   * @generated from field: string product_name = 10;
+   */
+  productName: string;
 };
 
 /**
@@ -421,7 +483,7 @@ export type Decision = Message<"haitukang.v1.Decision"> & {
  * Use `create(DecisionSchema)` to create a new message.
  */
 export const DecisionSchema: GenMessage<Decision> = /*@__PURE__*/
-  messageDesc(file_haitukang_v1_admin, 16);
+  messageDesc(file_haitukang_v1_admin, 18);
 
 /**
  * @generated from message haitukang.v1.ListDecisionsRequest
@@ -434,7 +496,7 @@ export type ListDecisionsRequest = Message<"haitukang.v1.ListDecisionsRequest"> 
  * Use `create(ListDecisionsRequestSchema)` to create a new message.
  */
 export const ListDecisionsRequestSchema: GenMessage<ListDecisionsRequest> = /*@__PURE__*/
-  messageDesc(file_haitukang_v1_admin, 17);
+  messageDesc(file_haitukang_v1_admin, 19);
 
 /**
  * @generated from message haitukang.v1.ListDecisionsResponse
@@ -451,7 +513,7 @@ export type ListDecisionsResponse = Message<"haitukang.v1.ListDecisionsResponse"
  * Use `create(ListDecisionsResponseSchema)` to create a new message.
  */
 export const ListDecisionsResponseSchema: GenMessage<ListDecisionsResponse> = /*@__PURE__*/
-  messageDesc(file_haitukang_v1_admin, 18);
+  messageDesc(file_haitukang_v1_admin, 20);
 
 /**
  * @generated from enum haitukang.v1.AdminAction
@@ -491,6 +553,16 @@ export enum AdminAction {
    * @generated from enum value: ADMIN_ACTION_LIFT = 6;
    */
   LIFT = 6,
+
+  /**
+   * @generated from enum value: ADMIN_ACTION_HIDE_PRODUCT = 7;
+   */
+  HIDE_PRODUCT = 7,
+
+  /**
+   * @generated from enum value: ADMIN_ACTION_SHOW_PRODUCT = 8;
+   */
+  SHOW_PRODUCT = 8,
 }
 
 /**
@@ -552,7 +624,8 @@ export const AdminService: GenService<{
     output: typeof DecideClosedAccountResponseSchema;
   },
   /**
-   * FindAccount finds a customer or repairman by phone (not_found).
+   * FindAccount finds a customer, repairman or store by phone (not_found);
+   * a store comes with its profile and all its products, hidden ones too.
    *
    * @generated from rpc haitukang.v1.AdminService.FindAccount
    */
@@ -591,6 +664,17 @@ export const AdminService: GenService<{
     methodKind: "unary";
     input: typeof ListDecisionsRequestSchema;
     output: typeof ListDecisionsResponseSchema;
+  },
+  /**
+   * SetProductHidden hides a store's product from customers, or shows it
+   * again (HT-015); the store still sees it, marked hidden. not_found.
+   *
+   * @generated from rpc haitukang.v1.AdminService.SetProductHidden
+   */
+  setProductHidden: {
+    methodKind: "unary";
+    input: typeof SetProductHiddenRequestSchema;
+    output: typeof SetProductHiddenResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_haitukang_v1_admin, 0);

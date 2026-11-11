@@ -6,12 +6,13 @@ import { NotificationService } from './gen/haitukang/v1/notification_pb'
 import { PenaltyService } from './gen/haitukang/v1/penalty_pb'
 import { AdminService } from './gen/haitukang/v1/admin_pb'
 import { RepairRequestService } from './gen/haitukang/v1/repair_request_pb'
+import { StoreService } from './gen/haitukang/v1/store_pb'
 import { VisitService } from './gen/haitukang/v1/visit_pb'
 import { isErrorCode } from './i18n'
 import type { ErrorCode } from './i18n/id'
 
 // The services are on the page's origin: in `npm run dev`, Vite proxies
-// /haitukang.* to the backend. The sign-in is an HttpOnly cookie the browser
+// /haitukang.* (and the product photos, /photos/) to the backend. The sign-in is an HttpOnly cookie the browser
 // sends with every call.
 const transport = createConnectTransport({ baseUrl: window.location.origin })
 
@@ -21,6 +22,7 @@ export const visitClient = createClient(VisitService, transport)
 export const notifications = createClient(NotificationService, transport)
 export const penaltyClient = createClient(PenaltyService, transport)
 export const adminClient = createClient(AdminService, transport)
+export const storeClient = createClient(StoreService, transport)
 
 // changedEvent fires after the reader changed a visit; the standing reloads.
 export const changedEvent = 'hai-tukang:changed'

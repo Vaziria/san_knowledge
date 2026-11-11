@@ -94,6 +94,7 @@ bin\san_remote.exe tiktok ...                     # TikTok: see "TikTok" below
 bin\san_remote.exe instagram ...                  # Instagram: see "Instagram" below
 bin\san_remote.exe shopee ...                     # Shopee Seller Centre: see "Shopee" below
 bin\san_remote.exe gmaps ...                      # Google Maps: see "Google Maps" below
+bin\san_remote.exe trends ...                     # Google Trends: see "Google Trends" below
 bin\san_remote.exe chatgpt ...                    # ChatGPT: see "ChatGPT" below
 bin\san_remote.exe gemini ...                     # Gemini: see "Gemini" below
 bin\san_remote.exe grok ...                       # Grok (grok.com): see "Grok" below
@@ -208,6 +209,8 @@ rebuilding, reconnect with `/mcp`.
 | `shopee_media` | product (id or link); photos (absolute paths, the whole gallery), video (an absolute path), remove_video, rehearse, browser |
 | `shopee_publish`, `shopee_archive`, `shopee_boost`, `shopee_delete` | product (id or link), browser |
 | `gmaps_search` | keyword; latitude and longitude, or plus_code; zoom, limit, visit_websites, browser |
+| `trends_related` | keyword; geo (default ID), time, category, property, browser |
+| `trends_pickers` | country, browser |
 | `chatgpt_status` | browser |
 | `chatgpt_ask` | prompt; keep, chat, wait_seconds, images, browser |
 | `gemini_status` | browser |
@@ -269,6 +272,7 @@ bin\san_remote.exe api --listen 127.0.0.1:7479 --log-level debug   # each site s
 | `san.remote.telegram.v1.TelegramService` | GetStatus, CreateBot (through @BotFather; the bot with its token), DeleteBot, CreateGroup (the group's id), DeleteGroup, AddMember, RemoveMember (a group by id or title, a user by username) |
 | `san.remote.shopee.v1.ShopeeService` | GetStatus, ListProducts (a tab of Produk Saya, `search`, `limit`; each product with its models; `media` adds its photos and video), CreateProduct (a product file by absolute path, its markdown, or the fields: photos by absolute paths, an optional `video` (MP4, 10-60 s, up to 30 MB), category path, attributes, up to 2 variations with a price, stock and SKU per combination; archived unless `publish` live; `rehearse`), UpdateMedia (a product's `photos`, the whole new gallery, and/or its `video`, or `remove_video`; saved with Update, which keeps it live or archived; `rehearse`), PublishProduct, ArchiveProduct, BoostProduct (Naikkan Produk; FailedPrecondition when not live, on its cooldown or all 5 slots in use), ListBoosted, DeleteProduct (a live one is archived first) |
 | `san.remote.gmaps.v1.GoogleMapsService` | SearchPlaces (a `keyword` around `latitude` and `longitude` or a full `plus_code`, at `zoom`; every place listed or `limit`; each with its name, category, address, phone, website, social links, plus code, point, rating and Maps link; `visit_websites` reads each website for its social links; says `end_of_list` and `limited_view`) |
+| `san.remote.trends.v1.TrendsService` | GetStatus (which Explore opens, signed in to Google), Related (a `keyword`'s Top and Rising queries, each with its search interest, change and Explore link, for `geo`, `time`, `category` and `property`; `wait_seconds`, 0 is 2 minutes; ResourceExhausted when Google limits the browser), Pickers (the new Explore's locations, a `country`'s regions, categories, time ranges and search types) |
 | `san.remote.chatgpt.v1.ChatGPTService` | GetStatus, Ask (in a Temporary chat unless `keep`; the answer as markdown; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.gemini.v1.GeminiService` | GetStatus, Ask (in a Temporary chat unless `keep`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
 | `san.remote.grok.v1.GrokService` | GetStatus, Ask (in a Private chat unless `keep`; the answer as markdown, links as `[text](url)`; brings Chrome to the front; `stay` leaves the tab open on the chat; `idle_seconds` keeps it open for the chat's next ask, which goes on in it, and closes it after that long without one) |
@@ -1492,6 +1496,67 @@ bin\san_remote.exe gmaps search kopi --at -6.2,106.816 --limit 5 --visit-website
   many searches: the search stops with that, and someone has to answer it
   in the browser. Keep searches to what you need.
 
+## Google Trends
+
+`san_remote trends` reads Google Trends in your browser, as a person does on
+its Explore page (2026-11-11, for the tower's Keyword Research). Trends has
+no open API, and the page's own calls carry a reCAPTCHA token only the page
+makes, so the page makes them: san_remote hooks the page's fetch (in its
+main world) and reads the reply of its own `batchexecute` call (rpc
+`fXqlme`), the related queries. It only reads. The steps are in Go
+(`internal/trends/service.go`, the reply parsed in `trends.go`), the page
+knowledge in `trends.js` and the hook in `hook.js`.
+
+```powershell
+bin\san_remote.exe trends related "aplikasi kasir"                       # Indonesia, Past year
+bin\san_remote.exe trends related "aplikasi kasir" --geo ID-JK --time "today 5-y" --cat 12 --type youtube --json
+bin\san_remote.exe trends pickers --country ID                           # the page's locations, categories, time ranges, search types
+bin\san_remote.exe trends status                                         # which Explore opens, and signed in to Google or not
+```
+
+- **The new Explore only** (the user, 2026-11-11: "Don't use classic
+  explore"). A lookup opens `https://trends.google.com/explore?q=<keyword>`
+  with `geo`, `date`, `cat` and `gprop` (the defaults left out) and no
+  `hl`: an `hl=en-US` link, or an account set to it, lands on the classic
+  Explore (`/trends/explore`). When Trends opens the classic one anyway, it
+  is switched to the new one automatically (the user, 2026-11-11: "If it
+  classic explore, switch automatically"): the classic page's own "go to the
+  new Explore", then the lookup's address again; `switched` says so. The
+  classic page is never read; one that stays classic fails with what to do
+  (open trends.google.com/explore once and switch there).
+- **related** gives the Top queries (by search interest, 0-100) and the
+  Rising ones (by change in percent; Breakout past 5000%), each with both
+  numbers (the new Explore gives both for every query) and its own Explore
+  link. About 48-50 Top queries a keyword (48 for "aplikasi kasir",
+  2026-11-11); a keyword with too little data gives empty lists. Before
+  reading, it checks the page took the lookup's filters from its address.
+  `--geo` is a country (ID, the default), a region (ID-JK) or `worldwide`;
+  `--time` as the page writes it (`now 1-H`, `now 4-H`, `now 1-d`, `now
+  7-d`, `today 1-m`, `today 3-m`, `today 12-m` the default, `today 5-y`,
+  `all`, or `YYYY-MM-DD YYYY-MM-DD`); `--cat` a category id from `pickers`
+  (0 All categories); `--type` web, images, news, shopping or youtube.
+- **The tab must be visible for a few seconds.** The page fetches its
+  related queries only once they are on screen, so after the page loads in
+  a background tab, the lookup shows its tab (brings Chrome to the front),
+  scrolls the related queries into view, reads the reply, then shows your
+  tab again. When Windows keeps Chrome behind the window you work in, it
+  only flashes on the taskbar: click it. A lookup waits 2 minutes by
+  default (the API's `wait_seconds`; the tower asks 240 s).
+- **pickers** reads the page's own lists: Worldwide and the countries
+  (with `--country`, that country's regions, read from the location menu,
+  which the page builds only while shown), the categories with their ids,
+  the time ranges and the search types.
+- **Rate limits.** Google limits how often a browser may look up: an HTTP
+  429 on the page's call, or its "unusual traffic" page, ends the lookup
+  with `Google is limiting this browser's Trends lookups`, which the API
+  gives as ResourceExhausted, so a caller waits before the next one (the
+  tower's Keyword Research backs off 1, 3 and 10 minutes). Answer the check
+  in the browser if it shows one. Keep lookups one at a time, several
+  seconds apart.
+- Google's cookie consent page fails the lookup with what to do (answer it
+  once in the browser). A failed step stops with a screenshot in the temp
+  folder (`san_remote-trends-150405.png`).
+
 ## ChatGPT
 
 `san_remote chatgpt` asks ChatGPT through your browser's ChatGPT session, the
@@ -1784,6 +1849,9 @@ need a token and TLS first.
 | gmaps: `Google asks whether this is a robot` | Open google.com/maps in that browser and answer the check; search less often, or with a `--limit`. |
 | gmaps: `Google asks for cookie consent` | Open google.com/maps in that browser and answer it once. |
 | gmaps: only a few places, `limited view` | Maps gives a browser it does not trust a limited view: sign in to Google in that browser. |
+| trends: `Google is limiting this browser's Trends lookups` | Wait (an hour or so after many lookups), answer Google's check in that browser if it shows one, and look up less often. |
+| trends: `Trends keeps opening the classic Explore` | Open trends.google.com/explore in that browser, switch to the new Explore once, then try again. |
+| trends: `waited … for Trends' related queries`, Chrome's taskbar button flashing | The page loads them only on screen: click Chrome and leave it in front for the few seconds of the lookup. |
 
 ## Development
 

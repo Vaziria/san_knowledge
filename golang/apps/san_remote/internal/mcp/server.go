@@ -28,6 +28,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/gmaps"
+	"github.com/wargasipil/san_remote/internal/trends"
 	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/instagram"
@@ -64,6 +65,9 @@ type Server struct {
 	Shopee    *shopee.Service
 	// GoogleMaps runs gmaps_search in this process, through Client.
 	GoogleMaps *gmaps.Service
+	// Trends runs trends_related and trends_pickers in this process, through
+	// Client.
+	Trends     *trends.Service
 	ChatGPT    *chatgpt.Service
 	Gemini     *gemini.Service
 	Grok       *grok.Service
@@ -145,12 +149,12 @@ func (s *Server) dispatch(ctx context.Context, req request) (any, *rpcError) {
 			"protocolVersion": version,
 			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}},
 			"serverInfo":      map[string]any{"name": "san_remote", "title": "San Remote", "version": s.Version},
-			"instructions":    instructions + sitesInstructions + shopeeInstructions + gmapsInstructions,
+			"instructions":    instructions + sitesInstructions + shopeeInstructions + gmapsInstructions + trendsInstructions,
 		}, nil
 	case "ping":
 		return map[string]any{}, nil
 	case "tools/list":
-		return map[string]any{"tools": slices.Concat(toolDefs(), siteToolDefs(), shopeeToolDefs(), gmapsToolDefs())}, nil
+		return map[string]any{"tools": slices.Concat(toolDefs(), siteToolDefs(), shopeeToolDefs(), gmapsToolDefs(), trendsToolDefs())}, nil
 	case "tools/call":
 		var p struct {
 			Name      string          `json:"name"`
@@ -482,6 +486,12 @@ type args struct {
 	PlusCode      string  `json:"plus_code"`
 	Zoom          float64 `json:"zoom"`
 	VisitWebsites bool    `json:"visit_websites"`
+	// trends_*
+	Geo      string `json:"geo"`
+	Time     string `json:"time"`
+	Category int    `json:"category"`
+	Property string `json:"property"`
+	Country  string `json:"country"`
 }
 
 // Call runs one tool and returns its content: text, or for
@@ -527,6 +537,8 @@ func (s *Server) Call(ctx context.Context, name string, raw json.RawMessage) ([]
 		text, err = s.shopee(ctx, name, a)
 	case strings.HasPrefix(name, "gmaps_"):
 		text, err = s.gmaps(ctx, name, a)
+	case strings.HasPrefix(name, "trends_"):
+		text, err = s.trends(ctx, name, a)
 	case strings.HasPrefix(name, "chatgpt_"):
 		text, err = s.chatgpt(ctx, name, a)
 	case strings.HasPrefix(name, "gemini_"):

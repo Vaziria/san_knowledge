@@ -67,6 +67,12 @@ func (r Remote) Exec(ctx context.Context, req *v1.ExecRequest) (*v1.ExecResponse
 	return msg(r.C.Exec(ctx, connect.NewRequest(req)))
 }
 
+// ListTabs is not in Browser: a site that shows its tab for a moment
+// (Trends) lists the tabs first, to show the user's tab again after.
+func (r Remote) ListTabs(ctx context.Context, req *v1.ListTabsRequest) (*v1.ListTabsResponse, error) {
+	return msg(r.C.ListTabs(ctx, connect.NewRequest(req)))
+}
+
 func msg[T any](r *connect.Response[T], err error) (*T, error) {
 	if err != nil {
 		return nil, err

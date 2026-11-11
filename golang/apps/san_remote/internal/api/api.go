@@ -29,6 +29,7 @@ import (
 	"github.com/wargasipil/san_remote/gen/san/remote/facebook/v1/facebookv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gemini/v1/geminiv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/gmaps/v1/gmapsv1connect"
+	"github.com/wargasipil/san_remote/gen/san/remote/trends/v1/trendsv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/grok/v1/grokv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/instagram/v1/instagramv1connect"
 	"github.com/wargasipil/san_remote/gen/san/remote/linkedin/v1/linkedinv1connect"
@@ -50,6 +51,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/facebook"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/gmaps"
+	"github.com/wargasipil/san_remote/internal/trends"
 	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/hub"
 	"github.com/wargasipil/san_remote/internal/instagram"
@@ -86,6 +88,8 @@ type API struct {
 	Shopee    *shopee.Service
 	// GoogleMaps reads Google Maps; it only reads (2026-11-06).
 	GoogleMaps *gmaps.Service
+	// Trends reads Google Trends' new Explore; it only reads (2026-11-11).
+	Trends     *trends.Service
 	ChatGPT    *chatgpt.Service
 	Gemini     *gemini.Service
 	Grok       *grok.Service
@@ -113,6 +117,7 @@ func (a *API) Handler() http.Handler {
 	mux.Handle(instagramv1connect.NewInstagramServiceHandler(instagramAPI{a}))
 	mux.Handle(shopeev1connect.NewShopeeServiceHandler(shopeeAPI{a}))
 	mux.Handle(gmapsv1connect.NewGoogleMapsServiceHandler(gmapsAPI{a}))
+	mux.Handle(trendsv1connect.NewTrendsServiceHandler(trendsAPI{a}))
 	mux.Handle(chatgptv1connect.NewChatGPTServiceHandler(chatgptAPI{a}))
 	mux.Handle(geminiv1connect.NewGeminiServiceHandler(geminiAPI{a}))
 	mux.Handle(grokv1connect.NewGrokServiceHandler(grokAPI{a}))
@@ -145,6 +150,11 @@ func (a *API) fail(err error) error {
 		errors.Is(err, chatgpt.ErrChatGone), errors.Is(err, gemini.ErrChatGone), errors.Is(err, grok.ErrChatGone), errors.Is(err, claude.ErrChatGone),
 		errors.Is(err, instagram.ErrNoMatch), errors.Is(err, shopee.ErrNotFound):
 		return connect.NewError(connect.CodeNotFound, err)
+	}
+	if errors.Is(err, trends.ErrRateLimited) {
+		// Google limiting the browser: the caller waits before the next
+		// lookup (the tower's Keyword Research backs off on it).
+		return connect.NewError(connect.CodeResourceExhausted, err)
 	}
 	if code, ok := siteCode(err); ok {
 		return connect.NewError(code, err)

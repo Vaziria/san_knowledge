@@ -22,6 +22,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/claude"
 	"github.com/wargasipil/san_remote/internal/gemini"
 	"github.com/wargasipil/san_remote/internal/gmaps"
+	"github.com/wargasipil/san_remote/internal/trends"
 	"github.com/wargasipil/san_remote/internal/grok"
 	"github.com/wargasipil/san_remote/internal/instagram"
 	"github.com/wargasipil/san_remote/internal/linkedin"
@@ -497,6 +498,7 @@ func siteCode(err error) (connect.Code, bool) {
 		telegram.ErrInvalid, telegram.ErrNotFound, telegram.ErrAmbiguous,
 		shopee.ErrInvalid,
 		gmaps.ErrInvalid,
+		trends.ErrInvalid,
 		chatgpt.ErrInvalidPrompt,
 		gemini.ErrInvalidPrompt,
 		grok.ErrInvalidPrompt,
@@ -515,6 +517,7 @@ func siteCode(err error) (connect.Code, bool) {
 		telegram.ErrNotSignedIn, telegram.ErrLanguage, telegram.ErrRefused,
 		shopee.ErrNotSignedIn, shopee.ErrLanguage, shopee.ErrNotLive, shopee.ErrCooldown, shopee.ErrSlotsFull, shopee.ErrRefused,
 		gmaps.ErrBlocked, gmaps.ErrConsent,
+		trends.ErrConsent, trends.ErrClassic,
 		chatgpt.ErrNotSignedIn, chatgpt.ErrLanguage, chatgpt.ErrRefused,
 		gemini.ErrNotSignedIn, gemini.ErrLanguage, gemini.ErrRefused,
 		grok.ErrNotSignedIn, grok.ErrLanguage, grok.ErrRefused,

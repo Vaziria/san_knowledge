@@ -11,13 +11,14 @@ Shorts through YouTube Studio, schedules Instagram photos, carousels and
 Reels in Meta Business Suite or shares them at once on instagram.com, makes and deletes Telegram bots (through
 @BotFather) and groups and adds and removes group members in Telegram Web,
 reads the places Google Maps lists around a point (name, address, phone,
-website, social media links, plus code),
+website, social media links, plus code), reads a keyword's related queries
+(Top and Rising) on Google Trends' new Explore,
 and asks ChatGPT and Gemini
 in a Temporary chat, Grok on grok.com in a Private chat, and Claude on claude.ai in an incognito chat. `san_remote api` offers these site services to other
 programs over Connect (gRPC), first the tower's workflows.
 
 - [docs/readme.md](docs/readme.md): install, quickstart, CLI, MCP, API,
-  Threads, Vidara, Facebook, X, Medium, LinkedIn, TikTok, YouTube, Instagram, Telegram, Shopee, Google Maps, ChatGPT, Gemini,
+  Threads, Vidara, Facebook, X, Medium, LinkedIn, TikTok, YouTube, Instagram, Telegram, Shopee, Google Maps, Google Trends, ChatGPT, Gemini,
   Grok, Claude, the debug panel, configuration, troubleshooting, development.
 - [docs/external_repo/san_remote.md](../../../docs/external_repo/san_remote.md)
   in the parent repository: the design and the reasons behind it.

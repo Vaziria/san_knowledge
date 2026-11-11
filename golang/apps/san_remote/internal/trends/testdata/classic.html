@@ -1,0 +1,21 @@
+<!-- The classic Explore's banner, saved from https://trends.google.com/trends/explore?q=aplikasi%20kasir&geo=ID&hl=en-US on 2026-11-11. -->
+<div ng-if="!newExploreBannerDismissed">
+      <!----><div ng-if="$root.globals.isDesktopMode" class="header-new-explore-banner">
+        <div class="header-new-explore-banner-left">
+          <i class="material-icons-extended" style="color: #1157ce">info</i>
+          <span class="header-new-explore-banner-text header-new-explore-banner-emphasized-text">
+            Classic Explore is expiring soon.
+          </span>
+          <span class="header-new-explore-banner-text">
+            Switch to the new Explore page to find search terms and discover trends.
+          </span>
+        </div>
+        <div class="header-new-explore-banner-right">
+          <!-- Clicking the "New Explore" button navigates to the "/explore" path. This works properly
+          only in prod where Narrator and Tremolo share the same hostname. -->
+          <a class="header-new-explore-banner-action-button md-button md-ink-ripple" ng-transclude="" href="/explore" target="_self">
+            Go to new Explore
+          </a>
+        </div>
+      </div>
+    </div>

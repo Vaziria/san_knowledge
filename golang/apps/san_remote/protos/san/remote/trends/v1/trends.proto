@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package san.remote.trends.v1;
+
+// TrendsService is the Google Trends service (internal/trends) over Connect,
+// served by `san_remote api` for other programs (the tower's Keyword
+// Research). Like the CLI, it reads Google Trends' new Explore page
+// (trends.google.com/explore) in a tab of the user's browser, as a person
+// does there: Trends has no open API, and its own calls carry a reCAPTCHA
+// token that only the page can make. It only reads. A page that opens in the
+// classic Explore is switched to the new one (the user, 2026-11-11: "If it
+// classic explore, switch automatically"); the classic page is never read.
+service TrendsService {
+  // GetStatus opens Trends' Explore page without a search term and says
+  // which Explore it shows and whether the browser is signed in to Google.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // Related reads a keyword's related queries, the new Explore's "Commonly
+  // searched queries": its Top queries (by search interest) and its Rising
+  // queries (by change). The page loads them only once that part of it is
+  // on screen, so the tab is shown for a few seconds. A keyword with too
+  // little data gives empty lists, not an error. Google limiting the
+  // browser (HTTP 429, "unusual traffic") is ResourceExhausted: wait before
+  // the next lookup.
+  rpc Related(RelatedRequest) returns (RelatedResponse);
+  // Pickers reads the new Explore's own filter lists: its locations
+  // (Worldwide and the countries), its categories, time ranges and search
+  // types. With country, it reads that country's regions too, from the
+  // location menu's submenu, which the page builds only while it is shown.
+  rpc Pickers(PickersRequest) returns (PickersResponse);
+}
+
+message GetStatusRequest {
+  // The attached browser's id or name; empty is the only one attached.
+  string browser = 1;
+}
+
+message GetStatusResponse {
+  // new_explore: the page is the new Explore (after switching, when it
+  // opened the classic one; switched says so).
+  bool new_explore = 1;
+  bool switched = 2;
+  // signed_in: the page shows a Google account.
+  bool signed_in = 3;
+  string url = 4;
+}
+
+message RelatedRequest {
+  string browser = 1;
+  // The search term, as typed in Explore's search box. Required.
+  string keyword = 2;
+  // The location as the page's location menu codes it: "ID" (a country),
+  // "ID-JK" (a region), empty for Worldwide.
+  string geo = 3;
+  // The time range as the page's date parameter writes it: "now 1-H",
+  // "now 4-H", "now 1-d", "now 7-d", "today 1-m", "today 3-m", "today 12-m"
+  // (the default, Past year), "today 5-y", "all" (2004 - present), or a range
+  // "YYYY-MM-DD YYYY-MM-DD" (a year, or Custom).
+  string time = 4;
+  // The category's id from Pickers; 0 is All Categories.
+  int32 category = 5;
+  // The search type: "" (Web Search), "images", "news", "froogle" (Google
+  // Shopping) or "youtube".
+  string property = 6;
+  // How long to wait for the page; 0 is 2 minutes.
+  uint32 wait_seconds = 7;
+}
+
+// RelatedQuery is one query of a Top or Rising list. The new Explore gives
+// both numbers for every query.
+message RelatedQuery {
+  string query = 1;
+  // value is the list's own number: search interest (0-100) in Top, change
+  // in percent in Rising.
+  int32 value = 2;
+  // formatted_value is value as the page shows it: "100", "+550%", "-20%",
+  // "Breakout".
+  string formatted_value = 3;
+  // breakout: the change is past what Trends measures (the page shows
+  // Breakout for its 5000%).
+  bool breakout = 4;
+  // link is the new Explore's page of this query with the same filters.
+  string link = 5;
+  int32 search_interest = 6;
+  // change is the change in search interest against the period before, in
+  // percent.
+  int32 change = 7;
+}
+
+message RelatedResponse {
+  string keyword = 1;
+  // top is by search interest, rising by change, as the page lists them
+  // (the page's Rising list also holds the queries that fell; rising holds
+  // only those whose change is above 0).
+  repeated RelatedQuery top = 2;
+  repeated RelatedQuery rising = 3;
+  // url is the Explore page read.
+  string url = 4;
+  // switched: Trends opened the classic Explore first.
+  bool switched = 5;
+}
+
+message PickersRequest {
+  string browser = 1;
+  // country, a country's code ("ID"), also reads its regions.
+  string country = 2;
+}
+
+// Geo is a location of the page's location menu.
+message Geo {
+  // code is the page's: "ID", "ID-JK"; empty for Worldwide.
+  string code = 1;
+  string name = 2;
+  // has_regions: the menu has a submenu of its regions.
+  bool has_regions = 3;
+  repeated Geo regions = 4;
+}
+
+// Category is a category of the page's category menu.
+message Category {
+  int32 id = 1;
+  string name = 2;
+  repeated Category children = 3;
+}
+
+// Option is a choice of the time range or search type menu.
+message Option {
+  string value = 1;
+  string label = 2;
+}
+
+message PickersResponse {
+  // geos are Worldwide (code "") and the countries, in the menu's order;
+  // the asked country carries its regions.
+  repeated Geo geos = 1;
+  // categories are the top categories, each with its own (All Categories,
+  // id 0, is not among them).
+  repeated Category categories = 2;
+  // times are the time ranges with fixed values (Past hour ... 2004 -
+  // present); a year or Custom is a range "YYYY-MM-DD YYYY-MM-DD".
+  repeated Option times = 3;
+  repeated Option properties = 4;
+}

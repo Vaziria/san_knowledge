@@ -20,7 +20,7 @@ import (
 func apiCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "api",
-		Usage: "serve the site services (Threads, X, Facebook, Vidara, Medium, LinkedIn, TikTok, YouTube, Instagram, Telegram, Shopee, Google Maps, ChatGPT, Gemini, Grok, Claude) over Connect (gRPC) for other programs, such as the tower; needs a running `san_remote serve`",
+		Usage: "serve the site services (Threads, X, Facebook, Vidara, Medium, LinkedIn, TikTok, YouTube, Instagram, Telegram, Shopee, Google Maps, Google Trends, ChatGPT, Gemini, Grok, Claude) over Connect (gRPC) for other programs, such as the tower; needs a running `san_remote serve`",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "listen", Value: api.DefaultAddr, Usage: "address to listen on (loopback only)"},
 			&cli.StringFlag{Name: "log-level", Value: "info", Usage: "debug, info, warn or error"},
@@ -57,6 +57,7 @@ func runAPI(ctx context.Context, cmd *cli.Command) error {
 		Instagram:  instagramService(cmd),
 		Shopee:     shopeeService(cmd),
 		GoogleMaps: gmapsService(cmd),
+		Trends:     trendsService(cmd),
 		ChatGPT:    chatgptService(cmd),
 		Gemini:     geminiService(cmd),
 		Grok:       grokService(cmd),
@@ -69,7 +70,7 @@ func runAPI(ctx context.Context, cmd *cli.Command) error {
 	a.Medium.Progress, a.LinkedIn.Progress, a.TikTok.Progress, a.ChatGPT.Progress = progress("medium"), progress("linkedin"), progress("tiktok"), progress("chatgpt")
 	a.YouTube.Progress, a.Telegram.Progress, a.Instagram.Progress, a.Shopee.Progress = progress("youtube"), progress("telegram"), progress("instagram"), progress("shopee")
 	a.Gemini.Progress, a.Claude.Progress, a.GoogleMaps.Progress = progress("gemini"), progress("claude"), progress("gmaps")
-	a.Grok.Progress = progress("grok")
+	a.Grok.Progress, a.Trends.Progress = progress("grok"), progress("trends")
 
 	// No WriteTimeout: a post takes a minute or two.
 	srv := &http.Server{Handler: a.Handler(), ReadHeaderTimeout: 10 * time.Second}

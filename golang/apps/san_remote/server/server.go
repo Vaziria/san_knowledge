@@ -25,6 +25,7 @@ import (
 	"github.com/wargasipil/san_remote/internal/shopee"
 	"github.com/wargasipil/san_remote/internal/telegram"
 	"github.com/wargasipil/san_remote/internal/threads"
+	"github.com/wargasipil/san_remote/internal/trends"
 	"github.com/wargasipil/san_remote/internal/tiktok"
 	"github.com/wargasipil/san_remote/internal/vidara"
 	"github.com/wargasipil/san_remote/internal/x"
@@ -64,6 +65,7 @@ func (h *Hub) Close() { h.h.Close() }
 
 // API serves the site services (Threads, X, Facebook, Vidara, Medium,
 // LinkedIn, TikTok, YouTube, Instagram, Telegram, Shopee, Google Maps,
+// Google Trends,
 // ChatGPT, Gemini, Grok, Claude),
 // reaching the browser through the hub at hubURL, as `san_remote api
 // --server hubURL` does. The sites' steps go to log as debug lines.
@@ -99,6 +101,7 @@ func newAPI(hubURL string, log *slog.Logger) *api.API {
 		Instagram:  &instagram.Service{B: b, Progress: progress("instagram")},
 		Shopee:     &shopee.Service{B: b, Progress: progress("shopee")},
 		GoogleMaps: &gmaps.Service{B: b, Progress: progress("gmaps")},
+		Trends:     &trends.Service{B: b, Progress: progress("trends")},
 		ChatGPT:    &chatgpt.Service{B: b, Progress: progress("chatgpt")},
 		Gemini:     &gemini.Service{B: b, Progress: progress("gemini")},
 		Grok:       &grok.Service{B: b, Progress: progress("grok")},

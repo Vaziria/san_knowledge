@@ -628,8 +628,8 @@ export function KeywordResearchPage() {
                     size="xs"
                     variant="outline"
                     bg="bg.panel"
-                    title="Every keyword as a CSV file: community, search interest, change, depth, where it was found"
-                    onClick={() => downloadCsv(k.name, keywordsCsv(graph.nodes, graph.edges, graph.communities))}
+                    title="Every keyword as a CSV file: keyword, type, interest, change, breakout, depth, community count"
+                    onClick={() => downloadCsv(k.name, keywordsCsv(graph.nodes, graph.communities))}
                   >
                     <DownloadIcon />
                     Download CSV

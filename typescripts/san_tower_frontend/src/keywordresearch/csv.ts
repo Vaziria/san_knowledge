@@ -1,17 +1,13 @@
-import type { KeywordCommunity, KeywordEdge, KeywordNode } from '../gen/san/tower/v1/keyword_research_pb';
+import type { KeywordCommunity, KeywordNode } from '../gen/san/tower/v1/keyword_research_pb';
 
 // keywordsCsv is a research's keywords as CSV (the user, 2026-11-12: "Add
-// download keyword as csv"): one row per keyword, sorted by Leiden community
-// (0, the largest, first), then by search interest and change, highest
-// first, each with where it was found. Download puts a byte order mark
-// before it, so Excel reads it as UTF-8.
-export function keywordsCsv(nodes: KeywordNode[], edges: KeywordEdge[], communities: KeywordCommunity[]): string {
-  const names = new Map(communities.map((c) => [c.id, c.name]));
-  const from = new Map<string, string[]>();
-  for (const e of edges) {
-    const how = e.rel === 'RISING' ? `Rising ${changeOf(e)}` : `Top ${e.searchInterest}`;
-    from.set(e.to, [...(from.get(e.to) ?? []), `${e.from} (${how})`]);
-  }
+// download keyword as csv"; its columns: "keyword, type, change, breakout,
+// dept, community count", then "Add interest"): one row per keyword, sorted
+// by Leiden community (0, the largest, first), then by search interest and
+// change, highest first. Community count is how many keywords its community
+// has. Download puts a byte order mark before it, so Excel reads it as UTF-8.
+export function keywordsCsv(nodes: KeywordNode[], communities: KeywordCommunity[]): string {
+  const sizes = new Map(communities.map((c) => [c.id, c.size]));
   const rows = [...nodes].sort(
     (a, b) =>
       a.community - b.community ||
@@ -21,29 +17,15 @@ export function keywordsCsv(nodes: KeywordNode[], edges: KeywordEdge[], communit
       a.name.localeCompare(b.name),
   );
   const lines = [
-    [
-      'Community',
-      'Community name',
-      'Keyword',
-      'Type',
-      'Search interest',
-      'Change',
-      'Breakout',
-      'Depth',
-      'Looked up',
-      'Found from',
-    ],
+    ['Keyword', 'Type', 'Interest', 'Change', 'Breakout', 'Depth', 'Community count'],
     ...rows.map((n) => [
-      String(n.community + 1),
-      names.get(n.community) ?? '',
       n.name,
       n.seed ? 'seed' : n.top && n.rising ? 'top, rising' : n.top ? 'top' : 'rising',
       n.top ? String(n.searchInterest) : '',
       n.rising ? changeOf(n) : '',
       n.breakout ? 'yes' : '',
       String(n.depth),
-      n.explored ? 'yes' : '',
-      (from.get(n.name) ?? []).join('; '),
+      String(sizes.get(n.community) ?? rows.filter((r) => r.community === n.community).length),
     ]),
   ];
   return lines.map((l) => l.map(cell).join(',')).join('\r\n') + '\r\n';

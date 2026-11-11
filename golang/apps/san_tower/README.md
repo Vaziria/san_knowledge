@@ -2495,9 +2495,9 @@ connection, in the user's Chrome (San Remote's Trends site,
   the largest first; fill is the community, size the search interest,
   solid links Top, dashed links Rising, a dashed border a keyword found only
   as Rising, a thick border the seed. A legend of the communities (a click
-  shows only one), Relayout, Fit, Download CSV (every keyword: community
-  and its name, keyword, type, search interest, change, breakout, depth,
-  looked up, found from; sorted by community, then search interest; UTF-8
+  shows only one), Relayout, Fit, Download CSV (one row per keyword:
+  Keyword, Type, Interest, Change, Breakout, Depth, Community count, the
+  user's columns, 2026-11-12; sorted by community, then interest; UTF-8
   with a byte order mark for Excel; made in the page from the graph it
   shows) and Find a keyword. A click on a keyword opens its panel: its
   values, the keywords it was found from with the value it had in each,

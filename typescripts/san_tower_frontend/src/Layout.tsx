@@ -3,6 +3,7 @@ import {
   Box,
   Code,
   CloseButton,
+  Dialog,
   Flex,
   Heading,
   IconButton,
@@ -10,7 +11,6 @@ import {
   Input,
   InputGroup,
   Kbd,
-  Popover,
   Portal,
   SimpleGrid,
   Text,
@@ -23,9 +23,10 @@ import { claudeHealth, cmpVersion, type ClaudeHealth } from './api';
 export type Page = { path: string; label: string; icon: LucideIcon; element: ReactNode };
 
 // Layout is the frame every page shares: the page over the whole window, and
-// the menu behind a round San Tower button floating at the top left (the
+// the menu behind a round San Tower button floating at the bottom left (the
 // user, 2026-11-11: no sidebar; a menu button that shows the pages in a
-// grid, with a search). The button, or Ctrl+K anywhere, opens and closes it.
+// grid, with a search, in the middle of the window). The button, or Ctrl+K
+// anywhere, opens it; Ctrl+K again closes it.
 export function Layout({ pages }: { pages: Page[] }) {
   const [open, setOpen] = useState(false);
   // opened counts the openings: each one starts a fresh Menu (empty search,
@@ -51,40 +52,35 @@ export function Layout({ pages }: { pages: Page[] }) {
 
   return (
     <Box minH="100vh" bg="bg" color="fg">
-      <Popover.Root
-        open={open}
-        onOpenChange={(e) => show(e.open)}
-        positioning={{ placement: 'bottom-start', gutter: 8 }}
-        lazyMount
-        unmountOnExit
+      <IconButton
+        aria-label="Menu (Ctrl+K)"
+        title="Menu (Ctrl+K)"
+        position="fixed"
+        bottom="3"
+        left="3"
+        zIndex="sticky"
+        rounded="full"
+        variant="outline"
+        bg="bg.panel"
+        shadow="md"
+        onClick={() => show(true)}
       >
-        <Popover.Trigger asChild>
-          <IconButton
-            aria-label="Menu (Ctrl+K)"
-            title="Menu (Ctrl+K)"
-            position="fixed"
-            top="3"
-            left="3"
-            zIndex="sticky"
-            rounded="full"
-            variant="outline"
-            bg="bg.panel"
-            shadow="md"
-          >
-            <Image src="/logo.svg" alt="" boxSize="6" />
-          </IconButton>
-        </Popover.Trigger>
+        <Image src="/logo.svg" alt="" boxSize="6" />
+      </IconButton>
+      <Dialog.Root open={open} onOpenChange={(e) => show(e.open)} placement="center" lazyMount unmountOnExit>
         <Portal>
-          <Popover.Positioner>
-            <Popover.Content w="md" maxW="calc(100vw - 24px)">
-              <Popover.Body p="3">
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content w="full" maxW="2xl" mx="4" aria-label="Menu">
+              <Dialog.Body p="5">
                 <Menu key={opened} pages={pages} onDone={() => show(false)} />
-              </Popover.Body>
-            </Popover.Content>
-          </Popover.Positioner>
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Positioner>
         </Portal>
-      </Popover.Root>
-      {/* The page starts right of the button, which stays over the top left. */}
+      </Dialog.Root>
+      {/* The page starts right of the button, which stays over the bottom
+          left: it never covers the page, nor the editor's controls there. */}
       <Box as="main" minW="0" p="6" ps="16">
         <ClaudeHealthBanner />
         <Outlet />
@@ -102,10 +98,10 @@ function isCurrent(path: string, pathname: string) {
   return path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(path + '/');
 }
 
-// Menu is the popup: a search box over the pages in a grid. The search keeps
-// the pages whose name has every word typed. The arrows move the marked page
-// (it starts on the page open now), Enter opens it; Escape and a click
-// outside close the popup.
+// Menu is what the popup shows: a search box over the pages in a grid. The
+// search keeps the pages whose name has every word typed. The arrows move
+// the marked page (it starts on the page open now), Enter opens it; Escape
+// and a click outside close the popup.
 function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -135,17 +131,16 @@ function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
 
   return (
     <>
-      <Flex align="center" gap="2" mb="3">
-        <Image src="/logo.svg" alt="" boxSize="6" />
-        <Heading size="sm" flex="1">
+      <Flex align="center" gap="2.5" mb="4">
+        <Image src="/logo.svg" alt="" boxSize="7" />
+        <Heading size="md" flex="1">
           San Tower
         </Heading>
         <Kbd size="sm">Ctrl+K</Kbd>
       </Flex>
-      <InputGroup startElement={<SearchIcon />} mb="3">
+      <InputGroup startElement={<SearchIcon />} mb="4">
         <Input
           autoFocus
-          size="sm"
           placeholder="Search pages"
           aria-label="Search pages"
           value={query}
@@ -161,7 +156,7 @@ function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
           No page matches "{query}"
         </Text>
       ) : (
-        <SimpleGrid as="nav" columns={columns} gap="2">
+        <SimpleGrid as="nav" columns={columns} gap="3">
           {shown.map((p, i) => {
             const current = isCurrent(p.path, pathname);
             return (
@@ -171,10 +166,10 @@ function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
                 direction="column"
                 align="center"
                 justify="center"
-                gap="1.5"
-                minH="20"
-                px="1"
-                py="3"
+                gap="2"
+                minH="24"
+                px="2"
+                py="4"
                 rounded="md"
                 borderWidth="1px"
                 borderColor={i === at ? 'border.emphasized' : 'transparent'}
@@ -186,8 +181,8 @@ function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
                 onMouseEnter={() => setMarked(i)}
               >
                 <NavLink to={p.path} onClick={onDone} aria-current={current ? 'page' : undefined}>
-                  <p.icon size={24} />
-                  <Text textStyle="xs" lineHeight="short">
+                  <p.icon size={30} strokeWidth={1.75} />
+                  <Text textStyle="sm" lineHeight="short">
                     {p.label}
                   </Text>
                 </NavLink>
@@ -196,7 +191,7 @@ function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
           })}
         </SimpleGrid>
       )}
-      <Text color="fg.subtle" textStyle="2xs" mt="3">
+      <Text color="fg.subtle" textStyle="xs" mt="4">
         Arrows to move · Enter to open · Esc to close
       </Text>
     </>

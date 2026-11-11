@@ -59,13 +59,14 @@ export function Layout({ pages }: { pages: Page[] }) {
         bottom="3"
         left="3"
         zIndex="sticky"
+        size="xl"
         rounded="full"
         variant="outline"
         bg="bg.panel"
         shadow="md"
         onClick={() => show(true)}
       >
-        <Image src="/logo.svg" alt="" boxSize="6" />
+        <Image src="/logo.svg" alt="" boxSize="7" />
       </IconButton>
       <Dialog.Root open={open} onOpenChange={(e) => show(e.open)} placement="center" lazyMount unmountOnExit>
         <Portal>

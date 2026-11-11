@@ -33,9 +33,12 @@ type Trends interface {
 	Related(ctx context.Context, connection uint32, keyword string, f Filters) (top, rising []Found, err error)
 }
 
-// ErrSettingsChanged is Run on a graph made with another seed or other
-// filters (the user, 2026-11-11): the page asks before it clears it.
-var ErrSettingsChanged = errors.New("The graph was made with other settings: clear it and start over?")
+// ErrSettingsChanged is Run on a graph made with other filters (the user,
+// 2026-11-11): the page asks before it clears it, since one graph would mix
+// the numbers of two time ranges or places. A changed seed is not asked
+// about (the user, 2026-11-12: "when i change seed keyword, dont ask reset,
+// just add it, no reset"): Run adds it to the graph.
+var ErrSettingsChanged = errors.New("The graph was made with other filters: clear it and start over?")
 
 // ErrBusy is a change refused while the research's crawl runs or waits.
 var ErrBusy = errors.New("the research is running or waiting: stop it first")
@@ -171,9 +174,12 @@ func (c *Crawler) Busy(id uint32) bool {
 }
 
 // Run queues research id's crawl: from the seed when the graph is empty,
-// else on from where it was. A graph made with another seed or other
-// filters gives ErrSettingsChanged, unless clear, which empties it first.
-// A research already queued stays as it is.
+// else on from where it was, with the research's seed keyword added to the
+// graph as a seed when it is a new one (Graph.Seed): looked up first, then
+// its Top keywords to the deep limit, the keywords looked up before not
+// again. A graph made with other filters gives ErrSettingsChanged, unless
+// clear, which empties it first. A research already queued stays as it
+// is.
 func (c *Crawler) Run(id uint32, clear bool) error {
 	k, err := c.Store.GetResearch(id)
 	if err != nil {
@@ -199,7 +205,7 @@ func (c *Crawler) Run(id uint32, clear bool) error {
 }
 
 // SettingsChanged says whether k's graph, with keywords looked up, was made
-// with another seed or other filters than k has now.
+// with other filters than k has now (its seeds do not count).
 func SettingsChanged(k store.KeywordResearch) bool {
 	return k.GraphKey != "" && k.ExploredCount > 0 && k.GraphKey != k.SettingsKey()
 }
@@ -490,11 +496,11 @@ func (c *Crawler) crawl(j *job) (lookups int, err error) {
 		var n Counts
 		var d *Delta
 		err := With(dir, func(g *Graph) error {
-			if err := g.Seed(k.Seed, time.Now()); err != nil {
+			changed, err := g.Seed(k.Seed, time.Now())
+			if err != nil {
 				return err
 			}
-			var err error
-			n, d, err = c.delta(g, j.id, "", []string{k.Seed})
+			n, d, err = c.delta(g, j.id, "", append(changed, k.Seed))
 			return err
 		})
 		if err != nil {
@@ -598,8 +604,13 @@ func (c *Crawler) crawl(j *job) (lookups int, err error) {
 			if err := g.MarkExplored(next.Name, at); err != nil {
 				return err
 			}
-			var err error
-			n, d, err = c.delta(g, j.id, next.Name, queries(top, rising))
+			// A keyword found nearer a seed than before (a new seed's
+			// lookup) brings those found through it nearer too.
+			moved, err := g.Relevel()
+			if err != nil {
+				return err
+			}
+			n, d, err = c.delta(g, j.id, next.Name, append(queries(top, rising), moved...))
 			return err
 		})
 		if err != nil {
@@ -619,7 +630,7 @@ func (c *Crawler) crawl(j *job) (lookups int, err error) {
 			return lookups, err
 		}
 		if k2, err := c.Store.GetResearch(j.id); err == nil && k2.SettingsKey() != key {
-			return lookups, fmt.Errorf("the seed or the filters changed during the crawl: Run again, which asks to clear the graph")
+			return lookups, fmt.Errorf("the filters changed during the crawl: Run again, which asks to clear the graph")
 		}
 	}
 }
@@ -665,9 +676,10 @@ func queries(lists ...[]Found) []string {
 }
 
 // delta reads the graph after a write of keyword (the one looked up, "" for
-// the seed) that found names: its counts, and, while a page watches research
-// id, the Delta its pages get: the keywords written, keyword's
-// relationships, and the communities of the whole graph.
+// a seed put in) that wrote names (what it found, and the keywords whose
+// depth changed): its counts, and, while a page watches research id, the
+// Delta its pages get: the keywords written, keyword's relationships, and
+// the communities of the whole graph.
 func (c *Crawler) delta(g *Graph, id uint32, keyword string, names []string) (Counts, *Delta, error) {
 	nodes, err := g.Nodes()
 	if err != nil {

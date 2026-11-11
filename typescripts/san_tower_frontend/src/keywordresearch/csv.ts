@@ -5,7 +5,9 @@ import type { KeywordCommunity, KeywordNode } from '../gen/san/tower/v1/keyword_
 // dept, community count", then "Add interest"): one row per keyword, sorted
 // by Leiden community (0, the largest, first), then by search interest and
 // change, highest first. Community count is how many keywords its community
-// has. Download puts a byte order mark before it, so Excel reads it as UTF-8.
+// has. Every seed of the graph (it keeps each seed keyword it was run with)
+// is of type seed. Download puts a byte order mark before it, so Excel reads
+// it as UTF-8.
 export function keywordsCsv(nodes: KeywordNode[], communities: KeywordCommunity[]): string {
   const sizes = new Map(communities.map((c) => [c.id, c.size]));
   const rows = [...nodes].sort(

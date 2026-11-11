@@ -12,7 +12,11 @@ import (
 
 // KeywordResearch is a keyword research, on the tower's Keyword Research
 // page (the user, 2026-11-11): a seed keyword whose related queries on
-// Google Trends are mapped, with Trends' filters and a deep limit. Its graph
+// Google Trends are mapped, with Trends' filters and a deep limit. Seed is
+// the seed keyword now; Run adds it to the graph, which keeps every seed it
+// was given (the user, 2026-11-12: "when i change seed keyword, dont ask
+// reset, just add it, no reset"). A new research has none (the user,
+// 2026-11-12: "remove seed keyword in created popup"): its page sets it. Its graph
 // is a goraphdb graph of its own in <data>/keyword_research/<id> (package
 // keywordresearch); here are what the page lists and the settings.
 type KeywordResearch struct {
@@ -40,8 +44,9 @@ type KeywordResearch struct {
 	NodeCount     uint32 `gorm:"not null;default:0"`
 	EdgeCount     uint32 `gorm:"not null;default:0"`
 	ExploredCount uint32 `gorm:"not null;default:0"`
-	// GraphKey is the seed and filters the graph was made with
-	// (SettingsKey), "" while it is empty.
+	// GraphKey is the filters the graph was made with (SettingsKey), ""
+	// while it is empty. Before 2026-11-12 it began with the seed too;
+	// Open cuts those (migrateGraphKeys).
 	GraphKey  string `gorm:"not null;default:''"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -74,10 +79,45 @@ const (
 // workflows, in a tree of its own: it is read as a Folder.
 type KeywordResearchFolder Folder
 
-// SettingsKey is the seed and filters a graph is made with: a graph made
-// with another key is not continued without asking (the user, 2026-11-11).
+// SettingsKey is the filters a graph is made with (location, time range,
+// category, search type): a graph made with other filters is not continued
+// without asking (the user, 2026-11-11), since one graph would mix their
+// numbers. The seed is not in it (the user, 2026-11-12: "when i change seed
+// keyword, dont ask reset, just add it, no reset"): Run adds a new seed to
+// the graph.
 func (k KeywordResearch) SettingsKey() string {
-	return strings.Join([]string{NormalizeKeyword(k.Seed), k.Geo, k.Time, strconv.Itoa(int(k.Category)), k.Property}, "|")
+	return strings.Join([]string{k.Geo, k.Time, strconv.Itoa(int(k.Category)), k.Property}, "|")
+}
+
+// filterParts is how many parts SettingsKey has.
+const filterParts = 4
+
+// migrateGraphKeys cuts the seed off the graph keys saved before the seed
+// left SettingsKey (the user, 2026-11-12: "when i change seed keyword, dont
+// ask reset, just add it, no reset"), so no graph made before asks to be
+// cleared: such a key is "<seed>|<geo>|<time>|<category>|<property>", and
+// its last four parts are the filters (they never hold a "|"; a seed may,
+// so the parts are counted from the end). A key of four parts is left as
+// it is, so running it again changes nothing. UpdateColumn: updated_at
+// stays.
+func migrateGraphKeys(db *gorm.DB) error {
+	var list []KeywordResearch
+	if err := db.Select("id", "graph_key").Where("graph_key <> ''").Find(&list).Error; err != nil {
+		return err
+	}
+	return db.Transaction(func(tx *gorm.DB) error {
+		for _, k := range list {
+			parts := strings.Split(k.GraphKey, "|")
+			if len(parts) <= filterParts {
+				continue
+			}
+			key := strings.Join(parts[len(parts)-filterParts:], "|")
+			if err := tx.Model(&KeywordResearch{ID: k.ID}).UpdateColumn("graph_key", key).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 // NormalizeKeyword is a keyword as a research's graph keeps it: trimmed,

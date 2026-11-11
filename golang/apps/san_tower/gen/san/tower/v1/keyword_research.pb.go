@@ -263,8 +263,11 @@ type KeywordResearch struct {
 	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// folder_id is the folder it is in, 0 at the top.
 	FolderId uint32 `protobuf:"varint,4,opt,name=folder_id,json=folderId,proto3" json:"folder_id,omitempty"`
-	Seed     string `protobuf:"bytes,5,opt,name=seed,proto3" json:"seed,omitempty"`
-	// deep_limit is how deep Top keywords are looked up: the seed is depth 0.
+	// seed is the seed keyword now, "" before one is set. The graph marks
+	// every seed it was given (KeywordNode.seed): this one once Run added it,
+	// and those of before.
+	Seed string `protobuf:"bytes,5,opt,name=seed,proto3" json:"seed,omitempty"`
+	// deep_limit is how deep Top keywords are looked up: seeds are depth 0.
 	DeepLimit uint32          `protobuf:"varint,6,opt,name=deep_limit,json=deepLimit,proto3" json:"deep_limit,omitempty"`
 	Filters   *KeywordFilters `protobuf:"bytes,7,opt,name=filters,proto3" json:"filters,omitempty"`
 	// connection_id is the San Remote connection its lookups go through; 0
@@ -279,8 +282,8 @@ type KeywordResearch struct {
 	NodeCount     uint32 `protobuf:"varint,12,opt,name=node_count,json=nodeCount,proto3" json:"node_count,omitempty"`
 	EdgeCount     uint32 `protobuf:"varint,13,opt,name=edge_count,json=edgeCount,proto3" json:"edge_count,omitempty"`
 	ExploredCount uint32 `protobuf:"varint,14,opt,name=explored_count,json=exploredCount,proto3" json:"explored_count,omitempty"`
-	// settings_changed: the graph was made with another seed or other
-	// filters.
+	// settings_changed: the graph was made with other filters (a new seed
+	// does not count: Run adds it).
 	SettingsChanged bool `protobuf:"varint,15,opt,name=settings_changed,json=settingsChanged,proto3" json:"settings_changed,omitempty"`
 	// progress is set while it runs or waits.
 	Progress  *KeywordProgress       `protobuf:"bytes,16,opt,name=progress,proto3" json:"progress,omitempty"`
@@ -2030,11 +2033,13 @@ type KeywordNode struct {
 	Change     int32  `protobuf:"varint,3,opt,name=change,proto3" json:"change,omitempty"`
 	ChangeText string `protobuf:"bytes,4,opt,name=change_text,json=changeText,proto3" json:"change_text,omitempty"`
 	Breakout   bool   `protobuf:"varint,5,opt,name=breakout,proto3" json:"breakout,omitempty"`
-	// depth is the smallest depth it was found at; the seed is 0.
+	// depth is its shortest distance from any seed, seeds 0. A keyword no
+	// seed reaches (a child a blacklist entry kept) keeps the depth it had.
 	Depth uint32 `protobuf:"varint,6,opt,name=depth,proto3" json:"depth,omitempty"`
 	// explored: its related queries were looked up.
 	Explored bool `protobuf:"varint,7,opt,name=explored,proto3" json:"explored,omitempty"`
-	Seed     bool `protobuf:"varint,8,opt,name=seed,proto3" json:"seed,omitempty"`
+	// seed: it is a seed, the research's seed keyword now or one of before.
+	Seed bool `protobuf:"varint,8,opt,name=seed,proto3" json:"seed,omitempty"`
 	// top and rising: found in a Top list, in a Rising list.
 	Top    bool `protobuf:"varint,9,opt,name=top,proto3" json:"top,omitempty"`
 	Rising bool `protobuf:"varint,10,opt,name=rising,proto3" json:"rising,omitempty"`
@@ -2443,7 +2448,13 @@ type AddToBlacklistRequest struct {
 	// what is typed at line breaks and commas.
 	Entries []string `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
 	// dry_run changes nothing: the response says what adding would do.
-	DryRun        bool `protobuf:"varint,3,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	DryRun bool `protobuf:"varint,3,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	// keep_children takes out only the keywords the entries match: those
+	// found through them stay, with their own values, without the
+	// relationships from the removed ones (the user, 2026-11-12: "in
+	// blacklist, ask blacklist selected keyword or selected keyword and
+	// child"). False, as before: those found only through them go too.
+	KeepChildren  bool `protobuf:"varint,4,opt,name=keep_children,json=keepChildren,proto3" json:"keep_children,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2499,6 +2510,13 @@ func (x *AddToBlacklistRequest) GetDryRun() bool {
 	return false
 }
 
+func (x *AddToBlacklistRequest) GetKeepChildren() bool {
+	if x != nil {
+		return x.KeepChildren
+	}
+	return false
+}
+
 type AddToBlacklistResponse struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Research *KeywordResearch       `protobuf:"bytes,1,opt,name=research,proto3" json:"research,omitempty"`
@@ -2506,7 +2524,8 @@ type AddToBlacklistResponse struct {
 	// blacklist had already are left out.
 	Added []string `protobuf:"bytes,2,rep,name=added,proto3" json:"added,omitempty"`
 	// removed are the keywords taken out of the graph (or that would be):
-	// those an entry matches, then those left without a path from the seed.
+	// those an entry matches, then (unless keep_children) those left without
+	// a path from any seed.
 	Removed []string `protobuf:"bytes,3,rep,name=removed,proto3" json:"removed,omitempty"`
 	// matched is how many of removed an entry matches; the others were found
 	// only through them.
@@ -2574,9 +2593,16 @@ func (x *AddToBlacklistResponse) GetMatched() uint32 {
 }
 
 type RemoveFromBlacklistRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Entry         string                 `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// entry is one entry to take out; one the blacklist does not have is
+	// NotFound.
+	Entry string `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
+	// entries are more to take out, with entry; those the blacklist does not
+	// have (deleted in another tab) are passed over.
+	Entries []string `protobuf:"bytes,3,rep,name=entries,proto3" json:"entries,omitempty"`
+	// all takes every entry out.
+	All           bool `protobuf:"varint,4,opt,name=all,proto3" json:"all,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2625,9 +2651,25 @@ func (x *RemoveFromBlacklistRequest) GetEntry() string {
 	return ""
 }
 
+func (x *RemoveFromBlacklistRequest) GetEntries() []string {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *RemoveFromBlacklistRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
 type RemoveFromBlacklistResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Research      *KeywordResearch       `protobuf:"bytes,1,opt,name=research,proto3" json:"research,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Research *KeywordResearch       `protobuf:"bytes,1,opt,name=research,proto3" json:"research,omitempty"`
+	// deleted is how many entries were taken out.
+	Deleted       uint32 `protobuf:"varint,2,opt,name=deleted,proto3" json:"deleted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2667,6 +2709,13 @@ func (x *RemoveFromBlacklistResponse) GetResearch() *KeywordResearch {
 		return x.Research
 	}
 	return nil
+}
+
+func (x *RemoveFromBlacklistResponse) GetDeleted() uint32 {
+	if x != nil {
+		return x.Deleted
+	}
+	return 0
 }
 
 // TrendsGeo is a location of Trends' location menu.
@@ -3209,7 +3258,7 @@ type KeywordGraphRemoval struct {
 	// nodes are kept keywords as they are now, whose values changed: one
 	// found from a removed keyword keeps only what the keywords it is still
 	// found from give it (Top, Rising, search interest, change), and one
-	// whose shortest path from the seed went through a removed keyword gets
+	// whose shortest path from the seeds went through a removed keyword gets
 	// a deeper depth.
 	Nodes []*KeywordNode `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	// communities are every community of the graph now.
@@ -3292,10 +3341,11 @@ func (x *KeywordGraphRemoval) GetMoved() map[string]uint32 {
 type KeywordGraphChange struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// keyword is the keyword looked up, now explored; "" when the crawl put
-	// the seed in.
+	// a seed in.
 	Keyword string `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
 	// nodes are the keywords it added or changed: the one looked up and each
-	// one it found, with their community.
+	// one it found (or the seed put in), and those whose depth it changed,
+	// with their community.
 	Nodes []*KeywordNode `protobuf:"bytes,2,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	// edges are its relationships: the TOP and RISING ones from keyword.
 	Edges []*KeywordEdge `protobuf:"bytes,3,rep,name=edges,proto3" json:"edges,omitempty"`
@@ -3731,21 +3781,25 @@ const file_san_tower_v1_keyword_research_proto_rawDesc = "" +
 	"\bresearch\x18\x01 \x01(\v2\x1d.san.tower.v1.KeywordResearchR\bresearch\x12/\n" +
 	"\x05nodes\x18\x02 \x03(\v2\x19.san.tower.v1.KeywordNodeR\x05nodes\x12/\n" +
 	"\x05edges\x18\x03 \x03(\v2\x19.san.tower.v1.KeywordEdgeR\x05edges\x12@\n" +
-	"\vcommunities\x18\x04 \x03(\v2\x1e.san.tower.v1.KeywordCommunityR\vcommunities\"Z\n" +
+	"\vcommunities\x18\x04 \x03(\v2\x1e.san.tower.v1.KeywordCommunityR\vcommunities\"\x7f\n" +
 	"\x15AddToBlacklistRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x18\n" +
 	"\aentries\x18\x02 \x03(\tR\aentries\x12\x17\n" +
-	"\adry_run\x18\x03 \x01(\bR\x06dryRun\"\x9d\x01\n" +
+	"\adry_run\x18\x03 \x01(\bR\x06dryRun\x12#\n" +
+	"\rkeep_children\x18\x04 \x01(\bR\fkeepChildren\"\x9d\x01\n" +
 	"\x16AddToBlacklistResponse\x129\n" +
 	"\bresearch\x18\x01 \x01(\v2\x1d.san.tower.v1.KeywordResearchR\bresearch\x12\x14\n" +
 	"\x05added\x18\x02 \x03(\tR\x05added\x12\x18\n" +
 	"\aremoved\x18\x03 \x03(\tR\aremoved\x12\x18\n" +
-	"\amatched\x18\x04 \x01(\rR\amatched\"B\n" +
+	"\amatched\x18\x04 \x01(\rR\amatched\"n\n" +
 	"\x1aRemoveFromBlacklistRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x14\n" +
-	"\x05entry\x18\x02 \x01(\tR\x05entry\"X\n" +
+	"\x05entry\x18\x02 \x01(\tR\x05entry\x12\x18\n" +
+	"\aentries\x18\x03 \x03(\tR\aentries\x12\x10\n" +
+	"\x03all\x18\x04 \x01(\bR\x03all\"r\n" +
 	"\x1bRemoveFromBlacklistResponse\x129\n" +
-	"\bresearch\x18\x01 \x01(\v2\x1d.san.tower.v1.KeywordResearchR\bresearch\"T\n" +
+	"\bresearch\x18\x01 \x01(\v2\x1d.san.tower.v1.KeywordResearchR\bresearch\x12\x18\n" +
+	"\adeleted\x18\x02 \x01(\rR\adeleted\"T\n" +
 	"\tTrendsGeo\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +

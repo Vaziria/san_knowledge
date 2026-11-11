@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/keyword_research.proto.
  */
 export const file_san_tower_v1_keyword_research: GenFile = /*@__PURE__*/
-  fileDesc("CiNzYW4vdG93ZXIvdjEva2V5d29yZF9yZXNlYXJjaC5wcm90bxIMc2FuLnRvd2VyLnYxIk8KDktleXdvcmRGaWx0ZXJzEgsKA2dlbxgBIAEoCRIMCgR0aW1lGAIgASgJEhAKCGNhdGVnb3J5GAMgASgFEhAKCHByb3BlcnR5GAQgASgJInYKD0tleXdvcmRQcm9ncmVzcxIPCgdrZXl3b3JkGAEgASgJEg0KBWRlcHRoGAIgASgNEg8KB2xvb2t1cHMYAyABKA0SDAoEdG9kbxgEIAEoDRIMCgRub3RlGAUgASgJEhYKDnF1ZXVlX3Bvc2l0aW9uGAYgASgNItUECg9LZXl3b3JkUmVzZWFyY2gSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0SDAoEc2VlZBgFIAEoCRISCgpkZWVwX2xpbWl0GAYgASgNEi0KB2ZpbHRlcnMYByABKAsyHC5zYW4udG93ZXIudjEuS2V5d29yZEZpbHRlcnMSFQoNY29ubmVjdGlvbl9pZBgIIAEoDRIzCgZzdGF0dXMYCSABKA4yIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoU3RhdHVzEg8KB21lc3NhZ2UYCiABKAkSLwoLbGFzdF9ydW5fYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhIKCm5vZGVfY291bnQYDCABKA0SEgoKZWRnZV9jb3VudBgNIAEoDRIWCg5leHBsb3JlZF9jb3VudBgOIAEoDRIYChBzZXR0aW5nc19jaGFuZ2VkGA8gASgIEi8KCHByb2dyZXNzGBAgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRQcm9ncmVzcxIuCgpjcmVhdGVkX2F0GBEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GBIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI2CglibGFja2xpc3QYEyADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZEJsYWNrbGlzdEVudHJ5ImUKFUtleXdvcmRCbGFja2xpc3RFbnRyeRINCgVlbnRyeRgBIAEoCRIsCghhZGRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHcmVtb3ZlZBgDIAEoDSJyChVLZXl3b3JkUmVzZWFyY2hGb2xkZXISCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIRCglwYXJlbnRfaWQYAyABKA0SFgoOcmVzZWFyY2hfY291bnQYBCABKA0SFAoMZm9sZGVyX2NvdW50GAUgASgNIj8KFUxpc3RSZXNlYXJjaGVzUmVxdWVzdBIRCglmb2xkZXJfaWQYASABKA0SEwoLYWxsX2ZvbGRlcnMYAiABKAgiSwoWTGlzdFJlc2VhcmNoZXNSZXNwb25zZRIxCgpyZXNlYXJjaGVzGAEgAygLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaCIgChJHZXRSZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0iRgoTR2V0UmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giWwoVQ3JlYXRlUmVzZWFyY2hSZXF1ZXN0EgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDAoEc2VlZBgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0iSQoWQ3JlYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2girgEKFVVwZGF0ZVJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEgwKBHNlZWQYBCABKAkSEgoKZGVlcF9saW1pdBgFIAEoDRItCgdmaWx0ZXJzGAYgASgLMhwuc2FuLnRvd2VyLnYxLktleXdvcmRGaWx0ZXJzEhUKDWNvbm5lY3Rpb25faWQYByABKA0iSQoWVXBkYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIwoVRGVsZXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIhgKFkRlbGV0ZVJlc2VhcmNoUmVzcG9uc2UiJgoYRHVwbGljYXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIkwKGUR1cGxpY2F0ZVJlc2VhcmNoUmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoIjcKFU1vdmVSZXNlYXJjaGVzUmVxdWVzdBILCgNpZHMYASADKA0SEQoJZm9sZGVyX2lkGAIgASgNIhgKFk1vdmVSZXNlYXJjaGVzUmVzcG9uc2UiHAoaTGlzdFJlc2VhcmNoRm9sZGVyc1JlcXVlc3QiUwobTGlzdFJlc2VhcmNoRm9sZGVyc1Jlc3BvbnNlEjQKB2ZvbGRlcnMYASADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoRm9sZGVyIj4KG0NyZWF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhEKCXBhcmVudF9pZBgCIAEoDSJTChxDcmVhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEjMKBmZvbGRlchgBIAEoCzIjLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2hGb2xkZXIiSgobVXBkYXRlUmVzZWFyY2hGb2xkZXJSZXF1ZXN0EgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSEQoJcGFyZW50X2lkGAMgASgNIlMKHFVwZGF0ZVJlc2VhcmNoRm9sZGVyUmVzcG9uc2USMwoGZm9sZGVyGAEgASgLMiMuc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEZvbGRlciIpChtEZWxldGVSZXNlYXJjaEZvbGRlclJlcXVlc3QSCgoCaWQYASABKA0iHgocRGVsZXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZSIvChJSdW5SZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0SDQoFY2xlYXIYAiABKAgiRgoTUnVuUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giNAoVRXhwbG9yZUtleXdvcmRSZXF1ZXN0EgoKAmlkGAEgASgNEg8KB2tleXdvcmQYAiABKAkiSQoWRXhwbG9yZUtleXdvcmRSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIQoTU3RvcFJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDSJHChRTdG9wUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giJwoZQ2xlYXJSZXNlYXJjaEdyYXBoUmVxdWVzdBIKCgJpZBgBIAEoDSJNChpDbGVhclJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giqQIKC0tleXdvcmROb2RlEgwKBG5hbWUYASABKAkSFwoPc2VhcmNoX2ludGVyZXN0GAIgASgFEg4KBmNoYW5nZRgDIAEoBRITCgtjaGFuZ2VfdGV4dBgEIAEoCRIQCghicmVha291dBgFIAEoCBINCgVkZXB0aBgGIAEoDRIQCghleHBsb3JlZBgHIAEoCBIMCgRzZWVkGAggASgIEgsKA3RvcBgJIAEoCBIOCgZyaXNpbmcYCiABKAgSEQoJY29tbXVuaXR5GAsgASgNEiwKCGZvdW5kX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtleHBsb3JlZF9hdBgNIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAihAEKC0tleXdvcmRFZGdlEgwKBGZyb20YASABKAkSCgoCdG8YAiABKAkSCwoDcmVsGAMgASgJEhcKD3NlYXJjaF9pbnRlcmVzdBgEIAEoBRIOCgZjaGFuZ2UYBSABKAUSEwoLY2hhbmdlX3RleHQYBiABKAkSEAoIYnJlYWtvdXQYByABKAgiOgoQS2V5d29yZENvbW11bml0eRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEgwKBHNpemUYAyABKA0iJQoXR2V0UmVzZWFyY2hHcmFwaFJlcXVlc3QSCgoCaWQYASABKA0i1AEKGEdldFJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2gSKAoFbm9kZXMYAiADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZE5vZGUSKAoFZWRnZXMYAyADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZEVkZ2USMwoLY29tbXVuaXRpZXMYBCADKAsyHi5zYW4udG93ZXIudjEuS2V5d29yZENvbW11bml0eSJFChVBZGRUb0JsYWNrbGlzdFJlcXVlc3QSCgoCaWQYASABKA0SDwoHZW50cmllcxgCIAMoCRIPCgdkcnlfcnVuGAMgASgIInoKFkFkZFRvQmxhY2tsaXN0UmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoEg0KBWFkZGVkGAIgAygJEg8KB3JlbW92ZWQYAyADKAkSDwoHbWF0Y2hlZBgEIAEoDSI3ChpSZW1vdmVGcm9tQmxhY2tsaXN0UmVxdWVzdBIKCgJpZBgBIAEoDRINCgVlbnRyeRgCIAEoCSJOChtSZW1vdmVGcm9tQmxhY2tsaXN0UmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoIjwKCVRyZW5kc0dlbxIMCgRjb2RlGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLaGFzX3JlZ2lvbnMYAyABKAgiWgoOVHJlbmRzQ2F0ZWdvcnkSCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRIuCghjaGlsZHJlbhgDIAMoCzIcLnNhbi50b3dlci52MS5UcmVuZHNDYXRlZ29yeSIsCgxUcmVuZHNPcHRpb24SDQoFdmFsdWUYASABKAkSDQoFbGFiZWwYAiABKAkiUgoXR2V0VHJlbmRzT3B0aW9uc1JlcXVlc3QSFQoNY29ubmVjdGlvbl9pZBgBIAEoDRIPCgdjb3VudHJ5GAIgASgJEg8KB3JlZnJlc2gYAyABKAgipQIKGEdldFRyZW5kc09wdGlvbnNSZXNwb25zZRIlCgRnZW9zGAEgAygLMhcuc2FuLnRvd2VyLnYxLlRyZW5kc0dlbxIwCgpjYXRlZ29yaWVzGAIgAygLMhwuc2FuLnRvd2VyLnYxLlRyZW5kc0NhdGVnb3J5EikKBXRpbWVzGAMgAygLMhouc2FuLnRvd2VyLnYxLlRyZW5kc09wdGlvbhIuCgpwcm9wZXJ0aWVzGAQgAygLMhouc2FuLnRvd2VyLnYxLlRyZW5kc09wdGlvbhIoCgdyZWdpb25zGAUgAygLMhcuc2FuLnRvd2VyLnYxLlRyZW5kc0dlbxIrCgdyZWFkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIiChRXYXRjaFJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDSKhAgoVV2F0Y2hSZXNlYXJjaFJlc3BvbnNlEjoKCHNuYXBzaG90GAEgASgLMiYuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoR3JhcGhSZXNwb25zZUgAEjEKCHJlc2VhcmNoGAIgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEgAEjIKBmNoYW5nZRgDIAEoCzIgLnNhbi50b3dlci52MS5LZXl3b3JkR3JhcGhDaGFuZ2VIABITCgloZWFydGJlYXQYBCABKAhIABIRCgdkZWxldGVkGAUgASgISAASNAoHcmVtb3ZhbBgGIAEoCzIhLnNhbi50b3dlci52MS5LZXl3b3JkR3JhcGhSZW1vdmFsSABCBwoFZXZlbnQimgIKE0tleXdvcmRHcmFwaFJlbW92YWwSDwoHcmVtb3ZlZBgBIAMoCRIoCgVlZGdlcxgCIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkRWRnZRIoCgVub2RlcxgDIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkTm9kZRIzCgtjb21tdW5pdGllcxgEIAMoCzIeLnNhbi50b3dlci52MS5LZXl3b3JkQ29tbXVuaXR5EjsKBW1vdmVkGAUgAygLMiwuc2FuLnRvd2VyLnYxLktleXdvcmRHcmFwaFJlbW92YWwuTW92ZWRFbnRyeRosCgpNb3ZlZEVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoDToCOAEimAIKEktleXdvcmRHcmFwaENoYW5nZRIPCgdrZXl3b3JkGAEgASgJEigKBW5vZGVzGAIgAygLMhkuc2FuLnRvd2VyLnYxLktleXdvcmROb2RlEigKBWVkZ2VzGAMgAygLMhkuc2FuLnRvd2VyLnYxLktleXdvcmRFZGdlEjMKC2NvbW11bml0aWVzGAQgAygLMh4uc2FuLnRvd2VyLnYxLktleXdvcmRDb21tdW5pdHkSOgoFbW92ZWQYBSADKAsyKy5zYW4udG93ZXIudjEuS2V5d29yZEdyYXBoQ2hhbmdlLk1vdmVkRW50cnkaLAoKTW92ZWRFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKA06AjgBIhgKFldhdGNoUmVzZWFyY2hlc1JlcXVlc3QilgEKF1dhdGNoUmVzZWFyY2hlc1Jlc3BvbnNlEioKBGxpc3QYASABKAsyGi5zYW4udG93ZXIudjEuUmVzZWFyY2hMaXN0SAASMQoIcmVzZWFyY2gYAiABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoSAASEwoJaGVhcnRiZWF0GAMgASgISABCBwoFZXZlbnQidwoMUmVzZWFyY2hMaXN0EjEKCnJlc2VhcmNoZXMYASADKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoEjQKB2ZvbGRlcnMYAiADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoRm9sZGVyKpcCChVLZXl3b3JkUmVzZWFyY2hTdGF0dXMSJwojS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfVU5TUEVDSUZJRUQQABIgChxLRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19JRExFEAESIwofS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfV0FJVElORxACEiMKH0tFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX1JVTk5JTkcQAxIjCh9LRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19TVE9QUEVEEAQSIAocS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfRE9ORRAFEiIKHktFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX0ZBSUxFRBAGMpoQChZLZXl3b3JkUmVzZWFyY2hTZXJ2aWNlElsKDkxpc3RSZXNlYXJjaGVzEiMuc2FuLnRvd2VyLnYxLkxpc3RSZXNlYXJjaGVzUmVxdWVzdBokLnNhbi50b3dlci52MS5MaXN0UmVzZWFyY2hlc1Jlc3BvbnNlElIKC0dldFJlc2VhcmNoEiAuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoUmVxdWVzdBohLnNhbi50b3dlci52MS5HZXRSZXNlYXJjaFJlc3BvbnNlElsKDkNyZWF0ZVJlc2VhcmNoEiMuc2FuLnRvd2VyLnYxLkNyZWF0ZVJlc2VhcmNoUmVxdWVzdBokLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaFJlc3BvbnNlElsKDlVwZGF0ZVJlc2VhcmNoEiMuc2FuLnRvd2VyLnYxLlVwZGF0ZVJlc2VhcmNoUmVxdWVzdBokLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaFJlc3BvbnNlElsKDkRlbGV0ZVJlc2VhcmNoEiMuc2FuLnRvd2VyLnYxLkRlbGV0ZVJlc2VhcmNoUmVxdWVzdBokLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaFJlc3BvbnNlEmQKEUR1cGxpY2F0ZVJlc2VhcmNoEiYuc2FuLnRvd2VyLnYxLkR1cGxpY2F0ZVJlc2VhcmNoUmVxdWVzdBonLnNhbi50b3dlci52MS5EdXBsaWNhdGVSZXNlYXJjaFJlc3BvbnNlElsKDk1vdmVSZXNlYXJjaGVzEiMuc2FuLnRvd2VyLnYxLk1vdmVSZXNlYXJjaGVzUmVxdWVzdBokLnNhbi50b3dlci52MS5Nb3ZlUmVzZWFyY2hlc1Jlc3BvbnNlEmoKE0xpc3RSZXNlYXJjaEZvbGRlcnMSKC5zYW4udG93ZXIudjEuTGlzdFJlc2VhcmNoRm9sZGVyc1JlcXVlc3QaKS5zYW4udG93ZXIudjEuTGlzdFJlc2VhcmNoRm9sZGVyc1Jlc3BvbnNlEm0KFENyZWF0ZVJlc2VhcmNoRm9sZGVyEikuc2FuLnRvd2VyLnYxLkNyZWF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBoqLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEm0KFFVwZGF0ZVJlc2VhcmNoRm9sZGVyEikuc2FuLnRvd2VyLnYxLlVwZGF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBoqLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEm0KFERlbGV0ZVJlc2VhcmNoRm9sZGVyEikuc2FuLnRvd2VyLnYxLkRlbGV0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBoqLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlElIKC1J1blJlc2VhcmNoEiAuc2FuLnRvd2VyLnYxLlJ1blJlc2VhcmNoUmVxdWVzdBohLnNhbi50b3dlci52MS5SdW5SZXNlYXJjaFJlc3BvbnNlElsKDkV4cGxvcmVLZXl3b3JkEiMuc2FuLnRvd2VyLnYxLkV4cGxvcmVLZXl3b3JkUmVxdWVzdBokLnNhbi50b3dlci52MS5FeHBsb3JlS2V5d29yZFJlc3BvbnNlElUKDFN0b3BSZXNlYXJjaBIhLnNhbi50b3dlci52MS5TdG9wUmVzZWFyY2hSZXF1ZXN0GiIuc2FuLnRvd2VyLnYxLlN0b3BSZXNlYXJjaFJlc3BvbnNlEmcKEkNsZWFyUmVzZWFyY2hHcmFwaBInLnNhbi50b3dlci52MS5DbGVhclJlc2VhcmNoR3JhcGhSZXF1ZXN0Giguc2FuLnRvd2VyLnYxLkNsZWFyUmVzZWFyY2hHcmFwaFJlc3BvbnNlEmEKEEdldFJlc2VhcmNoR3JhcGgSJS5zYW4udG93ZXIudjEuR2V0UmVzZWFyY2hHcmFwaFJlcXVlc3QaJi5zYW4udG93ZXIudjEuR2V0UmVzZWFyY2hHcmFwaFJlc3BvbnNlElsKDkFkZFRvQmxhY2tsaXN0EiMuc2FuLnRvd2VyLnYxLkFkZFRvQmxhY2tsaXN0UmVxdWVzdBokLnNhbi50b3dlci52MS5BZGRUb0JsYWNrbGlzdFJlc3BvbnNlEmoKE1JlbW92ZUZyb21CbGFja2xpc3QSKC5zYW4udG93ZXIudjEuUmVtb3ZlRnJvbUJsYWNrbGlzdFJlcXVlc3QaKS5zYW4udG93ZXIudjEuUmVtb3ZlRnJvbUJsYWNrbGlzdFJlc3BvbnNlEmEKEEdldFRyZW5kc09wdGlvbnMSJS5zYW4udG93ZXIudjEuR2V0VHJlbmRzT3B0aW9uc1JlcXVlc3QaJi5zYW4udG93ZXIudjEuR2V0VHJlbmRzT3B0aW9uc1Jlc3BvbnNlEloKDVdhdGNoUmVzZWFyY2gSIi5zYW4udG93ZXIudjEuV2F0Y2hSZXNlYXJjaFJlcXVlc3QaIy5zYW4udG93ZXIudjEuV2F0Y2hSZXNlYXJjaFJlc3BvbnNlMAESYAoPV2F0Y2hSZXNlYXJjaGVzEiQuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hlc1JlcXVlc3QaJS5zYW4udG93ZXIudjEuV2F0Y2hSZXNlYXJjaGVzUmVzcG9uc2UwAUK0AQoQY29tLnNhbi50b3dlci52MUIUS2V5d29yZFJlc2VhcmNoUHJvdG9QAVo4Z2l0aHViLmNvbS93YXJnYXNpcGlsL3Nhbl90b3dlci9nZW4vc2FuL3Rvd2VyL3YxO3Rvd2VydjGiAgNTVFiqAgxTYW4uVG93ZXIuVjHKAgxTYW5cVG93ZXJcVjHiAhhTYW5cVG93ZXJcVjFcR1BCTWV0YWRhdGHqAg5TYW46OlRvd2VyOjpWMWIGcHJvdG8z", [file_google_protobuf_timestamp]);
+  fileDesc("CiNzYW4vdG93ZXIvdjEva2V5d29yZF9yZXNlYXJjaC5wcm90bxIMc2FuLnRvd2VyLnYxIk8KDktleXdvcmRGaWx0ZXJzEgsKA2dlbxgBIAEoCRIMCgR0aW1lGAIgASgJEhAKCGNhdGVnb3J5GAMgASgFEhAKCHByb3BlcnR5GAQgASgJInYKD0tleXdvcmRQcm9ncmVzcxIPCgdrZXl3b3JkGAEgASgJEg0KBWRlcHRoGAIgASgNEg8KB2xvb2t1cHMYAyABKA0SDAoEdG9kbxgEIAEoDRIMCgRub3RlGAUgASgJEhYKDnF1ZXVlX3Bvc2l0aW9uGAYgASgNItUECg9LZXl3b3JkUmVzZWFyY2gSCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0SDAoEc2VlZBgFIAEoCRISCgpkZWVwX2xpbWl0GAYgASgNEi0KB2ZpbHRlcnMYByABKAsyHC5zYW4udG93ZXIudjEuS2V5d29yZEZpbHRlcnMSFQoNY29ubmVjdGlvbl9pZBgIIAEoDRIzCgZzdGF0dXMYCSABKA4yIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoU3RhdHVzEg8KB21lc3NhZ2UYCiABKAkSLwoLbGFzdF9ydW5fYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhIKCm5vZGVfY291bnQYDCABKA0SEgoKZWRnZV9jb3VudBgNIAEoDRIWCg5leHBsb3JlZF9jb3VudBgOIAEoDRIYChBzZXR0aW5nc19jaGFuZ2VkGA8gASgIEi8KCHByb2dyZXNzGBAgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRQcm9ncmVzcxIuCgpjcmVhdGVkX2F0GBEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GBIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI2CglibGFja2xpc3QYEyADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZEJsYWNrbGlzdEVudHJ5ImUKFUtleXdvcmRCbGFja2xpc3RFbnRyeRINCgVlbnRyeRgBIAEoCRIsCghhZGRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHcmVtb3ZlZBgDIAEoDSJyChVLZXl3b3JkUmVzZWFyY2hGb2xkZXISCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCRIRCglwYXJlbnRfaWQYAyABKA0SFgoOcmVzZWFyY2hfY291bnQYBCABKA0SFAoMZm9sZGVyX2NvdW50GAUgASgNIj8KFUxpc3RSZXNlYXJjaGVzUmVxdWVzdBIRCglmb2xkZXJfaWQYASABKA0SEwoLYWxsX2ZvbGRlcnMYAiABKAgiSwoWTGlzdFJlc2VhcmNoZXNSZXNwb25zZRIxCgpyZXNlYXJjaGVzGAEgAygLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaCIgChJHZXRSZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0iRgoTR2V0UmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giWwoVQ3JlYXRlUmVzZWFyY2hSZXF1ZXN0EgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDAoEc2VlZBgDIAEoCRIRCglmb2xkZXJfaWQYBCABKA0iSQoWQ3JlYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2girgEKFVVwZGF0ZVJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEgwKBHNlZWQYBCABKAkSEgoKZGVlcF9saW1pdBgFIAEoDRItCgdmaWx0ZXJzGAYgASgLMhwuc2FuLnRvd2VyLnYxLktleXdvcmRGaWx0ZXJzEhUKDWNvbm5lY3Rpb25faWQYByABKA0iSQoWVXBkYXRlUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIwoVRGVsZXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIhgKFkRlbGV0ZVJlc2VhcmNoUmVzcG9uc2UiJgoYRHVwbGljYXRlUmVzZWFyY2hSZXF1ZXN0EgoKAmlkGAEgASgNIkwKGUR1cGxpY2F0ZVJlc2VhcmNoUmVzcG9uc2USLwoIcmVzZWFyY2gYASABKAsyHS5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoIjcKFU1vdmVSZXNlYXJjaGVzUmVxdWVzdBILCgNpZHMYASADKA0SEQoJZm9sZGVyX2lkGAIgASgNIhgKFk1vdmVSZXNlYXJjaGVzUmVzcG9uc2UiHAoaTGlzdFJlc2VhcmNoRm9sZGVyc1JlcXVlc3QiUwobTGlzdFJlc2VhcmNoRm9sZGVyc1Jlc3BvbnNlEjQKB2ZvbGRlcnMYASADKAsyIy5zYW4udG93ZXIudjEuS2V5d29yZFJlc2VhcmNoRm9sZGVyIj4KG0NyZWF0ZVJlc2VhcmNoRm9sZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhEKCXBhcmVudF9pZBgCIAEoDSJTChxDcmVhdGVSZXNlYXJjaEZvbGRlclJlc3BvbnNlEjMKBmZvbGRlchgBIAEoCzIjLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2hGb2xkZXIiSgobVXBkYXRlUmVzZWFyY2hGb2xkZXJSZXF1ZXN0EgoKAmlkGAEgASgNEgwKBG5hbWUYAiABKAkSEQoJcGFyZW50X2lkGAMgASgNIlMKHFVwZGF0ZVJlc2VhcmNoRm9sZGVyUmVzcG9uc2USMwoGZm9sZGVyGAEgASgLMiMuc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEZvbGRlciIpChtEZWxldGVSZXNlYXJjaEZvbGRlclJlcXVlc3QSCgoCaWQYASABKA0iHgocRGVsZXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZSIvChJSdW5SZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0SDQoFY2xlYXIYAiABKAgiRgoTUnVuUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giNAoVRXhwbG9yZUtleXdvcmRSZXF1ZXN0EgoKAmlkGAEgASgNEg8KB2tleXdvcmQYAiABKAkiSQoWRXhwbG9yZUtleXdvcmRSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giIQoTU3RvcFJlc2VhcmNoUmVxdWVzdBIKCgJpZBgBIAEoDSJHChRTdG9wUmVzZWFyY2hSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giJwoZQ2xlYXJSZXNlYXJjaEdyYXBoUmVxdWVzdBIKCgJpZBgBIAEoDSJNChpDbGVhclJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2giqQIKC0tleXdvcmROb2RlEgwKBG5hbWUYASABKAkSFwoPc2VhcmNoX2ludGVyZXN0GAIgASgFEg4KBmNoYW5nZRgDIAEoBRITCgtjaGFuZ2VfdGV4dBgEIAEoCRIQCghicmVha291dBgFIAEoCBINCgVkZXB0aBgGIAEoDRIQCghleHBsb3JlZBgHIAEoCBIMCgRzZWVkGAggASgIEgsKA3RvcBgJIAEoCBIOCgZyaXNpbmcYCiABKAgSEQoJY29tbXVuaXR5GAsgASgNEiwKCGZvdW5kX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtleHBsb3JlZF9hdBgNIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAihAEKC0tleXdvcmRFZGdlEgwKBGZyb20YASABKAkSCgoCdG8YAiABKAkSCwoDcmVsGAMgASgJEhcKD3NlYXJjaF9pbnRlcmVzdBgEIAEoBRIOCgZjaGFuZ2UYBSABKAUSEwoLY2hhbmdlX3RleHQYBiABKAkSEAoIYnJlYWtvdXQYByABKAgiOgoQS2V5d29yZENvbW11bml0eRIKCgJpZBgBIAEoDRIMCgRuYW1lGAIgASgJEgwKBHNpemUYAyABKA0iJQoXR2V0UmVzZWFyY2hHcmFwaFJlcXVlc3QSCgoCaWQYASABKA0i1AEKGEdldFJlc2VhcmNoR3JhcGhSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2gSKAoFbm9kZXMYAiADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZE5vZGUSKAoFZWRnZXMYAyADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZEVkZ2USMwoLY29tbXVuaXRpZXMYBCADKAsyHi5zYW4udG93ZXIudjEuS2V5d29yZENvbW11bml0eSJcChVBZGRUb0JsYWNrbGlzdFJlcXVlc3QSCgoCaWQYASABKA0SDwoHZW50cmllcxgCIAMoCRIPCgdkcnlfcnVuGAMgASgIEhUKDWtlZXBfY2hpbGRyZW4YBCABKAgiegoWQWRkVG9CbGFja2xpc3RSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2gSDQoFYWRkZWQYAiADKAkSDwoHcmVtb3ZlZBgDIAMoCRIPCgdtYXRjaGVkGAQgASgNIlUKGlJlbW92ZUZyb21CbGFja2xpc3RSZXF1ZXN0EgoKAmlkGAEgASgNEg0KBWVudHJ5GAIgASgJEg8KB2VudHJpZXMYAyADKAkSCwoDYWxsGAQgASgIIl8KG1JlbW92ZUZyb21CbGFja2xpc3RSZXNwb25zZRIvCghyZXNlYXJjaBgBIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2gSDwoHZGVsZXRlZBgCIAEoDSI8CglUcmVuZHNHZW8SDAoEY29kZRgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2hhc19yZWdpb25zGAMgASgIIloKDlRyZW5kc0NhdGVnb3J5EgoKAmlkGAEgASgFEgwKBG5hbWUYAiABKAkSLgoIY2hpbGRyZW4YAyADKAsyHC5zYW4udG93ZXIudjEuVHJlbmRzQ2F0ZWdvcnkiLAoMVHJlbmRzT3B0aW9uEg0KBXZhbHVlGAEgASgJEg0KBWxhYmVsGAIgASgJIlIKF0dldFRyZW5kc09wdGlvbnNSZXF1ZXN0EhUKDWNvbm5lY3Rpb25faWQYASABKA0SDwoHY291bnRyeRgCIAEoCRIPCgdyZWZyZXNoGAMgASgIIqUCChhHZXRUcmVuZHNPcHRpb25zUmVzcG9uc2USJQoEZ2VvcxgBIAMoCzIXLnNhbi50b3dlci52MS5UcmVuZHNHZW8SMAoKY2F0ZWdvcmllcxgCIAMoCzIcLnNhbi50b3dlci52MS5UcmVuZHNDYXRlZ29yeRIpCgV0aW1lcxgDIAMoCzIaLnNhbi50b3dlci52MS5UcmVuZHNPcHRpb24SLgoKcHJvcGVydGllcxgEIAMoCzIaLnNhbi50b3dlci52MS5UcmVuZHNPcHRpb24SKAoHcmVnaW9ucxgFIAMoCzIXLnNhbi50b3dlci52MS5UcmVuZHNHZW8SKwoHcmVhZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiIgoUV2F0Y2hSZXNlYXJjaFJlcXVlc3QSCgoCaWQYASABKA0ioQIKFVdhdGNoUmVzZWFyY2hSZXNwb25zZRI6CghzbmFwc2hvdBgBIAEoCzImLnNhbi50b3dlci52MS5HZXRSZXNlYXJjaEdyYXBoUmVzcG9uc2VIABIxCghyZXNlYXJjaBgCIAEoCzIdLnNhbi50b3dlci52MS5LZXl3b3JkUmVzZWFyY2hIABIyCgZjaGFuZ2UYAyABKAsyIC5zYW4udG93ZXIudjEuS2V5d29yZEdyYXBoQ2hhbmdlSAASEwoJaGVhcnRiZWF0GAQgASgISAASEQoHZGVsZXRlZBgFIAEoCEgAEjQKB3JlbW92YWwYBiABKAsyIS5zYW4udG93ZXIudjEuS2V5d29yZEdyYXBoUmVtb3ZhbEgAQgcKBWV2ZW50IpoCChNLZXl3b3JkR3JhcGhSZW1vdmFsEg8KB3JlbW92ZWQYASADKAkSKAoFZWRnZXMYAiADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZEVkZ2USKAoFbm9kZXMYAyADKAsyGS5zYW4udG93ZXIudjEuS2V5d29yZE5vZGUSMwoLY29tbXVuaXRpZXMYBCADKAsyHi5zYW4udG93ZXIudjEuS2V5d29yZENvbW11bml0eRI7CgVtb3ZlZBgFIAMoCzIsLnNhbi50b3dlci52MS5LZXl3b3JkR3JhcGhSZW1vdmFsLk1vdmVkRW50cnkaLAoKTW92ZWRFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKA06AjgBIpgCChJLZXl3b3JkR3JhcGhDaGFuZ2USDwoHa2V5d29yZBgBIAEoCRIoCgVub2RlcxgCIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkTm9kZRIoCgVlZGdlcxgDIAMoCzIZLnNhbi50b3dlci52MS5LZXl3b3JkRWRnZRIzCgtjb21tdW5pdGllcxgEIAMoCzIeLnNhbi50b3dlci52MS5LZXl3b3JkQ29tbXVuaXR5EjoKBW1vdmVkGAUgAygLMisuc2FuLnRvd2VyLnYxLktleXdvcmRHcmFwaENoYW5nZS5Nb3ZlZEVudHJ5GiwKCk1vdmVkRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgNOgI4ASIYChZXYXRjaFJlc2VhcmNoZXNSZXF1ZXN0IpYBChdXYXRjaFJlc2VhcmNoZXNSZXNwb25zZRIqCgRsaXN0GAEgASgLMhouc2FuLnRvd2VyLnYxLlJlc2VhcmNoTGlzdEgAEjEKCHJlc2VhcmNoGAIgASgLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEgAEhMKCWhlYXJ0YmVhdBgDIAEoCEgAQgcKBWV2ZW50IncKDFJlc2VhcmNoTGlzdBIxCgpyZXNlYXJjaGVzGAEgAygLMh0uc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaBI0Cgdmb2xkZXJzGAIgAygLMiMuc2FuLnRvd2VyLnYxLktleXdvcmRSZXNlYXJjaEZvbGRlciqXAgoVS2V5d29yZFJlc2VhcmNoU3RhdHVzEicKI0tFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX1VOU1BFQ0lGSUVEEAASIAocS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfSURMRRABEiMKH0tFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX1dBSVRJTkcQAhIjCh9LRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19SVU5OSU5HEAMSIwofS0VZV09SRF9SRVNFQVJDSF9TVEFUVVNfU1RPUFBFRBAEEiAKHEtFWVdPUkRfUkVTRUFSQ0hfU1RBVFVTX0RPTkUQBRIiCh5LRVlXT1JEX1JFU0VBUkNIX1NUQVRVU19GQUlMRUQQBjKaEAoWS2V5d29yZFJlc2VhcmNoU2VydmljZRJbCg5MaXN0UmVzZWFyY2hlcxIjLnNhbi50b3dlci52MS5MaXN0UmVzZWFyY2hlc1JlcXVlc3QaJC5zYW4udG93ZXIudjEuTGlzdFJlc2VhcmNoZXNSZXNwb25zZRJSCgtHZXRSZXNlYXJjaBIgLnNhbi50b3dlci52MS5HZXRSZXNlYXJjaFJlcXVlc3QaIS5zYW4udG93ZXIudjEuR2V0UmVzZWFyY2hSZXNwb25zZRJbCg5DcmVhdGVSZXNlYXJjaBIjLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaFJlcXVlc3QaJC5zYW4udG93ZXIudjEuQ3JlYXRlUmVzZWFyY2hSZXNwb25zZRJbCg5VcGRhdGVSZXNlYXJjaBIjLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaFJlcXVlc3QaJC5zYW4udG93ZXIudjEuVXBkYXRlUmVzZWFyY2hSZXNwb25zZRJbCg5EZWxldGVSZXNlYXJjaBIjLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaFJlcXVlc3QaJC5zYW4udG93ZXIudjEuRGVsZXRlUmVzZWFyY2hSZXNwb25zZRJkChFEdXBsaWNhdGVSZXNlYXJjaBImLnNhbi50b3dlci52MS5EdXBsaWNhdGVSZXNlYXJjaFJlcXVlc3QaJy5zYW4udG93ZXIudjEuRHVwbGljYXRlUmVzZWFyY2hSZXNwb25zZRJbCg5Nb3ZlUmVzZWFyY2hlcxIjLnNhbi50b3dlci52MS5Nb3ZlUmVzZWFyY2hlc1JlcXVlc3QaJC5zYW4udG93ZXIudjEuTW92ZVJlc2VhcmNoZXNSZXNwb25zZRJqChNMaXN0UmVzZWFyY2hGb2xkZXJzEiguc2FuLnRvd2VyLnYxLkxpc3RSZXNlYXJjaEZvbGRlcnNSZXF1ZXN0Gikuc2FuLnRvd2VyLnYxLkxpc3RSZXNlYXJjaEZvbGRlcnNSZXNwb25zZRJtChRDcmVhdGVSZXNlYXJjaEZvbGRlchIpLnNhbi50b3dlci52MS5DcmVhdGVSZXNlYXJjaEZvbGRlclJlcXVlc3QaKi5zYW4udG93ZXIudjEuQ3JlYXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZRJtChRVcGRhdGVSZXNlYXJjaEZvbGRlchIpLnNhbi50b3dlci52MS5VcGRhdGVSZXNlYXJjaEZvbGRlclJlcXVlc3QaKi5zYW4udG93ZXIudjEuVXBkYXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZRJtChREZWxldGVSZXNlYXJjaEZvbGRlchIpLnNhbi50b3dlci52MS5EZWxldGVSZXNlYXJjaEZvbGRlclJlcXVlc3QaKi5zYW4udG93ZXIudjEuRGVsZXRlUmVzZWFyY2hGb2xkZXJSZXNwb25zZRJSCgtSdW5SZXNlYXJjaBIgLnNhbi50b3dlci52MS5SdW5SZXNlYXJjaFJlcXVlc3QaIS5zYW4udG93ZXIudjEuUnVuUmVzZWFyY2hSZXNwb25zZRJbCg5FeHBsb3JlS2V5d29yZBIjLnNhbi50b3dlci52MS5FeHBsb3JlS2V5d29yZFJlcXVlc3QaJC5zYW4udG93ZXIudjEuRXhwbG9yZUtleXdvcmRSZXNwb25zZRJVCgxTdG9wUmVzZWFyY2gSIS5zYW4udG93ZXIudjEuU3RvcFJlc2VhcmNoUmVxdWVzdBoiLnNhbi50b3dlci52MS5TdG9wUmVzZWFyY2hSZXNwb25zZRJnChJDbGVhclJlc2VhcmNoR3JhcGgSJy5zYW4udG93ZXIudjEuQ2xlYXJSZXNlYXJjaEdyYXBoUmVxdWVzdBooLnNhbi50b3dlci52MS5DbGVhclJlc2VhcmNoR3JhcGhSZXNwb25zZRJhChBHZXRSZXNlYXJjaEdyYXBoEiUuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoR3JhcGhSZXF1ZXN0GiYuc2FuLnRvd2VyLnYxLkdldFJlc2VhcmNoR3JhcGhSZXNwb25zZRJbCg5BZGRUb0JsYWNrbGlzdBIjLnNhbi50b3dlci52MS5BZGRUb0JsYWNrbGlzdFJlcXVlc3QaJC5zYW4udG93ZXIudjEuQWRkVG9CbGFja2xpc3RSZXNwb25zZRJqChNSZW1vdmVGcm9tQmxhY2tsaXN0Eiguc2FuLnRvd2VyLnYxLlJlbW92ZUZyb21CbGFja2xpc3RSZXF1ZXN0Gikuc2FuLnRvd2VyLnYxLlJlbW92ZUZyb21CbGFja2xpc3RSZXNwb25zZRJhChBHZXRUcmVuZHNPcHRpb25zEiUuc2FuLnRvd2VyLnYxLkdldFRyZW5kc09wdGlvbnNSZXF1ZXN0GiYuc2FuLnRvd2VyLnYxLkdldFRyZW5kc09wdGlvbnNSZXNwb25zZRJaCg1XYXRjaFJlc2VhcmNoEiIuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hSZXF1ZXN0GiMuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hSZXNwb25zZTABEmAKD1dhdGNoUmVzZWFyY2hlcxIkLnNhbi50b3dlci52MS5XYXRjaFJlc2VhcmNoZXNSZXF1ZXN0GiUuc2FuLnRvd2VyLnYxLldhdGNoUmVzZWFyY2hlc1Jlc3BvbnNlMAFCtAEKEGNvbS5zYW4udG93ZXIudjFCFEtleXdvcmRSZXNlYXJjaFByb3RvUAFaOGdpdGh1Yi5jb20vd2FyZ2FzaXBpbC9zYW5fdG93ZXIvZ2VuL3Nhbi90b3dlci92MTt0b3dlcnYxogIDU1RYqgIMU2FuLlRvd2VyLlYxygIMU2FuXFRvd2VyXFYx4gIYU2FuXFRvd2VyXFYxXEdQQk1ldGFkYXRh6gIOU2FuOjpUb3dlcjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
 
 /**
  * KeywordFilters are Google Trends' filters, as its Explore page has them.
@@ -141,12 +141,16 @@ export type KeywordResearch = Message<"san.tower.v1.KeywordResearch"> & {
   folderId: number;
 
   /**
+   * seed is the seed keyword now, "" before one is set. The graph marks
+   * every seed it was given (KeywordNode.seed): this one once Run added it,
+   * and those of before.
+   *
    * @generated from field: string seed = 5;
    */
   seed: string;
 
   /**
-   * deep_limit is how deep Top keywords are looked up: the seed is depth 0.
+   * deep_limit is how deep Top keywords are looked up: seeds are depth 0.
    *
    * @generated from field: uint32 deep_limit = 6;
    */
@@ -201,8 +205,8 @@ export type KeywordResearch = Message<"san.tower.v1.KeywordResearch"> & {
   exploredCount: number;
 
   /**
-   * settings_changed: the graph was made with another seed or other
-   * filters.
+   * settings_changed: the graph was made with other filters (a new seed
+   * does not count: Run adds it).
    *
    * @generated from field: bool settings_changed = 15;
    */
@@ -938,7 +942,8 @@ export type KeywordNode = Message<"san.tower.v1.KeywordNode"> & {
   breakout: boolean;
 
   /**
-   * depth is the smallest depth it was found at; the seed is 0.
+   * depth is its shortest distance from any seed, seeds 0. A keyword no
+   * seed reaches (a child a blacklist entry kept) keeps the depth it had.
    *
    * @generated from field: uint32 depth = 6;
    */
@@ -952,6 +957,8 @@ export type KeywordNode = Message<"san.tower.v1.KeywordNode"> & {
   explored: boolean;
 
   /**
+   * seed: it is a seed, the research's seed keyword now or one of before.
+   *
    * @generated from field: bool seed = 8;
    */
   seed: boolean;
@@ -1147,6 +1154,17 @@ export type AddToBlacklistRequest = Message<"san.tower.v1.AddToBlacklistRequest"
    * @generated from field: bool dry_run = 3;
    */
   dryRun: boolean;
+
+  /**
+   * keep_children takes out only the keywords the entries match: those
+   * found through them stay, with their own values, without the
+   * relationships from the removed ones (the user, 2026-11-12: "in
+   * blacklist, ask blacklist selected keyword or selected keyword and
+   * child"). False, as before: those found only through them go too.
+   *
+   * @generated from field: bool keep_children = 4;
+   */
+  keepChildren: boolean;
 };
 
 /**
@@ -1175,7 +1193,8 @@ export type AddToBlacklistResponse = Message<"san.tower.v1.AddToBlacklistRespons
 
   /**
    * removed are the keywords taken out of the graph (or that would be):
-   * those an entry matches, then those left without a path from the seed.
+   * those an entry matches, then (unless keep_children) those left without
+   * a path from any seed.
    *
    * @generated from field: repeated string removed = 3;
    */
@@ -1207,9 +1226,27 @@ export type RemoveFromBlacklistRequest = Message<"san.tower.v1.RemoveFromBlackli
   id: number;
 
   /**
+   * entry is one entry to take out; one the blacklist does not have is
+   * NotFound.
+   *
    * @generated from field: string entry = 2;
    */
   entry: string;
+
+  /**
+   * entries are more to take out, with entry; those the blacklist does not
+   * have (deleted in another tab) are passed over.
+   *
+   * @generated from field: repeated string entries = 3;
+   */
+  entries: string[];
+
+  /**
+   * all takes every entry out.
+   *
+   * @generated from field: bool all = 4;
+   */
+  all: boolean;
 };
 
 /**
@@ -1227,6 +1264,13 @@ export type RemoveFromBlacklistResponse = Message<"san.tower.v1.RemoveFromBlackl
    * @generated from field: san.tower.v1.KeywordResearch research = 1;
    */
   research?: KeywordResearch;
+
+  /**
+   * deleted is how many entries were taken out.
+   *
+   * @generated from field: uint32 deleted = 2;
+   */
+  deleted: number;
 };
 
 /**
@@ -1515,7 +1559,7 @@ export type KeywordGraphRemoval = Message<"san.tower.v1.KeywordGraphRemoval"> & 
    * nodes are kept keywords as they are now, whose values changed: one
    * found from a removed keyword keeps only what the keywords it is still
    * found from give it (Top, Rising, search interest, change), and one
-   * whose shortest path from the seed went through a removed keyword gets
+   * whose shortest path from the seeds went through a removed keyword gets
    * a deeper depth.
    *
    * @generated from field: repeated san.tower.v1.KeywordNode nodes = 3;
@@ -1555,7 +1599,7 @@ export const KeywordGraphRemovalSchema: GenMessage<KeywordGraphRemoval> = /*@__P
 export type KeywordGraphChange = Message<"san.tower.v1.KeywordGraphChange"> & {
   /**
    * keyword is the keyword looked up, now explored; "" when the crawl put
-   * the seed in.
+   * a seed in.
    *
    * @generated from field: string keyword = 1;
    */
@@ -1563,7 +1607,8 @@ export type KeywordGraphChange = Message<"san.tower.v1.KeywordGraphChange"> & {
 
   /**
    * nodes are the keywords it added or changed: the one looked up and each
-   * one it found, with their community.
+   * one it found (or the seed put in), and those whose depth it changed,
+   * with their community.
    *
    * @generated from field: repeated san.tower.v1.KeywordNode nodes = 2;
    */
@@ -1748,7 +1793,14 @@ export const KeywordResearchStatusSchema: GenEnum<KeywordResearchStatus> = /*@__
  * rising keyword"). The lookups go through a San Remote connection, in the
  * user's Chrome (san.remote.trends.v1.TrendsService), one at a time in the
  * whole tower.
- * 
+ *
+ * A research's graph keeps every seed it was run with (the user,
+ * 2026-11-12: "when i change seed keyword, dont ask reset, just add it, no
+ * reset"): a changed seed keyword is added as another seed on Run, the
+ * graph kept; only changed filters ask to clear it. A new research has no
+ * seed yet (the user, 2026-11-12: "remove seed keyword in created popup"):
+ * its page sets it.
+ *
  * The researches, their folders and filters are in the tower's database;
  * each research's graph is a goraphdb graph of its own, in
  * <data>/keyword_research/<id> (the user, 2026-11-11: "Every research is
@@ -1781,7 +1833,9 @@ export const KeywordResearchService: GenService<{
   /**
    * CreateResearch makes a research in folder_id (0: at the top), with the
    * default filters (Indonesia, Past 12 months, All categories, Web
-   * Search) and deep limit 2. Names are unique, ignoring case.
+   * Search) and deep limit 2. Names are unique, ignoring case. The seed may
+   * be empty (the page's New research no longer asks it): Run then refuses
+   * (InvalidArgument) until one is set.
    *
    * @generated from rpc san.tower.v1.KeywordResearchService.CreateResearch
    */
@@ -1792,8 +1846,8 @@ export const KeywordResearchService: GenService<{
   },
   /**
    * UpdateResearch changes a research's name, description, seed, deep
-   * limit, filters and connection. Its graph stays: Run asks before it
-   * clears a graph made with another seed or other filters.
+   * limit, filters and connection. Its graph stays: Run adds a new seed to
+   * it, and asks before it clears a graph made with other filters.
    *
    * @generated from rpc san.tower.v1.KeywordResearchService.UpdateResearch
    */
@@ -1873,11 +1927,17 @@ export const KeywordResearchService: GenService<{
   /**
    * RunResearch starts the crawl: from the seed when the graph is empty,
    * else it goes on from where it was, looking up the Top keywords not yet
-   * looked up within the deep limit. A keyword is never looked up twice.
-   * Only one crawl runs in the tower at a time: another research's makes
-   * it wait (WAITING). A graph made with another seed or other filters is
-   * refused (FailedPrecondition) unless clear is set, which clears it
-   * first. It goes on when the page closes.
+   * looked up within the deep limit. A seed keyword the graph does not
+   * have as a seed yet is added first (depth 0, looked up first, then its
+   * Top keywords to the deep limit); one that is an ordinary keyword of the
+   * graph becomes a seed, and the keywords found through it come nearer.
+   * A keyword is never looked up twice. Depth is the shortest distance
+   * from any seed. Only one crawl runs in the tower at a time: another
+   * research's makes it wait (WAITING). A graph made with other filters
+   * (location, time range, category, search type) is refused
+   * (FailedPrecondition) unless clear is set, which clears it first. A
+   * research without a seed keyword is refused (InvalidArgument). It goes
+   * on when the page closes.
    *
    * @generated from rpc san.tower.v1.KeywordResearchService.RunResearch
    */
@@ -1937,14 +1997,16 @@ export const KeywordResearchService: GenService<{
    * words, in order and next to each other ("kode pos" matches "kode pos",
    * "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
    * Adding one takes every keyword it matches out of the graph with its
-   * relationships, and every keyword then left without a path from the seed
+   * relationships, and every keyword then left without a path from any seed
    * (those found only through them); one also found from a keyword that
-   * stays, stays. A crawl never adds a keyword it matches again: it reads
-   * the blacklist at each lookup, so an entry added while it runs counts
-   * from its next lookup. An entry that matches the seed keyword is refused
-   * (InvalidArgument). With dry_run nothing changes: it says what adding
-   * would take out. The research's pages get the removal live
-   * (WatchResearch's removal) and the blacklist with the research.
+   * stays, stays. With keep_children only the keywords it matches go (the
+   * user, 2026-11-12: "in blacklist, ask blacklist selected keyword or
+   * selected keyword and child"). A crawl never adds a keyword it matches
+   * again: it reads the blacklist at each lookup, so an entry added while
+   * it runs counts from its next lookup. An entry that matches a seed
+   * keyword is refused (InvalidArgument). With dry_run nothing changes: it
+   * says what adding would take out. The research's pages get the removal
+   * live (WatchResearch's removal) and the blacklist with the research.
    *
    * @generated from rpc san.tower.v1.KeywordResearchService.AddToBlacklist
    */
@@ -1954,9 +2016,11 @@ export const KeywordResearchService: GenService<{
     output: typeof AddToBlacklistResponseSchema;
   },
   /**
-   * RemoveFromBlacklist takes an entry out of a research's blacklist. The
-   * keywords it took out of the graph do not come back; a later lookup may
-   * find them again.
+   * RemoveFromBlacklist takes entries out of a research's blacklist: one,
+   * several, or all of them, in one call (the user, 2026-11-12: "in
+   * blacklist, add button delete all"; "and add delete selected"); its
+   * pages get the research once. The keywords they took out of the graph
+   * do not come back; a later lookup may find them again.
    *
    * @generated from rpc san.tower.v1.KeywordResearchService.RemoveFromBlacklist
    */

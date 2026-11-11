@@ -115,18 +115,34 @@ func (s *Store) SetBlacklistRemoved(removed map[uint32]uint32) error {
 	})
 }
 
-// RemoveBlacklist takes entries out of research id's blacklist; one it
-// does not have is ErrNotFound when it is the only one asked.
-func (s *Store) RemoveBlacklist(id uint32, entries ...string) error {
-	for i, e := range entries {
-		entries[i] = NormalizeKeyword(e)
+// RemoveBlacklist takes entries out of research id's blacklist, in one
+// statement, and gives how many it took out. One it does not have is
+// ErrNotFound when it is the only one asked; of several, those it does not
+// have (taken out in another tab) are passed over.
+func (s *Store) RemoveBlacklist(id uint32, entries ...string) (int, error) {
+	var list []string
+	for _, e := range entries {
+		if e = NormalizeKeyword(e); e != "" && !slices.Contains(list, e) {
+			list = append(list, e)
+		}
 	}
-	res := s.db.Where("research_id = ? AND entry IN ?", id, entries).Delete(&KeywordBlacklistEntry{})
+	if len(list) == 0 {
+		return 0, fail(ErrInvalid, "give the blacklist entries to take out")
+	}
+	res := s.db.Where("research_id = ? AND entry IN ?", id, list).Delete(&KeywordBlacklistEntry{})
 	if res.Error != nil {
-		return res.Error
+		return 0, res.Error
 	}
-	if res.RowsAffected == 0 && len(entries) == 1 {
-		return fail(ErrNotFound, "the blacklist has no %q", entries[0])
+	if res.RowsAffected == 0 && len(list) == 1 {
+		return 0, fail(ErrNotFound, "the blacklist has no %q", list[0])
 	}
-	return nil
+	return int(res.RowsAffected), nil
+}
+
+// ClearBlacklist takes every entry out of research id's blacklist (the
+// user, 2026-11-12: "in blacklist, add button delete all") and gives how
+// many it took out.
+func (s *Store) ClearBlacklist(id uint32) (int, error) {
+	res := s.db.Where("research_id = ?", id).Delete(&KeywordBlacklistEntry{})
+	return int(res.RowsAffected), res.Error
 }

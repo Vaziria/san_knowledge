@@ -49,21 +49,59 @@ export function exploreLink(keyword: string, f?: KeywordFilters) {
 // (48 for "aplikasi kasir", 2026-11-11): an empty graph's estimate takes it.
 export const MAX_TOP = 50;
 
-// explorable says whether Run looks a keyword up under a deep limit: the
-// seed and Top keywords not looked up, above the limit (as the crawler).
+// explorable says whether Run looks a keyword up under a deep limit: seeds
+// and Top keywords not looked up, above the limit (as the crawler).
 export const explorable = (n: KeywordNode, limit: number) => !n.explored && (n.seed || n.top) && n.depth < limit;
 
+// normalizeKeyword is a keyword as a research's graph keeps it: trimmed, in
+// lower case, its spaces collapsed (as the tower's NormalizeKeyword).
+export const normalizeKeyword = (s: string) => s.toLowerCase().split(/\s+/).filter(Boolean).join(' ');
+
+// seedsOf are a graph's seeds (the user, 2026-11-12: a changed seed is
+// added, "no reset"), in the graph's order.
+export const seedsOf = (nodes: KeywordNode[]) => nodes.filter((n) => n.seed).map((n) => n.name);
+
+// withSeed is a graph's keywords as Run makes them with seed keyword seed:
+// put in as a seed when the graph does not have it (an ordinary keyword
+// made a seed as it is), then every depth the shortest distance from any
+// seed, as the crawler's Relevel; a keyword no seed reaches keeps its
+// depth. Without a seed, or with one the graph has, the keywords as they
+// are.
+export function withSeed(nodes: KeywordNode[], edges: KeywordEdge[], seed: string): KeywordNode[] {
+  const name = normalizeKeyword(seed);
+  if (!name || nodes.some((n) => n.name === name && n.seed)) return nodes;
+  const list = nodes.some((n) => n.name === name)
+    ? nodes.map((n) => (n.name === name ? { ...n, seed: true, depth: 0 } : n))
+    : [...nodes, { name, seed: true, explored: false, top: false, rising: false, depth: 0 } as KeywordNode];
+  const out = new Map<string, string[]>();
+  for (const e of edges) out.set(e.from, [...(out.get(e.from) ?? []), e.to]);
+  const depth = new Map<string, number>();
+  const queue = list.filter((n) => n.seed).map((n) => n.name);
+  for (const s of queue) depth.set(s, 0);
+  while (queue.length) {
+    const x = queue.shift()!;
+    for (const to of out.get(x) ?? []) {
+      if (depth.has(to)) continue;
+      depth.set(to, depth.get(x)! + 1);
+      queue.push(to);
+    }
+  }
+  return list.map((n) => (depth.has(n.name) && depth.get(n.name) !== n.depth ? { ...n, depth: depth.get(n.name)! } : n));
+}
+
 // estimate is how many lookups Run makes at most: each explorable keyword,
-// and below each, up to perKeyword Top keywords a level, to the deep limit.
-// perKeyword is the graph's own average of Top keywords per lookup, or
-// MAX_TOP while it has none. It is worked out from the page's graph, so a
-// blacklist's removal lowers it at once, and the average counts only the
-// Top keywords kept, as a crawl skips blacklisted ones.
-export function estimate(nodes: KeywordNode[], edges: KeywordEdge[], limit: number) {
+// and below each, up to perKeyword Top keywords a level, to the deep limit,
+// with the research's seed keyword seed added as Run adds it (withSeed;
+// none: only what the graph has). perKeyword is the graph's own average of
+// Top keywords per lookup, or MAX_TOP while it has none. It is worked out
+// from the page's graph, so a blacklist's removal lowers it at once, and
+// the average counts only the Top keywords kept, as a crawl skips
+// blacklisted ones.
+export function estimate(nodes: KeywordNode[], edges: KeywordEdge[], limit: number, seed = '') {
   const explored = nodes.filter((n) => n.explored).length;
   const tops = edges.filter((e) => e.rel === 'TOP').length;
   const per = explored > 0 ? Math.max(1, Math.round(tops / explored)) : MAX_TOP;
-  const list = nodes.length > 0 ? nodes : [{ seed: true, explored: false, top: false, depth: 0 } as KeywordNode];
+  const list = withSeed(nodes, edges, seed);
   let total = 0;
   for (const n of list) {
     if (!explorable(n, limit)) continue;
@@ -111,8 +149,8 @@ export const active = (k?: KeywordResearch) =>
   k?.status === KeywordResearchStatus.RUNNING || k?.status === KeywordResearchStatus.WAITING;
 
 // progressText is a running research's line: "Running · 48 keywords · depth
-// 2 · now: aplikasi kasir android" (the user, 2026-11-11), or a waiting
-// one's place in the queue.
+// 2 · now: aplikasi kasir android" (the user, 2026-11-11; depth from the
+// nearest seed), or a waiting one's place in the queue.
 export function progressText(k: KeywordResearch) {
   const p = k.progress;
   const n = `${k.nodeCount} ${k.nodeCount === 1 ? 'keyword' : 'keywords'}`;

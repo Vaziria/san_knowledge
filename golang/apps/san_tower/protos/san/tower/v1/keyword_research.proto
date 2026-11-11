@@ -16,6 +16,13 @@ import "google/protobuf/timestamp.proto";
 // user's Chrome (san.remote.trends.v1.TrendsService), one at a time in the
 // whole tower.
 //
+// A research's graph keeps every seed it was run with (the user,
+// 2026-11-12: "when i change seed keyword, dont ask reset, just add it, no
+// reset"): a changed seed keyword is added as another seed on Run, the
+// graph kept; only changed filters ask to clear it. A new research has no
+// seed yet (the user, 2026-11-12: "remove seed keyword in created popup"):
+// its page sets it.
+//
 // The researches, their folders and filters are in the tower's database;
 // each research's graph is a goraphdb graph of its own, in
 // <data>/keyword_research/<id> (the user, 2026-11-11: "Every research is
@@ -29,11 +36,13 @@ service KeywordResearchService {
   rpc GetResearch(GetResearchRequest) returns (GetResearchResponse);
   // CreateResearch makes a research in folder_id (0: at the top), with the
   // default filters (Indonesia, Past 12 months, All categories, Web
-  // Search) and deep limit 2. Names are unique, ignoring case.
+  // Search) and deep limit 2. Names are unique, ignoring case. The seed may
+  // be empty (the page's New research no longer asks it): Run then refuses
+  // (InvalidArgument) until one is set.
   rpc CreateResearch(CreateResearchRequest) returns (CreateResearchResponse);
   // UpdateResearch changes a research's name, description, seed, deep
-  // limit, filters and connection. Its graph stays: Run asks before it
-  // clears a graph made with another seed or other filters.
+  // limit, filters and connection. Its graph stays: Run adds a new seed to
+  // it, and asks before it clears a graph made with other filters.
   rpc UpdateResearch(UpdateResearchRequest) returns (UpdateResearchResponse);
   // DeleteResearch deletes a research and its graph. A research that is
   // running or waiting is stopped first.
@@ -52,11 +61,17 @@ service KeywordResearchService {
   rpc DeleteResearchFolder(DeleteResearchFolderRequest) returns (DeleteResearchFolderResponse);
   // RunResearch starts the crawl: from the seed when the graph is empty,
   // else it goes on from where it was, looking up the Top keywords not yet
-  // looked up within the deep limit. A keyword is never looked up twice.
-  // Only one crawl runs in the tower at a time: another research's makes
-  // it wait (WAITING). A graph made with another seed or other filters is
-  // refused (FailedPrecondition) unless clear is set, which clears it
-  // first. It goes on when the page closes.
+  // looked up within the deep limit. A seed keyword the graph does not
+  // have as a seed yet is added first (depth 0, looked up first, then its
+  // Top keywords to the deep limit); one that is an ordinary keyword of the
+  // graph becomes a seed, and the keywords found through it come nearer.
+  // A keyword is never looked up twice. Depth is the shortest distance
+  // from any seed. Only one crawl runs in the tower at a time: another
+  // research's makes it wait (WAITING). A graph made with other filters
+  // (location, time range, category, search type) is refused
+  // (FailedPrecondition) unless clear is set, which clears it first. A
+  // research without a seed keyword is refused (InvalidArgument). It goes
+  // on when the page closes.
   rpc RunResearch(RunResearchRequest) returns (RunResearchResponse);
   // ExploreKeyword looks up one keyword of the graph once, past the deep
   // limit or a Rising one too; it waits its turn as a Run does.
@@ -76,18 +91,22 @@ service KeywordResearchService {
   // words, in order and next to each other ("kode pos" matches "kode pos",
   // "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
   // Adding one takes every keyword it matches out of the graph with its
-  // relationships, and every keyword then left without a path from the seed
+  // relationships, and every keyword then left without a path from any seed
   // (those found only through them); one also found from a keyword that
-  // stays, stays. A crawl never adds a keyword it matches again: it reads
-  // the blacklist at each lookup, so an entry added while it runs counts
-  // from its next lookup. An entry that matches the seed keyword is refused
-  // (InvalidArgument). With dry_run nothing changes: it says what adding
-  // would take out. The research's pages get the removal live
-  // (WatchResearch's removal) and the blacklist with the research.
+  // stays, stays. With keep_children only the keywords it matches go (the
+  // user, 2026-11-12: "in blacklist, ask blacklist selected keyword or
+  // selected keyword and child"). A crawl never adds a keyword it matches
+  // again: it reads the blacklist at each lookup, so an entry added while
+  // it runs counts from its next lookup. An entry that matches a seed
+  // keyword is refused (InvalidArgument). With dry_run nothing changes: it
+  // says what adding would take out. The research's pages get the removal
+  // live (WatchResearch's removal) and the blacklist with the research.
   rpc AddToBlacklist(AddToBlacklistRequest) returns (AddToBlacklistResponse);
-  // RemoveFromBlacklist takes an entry out of a research's blacklist. The
-  // keywords it took out of the graph do not come back; a later lookup may
-  // find them again.
+  // RemoveFromBlacklist takes entries out of a research's blacklist: one,
+  // several, or all of them, in one call (the user, 2026-11-12: "in
+  // blacklist, add button delete all"; "and add delete selected"); its
+  // pages get the research once. The keywords they took out of the graph
+  // do not come back; a later lookup may find them again.
   rpc RemoveFromBlacklist(RemoveFromBlacklistRequest) returns (RemoveFromBlacklistResponse);
   // GetTrendsOptions gives Google Trends' own filter lists (locations,
   // categories, time ranges, search types), read from Trends through a
@@ -168,8 +187,11 @@ message KeywordResearch {
   string description = 3;
   // folder_id is the folder it is in, 0 at the top.
   uint32 folder_id = 4;
+  // seed is the seed keyword now, "" before one is set. The graph marks
+  // every seed it was given (KeywordNode.seed): this one once Run added it,
+  // and those of before.
   string seed = 5;
-  // deep_limit is how deep Top keywords are looked up: the seed is depth 0.
+  // deep_limit is how deep Top keywords are looked up: seeds are depth 0.
   uint32 deep_limit = 6;
   KeywordFilters filters = 7;
   // connection_id is the San Remote connection its lookups go through; 0
@@ -184,8 +206,8 @@ message KeywordResearch {
   uint32 node_count = 12;
   uint32 edge_count = 13;
   uint32 explored_count = 14;
-  // settings_changed: the graph was made with another seed or other
-  // filters.
+  // settings_changed: the graph was made with other filters (a new seed
+  // does not count: Run adds it).
   bool settings_changed = 15;
   // progress is set while it runs or waits.
   KeywordProgress progress = 16;
@@ -359,10 +381,12 @@ message KeywordNode {
   int32 change = 3;
   string change_text = 4;
   bool breakout = 5;
-  // depth is the smallest depth it was found at; the seed is 0.
+  // depth is its shortest distance from any seed, seeds 0. A keyword no
+  // seed reaches (a child a blacklist entry kept) keeps the depth it had.
   uint32 depth = 6;
   // explored: its related queries were looked up.
   bool explored = 7;
+  // seed: it is a seed, the research's seed keyword now or one of before.
   bool seed = 8;
   // top and rising: found in a Top list, in a Rising list.
   bool top = 9;
@@ -412,6 +436,12 @@ message AddToBlacklistRequest {
   repeated string entries = 2;
   // dry_run changes nothing: the response says what adding would do.
   bool dry_run = 3;
+  // keep_children takes out only the keywords the entries match: those
+  // found through them stay, with their own values, without the
+  // relationships from the removed ones (the user, 2026-11-12: "in
+  // blacklist, ask blacklist selected keyword or selected keyword and
+  // child"). False, as before: those found only through them go too.
+  bool keep_children = 4;
 }
 
 message AddToBlacklistResponse {
@@ -420,7 +450,8 @@ message AddToBlacklistResponse {
   // blacklist had already are left out.
   repeated string added = 2;
   // removed are the keywords taken out of the graph (or that would be):
-  // those an entry matches, then those left without a path from the seed.
+  // those an entry matches, then (unless keep_children) those left without
+  // a path from any seed.
   repeated string removed = 3;
   // matched is how many of removed an entry matches; the others were found
   // only through them.
@@ -429,11 +460,20 @@ message AddToBlacklistResponse {
 
 message RemoveFromBlacklistRequest {
   uint32 id = 1;
+  // entry is one entry to take out; one the blacklist does not have is
+  // NotFound.
   string entry = 2;
+  // entries are more to take out, with entry; those the blacklist does not
+  // have (deleted in another tab) are passed over.
+  repeated string entries = 3;
+  // all takes every entry out.
+  bool all = 4;
 }
 
 message RemoveFromBlacklistResponse {
   KeywordResearch research = 1;
+  // deleted is how many entries were taken out.
+  uint32 deleted = 2;
 }
 
 // TrendsGeo is a location of Trends' location menu.
@@ -516,7 +556,7 @@ message KeywordGraphRemoval {
   // nodes are kept keywords as they are now, whose values changed: one
   // found from a removed keyword keeps only what the keywords it is still
   // found from give it (Top, Rising, search interest, change), and one
-  // whose shortest path from the seed went through a removed keyword gets
+  // whose shortest path from the seeds went through a removed keyword gets
   // a deeper depth.
   repeated KeywordNode nodes = 3;
   // communities are every community of the graph now.
@@ -531,10 +571,11 @@ message KeywordGraphRemoval {
 // changed, as they are now, and the Leiden communities worked out again.
 message KeywordGraphChange {
   // keyword is the keyword looked up, now explored; "" when the crawl put
-  // the seed in.
+  // a seed in.
   string keyword = 1;
   // nodes are the keywords it added or changed: the one looked up and each
-  // one it found, with their community.
+  // one it found (or the seed put in), and those whose depth it changed,
+  // with their community.
   repeated KeywordNode nodes = 2;
   // edges are its relationships: the TOP and RISING ones from keyword.
   repeated KeywordEdge edges = 3;

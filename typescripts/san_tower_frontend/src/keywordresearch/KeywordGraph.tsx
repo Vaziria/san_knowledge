@@ -18,9 +18,11 @@ import { changeText } from './trends';
 // A research's graph (the user, 2026-11-11), drawn as the tower's Knowledge
 // graph is (zoom, pan, fit, dark mode), grouped by Leiden community as
 // san_knowledge's own view groups one: a keyword's fill is its community's
-// colour, its size its search interest; the seed is the biggest, with a
-// thick border; TOP links are solid and RISING ones dashed, and a keyword
-// found only as Rising has a dashed border.
+// colour, its size its search interest; every seed (a research keeps each
+// seed keyword it was run with: the user, 2026-11-12, "just add it, no
+// reset") is the biggest, with a thick border; TOP links are solid and
+// RISING ones dashed, and a keyword found only as Rising has a dashed
+// border.
 
 // COLORS are the graph's colours, light and dark, and the community
 // palette of san_knowledge's view (theme.ts s1-s8; "other" past 8).
@@ -71,7 +73,24 @@ const COSE: CoseLayoutOptions = {
 // plain links (cytoscape draws curves with arrows slowest).
 const PLAIN_FROM = 600;
 
-// size is a keyword's diameter: the seed biggest, the others by search
+// LARGE_FROM is how many keywords and links make a graph large enough that
+// zooming and panning show a picture of it (cytoscape's textureOnViewport),
+// redrawn sharp when they stop, at the screen's pixel ratio capped at 1
+// (the user, 2026-11-12: "scoll is to slow", on graphs of 500+ keywords).
+const LARGE_FROM = 300;
+
+// The wheel zooms by how far it turns, the same for a mouse and a touchpad
+// (the user, 2026-11-12: "scoll is to slow"): ZOOM_PER_PX a pixel of
+// scroll, so a mouse notch (100 px) zooms 1.25 times and a touchpad swipe of
+// as many pixels the same; a pinch (the wheel with Ctrl, as browsers send
+// it) PINCH_PER_PX. cytoscape's own wheel zoom, even with a higher
+// wheelSensitivity, scales a mouse's notches down after its first few (1.03
+// times a notch) but a touchpad's pixels not (2 times a 100 px swipe; with
+// wheelSensitivity 3, 8 to 16 times), so it is off and this zooms instead.
+const ZOOM_PER_PX = Math.log(1.25) / 100;
+const PINCH_PER_PX = Math.log(2) / 100;
+
+// size is a keyword's diameter: seeds biggest, the others by search
 // interest.
 const size = (n: KeywordNode) => (n.seed ? 64 : Math.round(16 + Math.min(100, Math.max(0, n.searchInterest)) * 0.34));
 
@@ -166,7 +185,9 @@ function style(p: Colors): StylesheetJson {
         'text-max-width': '160px',
         'text-outline-color': p.surface,
         'text-outline-width': 2.5,
-        'min-zoomed-font-size': 5,
+        // Labels smaller than 8 px on screen are not drawn: they are
+        // unreadable, and drawing them slows zooming a large graph.
+        'min-zoomed-font-size': 8,
         'overlay-opacity': 0,
       },
     },
@@ -236,12 +257,16 @@ type Tip = { x: number; y: number; node: KeywordNode };
 // new one is put next to the keyword it was found from, fades in with a
 // pulse, and a short layout of only the new ones and the keywords they came
 // from (held still) spreads them; one that is gone (blacklisted) fades out,
-// the rest left where it is (all at once when every one is gone). A new
+// the rest left where it is (all at once when every one is gone); a seed
+// added, found from no keyword, starts at the right of the graph. A new
 // layout number lays the whole graph out again by community; a new fit
 // number fits it in view. While a crawl grows it, the whole graph is kept
 // in view after each change until the user zooms or pans by hand (then the
 // view is theirs until Fit or a layout). focus, when set, fades every
-// community but that one.
+// community but that one. The wheel zooms at the pointer, a notch 1.25
+// times (wheelZoom), in Pan and Select alike; a large graph shows a picture
+// of itself while it zooms or pans, links hidden, and labels under 8 px on
+// screen are not drawn.
 export function KeywordGraph({
   nodes,
   edges,
@@ -278,6 +303,7 @@ export function KeywordGraph({
   const drawnNodes = useRef(new Map<string, KeywordNode>());
   const drawnEdges = useRef(new Map<string, KeywordEdge>());
   const plain = useRef(false);
+  const large = useRef(false);
   // moved: the user zoomed or panned by hand since the last fit.
   const moved = useRef(false);
   const [tip, setTip] = useState<Tip>();
@@ -291,6 +317,8 @@ export function KeywordGraph({
       hideEdgesOnViewport: true,
       boxSelectionEnabled: true,
       selectionType: 'single',
+      // The wheel zooms through wheelZoom, not cytoscape.
+      userZoomingEnabled: false,
     });
     // Ctrl/Cmd (or Shift) + click only adds to or takes from the selection
     // (cytoscape does that itself); a plain click opens the keyword.
@@ -339,9 +367,12 @@ export function KeywordGraph({
       // A pan starts on the background (in Pan, without Shift).
       if (e.target === c && mode.current === 'pan' && !adding(e.originalEvent)) moved.current = true;
     });
-    const wheel = () => (moved.current = true);
     const el = box.current!;
-    el.addEventListener('wheel', wheel, { passive: true });
+    const wheel = wheelZoom(c, el, () => {
+      moved.current = true;
+      setTip(undefined);
+    });
+    el.addEventListener('wheel', wheel, { passive: false });
     // Hidden (another tab of the page) it has no size: shown again, it is
     // fitted unless the view was moved by hand.
     let hidden = false;
@@ -358,6 +389,7 @@ export function KeywordGraph({
     drawnNodes.current = new Map();
     drawnEdges.current = new Map();
     plain.current = false;
+    large.current = false;
     return () => {
       el.removeEventListener('wheel', wheel);
       window.removeEventListener('keydown', onKey);
@@ -389,6 +421,10 @@ export function KeywordGraph({
     byName.current = new Map(nodes.map((n) => [n.name, n]));
     const p = keywordColors(dark);
     const big = nodes.length + edges.length > PLAIN_FROM;
+    if (nodes.length + edges.length > LARGE_FROM !== large.current) {
+      large.current = !large.current;
+      viewportPicture(c, large.current);
+    }
     const first = drawnNodes.current.size === 0;
     const placed = new Map(c.nodes().map((n) => [n.id(), { ...n.position() }]));
     const fresh: string[] = [];
@@ -438,6 +474,20 @@ export function KeywordGraph({
         fresh.push(n.name);
         const from = parentOf.get(n.name);
         if (from && placed.has(from)) ring.set(from, [...(ring.get(from) ?? []), n.name]);
+      }
+      // A seed added (found from no keyword drawn): at the right of the
+      // graph, one under another.
+      const orphans = fresh.filter((n) => !parentOf.has(n) && placed.size > 0);
+      if (orphans.length) {
+        const xs = [...placed.values()].map((p) => p.x);
+        const ys = [...placed.values()].map((p) => p.y);
+        const x = Math.max(...xs) + 220;
+        const y = (Math.min(...ys) + Math.max(...ys)) / 2;
+        orphans.forEach((k, i) => {
+          const pos = { x, y: y + (i - (orphans.length - 1) / 2) * 160 };
+          c.getElementById(k).position(pos);
+          placed.set(k, pos);
+        });
       }
       for (const [from, names] of ring) {
         const at = placed.get(from)!;
@@ -575,6 +625,59 @@ export function KeywordGraph({
       )}
     </>
   );
+}
+
+// Renderer is the part of cytoscape's canvas renderer wheelZoom and
+// viewportPicture set: the fields its own wheel zoom and its options set
+// (cytoscape 3.34's base renderer).
+type Renderer = {
+  data?: { wheelZooming?: boolean };
+  textureOnViewport?: boolean;
+  forcedPixelRatio?: number | null;
+  redrawHint?: (group: string, on: boolean) => void;
+  redraw?: () => void;
+};
+const rendererOf = (c: Core) => (c as unknown as { renderer?: () => Renderer | undefined }).renderer?.();
+
+// viewportPicture makes zooming and panning a large graph show a picture of
+// it (textureOnViewport), drawn at a pixel ratio of 1 at most, or draw it
+// whole, at the screen's ratio, for a small one. cytoscape takes both only
+// as options when it starts, but reads them as it draws.
+function viewportPicture(c: Core, on: boolean) {
+  const r = rendererOf(c);
+  if (!r) return;
+  r.textureOnViewport = on;
+  r.forcedPixelRatio = on ? Math.min(1, window.devicePixelRatio || 1) : null;
+  c.resize();
+}
+
+// wheelZoom is the graph's wheel: it zooms at the pointer by how far the
+// wheel turned (ZOOM_PER_PX, PINCH_PER_PX with Ctrl), with the page kept
+// from scrolling, and while it zooms cytoscape hides the links and shows the
+// picture of a large graph as its own wheel zoom does (wheelZooming), then
+// draws it sharp 150 ms after the last turn. onZoom hears each.
+function wheelZoom(c: Core, el: HTMLElement, onZoom: () => void) {
+  let done: ReturnType<typeof setTimeout> | undefined;
+  return (ev: WheelEvent) => {
+    ev.preventDefault();
+    const px = ev.deltaY * (ev.deltaMode === 1 ? 33 : ev.deltaMode === 2 ? 800 : 1);
+    if (!px) return;
+    const level = Math.min(c.maxZoom(), Math.max(c.minZoom(), c.zoom() * Math.exp(-px * (ev.ctrlKey ? PINCH_PER_PX : ZOOM_PER_PX))));
+    if (level === c.zoom()) return;
+    const r = rendererOf(c);
+    if (r?.data) {
+      r.data.wheelZooming = true;
+      clearTimeout(done);
+      done = setTimeout(() => {
+        if (r.data) r.data.wheelZooming = false;
+        r.redrawHint?.('eles', true);
+        r.redraw?.();
+      }, 150);
+    }
+    const at = el.getBoundingClientRect();
+    c.zoom({ level, renderedPosition: { x: ev.clientX - at.left, y: ev.clientY - at.top } });
+    onZoom();
+  };
 }
 
 // runLayout lays the whole graph out sorted by Leiden community (the user,

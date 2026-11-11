@@ -19,18 +19,26 @@ import (
 //   - An entry matches a keyword when its words are in the keyword as whole
 //     words, in order and next to each other (Matches).
 //   - Adding one takes every keyword it matches out of the graph with its
-//     relationships, and every keyword then left without a path from the
+//     relationships, and every keyword then left without a path from any
 //     seed: "the node and child", the keywords found only through it. One
-//     also found from a keyword that stays, stays.
-//   - The seed is never taken out: an entry that matches it is refused.
+//     also found from a keyword that stays, stays. With keep children (the
+//     user, 2026-11-12: "in blacklist, ask blacklist selected keyword or
+//     selected keyword and child") only the keywords it matches go: the
+//     ones found through them stay, with their own values, without the
+//     relationships from the removed ones; those no seed reaches any more
+//     keep their depth, and a crawl looks them up as before when they are
+//     Top ones within the deep limit not looked up yet.
+//   - No seed is ever taken out: an entry that matches one is refused.
 //   - The crawl never adds a keyword an entry matches from a lookup's Top
 //     or Rising queries, so it is never looked up; it reads the blacklist
 //     at each lookup.
-//   - Taking an entry out of the blacklist does not bring back what it
-//     removed; a later lookup may find those keywords again.
+//   - Taking entries out of the blacklist (one, several, or all at once:
+//     the user, 2026-11-12: "add button delete all", "and add delete
+//     selected") does not bring back what they removed; a later lookup may
+//     find those keywords again.
 
-// ErrSeedBlacklisted is an entry that matches the seed keyword.
-var ErrSeedBlacklisted = errors.New("the seed cannot be blacklisted")
+// ErrSeedBlacklisted is an entry that matches a seed keyword.
+var ErrSeedBlacklisted = errors.New("a seed keyword cannot be blacklisted")
 
 // Matches says whether blacklist entry matches keyword: the entry's words
 // are in the keyword as whole words, in order and next to each other, both
@@ -74,8 +82,9 @@ func (e refused) Unwrap() []error { return []error{store.ErrInvalid, ErrSeedBlac
 
 // Removal is what blacklist entries take out of a graph.
 type Removal struct {
-	// Removed are the keywords taken out: each entry's matches, then the
-	// keywords left without a path from the seed, entry by entry.
+	// Removed are the keywords taken out: each entry's matches, then
+	// (unless the children are kept) the keywords left without a path from
+	// any seed, entry by entry.
 	Removed []string
 	// Matched is how many of Removed an entry matches; PerEntry how many
 	// each entry took out, in the entries' order (the ones before it
@@ -87,16 +96,17 @@ type Removal struct {
 	// Changed are kept keywords whose values were worked out again: one
 	// found from a removed keyword keeps only what the keywords it is still
 	// found from give it (Top, Rising, search interest, change), and one
-	// whose shortest path from the seed went through a removed keyword gets
-	// the depth of its shortest path now.
+	// whose shortest path from the seeds went through a removed keyword gets
+	// the depth of its shortest path now. A kept child no keyword finds any
+	// more keeps its values and depth.
 	Changed []Node
 }
 
 // planRemoval works out which keywords entries take out of a graph of
-// nodes and edges, entry by entry: those it matches (never the seed), then
-// those it leaves without a path from the seed (those that had one). A
-// graph without its seed loses only the matches.
-func planRemoval(nodes []Node, edges []Edge, entries []string) (gone map[string]bool, perEntry []int, matched int) {
+// nodes and edges, entry by entry: those it matches (never a seed), then,
+// unless keepChildren, those it leaves without a path from any seed (those
+// that had one). A graph without a seed loses only the matches.
+func planRemoval(nodes []Node, edges []Edge, entries []string, keepChildren bool) (gone map[string]bool, perEntry []int, matched int) {
 	out := map[string][]string{}
 	for _, e := range edges {
 		out[e.From] = append(out[e.From], e.To)
@@ -137,7 +147,7 @@ func planRemoval(nodes []Node, edges []Edge, entries []string) (gone map[string]
 			}
 		}
 		matched += n
-		if n > 0 && len(seeds) > 0 {
+		if n > 0 && len(seeds) > 0 && !keepChildren {
 			after := reach()
 			for name := range before {
 				if !after[name] && !gone[name] {
@@ -153,11 +163,12 @@ func planRemoval(nodes []Node, edges []Edge, entries []string) (gone map[string]
 }
 
 // Blacklist takes out of the graph what entries (normalized) take
-// (planRemoval), with their relationships, and works the kept keywords'
-// values out again where they came from a removed keyword (Removal's
-// Changed). dryRun only works it out. An entry that matches the seed is
-// refused.
-func (g *Graph) Blacklist(entries []string, dryRun bool) (Removal, error) {
+// (planRemoval): their matches, and, unless keepChildren, the keywords then
+// found only through them, with their relationships; and works the kept
+// keywords' values out again where they came from a removed keyword
+// (Removal's Changed). dryRun only works it out. An entry that matches a
+// seed is refused.
+func (g *Graph) Blacklist(entries []string, dryRun, keepChildren bool) (Removal, error) {
 	var r Removal
 	nodes, err := g.Nodes()
 	if err != nil {
@@ -175,7 +186,7 @@ func (g *Graph) Blacklist(entries []string, dryRun bool) (Removal, error) {
 			return r, seedRefused(e, n.Name)
 		}
 	}
-	gone, perEntry, matched := planRemoval(nodes, edges, entries)
+	gone, perEntry, matched := planRemoval(nodes, edges, entries, keepChildren)
 	r.PerEntry, r.Matched = perEntry, matched
 	byName := map[string]Node{}
 	for _, n := range nodes {
@@ -215,7 +226,7 @@ func (g *Graph) Blacklist(entries []string, dryRun bool) (Removal, error) {
 	for name := range lost {
 		n := byName[name]
 		if n.Seed || len(in[name]) == 0 {
-			continue // the seed, or one no path reached before either
+			continue // a seed, or one no keyword finds any more (a kept child)
 		}
 		var top, rising bool
 		interest, change, text, breakout := 0, 0, "", false
@@ -244,9 +255,9 @@ func (g *Graph) Blacklist(entries []string, dryRun bool) (Removal, error) {
 			set(name, "breakout", breakout)
 		}
 	}
-	// Depths: a keyword's depth is the length of a path from the seed that
+	// Depths: a keyword's depth is the length of a path from a seed that
 	// was there when it was found; one now longer than its depth lost that
-	// path.
+	// path. One no seed reaches (a kept child) keeps its depth.
 	depth := map[string]int{}
 	var queue []string
 	for _, n := range nodes {
@@ -310,13 +321,14 @@ type BlacklistResult struct {
 }
 
 // Blacklist adds entries to research id's blacklist and takes what they
-// take out of its graph (Graph.Blacklist), telling its pages (Blacklisted)
-// and the list (the counts); dryRun only works out what it would take
-// out. An entry that matches the seed keyword is refused. The graph's
-// writes take turns with a running crawl's (With), and the crawl reads the
-// blacklist in its own turn, so a crawl that runs never adds back what
-// this took out.
-func (c *Crawler) Blacklist(id uint32, raw []string, dryRun bool) (BlacklistResult, error) {
+// take out of its graph (Graph.Blacklist; keepChildren: only their
+// matches), telling its pages (Blacklisted) and the list (the counts);
+// dryRun only works out what it would take out. An entry that matches a
+// seed keyword (the research's now, or one of the graph's) is refused. The
+// graph's writes take turns with a running crawl's (With), and the crawl
+// reads the blacklist in its own turn, so a crawl that runs never adds back
+// what this took out.
+func (c *Crawler) Blacklist(id uint32, raw []string, dryRun, keepChildren bool) (BlacklistResult, error) {
 	var res BlacklistResult
 	k, err := c.Store.GetResearch(id)
 	if err != nil {
@@ -347,7 +359,7 @@ func (c *Crawler) Blacklist(id uint32, raw []string, dryRun bool) (BlacklistResu
 	if dryRun {
 		err := With(dir, func(g *Graph) error {
 			var err error
-			res.Removal, err = g.Blacklist(res.Added, true)
+			res.Removal, err = g.Blacklist(res.Added, true, keepChildren)
 			return err
 		})
 		return res, err
@@ -361,7 +373,7 @@ func (c *Crawler) Blacklist(id uint32, raw []string, dryRun bool) (BlacklistResu
 		var d *Delta
 		err := With(dir, func(g *Graph) error {
 			var err error
-			if res.Removal, err = g.Blacklist(res.Added, false); err != nil {
+			if res.Removal, err = g.Blacklist(res.Added, false, keepChildren); err != nil {
 				return err
 			}
 			n, d, err = c.removed(g, id, res.Removal)
@@ -371,7 +383,7 @@ func (c *Crawler) Blacklist(id uint32, raw []string, dryRun bool) (BlacklistResu
 			// The entries go again, so the blacklist does not claim what
 			// the graph still has; the pages read the graph again, in case
 			// some keywords went before the failure.
-			if rerr := c.Store.RemoveBlacklist(id, res.Added...); rerr != nil {
+			if _, rerr := c.Store.RemoveBlacklist(id, res.Added...); rerr != nil {
 				c.Log.Warn("keyword research: take back blacklist entries", "research", id, "err", rerr)
 			}
 			if len(res.Removed) > 0 {
@@ -424,15 +436,27 @@ func (c *Crawler) removed(g *Graph, id uint32, r Removal) (Counts, *Delta, error
 	return n, d, nil
 }
 
-// Unblacklist takes entry out of research id's blacklist. What it took out
-// of the graph stays out; a later lookup may find it again.
-func (c *Crawler) Unblacklist(id uint32, entry string) error {
+// Unblacklist takes entries out of research id's blacklist, or every entry
+// with all (the user, 2026-11-12: "in blacklist, add button delete all";
+// "and add delete selected"), in one write, and gives how many it took
+// out. Its pages hear of it once (one Changed), however many go. What they
+// took out of the graph stays out; a later lookup may find it again. One
+// entry it does not have is ErrNotFound; of several, those already gone
+// (deleted in another tab) are passed over.
+func (c *Crawler) Unblacklist(id uint32, entries []string, all bool) (int, error) {
 	if _, err := c.Store.GetResearch(id); err != nil {
-		return err
+		return 0, err
 	}
-	if err := c.Store.RemoveBlacklist(id, entry); err != nil {
-		return err
+	var n int
+	var err error
+	if all {
+		n, err = c.Store.ClearBlacklist(id)
+	} else {
+		n, err = c.Store.RemoveBlacklist(id, entries...)
+	}
+	if err != nil {
+		return 0, err
 	}
 	c.changed(id)
-	return nil
+	return n, nil
 }

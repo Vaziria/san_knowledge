@@ -233,7 +233,8 @@ func (s *Server) CreateResearch(_ context.Context, req *connect.Request[v1.Creat
 }
 
 // UpdateResearch saves a research's settings. While it runs or waits, its
-// seed and filters stay: the crawl uses them.
+// seed and filters stay: the crawl uses them. A new seed changes nothing in
+// the graph until Run adds it.
 func (s *Server) UpdateResearch(_ context.Context, req *connect.Request[v1.UpdateResearchRequest]) (*connect.Response[v1.UpdateResearchResponse], error) {
 	m := req.Msg
 	k, err := s.store.GetResearch(m.GetId())
@@ -396,12 +397,12 @@ func (s *Server) ClearResearchGraph(_ context.Context, req *connect.Request[v1.C
 }
 
 // AddToBlacklist adds entries to a research's blacklist and takes what they
-// match out of its graph, with the keywords found only through them
-// (keywordresearch.Crawler.Blacklist); dry_run only says what it would take
-// out, for the page's count before Add.
+// match out of its graph, with the keywords found only through them unless
+// keep_children (keywordresearch.Crawler.Blacklist); dry_run only says what
+// it would take out, for the page's counts before Add.
 func (s *Server) AddToBlacklist(_ context.Context, req *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error) {
 	m := req.Msg
-	r, err := s.crawler.Blacklist(m.GetId(), m.GetEntries(), m.GetDryRun())
+	r, err := s.crawler.Blacklist(m.GetId(), m.GetEntries(), m.GetDryRun(), m.GetKeepChildren())
 	if err != nil {
 		return nil, researchError(err)
 	}
@@ -412,17 +413,25 @@ func (s *Server) AddToBlacklist(_ context.Context, req *connect.Request[v1.AddTo
 	return connect.NewResponse(&v1.AddToBlacklistResponse{Research: k, Added: r.Added, Removed: r.Removed, Matched: uint32(r.Matched)}), nil
 }
 
-// RemoveFromBlacklist takes an entry out of a research's blacklist; what it
-// took out of the graph stays out.
+// RemoveFromBlacklist takes entries out of a research's blacklist: entry,
+// entries, or every one with all (the user, 2026-11-12: "add button delete
+// all", "and add delete selected"), in one call and one change to its
+// pages. What they took out of the graph stays out.
 func (s *Server) RemoveFromBlacklist(_ context.Context, req *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error) {
-	if err := s.crawler.Unblacklist(req.Msg.GetId(), req.Msg.GetEntry()); err != nil {
+	m := req.Msg
+	entries := m.GetEntries()
+	if m.GetEntry() != "" {
+		entries = append([]string{m.GetEntry()}, entries...)
+	}
+	n, err := s.crawler.Unblacklist(m.GetId(), entries, m.GetAll())
+	if err != nil {
 		return nil, researchError(err)
 	}
-	k, err := s.research(req.Msg.GetId())
+	k, err := s.research(m.GetId())
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&v1.RemoveFromBlacklistResponse{Research: k}), nil
+	return connect.NewResponse(&v1.RemoveFromBlacklistResponse{Research: k, Deleted: uint32(n)}), nil
 }
 
 // GetResearchGraph gives the graph with its Leiden communities. A research

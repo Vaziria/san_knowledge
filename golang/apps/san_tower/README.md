@@ -2471,7 +2471,9 @@ connection, in the user's Chrome (San Remote's Trends site,
 - **The list** (`/keyword-research`): the researches one folder at a time,
   in a tree of their own (`keyword_research_folders`; the same folder code
   as the workflows' and the knowledge's), with search across every folder,
-  New research (name, description, seed keyword), Rename, Move to...,
+  New research (name and description: the user, 2026-11-12, "remove seed
+  keyword in created popup"; its page takes the seed keyword, and Run waits
+  for one), Rename, Move to...,
   Duplicate (with its graph, as "<name> (copy)"; a running one's copy is
   Stopped) and Delete (with its graph; a running one stops first). Its
   status column (Idle, Waiting, Running, Stopped, Done, Failed) and keyword
@@ -2485,16 +2487,26 @@ connection, in the user's Chrome (San Remote's Trends site,
   time (a Pickers call, which shows a Trends tab for some seconds) and kept
   in `<data>/keyword_research/trends_options.json` (a country's regions
   when it is picked; "Read Trends' lists again" in the page's menu reads
-  them again). Under them the status line (`Running · 48 keywords · depth 1
-  · now: aplikasi kasir android`, or the place in the queue), and before a
-  Run an estimate: up to N lookups and how long, from the graph's own
-  average of Top queries per lookup (about 50 while it has none). The graph
+  them again). Under them the graph's seeds ("Seeds (2): aplikasi kasir,
+  pos kasir", each a link to it in the graph, and "'x' is added as another
+  seed on Run" for a new seed keyword), the status line (`Running · 48
+  keywords · depth 1 · now: aplikasi kasir android`, or the place in the
+  queue), and before a Run an estimate: up to N lookups and how long, from
+  the graph's own average of Top queries per lookup (about 50 while it has
+  none), the new seed keyword counted as Run adds it. The graph
   is drawn with cytoscape, sorted by Leiden community (the user,
   2026-11-12: "Is Leiden sorted?"): each community laid out on its own
   (san_knowledge's cose layout inside it), the communities packed in rows,
   the largest first; fill is the community, size the search interest,
   solid links Top, dashed links Rising, a dashed border a keyword found only
-  as Rising, a thick border the seed. A legend of the communities (a click
+  as Rising, a thick border a seed (every seed). The wheel zooms at the
+  pointer by how far it turns, 1.25 times a mouse notch and as much for a
+  touchpad's swipe of as many pixels (the user, 2026-11-12: "scoll is to
+  slow"; cytoscape's own wheel zoom gave 1.03 times a notch), in Pan and
+  Select alike; over 300 keywords and links zooming and panning show a
+  picture of the graph at a pixel ratio of 1 at most, links hidden, drawn
+  sharp when they stop, and labels under 8 px on screen are not drawn. A
+  legend of the communities (a click
   shows only one), Relayout, Fit, Download CSV (one row per keyword:
   Keyword, Type, Interest, Change, Breakout, Depth, Community count, the
   user's columns, 2026-11-12; sorted by community, then interest; UTF-8
@@ -2502,18 +2514,40 @@ connection, in the user's Chrome (San Remote's Trends site,
   shows) and Find a keyword. A click on a keyword opens its panel: its
   values, the keywords it was found from with the value it had in each,
   those it found, Open in Google Trends and Explore from here. Reset, by
-  Run, empties the graph to start again from the seed; it asks first.
-- **The crawl** (`keywordresearch/crawl.go`): the seed is depth 0. Each
+  Run, empties the graph, its seeds too, to start again from the seed
+  keyword; it asks first.
+- **Seeds** (the user, 2026-11-12: "when i change seed keyword, dont ask
+  reset, just add it, no reset"): a research's graph keeps every seed
+  keyword it was run with, each a Keyword node with `seed` true at depth 0;
+  the research's `seed` is the one now. Run with a new seed keyword never
+  asks and never clears: it adds it to the graph as another seed, not looked
+  up yet, so it is looked up first, then its Top keywords to the deep limit
+  as usual; keywords looked up before are not looked up again. A seed
+  keyword that is already an ordinary keyword of the graph becomes a seed as
+  it is; looked up already, Run looks up its Top keywords not looked up yet
+  within the deep limit. A keyword's depth is its shortest distance from any
+  seed, over TOP and RISING relationships alike (`Graph.Relevel`, after each
+  lookup and each seed put in), so a keyword a new seed finds nearer brings
+  those found through it nearer too; a keyword no seed reaches (a child a
+  blacklist entry kept) keeps its depth. Only changed **filters** (location,
+  date range, category, search type) still ask to clear the graph: one graph
+  would mix two time ranges' or places' numbers. The research's `graph_key`
+  is those filters alone; a key saved before 2026-11-12 began with the seed,
+  and opening the tower cuts it to its last four parts (the filters), so no
+  graph made before asks to be cleared.
+- **The crawl** (`keywordresearch/crawl.go`): seeds are depth 0. Each
   keyword looked up maps both its Top and its Rising queries (a Keyword
-  node each, and a TOP or RISING relationship); only Top ones are looked up
-  in turn, breadth first, until the deep limit (the user, 2026-11-11: "from
-  parent we explore top queries until deep limit"). A keyword is never
+  node each, and a TOP or RISING relationship); only seeds and Top ones are
+  looked up, breadth first, until the deep limit (the user, 2026-11-11:
+  "from parent we explore top queries until deep limit"). A keyword is never
   looked up twice. Run on a graph that has keywords goes on from where it
-  was; Stop ends the crawl after the lookup it is doing (what was found
-  stays), and Run then goes on. Explore from here looks up one keyword once,
-  past the deep limit or a Rising one too. A graph made with another seed or
-  other filters is not continued: Run asks to clear it ("The graph was made
-  with other settings: clear it and start over?"). Between lookups it
+  was, a new seed keyword added first (above); a research without a seed
+  keyword is refused ("give the research a seed keyword first"). Stop ends
+  the crawl after the lookup it is doing (what was found stays), and Run
+  then goes on. Explore from here looks up one keyword once, past the deep
+  limit or a Rising one too. A graph made with other filters is not
+  continued: Run asks to clear it ("The graph was made with other filters:
+  clear it and start over?"). Between lookups it
   pauses 3 to 7 s (the user, 2026-11-11: "Never hammer it"). A lookup may
   take up to 240 s (the tab is shown for it, and Windows may keep Chrome
   behind until the user clicks its flashing taskbar button). Google limiting
@@ -2534,8 +2568,9 @@ connection, in the user's Chrome (San Remote's Trends site,
   each change as it happens: the research again when its status, progress,
   counts or settings change; what each lookup wrote (KeywordGraphChange:
   the keyword looked up and each keyword it found, as they are now, its
-  TOP and RISING relationships, every Leiden community worked out again,
-  and the other keywords whose community changed) right after it is
+  TOP and RISING relationships, the keywords whose depth it changed, every
+  Leiden community worked out again, and the other keywords whose community
+  changed; a seed put in comes the same way, keyword "") right after it is
   written to the graph file; a new snapshot after Clear; `deleted`; and a
   heartbeat every 15 s. WatchResearches streams the list: every research
   and folder, then a research as it changes, and the whole list again when
@@ -2571,41 +2606,62 @@ connection, in the user's Chrome (San Remote's Trends site,
   match "posisi"; "kode pos" does not match "kode jakarta pos"). Adding
   entries is one removal from the graph: each entry in turn takes out the
   keywords it matches with their relationships, then every keyword left
-  without a path from the seed (those found only through them); a keyword
+  without a path from any seed (those found only through them); a keyword
   also found from one that stays, stays, with only what the keywords it is
   still found from give it (Top, Rising, search interest, change), and one
-  whose shortest path from the seed went through a removed keyword gets the
-  depth of its shortest path now. The seed is never taken out: an entry
-  that matches it is refused ("... matches the seed keyword ...: the seed
-  cannot be blacklisted"). Each entry keeps when it was added and how many
+  whose shortest path from the seeds went through a removed keyword gets the
+  depth of its shortest path now. With `keep_children` (the user,
+  2026-11-12: "in blacklist, ask blacklist selected keyword or selected
+  keyword and child") only the keywords the entries match go: those found
+  through them stay, with their own values, without the relationships from
+  the removed ones; one no seed reaches any more keeps its depth, and a
+  crawl looks it up as before when it is a Top keyword within the deep limit
+  not looked up yet (a later entry with children does not sweep such
+  keywords: it takes only those it leaves without a path). No seed is ever
+  taken out: an entry that matches one (the research's seed keyword now, or
+  a seed of before) is refused ("... matches the seed keyword ...: a seed
+  keyword cannot be blacklisted"). Each entry keeps when it was added and how many
   keywords it took out then. A crawl never adds a keyword an entry matches
   from a lookup's Top or Rising queries, so it is never looked up: it reads
   the blacklist in its graph write, after each lookup, so an entry added
   while it runs counts from the lookup it is doing; a keyword blacklisted
   during its own lookup is dropped with what it found, and the crawl goes on
   to the next. Removing an entry does not bring back what it took out; a
-  later lookup may find those keywords again. AddToBlacklist's `dry_run`
-  says what adding would take out, for the page's count before Add and its
-  confirm. The removal goes out on WatchResearch as `removal`
+  later lookup may find those keywords again; RemoveFromBlacklist takes one
+  entry, several (`entries`) or all (`all`) in one call (the user,
+  2026-11-12: "in blacklist, add button delete all"; "and add delete
+  selected"), and its pages get the research once. AddToBlacklist's
+  `dry_run` says what adding would take out, for the page's count before
+  Add and its question. The removal goes out on WatchResearch as `removal`
   (KeywordGraphRemoval: the keywords and relationships taken out, the kept
   keywords changed, the communities worked out again), then the research
   with its counts and blacklist, so every open tab follows. On the page:
-  two tabs, Graph (all of the above) and Blacklist (N): a box for entries,
-  one per line or comma separated, with "Adds 2 entries, removes 12
-  keywords from the graph" before Add, how matching works, and the entries
-  (when added, how many keywords each removed, a delete button each). A
-  right-click on a keyword opens a small menu: Add to blacklist (not on the
-  seed), Open in Google Trends, Explore from here, Copy keyword; its panel
-  has Add to blacklist too. Several keywords can be selected: Shift+drag on
-  empty space (or a plain drag in Select: the graph's Pan / Select toggle,
-  remembered by the browser), Ctrl/Cmd+click one more, Escape or a click
-  on empty space for none; a right-click on one of them opens the
-  selection's menu: Add N keywords to blacklist (each an entry, the seed
-  left out) and Copy keywords (one per line). Blacklisting from the graph
-  asks first ("Blacklist 'kode pos' and remove 14 keywords?", "Blacklist 6
-  keywords and remove 23?") when it removes more than three keywords, and
-  always for a selection; the keywords fade out live, the rest of the graph
-  stays where it is.
+  two tabs, Graph (all of the above) and Blacklist (N): at a readable width
+  a box for entries, one per line or comma separated, with "Also remove
+  their children (found only through them)" (ticked by default) and "Adds
+  2 entries, removes 12 keywords from the graph" before Add, and how
+  matching works; then the entries over the page's width, the newest first:
+  a search that filters them, 40 a page (the user, 2026-11-12: "is
+  blacklist paginated ?"), two columns on a wide screen (xl and up; "if
+  screen to wide, make it two grid in blacklist keyword"), each a compact
+  row (a checkbox, the entry, "removed N · added <date>", a delete
+  button); Select all on this page, Select all N matching, Delete selected
+  (N) (asks for more than one) and Delete all ("Delete all 37 entries? The
+  keywords they removed don't come back; a later lookup may find them
+  again."). The selection clears after a delete, and entries deleted in
+  another tab drop out of it. A right-click on a keyword opens a small menu:
+  Add to blacklist (not on a seed), Open in Google Trends, Explore from
+  here, Copy keyword; its panel has Add to blacklist too. Several keywords
+  can be selected: Shift+drag on empty space (or a plain drag in Select: the
+  graph's Pan / Select toggle, remembered by the browser), Ctrl/Cmd+click
+  one more, Escape or a click on empty space for none; a right-click on one
+  of them opens the selection's menu: Add N keywords to blacklist (each an
+  entry, the seeds left out) and Copy keywords (one per line). Blacklisting
+  from the graph always asks first, with two choices and what each removes
+  (two dry runs): "Blacklist 'kode pos'?" · Only the keyword: removes 1 ·
+  With children: removes 14, and the buttons Blacklist only the keyword,
+  Blacklist with children and Cancel; the keywords fade out live, the rest
+  of the graph stays where it is.
 
 ### The graph file
 
@@ -2620,9 +2676,10 @@ file is open in another program").
   (trimmed, lower case, spaces collapsed; indexed), with `search_interest`
   (the highest seen, 0-100), `change` (the highest seen, in percent),
   `change_text` (as Trends writes it: "+350%", "Breakout"), `breakout`,
-  `depth` (the smallest it was found at; the seed is 0), `explored` and
-  `explored_at`, `seed`, `top` and `rising` (found in a Top list, in a
-  Rising list), and `found_at`.
+  `depth` (its shortest distance from any seed; seeds are 0), `explored`
+  and `explored_at`, `seed` (one of the research's seed keywords, now or
+  before: a graph can have several), `top` and `rising` (found in a Top
+  list, in a Rising list), and `found_at`.
 - A `TOP` or `RISING` relationship from the keyword looked up to each
   keyword it found, with that list's `search_interest`, `change`,
   `change_text`, `breakout` and `found_at`. A keyword found from several
@@ -2634,7 +2691,7 @@ file is open in another program").
   keyword is deleted from the graph with its relationships.
 
 Cypher on it (goraphdb takes one relationship per pattern; `TestCypher`
-runs these):
+runs these; `{seed: true}` matches every seed of the graph):
 
 ```cypher
 MATCH (a:Keyword)-[r:RISING]->(b) RETURN b.name, r.change

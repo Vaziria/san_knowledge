@@ -37,10 +37,16 @@ import (
 //   - search_interest: its highest search interest seen, 0-100.
 //   - change: its highest change seen, in percent, with change_text as
 //     Trends writes it ("+350%", "Breakout") and breakout.
-//   - depth: the smallest depth it was found at; the seed is 0.
+//   - depth: its shortest distance from any seed, over the TOP and RISING
+//     relationships; a seed is 0 (Relevel).
 //   - explored: its related queries were looked up; explored_at when.
-//   - seed, top, rising: it is the seed; it was in a Top list; in a Rising
-//     list. Only the seed and Top keywords are looked up by a crawl.
+//   - seed, top, rising: it is a seed; it was in a Top list; in a Rising
+//     list. Only seeds and Top keywords are looked up by a crawl.
+//
+// A graph has a seed for each seed keyword the research was run with (the
+// user, 2026-11-12: "when i change seed keyword, dont ask reset, just add
+// it, no reset"): a changed seed is added as another seed, not put in
+// place of the one there.
 //   - found_at: when it was first found.
 //
 // A relationship's: search_interest, change, change_text and breakout as
@@ -330,28 +336,110 @@ func (g *Graph) Edges(nodes []Node) ([]Edge, error) {
 	return out, nil
 }
 
-// Seed puts the seed keyword in an empty graph, at depth 0. A graph that
-// has it already keeps it as it is.
-func (g *Graph) Seed(name string, at time.Time) error {
+// Seed makes name a seed of the graph, at depth 0, and gives the keywords
+// it added or changed: name, and those whose depth it lowered. A keyword
+// that is not in the graph yet is added, not looked up; one that is, an
+// ordinary keyword found before, becomes a seed as it is (looked up or
+// not), and the keywords found through it come nearer (Relevel), so Run
+// looks up its Top keywords now within the deep limit. The graph's other
+// seeds stay seeds (the user, 2026-11-12: "when i change seed keyword,
+// dont ask reset, just add it, no reset").
+func (g *Graph) Seed(name string, at time.Time) ([]string, error) {
 	name = store.NormalizeKeyword(name)
 	if name == "" {
-		return errors.New("the research has no seed keyword")
+		return nil, errors.New("the research has no seed keyword")
 	}
 	n, ok, err := g.Find(name)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if ok {
-		if !n.Seed || n.Depth != 0 {
-			return g.db.UpdateNode(n.ID, graphdb.Props{"seed": true, "depth": 0})
+	switch {
+	case ok && n.Seed && n.Depth == 0:
+		return nil, nil
+	case ok:
+		if err := g.db.UpdateNode(n.ID, graphdb.Props{"seed": true, "depth": 0}); err != nil {
+			return nil, err
 		}
-		return nil
+	default:
+		if _, err := g.db.AddNodeWithLabels([]string{Label}, graphdb.Props{
+			"name": name, "search_interest": 0, "change": 0, "change_text": "", "breakout": false, "depth": 0,
+			"explored": false, "seed": true, "top": false, "rising": false, "found_at": at.UTC().Format(time.RFC3339),
+		}); err != nil {
+			return nil, err
+		}
 	}
-	_, err = g.db.AddNodeWithLabels([]string{Label}, graphdb.Props{
-		"name": name, "search_interest": 0, "change": 0, "change_text": "", "breakout": false, "depth": 0,
-		"explored": false, "seed": true, "top": false, "rising": false, "found_at": at.UTC().Format(time.RFC3339),
-	})
-	return err
+	moved, err := g.Relevel()
+	return append([]string{name}, moved...), err
+}
+
+// Seeds are the graph's seeds, as Nodes orders them.
+func Seeds(nodes []Node) []string {
+	var out []string
+	for _, n := range nodes {
+		if n.Seed {
+			out = append(out, n.Name)
+		}
+	}
+	return out
+}
+
+// Relevel sets each keyword's depth to its shortest distance from any seed,
+// over the TOP and RISING relationships alike, as Add counts them: a seed
+// added, or a keyword found nearer a seed than before, brings the keywords
+// found through it nearer too, so a crawl looks them up within the deep
+// limit. A keyword no seed reaches (the children a blacklist entry kept,
+// keep_children) keeps its depth. It gives the keywords whose depth
+// changed.
+func (g *Graph) Relevel() ([]string, error) {
+	nodes, err := g.Nodes()
+	if err != nil {
+		return nil, err
+	}
+	edges, err := g.Edges(nodes)
+	if err != nil {
+		return nil, err
+	}
+	depth := levels(nodes, edges)
+	var changed []string
+	for _, n := range nodes {
+		d, ok := depth[n.Name]
+		if !ok || d == n.Depth {
+			continue
+		}
+		if err := g.db.UpdateNode(n.ID, graphdb.Props{"depth": d}); err != nil {
+			return changed, err
+		}
+		changed = append(changed, n.Name)
+	}
+	return changed, nil
+}
+
+// levels are the shortest distances from any seed of the keywords a seed
+// reaches, breadth first over edges.
+func levels(nodes []Node, edges []Edge) map[string]int {
+	out := map[string][]string{}
+	for _, e := range edges {
+		out[e.From] = append(out[e.From], e.To)
+	}
+	depth := map[string]int{}
+	var queue []string
+	for _, n := range nodes {
+		if n.Seed {
+			depth[n.Name] = 0
+			queue = append(queue, n.Name)
+		}
+	}
+	for len(queue) > 0 {
+		x := queue[0]
+		queue = queue[1:]
+		for _, to := range out[x] {
+			if _, ok := depth[to]; !ok {
+				depth[to] = depth[x] + 1
+				queue = append(queue, to)
+			}
+		}
+	}
+	return depth
 }
 
 // Add records what a lookup of from found: each Top and Rising query as a
@@ -449,17 +537,18 @@ func (g *Graph) MarkExplored(name string, at time.Time) error {
 	return g.db.UpdateNode(n.ID, graphdb.Props{"explored": true, "explored_at": at.UTC().Format(time.RFC3339)})
 }
 
-// Explorable says whether a crawl looks n up under a deep limit: the seed
-// and Top keywords not looked up yet, above the limit (the user,
-// 2026-11-11: "from parent we explore top queries until deep limit").
-// Rising-only keywords are end points.
+// Explorable says whether a crawl looks n up under a deep limit: seeds and
+// Top keywords not looked up yet, above the limit (the user, 2026-11-11:
+// "from parent we explore top queries until deep limit"). Rising-only
+// keywords are end points.
 func Explorable(n Node, limit int) bool {
 	return !n.Explored && (n.Seed || n.Top) && n.Depth < limit
 }
 
 // Next is the next keyword a crawl looks up: breadth first, the
-// explorable keyword of the smallest depth, the first found of those; and
-// how many are explorable now.
+// explorable keyword of the smallest depth, the first found of those (a
+// seed just added, not looked up yet, comes first: depth 0); and how many
+// are explorable now.
 func Next(nodes []Node, limit int) (next Node, todo int, ok bool) {
 	for _, n := range nodes { // by depth, then as found (Nodes)
 		if Explorable(n, limit) {

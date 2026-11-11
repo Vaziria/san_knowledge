@@ -23,7 +23,7 @@ var t0 = time.Date(2026, 11, 11, 9, 0, 0, 0, time.UTC)
 func TestGraphAdd(t *testing.T) {
 	dir := newGraph(t)
 	err := With(dir, func(g *Graph) error {
-		if err := g.Seed("  Aplikasi   KASIR ", t0); err != nil {
+		if _, err := g.Seed("  Aplikasi   KASIR ", t0); err != nil {
 			return err
 		}
 		added, err := g.Add("aplikasi kasir",
@@ -96,12 +96,112 @@ func TestGraphAdd(t *testing.T) {
 	}
 }
 
+// Seed makes a keyword a seed without touching the graph's other seeds (the
+// user, 2026-11-12: "when i change seed keyword, dont ask reset, just add
+// it, no reset"): one not in the graph is added, not looked up; an
+// ordinary one becomes a seed, and the keywords found through it come
+// nearer. Depth is the shortest distance from any seed (Relevel): a keyword
+// found nearer a seed brings those found through it nearer too; one no
+// seed reaches keeps its depth.
+func TestSeeds(t *testing.T) {
+	dir := newGraph(t)
+	err := With(dir, func(g *Graph) error {
+		// a -TOP-> b -TOP-> c -TOP-> d, c -RISING-> e
+		if _, err := g.Seed("a", t0); err != nil {
+			return err
+		}
+		for _, l := range []struct {
+			from        string
+			top, rising []Found
+		}{
+			{"a", top("b"), nil},
+			{"b", top("c"), nil},
+			{"c", top("d"), rise("e")},
+		} {
+			if _, err := g.Add(l.from, l.top, l.rising, t0); err != nil {
+				return err
+			}
+			if err := g.MarkExplored(l.from, t0); err != nil {
+				return err
+			}
+		}
+		depths := func() string {
+			nodes, err := g.Nodes()
+			if err != nil {
+				t.Fatal(err)
+			}
+			var out []string
+			for _, n := range nodes {
+				s := fmt.Sprintf("%s%d", n.Name, n.Depth)
+				if n.Seed {
+					s += "*"
+				}
+				out = append(out, s)
+			}
+			slices.Sort(out)
+			return strings.Join(out, " ")
+		}
+		if got := depths(); got != "a0* b1 c2 d3 e3" {
+			t.Errorf("before: %s", got)
+		}
+		changed, err := g.Seed(" C ", t0)
+		if err != nil {
+			return err
+		}
+		slices.Sort(changed)
+		if got := depths(); got != "a0* b1 c0* d1 e1" || !slices.Equal(changed, []string{"c", "d", "e"}) {
+			t.Errorf("c made a seed: %s, changed %v", got, changed)
+		}
+		if changed, err := g.Seed("c", t0); err != nil || len(changed) != 0 {
+			t.Errorf("c again: %v %v", changed, err)
+		}
+		changed, err = g.Seed("x", t0)
+		if err != nil {
+			return err
+		}
+		if n, _, _ := g.Find("x"); !n.Seed || n.Explored || n.Depth != 0 || !slices.Equal(changed, []string{"x"}) {
+			t.Errorf("x %+v, changed %v", n, changed)
+		}
+		// x finds y, and y finds b: b stays 1 (from a); a keyword found
+		// nearer brings those below it nearer once Relevel runs.
+		if _, err := g.Add("x", top("y"), nil, t0); err != nil {
+			return err
+		}
+		if _, err := g.Add("y", top("b", "z"), nil, t0); err != nil {
+			return err
+		}
+		if _, err := g.Add("z", top("w"), nil, t0); err != nil {
+			return err
+		}
+		if _, err := g.Add("w", top("v"), nil, t0); err != nil {
+			return err
+		}
+		if _, err := g.Add("x", top("w"), nil, t0); err != nil {
+			return err
+		}
+		if got := depths(); got != "a0* b1 c0* d1 e1 v4 w1 x0* y1 z2" {
+			t.Errorf("before Relevel: %s", got)
+		}
+		moved, err := g.Relevel()
+		if err != nil {
+			return err
+		}
+		if got := depths(); got != "a0* b1 c0* d1 e1 v2 w1 x0* y1 z2" || !slices.Equal(moved, []string{"v"}) {
+			t.Errorf("after Relevel: %s, moved %v", got, moved)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 // The README's Cypher runs on a research's graph (goraphdb: one
 // relationship per pattern).
 func TestCypher(t *testing.T) {
 	dir := newGraph(t)
 	err := With(dir, func(g *Graph) error {
-		if err := g.Seed("aplikasi kasir", t0); err != nil {
+		if _, err := g.Seed("aplikasi kasir", t0); err != nil {
 			return err
 		}
 		_, err := g.Add("aplikasi kasir",
@@ -209,7 +309,10 @@ func TestCommunities(t *testing.T) {
 func TestCopyRemove(t *testing.T) {
 	root := t.TempDir()
 	a, b := filepath.Join(root, "1"), filepath.Join(root, "2")
-	if err := With(a, func(g *Graph) error { return g.Seed("kasir", t0) }); err != nil {
+	if err := With(a, func(g *Graph) error {
+		_, err := g.Seed("kasir", t0)
+		return err
+	}); err != nil {
 		t.Fatal(err)
 	}
 	if err := Copy(a, b); err != nil {

@@ -125,8 +125,10 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     folder at a time as the Knowledge page (`src/folders.tsx`, `?folder=`),
     with a search in every folder (`?q=`): name, seed keyword, status,
     keywords, last run, and a row menu with Rename, Move to..., Duplicate
-    (with its graph) and Delete (asks). New research asks a name, a
-    description and the seed keyword and opens it. The list is live
+    (with its graph) and Delete (asks). New research asks a name and a
+    description (no seed keyword: the user, 2026-11-12, "remove seed keyword
+    in created popup") and opens it, where the seed keyword is typed; an
+    empty seed shows as `-`. The list is live
     (WatchResearches, `src/stream.tsx`): each research's status and counts
     as they change, the whole list again when another page makes, moves or
     deletes one; a small Live / Reconnecting... beside New folder, and only
@@ -137,10 +139,17 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     range, Category, Search type; read through San Remote once, kept by the
     tower; the menu's "Read Trends' lists again"), its San Remote
     connection, saved as they change (locked while it runs), and Run or
-    Stop; Run on a graph of other settings asks to clear it first. A status
+    Stop. Run waits for a seed keyword ("Type a seed keyword first"; the
+    box takes the focus on a new research). A new seed keyword is added to
+    the graph by Run as another seed, never asking (the user, 2026-11-12:
+    "when i change seed keyword, dont ask reset, just add it, no reset"):
+    under the top bar the graph's seeds ("Seeds (2): aplikasi kasir, pos
+    kasir", links to them) and "'x' is added as another seed on Run"; only
+    Run on a graph of other filters asks to clear it first. A status
     line: the status, what it does now (`Running · 48 keywords · depth 1 ·
     now: ...`, a pause, Google's backoff, the place in the queue), or how it
-    ended, and before a Run an estimate of the lookups and time; Live /
+    ended, and before a Run an estimate of the lookups and time (the new
+    seed keyword counted); Live /
     Reconnecting... at its right. The graph (`src/keywordresearch/
     KeywordGraph.tsx`) with Relayout, Fit, Download CSV
     (`src/keywordresearch/csv.ts`), Find a keyword, the
@@ -157,15 +166,23 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     (the user, 2026-11-12: "Add tab blacklist keyword"; `?tab=blacklist`):
     Graph, all of that (kept drawn while hidden, so it stays live), and
     Blacklist (N) (`src/keywordresearch/Blacklist.tsx`): a box for
-    entries, one per line or comma separated, with what adding them removes
-    (a dry run of AddToBlacklist as the typing pauses), how matching works,
-    and the entries (added, keywords removed, delete). A right-click on a
-    keyword opens its menu (Add to blacklist, not on the seed; Open in
+    entries, one per line or comma separated, with "Also remove their
+    children" (ticked by default) and what adding them removes (a dry run
+    of AddToBlacklist as the typing pauses), how matching works, and the
+    entries: a search, 40 a page (Chakra Pagination, as the workflow
+    list's), two columns from xl up, compact rows (checkbox, entry,
+    "removed N · added <date>", delete), Select all on this page, Select all
+    N matching, Delete selected (N) and Delete all (both ask; the user,
+    2026-11-12: "is blacklist paginated ?", "make it two grid", "add
+    button delete all", "and add delete selected"). A right-click on a
+    keyword opens its menu (Add to blacklist, not on a seed; Open in
     Google Trends; Explore from here; Copy keyword), a right-click in a
     selection of several the selection's (Add N keywords to blacklist, the
-    seed left out; Copy keywords); the node panel has Add to blacklist too.
-    Blacklisting from the graph asks first with the dry run's count when it
-    removes more than three keywords, and always for a selection. A Pan /
+    seeds left out; Copy keywords); the node panel has Add to blacklist too.
+    Blacklisting from the graph always asks (`BlacklistChoice`; the user,
+    2026-11-12: "in blacklist, ask blacklist selected keyword or selected
+    keyword and child"): Blacklist only the keyword(s) or Blacklist with
+    children, each with what it removes from two dry runs. A Pan /
     Select toggle in the graph's toolbar (`san-tower-keywords-drag` in
     localStorage) says what a drag on empty space does.
   - `MessageBroker.tsx`: the San Message broker the tower uses. A status
@@ -361,9 +378,17 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   layout lays each community out on its own with san_knowledge's cose
   layout, then packs the communities in rows, the largest first (its
   palette, light and dark); fill is the
-  community, size the search interest, the seed biggest with a thick
+  community, size the search interest, every seed biggest with a thick
   border, TOP links solid and RISING dashed, a keyword found only as Rising
-  with a dashed border; over 600 keywords and links plain lines. It draws
+  with a dashed border; over 600 keywords and links plain lines. The wheel
+  zooms through its own handler (`wheelZoom`; cytoscape's user zooming is
+  off): by how far it turns, 1.25 times a 100 px mouse notch, the same per
+  pixel for a touchpad, a pinch (Ctrl+wheel) twice as fast, in Pan and
+  Select (the user, 2026-11-12: "scoll is to slow"). Over 300 keywords and
+  links it zooms and pans on a picture of the graph (cytoscape's
+  textureOnViewport, set on the running renderer, at a pixel ratio of 1 at
+  most), links hidden, and labels under 8 px on screen are never drawn. A
+  seed added starts at the right of the graph. It draws
   changes, not the whole graph: keywords and links are compared with what
   it drew by object, so a changed keyword is updated in place (size,
   colour, community), a new one starts in a ring around the keyword it was
@@ -383,8 +408,9 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   what a lookup wrote, and `applyRemoval`, which takes out what a blacklist
   removed, both keeping the objects they did not touch. `trends.ts`, Trends' time ranges
   and search types, the new Explore's link for a keyword, the statuses, the
-  progress line and the estimate of a Run (about 50 Top queries a keyword
-  while the graph has none).
+  progress line, `seedsOf`, `withSeed` (the graph as Run makes it with a new
+  seed keyword: depths again from every seed) and the estimate of a Run
+  (about 50 Top queries a keyword while the graph has none).
 - `src/stream.tsx`: `useStream`, a server stream kept open while the page
   shows it: each message to the page (the first after each connect is the
   server's snapshot); opened again after 1, 2, 4 ... 30 s when it drops or

@@ -77,6 +77,10 @@ func Open(dir string, log *slog.Logger) (*Store, error) {
 		sqlDB.Close()
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
+	if err := migrateGraphKeys(db); err != nil {
+		sqlDB.Close()
+		return nil, fmt.Errorf("%s: the researches' graph keys: %w", path, err)
+	}
 	return &Store{db: db, dir: dir}, nil
 }
 

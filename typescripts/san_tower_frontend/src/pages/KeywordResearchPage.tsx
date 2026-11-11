@@ -51,7 +51,7 @@ import type {
 } from '../gen/san/tower/v1/keyword_research_pb';
 import { useDark } from '../knowledge/GraphCanvas';
 import { downloadCsv, keywordsCsv } from '../keywordresearch/csv';
-import { BlacklistPanel, copyText, plural } from '../keywordresearch/Blacklist';
+import { BlacklistChoice, BlacklistPanel, copyText, plural, type BlacklistAsk } from '../keywordresearch/Blacklist';
 import { communityColor, KeywordGraph, keywordColors, type DragMode } from '../keywordresearch/KeywordGraph';
 import { applyChange, applyRemoval, emptyGraph, type Graph } from '../keywordresearch/live';
 import {
@@ -63,8 +63,10 @@ import {
   duration,
   estimate,
   exploreLink,
+  normalizeKeyword,
   progressText,
   properties,
+  seedsOf,
   statusOf,
   times,
 } from '../keywordresearch/trends';
@@ -120,10 +122,6 @@ function flatCategories(list: TrendsCategory[], depth = 0, out: { c: TrendsCateg
 // MAX_LISTED is how many keywords a node's panel lists under "found here".
 const MAX_LISTED = 60;
 
-// FEW is how many keywords blacklisting one keyword of the graph may remove
-// without asking first.
-const FEW = 3;
-
 // What a drag on the graph's empty space does, Pan or Select (the user,
 // 2026-11-12: "Add select area"), as the workflow editor's toggle; the
 // browser remembers it.
@@ -160,19 +158,30 @@ function saveDragMode(mode: DragMode) {
 // shows where it was found and what it found, with Open in Google Trends and
 // Explore from here.
 //
+// A research has no seed until its page gets one (the user, 2026-11-12:
+// "remove seed keyword in created popup"): the box takes the focus then, and
+// Run waits for it. A changed seed keyword is added to the graph by Run as
+// another seed, never asking and never clearing (the user, 2026-11-12: "when
+// i change seed keyword, dont ask reset, just add it, no reset"); under the
+// top bar the graph's seeds ("Seeds: aplikasi kasir, pos kasir", each a link
+// to it in the graph) and the one Run adds. Only a changed filter asks to
+// clear the graph, which would mix two time ranges' or places' numbers.
+//
 // Two tabs (the user, 2026-11-12: "Add tab blacklist keyword"): Graph, all of
 // the above, and Blacklist (BlacklistPanel), with its count; the tab is in
 // the address (?tab=blacklist). The graph stays drawn while the Blacklist tab
 // shows, so it keeps up live and comes back as it was. A right-click on a
 // keyword opens its menu (the user, 2026-11-12: "And in node when right
 // click add context menu add to blacklist, and remove the node and child"):
-// Add to blacklist (not on the seed), Open in Google Trends, Explore from
+// Add to blacklist (not on a seed), Open in Google Trends, Explore from
 // here, Copy keyword; on a selection of several (Shift+drag, Select, or
 // Ctrl+click: "Add select area and right click add to blacklist too"), Add N
-// keywords to blacklist and Copy keywords. Blacklisting from the graph asks
-// first with what it removes (a dry run) when that is more than a few
-// keywords, and always for several; the keywords and those found only
-// through them fade out live, in every tab.
+// keywords to blacklist and Copy keywords. Blacklisting from the graph
+// always asks first (the user, 2026-11-12: "in blacklist, ask blacklist
+// selected keyword or selected keyword and child"), with two choices and
+// what each removes (two dry runs): only the keyword(s), their children
+// staying, or with the children found only through them; what goes fades
+// out live, in every tab.
 export function KeywordResearchPage() {
   const id = Number(useParams().id);
   const [params, setParams] = useSearchParams();
@@ -181,7 +190,7 @@ export function KeywordResearchPage() {
   // Blacklist tab shows (given always: a layout's own display is a prop).
   const shown = (display: 'flex' | 'block') => (tab === 'graph' ? display : 'none');
   const [menu, setMenu] = useState<{ name: string; names: string[]; at: { x: number; y: number } }>();
-  const [confirm, setConfirm] = useState<{ entries: string[]; removed: string[]; seedStays: boolean }>();
+  const [confirm, setConfirm] = useState<BlacklistAsk>();
   const [dragMode, setDragMode] = useState(loadDragMode);
   const dark = useDark();
   const [k, setK] = useState<KeywordResearch>();
@@ -356,13 +365,16 @@ export function KeywordResearchPage() {
 
   const run = async (clear = false) => {
     setBusy(true);
+    const adding = !clear && newSeed;
     try {
       if (dirty.current) await save();
       const { research } = await keywordResearch.runResearch({ id, clear });
       fromCall(research);
-      toast(active(research) ? `${research!.name}: ${statusOf(research!).label.toLowerCase()}` : 'Nothing to look up');
+      const status = active(research) ? statusOf(research!).label.toLowerCase() : 'nothing to look up';
+      toast(adding ? `Added '${adding}' as a seed: ${status}` : active(research) ? `${research!.name}: ${status}` : 'Nothing to look up');
     } catch (err) {
-      if (err instanceof ConnectError && err.code === Code.FailedPrecondition && /other settings/.test(err.rawMessage)) {
+      // "other filters" now, "other settings" from a tower of before.
+      if (err instanceof ConnectError && err.code === Code.FailedPrecondition && /clear it and start over/.test(err.rawMessage)) {
         setAsking('restart');
       } else {
         toast(`Not run: ${errorText(err)}`, true);
@@ -390,26 +402,24 @@ export function KeywordResearchPage() {
     }
   };
 
-  // blacklist blacklists keywords of the graph, each one an entry, the seed
-  // left out: at once when it removes a few keywords, else after asking,
-  // and always after asking for several.
+  // blacklist asks to blacklist keywords of the graph, each one an entry,
+  // the seeds left out, with what each choice would remove: only them, or
+  // with their children (two dry runs).
   const blacklist = async (names: string[]) => {
-    const seed = graph?.nodes.find((n) => n.seed)?.name;
-    const entries = names.filter((n) => n !== seed);
+    const entries = names.filter((n) => !seeds.has(n));
     if (!entries.length) return;
     try {
-      const r = await keywordResearch.addToBlacklist({ id, entries, dryRun: true });
-      if (names.length > 1 || r.removed.length > FEW) {
-        setConfirm({ entries, removed: r.removed, seedStays: entries.length < names.length });
-      } else {
-        await addBlacklist(entries);
-      }
+      const [only, all] = await Promise.all([
+        keywordResearch.addToBlacklist({ id, entries, dryRun: true, keepChildren: true }),
+        keywordResearch.addToBlacklist({ id, entries, dryRun: true }),
+      ]);
+      setConfirm({ entries, only: only.removed, children: all.removed, seeds: names.length - entries.length });
     } catch (err) {
       toast(`Not blacklisted: ${errorText(err)}`, true);
     }
   };
-  const addBlacklist = async (entries: string[]) => {
-    const r = await keywordResearch.addToBlacklist({ id, entries });
+  const addBlacklist = async (entries: string[], keepChildren: boolean) => {
+    const r = await keywordResearch.addToBlacklist({ id, entries, keepChildren });
     fromCall(r.research);
     toast(
       `Blacklisted ${entries.length === 1 ? `'${entries[0]}'` : plural(entries.length, 'keyword')}: removed ${plural(r.removed.length, 'keyword')}`,
@@ -429,11 +439,19 @@ export function KeywordResearchPage() {
     saveDragMode(next);
   };
 
+  // The graph's seeds, and the seed keyword Run adds when the graph does not
+  // have it as a seed yet (newSeed; "" when it has, or there is none).
+  const seedList = useMemo(() => seedsOf(graph?.nodes ?? []), [graph]);
+  const seeds = useMemo(() => new Set(seedList), [seedList]);
+  const seedName = normalizeKeyword(form?.seed ?? '');
+  const newSeed = seedName && !seeds.has(seedName) && !k?.settingsChanged ? seedName : '';
   const est = useMemo(() => {
     if (!graph || !form) return undefined;
     const limit = Number(form.deepLimit) || 0;
-    return k?.settingsChanged ? estimate([], [], limit) : estimate(graph.nodes, graph.edges, limit);
-  }, [graph, form?.deepLimit, k?.settingsChanged]);
+    return k?.settingsChanged
+      ? estimate([], [], limit, form.seed)
+      : estimate(graph.nodes, graph.edges, limit, form.seed);
+  }, [graph, form?.deepLimit, form?.seed, k?.settingsChanged]);
   const node = selected ? graph?.nodes.find((n) => n.name === selected) : undefined;
   const st = k ? statusOf(k) : undefined;
   const p = keywordColors(dark);
@@ -511,8 +529,10 @@ export function KeywordResearchPage() {
                 size="sm"
                 value={form.seed}
                 disabled={locked}
+                autoFocus={!k.seed && graph.nodes.length === 0}
                 onChange={(e) => change({ seed: e.currentTarget.value })}
                 placeholder="aplikasi kasir"
+                title="Where the crawl starts. A new one is added to the graph on Run as another seed; the seeds it has stay."
               />
             </Field>
             <Field label="Deep limit" w="20">
@@ -638,7 +658,8 @@ export function KeywordResearchPage() {
                   size="sm"
                   colorPalette="blue"
                   loading={busy}
-                  disabled={!form.seed.trim()}
+                  disabled={!seedName}
+                  title={seedName ? undefined : 'Type a seed keyword first'}
                   onClick={() => void run()}
                 >
                   <PlayIcon />
@@ -646,12 +667,12 @@ export function KeywordResearchPage() {
                 </Button>
               )}
               {/* Reset (the user, 2026-11-12): the graph emptied, to start
-                  again from the seed; it asks first. */}
+                  again from the seed keyword; it asks first. */}
               <Button
                 size="sm"
                 variant="outline"
                 disabled={locked || graph.nodes.length === 0}
-                title="Delete the graph's keywords, to start again from the seed"
+                title="Delete the graph's keywords and seeds, to start again from the seed keyword"
                 onClick={() => setAsking('clear')}
               >
                 <RotateCcwIcon />
@@ -660,6 +681,29 @@ export function KeywordResearchPage() {
             </HStack>
           </Wrap>
 
+          {(seedList.length > 0 || newSeed) && (
+            <Text textStyle="sm" color="fg.muted" display={shown('block')} data-testid="seeds">
+              {seedList.length > 0 && (
+                <>
+                  {seedList.length === 1 ? 'Seed' : `Seeds (${seedList.length})`}:{' '}
+                  {seedList.map((s, i) => (
+                    <span key={s}>
+                      {i > 0 && ', '}
+                      <Link as="button" color="fg" onClick={() => setSelected(s)}>
+                        {s}
+                      </Link>
+                    </span>
+                  ))}
+                </>
+              )}
+              {newSeed && (
+                <>
+                  {seedList.length > 0 && ' · '}'{newSeed}' is added as {seedList.length > 0 ? 'another' : 'the'} seed
+                  on Run{seedList.length > 0 ? ': the graph keeps what it has' : ''}
+                </>
+              )}
+            </Text>
+          )}
           <HStack gap="2" wrap="wrap" textStyle="sm" minH="6" display={shown('flex')}>
             {st && <Badge colorPalette={st.color}>{st.label}</Badge>}
             {running ? (
@@ -667,7 +711,11 @@ export function KeywordResearchPage() {
             ) : (
               <Text color={st?.label === 'Failed' ? 'fg.error' : 'fg.muted'}>
                 {k.message ||
-                  (k.lastRunAt ? `Last run ${timestampDate(k.lastRunAt).toLocaleString()}` : 'Not run yet.')}
+                  (k.lastRunAt
+                    ? `Last run ${timestampDate(k.lastRunAt).toLocaleString()}`
+                    : seedName
+                      ? 'Not run yet.'
+                      : 'Not run yet: type a seed keyword, then Run.')}
               </Text>
             )}
             {!running && est && est.lookups > 0 && (
@@ -710,7 +758,9 @@ export function KeywordResearchPage() {
           >
             {graph.nodes.length === 0 ? (
               <Text color="fg.muted" p="4">
-                No keywords yet: Run looks up the seed keyword's related queries first.
+                {seedName
+                  ? "No keywords yet: Run looks up the seed keyword's related queries first."
+                  : 'No keywords yet: type a seed keyword above, then Run.'}
               </Text>
             ) : (
               <>
@@ -826,7 +876,7 @@ export function KeywordResearchPage() {
           <Text fontSize="xs" color="fg.muted" display={shown('block')}>
             {graph.nodes.length} keywords, {graph.edges.length} links, {graph.communities.length} communities · fill:
             community · size: search interest · solid link: Top · dashed link: Rising · dashed border: found only as
-            Rising · thick border: the seed · click a keyword for where it was found · right-click for its menu ·
+            Rising · thick border: a seed · click a keyword for where it was found · right-click for its menu ·
             Shift+drag (or Select) picks several, Ctrl+click one more, Escape none · drag to pan · wheel to zoom
           </Text>
           {tab === 'blacklist' && <BlacklistPanel research={k} keywords={graph.nodes.length} />}
@@ -844,28 +894,11 @@ export function KeywordResearchPage() {
         />
       )}
       {confirm && (
-        <FormDialog
-          title={
-            confirm.entries.length === 1
-              ? `Blacklist '${confirm.entries[0]}' and remove ${plural(confirm.removed.length, 'keyword')}?`
-              : `Blacklist ${confirm.entries.length} keywords and remove ${confirm.removed.length}?`
-          }
-          submitText="Blacklist"
-          danger
+        <BlacklistChoice
+          ask={confirm}
           onClose={() => setConfirm(undefined)}
-          onSubmit={() => addBlacklist(confirm.entries)}
-        >
-          <Text>
-            {confirm.entries.length === 1 ? 'It becomes a blacklist entry' : 'Each becomes a blacklist entry'}: the
-            keywords that have its words and those found only through them leave the graph, and a crawl never adds them
-            again. Taking an entry out of the blacklist later does not bring them back.
-          </Text>
-          {confirm.seedStays && <Text color="fg.warning">The seed stays: it cannot be blacklisted.</Text>}
-          <Text textStyle="sm" color="fg.muted" data-testid="blacklist-removes">
-            Removes: {confirm.removed.slice(0, 12).join(', ')}
-            {confirm.removed.length > 12 ? ` and ${confirm.removed.length - 12} more` : ''}
-          </Text>
-        </FormDialog>
+          onChoose={(keep) => addBlacklist(confirm.entries, keep)}
+        />
       )}
       {asking === 'clear' && (
         <FormDialog
@@ -883,14 +916,14 @@ export function KeywordResearchPage() {
           }}
         >
           <Text>
-            Its {graph?.nodes.length ?? 0} keywords and their links are deleted. The research and its settings stay; Run
-            starts again from the seed.
+            Its {graph?.nodes.length ?? 0} keywords and their links are deleted, the seeds of before too. The research
+            and its settings stay; Run starts again from the seed keyword{seedName ? ` '${seedName}'` : ''}.
           </Text>
         </FormDialog>
       )}
       {asking === 'restart' && (
         <FormDialog
-          title="The graph was made with other settings: clear it and start over?"
+          title="The graph was made with other filters: clear it and start over?"
           submitText="Clear and run"
           danger
           onClose={() => setAsking(undefined)}
@@ -900,8 +933,10 @@ export function KeywordResearchPage() {
           }}
         >
           <Text>
-            The seed keyword or a filter changed since its keywords were looked up. Running with the new settings clears
-            its {graph?.nodes.length ?? 0} keywords first, then starts from the seed.
+            A filter (location, date range, category or search type) changed since its keywords were looked up: one
+            graph would mix their numbers. Running with the new filters clears its {graph?.nodes.length ?? 0} keywords
+            and its seeds first, then starts from the seed keyword{seedName ? ` '${seedName}'` : ''}. A new seed keyword
+            alone never asks: Run adds it to the graph.
           </Text>
         </FormDialog>
       )}
@@ -910,9 +945,9 @@ export function KeywordResearchPage() {
 }
 
 // KeywordMenu is a right-click's menu on the graph, at the pointer: for one
-// keyword Add to blacklist (never the seed), Open in Google Trends, Explore
+// keyword Add to blacklist (never on a seed), Open in Google Trends, Explore
 // from here and Copy keyword; for a selection of several, Add N keywords to
-// blacklist (the seed left out) and Copy keywords, one per line. Its
+// blacklist (the seeds left out) and Copy keywords, one per line. Its
 // trigger is an empty box at the pointer, as the Knowledge graph's: a menu
 // opened from code ignores its anchorPoint prop. A new key per opening
 // places it afresh.
@@ -936,8 +971,8 @@ function KeywordMenu({
   const node = graph.nodes.find((n) => n.name === menu.name);
   if (!node) return null;
   const several = menu.names.length > 1;
-  const seed = graph.nodes.find((n) => n.seed)?.name;
-  const blacklistable = menu.names.filter((n) => n !== seed).length;
+  const seeds = new Set(seedsOf(graph.nodes));
+  const blacklistable = menu.names.filter((n) => !seeds.has(n)).length;
   const queued = research.progress?.keyword === node.name;
   return (
     <Menu.Root
@@ -1091,7 +1126,7 @@ function Legend({
 // NodePanel is a keyword's side panel: its values, the keywords it was found
 // from with the value it had in each (the user, 2026-11-11: "from
 // 'aplikasi kasir' (interest 80)"), the ones it found, Open in Google Trends,
-// Explore from here and Add to blacklist (not on the seed).
+// Explore from here and Add to blacklist (not on a seed).
 function NodePanel({
   node,
   graph,

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -104,6 +105,22 @@ func TestKeywordResearchService(t *testing.T) {
 	if _, err := c.CreateResearch(ctx, connect.NewRequest(&v1.CreateResearchRequest{Name: "pos APPS"})); connect.CodeOf(err) != connect.CodeAlreadyExists {
 		t.Errorf("same name: %v", err)
 	}
+	// Without a seed (the user, 2026-11-12: "remove seed keyword in created
+	// popup"): made and listed; Run says it needs one.
+	ns, err := c.CreateResearch(ctx, connect.NewRequest(&v1.CreateResearchRequest{Name: "No seed yet"}))
+	if err != nil || ns.Msg.Research.Seed != "" {
+		t.Fatalf("no seed: %v %v", ns, err)
+	}
+	if _, err := c.RunResearch(ctx, connect.NewRequest(&v1.RunResearchRequest{Id: ns.Msg.Research.Id})); connect.CodeOf(err) != connect.CodeInvalidArgument ||
+		!strings.Contains(err.Error(), "give the research a seed keyword first") {
+		t.Errorf("run without a seed: %v", err)
+	}
+	if l, err := c.ListResearches(ctx, connect.NewRequest(&v1.ListResearchesRequest{})); err != nil || len(l.Msg.Researches) != 1 || l.Msg.Researches[0].Seed != "" {
+		t.Errorf("listed: %v %v", l, err)
+	}
+	if _, err := c.DeleteResearch(ctx, connect.NewRequest(&v1.DeleteResearchRequest{Id: ns.Msg.Research.Id})); err != nil {
+		t.Fatal(err)
+	}
 
 	// No San Remote connection yet: Run fails with a clear message.
 	if _, err := c.RunResearch(ctx, connect.NewRequest(&v1.RunResearchRequest{Id: k.Id})); err != nil {
@@ -159,12 +176,38 @@ func TestKeywordResearchService(t *testing.T) {
 		t.Errorf("status %v %v", st, err)
 	}
 
-	// Changed seed: Run asks first.
+	// A changed seed is added, never asked about (the user, 2026-11-12:
+	// "when i change seed keyword, dont ask reset, just add it, no reset"):
+	// moka pos, a Rising keyword of the graph, becomes a second seed and is
+	// looked up; the graph keeps what it had.
 	if _, err := c.UpdateResearch(ctx, connect.NewRequest(&v1.UpdateResearchRequest{Id: k.Id, Name: k.Name, Seed: "moka pos", DeepLimit: 2, Filters: k.Filters})); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.RunResearch(ctx, connect.NewRequest(&v1.RunResearchRequest{Id: k.Id})); connect.CodeOf(err) != connect.CodeFailedPrecondition || !strings.Contains(err.Error(), "other settings") {
-		t.Errorf("run with another seed: %v", err)
+	if _, err := c.RunResearch(ctx, connect.NewRequest(&v1.RunResearchRequest{Id: k.Id})); err != nil {
+		t.Fatalf("run with another seed: %v", err)
+	}
+	k = waitResearch(t, c, k.Id, v1.KeywordResearchStatus_KEYWORD_RESEARCH_STATUS_DONE)
+	g, err = c.GetResearchGraph(ctx, connect.NewRequest(&v1.GetResearchGraphRequest{Id: k.Id}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var seeds []string
+	for _, n := range g.Msg.Nodes {
+		if n.Seed {
+			seeds = append(seeds, n.Name)
+		}
+	}
+	if k.NodeCount != 5 || k.ExploredCount != 4 || k.SettingsChanged || strings.Join(seeds, ",") != "aplikasi kasir,moka pos" || fake.related[3].Keyword != "moka pos" {
+		t.Errorf("a second seed: %v, seeds %v", k, seeds)
+	}
+	// A changed filter still asks: one graph would mix their numbers.
+	if _, err := c.UpdateResearch(ctx, connect.NewRequest(&v1.UpdateResearchRequest{
+		Id: k.Id, Name: k.Name, Seed: "moka pos", DeepLimit: 2, Filters: &v1.KeywordFilters{Geo: "ID", Time: "today 5-y", Category: 12, Property: "youtube"},
+	})); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.RunResearch(ctx, connect.NewRequest(&v1.RunResearchRequest{Id: k.Id})); connect.CodeOf(err) != connect.CodeFailedPrecondition || !strings.Contains(err.Error(), "other filters") {
+		t.Errorf("run with another location: %v", err)
 	}
 	gr, _ := c.GetResearch(ctx, connect.NewRequest(&v1.GetResearchRequest{Id: k.Id}))
 	if !gr.Msg.Research.SettingsChanged {
@@ -195,7 +238,7 @@ func TestKeywordResearchService(t *testing.T) {
 	if _, err := c.DeleteResearch(ctx, connect.NewRequest(&v1.DeleteResearchRequest{Id: d.Id})); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "keyword_research", "2")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(dir, "keyword_research", strconv.Itoa(int(d.Id)))); !os.IsNotExist(err) {
 		t.Errorf("the copy's graph stays: %v", err)
 	}
 	// Deleting the folder moves the research up.

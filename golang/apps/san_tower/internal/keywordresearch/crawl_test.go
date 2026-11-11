@@ -290,22 +290,41 @@ func TestOneAtATime(t *testing.T) {
 	}
 }
 
-// A graph made with another seed or other filters is not continued without
-// asking (the user, 2026-11-11); clear starts over.
+// A graph made with other filters is not continued without asking (the
+// user, 2026-11-11): one graph would mix their numbers. Each filter alone
+// asks; clear starts over from the seed keyword, the graph's other seeds
+// gone with it. A changed seed alone never asks (TestSeedAdded).
 func TestSettingsChanged(t *testing.T) {
 	tr := &fakeTrends{table: table()}
 	c, st := newCrawler(t, tr)
 	k := research(t, st, "Kasir", "kasir pintar")
 	c.Run(k.ID, false)
 	k = waitStatus(t, st, k.ID, store.ResearchDone)
-	k.Seed = "moka pos"
+	for _, change := range []func(k *store.KeywordResearch){
+		func(k *store.KeywordResearch) { k.Geo = "ID-JK" },
+		func(k *store.KeywordResearch) { k.Time = "today 5-y" },
+		func(k *store.KeywordResearch) { k.Category = 12 },
+		func(k *store.KeywordResearch) { k.Property = "youtube" },
+	} {
+		next := k
+		change(&next)
+		next, _ = st.UpdateResearch(next)
+		if !SettingsChanged(next) {
+			t.Errorf("%+v: settings_changed is not set", next)
+		}
+		if err := c.Run(k.ID, false); !errors.Is(err, ErrSettingsChanged) {
+			t.Errorf("%+v: run %v", next, err)
+		}
+		if err := c.Explore(k.ID, "kasir pintar pro"); err == nil {
+			t.Error("explore on a graph of other filters")
+		}
+	}
+	// Back to the filters it was made with: no question.
+	if k, _ = st.UpdateResearch(k); SettingsChanged(k) {
+		t.Errorf("the same filters again: %+v", k)
+	}
+	k.Geo, k.Seed = "ID-JK", "moka pos"
 	k, _ = st.UpdateResearch(k)
-	if err := c.Run(k.ID, false); !errors.Is(err, ErrSettingsChanged) {
-		t.Fatalf("run: %v", err)
-	}
-	if err := c.Explore(k.ID, "kasir pintar pro"); err == nil {
-		t.Error("explore on a graph of other settings")
-	}
 	if err := c.Run(k.ID, true); err != nil {
 		t.Fatal(err)
 	}
@@ -314,17 +333,203 @@ func TestSettingsChanged(t *testing.T) {
 	if _, ok := g["kasir pintar"]; ok || !g["moka pos"].Seed {
 		t.Errorf("not cleared: %v", g)
 	}
-	k.Geo = "ID-JK"
-	k, _ = st.UpdateResearch(k)
-	if err := c.Run(k.ID, false); !errors.Is(err, ErrSettingsChanged) {
-		t.Errorf("geo changed: %v", err)
-	}
 	if err := c.Clear(k.ID); err != nil {
 		t.Fatal(err)
 	}
 	k, _ = st.GetResearch(k.ID)
 	if Exists(c.Dir(k.ID)) || k.NodeCount != 0 || k.GraphKey != "" || k.Status != store.ResearchIdle {
 		t.Errorf("cleared %+v", k)
+	}
+}
+
+// A changed seed keyword is added to the graph as another seed, never
+// asking and never clearing (the user, 2026-11-12: "when i change seed
+// keyword, dont ask reset, just add it, no reset"): Run looks it up first,
+// then its Top keywords to the deep limit, the keywords looked up before
+// not again; a keyword found nearer the new seed than before is looked up
+// when that brings it within the deep limit, and so are the Top keywords of
+// an ordinary keyword made a seed. The pages get each seed put in.
+func TestSeedAdded(t *testing.T) {
+	tr := &fakeTrends{table: table()}
+	tr.table["pos kasir"] = [2][]Found{top("kasir gratis android", "moka pos", "pos kasir murah"), rise("pos kasir baru")}
+	tr.table["pos kasir murah"] = [2][]Found{top("kasir pintar pro"), nil}
+	c, st := newCrawler(t, tr)
+	c.Watch = &Watch{}
+	k := research(t, st, "Kasir", "aplikasi kasir")
+	c.Run(k.ID, false)
+	waitStatus(t, st, k.ID, store.ResearchDone)
+	before := graphOf(t, c, k.ID)
+	if n := before["kasir gratis android"]; n.Depth != 2 || n.Explored {
+		t.Fatalf("kasir gratis android %+v", n)
+	}
+
+	k.Seed = " Pos  Kasir"
+	k, _ = st.UpdateResearch(k)
+	if SettingsChanged(k) {
+		t.Error("a new seed counts as other settings")
+	}
+	x := c.Watch.Subscribe(k.ID)
+	if err := c.Run(k.ID, false); err != nil {
+		t.Fatalf("run with a new seed: %v", err)
+	}
+	k = waitStatus(t, st, k.ID, store.ResearchDone)
+	// The new seed first; then, at depth 1, kasir gratis android (depth 2
+	// from aplikasi kasir, 1 from pos kasir) and pos kasir murah, as found.
+	if got := tr.called(); !slices.Equal(got[4:], []string{"pos kasir", "kasir gratis android", "pos kasir murah"}) {
+		t.Errorf("looked up %v", got)
+	}
+	g := graphOf(t, c, k.ID)
+	for name := range before {
+		if _, ok := g[name]; !ok {
+			t.Errorf("%s left the graph", name)
+		}
+	}
+	if s1, s2 := g["aplikasi kasir"], g["pos kasir"]; !s1.Seed || !s2.Seed || s1.Depth != 0 || s2.Depth != 0 || !s2.Explored {
+		t.Errorf("seeds %+v %+v", s1, s2)
+	}
+	if n := g["kasir gratis android"]; n.Depth != 1 || !n.Explored || g["deep one"].Depth != 2 || g["kasir pintar pro"].Depth != 2 || g["moka pos"].Depth != 1 {
+		t.Errorf("depths: %+v, deep one %d", n, g["deep one"].Depth)
+	}
+	if len(g) != len(before)+4 || int(k.NodeCount) != len(g) || k.GraphKey != k.SettingsKey() || !strings.HasPrefix(k.Message, "Done: 3 lookups") {
+		t.Errorf("graph %d keywords, research %+v", len(g), k)
+	}
+	// The pages got the seed put in, then its lookup.
+	var seeded *Delta
+	for seeded == nil {
+		if ch := nextChange(t, x); ch.Kind == Wrote && ch.Delta != nil && ch.Delta.Keyword == "" {
+			seeded = ch.Delta
+		}
+	}
+	if _, ok := seeded.Community["pos kasir"]; len(seeded.Nodes) != 1 || seeded.Nodes[0].Name != "pos kasir" || !seeded.Nodes[0].Seed || !ok {
+		t.Errorf("seed put in: %+v", seeded)
+	}
+	c.Watch.Unsubscribe(x)
+
+	// An ordinary keyword made a seed, looked up already: its Top keyword
+	// moka pos login comes within the deep limit (depth 2 to 1).
+	k.Seed = "moka pos"
+	k, _ = st.UpdateResearch(k)
+	x = c.Watch.Subscribe(k.ID)
+	if err := c.Run(k.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	k = waitStatus(t, st, k.ID, store.ResearchDone)
+	if got := tr.called(); !slices.Equal(got[7:], []string{"moka pos login"}) {
+		t.Errorf("looked up %v", got)
+	}
+	g = graphOf(t, c, k.ID)
+	if n := g["moka pos"]; !n.Seed || n.Depth != 0 || !g["moka pos login"].Explored || g["moka pos login"].Depth != 1 {
+		t.Errorf("moka pos %+v, moka pos login %+v", n, g["moka pos login"])
+	}
+	seeded = nil
+	for seeded == nil {
+		if ch := nextChange(t, x); ch.Kind == Wrote && ch.Delta != nil && ch.Delta.Keyword == "" {
+			seeded = ch.Delta
+		}
+	}
+	depths := map[string]int{}
+	for _, n := range seeded.Nodes {
+		depths[n.Name] = n.Depth
+	}
+	if d, ok := depths["moka pos login"]; !ok || d != 1 || depths["moka pos"] != 0 {
+		t.Errorf("seed put in: %v", depths)
+	}
+	var seeds []string
+	for name, n := range g {
+		if n.Seed {
+			seeds = append(seeds, name)
+		}
+	}
+	slices.Sort(seeds)
+	if !slices.Equal(seeds, []string{"aplikasi kasir", "moka pos", "pos kasir"}) {
+		t.Errorf("seeds %v", seeds)
+	}
+	// A seed of before, not the research's seed now, cannot be blacklisted
+	// either.
+	if _, err := c.Blacklist(k.ID, []string{"Aplikasi Kasir"}, true, false); !errors.Is(err, ErrSeedBlacklisted) {
+		t.Errorf("an old seed: %v", err)
+	}
+	// The same seed again: nothing left to look up.
+	c.Run(k.ID, false)
+	if k = waitStatus(t, st, k.ID, store.ResearchDone); len(tr.called()) != 8 || !strings.HasPrefix(k.Message, "Done: 0 lookups") {
+		t.Errorf("again: %v, %s", tr.called(), k.Message)
+	}
+}
+
+// A research made without a seed keyword (the user, 2026-11-12: "remove
+// seed keyword in created popup") is listed as it is; Run refuses until it
+// has one, making no graph.
+func TestNoSeed(t *testing.T) {
+	tr := &fakeTrends{table: table()}
+	c, st := newCrawler(t, tr)
+	k := research(t, st, "Later", "  ")
+	if k.Seed != "" || k.Status != store.ResearchIdle {
+		t.Errorf("created %+v", k)
+	}
+	if err := c.Run(k.ID, false); !errors.Is(err, store.ErrInvalid) || !strings.Contains(err.Error(), "give the research a seed keyword first") {
+		t.Errorf("run: %v", err)
+	}
+	if Exists(c.Dir(k.ID)) || c.Busy(k.ID) || len(tr.called()) != 0 {
+		t.Error("a research without a seed ran")
+	}
+	if l, err := st.ListResearches(store.AnyFolder); err != nil || len(l) != 1 || l[0].Seed != "" {
+		t.Errorf("list %+v %v", l, err)
+	}
+}
+
+// Graph keys saved before the seed left them ("<seed>|<filters>") are cut
+// to the filters when the store opens, so a graph made before does not ask
+// to be cleared (the user, 2026-11-12: "dont ask reset"); one made with
+// other filters than the research has still asks; opening again changes
+// nothing.
+func TestOldGraphKey(t *testing.T) {
+	dir := t.TempDir()
+	tr := &fakeTrends{table: table()}
+	open := func() (*Crawler, *store.Store) {
+		st, err := store.Open(dir, slog.New(slog.DiscardHandler))
+		if err != nil {
+			t.Fatal(err)
+		}
+		c := &Crawler{Store: st, Trends: tr, Root: filepath.Join(dir, "keyword_research")}
+		c.Start()
+		return c, st
+	}
+	c, st := open()
+	k := research(t, st, "Kasir", "aplikasi kasir")
+	c.Run(k.ID, false)
+	k = waitStatus(t, st, k.ID, store.ResearchDone)
+	other := research(t, st, "Pipe", "a|b")
+	keys := map[uint32]string{
+		k.ID:     "aplikasi kasir|ID|today 12-m|0|",
+		other.ID: "a|b|ID|today 5-y|0|", // made with Past 5 years
+	}
+	for id, key := range keys {
+		if err := st.SetResearchState(id, map[string]any{"graph_key": key, "explored_count": 1}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	c.Close()
+	st.Close()
+
+	for range 2 {
+		c, st = open()
+		k, _ = st.GetResearch(k.ID)
+		other, _ = st.GetResearch(other.ID)
+		if k.GraphKey != "ID|today 12-m|0|" || SettingsChanged(k) || other.GraphKey != "ID|today 5-y|0|" || !SettingsChanged(other) {
+			t.Errorf("keys %q %q", k.GraphKey, other.GraphKey)
+		}
+		if err := c.Run(k.ID, false); err != nil {
+			t.Errorf("a graph of before asks: %v", err)
+		}
+		waitStatus(t, st, k.ID, store.ResearchDone)
+		if err := c.Run(other.ID, false); !errors.Is(err, ErrSettingsChanged) {
+			t.Errorf("other filters: %v", err)
+		}
+		c.Close()
+		st.Close()
+	}
+	if got := tr.called(); len(got) != 4 {
+		t.Errorf("looked up %v", got)
 	}
 }
 

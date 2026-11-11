@@ -106,11 +106,13 @@ type KeywordResearchServiceClient interface {
 	GetResearch(context.Context, *connect.Request[v1.GetResearchRequest]) (*connect.Response[v1.GetResearchResponse], error)
 	// CreateResearch makes a research in folder_id (0: at the top), with the
 	// default filters (Indonesia, Past 12 months, All categories, Web
-	// Search) and deep limit 2. Names are unique, ignoring case.
+	// Search) and deep limit 2. Names are unique, ignoring case. The seed may
+	// be empty (the page's New research no longer asks it): Run then refuses
+	// (InvalidArgument) until one is set.
 	CreateResearch(context.Context, *connect.Request[v1.CreateResearchRequest]) (*connect.Response[v1.CreateResearchResponse], error)
 	// UpdateResearch changes a research's name, description, seed, deep
-	// limit, filters and connection. Its graph stays: Run asks before it
-	// clears a graph made with another seed or other filters.
+	// limit, filters and connection. Its graph stays: Run adds a new seed to
+	// it, and asks before it clears a graph made with other filters.
 	UpdateResearch(context.Context, *connect.Request[v1.UpdateResearchRequest]) (*connect.Response[v1.UpdateResearchResponse], error)
 	// DeleteResearch deletes a research and its graph. A research that is
 	// running or waiting is stopped first.
@@ -129,11 +131,17 @@ type KeywordResearchServiceClient interface {
 	DeleteResearchFolder(context.Context, *connect.Request[v1.DeleteResearchFolderRequest]) (*connect.Response[v1.DeleteResearchFolderResponse], error)
 	// RunResearch starts the crawl: from the seed when the graph is empty,
 	// else it goes on from where it was, looking up the Top keywords not yet
-	// looked up within the deep limit. A keyword is never looked up twice.
-	// Only one crawl runs in the tower at a time: another research's makes
-	// it wait (WAITING). A graph made with another seed or other filters is
-	// refused (FailedPrecondition) unless clear is set, which clears it
-	// first. It goes on when the page closes.
+	// looked up within the deep limit. A seed keyword the graph does not
+	// have as a seed yet is added first (depth 0, looked up first, then its
+	// Top keywords to the deep limit); one that is an ordinary keyword of the
+	// graph becomes a seed, and the keywords found through it come nearer.
+	// A keyword is never looked up twice. Depth is the shortest distance
+	// from any seed. Only one crawl runs in the tower at a time: another
+	// research's makes it wait (WAITING). A graph made with other filters
+	// (location, time range, category, search type) is refused
+	// (FailedPrecondition) unless clear is set, which clears it first. A
+	// research without a seed keyword is refused (InvalidArgument). It goes
+	// on when the page closes.
 	RunResearch(context.Context, *connect.Request[v1.RunResearchRequest]) (*connect.Response[v1.RunResearchResponse], error)
 	// ExploreKeyword looks up one keyword of the graph once, past the deep
 	// limit or a Rising one too; it waits its turn as a Run does.
@@ -153,18 +161,22 @@ type KeywordResearchServiceClient interface {
 	// words, in order and next to each other ("kode pos" matches "kode pos",
 	// "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
 	// Adding one takes every keyword it matches out of the graph with its
-	// relationships, and every keyword then left without a path from the seed
+	// relationships, and every keyword then left without a path from any seed
 	// (those found only through them); one also found from a keyword that
-	// stays, stays. A crawl never adds a keyword it matches again: it reads
-	// the blacklist at each lookup, so an entry added while it runs counts
-	// from its next lookup. An entry that matches the seed keyword is refused
-	// (InvalidArgument). With dry_run nothing changes: it says what adding
-	// would take out. The research's pages get the removal live
-	// (WatchResearch's removal) and the blacklist with the research.
+	// stays, stays. With keep_children only the keywords it matches go (the
+	// user, 2026-11-12: "in blacklist, ask blacklist selected keyword or
+	// selected keyword and child"). A crawl never adds a keyword it matches
+	// again: it reads the blacklist at each lookup, so an entry added while
+	// it runs counts from its next lookup. An entry that matches a seed
+	// keyword is refused (InvalidArgument). With dry_run nothing changes: it
+	// says what adding would take out. The research's pages get the removal
+	// live (WatchResearch's removal) and the blacklist with the research.
 	AddToBlacklist(context.Context, *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error)
-	// RemoveFromBlacklist takes an entry out of a research's blacklist. The
-	// keywords it took out of the graph do not come back; a later lookup may
-	// find them again.
+	// RemoveFromBlacklist takes entries out of a research's blacklist: one,
+	// several, or all of them, in one call (the user, 2026-11-12: "in
+	// blacklist, add button delete all"; "and add delete selected"); its
+	// pages get the research once. The keywords they took out of the graph
+	// do not come back; a later lookup may find them again.
 	RemoveFromBlacklist(context.Context, *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error)
 	// GetTrendsOptions gives Google Trends' own filter lists (locations,
 	// categories, time ranges, search types), read from Trends through a
@@ -471,11 +483,13 @@ type KeywordResearchServiceHandler interface {
 	GetResearch(context.Context, *connect.Request[v1.GetResearchRequest]) (*connect.Response[v1.GetResearchResponse], error)
 	// CreateResearch makes a research in folder_id (0: at the top), with the
 	// default filters (Indonesia, Past 12 months, All categories, Web
-	// Search) and deep limit 2. Names are unique, ignoring case.
+	// Search) and deep limit 2. Names are unique, ignoring case. The seed may
+	// be empty (the page's New research no longer asks it): Run then refuses
+	// (InvalidArgument) until one is set.
 	CreateResearch(context.Context, *connect.Request[v1.CreateResearchRequest]) (*connect.Response[v1.CreateResearchResponse], error)
 	// UpdateResearch changes a research's name, description, seed, deep
-	// limit, filters and connection. Its graph stays: Run asks before it
-	// clears a graph made with another seed or other filters.
+	// limit, filters and connection. Its graph stays: Run adds a new seed to
+	// it, and asks before it clears a graph made with other filters.
 	UpdateResearch(context.Context, *connect.Request[v1.UpdateResearchRequest]) (*connect.Response[v1.UpdateResearchResponse], error)
 	// DeleteResearch deletes a research and its graph. A research that is
 	// running or waiting is stopped first.
@@ -494,11 +508,17 @@ type KeywordResearchServiceHandler interface {
 	DeleteResearchFolder(context.Context, *connect.Request[v1.DeleteResearchFolderRequest]) (*connect.Response[v1.DeleteResearchFolderResponse], error)
 	// RunResearch starts the crawl: from the seed when the graph is empty,
 	// else it goes on from where it was, looking up the Top keywords not yet
-	// looked up within the deep limit. A keyword is never looked up twice.
-	// Only one crawl runs in the tower at a time: another research's makes
-	// it wait (WAITING). A graph made with another seed or other filters is
-	// refused (FailedPrecondition) unless clear is set, which clears it
-	// first. It goes on when the page closes.
+	// looked up within the deep limit. A seed keyword the graph does not
+	// have as a seed yet is added first (depth 0, looked up first, then its
+	// Top keywords to the deep limit); one that is an ordinary keyword of the
+	// graph becomes a seed, and the keywords found through it come nearer.
+	// A keyword is never looked up twice. Depth is the shortest distance
+	// from any seed. Only one crawl runs in the tower at a time: another
+	// research's makes it wait (WAITING). A graph made with other filters
+	// (location, time range, category, search type) is refused
+	// (FailedPrecondition) unless clear is set, which clears it first. A
+	// research without a seed keyword is refused (InvalidArgument). It goes
+	// on when the page closes.
 	RunResearch(context.Context, *connect.Request[v1.RunResearchRequest]) (*connect.Response[v1.RunResearchResponse], error)
 	// ExploreKeyword looks up one keyword of the graph once, past the deep
 	// limit or a Rising one too; it waits its turn as a Run does.
@@ -518,18 +538,22 @@ type KeywordResearchServiceHandler interface {
 	// words, in order and next to each other ("kode pos" matches "kode pos",
 	// "kode pos jakarta" and "cek kode pos"; "pos" does not match "posisi").
 	// Adding one takes every keyword it matches out of the graph with its
-	// relationships, and every keyword then left without a path from the seed
+	// relationships, and every keyword then left without a path from any seed
 	// (those found only through them); one also found from a keyword that
-	// stays, stays. A crawl never adds a keyword it matches again: it reads
-	// the blacklist at each lookup, so an entry added while it runs counts
-	// from its next lookup. An entry that matches the seed keyword is refused
-	// (InvalidArgument). With dry_run nothing changes: it says what adding
-	// would take out. The research's pages get the removal live
-	// (WatchResearch's removal) and the blacklist with the research.
+	// stays, stays. With keep_children only the keywords it matches go (the
+	// user, 2026-11-12: "in blacklist, ask blacklist selected keyword or
+	// selected keyword and child"). A crawl never adds a keyword it matches
+	// again: it reads the blacklist at each lookup, so an entry added while
+	// it runs counts from its next lookup. An entry that matches a seed
+	// keyword is refused (InvalidArgument). With dry_run nothing changes: it
+	// says what adding would take out. The research's pages get the removal
+	// live (WatchResearch's removal) and the blacklist with the research.
 	AddToBlacklist(context.Context, *connect.Request[v1.AddToBlacklistRequest]) (*connect.Response[v1.AddToBlacklistResponse], error)
-	// RemoveFromBlacklist takes an entry out of a research's blacklist. The
-	// keywords it took out of the graph do not come back; a later lookup may
-	// find them again.
+	// RemoveFromBlacklist takes entries out of a research's blacklist: one,
+	// several, or all of them, in one call (the user, 2026-11-12: "in
+	// blacklist, add button delete all"; "and add delete selected"); its
+	// pages get the research once. The keywords they took out of the graph
+	// do not come back; a later lookup may find them again.
 	RemoveFromBlacklist(context.Context, *connect.Request[v1.RemoveFromBlacklistRequest]) (*connect.Response[v1.RemoveFromBlacklistResponse], error)
 	// GetTrendsOptions gives Google Trends' own filter lists (locations,
 	// categories, time ranges, search types), read from Trends through a

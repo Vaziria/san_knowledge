@@ -203,7 +203,7 @@ export function KeywordResearchList() {
             ? `No research matches "${q}".`
             : folder
               ? 'This folder is empty: New research makes one here, and a research dragged onto a folder moves there.'
-              : 'No research yet: New research starts one from a seed keyword.'}
+              : 'No research yet: New research makes one, and its page takes the seed keyword.'}
         </Text>
       ) : (
         <Table.ScrollArea borderWidth="1px" rounded="md">
@@ -294,8 +294,8 @@ export function KeywordResearchList() {
         <ResearchDialog
           where={folder ? folderName(folder) : ''}
           onClose={() => setCreating(false)}
-          onSaved={async (name, description, seed) => {
-            const { research } = await keywordResearch.createResearch({ name, description, seed, folderId: folder });
+          onSaved={async (name, description) => {
+            const { research } = await keywordResearch.createResearch({ name, description, folderId: folder });
             toast(`Created research ${research!.name}`);
             navigate(`/keyword-research/${research!.id}`);
           }}
@@ -398,8 +398,10 @@ export function KeywordResearchList() {
   );
 }
 
-// ResearchDialog makes a research (name, description, seed keyword; its
-// filters start at their defaults and change on its page), or renames one.
+// ResearchDialog makes a research (name and description; the user,
+// 2026-11-12: "remove seed keyword in created popup": its page takes the
+// seed keyword, and its filters start at their defaults and change there),
+// or renames one.
 function ResearchDialog({
   research,
   where,
@@ -409,17 +411,16 @@ function ResearchDialog({
   research?: KeywordResearch;
   where?: string;
   onClose: () => void;
-  onSaved: (name: string, description: string, seed: string) => Promise<void>;
+  onSaved: (name: string, description: string) => Promise<void>;
 }) {
   const [name, setName] = useState(research?.name ?? '');
   const [description, setDescription] = useState(research?.description ?? '');
-  const [seed, setSeed] = useState(research?.seed ?? '');
   return (
     <FormDialog
       title={research ? `Rename ${research.name}` : where ? `New research in ${where}` : 'New research'}
       submitText={research ? 'Save' : 'Create'}
       onClose={onClose}
-      onSubmit={() => onSaved(name.trim(), description.trim(), seed.trim())}
+      onSubmit={() => onSaved(name.trim(), description.trim())}
     >
       <FormField label="Name" help="Unique, at most 100 characters.">
         <Input autoFocus value={name} onChange={(e) => setName(e.currentTarget.value)} placeholder="Aplikasi kasir" />
@@ -433,12 +434,10 @@ function ResearchDialog({
         />
       </FormField>
       {!research && (
-        <FormField
-          label="Seed keyword"
-          help="Where the crawl starts. Its filters start at Indonesia, Past 12 months, All categories, Web Search and deep limit 2; change them on its page."
-        >
-          <Input value={seed} onChange={(e) => setSeed(e.currentTarget.value)} placeholder="aplikasi kasir" />
-        </FormField>
+        <Text textStyle="sm" color="fg.muted">
+          Its page opens next: type the seed keyword there, then Run. Its filters start at Indonesia, Past 12 months,
+          All categories, Web Search and deep limit 2; change them there too.
+        </Text>
       )}
     </FormDialog>
   );

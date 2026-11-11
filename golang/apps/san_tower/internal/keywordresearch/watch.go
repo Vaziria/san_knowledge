@@ -21,7 +21,7 @@ const (
 	// Changed: the research's status, message, progress, counts or
 	// settings. Watchers read it again.
 	Changed ChangeKind = iota
-	// Wrote: a lookup (or the seed put in) was written to the graph; Delta
+	// Wrote: a lookup (or a seed put in) was written to the graph; Delta
 	// says what.
 	Wrote
 	// Reset: the graph was emptied (Clear) or replaced: watchers read it
@@ -52,7 +52,8 @@ type Change struct {
 // Blacklisted change: the keywords and relationships taken out, and in
 // Nodes the kept keywords whose values changed with them.
 type Delta struct {
-	// Keyword is the keyword looked up; "" for the seed put in.
+	// Keyword is the keyword looked up; "" for a seed put in (with Nodes
+	// the seed and the keywords it brought nearer).
 	Keyword string
 	Nodes   []Node
 	Edges   []Edge

@@ -45,7 +45,7 @@ func blacklistGraph(t *testing.T) string {
 	t.Helper()
 	dir := newGraph(t)
 	err := With(dir, func(g *Graph) error {
-		if err := g.Seed("aplikasi kasir", t0); err != nil {
+		if _, err := g.Seed("aplikasi kasir", t0); err != nil {
 			return err
 		}
 		for _, l := range []struct {
@@ -81,11 +81,11 @@ func blacklistGraph(t *testing.T) string {
 func TestGraphBlacklist(t *testing.T) {
 	dir := blacklistGraph(t)
 	err := With(dir, func(g *Graph) error {
-		if _, err := g.Blacklist([]string{"moka", "kasir"}, false); !errors.Is(err, ErrSeedBlacklisted) || !errors.Is(err, store.ErrInvalid) ||
-			err.Error() != `"kasir" matches the seed keyword "aplikasi kasir": the seed cannot be blacklisted` {
+		if _, err := g.Blacklist([]string{"moka", "kasir"}, false, false); !errors.Is(err, ErrSeedBlacklisted) || !errors.Is(err, store.ErrInvalid) ||
+			err.Error() != `"kasir" matches the seed keyword "aplikasi kasir": a seed keyword cannot be blacklisted` {
 			t.Errorf("an entry matching the seed: %v", err)
 		}
-		dry, err := g.Blacklist([]string{"kode pos"}, true)
+		dry, err := g.Blacklist([]string{"kode pos"}, true, false)
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func TestGraphBlacklist(t *testing.T) {
 		if len(nodes) != 8 {
 			t.Errorf("a dry run left %d keywords", len(nodes))
 		}
-		r, err := g.Blacklist([]string{"kode pos"}, false)
+		r, err := g.Blacklist([]string{"kode pos"}, false, false)
 		if err != nil {
 			return err
 		}
@@ -140,7 +140,7 @@ func TestGraphBlacklist(t *testing.T) {
 			t.Error("kode pos is still found by name")
 		}
 		// Two entries at once, each on what the one before left.
-		r, err = g.Blacklist([]string{"ongkir", "moka pos login"}, false)
+		r, err = g.Blacklist([]string{"ongkir", "moka pos login"}, false, false)
 		if err != nil {
 			return err
 		}
@@ -178,16 +178,16 @@ func TestBlacklistEntries(t *testing.T) {
 		return strings.Join(out, ",")
 	}
 
-	if _, err := c.Blacklist(k.ID, []string{"moka", "Kasir"}, false); !errors.Is(err, ErrSeedBlacklisted) || !errors.Is(err, store.ErrInvalid) {
+	if _, err := c.Blacklist(k.ID, []string{"moka", "Kasir"}, false, false); !errors.Is(err, ErrSeedBlacklisted) || !errors.Is(err, store.ErrInvalid) {
 		t.Errorf("the seed: %v", err)
 	}
-	if _, err := c.Blacklist(k.ID, []string{" ", ""}, true); !errors.Is(err, store.ErrInvalid) {
+	if _, err := c.Blacklist(k.ID, []string{" ", ""}, true, false); !errors.Is(err, store.ErrInvalid) {
 		t.Errorf("nothing: %v", err)
 	}
 	if l := list(k.ID); l != "" {
 		t.Errorf("refused, yet the blacklist has %s", l)
 	}
-	r, err := c.Blacklist(k.ID, []string{" Moka  POS ", "moka pos"}, true)
+	r, err := c.Blacklist(k.ID, []string{" Moka  POS ", "moka pos"}, true, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +199,7 @@ func TestBlacklistEntries(t *testing.T) {
 		t.Errorf("a dry run changed something: %s", l)
 	}
 
-	r, err = c.Blacklist(k.ID, []string{"moka pos", "laundry"}, false)
+	r, err = c.Blacklist(k.ID, []string{"moka pos", "laundry"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,14 +211,14 @@ func TestBlacklistEntries(t *testing.T) {
 	if k, _ = st.GetResearch(k.ID); k.NodeCount != 6 || k.ExploredCount != 3 {
 		t.Errorf("counts %+v", k)
 	}
-	if r, err := c.Blacklist(k.ID, []string{"MOKA POS"}, false); err != nil || len(r.Added) != 0 || len(r.Removed) != 0 {
+	if r, err := c.Blacklist(k.ID, []string{"MOKA POS"}, false, false); err != nil || len(r.Added) != 0 || len(r.Removed) != 0 {
 		t.Errorf("again: %+v %v", r, err)
 	}
 
-	if err := c.Unblacklist(k.ID, "Moka Pos"); err != nil {
-		t.Fatal(err)
+	if n, err := c.Unblacklist(k.ID, []string{"Moka Pos"}, false); err != nil || n != 1 {
+		t.Fatal(n, err)
 	}
-	if err := c.Unblacklist(k.ID, "moka pos"); !errors.Is(err, store.ErrNotFound) {
+	if _, err := c.Unblacklist(k.ID, []string{"moka pos"}, false); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("not there: %v", err)
 	}
 	if l := list(k.ID); l != "laundry=1" || len(graphOf(t, c, k.ID)) != 6 {
@@ -250,7 +250,7 @@ func TestCrawlSkipsBlacklisted(t *testing.T) {
 	c, st := newCrawler(t, tr)
 	k := research(t, st, "Kasir", "aplikasi kasir")
 	// Before the first Run: no graph yet.
-	if r, err := c.Blacklist(k.ID, []string{"Kasir Pintar", "laundry"}, false); err != nil || len(r.Removed) != 0 {
+	if r, err := c.Blacklist(k.ID, []string{"Kasir Pintar", "laundry"}, false, false); err != nil || len(r.Removed) != 0 {
 		t.Fatalf("%+v %v", r, err)
 	}
 	if err := c.Run(k.ID, false); err != nil {
@@ -291,12 +291,12 @@ func TestBlacklistDuringCrawl(t *testing.T) {
 	}
 	tr.gate <- struct{}{} // the seed
 	waitProgress(t, c, k.ID, "aplikasi kasir gratis")
-	if _, err := c.Blacklist(k.ID, []string{"kasir gratis android"}, false); err != nil {
+	if _, err := c.Blacklist(k.ID, []string{"kasir gratis android"}, false, false); err != nil {
 		t.Fatal(err)
 	}
 	tr.gate <- struct{}{}
 	waitProgress(t, c, k.ID, "kasir pintar")
-	r, err := c.Blacklist(k.ID, []string{"kasir pintar"}, false)
+	r, err := c.Blacklist(k.ID, []string{"kasir pintar"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -346,6 +346,215 @@ func TestBlacklistDuringCrawl(t *testing.T) {
 	}
 }
 
+// With two seeds, a removal takes out only what no seed reaches any more:
+// a keyword the second seed also finds stays, with those found through it;
+// an entry that matches either seed is refused.
+func TestBlacklistSeeds(t *testing.T) {
+	dir := blacklistGraph(t)
+	err := With(dir, func(g *Graph) error {
+		// A second seed that finds cek ongkir too (as a Run with a new seed
+		// does: Add, then Relevel).
+		if _, err := g.Seed("pos kasir", t0); err != nil {
+			return err
+		}
+		if _, err := g.Add("pos kasir", []Found{{Query: "cek ongkir", SearchInterest: 40}}, nil, t0); err != nil {
+			return err
+		}
+		if _, err := g.Relevel(); err != nil {
+			return err
+		}
+		for _, entries := range [][]string{{"pos kasir"}, {"kode pos", "kasir"}} {
+			if _, err := g.Blacklist(entries, true, false); !errors.Is(err, ErrSeedBlacklisted) {
+				t.Errorf("%v: %v", entries, err)
+			}
+		}
+		r, err := g.Blacklist([]string{"kode pos"}, false, false)
+		if err != nil {
+			return err
+		}
+		// Without the second seed: kode pos, cek ongkir, ongkir jne.
+		if !slices.Equal(r.Removed, []string{"kode pos"}) {
+			t.Errorf("removed %v", r.Removed)
+		}
+		for _, name := range []string{"cek ongkir", "ongkir jne"} {
+			n, ok, _ := g.Find(name)
+			if !ok || n.Depth != map[string]int{"cek ongkir": 1, "ongkir jne": 2}[name] {
+				t.Errorf("%s %+v %v", name, n, ok)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Only the keyword (the user, 2026-11-12: "in blacklist, ask blacklist
+// selected keyword or selected keyword and child"): keep children takes out
+// only what the entries match and their relationships; the keywords found
+// only through them stay, with their own values and depth; one also found
+// from a keyword that stays keeps only what that one gives it. A later
+// entry with children does not sweep the kept ones no seed reaches.
+func TestGraphBlacklistKeepChildren(t *testing.T) {
+	dir := blacklistGraph(t)
+	err := With(dir, func(g *Graph) error {
+		dry, err := g.Blacklist([]string{"kode pos"}, true, true)
+		if err != nil {
+			return err
+		}
+		r, err := g.Blacklist([]string{"kode pos"}, false, true)
+		if err != nil {
+			return err
+		}
+		if !slices.Equal(r.Removed, []string{"kode pos"}) || !slices.Equal(dry.Removed, r.Removed) || r.Matched != 1 || !slices.Equal(r.PerEntry, []int{1}) {
+			t.Errorf("removed %v (dry run %v), matched %d, per entry %v", r.Removed, dry.Removed, r.Matched, r.PerEntry)
+		}
+		var rels []string
+		for _, e := range r.Edges {
+			rels = append(rels, e.From+">"+e.To)
+		}
+		slices.Sort(rels)
+		if want := "aplikasi kasir>kode pos|kode pos>cek ongkir|kode pos>daftar harga|kode pos>kasir pintar"; strings.Join(rels, "|") != want {
+			t.Errorf("edges taken out %v", rels)
+		}
+		nodes, err := g.Nodes()
+		if err != nil {
+			return err
+		}
+		got := map[string]Node{}
+		for _, n := range nodes {
+			got[n.Name] = n
+		}
+		if c := g.Counts(nodes); c != (Counts{Nodes: 7, Edges: 5, Explored: 4}) {
+			t.Errorf("counts %+v", c)
+		}
+		// cek ongkir: no keyword finds it now; it keeps what it had.
+		if n := got["cek ongkir"]; !n.Top || n.SearchInterest != 70 || n.Depth != 2 || !n.Explored {
+			t.Errorf("cek ongkir %+v", n)
+		}
+		if n := got["ongkir jne"]; n.Depth != 3 {
+			t.Errorf("ongkir jne %+v", n)
+		}
+		if n := got["kasir pintar"]; n.Top || !n.Rising || n.SearchInterest != 10 || n.Depth != 2 {
+			t.Errorf("kasir pintar %+v", n)
+		}
+		if n := got["daftar harga"]; n.SearchInterest != 20 || n.Depth != 3 {
+			t.Errorf("daftar harga %+v", n)
+		}
+		r, err = g.Blacklist([]string{"moka pos"}, false, false)
+		if err != nil {
+			return err
+		}
+		if want := []string{"moka pos", "kasir pintar", "moka pos login", "daftar harga"}; !slices.Equal(r.Removed, want) {
+			t.Errorf("then moka pos with children: %v", r.Removed)
+		}
+		if _, ok, _ := g.Find("cek ongkir"); !ok {
+			t.Error("a kept child was swept")
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// A crawl after only the keyword was blacklisted: the kept children no
+// seed reaches keep their depth and are looked up as before when they are
+// Top ones within the deep limit not looked up yet; the blacklisted keyword
+// is never added again.
+func TestKeepChildrenCrawl(t *testing.T) {
+	tr := &fakeTrends{table: table()}
+	// pos lain is found only through moka pos, and has none of its words.
+	tr.table["moka pos"] = [2][]Found{top("moka pos login", "kasir gratis android", "pos lain"), nil}
+	c, st := newCrawler(t, tr)
+	k := research(t, st, "Kasir", "aplikasi kasir")
+	c.Run(k.ID, false)
+	waitStatus(t, st, k.ID, store.ResearchDone)
+	r, err := c.Blacklist(k.ID, []string{"moka pos"}, false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := graphOf(t, c, k.ID)
+	if !slices.Equal(r.Removed, []string{"moka pos", "moka pos login"}) || g["pos lain"].Depth != 2 || g["pos lain"].Explored || len(g) != 8 {
+		t.Fatalf("removed %v, graph %v", r.Removed, g)
+	}
+	if l, _ := st.ListBlacklist(k.ID); len(l) != 1 || l[0].Removed != 2 {
+		t.Errorf("blacklist %+v", l)
+	}
+	k.DeepLimit = 3
+	if _, err := st.UpdateResearch(k); err != nil {
+		t.Fatal(err)
+	}
+	c.Run(k.ID, false)
+	k = waitStatus(t, st, k.ID, store.ResearchDone)
+	if got := tr.called(); !slices.Equal(got[4:], []string{"kasir gratis android", "kasir pintar pro", "pos lain"}) {
+		t.Errorf("looked up %v", got)
+	}
+	g = graphOf(t, c, k.ID)
+	if n := g["pos lain"]; !n.Explored || n.Depth != 2 {
+		t.Errorf("pos lain %+v", n)
+	}
+	if _, ok := g["moka pos"]; ok || g["deep one"].Depth != 3 || int(k.NodeCount) != len(g) {
+		t.Errorf("graph %v", g)
+	}
+}
+
+// Delete selected and Delete all (the user, 2026-11-12: "and add delete
+// selected"; "in blacklist, add button delete all"): several entries or
+// all in one write, one change to the pages each; entries already gone are
+// passed over when several are asked, NotFound when one is.
+func TestUnblacklistMany(t *testing.T) {
+	c, st := newCrawler(t, &fakeTrends{table: table()})
+	c.Watch = &Watch{}
+	k := research(t, st, "Kasir", "aplikasi kasir")
+	if _, err := c.Blacklist(k.ID, []string{"toko", "resi", "ongkir", "cek", "jne"}, false, false); err != nil {
+		t.Fatal(err)
+	}
+	x := c.Watch.Subscribe(k.ID)
+	entries := func() string {
+		l, err := st.ListBlacklist(k.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var out []string
+		for _, e := range l {
+			out = append(out, e.Entry)
+		}
+		return strings.Join(out, ",")
+	}
+	if n, err := c.Unblacklist(k.ID, []string{" Toko", "resi", "gone", "resi"}, false); err != nil || n != 2 {
+		t.Errorf("several: %d %v", n, err)
+	}
+	if len(x.C) != 1 || entries() != "ongkir,cek,jne" {
+		t.Errorf("%d changes, left %s", len(x.C), entries())
+	}
+	<-x.C
+	if n, err := c.Unblacklist(k.ID, []string{"toko", "resi"}, false); err != nil || n != 0 {
+		t.Errorf("gone already: %d %v", n, err)
+	}
+	if _, err := c.Unblacklist(k.ID, []string{"toko"}, false); !errors.Is(err, store.ErrNotFound) {
+		t.Errorf("one gone: %v", err)
+	}
+	if _, err := c.Unblacklist(k.ID, []string{" "}, false); !errors.Is(err, store.ErrInvalid) {
+		t.Errorf("none: %v", err)
+	}
+	for len(x.C) > 0 {
+		<-x.C
+	}
+	if n, err := c.Unblacklist(k.ID, nil, true); err != nil || n != 3 {
+		t.Errorf("all: %d %v", n, err)
+	}
+	if len(x.C) != 1 || entries() != "" {
+		t.Errorf("%d changes, left %s", len(x.C), entries())
+	}
+	if n, err := c.Unblacklist(k.ID, nil, true); err != nil || n != 0 {
+		t.Errorf("all of none: %d %v", n, err)
+	}
+	if _, err := c.Unblacklist(99, nil, true); !errors.Is(err, store.ErrNotFound) {
+		t.Errorf("no research: %v", err)
+	}
+}
+
 // Several entries at once (the user, 2026-11-12: "Add select area and right
 // click add to blacklist too"): one removal, each entry on what the ones
 // before it left, a keyword found from two of them taken out once, when the
@@ -353,11 +562,11 @@ func TestBlacklistDuringCrawl(t *testing.T) {
 func TestGraphBlacklistMany(t *testing.T) {
 	dir := blacklistGraph(t)
 	err := With(dir, func(g *Graph) error {
-		dry, err := g.Blacklist([]string{"kode pos", "moka pos"}, true)
+		dry, err := g.Blacklist([]string{"kode pos", "moka pos"}, true, false)
 		if err != nil {
 			return err
 		}
-		r, err := g.Blacklist([]string{"kode pos", "moka pos"}, false)
+		r, err := g.Blacklist([]string{"kode pos", "moka pos"}, false, false)
 		if err != nil {
 			return err
 		}
@@ -401,7 +610,7 @@ func TestBlacklistManyOneChange(t *testing.T) {
 	}
 	waitStatus(t, st, k.ID, store.ResearchDone)
 	x := c.Watch.Subscribe(k.ID)
-	r, err := c.Blacklist(k.ID, []string{"moka pos", "aplikasi kasir gratis"}, false)
+	r, err := c.Blacklist(k.ID, []string{"moka pos", "aplikasi kasir gratis"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}

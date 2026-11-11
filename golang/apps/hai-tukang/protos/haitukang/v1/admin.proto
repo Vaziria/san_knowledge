@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+import "google/protobuf/timestamp.proto";
+import "haitukang/v1/account.proto";
+import "haitukang/v1/penalty.proto";
+import "haitukang/v1/visit.proto";
+
+// AdminService is the admins' review (acceptance HT-011, HT-012). Only an
+// admin may call it (forbidden otherwise). Every decision needs a reason
+// of 5 to 500 characters (invalid_reason) and is logged with the admin and
+// the time.
+service AdminService {
+  // ListDisputes is the disputed reports awaiting a decision, oldest first.
+  rpc ListDisputes(ListDisputesRequest) returns (ListDisputesResponse);
+  // DecideDispute: points_stand, the report's points count at once;
+  // otherwise they are removed. not_disputed when not awaiting a decision.
+  rpc DecideDispute(DecideDisputeRequest) returns (DecideDisputeResponse);
+  // ListClosedAccounts is the accounts closed after a third suspension,
+  // those not yet reviewed first.
+  rpc ListClosedAccounts(ListClosedAccountsRequest) returns (ListClosedAccountsResponse);
+  // DecideClosedAccount: reopen ends the closure and removes the points
+  // still counting; otherwise it stays closed, marked reviewed. not_closed.
+  rpc DecideClosedAccount(DecideClosedAccountRequest) returns (DecideClosedAccountResponse);
+  // FindAccount finds a customer or repairman by phone (not_found).
+  rpc FindAccount(FindAccountRequest) returns (FindAccountResponse);
+  // SuspendAccount suspends for 1 to 365 days (invalid_days), by hand: it
+  // is not a step toward closing. already_suspended.
+  rpc SuspendAccount(SuspendAccountRequest) returns (SuspendAccountResponse);
+  // LiftSuspension ends the account's suspension now. not_suspended.
+  rpc LiftSuspension(LiftSuspensionRequest) returns (LiftSuspensionResponse);
+  // ListDecisions is the log, newest first.
+  rpc ListDecisions(ListDecisionsRequest) returns (ListDecisionsResponse);
+}
+
+message Dispute {
+  // visit has both sides, the window, the report and the answer.
+  Visit visit = 1;
+  // report is VISIT_STATUS_NO_SHOW (by the customer) or
+  // VISIT_STATUS_CUSTOMER_ABSENT (by the repairman).
+  VisitStatus report = 2;
+  google.protobuf.Timestamp reported_at = 3;
+  // The arrival record: when the visit was confirmed, and how many wrong
+  // arrival codes the repairman entered.
+  google.protobuf.Timestamp confirmed_at = 4;
+  int32 arrival_attempts = 5;
+  // points is what the report gives the reported side.
+  int32 points = 6;
+}
+
+message ListDisputesRequest {}
+
+message ListDisputesResponse {
+  repeated Dispute disputes = 1;
+}
+
+message DecideDisputeRequest {
+  int64 visit_id = 1;
+  bool points_stand = 2;
+  string reason = 3;
+}
+
+message DecideDisputeResponse {}
+
+message ClosedAccount {
+  Account account = 1;
+  // number is the suspension that closed it.
+  int32 number = 2;
+  google.protobuf.Timestamp closed_at = 3;
+  // reviewed_at and last_reason: an admin kept it closed.
+  google.protobuf.Timestamp reviewed_at = 4;
+  string last_reason = 5;
+}
+
+message ListClosedAccountsRequest {}
+
+message ListClosedAccountsResponse {
+  repeated ClosedAccount accounts = 1;
+}
+
+message DecideClosedAccountRequest {
+  int64 account_id = 1;
+  bool reopen = 2;
+  string reason = 3;
+}
+
+message DecideClosedAccountResponse {}
+
+message FindAccountRequest {
+  string phone = 1;
+}
+
+message FindAccountResponse {
+  Account account = 1;
+  GetMyStandingResponse standing = 2;
+}
+
+message SuspendAccountRequest {
+  int64 account_id = 1;
+  int32 days = 2;
+  string reason = 3;
+}
+
+message SuspendAccountResponse {}
+
+message LiftSuspensionRequest {
+  int64 account_id = 1;
+  string reason = 2;
+}
+
+message LiftSuspensionResponse {}
+
+enum AdminAction {
+  ADMIN_ACTION_UNSPECIFIED = 0;
+  ADMIN_ACTION_POINTS_STAND = 1;
+  ADMIN_ACTION_POINTS_REMOVED = 2;
+  ADMIN_ACTION_REOPEN = 3;
+  ADMIN_ACTION_KEEP_CLOSED = 4;
+  ADMIN_ACTION_SUSPEND = 5;
+  ADMIN_ACTION_LIFT = 6;
+}
+
+message Decision {
+  int64 id = 1;
+  string admin_name = 2;
+  AdminAction action = 3;
+  // account_id and account_name: who it was about.
+  int64 account_id = 4;
+  string account_name = 5;
+  // visit_id is set for a dispute decision.
+  int64 visit_id = 6;
+  string reason = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message ListDecisionsRequest {}
+
+message ListDecisionsResponse {
+  repeated Decision decisions = 1;
+}

@@ -1,0 +1,24 @@
+# Local development database for Hai Tukang.
+# Dev-only credentials; never reuse them outside this machine.
+name: hai-tukang
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hai_tukang
+      POSTGRES_USER: hai_tukang
+      POSTGRES_PASSWORD: hai_tukang_dev
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hai_tukang -d hai_tukang"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  postgres-data:

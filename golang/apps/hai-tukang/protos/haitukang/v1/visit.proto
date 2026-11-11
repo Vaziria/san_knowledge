@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+import "google/protobuf/timestamp.proto";
+import "haitukang/v1/account.proto";
+
+// VisitService arranges a repairman's visit for a repair request
+// (acceptance HT-005 to HT-007). The customer proposes a window to a
+// repairman who responded; the other side accepts it or proposes another.
+// On arrival the repairman enters the code only the customer sees. If he
+// has not arrived 30 minutes after the window, the customer reports a
+// no-show, and the request is open to another visit. A request has at
+// most one proposed or confirmed visit.
+service VisitService {
+  // ProposeVisit: the customer chooses a repairman who responded. Reasons:
+  // not_responded, invalid_window, visit_exists, not_found, forbidden.
+  rpc ProposeVisit(ProposeVisitRequest) returns (ProposeVisitResponse);
+  // CounterVisit proposes another window, by the side whose turn it is
+  // (not_your_turn otherwise).
+  rpc CounterVisit(CounterVisitRequest) returns (CounterVisitResponse);
+  // AcceptVisit confirms the proposed window, by the side whose turn it is.
+  rpc AcceptVisit(AcceptVisitRequest) returns (AcceptVisitResponse);
+  // CancelVisit ends a proposed or confirmed visit, by either side.
+  rpc CancelVisit(CancelVisitRequest) returns (CancelVisitResponse);
+  // ConfirmArrival is the repairman entering the customer's code on
+  // arrival. Reasons: wrong_arrival_code; arrival_locked after 5 wrong.
+  rpc ConfirmArrival(ConfirmArrivalRequest) returns (ConfirmArrivalResponse);
+  // ReportNoShow is the customer saying the repairman did not come, from
+  // no_show_after on (no_show_too_early before). He gets 2 points, counting
+  // after the 24 hours he has to dispute it.
+  rpc ReportNoShow(ReportNoShowRequest) returns (ReportNoShowResponse);
+  // ReportCustomerAbsent is the repairman saying the customer was not at
+  // home: from the window's start until 30 minutes after it
+  // (absent_not_now otherwise). She gets 2 points, likewise.
+  rpc ReportCustomerAbsent(ReportCustomerAbsentRequest) returns (ReportCustomerAbsentResponse);
+  // DisputeReport is the reported side's answer, within dispute_until
+  // (dispute_closed after): the points are held until an admin reviews it.
+  rpc DisputeReport(DisputeReportRequest) returns (DisputeReportResponse);
+  // ListMyVisits lists the signed-in customer's or repairman's visits,
+  // latest window first, at most 100.
+  rpc ListMyVisits(ListMyVisitsRequest) returns (ListMyVisitsResponse);
+}
+
+enum VisitStatus {
+  VISIT_STATUS_UNSPECIFIED = 0;
+  VISIT_STATUS_PROPOSED = 1;
+  VISIT_STATUS_CONFIRMED = 2;
+  VISIT_STATUS_ARRIVED = 3;
+  VISIT_STATUS_NO_SHOW = 4;
+  VISIT_STATUS_CANCELLED = 5;
+  // VISIT_STATUS_CUSTOMER_ABSENT: the repairman reported nobody at home.
+  VISIT_STATUS_CUSTOMER_ABSENT = 6;
+}
+
+// VisitWindow is when the repairman is to arrive: starting in the future,
+// within 30 days, 30 minutes to 8 hours long.
+message VisitWindow {
+  google.protobuf.Timestamp start = 1;
+  google.protobuf.Timestamp end = 2;
+}
+
+message Visit {
+  int64 id = 1;
+  int64 request_id = 2;
+  string service = 3;
+  string area = 4;
+  string description = 5;
+  string customer_name = 6;
+  string customer_phone = 7;
+  int64 repairman_id = 8;
+  string repairman_name = 9;
+  string repairman_phone = 10;
+  VisitWindow window = 11;
+  // proposed_by is who proposed the current window.
+  Role proposed_by = 12;
+  // your_turn: the viewer is to accept the window or propose another.
+  bool your_turn = 13;
+  VisitStatus status = 14;
+  // arrival_code is set for the customer only, once confirmed.
+  string arrival_code = 15;
+  google.protobuf.Timestamp arrived_at = 16;
+  google.protobuf.Timestamp no_show_at = 17;
+  google.protobuf.Timestamp cancelled_at = 18;
+  Role cancelled_by = 19;
+  // no_show_after is when the customer can report a no-show.
+  google.protobuf.Timestamp no_show_after = 20;
+  google.protobuf.Timestamp created_at = 21;
+  google.protobuf.Timestamp absent_at = 22;
+  // disputed_at and dispute_note are the reported side's answer.
+  google.protobuf.Timestamp disputed_at = 23;
+  string dispute_note = 24;
+  // dispute_until is, after a report, when it can no longer be disputed.
+  google.protobuf.Timestamp dispute_until = 25;
+  // dispute_outcome is an admin's decision on the dispute (HT-011).
+  DisputeOutcome dispute_outcome = 26;
+}
+
+enum DisputeOutcome {
+  DISPUTE_OUTCOME_UNSPECIFIED = 0;
+  DISPUTE_OUTCOME_POINTS_STAND = 1;
+  DISPUTE_OUTCOME_POINTS_REMOVED = 2;
+}
+
+message ProposeVisitRequest {
+  int64 request_id = 1;
+  int64 repairman_id = 2;
+  VisitWindow window = 3;
+}
+
+message ProposeVisitResponse {
+  Visit visit = 1;
+}
+
+message CounterVisitRequest {
+  int64 visit_id = 1;
+  VisitWindow window = 2;
+}
+
+message CounterVisitResponse {
+  Visit visit = 1;
+}
+
+message AcceptVisitRequest {
+  int64 visit_id = 1;
+}
+
+message AcceptVisitResponse {
+  Visit visit = 1;
+}
+
+message CancelVisitRequest {
+  int64 visit_id = 1;
+}
+
+message CancelVisitResponse {
+  Visit visit = 1;
+}
+
+message ConfirmArrivalRequest {
+  int64 visit_id = 1;
+  string code = 2;
+}
+
+message ConfirmArrivalResponse {
+  Visit visit = 1;
+}
+
+message ReportNoShowRequest {
+  int64 visit_id = 1;
+}
+
+message ReportNoShowResponse {
+  Visit visit = 1;
+}
+
+message ReportCustomerAbsentRequest {
+  int64 visit_id = 1;
+}
+
+message ReportCustomerAbsentResponse {
+  Visit visit = 1;
+}
+
+message DisputeReportRequest {
+  int64 visit_id = 1;
+  // note is what happened, at most 500 characters (invalid_note).
+  string note = 2;
+}
+
+message DisputeReportResponse {
+  Visit visit = 1;
+}
+
+message ListMyVisitsRequest {}
+
+message ListMyVisitsResponse {
+  repeated Visit visits = 1;
+}

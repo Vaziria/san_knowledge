@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// RepairRequestService keeps customers' repair requests and repairmen's
+// responses to them (acceptance HT-004). Every call needs a sign-in.
+service RepairRequestService {
+  // CreateRepairRequest posts a request, as a customer.
+  rpc CreateRepairRequest(CreateRepairRequestRequest) returns (CreateRepairRequestResponse);
+  // ListMyRepairRequests lists the signed-in customer's requests, newest
+  // first, each with the responses and the repairmen's phones.
+  rpc ListMyRepairRequests(ListMyRepairRequestsRequest) returns (ListMyRepairRequestsResponse);
+  // ListOpenRepairRequests lists requests to a repairman, newest first. He
+  // sees a customer's phone once he has responded.
+  rpc ListOpenRepairRequests(ListOpenRepairRequestsRequest) returns (ListOpenRepairRequestsResponse);
+  // RespondToRepairRequest answers a request, once per repairman. He needs
+  // a profile first (reason profile_required).
+  rpc RespondToRepairRequest(RespondToRepairRequestRequest) returns (RespondToRepairRequestResponse);
+}
+
+message RepairRequest {
+  int64 id = 1;
+  // service is a kind of work, by code (see Profile.services).
+  string service = 2;
+  string area = 3;
+  string description = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string customer_name = 6;
+  // customer_phone is set only for a repairman who has responded.
+  string customer_phone = 7;
+  // responded: for a repairman, whether he has; for the customer, whether
+  // anyone has.
+  bool responded = 8;
+  // responses are set only for the customer who posted the request.
+  repeated RepairResponse responses = 9;
+}
+
+message RepairResponse {
+  int64 id = 1;
+  int64 repairman_id = 2;
+  string repairman_name = 3;
+  string repairman_phone = 4;
+  string message = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message CreateRepairRequestRequest {
+  string service = 1;
+  // area is 2 to 80 characters.
+  string area = 2;
+  // description is 10 to 1000 characters.
+  string description = 3;
+}
+
+message CreateRepairRequestResponse {
+  RepairRequest request = 1;
+}
+
+message ListMyRepairRequestsRequest {}
+
+message ListMyRepairRequestsResponse {
+  repeated RepairRequest requests = 1;
+}
+
+message ListOpenRepairRequestsRequest {
+  // service keeps to one kind of work; empty for all.
+  string service = 1;
+}
+
+message ListOpenRepairRequestsResponse {
+  repeated RepairRequest requests = 1;
+}
+
+message RespondToRepairRequestRequest {
+  int64 request_id = 1;
+  // message is 2 to 500 characters.
+  string message = 2;
+}
+
+message RespondToRepairRequestResponse {
+  RepairResponse response = 1;
+}

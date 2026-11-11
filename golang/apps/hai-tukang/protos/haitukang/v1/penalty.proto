@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// PenaltyService shows an account its own penalty points and suspension
+// (acceptance HT-008, HT-010); nobody else sees them. Points come from
+// visits: a no-show or a customer not at home 2 (counting after the
+// 24-hour dispute window), a late cancellation or late arrival 1. They
+// expire after 90 days. At warn_at points the account is warned; at
+// suspend_at it is suspended (7 days, then 30, then closed until an admin
+// reviews it), and those points are used up.
+service PenaltyService {
+  rpc GetMyStanding(GetMyStandingRequest) returns (GetMyStandingResponse);
+}
+
+enum PenaltyReason {
+  PENALTY_REASON_UNSPECIFIED = 0;
+  PENALTY_REASON_NO_SHOW = 1;
+  PENALTY_REASON_CUSTOMER_ABSENT = 2;
+  PENALTY_REASON_LATE_CANCEL = 3;
+  PENALTY_REASON_LATE_ARRIVAL = 4;
+}
+
+enum PenaltyPointState {
+  PENALTY_POINT_STATE_UNSPECIFIED = 0;
+  // PENDING: a report's points, in the 24 hours it can be disputed.
+  PENALTY_POINT_STATE_PENDING = 1;
+  PENALTY_POINT_STATE_ACTIVE = 2;
+  // DISPUTED: held until an admin reviews the report.
+  PENALTY_POINT_STATE_DISPUTED = 3;
+  PENALTY_POINT_STATE_REMOVED = 4;
+  // SPENT: used up by the suspension they led to.
+  PENALTY_POINT_STATE_SPENT = 5;
+  PENALTY_POINT_STATE_EXPIRED = 6;
+}
+
+message PenaltyPoint {
+  int64 id = 1;
+  int64 visit_id = 2;
+  PenaltyReason reason = 3;
+  int32 points = 4;
+  PenaltyPointState state = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp counts_from = 7;
+  google.protobuf.Timestamp expires_at = 8;
+}
+
+message Suspension {
+  int32 number = 1;
+  google.protobuf.Timestamp starts_at = 2;
+  // ends_at is unset when closed.
+  google.protobuf.Timestamp ends_at = 3;
+  bool closed = 4;
+}
+
+message GetMyStandingRequest {}
+
+message GetMyStandingResponse {
+  // points is the sum that counts now.
+  int32 points = 1;
+  bool warned = 2;
+  // suspension is unset when the account is not suspended.
+  Suspension suspension = 3;
+  // history is the points of the last 90 days, newest first.
+  repeated PenaltyPoint history = 4;
+  int32 warn_at = 5;
+  int32 suspend_at = 6;
+}

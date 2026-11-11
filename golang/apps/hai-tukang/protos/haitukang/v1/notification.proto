@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+// NotificationService turns browser push notifications on and off for a
+// device. They tell the other side about a proposed visit time, the
+// proposer about a confirmed one, and the customer when a window passed
+// 30 minutes ago without an arrival.
+service NotificationService {
+  // GetPushKey returns the server's VAPID public key, the
+  // applicationServerKey for PushManager.subscribe.
+  rpc GetPushKey(GetPushKeyRequest) returns (GetPushKeyResponse);
+  // SavePushSubscription turns notifications on for this device and the
+  // signed-in account. Only browser push services are taken (reason
+  // invalid_subscription otherwise).
+  rpc SavePushSubscription(SavePushSubscriptionRequest) returns (SavePushSubscriptionResponse);
+  // DeletePushSubscription turns them off for this device (on sign-out).
+  rpc DeletePushSubscription(DeletePushSubscriptionRequest) returns (DeletePushSubscriptionResponse);
+}
+
+message GetPushKeyRequest {}
+
+message GetPushKeyResponse {
+  string public_key = 1;
+}
+
+message SavePushSubscriptionRequest {
+  // endpoint, p256dh and auth are from PushSubscription.toJSON().
+  string endpoint = 1;
+  string p256dh = 2;
+  string auth = 3;
+  // language is the app's language on this device: id or en.
+  string language = 4;
+  // time_zone is the device's IANA time zone (Asia/Jakarta).
+  string time_zone = 5;
+}
+
+message SavePushSubscriptionResponse {}
+
+message DeletePushSubscriptionRequest {
+  string endpoint = 1;
+}
+
+message DeletePushSubscriptionResponse {}

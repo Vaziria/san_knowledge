@@ -1,0 +1,224 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// AccountService signs customers and repairmen up and in, with a password
+// or with Google, and keeps repairmen's profiles, which customers search
+// (acceptance HT-001 to HT-003, HT-009, HT-013, HT-014). A sign-in is an
+// HttpOnly cookie, set by Register, Login, SignInWithGoogle and
+// RegisterWithGoogle.
+//
+// Signing up needs agreeing to the current Terms and Policies. A signed-in
+// customer or repairman who has not agreed to the current version (it
+// changed since) can only call GetMe, AcceptTerms and Logout; every other
+// call of every service answers reason terms_not_accepted.
+service AccountService {
+  // SendSignUpCode sends a one-time code on WhatsApp to an Indonesian
+  // number that has no account yet; Register needs it. Reasons:
+  // invalid_phone, phone_taken, resend_too_soon, too_many_codes,
+  // code_not_sent.
+  rpc SendSignUpCode(SendSignUpCodeRequest) returns (SendSignUpCodeResponse);
+  // Register makes an account and signs it in. Phones are stored as
+  // +62..., so 0812..., 62812... and +62 812... are the same number.
+  // A wrong code is reason invalid_code; none to check (expired, used, or
+  // never sent) code_expired; too many wrong ones too_many_attempts.
+  // Without the current terms version in accepted_terms, it is
+  // terms_not_accepted, and the code is not used up.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  // GetSignInOptions tells the sign-in screen what it offers.
+  rpc GetSignInOptions(GetSignInOptionsRequest) returns (GetSignInOptionsResponse);
+  // SignInWithGoogle checks an ID token from Google's sign-in button. A
+  // Google account with a Hai Tukang account is signed in; one without
+  // gets registered false, with Google's name and email, to sign up with
+  // RegisterWithGoogle. Reasons: google_not_configured,
+  // invalid_google_token.
+  rpc SignInWithGoogle(SignInWithGoogleRequest) returns (SignInWithGoogleResponse);
+  // RegisterWithGoogle makes a customer's or repairman's account for a
+  // Google account without one, and signs it in: like Register (the
+  // phone's code from SendSignUpCode, and the terms), with no password.
+  // Reasons: Register's, SignInWithGoogle's, and google_taken.
+  rpc RegisterWithGoogle(RegisterWithGoogleRequest) returns (RegisterWithGoogleResponse);
+  // AcceptTerms records that the signed-in account agreed to
+  // terms_version, which must be the current one (terms_not_accepted).
+  rpc AcceptTerms(AcceptTermsRequest) returns (AcceptTermsResponse);
+  // Login signs an account in with its phone, in any of those forms, and
+  // password. A wrong phone or password is reason invalid_credentials, as
+  // is any password for an account made with Google (it has none).
+  // An admin also needs a WhatsApp code every time: without code, Login
+  // sends one and answers code_sent, signing nobody in; with it, Login
+  // checks it (the reasons of Register's code).
+  rpc Login(LoginRequest) returns (LoginResponse);
+  // Logout ends this sign-in.
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  // GetMe returns the signed-in account, and a repairman's profile.
+  rpc GetMe(GetMeRequest) returns (GetMeResponse);
+  // SaveProfile sets the signed-in repairman's profile.
+  rpc SaveProfile(SaveProfileRequest) returns (SaveProfileResponse);
+  // ListRepairmen lists repairmen with a profile, with their phones, to a
+  // signed-in account: newest profile first, at most 50.
+  rpc ListRepairmen(ListRepairmenRequest) returns (ListRepairmenResponse);
+}
+
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_CUSTOMER = 1;
+  ROLE_REPAIRMAN = 2;
+  // ROLE_ADMIN is Hai Tukang staff, made from the server's command line;
+  // Register refuses it (invalid_role).
+  ROLE_ADMIN = 3;
+}
+
+message Account {
+  int64 id = 1;
+  Role role = 2;
+  string full_name = 3;
+  // phone is +62..., digits only after the +.
+  string phone = 4;
+  google.protobuf.Timestamp created_at = 5;
+  // terms_accepted: the account agreed to the current terms (admins are
+  // not asked). When false, ask before anything else (AcceptTerms).
+  bool terms_accepted = 6;
+}
+
+// Profile is what a repairman does and where.
+message Profile {
+  // services are kinds of work, by code (listrik, pipa, atap, cat, ac,
+  // bangunan, kayu, lainnya): at least one.
+  repeated string services = 1;
+  // area is where he works, 2 to 80 characters (Jakarta Selatan).
+  string area = 2;
+  // about is a short text about him, at most 500 characters.
+  string about = 3;
+}
+
+message Repairman {
+  int64 id = 1;
+  string full_name = 2;
+  string phone = 3;
+  Profile profile = 4;
+}
+
+message SendSignUpCodeRequest {
+  string phone = 1;
+}
+
+message SendSignUpCodeResponse {
+  // resend_after_seconds is how long until another code can be sent.
+  int32 resend_after_seconds = 1;
+  // expires_in_seconds is how long the code works.
+  int32 expires_in_seconds = 2;
+}
+
+message RegisterRequest {
+  Role role = 1;
+  // full_name is 2 to 80 characters.
+  string full_name = 2;
+  string phone = 3;
+  // password is at least 8 characters.
+  string password = 4;
+  // code is the one SendSignUpCode sent to phone.
+  string code = 5;
+  // accepted_terms is the version of the Terms and Policies agreed to;
+  // it must be the current one.
+  string accepted_terms = 6;
+}
+
+message RegisterResponse {
+  Account account = 1;
+}
+
+message GetSignInOptionsRequest {}
+
+message GetSignInOptionsResponse {
+  // google_client_id is the OAuth client ID for Google's sign-in button;
+  // empty when sign-in with Google is not set up (hide the button).
+  string google_client_id = 1;
+}
+
+message SignInWithGoogleRequest {
+  // id_token is the credential Google's sign-in button gave.
+  string id_token = 1;
+}
+
+message SignInWithGoogleResponse {
+  // registered: the Google account has an account, now signed in.
+  bool registered = 1;
+  Account account = 2;
+  // full_name and email are Google's, when not registered: to fill the
+  // sign-up form with. The email is only shown back to its owner.
+  string full_name = 3;
+  string email = 4;
+}
+
+message RegisterWithGoogleRequest {
+  string id_token = 1;
+  // role, full_name, phone, code and accepted_terms are Register's.
+  Role role = 2;
+  string full_name = 3;
+  string phone = 4;
+  string code = 5;
+  string accepted_terms = 6;
+}
+
+message RegisterWithGoogleResponse {
+  Account account = 1;
+}
+
+message AcceptTermsRequest {
+  string terms_version = 1;
+}
+
+message AcceptTermsResponse {
+  Account account = 1;
+}
+
+message LoginRequest {
+  string phone = 1;
+  string password = 2;
+  // code is the WhatsApp code sent to an admin by Login; others leave it empty.
+  string code = 3;
+}
+
+message LoginResponse {
+  // account is the signed-in account; unset when code_sent.
+  Account account = 1;
+  // code_sent: the account is an admin's and a code went to its WhatsApp;
+  // call Login again with it.
+  bool code_sent = 2;
+  // resend_after_seconds is, when code_sent, how long until another code
+  // can be sent.
+  int32 resend_after_seconds = 3;
+}
+
+message LogoutRequest {}
+
+message LogoutResponse {}
+
+message GetMeRequest {}
+
+message GetMeResponse {
+  Account account = 1;
+  // profile is unset for a customer, and for a repairman without one yet.
+  Profile profile = 2;
+}
+
+message SaveProfileRequest {
+  Profile profile = 1;
+}
+
+message SaveProfileResponse {
+  Profile profile = 1;
+}
+
+message ListRepairmenRequest {
+  // service keeps to one kind of work; empty for all.
+  string service = 1;
+  // area keeps to profiles whose area contains it, ignoring case.
+  string area = 2;
+}
+
+message ListRepairmenResponse {
+  repeated Repairman repairmen = 1;
+}

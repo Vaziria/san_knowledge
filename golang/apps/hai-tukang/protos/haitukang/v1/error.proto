@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+// ErrorDetail is attached to every error the services return on purpose. Its
+// reason is stable (phone_taken, invalid_phone, ...): the frontend shows its
+// own text for it, in the reader's language (src/i18n, "errors"). The
+// error's message is English, for developers, and never shown to users.
+message ErrorDetail {
+  string reason = 1;
+}

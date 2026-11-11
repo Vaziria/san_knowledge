@@ -1,0 +1,19 @@
+# `buf generate` here, or `npm run gen` in typescripts/hai-tukang.
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/wargasipil/hai-tukang/gen
+plugins:
+  - local: protoc-gen-go
+    out: gen
+    opt: paths=source_relative
+  - local: protoc-gen-connect-go
+    out: gen
+    opt: paths=source_relative
+  # The frontend's client (typescripts/hai-tukang), with the plugin from its
+  # node_modules, so nothing has to be installed globally.
+  - local: ["node", "../../../typescripts/hai-tukang/node_modules/@bufbuild/protoc-gen-es/bin/protoc-gen-es"]
+    out: ../../../typescripts/hai-tukang/src/gen
+    opt: target=ts

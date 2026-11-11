@@ -25,8 +25,10 @@ export type Page = { path: string; label: string; icon: LucideIcon; element: Rea
 // Layout is the frame every page shares: the page over the whole window, and
 // the menu behind a round San Tower button floating at the bottom left (the
 // user, 2026-11-11: no sidebar; a menu button that shows the pages in a
-// grid, with a search, in the middle of the window). The button, or Ctrl+K
-// anywhere, opens it; Ctrl+K again closes it.
+// grid, with a search, in the middle of the window). The button, or Shift+K
+// anywhere but in a field being typed in, opens it (the user, 2026-11-11:
+// Shift+K, not Ctrl+K); Shift+K outside the search box, Escape or a click
+// outside closes it.
 export function Layout({ pages }: { pages: Page[] }) {
   const [open, setOpen] = useState(false);
   // opened counts the openings: each one starts a fresh Menu (empty search,
@@ -41,7 +43,8 @@ export function Layout({ pages }: { pages: Page[] }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
+      // A field keeps its capital K: the menu's own search box too.
+      if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'k' && !isTyping(e.target)) {
         e.preventDefault();
         show(!openNow.current);
       }
@@ -53,8 +56,8 @@ export function Layout({ pages }: { pages: Page[] }) {
   return (
     <Box minH="100vh" bg="bg" color="fg">
       <IconButton
-        aria-label="Menu (Ctrl+K)"
-        title="Menu (Ctrl+K)"
+        aria-label="Menu (Shift+K)"
+        title="Menu (Shift+K)"
         position="fixed"
         bottom="3"
         left="3"
@@ -89,6 +92,10 @@ export function Layout({ pages }: { pages: Page[] }) {
     </Box>
   );
 }
+
+// isTyping says whether a key goes to a field being typed in.
+const isTyping = (t: EventTarget | null) =>
+  t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
 
 // columns is how many pages the menu shows in a row.
 const columns = 3;
@@ -137,7 +144,7 @@ function Menu({ pages, onDone }: { pages: Page[]; onDone: () => void }) {
         <Heading size="md" flex="1">
           San Tower
         </Heading>
-        <Kbd size="sm">Ctrl+K</Kbd>
+        <Kbd size="sm">Shift+K</Kbd>
       </Flex>
       <InputGroup startElement={<SearchIcon />} mb="4">
         <Input

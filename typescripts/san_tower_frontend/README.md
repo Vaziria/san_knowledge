@@ -27,11 +27,13 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   `lucide-react`, the icon set for the tower).
 - `src/Layout.tsx`: the current page over the whole window, and the menu
   behind a round button with the logo floating at the bottom left (the user,
-  2026-11-11: no sidebar). The button, or Ctrl+K anywhere, opens a popup in
+  2026-11-11: no sidebar). The button, or Shift+K anywhere but in a field
+  being typed in, opens a popup in
   the middle of the window: a search box over the pages in a grid, three to
   a row, the page open now marked (a workflow marks Workflow). Typing keeps
   the pages whose name has every word; the arrows move the marked page,
-  Enter opens it, Escape, Ctrl+K or a click outside closes it. The page
+  Enter opens it, Escape, Shift+K (outside the search box) or a click
+  outside closes it. The page
   leaves room on the left (`ps="16"`) so the button never covers it, nor the
   workflow editor's controls at the canvas's bottom left.
 - `src/pages/`:

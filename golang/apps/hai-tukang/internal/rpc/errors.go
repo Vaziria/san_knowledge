@@ -10,8 +10,10 @@ import (
 	"github.com/wargasipil/hai-tukang/internal/admin"
 	"github.com/wargasipil/hai-tukang/internal/catalog"
 	"github.com/wargasipil/hai-tukang/internal/penalties"
+	"github.com/wargasipil/hai-tukang/internal/photos"
 	"github.com/wargasipil/hai-tukang/internal/push"
 	"github.com/wargasipil/hai-tukang/internal/requests"
+	"github.com/wargasipil/hai-tukang/internal/stores"
 	"github.com/wargasipil/hai-tukang/internal/verify"
 	"github.com/wargasipil/hai-tukang/internal/visits"
 )
@@ -77,6 +79,21 @@ var knownErrors = []struct {
 	{admin.ErrNotClosed, connect.CodeFailedPrecondition, "not_closed"},
 	{admin.ErrAlreadySuspended, connect.CodeFailedPrecondition, "already_suspended"},
 	{admin.ErrNotSuspended, connect.CodeFailedPrecondition, "not_suspended"},
+	{stores.ErrNotStore, connect.CodePermissionDenied, "forbidden"},
+	{stores.ErrProfileRequired, connect.CodeFailedPrecondition, "store_profile_required"},
+	{stores.ErrNotFound, connect.CodeNotFound, "not_found"},
+	{stores.ErrTooManyPhotos, connect.CodeFailedPrecondition, "too_many_photos"},
+	{stores.ErrInvalidStoreName, connect.CodeInvalidArgument, "invalid_store_name"},
+	{stores.ErrInvalidAddress, connect.CodeInvalidArgument, "invalid_address"},
+	{stores.ErrNoHandover, connect.CodeInvalidArgument, "no_handover"},
+	{stores.ErrInvalidDeliveryFee, connect.CodeInvalidArgument, "invalid_delivery_fee"},
+	{stores.ErrInvalidDeliveryAreas, connect.CodeInvalidArgument, "invalid_delivery_areas"},
+	{stores.ErrInvalidProductName, connect.CodeInvalidArgument, "invalid_product_name"},
+	{stores.ErrInvalidPrice, connect.CodeInvalidArgument, "invalid_price"},
+	{stores.ErrInvalidUnit, connect.CodeInvalidArgument, "invalid_unit"},
+	{stores.ErrInvalidProductDescription, connect.CodeInvalidArgument, "invalid_product_description"},
+	{photos.ErrInvalid, connect.CodeInvalidArgument, "invalid_photo"},
+	{photos.ErrTooLarge, connect.CodeInvalidArgument, "photo_too_large"},
 }
 
 // rpcError turns a domain error into a Connect error with an ErrorDetail.

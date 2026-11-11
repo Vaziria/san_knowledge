@@ -5,6 +5,7 @@ package haitukang.v1;
 import "google/protobuf/timestamp.proto";
 import "haitukang/v1/account.proto";
 import "haitukang/v1/penalty.proto";
+import "haitukang/v1/store.proto";
 import "haitukang/v1/visit.proto";
 
 // AdminService is the admins' review (acceptance HT-011, HT-012). Only an
@@ -23,7 +24,8 @@ service AdminService {
   // DecideClosedAccount: reopen ends the closure and removes the points
   // still counting; otherwise it stays closed, marked reviewed. not_closed.
   rpc DecideClosedAccount(DecideClosedAccountRequest) returns (DecideClosedAccountResponse);
-  // FindAccount finds a customer or repairman by phone (not_found).
+  // FindAccount finds a customer, repairman or store by phone (not_found);
+  // a store comes with its profile and all its products, hidden ones too.
   rpc FindAccount(FindAccountRequest) returns (FindAccountResponse);
   // SuspendAccount suspends for 1 to 365 days (invalid_days), by hand: it
   // is not a step toward closing. already_suspended.
@@ -32,6 +34,9 @@ service AdminService {
   rpc LiftSuspension(LiftSuspensionRequest) returns (LiftSuspensionResponse);
   // ListDecisions is the log, newest first.
   rpc ListDecisions(ListDecisionsRequest) returns (ListDecisionsResponse);
+  // SetProductHidden hides a store's product from customers, or shows it
+  // again (HT-015); the store still sees it, marked hidden. not_found.
+  rpc SetProductHidden(SetProductHiddenRequest) returns (SetProductHiddenResponse);
 }
 
 message Dispute {
@@ -94,7 +99,17 @@ message FindAccountRequest {
 message FindAccountResponse {
   Account account = 1;
   GetMyStandingResponse standing = 2;
+  // store: a store's profile (unset until it fills one in) and products.
+  GetMyStoreResponse store = 3;
 }
+
+message SetProductHiddenRequest {
+  int64 product_id = 1;
+  bool hidden = 2;
+  string reason = 3;
+}
+
+message SetProductHiddenResponse {}
 
 message SuspendAccountRequest {
   int64 account_id = 1;
@@ -119,6 +134,8 @@ enum AdminAction {
   ADMIN_ACTION_KEEP_CLOSED = 4;
   ADMIN_ACTION_SUSPEND = 5;
   ADMIN_ACTION_LIFT = 6;
+  ADMIN_ACTION_HIDE_PRODUCT = 7;
+  ADMIN_ACTION_SHOW_PRODUCT = 8;
 }
 
 message Decision {
@@ -132,6 +149,10 @@ message Decision {
   int64 visit_id = 6;
   string reason = 7;
   google.protobuf.Timestamp created_at = 8;
+  // product_id and product_name: the product hidden or shown (its store is
+  // the account).
+  int64 product_id = 9;
+  string product_name = 10;
 }
 
 message ListDecisionsRequest {}

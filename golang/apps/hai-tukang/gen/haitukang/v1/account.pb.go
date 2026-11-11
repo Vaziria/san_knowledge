@@ -31,6 +31,8 @@ const (
 	// ROLE_ADMIN is Hai Tukang staff, made from the server's command line;
 	// Register refuses it (invalid_role).
 	Role_ROLE_ADMIN Role = 3
+	// ROLE_STORE is a partner store selling materials (acceptance HT-015).
+	Role_ROLE_STORE Role = 4
 )
 
 // Enum value maps for Role.
@@ -40,12 +42,14 @@ var (
 		1: "ROLE_CUSTOMER",
 		2: "ROLE_REPAIRMAN",
 		3: "ROLE_ADMIN",
+		4: "ROLE_STORE",
 	}
 	Role_value = map[string]int32{
 		"ROLE_UNSPECIFIED": 0,
 		"ROLE_CUSTOMER":    1,
 		"ROLE_REPAIRMAN":   2,
 		"ROLE_ADMIN":       3,
+		"ROLE_STORE":       4,
 	}
 )
 
@@ -1498,13 +1502,15 @@ const file_haitukang_v1_account_proto_rawDesc = "" +
 	"\aservice\x18\x01 \x01(\tR\aservice\x12\x12\n" +
 	"\x04area\x18\x02 \x01(\tR\x04area\"N\n" +
 	"\x15ListRepairmenResponse\x125\n" +
-	"\trepairmen\x18\x01 \x03(\v2\x17.haitukang.v1.RepairmanR\trepairmen*S\n" +
+	"\trepairmen\x18\x01 \x03(\v2\x17.haitukang.v1.RepairmanR\trepairmen*c\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rROLE_CUSTOMER\x10\x01\x12\x12\n" +
 	"\x0eROLE_REPAIRMAN\x10\x02\x12\x0e\n" +
 	"\n" +
-	"ROLE_ADMIN\x10\x032\xb2\a\n" +
+	"ROLE_ADMIN\x10\x03\x12\x0e\n" +
+	"\n" +
+	"ROLE_STORE\x10\x042\xb2\a\n" +
 	"\x0eAccountService\x12[\n" +
 	"\x0eSendSignUpCode\x12#.haitukang.v1.SendSignUpCodeRequest\x1a$.haitukang.v1.SendSignUpCodeResponse\x12I\n" +
 	"\bRegister\x12\x1d.haitukang.v1.RegisterRequest\x1a\x1e.haitukang.v1.RegisterResponse\x12a\n" +

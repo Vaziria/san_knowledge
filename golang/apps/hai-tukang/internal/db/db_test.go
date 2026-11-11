@@ -58,8 +58,8 @@ func tables(t *testing.T, gdb *gorm.DB) string {
 	return strings.Join(names, " ")
 }
 
-const allTables = "accounts admin_decisions goose_db_version penalty_points phone_codes push_keys push_subscriptions" +
-	" repair_requests repairman_profiles request_responses sessions suspensions visits"
+const allTables = "accounts admin_decisions goose_db_version penalty_points phone_codes product_photos products push_keys" +
+	" push_subscriptions repair_requests repairman_profiles request_responses sessions store_profiles suspensions visits"
 
 func TestMigrationsGoUpDownAndUpAgain(t *testing.T) {
 	gdb, ctx := scratchDatabase(t)

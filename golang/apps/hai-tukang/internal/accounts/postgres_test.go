@@ -108,6 +108,20 @@ func TestPostgresStoreSessionsAndProfiles(t *testing.T) {
 	if len(saved.Services) != 2 || saved.Services[0] != "listrik" || saved.Area != "Kota Uji" || saved.About != "Rapi." {
 		t.Fatalf("SaveProfile() = %+v, want services in catalog order and trimmed text", saved)
 	}
+	// A repairman found comes with what he does, where and his words.
+	found, err := service.ListRepairmen(ctx, RepairmanFilter{Area: "Kota Uji", Service: "listrik"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var listed *Repairman
+	for i := range found {
+		if found[i].ID == made.ID {
+			listed = &found[i]
+		}
+	}
+	if listed == nil || fmt.Sprint(listed.Services) != "[listrik pipa]" || listed.Area != "Kota Uji" || listed.About != "Rapi." {
+		t.Fatalf("ListRepairmen() listed %+v, want his services, area and about", listed)
+	}
 	// A search for "50%" must not match every area through the %.
 	list, err := service.ListRepairmen(ctx, RepairmanFilter{Area: "50%"})
 	if err != nil {

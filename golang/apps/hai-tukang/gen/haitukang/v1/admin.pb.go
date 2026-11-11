@@ -32,6 +32,8 @@ const (
 	AdminAction_ADMIN_ACTION_KEEP_CLOSED    AdminAction = 4
 	AdminAction_ADMIN_ACTION_SUSPEND        AdminAction = 5
 	AdminAction_ADMIN_ACTION_LIFT           AdminAction = 6
+	AdminAction_ADMIN_ACTION_HIDE_PRODUCT   AdminAction = 7
+	AdminAction_ADMIN_ACTION_SHOW_PRODUCT   AdminAction = 8
 )
 
 // Enum value maps for AdminAction.
@@ -44,6 +46,8 @@ var (
 		4: "ADMIN_ACTION_KEEP_CLOSED",
 		5: "ADMIN_ACTION_SUSPEND",
 		6: "ADMIN_ACTION_LIFT",
+		7: "ADMIN_ACTION_HIDE_PRODUCT",
+		8: "ADMIN_ACTION_SHOW_PRODUCT",
 	}
 	AdminAction_value = map[string]int32{
 		"ADMIN_ACTION_UNSPECIFIED":    0,
@@ -53,6 +57,8 @@ var (
 		"ADMIN_ACTION_KEEP_CLOSED":    4,
 		"ADMIN_ACTION_SUSPEND":        5,
 		"ADMIN_ACTION_LIFT":           6,
+		"ADMIN_ACTION_HIDE_PRODUCT":   7,
+		"ADMIN_ACTION_SHOW_PRODUCT":   8,
 	}
 )
 
@@ -648,9 +654,11 @@ func (x *FindAccountRequest) GetPhone() string {
 }
 
 type FindAccountResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Account       *Account               `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
-	Standing      *GetMyStandingResponse `protobuf:"bytes,2,opt,name=standing,proto3" json:"standing,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Account  *Account               `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	Standing *GetMyStandingResponse `protobuf:"bytes,2,opt,name=standing,proto3" json:"standing,omitempty"`
+	// store: a store's profile (unset until it fills one in) and products.
+	Store         *GetMyStoreResponse `protobuf:"bytes,3,opt,name=store,proto3" json:"store,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -699,6 +707,109 @@ func (x *FindAccountResponse) GetStanding() *GetMyStandingResponse {
 	return nil
 }
 
+func (x *FindAccountResponse) GetStore() *GetMyStoreResponse {
+	if x != nil {
+		return x.Store
+	}
+	return nil
+}
+
+type SetProductHiddenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProductId     int64                  `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
+	Hidden        bool                   `protobuf:"varint,2,opt,name=hidden,proto3" json:"hidden,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetProductHiddenRequest) Reset() {
+	*x = SetProductHiddenRequest{}
+	mi := &file_haitukang_v1_admin_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetProductHiddenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetProductHiddenRequest) ProtoMessage() {}
+
+func (x *SetProductHiddenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_haitukang_v1_admin_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetProductHiddenRequest.ProtoReflect.Descriptor instead.
+func (*SetProductHiddenRequest) Descriptor() ([]byte, []int) {
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SetProductHiddenRequest) GetProductId() int64 {
+	if x != nil {
+		return x.ProductId
+	}
+	return 0
+}
+
+func (x *SetProductHiddenRequest) GetHidden() bool {
+	if x != nil {
+		return x.Hidden
+	}
+	return false
+}
+
+func (x *SetProductHiddenRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type SetProductHiddenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetProductHiddenResponse) Reset() {
+	*x = SetProductHiddenResponse{}
+	mi := &file_haitukang_v1_admin_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetProductHiddenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetProductHiddenResponse) ProtoMessage() {}
+
+func (x *SetProductHiddenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_haitukang_v1_admin_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetProductHiddenResponse.ProtoReflect.Descriptor instead.
+func (*SetProductHiddenResponse) Descriptor() ([]byte, []int) {
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{13}
+}
+
 type SuspendAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccountId     int64                  `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
@@ -710,7 +821,7 @@ type SuspendAccountRequest struct {
 
 func (x *SuspendAccountRequest) Reset() {
 	*x = SuspendAccountRequest{}
-	mi := &file_haitukang_v1_admin_proto_msgTypes[12]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -722,7 +833,7 @@ func (x *SuspendAccountRequest) String() string {
 func (*SuspendAccountRequest) ProtoMessage() {}
 
 func (x *SuspendAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_haitukang_v1_admin_proto_msgTypes[12]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -735,7 +846,7 @@ func (x *SuspendAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuspendAccountRequest.ProtoReflect.Descriptor instead.
 func (*SuspendAccountRequest) Descriptor() ([]byte, []int) {
-	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{12}
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SuspendAccountRequest) GetAccountId() int64 {
@@ -767,7 +878,7 @@ type SuspendAccountResponse struct {
 
 func (x *SuspendAccountResponse) Reset() {
 	*x = SuspendAccountResponse{}
-	mi := &file_haitukang_v1_admin_proto_msgTypes[13]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -779,7 +890,7 @@ func (x *SuspendAccountResponse) String() string {
 func (*SuspendAccountResponse) ProtoMessage() {}
 
 func (x *SuspendAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_haitukang_v1_admin_proto_msgTypes[13]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +903,7 @@ func (x *SuspendAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuspendAccountResponse.ProtoReflect.Descriptor instead.
 func (*SuspendAccountResponse) Descriptor() ([]byte, []int) {
-	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{13}
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{15}
 }
 
 type LiftSuspensionRequest struct {
@@ -805,7 +916,7 @@ type LiftSuspensionRequest struct {
 
 func (x *LiftSuspensionRequest) Reset() {
 	*x = LiftSuspensionRequest{}
-	mi := &file_haitukang_v1_admin_proto_msgTypes[14]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -817,7 +928,7 @@ func (x *LiftSuspensionRequest) String() string {
 func (*LiftSuspensionRequest) ProtoMessage() {}
 
 func (x *LiftSuspensionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_haitukang_v1_admin_proto_msgTypes[14]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -830,7 +941,7 @@ func (x *LiftSuspensionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiftSuspensionRequest.ProtoReflect.Descriptor instead.
 func (*LiftSuspensionRequest) Descriptor() ([]byte, []int) {
-	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{14}
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *LiftSuspensionRequest) GetAccountId() int64 {
@@ -855,7 +966,7 @@ type LiftSuspensionResponse struct {
 
 func (x *LiftSuspensionResponse) Reset() {
 	*x = LiftSuspensionResponse{}
-	mi := &file_haitukang_v1_admin_proto_msgTypes[15]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -867,7 +978,7 @@ func (x *LiftSuspensionResponse) String() string {
 func (*LiftSuspensionResponse) ProtoMessage() {}
 
 func (x *LiftSuspensionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_haitukang_v1_admin_proto_msgTypes[15]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -880,7 +991,7 @@ func (x *LiftSuspensionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiftSuspensionResponse.ProtoReflect.Descriptor instead.
 func (*LiftSuspensionResponse) Descriptor() ([]byte, []int) {
-	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{15}
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{17}
 }
 
 type Decision struct {
@@ -892,16 +1003,20 @@ type Decision struct {
 	AccountId   int64  `protobuf:"varint,4,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	AccountName string `protobuf:"bytes,5,opt,name=account_name,json=accountName,proto3" json:"account_name,omitempty"`
 	// visit_id is set for a dispute decision.
-	VisitId       int64                  `protobuf:"varint,6,opt,name=visit_id,json=visitId,proto3" json:"visit_id,omitempty"`
-	Reason        string                 `protobuf:"bytes,7,opt,name=reason,proto3" json:"reason,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	VisitId   int64                  `protobuf:"varint,6,opt,name=visit_id,json=visitId,proto3" json:"visit_id,omitempty"`
+	Reason    string                 `protobuf:"bytes,7,opt,name=reason,proto3" json:"reason,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// product_id and product_name: the product hidden or shown (its store is
+	// the account).
+	ProductId     int64  `protobuf:"varint,9,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
+	ProductName   string `protobuf:"bytes,10,opt,name=product_name,json=productName,proto3" json:"product_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Decision) Reset() {
 	*x = Decision{}
-	mi := &file_haitukang_v1_admin_proto_msgTypes[16]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -913,7 +1028,7 @@ func (x *Decision) String() string {
 func (*Decision) ProtoMessage() {}
 
 func (x *Decision) ProtoReflect() protoreflect.Message {
-	mi := &file_haitukang_v1_admin_proto_msgTypes[16]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -926,7 +1041,7 @@ func (x *Decision) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Decision.ProtoReflect.Descriptor instead.
 func (*Decision) Descriptor() ([]byte, []int) {
-	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{16}
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Decision) GetId() int64 {
@@ -985,6 +1100,20 @@ func (x *Decision) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Decision) GetProductId() int64 {
+	if x != nil {
+		return x.ProductId
+	}
+	return 0
+}
+
+func (x *Decision) GetProductName() string {
+	if x != nil {
+		return x.ProductName
+	}
+	return ""
+}
+
 type ListDecisionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -993,7 +1122,7 @@ type ListDecisionsRequest struct {
 
 func (x *ListDecisionsRequest) Reset() {
 	*x = ListDecisionsRequest{}
-	mi := &file_haitukang_v1_admin_proto_msgTypes[17]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1005,7 +1134,7 @@ func (x *ListDecisionsRequest) String() string {
 func (*ListDecisionsRequest) ProtoMessage() {}
 
 func (x *ListDecisionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_haitukang_v1_admin_proto_msgTypes[17]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1018,7 +1147,7 @@ func (x *ListDecisionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDecisionsRequest.ProtoReflect.Descriptor instead.
 func (*ListDecisionsRequest) Descriptor() ([]byte, []int) {
-	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{17}
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{19}
 }
 
 type ListDecisionsResponse struct {
@@ -1030,7 +1159,7 @@ type ListDecisionsResponse struct {
 
 func (x *ListDecisionsResponse) Reset() {
 	*x = ListDecisionsResponse{}
-	mi := &file_haitukang_v1_admin_proto_msgTypes[18]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1042,7 +1171,7 @@ func (x *ListDecisionsResponse) String() string {
 func (*ListDecisionsResponse) ProtoMessage() {}
 
 func (x *ListDecisionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_haitukang_v1_admin_proto_msgTypes[18]
+	mi := &file_haitukang_v1_admin_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1055,7 +1184,7 @@ func (x *ListDecisionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDecisionsResponse.ProtoReflect.Descriptor instead.
 func (*ListDecisionsResponse) Descriptor() ([]byte, []int) {
-	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{18}
+	return file_haitukang_v1_admin_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListDecisionsResponse) GetDecisions() []*Decision {
@@ -1069,7 +1198,7 @@ var File_haitukang_v1_admin_proto protoreflect.FileDescriptor
 
 const file_haitukang_v1_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x18haitukang/v1/admin.proto\x12\fhaitukang.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1ahaitukang/v1/account.proto\x1a\x1ahaitukang/v1/penalty.proto\x1a\x18haitukang/v1/visit.proto\"\xa6\x02\n" +
+	"\x18haitukang/v1/admin.proto\x12\fhaitukang.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1ahaitukang/v1/account.proto\x1a\x1ahaitukang/v1/penalty.proto\x1a\x18haitukang/v1/store.proto\x1a\x18haitukang/v1/visit.proto\"\xa6\x02\n" +
 	"\aDispute\x12)\n" +
 	"\x05visit\x18\x01 \x01(\v2\x13.haitukang.v1.VisitR\x05visit\x121\n" +
 	"\x06report\x18\x02 \x01(\x0e2\x19.haitukang.v1.VisitStatusR\x06report\x12;\n" +
@@ -1104,10 +1233,17 @@ const file_haitukang_v1_admin_proto_rawDesc = "" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\"\x1d\n" +
 	"\x1bDecideClosedAccountResponse\"*\n" +
 	"\x12FindAccountRequest\x12\x14\n" +
-	"\x05phone\x18\x01 \x01(\tR\x05phone\"\x87\x01\n" +
+	"\x05phone\x18\x01 \x01(\tR\x05phone\"\xbf\x01\n" +
 	"\x13FindAccountResponse\x12/\n" +
 	"\aaccount\x18\x01 \x01(\v2\x15.haitukang.v1.AccountR\aaccount\x12?\n" +
-	"\bstanding\x18\x02 \x01(\v2#.haitukang.v1.GetMyStandingResponseR\bstanding\"b\n" +
+	"\bstanding\x18\x02 \x01(\v2#.haitukang.v1.GetMyStandingResponseR\bstanding\x126\n" +
+	"\x05store\x18\x03 \x01(\v2 .haitukang.v1.GetMyStoreResponseR\x05store\"h\n" +
+	"\x17SetProductHiddenRequest\x12\x1d\n" +
+	"\n" +
+	"product_id\x18\x01 \x01(\x03R\tproductId\x12\x16\n" +
+	"\x06hidden\x18\x02 \x01(\bR\x06hidden\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\x1a\n" +
+	"\x18SetProductHiddenResponse\"b\n" +
 	"\x15SuspendAccountRequest\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x03R\taccountId\x12\x12\n" +
@@ -1118,7 +1254,7 @@ const file_haitukang_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x03R\taccountId\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x18\n" +
-	"\x16LiftSuspensionResponse\"\x9c\x02\n" +
+	"\x16LiftSuspensionResponse\"\xde\x02\n" +
 	"\bDecision\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -1130,10 +1266,14 @@ const file_haitukang_v1_admin_proto_rawDesc = "" +
 	"\bvisit_id\x18\x06 \x01(\x03R\avisitId\x12\x16\n" +
 	"\x06reason\x18\a \x01(\tR\x06reason\x129\n" +
 	"\n" +
-	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x16\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"product_id\x18\t \x01(\x03R\tproductId\x12!\n" +
+	"\fproduct_name\x18\n" +
+	" \x01(\tR\vproductName\"\x16\n" +
 	"\x14ListDecisionsRequest\"M\n" +
 	"\x15ListDecisionsResponse\x124\n" +
-	"\tdecisions\x18\x01 \x03(\v2\x16.haitukang.v1.DecisionR\tdecisions*\xd3\x01\n" +
+	"\tdecisions\x18\x01 \x03(\v2\x16.haitukang.v1.DecisionR\tdecisions*\x91\x02\n" +
 	"\vAdminAction\x12\x1c\n" +
 	"\x18ADMIN_ACTION_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19ADMIN_ACTION_POINTS_STAND\x10\x01\x12\x1f\n" +
@@ -1141,7 +1281,9 @@ const file_haitukang_v1_admin_proto_rawDesc = "" +
 	"\x13ADMIN_ACTION_REOPEN\x10\x03\x12\x1c\n" +
 	"\x18ADMIN_ACTION_KEEP_CLOSED\x10\x04\x12\x18\n" +
 	"\x14ADMIN_ACTION_SUSPEND\x10\x05\x12\x15\n" +
-	"\x11ADMIN_ACTION_LIFT\x10\x062\xfc\x05\n" +
+	"\x11ADMIN_ACTION_LIFT\x10\x06\x12\x1d\n" +
+	"\x19ADMIN_ACTION_HIDE_PRODUCT\x10\a\x12\x1d\n" +
+	"\x19ADMIN_ACTION_SHOW_PRODUCT\x10\b2\xdf\x06\n" +
 	"\fAdminService\x12U\n" +
 	"\fListDisputes\x12!.haitukang.v1.ListDisputesRequest\x1a\".haitukang.v1.ListDisputesResponse\x12X\n" +
 	"\rDecideDispute\x12\".haitukang.v1.DecideDisputeRequest\x1a#.haitukang.v1.DecideDisputeResponse\x12g\n" +
@@ -1150,7 +1292,8 @@ const file_haitukang_v1_admin_proto_rawDesc = "" +
 	"\vFindAccount\x12 .haitukang.v1.FindAccountRequest\x1a!.haitukang.v1.FindAccountResponse\x12[\n" +
 	"\x0eSuspendAccount\x12#.haitukang.v1.SuspendAccountRequest\x1a$.haitukang.v1.SuspendAccountResponse\x12[\n" +
 	"\x0eLiftSuspension\x12#.haitukang.v1.LiftSuspensionRequest\x1a$.haitukang.v1.LiftSuspensionResponse\x12X\n" +
-	"\rListDecisions\x12\".haitukang.v1.ListDecisionsRequest\x1a#.haitukang.v1.ListDecisionsResponseB\xae\x01\n" +
+	"\rListDecisions\x12\".haitukang.v1.ListDecisionsRequest\x1a#.haitukang.v1.ListDecisionsResponse\x12a\n" +
+	"\x10SetProductHidden\x12%.haitukang.v1.SetProductHiddenRequest\x1a&.haitukang.v1.SetProductHiddenResponseB\xae\x01\n" +
 	"\x10com.haitukang.v1B\n" +
 	"AdminProtoP\x01Z=github.com/wargasipil/hai-tukang/gen/haitukang/v1;haitukangv1\xa2\x02\x03HXX\xaa\x02\fHaitukang.V1\xca\x02\fHaitukang\\V1\xe2\x02\x18Haitukang\\V1\\GPBMetadata\xea\x02\rHaitukang::V1b\x06proto3"
 
@@ -1167,7 +1310,7 @@ func file_haitukang_v1_admin_proto_rawDescGZIP() []byte {
 }
 
 var file_haitukang_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_haitukang_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_haitukang_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_haitukang_v1_admin_proto_goTypes = []any{
 	(AdminAction)(0),                    // 0: haitukang.v1.AdminAction
 	(*Dispute)(nil),                     // 1: haitukang.v1.Dispute
@@ -1182,55 +1325,61 @@ var file_haitukang_v1_admin_proto_goTypes = []any{
 	(*DecideClosedAccountResponse)(nil), // 10: haitukang.v1.DecideClosedAccountResponse
 	(*FindAccountRequest)(nil),          // 11: haitukang.v1.FindAccountRequest
 	(*FindAccountResponse)(nil),         // 12: haitukang.v1.FindAccountResponse
-	(*SuspendAccountRequest)(nil),       // 13: haitukang.v1.SuspendAccountRequest
-	(*SuspendAccountResponse)(nil),      // 14: haitukang.v1.SuspendAccountResponse
-	(*LiftSuspensionRequest)(nil),       // 15: haitukang.v1.LiftSuspensionRequest
-	(*LiftSuspensionResponse)(nil),      // 16: haitukang.v1.LiftSuspensionResponse
-	(*Decision)(nil),                    // 17: haitukang.v1.Decision
-	(*ListDecisionsRequest)(nil),        // 18: haitukang.v1.ListDecisionsRequest
-	(*ListDecisionsResponse)(nil),       // 19: haitukang.v1.ListDecisionsResponse
-	(*Visit)(nil),                       // 20: haitukang.v1.Visit
-	(VisitStatus)(0),                    // 21: haitukang.v1.VisitStatus
-	(*timestamppb.Timestamp)(nil),       // 22: google.protobuf.Timestamp
-	(*Account)(nil),                     // 23: haitukang.v1.Account
-	(*GetMyStandingResponse)(nil),       // 24: haitukang.v1.GetMyStandingResponse
+	(*SetProductHiddenRequest)(nil),     // 13: haitukang.v1.SetProductHiddenRequest
+	(*SetProductHiddenResponse)(nil),    // 14: haitukang.v1.SetProductHiddenResponse
+	(*SuspendAccountRequest)(nil),       // 15: haitukang.v1.SuspendAccountRequest
+	(*SuspendAccountResponse)(nil),      // 16: haitukang.v1.SuspendAccountResponse
+	(*LiftSuspensionRequest)(nil),       // 17: haitukang.v1.LiftSuspensionRequest
+	(*LiftSuspensionResponse)(nil),      // 18: haitukang.v1.LiftSuspensionResponse
+	(*Decision)(nil),                    // 19: haitukang.v1.Decision
+	(*ListDecisionsRequest)(nil),        // 20: haitukang.v1.ListDecisionsRequest
+	(*ListDecisionsResponse)(nil),       // 21: haitukang.v1.ListDecisionsResponse
+	(*Visit)(nil),                       // 22: haitukang.v1.Visit
+	(VisitStatus)(0),                    // 23: haitukang.v1.VisitStatus
+	(*timestamppb.Timestamp)(nil),       // 24: google.protobuf.Timestamp
+	(*Account)(nil),                     // 25: haitukang.v1.Account
+	(*GetMyStandingResponse)(nil),       // 26: haitukang.v1.GetMyStandingResponse
+	(*GetMyStoreResponse)(nil),          // 27: haitukang.v1.GetMyStoreResponse
 }
 var file_haitukang_v1_admin_proto_depIdxs = []int32{
-	20, // 0: haitukang.v1.Dispute.visit:type_name -> haitukang.v1.Visit
-	21, // 1: haitukang.v1.Dispute.report:type_name -> haitukang.v1.VisitStatus
-	22, // 2: haitukang.v1.Dispute.reported_at:type_name -> google.protobuf.Timestamp
-	22, // 3: haitukang.v1.Dispute.confirmed_at:type_name -> google.protobuf.Timestamp
+	22, // 0: haitukang.v1.Dispute.visit:type_name -> haitukang.v1.Visit
+	23, // 1: haitukang.v1.Dispute.report:type_name -> haitukang.v1.VisitStatus
+	24, // 2: haitukang.v1.Dispute.reported_at:type_name -> google.protobuf.Timestamp
+	24, // 3: haitukang.v1.Dispute.confirmed_at:type_name -> google.protobuf.Timestamp
 	1,  // 4: haitukang.v1.ListDisputesResponse.disputes:type_name -> haitukang.v1.Dispute
-	23, // 5: haitukang.v1.ClosedAccount.account:type_name -> haitukang.v1.Account
-	22, // 6: haitukang.v1.ClosedAccount.closed_at:type_name -> google.protobuf.Timestamp
-	22, // 7: haitukang.v1.ClosedAccount.reviewed_at:type_name -> google.protobuf.Timestamp
+	25, // 5: haitukang.v1.ClosedAccount.account:type_name -> haitukang.v1.Account
+	24, // 6: haitukang.v1.ClosedAccount.closed_at:type_name -> google.protobuf.Timestamp
+	24, // 7: haitukang.v1.ClosedAccount.reviewed_at:type_name -> google.protobuf.Timestamp
 	6,  // 8: haitukang.v1.ListClosedAccountsResponse.accounts:type_name -> haitukang.v1.ClosedAccount
-	23, // 9: haitukang.v1.FindAccountResponse.account:type_name -> haitukang.v1.Account
-	24, // 10: haitukang.v1.FindAccountResponse.standing:type_name -> haitukang.v1.GetMyStandingResponse
-	0,  // 11: haitukang.v1.Decision.action:type_name -> haitukang.v1.AdminAction
-	22, // 12: haitukang.v1.Decision.created_at:type_name -> google.protobuf.Timestamp
-	17, // 13: haitukang.v1.ListDecisionsResponse.decisions:type_name -> haitukang.v1.Decision
-	2,  // 14: haitukang.v1.AdminService.ListDisputes:input_type -> haitukang.v1.ListDisputesRequest
-	4,  // 15: haitukang.v1.AdminService.DecideDispute:input_type -> haitukang.v1.DecideDisputeRequest
-	7,  // 16: haitukang.v1.AdminService.ListClosedAccounts:input_type -> haitukang.v1.ListClosedAccountsRequest
-	9,  // 17: haitukang.v1.AdminService.DecideClosedAccount:input_type -> haitukang.v1.DecideClosedAccountRequest
-	11, // 18: haitukang.v1.AdminService.FindAccount:input_type -> haitukang.v1.FindAccountRequest
-	13, // 19: haitukang.v1.AdminService.SuspendAccount:input_type -> haitukang.v1.SuspendAccountRequest
-	15, // 20: haitukang.v1.AdminService.LiftSuspension:input_type -> haitukang.v1.LiftSuspensionRequest
-	18, // 21: haitukang.v1.AdminService.ListDecisions:input_type -> haitukang.v1.ListDecisionsRequest
-	3,  // 22: haitukang.v1.AdminService.ListDisputes:output_type -> haitukang.v1.ListDisputesResponse
-	5,  // 23: haitukang.v1.AdminService.DecideDispute:output_type -> haitukang.v1.DecideDisputeResponse
-	8,  // 24: haitukang.v1.AdminService.ListClosedAccounts:output_type -> haitukang.v1.ListClosedAccountsResponse
-	10, // 25: haitukang.v1.AdminService.DecideClosedAccount:output_type -> haitukang.v1.DecideClosedAccountResponse
-	12, // 26: haitukang.v1.AdminService.FindAccount:output_type -> haitukang.v1.FindAccountResponse
-	14, // 27: haitukang.v1.AdminService.SuspendAccount:output_type -> haitukang.v1.SuspendAccountResponse
-	16, // 28: haitukang.v1.AdminService.LiftSuspension:output_type -> haitukang.v1.LiftSuspensionResponse
-	19, // 29: haitukang.v1.AdminService.ListDecisions:output_type -> haitukang.v1.ListDecisionsResponse
-	22, // [22:30] is the sub-list for method output_type
-	14, // [14:22] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	25, // 9: haitukang.v1.FindAccountResponse.account:type_name -> haitukang.v1.Account
+	26, // 10: haitukang.v1.FindAccountResponse.standing:type_name -> haitukang.v1.GetMyStandingResponse
+	27, // 11: haitukang.v1.FindAccountResponse.store:type_name -> haitukang.v1.GetMyStoreResponse
+	0,  // 12: haitukang.v1.Decision.action:type_name -> haitukang.v1.AdminAction
+	24, // 13: haitukang.v1.Decision.created_at:type_name -> google.protobuf.Timestamp
+	19, // 14: haitukang.v1.ListDecisionsResponse.decisions:type_name -> haitukang.v1.Decision
+	2,  // 15: haitukang.v1.AdminService.ListDisputes:input_type -> haitukang.v1.ListDisputesRequest
+	4,  // 16: haitukang.v1.AdminService.DecideDispute:input_type -> haitukang.v1.DecideDisputeRequest
+	7,  // 17: haitukang.v1.AdminService.ListClosedAccounts:input_type -> haitukang.v1.ListClosedAccountsRequest
+	9,  // 18: haitukang.v1.AdminService.DecideClosedAccount:input_type -> haitukang.v1.DecideClosedAccountRequest
+	11, // 19: haitukang.v1.AdminService.FindAccount:input_type -> haitukang.v1.FindAccountRequest
+	15, // 20: haitukang.v1.AdminService.SuspendAccount:input_type -> haitukang.v1.SuspendAccountRequest
+	17, // 21: haitukang.v1.AdminService.LiftSuspension:input_type -> haitukang.v1.LiftSuspensionRequest
+	20, // 22: haitukang.v1.AdminService.ListDecisions:input_type -> haitukang.v1.ListDecisionsRequest
+	13, // 23: haitukang.v1.AdminService.SetProductHidden:input_type -> haitukang.v1.SetProductHiddenRequest
+	3,  // 24: haitukang.v1.AdminService.ListDisputes:output_type -> haitukang.v1.ListDisputesResponse
+	5,  // 25: haitukang.v1.AdminService.DecideDispute:output_type -> haitukang.v1.DecideDisputeResponse
+	8,  // 26: haitukang.v1.AdminService.ListClosedAccounts:output_type -> haitukang.v1.ListClosedAccountsResponse
+	10, // 27: haitukang.v1.AdminService.DecideClosedAccount:output_type -> haitukang.v1.DecideClosedAccountResponse
+	12, // 28: haitukang.v1.AdminService.FindAccount:output_type -> haitukang.v1.FindAccountResponse
+	16, // 29: haitukang.v1.AdminService.SuspendAccount:output_type -> haitukang.v1.SuspendAccountResponse
+	18, // 30: haitukang.v1.AdminService.LiftSuspension:output_type -> haitukang.v1.LiftSuspensionResponse
+	21, // 31: haitukang.v1.AdminService.ListDecisions:output_type -> haitukang.v1.ListDecisionsResponse
+	14, // 32: haitukang.v1.AdminService.SetProductHidden:output_type -> haitukang.v1.SetProductHiddenResponse
+	24, // [24:33] is the sub-list for method output_type
+	15, // [15:24] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_haitukang_v1_admin_proto_init() }
@@ -1240,6 +1389,7 @@ func file_haitukang_v1_admin_proto_init() {
 	}
 	file_haitukang_v1_account_proto_init()
 	file_haitukang_v1_penalty_proto_init()
+	file_haitukang_v1_store_proto_init()
 	file_haitukang_v1_visit_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1247,7 +1397,7 @@ func file_haitukang_v1_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_haitukang_v1_admin_proto_rawDesc), len(file_haitukang_v1_admin_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   19,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

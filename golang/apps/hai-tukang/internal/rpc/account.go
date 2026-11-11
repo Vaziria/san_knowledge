@@ -177,6 +177,8 @@ func roleFromProto(r v1.Role) accounts.Role {
 		return accounts.RoleRepairman
 	case v1.Role_ROLE_ADMIN:
 		return accounts.RoleAdmin
+	case v1.Role_ROLE_STORE:
+		return accounts.RoleStore
 	}
 	return ""
 }
@@ -189,6 +191,8 @@ func roleToProto(r accounts.Role) v1.Role {
 		return v1.Role_ROLE_REPAIRMAN
 	case accounts.RoleAdmin:
 		return v1.Role_ROLE_ADMIN
+	case accounts.RoleStore:
+		return v1.Role_ROLE_STORE
 	}
 	return v1.Role_ROLE_UNSPECIFIED
 }

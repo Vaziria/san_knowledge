@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package haitukang.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// StoreService is the materials marketplace's first part (acceptance
+// HT-015): partner stores (Role ROLE_STORE) keep a profile and list
+// products with up to 5 photos; anyone signed in finds them. A product an
+// admin hid, or any product of a suspended store, is not found; the store
+// still sees it, marked hidden. Prices and fees are whole rupiah.
+service StoreService {
+  // GetMyStore is the store's own profile (unset until it fills one in)
+  // and all its products, newest change first. Only a store (forbidden).
+  rpc GetMyStore(GetMyStoreRequest) returns (GetMyStoreResponse);
+  // SaveStoreProfile: invalid_store_name, invalid_area, invalid_address,
+  // no_handover (neither pickup nor delivery), invalid_delivery_fee,
+  // invalid_delivery_areas. Without delivery, its fee and areas are dropped.
+  rpc SaveStoreProfile(SaveStoreProfileRequest) returns (SaveStoreProfileResponse);
+  // SaveProduct adds a product (product_id 0) or changes one of the
+  // store's (not_found otherwise). store_profile_required before the
+  // profile; invalid_product_name, invalid_service, invalid_price,
+  // invalid_unit, invalid_product_description.
+  rpc SaveProduct(SaveProductRequest) returns (SaveProductResponse);
+  // DeleteProduct deletes one of the store's products and its photos.
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
+  // AddProductPhoto takes a JPEG, PNG or WebP picture (invalid_photo) of
+  // at most 10 MB and 40 million pixels (photo_too_large), for one of the
+  // store's products; too_many_photos past 5. It is kept at most 1600
+  // pixels on its longer side, as JPEG, without what else the file
+  // carried (a phone photo's location).
+  rpc AddProductPhoto(AddProductPhotoRequest) returns (AddProductPhotoResponse);
+  rpc DeleteProductPhoto(DeleteProductPhotoRequest) returns (DeleteProductPhotoResponse);
+  // SearchProducts finds products customers may see, available ones
+  // first, at most 50.
+  rpc SearchProducts(SearchProductsRequest) returns (SearchProductsResponse);
+  // GetProduct is one product customers may see, with its store;
+  // not_found otherwise.
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+}
+
+message StoreProfile {
+  string name = 1;
+  // area is free text, as a repairman's.
+  string area = 2;
+  string address = 3;
+  bool pickup = 4;
+  bool delivers = 5;
+  int64 delivery_fee = 6;
+  // delivery_areas lists, as free text, where the store delivers.
+  string delivery_areas = 7;
+}
+
+// Store is a store as customers see it.
+message Store {
+  // id is the store's account.
+  int64 id = 1;
+  string phone = 2;
+  StoreProfile profile = 3;
+}
+
+// ProductDetails is what a store says about a product.
+message ProductDetails {
+  string name = 1;
+  // service is a kind of work (as a repair request's).
+  string service = 2;
+  int64 price = 3;
+  // unit: pcs, meter, sak, ...
+  string unit = 4;
+  bool available = 5;
+  string description = 6;
+}
+
+message ProductPhoto {
+  int64 id = 1;
+  // url is served by the API (/photos/...); it never changes.
+  string url = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+message Product {
+  int64 id = 1;
+  int64 store_id = 2;
+  ProductDetails details = 3;
+  // hidden: by an admin; only the store and admins see it.
+  bool hidden = 4;
+  // photos, in the order added.
+  repeated ProductPhoto photos = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message ProductListing {
+  Product product = 1;
+  Store store = 2;
+}
+
+message GetMyStoreRequest {}
+
+message GetMyStoreResponse {
+  StoreProfile profile = 1;
+  repeated Product products = 2;
+}
+
+message SaveStoreProfileRequest {
+  StoreProfile profile = 1;
+}
+
+message SaveStoreProfileResponse {
+  StoreProfile profile = 1;
+}
+
+message SaveProductRequest {
+  int64 product_id = 1;
+  ProductDetails details = 2;
+}
+
+message SaveProductResponse {
+  Product product = 1;
+}
+
+message DeleteProductRequest {
+  int64 product_id = 1;
+}
+
+message DeleteProductResponse {}
+
+message AddProductPhotoRequest {
+  int64 product_id = 1;
+  bytes data = 2;
+}
+
+message AddProductPhotoResponse {
+  Product product = 1;
+}
+
+message DeleteProductPhotoRequest {
+  int64 product_id = 1;
+  int64 photo_id = 2;
+}
+
+message DeleteProductPhotoResponse {
+  Product product = 1;
+}
+
+message SearchProductsRequest {
+  // service keeps to one kind of work; empty for all.
+  string service = 1;
+  // area matches a store's area or where it delivers, ignoring case.
+  string area = 2;
+  // query: every word is in the product's name or description.
+  string query = 3;
+}
+
+message SearchProductsResponse {
+  repeated ProductListing listings = 1;
+}
+
+message GetProductRequest {
+  int64 product_id = 1;
+}
+
+message GetProductResponse {
+  ProductListing listing = 1;
+}

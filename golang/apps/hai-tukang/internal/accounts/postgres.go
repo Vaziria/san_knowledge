@@ -190,11 +190,15 @@ func (s *PostgresStore) Profile(ctx context.Context, accountID int64) (Profile, 
 func (s *PostgresStore) ListRepairmen(ctx context.Context, f RepairmanFilter) ([]Repairman, error) {
 	// Named parameters (@at) for the ones used twice; GORM does not read
 	// one followed by a Postgres cast (@x::text), hence CAST.
+	// Flat: GORM leaves an embedded struct of an unexported type (as
+	// profileRow) empty.
 	var rows []struct {
 		ID       int64
 		FullName string
 		Phone    string
-		profileRow
+		Services db.TextArray
+		Area     string
+		About    string
 	}
 	err := s.db.WithContext(ctx).Raw(`
 		SELECT a.id, a.full_name, a.phone, p.services::text AS services, p.area, p.about
@@ -212,8 +216,7 @@ func (s *PostgresStore) ListRepairmen(ctx context.Context, f RepairmanFilter) ([
 	}
 	list := make([]Repairman, 0, len(rows))
 	for _, r := range rows {
-		p := r.profile()
-		list = append(list, Repairman{ID: r.ID, FullName: r.FullName, Phone: r.Phone, Services: p.Services, Area: p.Area, About: p.About})
+		list = append(list, Repairman{ID: r.ID, FullName: r.FullName, Phone: r.Phone, Services: []string(r.Services), Area: r.Area, About: r.About})
 	}
 	return list, nil
 }

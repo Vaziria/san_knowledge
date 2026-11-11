@@ -106,9 +106,28 @@ func (s *adminServer) FindAccount(ctx context.Context, req *connect.Request[v1.F
 	if err != nil {
 		return nil, rpcError(err)
 	}
-	return connect.NewResponse(&v1.FindAccountResponse{
+	out := &v1.FindAccountResponse{
 		Account: accountToProto(found.Account), Standing: standingToProto(found.Standing, s.deps.Penalties.Now()),
-	}), nil
+	}
+	if found.Account.Role == accounts.RoleStore {
+		profile, list, err := s.deps.Stores.StoreOf(ctx, found.Account.ID)
+		if err != nil {
+			return nil, rpcError(err)
+		}
+		out.Store = myStoreToProto(profile, list)
+	}
+	return connect.NewResponse(out), nil
+}
+
+func (s *adminServer) SetProductHidden(ctx context.Context, req *connect.Request[v1.SetProductHiddenRequest]) (*connect.Response[v1.SetProductHiddenResponse], error) {
+	a, err := s.signedIn(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.deps.Admin.SetProductHidden(ctx, a, req.Msg.GetProductId(), req.Msg.GetHidden(), req.Msg.GetReason()); err != nil {
+		return nil, rpcError(err)
+	}
+	return connect.NewResponse(&v1.SetProductHiddenResponse{}), nil
 }
 
 func (s *adminServer) SuspendAccount(ctx context.Context, req *connect.Request[v1.SuspendAccountRequest]) (*connect.Response[v1.SuspendAccountResponse], error) {
@@ -146,7 +165,7 @@ func (s *adminServer) ListDecisions(ctx context.Context, req *connect.Request[v1
 	for _, d := range list {
 		out.Decisions = append(out.Decisions, &v1.Decision{
 			Id: d.ID, AdminName: d.AdminName, Action: adminActions[d.Action], AccountId: d.AccountID, AccountName: d.AccountName,
-			VisitId: d.VisitID, Reason: d.Reason, CreatedAt: timestamppb.New(d.At),
+			VisitId: d.VisitID, ProductId: d.ProductID, ProductName: d.ProductName, Reason: d.Reason, CreatedAt: timestamppb.New(d.At),
 		})
 	}
 	return connect.NewResponse(out), nil
@@ -156,6 +175,8 @@ var adminActions = map[string]v1.AdminAction{
 	admin.ActionPointsStand:   v1.AdminAction_ADMIN_ACTION_POINTS_STAND,
 	admin.ActionPointsRemoved: v1.AdminAction_ADMIN_ACTION_POINTS_REMOVED,
 	admin.ActionReopen:        v1.AdminAction_ADMIN_ACTION_REOPEN,
+	admin.ActionHideProduct:   v1.AdminAction_ADMIN_ACTION_HIDE_PRODUCT,
+	admin.ActionShowProduct:   v1.AdminAction_ADMIN_ACTION_SHOW_PRODUCT,
 	admin.ActionKeepClosed:    v1.AdminAction_ADMIN_ACTION_KEEP_CLOSED,
 	admin.ActionSuspend:       v1.AdminAction_ADMIN_ACTION_SUSPEND,
 	admin.ActionLift:          v1.AdminAction_ADMIN_ACTION_LIFT,

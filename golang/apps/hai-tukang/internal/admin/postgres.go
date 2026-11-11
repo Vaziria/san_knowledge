@@ -28,6 +28,7 @@ type decisionRow struct {
 	AdminID   int64
 	AccountID *int64
 	VisitID   *int64
+	ProductID *int64
 	Action    string
 	Reason    string
 	CreatedAt time.Time
@@ -43,7 +44,7 @@ func optionalID(id int64) *int64 {
 }
 
 func logDecision(tx *gorm.DB, d Decision) error {
-	row := decisionRow{AdminID: d.AdminID, AccountID: optionalID(d.AccountID), VisitID: optionalID(d.VisitID), Action: d.Action, Reason: d.Reason, CreatedAt: d.At}
+	row := decisionRow{AdminID: d.AdminID, AccountID: optionalID(d.AccountID), VisitID: optionalID(d.VisitID), ProductID: optionalID(d.ProductID), Action: d.Action, Reason: d.Reason, CreatedAt: d.At}
 	if err := tx.Create(&row).Error; err != nil {
 		return fmt.Errorf("log decision: %w", err)
 	}
@@ -265,15 +266,33 @@ func (s *PostgresStore) Lift(ctx context.Context, d Decision) error {
 	})
 }
 
+// SetProductHidden logs the decision about the product's store too, so it
+// shows in the store's history.
+func (s *PostgresStore) SetProductHidden(ctx context.Context, hidden bool, d Decision) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var storeIDs []int64
+		if err := tx.Raw(`UPDATE products SET hidden = ? WHERE id = ? RETURNING store_id`, hidden, d.ProductID).Scan(&storeIDs).Error; err != nil {
+			return fmt.Errorf("hide product: %w", err)
+		}
+		if len(storeIDs) == 0 {
+			return ErrNotFound
+		}
+		d.AccountID = storeIDs[0]
+		return logDecision(tx, d)
+	})
+}
+
 func (s *PostgresStore) Decisions(ctx context.Context) ([]Decision, error) {
 	list := []Decision{}
 	err := s.db.WithContext(ctx).Raw(`
 		SELECT d.id, d.admin_id, ad.full_name AS admin_name, coalesce(d.account_id, 0) AS account_id,
 		       coalesce(ac.full_name, '') AS account_name, coalesce(d.visit_id, 0) AS visit_id,
+		       coalesce(d.product_id, 0) AS product_id, coalesce(pr.name, '') AS product_name,
 		       d.action, d.reason, d.created_at AS at
 		FROM admin_decisions d
 		JOIN accounts ad ON ad.id = d.admin_id
 		LEFT JOIN accounts ac ON ac.id = d.account_id
+		LEFT JOIN products pr ON pr.id = d.product_id
 		ORDER BY d.id DESC LIMIT 100
 	`).Scan(&list).Error
 	if err != nil {

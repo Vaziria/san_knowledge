@@ -57,6 +57,9 @@ const (
 	// AdminServiceListDecisionsProcedure is the fully-qualified name of the AdminService's
 	// ListDecisions RPC.
 	AdminServiceListDecisionsProcedure = "/haitukang.v1.AdminService/ListDecisions"
+	// AdminServiceSetProductHiddenProcedure is the fully-qualified name of the AdminService's
+	// SetProductHidden RPC.
+	AdminServiceSetProductHiddenProcedure = "/haitukang.v1.AdminService/SetProductHidden"
 )
 
 // AdminServiceClient is a client for the haitukang.v1.AdminService service.
@@ -72,7 +75,8 @@ type AdminServiceClient interface {
 	// DecideClosedAccount: reopen ends the closure and removes the points
 	// still counting; otherwise it stays closed, marked reviewed. not_closed.
 	DecideClosedAccount(context.Context, *connect.Request[v1.DecideClosedAccountRequest]) (*connect.Response[v1.DecideClosedAccountResponse], error)
-	// FindAccount finds a customer or repairman by phone (not_found).
+	// FindAccount finds a customer, repairman or store by phone (not_found);
+	// a store comes with its profile and all its products, hidden ones too.
 	FindAccount(context.Context, *connect.Request[v1.FindAccountRequest]) (*connect.Response[v1.FindAccountResponse], error)
 	// SuspendAccount suspends for 1 to 365 days (invalid_days), by hand: it
 	// is not a step toward closing. already_suspended.
@@ -81,6 +85,9 @@ type AdminServiceClient interface {
 	LiftSuspension(context.Context, *connect.Request[v1.LiftSuspensionRequest]) (*connect.Response[v1.LiftSuspensionResponse], error)
 	// ListDecisions is the log, newest first.
 	ListDecisions(context.Context, *connect.Request[v1.ListDecisionsRequest]) (*connect.Response[v1.ListDecisionsResponse], error)
+	// SetProductHidden hides a store's product from customers, or shows it
+	// again (HT-015); the store still sees it, marked hidden. not_found.
+	SetProductHidden(context.Context, *connect.Request[v1.SetProductHiddenRequest]) (*connect.Response[v1.SetProductHiddenResponse], error)
 }
 
 // NewAdminServiceClient constructs a client for the haitukang.v1.AdminService service. By default,
@@ -142,6 +149,12 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(adminServiceMethods.ByName("ListDecisions")),
 			connect.WithClientOptions(opts...),
 		),
+		setProductHidden: connect.NewClient[v1.SetProductHiddenRequest, v1.SetProductHiddenResponse](
+			httpClient,
+			baseURL+AdminServiceSetProductHiddenProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("SetProductHidden")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -155,6 +168,7 @@ type adminServiceClient struct {
 	suspendAccount      *connect.Client[v1.SuspendAccountRequest, v1.SuspendAccountResponse]
 	liftSuspension      *connect.Client[v1.LiftSuspensionRequest, v1.LiftSuspensionResponse]
 	listDecisions       *connect.Client[v1.ListDecisionsRequest, v1.ListDecisionsResponse]
+	setProductHidden    *connect.Client[v1.SetProductHiddenRequest, v1.SetProductHiddenResponse]
 }
 
 // ListDisputes calls haitukang.v1.AdminService.ListDisputes.
@@ -197,6 +211,11 @@ func (c *adminServiceClient) ListDecisions(ctx context.Context, req *connect.Req
 	return c.listDecisions.CallUnary(ctx, req)
 }
 
+// SetProductHidden calls haitukang.v1.AdminService.SetProductHidden.
+func (c *adminServiceClient) SetProductHidden(ctx context.Context, req *connect.Request[v1.SetProductHiddenRequest]) (*connect.Response[v1.SetProductHiddenResponse], error) {
+	return c.setProductHidden.CallUnary(ctx, req)
+}
+
 // AdminServiceHandler is an implementation of the haitukang.v1.AdminService service.
 type AdminServiceHandler interface {
 	// ListDisputes is the disputed reports awaiting a decision, oldest first.
@@ -210,7 +229,8 @@ type AdminServiceHandler interface {
 	// DecideClosedAccount: reopen ends the closure and removes the points
 	// still counting; otherwise it stays closed, marked reviewed. not_closed.
 	DecideClosedAccount(context.Context, *connect.Request[v1.DecideClosedAccountRequest]) (*connect.Response[v1.DecideClosedAccountResponse], error)
-	// FindAccount finds a customer or repairman by phone (not_found).
+	// FindAccount finds a customer, repairman or store by phone (not_found);
+	// a store comes with its profile and all its products, hidden ones too.
 	FindAccount(context.Context, *connect.Request[v1.FindAccountRequest]) (*connect.Response[v1.FindAccountResponse], error)
 	// SuspendAccount suspends for 1 to 365 days (invalid_days), by hand: it
 	// is not a step toward closing. already_suspended.
@@ -219,6 +239,9 @@ type AdminServiceHandler interface {
 	LiftSuspension(context.Context, *connect.Request[v1.LiftSuspensionRequest]) (*connect.Response[v1.LiftSuspensionResponse], error)
 	// ListDecisions is the log, newest first.
 	ListDecisions(context.Context, *connect.Request[v1.ListDecisionsRequest]) (*connect.Response[v1.ListDecisionsResponse], error)
+	// SetProductHidden hides a store's product from customers, or shows it
+	// again (HT-015); the store still sees it, marked hidden. not_found.
+	SetProductHidden(context.Context, *connect.Request[v1.SetProductHiddenRequest]) (*connect.Response[v1.SetProductHiddenResponse], error)
 }
 
 // NewAdminServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -276,6 +299,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(adminServiceMethods.ByName("ListDecisions")),
 		connect.WithHandlerOptions(opts...),
 	)
+	adminServiceSetProductHiddenHandler := connect.NewUnaryHandler(
+		AdminServiceSetProductHiddenProcedure,
+		svc.SetProductHidden,
+		connect.WithSchema(adminServiceMethods.ByName("SetProductHidden")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/haitukang.v1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AdminServiceListDisputesProcedure:
@@ -294,6 +323,8 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceLiftSuspensionHandler.ServeHTTP(w, r)
 		case AdminServiceListDecisionsProcedure:
 			adminServiceListDecisionsHandler.ServeHTTP(w, r)
+		case AdminServiceSetProductHiddenProcedure:
+			adminServiceSetProductHiddenHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -333,4 +364,8 @@ func (UnimplementedAdminServiceHandler) LiftSuspension(context.Context, *connect
 
 func (UnimplementedAdminServiceHandler) ListDecisions(context.Context, *connect.Request[v1.ListDecisionsRequest]) (*connect.Response[v1.ListDecisionsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("haitukang.v1.AdminService.ListDecisions is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) SetProductHidden(context.Context, *connect.Request[v1.SetProductHiddenRequest]) (*connect.Response[v1.SetProductHiddenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("haitukang.v1.AdminService.SetProductHidden is not implemented"))
 }

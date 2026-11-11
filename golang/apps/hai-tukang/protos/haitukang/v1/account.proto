@@ -68,6 +68,8 @@ enum Role {
   // ROLE_ADMIN is Hai Tukang staff, made from the server's command line;
   // Register refuses it (invalid_role).
   ROLE_ADMIN = 3;
+  // ROLE_STORE is a partner store selling materials (acceptance HT-015).
+  ROLE_STORE = 4;
 }
 
 message Account {

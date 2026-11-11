@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/wargasipil/hai-tukang/gen/haitukang/v1/haitukangv1connect"
 	"github.com/wargasipil/hai-tukang/internal/accounts"
 	"github.com/wargasipil/hai-tukang/internal/admin"
 	"github.com/wargasipil/hai-tukang/internal/penalties"
+	"github.com/wargasipil/hai-tukang/internal/photos"
 	"github.com/wargasipil/hai-tukang/internal/push"
 	"github.com/wargasipil/hai-tukang/internal/requests"
 	"github.com/wargasipil/hai-tukang/internal/visits"
@@ -64,6 +66,7 @@ type Admin interface {
 	Suspend(ctx context.Context, a accounts.Account, accountID int64, days int, reason string) error
 	Lift(ctx context.Context, a accounts.Account, accountID int64, reason string) error
 	Decisions(ctx context.Context, a accounts.Account) ([]admin.Decision, error)
+	SetProductHidden(ctx context.Context, a accounts.Account, productID int64, hidden bool, reason string) error
 }
 
 // Penalties is what the services need of penalties.Service.
@@ -87,6 +90,9 @@ type Deps struct {
 	PushPublicKey string
 	Penalties     Penalties
 	Admin         Admin
+	Stores        Stores
+	// Photos keeps the pictures served at /photos/.
+	Photos photos.Storage
 	// SecureCookies marks the session cookie Secure: on whenever the site is
 	// served over HTTPS, including behind a proxy that ends TLS.
 	SecureCookies bool
@@ -107,6 +113,10 @@ func New(deps Deps) http.Handler {
 	mux.Handle(haitukangv1connect.NewNotificationServiceHandler(&notificationServer{deps: deps, sessions: sessions}))
 	mux.Handle(haitukangv1connect.NewPenaltyServiceHandler(&penaltyServer{deps: deps, sessions: sessions}))
 	mux.Handle(haitukangv1connect.NewAdminServiceHandler(&adminServer{deps: deps, sessions: sessions}))
+	// A photo is at most photos.MaxUpload bytes; as JSON, a third more.
+	mux.Handle(haitukangv1connect.NewStoreServiceHandler(&storeServer{deps: deps, sessions: sessions},
+		connect.WithReadMaxBytes(photos.MaxUpload*3/2)))
+	mux.Handle("GET /photos/{key}", photos.Handler(deps.Photos))
 	return mux
 }
 

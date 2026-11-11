@@ -1,8 +1,11 @@
 package rpc_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"image"
+	"image/png"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -19,16 +22,19 @@ import (
 	"github.com/wargasipil/hai-tukang/internal/admin"
 	"github.com/wargasipil/hai-tukang/internal/db"
 	"github.com/wargasipil/hai-tukang/internal/penalties"
+	"github.com/wargasipil/hai-tukang/internal/photos"
 	"github.com/wargasipil/hai-tukang/internal/push"
 	"github.com/wargasipil/hai-tukang/internal/requests"
 	"github.com/wargasipil/hai-tukang/internal/rpc"
+	"github.com/wargasipil/hai-tukang/internal/stores"
 	"github.com/wargasipil/hai-tukang/internal/verify"
 	"github.com/wargasipil/hai-tukang/internal/visits"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // TestAcceptance walks the business acceptance scenarios in
-// docs/acceptances/hai-tukang.md (HT-001 to HT-014) through the generated
+// docs/acceptances/hai-tukang.md (HT-001 to HT-015) through the generated
 // Connect clients, against the real services and a real PostgreSQL. Each
 // run uses its own phone numbers and area, so it never depends on, or
 // clears, what earlier runs left.
@@ -59,10 +65,13 @@ func TestAcceptance(t *testing.T) {
 	told := &toldBook{}
 	visitService := visits.NewServiceWithClock(visits.NewPostgresStore(pool), clock.now).WithNotifier(told).WithStanding(penaltyService)
 	pushService := push.NewService(push.NewPostgresStore(pool), nil)
+	photoDisk := photos.Disk{Dir: t.TempDir()}
 	srv := httptest.NewServer(rpc.New(rpc.Deps{
 		Accounts: accountService, Requests: requestService, Visits: visitService,
 		Push: pushService, PushPublicKey: "test-public-key", Penalties: penaltyService,
-		Admin: admin.NewServiceWithClock(admin.NewPostgresStore(pool), penaltyService, clock.now),
+		Admin:  admin.NewServiceWithClock(admin.NewPostgresStore(pool), penaltyService, clock.now),
+		Stores: stores.NewService(stores.NewPostgresStore(pool), photoDisk).WithClock(clock.now),
+		Photos: photoDisk,
 
 		GoogleClientID: "test-client-id",
 	}))
@@ -774,6 +783,142 @@ func TestAcceptance(t *testing.T) {
 	// A number that has an account cannot get another, with Google either.
 	wantReason(t, sendCode("0812"+run), connect.CodeAlreadyExists, "phone_taken")
 
+	// HT-015: stores sign up themselves, keep a profile and list products
+	// with up to 5 photos; anyone signed in finds them by kind of work, area
+	// and words. An admin can hide a product, or suspend the store.
+	toko := newUser(t, srv, book)
+	if made := toko.register(v1.Role_ROLE_STORE, "Toko Maju "+run, "0823"+run); made.GetRole() != v1.Role_ROLE_STORE {
+		t.Fatalf("store sign-up = %v, want a store", made)
+	}
+	if mine := must(toko.stores.GetMyStore(ctx, connect.NewRequest(&v1.GetMyStoreRequest{}))).Msg; mine.GetProfile() != nil || len(mine.GetProducts()) != 0 {
+		t.Fatalf("a new store = %v, want no profile or products", mine)
+	}
+	pipaDetails := &v1.ProductDetails{Name: "Pipa PVC 1/2 inci", Service: "pipa", Price: 15000, Unit: "batang", Available: true, Description: "Panjang 4 meter."}
+	_, err = toko.stores.SaveProduct(ctx, connect.NewRequest(&v1.SaveProductRequest{Details: pipaDetails}))
+	wantReason(t, err, connect.CodeFailedPrecondition, "store_profile_required")
+	_, err = toko.stores.SaveStoreProfile(ctx, connect.NewRequest(&v1.SaveStoreProfileRequest{Profile: &v1.StoreProfile{Name: "Toko Maju", Area: area, Address: "Jl. Melati 5"}}))
+	wantReason(t, err, connect.CodeInvalidArgument, "no_handover")
+	must(toko.stores.SaveStoreProfile(ctx, connect.NewRequest(&v1.SaveStoreProfileRequest{Profile: &v1.StoreProfile{
+		Name: "Toko Maju " + run, Area: area, Address: "Jl. Melati 5", Pickup: true, Delivers: true, DeliveryFee: 10000, DeliveryAreas: "Depok " + run,
+	}})))
+	pipa := must(toko.stores.SaveProduct(ctx, connect.NewRequest(&v1.SaveProductRequest{Details: pipaDetails}))).Msg.GetProduct()
+	_, err = toko.stores.SaveProduct(ctx, connect.NewRequest(&v1.SaveProductRequest{Details: &v1.ProductDetails{Name: "Kran", Service: "pipa", Unit: "pcs"}}))
+	wantReason(t, err, connect.CodeInvalidArgument, "invalid_price")
+	// Up to 5 photos, served at their URL as JPEG; not a picture is refused.
+	_, err = toko.stores.AddProductPhoto(ctx, connect.NewRequest(&v1.AddProductPhotoRequest{ProductId: pipa.GetId(), Data: []byte("bukan gambar")}))
+	wantReason(t, err, connect.CodeInvalidArgument, "invalid_photo")
+	for i := 0; i < 5; i++ {
+		pipa = must(toko.stores.AddProductPhoto(ctx, connect.NewRequest(&v1.AddProductPhotoRequest{ProductId: pipa.GetId(), Data: testPicture(t)}))).Msg.GetProduct()
+	}
+	_, err = toko.stores.AddProductPhoto(ctx, connect.NewRequest(&v1.AddProductPhotoRequest{ProductId: pipa.GetId(), Data: testPicture(t)}))
+	wantReason(t, err, connect.CodeFailedPrecondition, "too_many_photos")
+	if len(pipa.GetPhotos()) != 5 || !strings.HasPrefix(pipa.GetPhotos()[0].GetUrl(), "/photos/") || pipa.GetPhotos()[0].GetWidth() != 12 {
+		t.Fatalf("product photos = %v, want 5, at /photos/, 12 wide", pipa.GetPhotos())
+	}
+	if res, err := http.Get(srv.URL + pipa.GetPhotos()[0].GetUrl()); err != nil || res.StatusCode != 200 || res.Header.Get("Content-Type") != "image/jpeg" {
+		t.Fatalf("GET the photo = %v, %v; want a JPEG", res, err)
+	}
+	// Customers, repairmen and admins find it; signed out, nobody does.
+	findPipa := func(u *user, f *v1.SearchProductsRequest) *v1.ProductListing {
+		t.Helper()
+		for _, l := range must(u.stores.SearchProducts(ctx, connect.NewRequest(f))).Msg.GetListings() {
+			if l.GetProduct().GetId() == pipa.GetId() {
+				return l
+			}
+		}
+		return nil
+	}
+	listing := findPipa(customer, &v1.SearchProductsRequest{Service: "pipa", Area: area})
+	if listing == nil || listing.GetStore().GetPhone() != "+62823"+run || listing.GetStore().GetProfile().GetName() != "Toko Maju "+run ||
+		listing.GetProduct().GetDetails().GetPrice() != 15000 || len(listing.GetProduct().GetPhotos()) != 5 {
+		t.Fatalf("customer's search = %v, want Toko Maju's pipe with its phone, price and photos", listing)
+	}
+	for name, f := range map[string]*v1.SearchProductsRequest{
+		"by words":            {Query: "pvc INCI", Area: area},
+		"where it delivers":   {Area: "depok " + run},
+		"by kind of work":     {Service: "pipa", Query: "Pipa PVC 1/2 inci"},
+		"by a repairman, too": {Area: area},
+	} {
+		u := customer
+		if name == "by a repairman, too" {
+			u = repairman
+		}
+		if findPipa(u, f) == nil {
+			t.Errorf("search %s (%v) did not find the pipe", name, f)
+		}
+	}
+	if findPipa(customer, &v1.SearchProductsRequest{Area: area, Query: "kabel"}) != nil || findPipa(customer, &v1.SearchProductsRequest{Area: area, Service: "listrik"}) != nil {
+		t.Fatal("the pipe found by other words or another kind of work")
+	}
+	_, err = newUser(t, srv, book).stores.SearchProducts(ctx, connect.NewRequest(&v1.SearchProductsRequest{}))
+	wantReason(t, err, connect.CodeUnauthenticated, "unauthorized")
+	if got := must(customer.stores.GetProduct(ctx, connect.NewRequest(&v1.GetProductRequest{ProductId: pipa.GetId()}))).Msg.GetListing(); got.GetStore().GetId() != pipa.GetStoreId() {
+		t.Fatalf("GetProduct = %v", got)
+	}
+	// Only a store sells; another store cannot touch this one's products.
+	_, err = customer.stores.SaveStoreProfile(ctx, connect.NewRequest(&v1.SaveStoreProfileRequest{Profile: &v1.StoreProfile{Name: "Ayu", Area: area, Address: "Jl. Ayu 1", Pickup: true}}))
+	wantReason(t, err, connect.CodePermissionDenied, "forbidden")
+	tokoLain := newUser(t, srv, book)
+	tokoLain.register(v1.Role_ROLE_STORE, "Toko Jaya "+run, "0824"+run)
+	must(tokoLain.stores.SaveStoreProfile(ctx, connect.NewRequest(&v1.SaveStoreProfileRequest{Profile: &v1.StoreProfile{Name: "Toko Jaya", Area: area, Address: "Jl. Mawar 9", Pickup: true}})))
+	_, err = tokoLain.stores.SaveProduct(ctx, connect.NewRequest(&v1.SaveProductRequest{ProductId: pipa.GetId(), Details: pipaDetails}))
+	wantReason(t, err, connect.CodeNotFound, "not_found")
+	_, err = tokoLain.stores.DeleteProduct(ctx, connect.NewRequest(&v1.DeleteProductRequest{ProductId: pipa.GetId()}))
+	wantReason(t, err, connect.CodeNotFound, "not_found")
+	// Sold out stays findable, after what is available.
+	soldOut := proto.Clone(pipaDetails).(*v1.ProductDetails)
+	soldOut.Available = false
+	if changed := must(toko.stores.SaveProduct(ctx, connect.NewRequest(&v1.SaveProductRequest{ProductId: pipa.GetId(), Details: soldOut}))).Msg.GetProduct(); changed.GetDetails().GetAvailable() || len(changed.GetPhotos()) != 5 {
+		t.Fatalf("marked sold out = %v, want not available, photos kept", changed)
+	}
+	if l := findPipa(customer, &v1.SearchProductsRequest{Area: area}); l == nil || l.GetProduct().GetDetails().GetAvailable() {
+		t.Fatalf("a sold-out pipe = %v, want found, sold out", l)
+	}
+	// An admin hides it: customers no longer find it; the store sees it hidden.
+	_, err = customer.admin.SetProductHidden(ctx, connect.NewRequest(&v1.SetProductHiddenRequest{ProductId: pipa.GetId(), Hidden: true, Reason: "Foto tidak sesuai."}))
+	wantReason(t, err, connect.CodePermissionDenied, "forbidden")
+	must(admin.admin.SetProductHidden(ctx, connect.NewRequest(&v1.SetProductHiddenRequest{ProductId: pipa.GetId(), Hidden: true, Reason: "Foto tidak sesuai produk."})))
+	if findPipa(customer, &v1.SearchProductsRequest{Area: area}) != nil {
+		t.Fatal("a hidden product is still found")
+	}
+	_, err = customer.stores.GetProduct(ctx, connect.NewRequest(&v1.GetProductRequest{ProductId: pipa.GetId()}))
+	wantReason(t, err, connect.CodeNotFound, "not_found")
+	if mine := must(toko.stores.GetMyStore(ctx, connect.NewRequest(&v1.GetMyStoreRequest{}))).Msg.GetProducts(); len(mine) != 1 || !mine[0].GetHidden() {
+		t.Fatalf("the store's products = %v, want its pipe, hidden", mine)
+	}
+	tokoReview := must(admin.admin.FindAccount(ctx, connect.NewRequest(&v1.FindAccountRequest{Phone: "0823" + run}))).Msg
+	if review := tokoReview; review.GetAccount().GetRole() != v1.Role_ROLE_STORE || review.GetStore().GetProfile().GetName() != "Toko Maju "+run || len(review.GetStore().GetProducts()) != 1 || !review.GetStore().GetProducts()[0].GetHidden() {
+		t.Fatalf("admin's look at the store = %v, want its profile and hidden pipe", review)
+	}
+	if d := must(admin.admin.ListDecisions(ctx, connect.NewRequest(&v1.ListDecisionsRequest{}))).Msg.GetDecisions()[0]; d.GetAction() != v1.AdminAction_ADMIN_ACTION_HIDE_PRODUCT ||
+		d.GetProductId() != pipa.GetId() || d.GetProductName() != "Pipa PVC 1/2 inci" || d.GetAccountName() != "Toko Maju "+run || d.GetReason() != "Foto tidak sesuai produk." {
+		t.Fatalf("logged %v, want the hidden pipe of Toko Maju with the reason", d)
+	}
+	must(admin.admin.SetProductHidden(ctx, connect.NewRequest(&v1.SetProductHiddenRequest{ProductId: pipa.GetId(), Hidden: false, Reason: "Toko sudah mengganti foto."})))
+	if findPipa(customer, &v1.SearchProductsRequest{Area: area}) == nil {
+		t.Fatal("a product shown again is not found")
+	}
+	_, err = admin.admin.SetProductHidden(ctx, connect.NewRequest(&v1.SetProductHiddenRequest{ProductId: -1, Hidden: true, Reason: "Tidak ada produknya."}))
+	wantReason(t, err, connect.CodeNotFound, "not_found")
+	// A suspended store's products are not found until it is lifted.
+	tokoID := tokoReview.GetAccount().GetId()
+	must(admin.admin.SuspendAccount(ctx, connect.NewRequest(&v1.SuspendAccountRequest{AccountId: tokoID, Days: 7, Reason: "Banyak keluhan pembeli."})))
+	if findPipa(customer, &v1.SearchProductsRequest{Area: area}) != nil {
+		t.Fatal("a suspended store's product is still found")
+	}
+	must(admin.admin.LiftSuspension(ctx, connect.NewRequest(&v1.LiftSuspensionRequest{AccountId: tokoID, Reason: "Keluhan sudah selesai."})))
+	if findPipa(customer, &v1.SearchProductsRequest{Area: area}) == nil {
+		t.Fatal("the store's product is not found after the suspension is lifted")
+	}
+	// Deleting the product deletes it, and its photos.
+	must(toko.stores.DeleteProduct(ctx, connect.NewRequest(&v1.DeleteProductRequest{ProductId: pipa.GetId()})))
+	if res, err := http.Get(srv.URL + pipa.GetPhotos()[0].GetUrl()); err != nil || res.StatusCode != 404 {
+		t.Fatalf("GET a deleted product's photo = %v, %v; want 404", res, err)
+	}
+	// A store does not post repair requests.
+	_, err = toko.requests.CreateRepairRequest(ctx, connect.NewRequest(&v1.CreateRepairRequestRequest{Service: "pipa", Area: area, Description: "Toko tidak boleh membuat permintaan."}))
+	wantReason(t, err, connect.CodePermissionDenied, "forbidden")
+
 	// Another customer sees none of it.
 	other := newUser(t, srv, book)
 	other.register(v1.Role_ROLE_CUSTOMER, "Budi", "0815"+run)
@@ -877,6 +1022,7 @@ type user struct {
 	notifications haitukangv1connect.NotificationServiceClient
 	penalties     haitukangv1connect.PenaltyServiceClient
 	admin         haitukangv1connect.AdminServiceClient
+	stores        haitukangv1connect.StoreServiceClient
 }
 
 func newUser(t *testing.T, srv *httptest.Server, book *codeBook) *user {
@@ -895,6 +1041,7 @@ func newUser(t *testing.T, srv *httptest.Server, book *codeBook) *user {
 		notifications: haitukangv1connect.NewNotificationServiceClient(client, srv.URL),
 		penalties:     haitukangv1connect.NewPenaltyServiceClient(client, srv.URL),
 		admin:         haitukangv1connect.NewAdminServiceClient(client, srv.URL),
+		stores:        haitukangv1connect.NewStoreServiceClient(client, srv.URL),
 	}
 }
 
@@ -976,6 +1123,20 @@ func (u *user) id() int64 {
 		u.t.Fatal(err)
 	}
 	return me.Msg.GetAccount().GetId()
+}
+
+// testPicture is a 12x9 PNG, as a phone might upload.
+func testPicture(t *testing.T) []byte {
+	t.Helper()
+	img := image.NewNRGBA(image.Rect(0, 0, 12, 9))
+	for i := range img.Pix {
+		img.Pix[i] = 180
+	}
+	var b bytes.Buffer
+	if err := png.Encode(&b, img); err != nil {
+		t.Fatal(err)
+	}
+	return b.Bytes()
 }
 
 func must[T any](res *connect.Response[T], err error) *connect.Response[T] {

@@ -18,6 +18,7 @@ type fakeStore struct {
 	decided  []Decision
 	reported int64 // DecideDispute's answer
 	until    time.Time
+	hidden   []bool
 }
 
 func (f *fakeStore) DecideDispute(_ context.Context, visitID int64, stand bool, d Decision) (int64, error) {
@@ -37,6 +38,12 @@ func (f *fakeStore) Suspend(_ context.Context, until time.Time, d Decision) erro
 }
 
 func (f *fakeStore) Lift(_ context.Context, d Decision) error {
+	f.decided = append(f.decided, d)
+	return nil
+}
+
+func (f *fakeStore) SetProductHidden(_ context.Context, hidden bool, d Decision) error {
+	f.hidden = append(f.hidden, hidden)
 	f.decided = append(f.decided, d)
 	return nil
 }
@@ -87,6 +94,7 @@ func TestOnlyAdminsDecide(t *testing.T) {
 		},
 		"FindAccount": func() error { _, err := s.FindAccount(ctx, ayu, "0812"); return err },
 		"Decisions":   func() error { _, err := s.Decisions(ctx, ayu); return err },
+		"HideProduct": func() error { return s.SetProductHidden(ctx, ayu, 7, true, valid) },
 	}
 	for name, call := range calls {
 		if err := call(); !errors.Is(err, ErrNotAdmin) {
@@ -173,4 +181,25 @@ type adminTarget struct{ Store }
 
 func (adminTarget) Role(context.Context, int64) (accounts.Role, error) {
 	return accounts.RoleAdmin, nil
+}
+
+// Hiding or showing a store's product is a logged decision about it.
+func TestSetProductHiddenLogsTheDecision(t *testing.T) {
+	s, store, _ := newTest()
+	if err := s.SetProductHidden(ctx, boss, 7, true, "  Foto produk menyesatkan.  "); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetProductHidden(ctx, boss, 7, false, "Toko sudah mengganti fotonya."); err != nil {
+		t.Fatal(err)
+	}
+	want := []Decision{
+		{AdminID: boss.ID, ProductID: 7, Action: ActionHideProduct, Reason: "Foto produk menyesatkan.", At: now},
+		{AdminID: boss.ID, ProductID: 7, Action: ActionShowProduct, Reason: "Toko sudah mengganti fotonya.", At: now},
+	}
+	if fmt.Sprint(store.decided) != fmt.Sprint(want) || fmt.Sprint(store.hidden) != "[true false]" {
+		t.Fatalf("decided %+v (hidden %v), want %+v", store.decided, store.hidden, want)
+	}
+	if err := s.SetProductHidden(ctx, boss, 7, true, "ok"); !errors.Is(err, ErrInvalidReason) {
+		t.Fatalf("a short reason: %v, want ErrInvalidReason", err)
+	}
 }

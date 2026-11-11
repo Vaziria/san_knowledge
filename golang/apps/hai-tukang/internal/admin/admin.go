@@ -23,6 +23,9 @@ const (
 	ActionKeepClosed    = "keep_closed"
 	ActionSuspend       = "suspend"
 	ActionLift          = "lift"
+	// A store's product hidden from customers, or shown again (HT-015).
+	ActionHideProduct = "hide_product"
+	ActionShowProduct = "show_product"
 
 	MinReason      = 5
 	MaxReason      = 500
@@ -48,6 +51,9 @@ type Decision struct {
 	AccountID   int64
 	AccountName string
 	VisitID     int64
+	// ProductID and ProductName: the product hidden or shown.
+	ProductID   int64
+	ProductName string
 	Action      string
 	Reason      string
 	At          time.Time
@@ -104,6 +110,8 @@ type Store interface {
 	// Lift ends the account's current suspension now; ErrNotSuspended.
 	Lift(ctx context.Context, d Decision) error
 	Decisions(ctx context.Context) ([]Decision, error)
+	// SetProductHidden hides or shows d.ProductID; ErrNotFound.
+	SetProductHidden(ctx context.Context, hidden bool, d Decision) error
 }
 
 // Penalties is what admin needs of penalties.Service.
@@ -212,6 +220,21 @@ func (s *Service) Lift(ctx context.Context, admin accounts.Account, accountID in
 	}
 	d.AccountID = accountID
 	return s.store.Lift(ctx, d)
+}
+
+// SetProductHidden hides a store's product from customers, or shows it
+// again; the store still sees it, marked hidden.
+func (s *Service) SetProductHidden(ctx context.Context, admin accounts.Account, productID int64, hidden bool, reason string) error {
+	action := ActionShowProduct
+	if hidden {
+		action = ActionHideProduct
+	}
+	d, err := s.decision(admin, action, reason)
+	if err != nil {
+		return err
+	}
+	d.ProductID = productID
+	return s.store.SetProductHidden(ctx, hidden, d)
 }
 
 func (s *Service) Disputes(ctx context.Context, admin accounts.Account) ([]Dispute, error) {

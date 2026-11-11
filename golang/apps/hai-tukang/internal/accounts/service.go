@@ -23,10 +23,12 @@ const (
 	RoleRepairman Role = "repairman"
 	// RoleAdmin is Hai Tukang staff: made by CreateAdmin, never Register.
 	RoleAdmin Role = "admin"
+	// RoleStore is a partner store selling materials (acceptance HT-015).
+	RoleStore Role = "store"
 )
 
 var (
-	ErrInvalidRole  = errors.New("role must be customer or repairman")
+	ErrInvalidRole  = errors.New("role must be customer, repairman or store")
 	ErrInvalidName  = errors.New("full name must be between 2 and 80 characters")
 	ErrInvalidPhone = errors.New("enter a valid phone number")
 	ErrWeakPassword = errors.New("password must be at least 8 characters")
@@ -53,10 +55,10 @@ const (
 )
 
 // TermsVersion is the version (date) of the Terms and Policies page that
-// customers and repairmen must agree to (acceptance HT-014). It is the
+// customers, repairmen and stores must agree to (acceptance HT-014). It is the
 // frontend's too (typescripts/hai-tukang/src/terms/version.ts); a new
 // version makes everyone agree again.
-const TermsVersion = "2026-11-07"
+const TermsVersion = "2026-11-11"
 
 // TermsAccepted is whether the account agreed to the current terms. Admins
 // are staff and are not asked.
@@ -482,10 +484,11 @@ func (s *Service) WithSearchClock(now func() time.Time) *Service {
 	return &c
 }
 
-// NormalizeRegistration checks a sign-up: only customers and repairmen sign up.
+// NormalizeRegistration checks a sign-up: customers, repairmen and stores
+// sign up; admins never do.
 func NormalizeRegistration(input Registration) (Registration, error) {
 	switch input.Role {
-	case RoleCustomer, RoleRepairman:
+	case RoleCustomer, RoleRepairman, RoleStore:
 	default:
 		return Registration{}, ErrInvalidRole
 	}

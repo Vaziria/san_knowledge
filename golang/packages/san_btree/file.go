@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/edsrzf/mmap-go"
 )
@@ -15,6 +16,9 @@ type mfile struct {
 	f    *os.File
 	m    mmap.MMap
 	path string
+
+	isNew    bool // created since its last sync: the next sync is a full one
+	fullSync bool // the data-only flush is not supported here
 }
 
 // faultFunc is a test hook called before every write, sync, resize and file
@@ -42,14 +46,45 @@ func (c *core) writeAt(f *mfile, p []byte, off int64) error {
 	return err
 }
 
-func (c *core) syncFile(f *mfile) error {
-	if err := c.fault("sync", f.path); err != nil {
-		return err
+func (c *core) syncFile(f *mfile) error { return c.syncFiles(f) }
+
+// syncFiles makes the written bytes of every file durable, the files at
+// the same time (one goroutine each): a commit waits for one flush round,
+// not one per file. The fault hook sees the files in order first.
+func (c *core) syncFiles(fs ...*mfile) error {
+	for _, f := range fs {
+		if err := c.fault("sync", f.path); err != nil {
+			return err
+		}
 	}
 	if c.opts.noSync {
 		return nil
 	}
-	return f.f.Sync()
+	if len(fs) == 1 {
+		return fs[0].sync()
+	}
+	errs := make([]error, len(fs))
+	var wg sync.WaitGroup
+	for i, f := range fs[1:] {
+		wg.Go(func() { errs[i+1] = f.sync() })
+	}
+	errs[0] = fs[0].sync()
+	wg.Wait()
+	return errors.Join(errs...)
+}
+
+// sync flushes the file: data and the metadata to read it (fdatasync, or
+// its Windows match), the full flush when the file is new since its last
+// sync or the data-only one is not supported there.
+func (f *mfile) sync() error {
+	fallback, err := dataSync(f.f, f.fullSync || f.isNew)
+	if fallback {
+		f.fullSync = true
+	}
+	if err == nil {
+		f.isNew = false
+	}
+	return err
 }
 
 // mapAll maps the whole file read-only.
@@ -90,6 +125,7 @@ func (f *mfile) close() error {
 // file cannot change size, so the mapping goes first; the caller holds the
 // index's exclusive lock so no reader is in the old mapping.
 func (c *core) resize(f *mfile, size int64) error {
+	c.mapGen++
 	if err := f.unmap(); err != nil {
 		return err
 	}
@@ -97,6 +133,7 @@ func (c *core) resize(f *mfile, size int64) error {
 	if ferr == nil {
 		ferr = f.f.Truncate(size)
 	}
+	f.isNew = true // a full sync for the new size, to be sure (rare: doubling)
 	if err := f.mapAll(); err != nil {
 		return errors.Join(ferr, err)
 	}

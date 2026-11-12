@@ -7,6 +7,7 @@ import (
 	"iter"
 	"runtime"
 	"slices"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 )
@@ -18,6 +19,8 @@ type Index[K Key, V any] struct {
 	c  *core
 	kc keyCodec[K]
 	vc *valueCodec[V]
+
+	scanBufs sync.Pool // *scanBuf[K, V], the batches of the copying iterators
 }
 
 // NewIndex opens the index named fname, creating fname.index and
@@ -86,11 +89,11 @@ func (ix *Index[K, V]) Get(key K) (V, bool, error) {
 	if err != nil || !ok {
 		return v, false, err
 	}
-	r, err := c.record(ptr)
+	val, err := c.value(ptr)
 	if err != nil {
 		return v, false, err
 	}
-	if err := ix.vc.decode(r.val, &v, false); err != nil {
+	if err := ix.vc.decode(val, &v, false); err != nil {
 		return v, false, err
 	}
 	return v, true, nil
@@ -125,12 +128,12 @@ func (ix *Index[K, V]) View(key K, fn func(v *V)) error {
 
 // viewAt calls fn with a view of the value at ptr. mu is held.
 func (ix *Index[K, V]) viewAt(ptr uint64, fn func(v *V)) error {
-	r, err := ix.c.record(ptr)
+	val, err := ix.c.value(ptr)
 	if err != nil {
 		return err
 	}
 	if ix.vc.layout == layoutRaw {
-		v, err := ix.vc.rawView(r.val)
+		v, err := ix.vc.rawView(val)
 		if err != nil {
 			return err
 		}
@@ -138,7 +141,7 @@ func (ix *Index[K, V]) viewAt(ptr uint64, fn func(v *V)) error {
 		return nil
 	}
 	var v V
-	if err := ix.vc.decode(r.val, &v, true); err != nil {
+	if err := ix.vc.decode(val, &v, true); err != nil {
 		return err
 	}
 	fn(&v)
@@ -147,9 +150,9 @@ func (ix *Index[K, V]) viewAt(ptr uint64, fn func(v *V)) error {
 
 func (ix *Index[K, V]) valueAt(ptr uint64) (V, error) {
 	var v V
-	r, err := ix.c.record(ptr)
+	val, err := ix.c.value(ptr)
 	if err == nil {
-		err = ix.vc.decode(r.val, &v, false)
+		err = ix.vc.decode(val, &v, false)
 	}
 	return v, err
 }
@@ -359,6 +362,20 @@ func (b *bounds) in(key []byte) bool {
 	return b.hi == nil || bytes.Compare(key, b.hi) < 0
 }
 
+// inAfter is in for a key reached going forward from the first key >= lo:
+// only hi is left to check. A prefix's hi is prefixEnd(prefix) (none when
+// the prefix is all 0xff), and the keys in [prefix, prefixEnd) are exactly
+// the keys with that prefix, so hi covers it.
+func (b *bounds) inAfter(key []byte) bool { return b.hi == nil || bytes.Compare(key, b.hi) < 0 }
+
+// inBefore is in for a key reached going backward from the last key < hi.
+func (b *bounds) inBefore(key []byte) bool {
+	if b.prefix != nil && !bytes.HasPrefix(key, b.prefix) {
+		return false
+	}
+	return b.lo == nil || bytes.Compare(key, b.lo) >= 0
+}
+
 // scan yields copies of the keys within bounds, in order or backward. It
 // reads up to scanBatch entries per hold of the read lock and yields them
 // with the lock released, so the loop body may write to the index.
@@ -374,14 +391,23 @@ func (ix *Index[K, V]) scan(b bounds, backward bool) iter.Seq2[K, V] {
 		c.mu.RUnlock()
 		defer c.unpin(st.txid)
 		cu := ccursor{c: c, root: st.root}
-		var ks []K
-		var vs []V
+		sb, _ := ix.scanBufs.Get().(*scanBuf[K, V])
+		if sb == nil {
+			sb = &scanBuf[K, V]{ks: make([]K, scanBatch), vs: make([]V, scanBatch)}
+		}
+		defer func() {
+			clear(sb.ks) // drop the strings, so a pooled buffer keeps no arena alive
+			clear(sb.vs)
+			ix.scanBufs.Put(sb)
+		}()
+		var arena []byte
 		started, more := false, true
 		for more {
-			ks, vs, more = ix.scanBatch(&cu, &b, backward, started, ks[:0], vs[:0])
+			var n int
+			n, more = ix.scanBatch(&cu, &b, backward, started, sb, &arena)
 			started = true
-			for i := range ks {
-				if !yield(ks[i], vs[i]) {
+			for i := range n {
+				if !yield(sb.ks[i], sb.vs[i]) {
 					return
 				}
 			}
@@ -391,14 +417,29 @@ func (ix *Index[K, V]) scan(b bounds, backward bool) iter.Seq2[K, V] {
 
 const scanBatch = 128
 
-func (ix *Index[K, V]) scanBatch(cu *ccursor, b *bounds, backward, started bool, ks []K, vs []V) ([]K, []V, bool) {
+// scanBuf holds one batch of a copying iterator; the iterators reuse them
+// (a sync.Pool), since what they yield are copies.
+type scanBuf[K Key, V any] struct {
+	ks []K
+	vs []V
+}
+
+// scanBatch reads the next entries into sb and returns how many: keys
+// decoded from the mapped leaf (the cursor keeps the leaf and its path, so
+// a step inside a leaf is an index increment), values read from the
+// mapping, their crc32 checked. String keys and string fields are copied
+// into the arena.
+func (ix *Index[K, V]) scanBatch(cu *ccursor, b *bounds, backward, started bool, sb *scanBuf[K, V], arena *[]byte) (int, bool) {
 	c := ix.c
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.closed {
-		return ks, vs, false
+		return 0, false
 	}
-	for len(ks) < scanBatch {
+	var df *mfile
+	dseq := ^uint32(0)
+	strKey := ix.kc.isString()
+	for n := 0; n < scanBatch; n++ {
 		var ok bool
 		switch {
 		case started && backward:
@@ -419,20 +460,38 @@ func (ix *Index[K, V]) scanBatch(cu *ccursor, b *bounds, backward, started bool,
 			panic(cu.err)
 		}
 		if !ok {
-			return ks, vs, false
+			return n, false
 		}
 		kb, ptr := cu.entry()
-		if !b.in(kb) {
-			return ks, vs, false
+		if backward && !b.inBefore(kb) || !backward && !b.inAfter(kb) {
+			return n, false
 		}
-		v, err := ix.valueAt(ptr)
+		if seq := uint32(ptr >> 32); seq != dseq {
+			df, dseq = c.files[seq], seq
+		}
+		val, err := c.valueIn(df, ptr)
 		if err != nil {
 			panic(err)
 		}
-		ks = append(ks, ix.kc.decode(kb, false))
-		vs = append(vs, v)
+		v := &sb.vs[n]
+		if ix.vc.layout == layoutRaw {
+			if uintptr(len(val)) < ix.vc.size {
+				panic(corruptf("value is %d bytes, want %d", len(val), ix.vc.size))
+			}
+			*v = *(*V)(unsafe.Pointer(unsafe.SliceData(val))) // 8-byte aligned in the mapping
+		} else {
+			*v = *new(V)
+			if err := ix.vc.decodeTo(val, v, false, arena); err != nil {
+				panic(err)
+			}
+		}
+		if strKey {
+			*(*string)(unsafe.Pointer(&sb.ks[n])) = arenaString(arena, kb)
+		} else {
+			sb.ks[n] = ix.kc.decode(kb, false)
+		}
 	}
-	return ks, vs, true
+	return scanBatch, true
 }
 
 func (ix *Index[K, V]) rangeBounds(from, to K) (bounds, bool) {

@@ -287,7 +287,7 @@ func (t *txn) write(n *node) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	b := make([]byte, t.c.cfg.chunkSize)
+	b := t.chunkBuf()
 	n.encode(b)
 	t.writes = append(t.writes, chunkWrite{c, b})
 	n.chunk, n.dirty = c, false

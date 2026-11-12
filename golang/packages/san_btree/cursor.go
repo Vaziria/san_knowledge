@@ -14,6 +14,13 @@ type ccursor struct {
 	stack []frame
 	valid bool
 	err   error
+
+	// The leaf at the top of the stack, checked, as a slice of the mapping:
+	// kept while the mapping is the same (c.mapGen), so a step inside a leaf
+	// checks nothing again.
+	leaf      []byte
+	leafChunk uint32
+	leafGen   uint64
 }
 
 type frame struct {
@@ -41,6 +48,24 @@ func (cu *ccursor) fail(err error) {
 	}
 	cu.valid = false
 	cu.stack = cu.stack[:0]
+	cu.leaf = nil
+}
+
+// keepLeaf remembers b as leaf chunk n.
+func (cu *ccursor) keepLeaf(n uint32, b []byte) {
+	cu.leaf, cu.leafChunk, cu.leafGen = b, n, cu.c.mapGen
+}
+
+// leafNode returns leaf chunk n: the one kept, or read and checked again.
+func (cu *ccursor) leafNode(n uint32) []byte {
+	if cu.leaf != nil && cu.leafChunk == n && cu.leafGen == cu.c.mapGen {
+		return cu.leaf
+	}
+	b := cu.node(n)
+	if b != nil {
+		cu.keepLeaf(n, b)
+	}
+	return b
 }
 
 // edge goes down from chunk n to its first (or last) leaf entry, then skips
@@ -62,6 +87,7 @@ func (cu *ccursor) edge(n uint32, last bool) bool {
 		}
 		cu.stack = append(cu.stack, frame{n, i})
 		if nodeIsLeaf(b) {
+			cu.keepLeaf(n, b)
 			if cnt == 0 {
 				if last {
 					return cu.prev()
@@ -109,6 +135,7 @@ func (cu *ccursor) seek(key []byte) bool {
 		if nodeIsLeaf(b) {
 			i, _ := leafSearch(b, key)
 			cu.stack = append(cu.stack, frame{n, i})
+			cu.keepLeaf(n, b)
 			if i < nodeCount(b) {
 				cu.valid = true
 				return true
@@ -147,7 +174,7 @@ func (cu *ccursor) step(dir int) bool {
 		return false
 	}
 	top := &cu.stack[len(cu.stack)-1]
-	b := cu.node(top.chunk)
+	b := cu.leafNode(top.chunk)
 	if b == nil {
 		return false
 	}
@@ -177,7 +204,11 @@ func (cu *ccursor) step(dir int) bool {
 // entry returns the key and pointer the cursor is on.
 func (cu *ccursor) entry() ([]byte, uint64) {
 	f := cu.stack[len(cu.stack)-1]
-	e := nodeEntry(cu.c.chunk(f.chunk), f.i)
+	b := cu.leafNode(f.chunk)
+	if b == nil {
+		b = cu.c.chunk(f.chunk) // as before the check failed: cu.err says why
+	}
+	e := nodeEntry(b, f.i)
 	return leafEntryKey(e), leafEntryPtr(e)
 }
 

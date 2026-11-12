@@ -169,6 +169,40 @@ func (c keyCodec[K]) decode(b []byte, view bool) K {
 	return k
 }
 
+// decodeTo is decode without view; a string key is copied into the arena
+// (see arenaString) rather than one allocation each.
+func (c keyCodec[K]) decodeTo(b []byte, arena *[]byte) K {
+	if c.kind != reflect.String {
+		return c.decode(b, false)
+	}
+	var k K
+	*(*string)(unsafe.Pointer(&k)) = arenaString(arena, b)
+	return k
+}
+
+// arenaSize is the block the copying iterators copy string keys and string
+// fields into: one allocation per 4 KB of text instead of one per string.
+const arenaSize = 4 << 10
+
+// arenaString returns a string holding a copy of b, in the arena's free
+// tail. Bytes are only ever appended past what was handed out, and a full
+// block is replaced by a new one, never written again, so every string stays
+// valid and unchanged for as long as the caller keeps it (it keeps its
+// block alive: at most arenaSize bytes per kept string).
+func arenaString(arena *[]byte, b []byte) string {
+	if len(b) == 0 {
+		return ""
+	}
+	a := *arena
+	if cap(a)-len(a) < len(b) {
+		a = make([]byte, 0, max(arenaSize, len(b)))
+	}
+	n := len(a)
+	a = append(a, b...)
+	*arena = a
+	return unsafe.String(&a[n], len(b))
+}
+
 // isString reports whether keys are strings (a prefix then means a byte
 // prefix; for numbers a prefix is the one key itself).
 func (c keyCodec[K]) isString() bool { return c.kind == reflect.String }

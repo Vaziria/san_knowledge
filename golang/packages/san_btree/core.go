@@ -95,6 +95,16 @@ type core struct {
 	pinMu sync.Mutex
 	pins  map[uint64]int
 
+	// mapGen counts remaps (under mu held exclusively): a cursor keeps a
+	// mapped leaf only while it is unchanged.
+	mapGen uint64
+
+	// Writer scratch (under wmu), reused by every commit: spare chunk
+	// buffers for new nodes and aux chunks, and the buffer that joins
+	// neighbouring chunks into one WriteAt.
+	bufs [][]byte
+	wbuf []byte
+
 	closed     bool
 	broken     error
 	compactErr error
@@ -198,7 +208,7 @@ func create(base, idxPath string, ex expect, o options, fresh bool) error {
 	}
 	buf := make([]byte, size)
 	(&node{leaf: true}).encode(buf[cs : 2*cs])
-	aux := encodeAux(auxPayload(st.files, free), []uint32{2}, cs)
+	aux := encodeAux(auxPayload(st.files, free), []uint32{2}, cs, nil)
 	copy(buf[2*cs:], aux[0])
 	copy(buf[metaSize*int(st.txid%2):], encodeMeta(&cfg, &st))
 
@@ -399,9 +409,29 @@ func (c *core) lookup(root uint32, key []byte) (ptr uint64, ok bool, err error) 
 }
 
 // record reads the record a leaf entry points at.
-func (c *core) record(ptr uint64) (record, error) {
+func (c *core) record(ptr uint64) (record, error) { return c.recordIn(c.files[uint32(ptr>>32)], ptr) }
+
+// value returns the value bytes of the record ptr points at, crc checked.
+func (c *core) value(ptr uint64) ([]byte, error) { return c.valueIn(c.files[uint32(ptr>>32)], ptr) }
+
+// valueIn is value with ptr's data file already looked up (scans keep the
+// last one).
+func (c *core) valueIn(df *mfile, ptr uint64) ([]byte, error) {
+	if df != nil {
+		if v, ok := recordValue(df.m, ptr&0xffffffff); ok {
+			return v, nil
+		}
+	}
+	r, err := c.recordIn(df, ptr)
+	if err == nil {
+		err = corruptf("record %d:%d is not a value record", ptr>>32, ptr&0xffffffff) // not reached: recordValue agrees with readRecord
+	}
+	return r.val, err
+}
+
+// recordIn is record with ptr's data file already looked up.
+func (c *core) recordIn(df *mfile, ptr uint64) (record, error) {
 	seq, off := uint32(ptr>>32), ptr&0xffffffff
-	df := c.files[seq]
 	if df == nil {
 		return record{}, fmt.Errorf("%w: data file %d is missing", ErrCorrupt, seq)
 	}

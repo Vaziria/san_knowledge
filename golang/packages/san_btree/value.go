@@ -177,7 +177,11 @@ func (c *valueCodec[V]) encodedLen(v *V) int {
 
 // decode fills v from stored bytes b. With view set, strings point into b
 // (unsafe.String) instead of being copied.
-func (c *valueCodec[V]) decode(b []byte, v *V, view bool) error {
+func (c *valueCodec[V]) decode(b []byte, v *V, view bool) error { return c.decodeTo(b, v, view, nil) }
+
+// decodeTo is decode; without view and with an arena, the strings are
+// copied into the arena (see arenaString) rather than one allocation each.
+func (c *valueCodec[V]) decodeTo(b []byte, v *V, view bool, arena *[]byte) error {
 	p := unsafe.Pointer(v)
 	if c.layout == layoutRaw {
 		if uintptr(len(b)) < c.size {
@@ -208,6 +212,8 @@ func (c *valueCodec[V]) decode(b []byte, v *V, view bool) error {
 			s := b[:n]
 			if view {
 				*(*string)(unsafe.Add(p, f.off)) = unsafe.String(unsafe.SliceData(s), len(s))
+			} else if arena != nil {
+				*(*string)(unsafe.Add(p, f.off)) = arenaString(arena, s)
 			} else {
 				*(*string)(unsafe.Add(p, f.off)) = string(s)
 			}

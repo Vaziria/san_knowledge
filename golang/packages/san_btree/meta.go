@@ -167,12 +167,17 @@ func auxChunksFor(payload, chunkSize int) int {
 }
 
 // encodeAux lays the payload out over the given chunks, returning one buffer
-// per chunk.
-func encodeAux(payload []byte, chunks []uint32, chunkSize int) [][]byte {
+// per chunk, zeroed ones from get when it is not nil.
+func encodeAux(payload []byte, chunks []uint32, chunkSize int, get func() []byte) [][]byte {
 	room := chunkSize - auxHeader
 	out := make([][]byte, len(chunks))
 	for i := range chunks {
-		b := make([]byte, chunkSize)
+		var b []byte
+		if get != nil {
+			b = get()
+		} else {
+			b = make([]byte, chunkSize)
+		}
 		lo := min(i*room, len(payload))
 		hi := min(lo+room, len(payload))
 		part := payload[lo:hi]

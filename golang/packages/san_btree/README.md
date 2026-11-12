@@ -208,7 +208,15 @@ for the read lock the callback holds.
 
 Every read checks the record's crc32, so a damaged record is `ErrCorrupt`,
 never wrong data. Iterators have no error result, so they panic with an
-error wrapping `ErrCorrupt` instead.
+error wrapping `ErrCorrupt` instead. This holds for every read path, the
+fast ones included: `Get`, `View`, `ScanView`, each cursor step's `Value`
+and `View`, and every entry the copying iterators yield check the crc32 of
+that record at the time it is read, on every read (nothing is cached as
+"verified", so a page the OS reads again from a damaged disk is caught
+too). The check is crc32 Castagnoli, which Go's `hash/crc32` runs on the
+CPU's CRC32 instruction (SSE4.2 on amd64); the node bytes in
+`fname.index` have no checksum (as before): their header and slots are
+checked for being in range.
 
 ## Files
 
@@ -311,13 +319,38 @@ Every write appends to the data files and copies the changed nodes
 
 **Put, new key**
 
-1. Append the record to the current data file; sync it.
+1. Append the record to the current data file.
 2. Find the leaf; write a new copy of it with the entry added, in a free
    chunk. A leaf that is full splits (above), up the tree as needed.
-3. Write new copies of every node on the path up to the root.
-4. Sync `fname.index`; write the other meta (new root, free list, counts);
-   sync again. Only now are the old chunks free for reuse (and only once
-   no open cursor or iterator still reads the commit they belong to).
+3. Write new copies of every node on the path up to the root, and the new
+   free list (aux chunks).
+4. Sync the data file and `fname.index` at the same time (one goroutine
+   each: one flush round instead of two in a row).
+5. Write the other meta (new root, free list, counts) with one `WriteAt`;
+   sync `fname.index` again. Only now are the old chunks free for reuse
+   (and only once no open cursor or iterator still reads the commit they
+   belong to).
+
+Two flush rounds per commit, like bbolt. The rule that makes it safe: the
+meta is written only after the records and the new nodes are durable.
+Before the meta, nothing on disk points at the new records or nodes: the
+records lie past the committed end of the data file and the nodes sit in
+chunks the committed free list calls free, so a crash anywhere in steps
+1 to 4 (or a torn write there) leaves the last commit whole, whatever
+order the disk wrote them in. A crash in step 5 leaves either the old
+meta (the new one torn: its crc32 fails, the other meta wins) or the new
+one, whose records and nodes were already on disk. The crash test checks
+this order on every operation's list of file steps.
+
+A sync is a data-only flush (the user's data and the metadata needed to
+read it back, such as the file size, not the timestamps): `fdatasync` on
+Linux, and on Windows `NtFlushBuffersFileEx` with
+`FLUSH_FLAGS_FILE_DATA_SYNC_ONLY` (Windows 10 and later on NTFS, the call
+PostgreSQL uses), which also makes the disk flush its cache. A file
+created or resized since its last sync gets a full flush
+(`FlushFileBuffers` / `fsync`) once; where the data-only flush is not
+supported (FAT, exFAT, a network drive) it falls back to `FlushFileBuffers`
+for good. Other systems use `fsync`.
 
 **Put on a key that exists (update)**
 
@@ -344,14 +377,15 @@ values of the same size (the user chose "a").
 
 1. Find the key; not there: return false, write nothing.
 2. Append a tombstone record (flags 1, the key, no value) to the current
-   data file; sync it (the user chose tombstones, "a").
+   data file (the user chose tombstones, "a").
 3. Write a copy of the leaf without the entry; borrow or merge when under
    a quarter full, up the tree as needed.
 4. Copy the path to the root, then commit as above. The old value's record
    and the tombstone are both counted as garbage of their files.
 
 **Batch** does all of its puts and deletes with one append (and sync) per
-data file and one commit (the user: "For 5 yes"). The keys are sorted
+data file and one commit (the user: "For 5 yes"); the data files and
+`fname.index` are synced in the same flush round. The keys are sorted
 first; the last write of a key in a batch wins.
 
 **Crashes:** a crash before the meta is written leaves the last commit as
@@ -378,7 +412,11 @@ the loop body) and are not seen. Like bbolt's read transactions, it pins
 its commit's id: chunks freed by later commits, and data files dropped by
 compaction, are reused or deleted only when no older snapshot is open.
 These loops copy keys and values and hold the read lock only while they
-read a batch of up to 128 entries, never while your loop body runs. Close
+read a batch of up to 128 entries, never while your loop body runs. String
+keys and string fields are copied into shared 4 KB blocks rather than one
+allocation each: a block is only appended to, never written again, so
+every string you get stays valid and unchanged; a string you keep keeps
+its block (at most 4 KB) alive. Close
 a cursor when done (a forgotten one is released when the garbage collector
 finds it).
 
@@ -427,7 +465,7 @@ Through `github.com/edsrzf/mmap-go`, Windows and Linux:
 
 - `fname.index` and every data file are mapped read-only; reads (Get,
   View, scans) read the mapping, with no system call per read.
-- Writes go through `WriteAt` and `Sync` (never through the mapping), so
+- Writes go through `WriteAt` and a sync (never through the mapping), so
   a bug cannot scribble over the file through memory, and the order of
   syncs above is the order on disk.
 - Growing a file unmaps it, grows it and maps it again, under the write
@@ -549,7 +587,14 @@ SAN_BTREE_BIG=1 SAN_BTREE_BIG_GB=4 go test -run BiggerThanMemory -v ./...   # op
   delete, two batches, Compact and Rebuild fails in turn (also as a torn
   write); after reopening, the contents are the state before or after,
   the tree is whole, and the index takes writes. The same index also goes
-  on after a failure before the meta.
+  on after a failure before the meta. The list of steps is checked too:
+  the meta is written only when every file written before it is synced,
+  and a Put is exactly: data, nodes, aux, one sync round, meta, sync.
+- Reads: the fast value read accepts exactly what the full record check
+  accepts; a damaged record fails Get, View, a cursor and both scan
+  directions; the record crc32 is the same as before; strings from the
+  copying iterators stay valid after more writes, compaction and Close; a
+  new data file gets its full sync.
 - Compaction at 75% and by hand; tombstones kept while needed; Rebuild
   gives the same keys and values; a torn last record; a damaged record
   (Get and iterators report it, Rebuild refuses); damaged metas.
@@ -567,21 +612,52 @@ Against bbolt (go.etcd.io/bbolt, used by the tower), with real fsync on
 both, 100 thousand keys of 11 bytes and 24-byte values:
 
 ```
-go test -run '^$' -bench . -benchtime 2s ./...
+go test -run '^$' -bench . -benchtime 2s -count 3 -benchmem ./...
 ```
 
-Windows 11, AMD Ryzen 7 5700U, Go 1.26.0, `-benchtime 2s -benchmem`
-(2026-11-12):
+Windows 11 (NTFS, NVMe), AMD Ryzen 7 5700U, Go 1.26.0, means of 3 runs
+(2026-11-12). Both loops of the Range benchmark make the same copies (a
+string key and the value, kept in a sink); before, bbolt's `_ =
+string(k)` was optimised away, so it copied no key.
 
 | benchmark | san_btree | bbolt |
 |---|---|---|
-| Put (one commit each, fsync) | 1.62 ms/op, 130 KB, 45 allocs | 1.25 ms/op, 22 KB, 68 allocs |
-| Batch of 1000 random keys | 18.5 ms/op, 17.4 MB, 8324 allocs | 28.2 ms/op, 7.9 MB, 17416 allocs |
-| Get (copy) | 619 ns/op, 23 B, 1 alloc | 1765 ns/op, 694 B, 22 allocs |
-| View (zero copy) | 622 ns/op, 23 B, 1 alloc | 1759 ns/op, 694 B, 22 allocs |
-| Range of 1000 keys (copies) | 132 µs/op, 27 KB, 1028 allocs | 31.5 µs/op, 1.3 KB, 95 allocs |
+| Put (one commit each, fsync) | 1.05 ms/op, 54 KB, 53 allocs | 1.25 ms/op, 22 KB, 68 allocs |
+| Batch of 1000 random keys | 20.6 ms/op, 16.6 MB, 8626 allocs | 28.0 ms/op, 8.0 MB, 17474 allocs |
+| Get (copy) | 614 ns/op, 24 B, 1 alloc | 1746 ns/op, 694 B, 22 allocs |
+| View (zero copy) | 604 ns/op, 24 B, 1 alloc | 1727 ns/op, 694 B, 22 allocs |
+| Range of 1000 keys (copies) | 60.7 µs/op, 12.6 KB, 15 allocs | 60.9 µs/op, 17.3 KB, 1095 allocs |
 
-Put pays three fsyncs (data, nodes, meta) against bbolt's two. Range is
-slower than bbolt's cursor: each entry is a snapshot step that checks the
-record's crc32 and copies the key into a new string; bbolt hands out
-slices into its mapping.
+### Performance work (2026-11-12)
+
+The user, 2026-11-12: "Just speed up range and put". Before, on the same
+machine and benchmark code: Put 1.64 ms, Batch 19.3 ms, Get 615 ns, View
+617 ns, Range 130 µs. (Batch at a fixed 250 batches, since the index grows
+with the number of runs: 21.7 ms before, 19.7 ms after.) The file formats
+did not change (data and meta version 1).
+
+**Put** (1.64 to 1.05 ms):
+
+- Data records and index nodes are written first, then the data files and
+  `fname.index` are synced together, one goroutine each, then the meta:
+  two flush rounds instead of three (alone: 1.64 to 1.38 ms).
+- The sync is the data-only flush (`FLUSH_FLAGS_FILE_DATA_SYNC_ONLY` on
+  Windows, `fdatasync` on Linux; see Writes): it skips the timestamp
+  update, an NTFS log write on every flush (alone: 1.64 to 1.33 ms).
+- Fewer allocations on the commit path (130 to 54 KB per Put): new nodes
+  and aux chunks reuse spare chunk buffers, neighbouring chunks are joined
+  into one `WriteAt` in a reused buffer, and a node read for a write
+  copies only its packed entries, not the whole chunk.
+
+**Range, All, Backward, Prefix, Cursor, ScanView** (130 to 61 µs per 1000
+keys):
+
+- The cursor keeps its leaf, checked once, as long as the mapping is the
+  same: a step inside a leaf is an index increment.
+- The value is read straight from the mapping with one crc32 check and no
+  record struct; the data file of the last entry is kept.
+- Raw values are copied in one assignment; the batch buffers are reused
+  (a `sync.Pool`), and string keys and string fields are copied into
+  shared 4 KB blocks (see Reading while writing): 1028 to 15 allocations.
+- The crc32 is still checked for every entry; it is about a fifth of the
+  time left.

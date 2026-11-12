@@ -98,24 +98,33 @@ type node struct {
 	dirty bool
 }
 
-// decodeNode copies the chunk and decodes it. lower is the branch's lower
+// decodeNode decodes a chunk, copying only its packed entries (keys point
+// into that copy, so the node outlives a remap). lower is the branch's lower
 // bound from the parent.
 func decodeNode(src []byte, chunk uint32, lower []byte) (*node, error) {
 	if err := checkNodeHeader(src, chunk); err != nil {
 		return nil, err
 	}
-	b := make([]byte, len(src))
-	copy(b, src)
-	cnt := nodeCount(b)
-	n := &node{leaf: nodeIsLeaf(b), chunk: chunk, keys: make([][]byte, cnt), ptrs: make([]uint64, cnt)}
+	cnt := nodeCount(src)
+	lo := len(src)
 	for i := range cnt {
-		s := b[nodeHeader+i*slotSize:]
-		off := int(binary.LittleEndian.Uint16(s))
+		s := src[nodeHeader+i*slotSize:]
+		lo = min(lo, int(binary.LittleEndian.Uint16(s)))
+	}
+	if lo < nodeHeader+cnt*slotSize {
+		return nil, fmt.Errorf("%w: chunk %d has a bad slot", ErrCorrupt, chunk)
+	}
+	b := make([]byte, len(src)-lo)
+	copy(b, src[lo:])
+	n := &node{leaf: nodeIsLeaf(src), chunk: chunk, keys: make([][]byte, cnt), ptrs: make([]uint64, cnt)}
+	for i := range cnt {
+		s := src[nodeHeader+i*slotSize:]
+		off := int(binary.LittleEndian.Uint16(s)) - lo
 		ln := int(binary.LittleEndian.Uint16(s[2:]))
 		if off+ln > len(b) || (n.leaf && ln < leafPtrLen) || (!n.leaf && ln < childLen) {
 			return nil, fmt.Errorf("%w: chunk %d has a bad slot", ErrCorrupt, chunk)
 		}
-		e := b[off : off+ln]
+		e := b[off : off+ln : off+ln]
 		if n.leaf {
 			n.keys[i] = leafEntryKey(e)
 			n.ptrs[i] = leafEntryPtr(e)

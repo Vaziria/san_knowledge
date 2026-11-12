@@ -92,6 +92,13 @@ func TestCrashAtEveryStep(t *testing.T) {
 			}
 			t.Logf("%d steps: %s", steps, strings.Join(counter.steps, ", "))
 			all := strings.Join(counter.steps, ",")
+			checkCommitOrder(t, counter.steps)
+			if cc.name == "put new key" {
+				want := "write kw_0.data,write kw.index,write kw.index,sync kw_0.data,sync kw.index,write kw.index,sync kw.index"
+				if all != want {
+					t.Fatalf("put steps: %s; want (data and nodes written, one sync round, then the meta): %s", all, want)
+				}
+			}
 			switch {
 			case strings.HasPrefix(cc.name, "batch: new"):
 				if !strings.Contains(all, "resize kw.index") || !strings.Contains(all, "create kw_") {
@@ -161,4 +168,30 @@ func equalMaps[K, V comparable](a, b map[K]V) bool {
 		}
 	}
 	return true
+}
+
+// checkCommitOrder checks the rule the commit order keeps: the meta (the
+// fname.index write right after a sync round) is written only when every
+// file written before it has been synced since, and it is synced itself
+// before anything else is written.
+func checkCommitOrder(t *testing.T, steps []string) {
+	t.Helper()
+	dirty := map[string]bool{}
+	for i, s := range steps {
+		op, file, _ := strings.Cut(s, " ")
+		switch op {
+		case "write", "resize", "create":
+			if op == "write" && file == "kw.index" && i > 0 && strings.HasPrefix(steps[i-1], "sync ") {
+				for f := range dirty {
+					t.Fatalf("step %d: meta written while %s is not synced: %s", i+1, f, strings.Join(steps, ", "))
+				}
+				if i+1 >= len(steps) || steps[i+1] != "sync kw.index" {
+					t.Fatalf("step %d: meta not synced next: %s", i+1, strings.Join(steps, ", "))
+				}
+			}
+			dirty[file] = true
+		case "sync":
+			delete(dirty, file)
+		}
+	}
 }

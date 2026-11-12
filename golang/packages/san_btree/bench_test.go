@@ -31,6 +31,13 @@ func valueBytes(v *benchValue) []byte {
 
 var bucket = []byte("b")
 
+// Sinks keep the compiler from dropping the copies a loop body makes
+// (`_ = string(k)` is optimised away: no copy at all).
+var (
+	sinkKey   string
+	sinkValue benchValue
+)
+
 func openBolt(b *testing.B) *bolt.DB {
 	db, err := bolt.Open(filepath.Join(b.TempDir(), "bolt.db"), 0o600, nil)
 	if err != nil {
@@ -190,7 +197,8 @@ func BenchmarkRange1000(b *testing.B) {
 		for b.Loop() {
 			j := r.IntN(benchKeys - 1000)
 			n := 0
-			for range ix.Range(benchKey(j), benchKey(j+1000)) {
+			for k, v := range ix.Range(benchKey(j), benchKey(j+1000)) {
+				sinkKey, sinkValue = k, v
 				n++
 			}
 			if n != 1000 {
@@ -211,7 +219,7 @@ func BenchmarkRange1000(b *testing.B) {
 				for k, v := c.Seek([]byte(benchKey(j))); k != nil && string(k) < string(end); k, v = c.Next() {
 					var bv benchValue
 					copy(valueBytes(&bv), v)
-					_ = string(k)
+					sinkKey, sinkValue = string(k), bv // the same copies Range hands out
 					n++
 				}
 				return nil

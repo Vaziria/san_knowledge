@@ -60,6 +60,31 @@ func recordCRC(r []byte) uint32 {
 	return crc32.Update(c, castagnoli, r[8:])
 }
 
+// recordValue returns the value bytes (with their zero padding) of the
+// value record at off in the mapping m, its crc32 checked. ok is false when
+// there is no whole, good value record there; readRecord then says why.
+// It is readRecord's check, without building a record (the read path of
+// Get, View and every scan).
+func recordValue(m []byte, off uint64) (val []byte, ok bool) {
+	if uint64(len(m)) < recHeader || off > uint64(len(m))-recHeader {
+		return nil, false
+	}
+	r := m[off:]
+	n := uint64(le.Uint32(r))
+	if n < recHeader || n > uint64(len(r)) || n%8 != 0 {
+		return nil, false
+	}
+	r = r[:n]
+	if r[8] != flagValue || le.Uint32(r[4:]) != recordCRC(r) {
+		return nil, false
+	}
+	vs := valueStart(int(le.Uint16(r[9:])))
+	if uint64(vs) > n {
+		return nil, false
+	}
+	return r[vs:], true
+}
+
 // record is a record read from a mapping (its slices point into it).
 type record struct {
 	length uint32
@@ -169,7 +194,7 @@ func (c *core) createData(seq uint32, size int64) (*mfile, error) {
 	if err != nil {
 		return nil, err
 	}
-	df := &mfile{f: f, path: path}
+	df := &mfile{f: f, path: path, isNew: true}
 	fail := func(err error) (*mfile, error) {
 		df.close()
 		os.Remove(path)

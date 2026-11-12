@@ -323,7 +323,10 @@ func (t *txn) writeChunks() error {
 		if j == i+1 {
 			p = t.writes[i].b
 		} else {
-			p = make([]byte, 0, (j-i)*cs)
+			if cap(c.wbuf) < (j-i)*cs {
+				c.wbuf = make([]byte, 0, (j-i)*cs)
+			}
+			p = c.wbuf[:0]
 			for _, w := range t.writes[i:j] {
 				p = append(p, w.b...)
 			}
@@ -333,8 +336,35 @@ func (t *txn) writeChunks() error {
 		}
 		i = j
 	}
+	for _, w := range t.writes {
+		if len(c.bufs) < maxSpareBufs {
+			c.bufs = append(c.bufs, w.b)
+		}
+	}
+	if cap(c.wbuf) > maxJoinBuf {
+		c.wbuf = nil // a big spill: don't hold on to it
+	}
 	t.writes = t.writes[:0]
 	return nil
+}
+
+// Limits of the writer scratch kept between commits.
+const (
+	maxSpareBufs = 64
+	maxJoinBuf   = 1 << 20
+)
+
+// chunkBuf returns a zeroed chunk buffer for a node or aux chunk, a spare
+// one when there is.
+func (t *txn) chunkBuf() []byte {
+	c := t.c
+	if n := len(c.bufs); n > 0 {
+		b := c.bufs[n-1]
+		c.bufs = c.bufs[:n-1]
+		clear(b)
+		return b
+	}
+	return make([]byte, c.cfg.chunkSize)
 }
 
 // abort drops the write. New data files go away; records written past the
@@ -350,17 +380,14 @@ func (t *txn) abort(err error) error {
 }
 
 // commit makes the write durable and visible, in the order of the README:
-// records synced; new nodes written and fname.index synced; the other meta
-// written and synced; then published to readers.
+// records and new nodes written; the data files and fname.index synced
+// together (one flush round); the other meta written and synced; then
+// published to readers. The meta goes out only once everything it points
+// at is durable.
 func (t *txn) commit() error {
 	c := t.c
 	if err := t.flushData(); err != nil {
 		return t.abort(err)
-	}
-	for _, seq := range slices.Sorted(maps.Keys(t.touched)) {
-		if err := c.syncFile(t.touched[seq]); err != nil {
-			return t.abort(err)
-		}
 	}
 	if err := t.finishRoot(); err != nil {
 		return t.abort(err)
@@ -420,14 +447,18 @@ func (t *txn) commit() error {
 			aux = append(aux, n)
 		}
 	}
-	for i, b := range encodeAux(payload, aux, c.cfg.chunkSize) {
+	for i, b := range encodeAux(payload, aux, c.cfg.chunkSize, t.chunkBuf) {
 		t.writes = append(t.writes, chunkWrite{aux[i], b})
 	}
 	t.st.aux = aux[0]
 	if err := t.writeChunks(); err != nil {
 		return t.abort(err)
 	}
-	if err := c.syncFile(c.idx); err != nil {
+	toSync := make([]*mfile, 0, len(t.touched)+1)
+	for _, seq := range slices.Sorted(maps.Keys(t.touched)) {
+		toSync = append(toSync, t.touched[seq])
+	}
+	if err := c.syncFiles(append(toSync, c.idx)...); err != nil {
 		return t.abort(err)
 	}
 

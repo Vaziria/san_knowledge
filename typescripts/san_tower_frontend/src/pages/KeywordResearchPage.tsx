@@ -1,3 +1,4 @@
+import { create, toJsonString } from '@bufbuild/protobuf';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { Code, ConnectError } from '@connectrpc/connect';
 import {
@@ -49,6 +50,7 @@ import type {
   TrendsCategory,
   TrendsGeo,
 } from '../gen/san/tower/v1/keyword_research_pb';
+import { UpdateResearchRequestSchema } from '../gen/san/tower/v1/keyword_research_pb';
 import { useDark } from '../knowledge/GraphCanvas';
 import { downloadCsv, keywordsCsv } from '../keywordresearch/csv';
 import { BlacklistChoice, BlacklistPanel, copyText, plural, type BlacklistAsk } from '../keywordresearch/Blacklist';
@@ -331,22 +333,28 @@ export function KeywordResearchPage() {
     );
   }, [country, countryGeo?.hasRegions]);
 
+  // updateOf is the save of a form, or nothing when it isn't valid yet.
+  const updateOf = (r: KeywordResearch, f: Form) => {
+    const limit = Number(f.deepLimit);
+    const time = timeOf(f);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 6 || !time) return undefined;
+    return {
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      seed: f.seed,
+      deepLimit: limit,
+      filters: { geo: f.geo, time, category: f.category, property: f.property },
+      connectionId: f.connectionId,
+    };
+  };
   const save = async (f = form) => {
     if (!k || !f) return;
     dirty.current = false;
-    const limit = Number(f.deepLimit);
-    const time = timeOf(f);
-    if (!Number.isInteger(limit) || limit < 1 || limit > 6 || !time) return;
+    const req = updateOf(k, f);
+    if (!req) return;
     try {
-      const { research } = await keywordResearch.updateResearch({
-        id: k.id,
-        name: k.name,
-        description: k.description,
-        seed: f.seed,
-        deepLimit: limit,
-        filters: { geo: f.geo, time, category: f.category, property: f.property },
-        connectionId: f.connectionId,
-      });
+      const { research } = await keywordResearch.updateResearch(req);
       fromCall(research);
     } catch (err) {
       toast(`Not saved: ${errorText(err)}`, true);
@@ -358,6 +366,32 @@ export function KeywordResearchPage() {
     const t = setTimeout(() => void save(), 600);
     return () => clearTimeout(t);
   }, [form]);
+  // A change not saved yet is saved when the page goes: a refresh or a
+  // closed tab sends it as a beacon, which the browser delivers after the
+  // page is gone; leaving for another page of the tower saves it then (the
+  // user, 2026-11-12: "When I change deep limit, it not change when I
+  // refresh": a refresh within the pause lost it).
+  const latest = useRef({ k, form });
+  latest.current = { k, form };
+  useEffect(() => {
+    const flush = () => {
+      const { k: r, form: f } = latest.current;
+      if (!dirty.current || !r || !f) return;
+      const req = updateOf(r, f);
+      if (!req) return;
+      dirty.current = false;
+      const body = toJsonString(UpdateResearchRequestSchema, create(UpdateResearchRequestSchema, req));
+      const url = `${window.location.origin}/san.tower.v1.KeywordResearchService/UpdateResearch`;
+      if (!navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))) {
+        void keywordResearch.updateResearch(req).catch(() => undefined);
+      }
+    };
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, []);
   const change = (patch: Partial<Form>) => {
     dirty.current = true;
     setForm((f) => (f ? { ...f, ...patch } : f));

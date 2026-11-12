@@ -69,8 +69,9 @@ const (
 	DefaultResearchTime  = "today 12-m"
 	DefaultResearchDepth = 2
 	// MaxResearchDepth bounds the deep limit: each level multiplies the
-	// lookups by up to ~50.
-	MaxResearchDepth = 6
+	// lookups by up to ~50, so a deep crawl is one to stop by hand (the
+	// user, 2026-11-12, wanted 10; it was 6).
+	MaxResearchDepth = 10
 	// MaxSeedLen is Trends' search box's limit, as San Remote checks it.
 	MaxSeedLen = 100
 )

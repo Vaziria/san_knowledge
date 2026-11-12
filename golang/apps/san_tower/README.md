@@ -2479,7 +2479,7 @@ connection, in the user's Chrome (San Remote's Trends site,
   status column (Idle, Waiting, Running, Stopped, Done, Failed) and keyword
   counts are live.
 - **A research's page** (`/keyword-research/<id>`): across the top the seed
-  keyword, the deep limit (1 to 6), Trends' filters as Trends lists them
+  keyword, the deep limit (1 to 10), Trends' filters as Trends lists them
   (Location and Region, Date range with Custom range, Category, Search
   type), the San Remote connection, saved as they change, and Run or Stop.
   The filters start at Indonesia, Past 12 months, All categories, Web Search

@@ -107,6 +107,12 @@ function formOf(k: KeywordResearch): Form {
 
 // timeOf is the form's time range as Trends writes it; "" while a custom
 // range is not complete.
+// MAX_DEPTH is the tower's highest deep limit (store.MaxResearchDepth): 10
+// (the user, 2026-11-12, set 10; it was 6, and a higher one was dropped
+// without a word). deepOk says whether a typed deep limit is one.
+const MAX_DEPTH = 10;
+const deepOk = (v: string) => /^\d+$/.test(v.trim()) && Number(v) >= 1 && Number(v) <= MAX_DEPTH;
+
 const timeOf = (f: Form) => (f.time !== CUSTOM ? f.time : f.from && f.to && f.from <= f.to ? `${f.from} ${f.to}` : '');
 
 // countryOf is a location's country: ID of ID-JK.
@@ -337,7 +343,7 @@ export function KeywordResearchPage() {
   const updateOf = (r: KeywordResearch, f: Form) => {
     const limit = Number(f.deepLimit);
     const time = timeOf(f);
-    if (!Number.isInteger(limit) || limit < 1 || limit > 6 || !time) return undefined;
+    if (!deepOk(f.deepLimit) || !time) return undefined;
     return {
       id: r.id,
       name: r.name,
@@ -574,10 +580,15 @@ export function KeywordResearchPage() {
                 size="sm"
                 type="number"
                 min={1}
-                max={6}
+                max={MAX_DEPTH}
+                aria-invalid={!deepOk(form.deepLimit) || undefined}
                 value={form.deepLimit}
                 onChange={(e) => change({ deepLimit: e.currentTarget.value })}
-                title="How deep Top keywords are looked up: the seed is depth 0"
+                title={
+                  deepOk(form.deepLimit)
+                    ? 'How deep Top keywords are looked up: the seed is depth 0'
+                    : `Not saved: the deep limit is 1 to ${MAX_DEPTH}`
+                }
               />
             </Field>
             <Field label="Location" w="44">

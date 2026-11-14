@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
 
+	exness "github.com/wargasipil/san_exness"
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 	"github.com/wargasipil/san_tower/internal/moviemov"
 	"github.com/wargasipil/san_tower/internal/sshshell"
@@ -38,6 +39,7 @@ const (
 	GitHub      = "github"
 	SSH         = "ssh"
 	MovieMov    = "moviemov"
+	Exness      = "exness"
 )
 
 // Binance networks, a Binance connection's network.
@@ -76,6 +78,8 @@ func ConnectionType(s *v1.ConnectionSettings) string {
 		return SSH
 	case *v1.ConnectionSettings_Moviemov:
 		return MovieMov
+	case *v1.ConnectionSettings_Exness:
+		return Exness
 	}
 	return ""
 }
@@ -97,6 +101,9 @@ func (s *Store) CreateConnection(c Connection) (Connection, error) {
 	}
 	if c.Type == MovieMov && c.Settings.GetMoviemov().GetPassword() == "" {
 		return c, fail(ErrInvalid, "a MovieMov connection needs the admin's password")
+	}
+	if c.Type == Exness && c.Settings.GetExness().GetPrivateKey() == "" {
+		return c, fail(ErrInvalid, exnessNeedsKey)
 	}
 	c.ID = 0
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -157,6 +164,15 @@ func (s *Store) UpdateConnection(c Connection) (Connection, error) {
 			}
 			if c.Settings.GetMoviemov().GetPassword() == "" {
 				return fail(ErrInvalid, "a MovieMov connection needs the admin's password")
+			}
+		case c.Type == Exness:
+			// Like a MovieMov password, the private key is never sent back:
+			// one left empty is the saved one.
+			if n := c.Settings.GetExness(); n.PrivateKey == "" && old.Type == Exness {
+				n.PrivateKey = old.Settings.GetExness().GetPrivateKey()
+			}
+			if c.Settings.GetExness().GetPrivateKey() == "" {
+				return fail(ErrInvalid, exnessNeedsKey)
 			}
 		}
 		if err := connectionNameFree(tx, c.Name, c.ID); err != nil {
@@ -279,8 +295,63 @@ func checkConnection(c *Connection) error {
 		return checkSSH(c.Settings.GetSsh())
 	case MovieMov:
 		return CheckMovieMov(c.Settings.GetMoviemov())
+	case Exness:
+		return CheckExness(c.Settings.GetExness())
 	}
 	return fail(ErrInvalid, "a connection needs a type")
+}
+
+const exnessNeedsKey = "an Exness connection needs the API key's private key (128 hex characters from Key Management, or a PKCS#8 PEM key)"
+
+// exnessAccount is an Exness trading account's number.
+var exnessAccount = regexp.MustCompile(`^[1-9][0-9]{0,19}$`)
+
+// exnessHost trims an https base URL (a Gateway or an Access Point) to
+// https://host; "" stays "". Exness accepts nothing else.
+func exnessHost(what, value string) (string, error) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "", nil
+	}
+	u, err := url.Parse(value)
+	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || (u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.Fragment != "" {
+		return "", fail(ErrInvalid, "an Exness connection's %s is an https address with nothing after the host, such as https://gateway.example", what)
+	}
+	return "https://" + u.Host, nil
+}
+
+// CheckExness trims an Exness connection's settings and checks them: an
+// API key, a private key that can be read (checked as the connection is
+// saved, where an empty one keeps the saved one), the account's number,
+// and a Gateway or an Access Point. PrivateKeySet is the tower's to set,
+// never kept.
+func CheckExness(e *v1.ExnessSettings) error {
+	e.ApiKey = strings.TrimSpace(e.ApiKey)
+	e.PrivateKey = strings.TrimSpace(e.PrivateKey)
+	e.AccountId = strings.TrimSpace(e.AccountId)
+	e.PrivateKeySet = false
+	if e.ApiKey == "" {
+		return fail(ErrInvalid, "an Exness connection needs the API key from Key Management (exnsk-...)")
+	}
+	if e.PrivateKey != "" {
+		if _, err := exness.ParsePrivateKey(e.PrivateKey); err != nil {
+			return fail(ErrInvalid, "%s", strings.TrimPrefix(err.Error(), "exness: "))
+		}
+	}
+	if !exnessAccount.MatchString(e.AccountId) {
+		return fail(ErrInvalid, "an Exness connection needs the trading account's number, such as 123456")
+	}
+	var err error
+	if e.Gateway, err = exnessHost("Gateway", e.Gateway); err != nil {
+		return err
+	}
+	if e.AccessPoint, err = exnessHost("Access Point", e.AccessPoint); err != nil {
+		return err
+	}
+	if e.Gateway == "" && e.AccessPoint == "" {
+		return fail(ErrInvalid, "an Exness connection needs the Gateway that Key Management's DNS widget shows (https://...)")
+	}
+	return nil
 }
 
 // CheckMovieMov trims a MovieMov connection's settings and checks them: an

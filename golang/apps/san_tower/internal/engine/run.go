@@ -51,6 +51,9 @@ type Env struct {
 	// BinanceURL is where Binance answers, whatever a connection's network:
 	// a fake in tests. Empty: the network's own.
 	BinanceURL string
+	// Exness keeps the Exness connections' clients from run to run
+	// (exness.go). Nil: each step makes its own.
+	Exness *ExnessClients
 	// TelegramMessages lists the messages a Telegram bot connection got,
 	// newest first: of every chat, or of one (Telegram Messages).
 	TelegramMessages func(connectionID uint32, chat string, limit int) ([]store.TelegramMessage, error)

@@ -121,6 +121,8 @@ func (s *Server) TestConnection(ctx context.Context, req *connect.Request[v1.Tes
 		return connect.NewResponse(testSSH(ctx, settings.GetSsh())), nil
 	case store.MovieMov:
 		return connect.NewResponse(s.testMovieMov(ctx, req.Msg.GetId(), settings.GetMoviemov())), nil
+	case store.Exness:
+		return connect.NewResponse(s.testExness(ctx, req.Msg.GetId(), settings.GetExness())), nil
 	}
 	return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("a connection needs a type"))
 }
@@ -248,6 +250,53 @@ func (s *Server) testMovieMov(ctx context.Context, id uint32, m *v1.MovieMovSett
 	return &v1.TestConnectionResponse{Ok: true, Message: msg}
 }
 
+// testExness reads an Exness account with the key, the saved one when the
+// page sends it empty (it never gets it): the account and its money, which
+// change nothing, and whether the steps may trade.
+func (s *Server) testExness(ctx context.Context, id uint32, e *v1.ExnessSettings) *v1.TestConnectionResponse {
+	e = proto.Clone(e).(*v1.ExnessSettings)
+	if err := store.CheckExness(e); err != nil {
+		return &v1.TestConnectionResponse{Message: err.Error()}
+	}
+	if e.PrivateKey == "" && id != 0 {
+		if c, err := s.store.GetConnection(id); err == nil && c.Type == store.Exness {
+			e.PrivateKey = c.Settings.GetExness().GetPrivateKey()
+		}
+	}
+	if e.PrivateKey == "" {
+		return &v1.TestConnectionResponse{Message: "give the API key's private key (Key Management)"}
+	}
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+	label := "Exness " + e.AccountId
+	fail := func(err error) *v1.TestConnectionResponse {
+		return &v1.TestConnectionResponse{Message: label + ": " + strings.TrimPrefix(err.Error(), "exness: ")}
+	}
+	cl, err := s.engine.Exness().Client(e)
+	if err != nil {
+		return fail(err)
+	}
+	acc, err := cl.Account(ctx)
+	if err != nil {
+		return fail(err)
+	}
+	snap, err := cl.Snapshot(ctx)
+	if err != nil {
+		return fail(err)
+	}
+	msg := fmt.Sprintf("%s answers: %s, %s, leverage 1:%s, balance %s, equity %s, %d open positions", label, acc.AccountName, acc.Settings.Currency,
+		acc.Settings.Leverage, snap.AccountState.Balance, snap.AccountState.Equity, len(snap.Positions))
+	if acc.Settings.TradeMode == "trading_disabled" || acc.Settings.AccountStatus == "close_only" {
+		msg += fmt.Sprintf("; Exness says the account cannot open trades (%s, %s)", acc.Settings.TradeMode, acc.Settings.AccountStatus)
+	}
+	if e.AllowTrading {
+		msg += "; Allow Trading is on: Exness Order, Close Position and Move Stop trade real money"
+	} else {
+		msg += "; Allow Trading is off: the steps only read"
+	}
+	return &v1.TestConnectionResponse{Ok: true, Message: msg}
+}
+
 // PairWhatsApp links a device to a WhatsApp account and creates the
 // connection once it is connected (engine.PairWhatsApp): it sends each QR
 // code to scan, as text and as a PNG, then the connection. The stream
@@ -288,6 +337,11 @@ func connectionToProto(c store.Connection) *v1.Connection {
 		settings = proto.Clone(settings).(*v1.ConnectionSettings)
 		masked := settings.GetMoviemov()
 		masked.PasswordSet, masked.Password = masked.Password != "", ""
+	}
+	if e := settings.GetExness(); e != nil {
+		settings = proto.Clone(settings).(*v1.ConnectionSettings)
+		masked := settings.GetExness()
+		masked.PrivateKeySet, masked.PrivateKey = masked.PrivateKey != "", ""
 	}
 	return &v1.Connection{
 		Id:        c.ID,

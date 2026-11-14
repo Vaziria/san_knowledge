@@ -111,6 +111,7 @@ type ConnectionSettings struct {
 	//	*ConnectionSettings_Github
 	//	*ConnectionSettings_Ssh
 	//	*ConnectionSettings_Moviemov
+	//	*ConnectionSettings_Exness
 	Type          isConnectionSettings_Type `protobuf_oneof:"type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -216,6 +217,15 @@ func (x *ConnectionSettings) GetMoviemov() *MovieMovSettings {
 	return nil
 }
 
+func (x *ConnectionSettings) GetExness() *ExnessSettings {
+	if x != nil {
+		if x, ok := x.Type.(*ConnectionSettings_Exness); ok {
+			return x.Exness
+		}
+	}
+	return nil
+}
+
 type isConnectionSettings_Type interface {
 	isConnectionSettings_Type()
 }
@@ -248,6 +258,10 @@ type ConnectionSettings_Moviemov struct {
 	Moviemov *MovieMovSettings `protobuf:"bytes,7,opt,name=moviemov,proto3,oneof"`
 }
 
+type ConnectionSettings_Exness struct {
+	Exness *ExnessSettings `protobuf:"bytes,8,opt,name=exness,proto3,oneof"`
+}
+
 func (*ConnectionSettings_SanRemote) isConnectionSettings_Type() {}
 
 func (*ConnectionSettings_TelegramBot) isConnectionSettings_Type() {}
@@ -261,6 +275,121 @@ func (*ConnectionSettings_Github) isConnectionSettings_Type() {}
 func (*ConnectionSettings_Ssh) isConnectionSettings_Type() {}
 
 func (*ConnectionSettings_Moviemov) isConnectionSettings_Type() {}
+
+func (*ConnectionSettings_Exness) isConnectionSettings_Type() {}
+
+// ExnessSettings is an Exness trading account, through the Exness Trader
+// API (the user, 2026-11-14: "Can we have exness ?", then yes to a Finance
+// connection like Binance; golang/packages/san_exness). Exness has no test
+// network: every order is real money, so the account is read only until
+// allow_trading is set (the user, 2026-11-14: "A", read-only until Allow
+// Trading, plus each Exness Order's limits).
+type ExnessSettings struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// api_key is the key's identifier from Key Management, exnsk-...
+	ApiKey string `protobuf:"bytes,1,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	// private_key signs the requests: Key Management's 128 hex characters,
+	// or an unencrypted PKCS#8 PEM Ed25519 key. Like a MovieMov password it
+	// goes in and never comes out: every connection ConnectionService gives
+	// has it empty, with private_key_set true; saving one with it empty
+	// keeps the saved key.
+	PrivateKey string `protobuf:"bytes,2,opt,name=private_key,json=privateKey,proto3" json:"private_key,omitempty"`
+	// private_key_set says the saved connection has a private key. Only the
+	// tower sets it.
+	PrivateKeySet bool `protobuf:"varint,3,opt,name=private_key_set,json=privateKeySet,proto3" json:"private_key_set,omitempty"`
+	// account_id is the trading account the key may use.
+	AccountId string `protobuf:"bytes,4,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	// gateway is the host Key Management's DNS widget shows
+	// (https://...), where the account's Access Point is asked once.
+	Gateway string `protobuf:"bytes,5,opt,name=gateway,proto3" json:"gateway,omitempty"`
+	// access_point is the account's Access Point, to skip discovery; empty
+	// asks the gateway.
+	AccessPoint string `protobuf:"bytes,6,opt,name=access_point,json=accessPoint,proto3" json:"access_point,omitempty"`
+	// allow_trading lets the Exness Order, Close Position and Move Stop
+	// steps trade; off, they refuse and the connection only reads.
+	AllowTrading  bool `protobuf:"varint,7,opt,name=allow_trading,json=allowTrading,proto3" json:"allow_trading,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExnessSettings) Reset() {
+	*x = ExnessSettings{}
+	mi := &file_san_tower_v1_connection_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExnessSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExnessSettings) ProtoMessage() {}
+
+func (x *ExnessSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_connection_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExnessSettings.ProtoReflect.Descriptor instead.
+func (*ExnessSettings) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ExnessSettings) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
+func (x *ExnessSettings) GetPrivateKey() string {
+	if x != nil {
+		return x.PrivateKey
+	}
+	return ""
+}
+
+func (x *ExnessSettings) GetPrivateKeySet() bool {
+	if x != nil {
+		return x.PrivateKeySet
+	}
+	return false
+}
+
+func (x *ExnessSettings) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *ExnessSettings) GetGateway() string {
+	if x != nil {
+		return x.Gateway
+	}
+	return ""
+}
+
+func (x *ExnessSettings) GetAccessPoint() string {
+	if x != nil {
+		return x.AccessPoint
+	}
+	return ""
+}
+
+func (x *ExnessSettings) GetAllowTrading() bool {
+	if x != nil {
+		return x.AllowTrading
+	}
+	return false
+}
 
 // MovieMovSettings is an admin login on a site made from web_movie
 // (php/apps/web_movie: MovieMov, https://moviemov.id), whose API the MovieMov
@@ -291,7 +420,7 @@ type MovieMovSettings struct {
 
 func (x *MovieMovSettings) Reset() {
 	*x = MovieMovSettings{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[2]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -303,7 +432,7 @@ func (x *MovieMovSettings) String() string {
 func (*MovieMovSettings) ProtoMessage() {}
 
 func (x *MovieMovSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[2]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -316,7 +445,7 @@ func (x *MovieMovSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MovieMovSettings.ProtoReflect.Descriptor instead.
 func (*MovieMovSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{2}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *MovieMovSettings) GetBaseUri() string {
@@ -377,7 +506,7 @@ type SSHSettings struct {
 
 func (x *SSHSettings) Reset() {
 	*x = SSHSettings{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[3]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -389,7 +518,7 @@ func (x *SSHSettings) String() string {
 func (*SSHSettings) ProtoMessage() {}
 
 func (x *SSHSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[3]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -402,7 +531,7 @@ func (x *SSHSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SSHSettings.ProtoReflect.Descriptor instead.
 func (*SSHSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{3}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SSHSettings) GetHost() string {
@@ -469,7 +598,7 @@ type GitHubSettings struct {
 
 func (x *GitHubSettings) Reset() {
 	*x = GitHubSettings{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[4]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -481,7 +610,7 @@ func (x *GitHubSettings) String() string {
 func (*GitHubSettings) ProtoMessage() {}
 
 func (x *GitHubSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[4]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -494,7 +623,7 @@ func (x *GitHubSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitHubSettings.ProtoReflect.Descriptor instead.
 func (*GitHubSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{4}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GitHubSettings) GetToken() string {
@@ -523,7 +652,7 @@ type BinanceSettings struct {
 
 func (x *BinanceSettings) Reset() {
 	*x = BinanceSettings{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[5]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -535,7 +664,7 @@ func (x *BinanceSettings) String() string {
 func (*BinanceSettings) ProtoMessage() {}
 
 func (x *BinanceSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[5]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -548,7 +677,7 @@ func (x *BinanceSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BinanceSettings.ProtoReflect.Descriptor instead.
 func (*BinanceSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{5}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *BinanceSettings) GetApiKey() string {
@@ -589,7 +718,7 @@ type SanRemoteSettings struct {
 
 func (x *SanRemoteSettings) Reset() {
 	*x = SanRemoteSettings{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[6]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -601,7 +730,7 @@ func (x *SanRemoteSettings) String() string {
 func (*SanRemoteSettings) ProtoMessage() {}
 
 func (x *SanRemoteSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[6]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -614,7 +743,7 @@ func (x *SanRemoteSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SanRemoteSettings.ProtoReflect.Descriptor instead.
 func (*SanRemoteSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{6}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SanRemoteSettings) GetUrl() string {
@@ -650,7 +779,7 @@ type TelegramBotSettings struct {
 
 func (x *TelegramBotSettings) Reset() {
 	*x = TelegramBotSettings{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[7]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -662,7 +791,7 @@ func (x *TelegramBotSettings) String() string {
 func (*TelegramBotSettings) ProtoMessage() {}
 
 func (x *TelegramBotSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[7]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -675,7 +804,7 @@ func (x *TelegramBotSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TelegramBotSettings.ProtoReflect.Descriptor instead.
 func (*TelegramBotSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{7}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *TelegramBotSettings) GetToken() string {
@@ -718,7 +847,7 @@ type WhatsAppSettings struct {
 
 func (x *WhatsAppSettings) Reset() {
 	*x = WhatsAppSettings{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[8]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -730,7 +859,7 @@ func (x *WhatsAppSettings) String() string {
 func (*WhatsAppSettings) ProtoMessage() {}
 
 func (x *WhatsAppSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[8]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -743,7 +872,7 @@ func (x *WhatsAppSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WhatsAppSettings.ProtoReflect.Descriptor instead.
 func (*WhatsAppSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{8}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WhatsAppSettings) GetJid() string {
@@ -792,7 +921,7 @@ type ListConnectionsRequest struct {
 
 func (x *ListConnectionsRequest) Reset() {
 	*x = ListConnectionsRequest{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[9]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -804,7 +933,7 @@ func (x *ListConnectionsRequest) String() string {
 func (*ListConnectionsRequest) ProtoMessage() {}
 
 func (x *ListConnectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[9]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -817,7 +946,7 @@ func (x *ListConnectionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionsRequest.ProtoReflect.Descriptor instead.
 func (*ListConnectionsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{9}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListConnectionsRequest) GetType() string {
@@ -836,7 +965,7 @@ type ListConnectionsResponse struct {
 
 func (x *ListConnectionsResponse) Reset() {
 	*x = ListConnectionsResponse{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[10]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -848,7 +977,7 @@ func (x *ListConnectionsResponse) String() string {
 func (*ListConnectionsResponse) ProtoMessage() {}
 
 func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[10]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -861,7 +990,7 @@ func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*ListConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{10}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListConnectionsResponse) GetConnections() []*Connection {
@@ -880,7 +1009,7 @@ type CreateConnectionRequest struct {
 
 func (x *CreateConnectionRequest) Reset() {
 	*x = CreateConnectionRequest{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[11]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -892,7 +1021,7 @@ func (x *CreateConnectionRequest) String() string {
 func (*CreateConnectionRequest) ProtoMessage() {}
 
 func (x *CreateConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[11]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -905,7 +1034,7 @@ func (x *CreateConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConnectionRequest.ProtoReflect.Descriptor instead.
 func (*CreateConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{11}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CreateConnectionRequest) GetConnection() *Connection {
@@ -924,7 +1053,7 @@ type CreateConnectionResponse struct {
 
 func (x *CreateConnectionResponse) Reset() {
 	*x = CreateConnectionResponse{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[12]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -936,7 +1065,7 @@ func (x *CreateConnectionResponse) String() string {
 func (*CreateConnectionResponse) ProtoMessage() {}
 
 func (x *CreateConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[12]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -949,7 +1078,7 @@ func (x *CreateConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConnectionResponse.ProtoReflect.Descriptor instead.
 func (*CreateConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{12}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateConnectionResponse) GetConnection() *Connection {
@@ -968,7 +1097,7 @@ type UpdateConnectionRequest struct {
 
 func (x *UpdateConnectionRequest) Reset() {
 	*x = UpdateConnectionRequest{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[13]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -980,7 +1109,7 @@ func (x *UpdateConnectionRequest) String() string {
 func (*UpdateConnectionRequest) ProtoMessage() {}
 
 func (x *UpdateConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[13]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -993,7 +1122,7 @@ func (x *UpdateConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateConnectionRequest.ProtoReflect.Descriptor instead.
 func (*UpdateConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{13}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateConnectionRequest) GetConnection() *Connection {
@@ -1012,7 +1141,7 @@ type UpdateConnectionResponse struct {
 
 func (x *UpdateConnectionResponse) Reset() {
 	*x = UpdateConnectionResponse{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[14]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1024,7 +1153,7 @@ func (x *UpdateConnectionResponse) String() string {
 func (*UpdateConnectionResponse) ProtoMessage() {}
 
 func (x *UpdateConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[14]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1037,7 +1166,7 @@ func (x *UpdateConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateConnectionResponse.ProtoReflect.Descriptor instead.
 func (*UpdateConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{14}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *UpdateConnectionResponse) GetConnection() *Connection {
@@ -1056,7 +1185,7 @@ type DeleteConnectionRequest struct {
 
 func (x *DeleteConnectionRequest) Reset() {
 	*x = DeleteConnectionRequest{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[15]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1068,7 +1197,7 @@ func (x *DeleteConnectionRequest) String() string {
 func (*DeleteConnectionRequest) ProtoMessage() {}
 
 func (x *DeleteConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[15]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1081,7 +1210,7 @@ func (x *DeleteConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteConnectionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{15}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *DeleteConnectionRequest) GetId() uint32 {
@@ -1099,7 +1228,7 @@ type DeleteConnectionResponse struct {
 
 func (x *DeleteConnectionResponse) Reset() {
 	*x = DeleteConnectionResponse{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[16]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1111,7 +1240,7 @@ func (x *DeleteConnectionResponse) String() string {
 func (*DeleteConnectionResponse) ProtoMessage() {}
 
 func (x *DeleteConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[16]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1124,7 +1253,7 @@ func (x *DeleteConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteConnectionResponse.ProtoReflect.Descriptor instead.
 func (*DeleteConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{16}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{17}
 }
 
 type TestConnectionRequest struct {
@@ -1140,7 +1269,7 @@ type TestConnectionRequest struct {
 
 func (x *TestConnectionRequest) Reset() {
 	*x = TestConnectionRequest{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[17]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1152,7 +1281,7 @@ func (x *TestConnectionRequest) String() string {
 func (*TestConnectionRequest) ProtoMessage() {}
 
 func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[17]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1165,7 +1294,7 @@ func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionRequest.ProtoReflect.Descriptor instead.
 func (*TestConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{17}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *TestConnectionRequest) GetSettings() *ConnectionSettings {
@@ -1198,7 +1327,7 @@ type TestConnectionResponse struct {
 
 func (x *TestConnectionResponse) Reset() {
 	*x = TestConnectionResponse{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[18]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1339,7 @@ func (x *TestConnectionResponse) String() string {
 func (*TestConnectionResponse) ProtoMessage() {}
 
 func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[18]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1352,7 @@ func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionResponse.ProtoReflect.Descriptor instead.
 func (*TestConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{18}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *TestConnectionResponse) GetOk() bool {
@@ -1259,7 +1388,7 @@ type PairWhatsAppRequest struct {
 
 func (x *PairWhatsAppRequest) Reset() {
 	*x = PairWhatsAppRequest{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[19]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1271,7 +1400,7 @@ func (x *PairWhatsAppRequest) String() string {
 func (*PairWhatsAppRequest) ProtoMessage() {}
 
 func (x *PairWhatsAppRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[19]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1284,7 +1413,7 @@ func (x *PairWhatsAppRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairWhatsAppRequest.ProtoReflect.Descriptor instead.
 func (*PairWhatsAppRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{19}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PairWhatsAppRequest) GetName() string {
@@ -1315,7 +1444,7 @@ type PairWhatsAppResponse struct {
 
 func (x *PairWhatsAppResponse) Reset() {
 	*x = PairWhatsAppResponse{}
-	mi := &file_san_tower_v1_connection_proto_msgTypes[20]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1327,7 +1456,7 @@ func (x *PairWhatsAppResponse) String() string {
 func (*PairWhatsAppResponse) ProtoMessage() {}
 
 func (x *PairWhatsAppResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_connection_proto_msgTypes[20]
+	mi := &file_san_tower_v1_connection_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1340,7 +1469,7 @@ func (x *PairWhatsAppResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairWhatsAppResponse.ProtoReflect.Descriptor instead.
 func (*PairWhatsAppResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{20}
+	return file_san_tower_v1_connection_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PairWhatsAppResponse) GetQrCode() string {
@@ -1377,7 +1506,7 @@ const file_san_tower_v1_connection_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc4\x03\n" +
+	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xfc\x03\n" +
 	"\x12ConnectionSettings\x12@\n" +
 	"\n" +
 	"san_remote\x18\x01 \x01(\v2\x1f.san.tower.v1.SanRemoteSettingsH\x00R\tsanRemote\x12F\n" +
@@ -1386,8 +1515,19 @@ const file_san_tower_v1_connection_proto_rawDesc = "" +
 	"\abinance\x18\x04 \x01(\v2\x1d.san.tower.v1.BinanceSettingsH\x00R\abinance\x126\n" +
 	"\x06github\x18\x05 \x01(\v2\x1c.san.tower.v1.GitHubSettingsH\x00R\x06github\x12-\n" +
 	"\x03ssh\x18\x06 \x01(\v2\x19.san.tower.v1.SSHSettingsH\x00R\x03ssh\x12<\n" +
-	"\bmoviemov\x18\a \x01(\v2\x1e.san.tower.v1.MovieMovSettingsH\x00R\bmoviemovB\x06\n" +
-	"\x04type\"\x88\x01\n" +
+	"\bmoviemov\x18\a \x01(\v2\x1e.san.tower.v1.MovieMovSettingsH\x00R\bmoviemov\x126\n" +
+	"\x06exness\x18\b \x01(\v2\x1c.san.tower.v1.ExnessSettingsH\x00R\x06exnessB\x06\n" +
+	"\x04type\"\xf3\x01\n" +
+	"\x0eExnessSettings\x12\x17\n" +
+	"\aapi_key\x18\x01 \x01(\tR\x06apiKey\x12\x1f\n" +
+	"\vprivate_key\x18\x02 \x01(\tR\n" +
+	"privateKey\x12&\n" +
+	"\x0fprivate_key_set\x18\x03 \x01(\bR\rprivateKeySet\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x04 \x01(\tR\taccountId\x12\x18\n" +
+	"\agateway\x18\x05 \x01(\tR\agateway\x12!\n" +
+	"\faccess_point\x18\x06 \x01(\tR\vaccessPoint\x12#\n" +
+	"\rallow_trading\x18\a \x01(\bR\fallowTrading\"\x88\x01\n" +
 	"\x10MovieMovSettings\x12\x19\n" +
 	"\bbase_uri\x18\x01 \x01(\tR\abaseUri\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
@@ -1485,66 +1625,68 @@ func file_san_tower_v1_connection_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_connection_proto_rawDescData
 }
 
-var file_san_tower_v1_connection_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_san_tower_v1_connection_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_san_tower_v1_connection_proto_goTypes = []any{
 	(*Connection)(nil),               // 0: san.tower.v1.Connection
 	(*ConnectionSettings)(nil),       // 1: san.tower.v1.ConnectionSettings
-	(*MovieMovSettings)(nil),         // 2: san.tower.v1.MovieMovSettings
-	(*SSHSettings)(nil),              // 3: san.tower.v1.SSHSettings
-	(*GitHubSettings)(nil),           // 4: san.tower.v1.GitHubSettings
-	(*BinanceSettings)(nil),          // 5: san.tower.v1.BinanceSettings
-	(*SanRemoteSettings)(nil),        // 6: san.tower.v1.SanRemoteSettings
-	(*TelegramBotSettings)(nil),      // 7: san.tower.v1.TelegramBotSettings
-	(*WhatsAppSettings)(nil),         // 8: san.tower.v1.WhatsAppSettings
-	(*ListConnectionsRequest)(nil),   // 9: san.tower.v1.ListConnectionsRequest
-	(*ListConnectionsResponse)(nil),  // 10: san.tower.v1.ListConnectionsResponse
-	(*CreateConnectionRequest)(nil),  // 11: san.tower.v1.CreateConnectionRequest
-	(*CreateConnectionResponse)(nil), // 12: san.tower.v1.CreateConnectionResponse
-	(*UpdateConnectionRequest)(nil),  // 13: san.tower.v1.UpdateConnectionRequest
-	(*UpdateConnectionResponse)(nil), // 14: san.tower.v1.UpdateConnectionResponse
-	(*DeleteConnectionRequest)(nil),  // 15: san.tower.v1.DeleteConnectionRequest
-	(*DeleteConnectionResponse)(nil), // 16: san.tower.v1.DeleteConnectionResponse
-	(*TestConnectionRequest)(nil),    // 17: san.tower.v1.TestConnectionRequest
-	(*TestConnectionResponse)(nil),   // 18: san.tower.v1.TestConnectionResponse
-	(*PairWhatsAppRequest)(nil),      // 19: san.tower.v1.PairWhatsAppRequest
-	(*PairWhatsAppResponse)(nil),     // 20: san.tower.v1.PairWhatsAppResponse
-	(*timestamppb.Timestamp)(nil),    // 21: google.protobuf.Timestamp
+	(*ExnessSettings)(nil),           // 2: san.tower.v1.ExnessSettings
+	(*MovieMovSettings)(nil),         // 3: san.tower.v1.MovieMovSettings
+	(*SSHSettings)(nil),              // 4: san.tower.v1.SSHSettings
+	(*GitHubSettings)(nil),           // 5: san.tower.v1.GitHubSettings
+	(*BinanceSettings)(nil),          // 6: san.tower.v1.BinanceSettings
+	(*SanRemoteSettings)(nil),        // 7: san.tower.v1.SanRemoteSettings
+	(*TelegramBotSettings)(nil),      // 8: san.tower.v1.TelegramBotSettings
+	(*WhatsAppSettings)(nil),         // 9: san.tower.v1.WhatsAppSettings
+	(*ListConnectionsRequest)(nil),   // 10: san.tower.v1.ListConnectionsRequest
+	(*ListConnectionsResponse)(nil),  // 11: san.tower.v1.ListConnectionsResponse
+	(*CreateConnectionRequest)(nil),  // 12: san.tower.v1.CreateConnectionRequest
+	(*CreateConnectionResponse)(nil), // 13: san.tower.v1.CreateConnectionResponse
+	(*UpdateConnectionRequest)(nil),  // 14: san.tower.v1.UpdateConnectionRequest
+	(*UpdateConnectionResponse)(nil), // 15: san.tower.v1.UpdateConnectionResponse
+	(*DeleteConnectionRequest)(nil),  // 16: san.tower.v1.DeleteConnectionRequest
+	(*DeleteConnectionResponse)(nil), // 17: san.tower.v1.DeleteConnectionResponse
+	(*TestConnectionRequest)(nil),    // 18: san.tower.v1.TestConnectionRequest
+	(*TestConnectionResponse)(nil),   // 19: san.tower.v1.TestConnectionResponse
+	(*PairWhatsAppRequest)(nil),      // 20: san.tower.v1.PairWhatsAppRequest
+	(*PairWhatsAppResponse)(nil),     // 21: san.tower.v1.PairWhatsAppResponse
+	(*timestamppb.Timestamp)(nil),    // 22: google.protobuf.Timestamp
 }
 var file_san_tower_v1_connection_proto_depIdxs = []int32{
 	1,  // 0: san.tower.v1.Connection.settings:type_name -> san.tower.v1.ConnectionSettings
-	21, // 1: san.tower.v1.Connection.created_at:type_name -> google.protobuf.Timestamp
-	21, // 2: san.tower.v1.Connection.updated_at:type_name -> google.protobuf.Timestamp
-	6,  // 3: san.tower.v1.ConnectionSettings.san_remote:type_name -> san.tower.v1.SanRemoteSettings
-	7,  // 4: san.tower.v1.ConnectionSettings.telegram_bot:type_name -> san.tower.v1.TelegramBotSettings
-	8,  // 5: san.tower.v1.ConnectionSettings.whatsapp:type_name -> san.tower.v1.WhatsAppSettings
-	5,  // 6: san.tower.v1.ConnectionSettings.binance:type_name -> san.tower.v1.BinanceSettings
-	4,  // 7: san.tower.v1.ConnectionSettings.github:type_name -> san.tower.v1.GitHubSettings
-	3,  // 8: san.tower.v1.ConnectionSettings.ssh:type_name -> san.tower.v1.SSHSettings
-	2,  // 9: san.tower.v1.ConnectionSettings.moviemov:type_name -> san.tower.v1.MovieMovSettings
-	0,  // 10: san.tower.v1.ListConnectionsResponse.connections:type_name -> san.tower.v1.Connection
-	0,  // 11: san.tower.v1.CreateConnectionRequest.connection:type_name -> san.tower.v1.Connection
-	0,  // 12: san.tower.v1.CreateConnectionResponse.connection:type_name -> san.tower.v1.Connection
-	0,  // 13: san.tower.v1.UpdateConnectionRequest.connection:type_name -> san.tower.v1.Connection
-	0,  // 14: san.tower.v1.UpdateConnectionResponse.connection:type_name -> san.tower.v1.Connection
-	1,  // 15: san.tower.v1.TestConnectionRequest.settings:type_name -> san.tower.v1.ConnectionSettings
-	0,  // 16: san.tower.v1.PairWhatsAppResponse.connection:type_name -> san.tower.v1.Connection
-	9,  // 17: san.tower.v1.ConnectionService.ListConnections:input_type -> san.tower.v1.ListConnectionsRequest
-	11, // 18: san.tower.v1.ConnectionService.CreateConnection:input_type -> san.tower.v1.CreateConnectionRequest
-	13, // 19: san.tower.v1.ConnectionService.UpdateConnection:input_type -> san.tower.v1.UpdateConnectionRequest
-	15, // 20: san.tower.v1.ConnectionService.DeleteConnection:input_type -> san.tower.v1.DeleteConnectionRequest
-	17, // 21: san.tower.v1.ConnectionService.TestConnection:input_type -> san.tower.v1.TestConnectionRequest
-	19, // 22: san.tower.v1.ConnectionService.PairWhatsApp:input_type -> san.tower.v1.PairWhatsAppRequest
-	10, // 23: san.tower.v1.ConnectionService.ListConnections:output_type -> san.tower.v1.ListConnectionsResponse
-	12, // 24: san.tower.v1.ConnectionService.CreateConnection:output_type -> san.tower.v1.CreateConnectionResponse
-	14, // 25: san.tower.v1.ConnectionService.UpdateConnection:output_type -> san.tower.v1.UpdateConnectionResponse
-	16, // 26: san.tower.v1.ConnectionService.DeleteConnection:output_type -> san.tower.v1.DeleteConnectionResponse
-	18, // 27: san.tower.v1.ConnectionService.TestConnection:output_type -> san.tower.v1.TestConnectionResponse
-	20, // 28: san.tower.v1.ConnectionService.PairWhatsApp:output_type -> san.tower.v1.PairWhatsAppResponse
-	23, // [23:29] is the sub-list for method output_type
-	17, // [17:23] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	22, // 1: san.tower.v1.Connection.created_at:type_name -> google.protobuf.Timestamp
+	22, // 2: san.tower.v1.Connection.updated_at:type_name -> google.protobuf.Timestamp
+	7,  // 3: san.tower.v1.ConnectionSettings.san_remote:type_name -> san.tower.v1.SanRemoteSettings
+	8,  // 4: san.tower.v1.ConnectionSettings.telegram_bot:type_name -> san.tower.v1.TelegramBotSettings
+	9,  // 5: san.tower.v1.ConnectionSettings.whatsapp:type_name -> san.tower.v1.WhatsAppSettings
+	6,  // 6: san.tower.v1.ConnectionSettings.binance:type_name -> san.tower.v1.BinanceSettings
+	5,  // 7: san.tower.v1.ConnectionSettings.github:type_name -> san.tower.v1.GitHubSettings
+	4,  // 8: san.tower.v1.ConnectionSettings.ssh:type_name -> san.tower.v1.SSHSettings
+	3,  // 9: san.tower.v1.ConnectionSettings.moviemov:type_name -> san.tower.v1.MovieMovSettings
+	2,  // 10: san.tower.v1.ConnectionSettings.exness:type_name -> san.tower.v1.ExnessSettings
+	0,  // 11: san.tower.v1.ListConnectionsResponse.connections:type_name -> san.tower.v1.Connection
+	0,  // 12: san.tower.v1.CreateConnectionRequest.connection:type_name -> san.tower.v1.Connection
+	0,  // 13: san.tower.v1.CreateConnectionResponse.connection:type_name -> san.tower.v1.Connection
+	0,  // 14: san.tower.v1.UpdateConnectionRequest.connection:type_name -> san.tower.v1.Connection
+	0,  // 15: san.tower.v1.UpdateConnectionResponse.connection:type_name -> san.tower.v1.Connection
+	1,  // 16: san.tower.v1.TestConnectionRequest.settings:type_name -> san.tower.v1.ConnectionSettings
+	0,  // 17: san.tower.v1.PairWhatsAppResponse.connection:type_name -> san.tower.v1.Connection
+	10, // 18: san.tower.v1.ConnectionService.ListConnections:input_type -> san.tower.v1.ListConnectionsRequest
+	12, // 19: san.tower.v1.ConnectionService.CreateConnection:input_type -> san.tower.v1.CreateConnectionRequest
+	14, // 20: san.tower.v1.ConnectionService.UpdateConnection:input_type -> san.tower.v1.UpdateConnectionRequest
+	16, // 21: san.tower.v1.ConnectionService.DeleteConnection:input_type -> san.tower.v1.DeleteConnectionRequest
+	18, // 22: san.tower.v1.ConnectionService.TestConnection:input_type -> san.tower.v1.TestConnectionRequest
+	20, // 23: san.tower.v1.ConnectionService.PairWhatsApp:input_type -> san.tower.v1.PairWhatsAppRequest
+	11, // 24: san.tower.v1.ConnectionService.ListConnections:output_type -> san.tower.v1.ListConnectionsResponse
+	13, // 25: san.tower.v1.ConnectionService.CreateConnection:output_type -> san.tower.v1.CreateConnectionResponse
+	15, // 26: san.tower.v1.ConnectionService.UpdateConnection:output_type -> san.tower.v1.UpdateConnectionResponse
+	17, // 27: san.tower.v1.ConnectionService.DeleteConnection:output_type -> san.tower.v1.DeleteConnectionResponse
+	19, // 28: san.tower.v1.ConnectionService.TestConnection:output_type -> san.tower.v1.TestConnectionResponse
+	21, // 29: san.tower.v1.ConnectionService.PairWhatsApp:output_type -> san.tower.v1.PairWhatsAppResponse
+	24, // [24:30] is the sub-list for method output_type
+	18, // [18:24] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_connection_proto_init() }
@@ -1560,6 +1702,7 @@ func file_san_tower_v1_connection_proto_init() {
 		(*ConnectionSettings_Github)(nil),
 		(*ConnectionSettings_Ssh)(nil),
 		(*ConnectionSettings_Moviemov)(nil),
+		(*ConnectionSettings_Exness)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1567,7 +1710,7 @@ func file_san_tower_v1_connection_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_connection_proto_rawDesc), len(file_san_tower_v1_connection_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

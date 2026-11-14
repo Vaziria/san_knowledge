@@ -11,7 +11,8 @@ import "google/protobuf/timestamp.proto";
 // WhatsApp account, as a device linked to it (PairWhatsApp), binance: a
 // Binance USD-M futures account, through an API key, github: a GitHub
 // account, through a personal access token, ssh: a server's account,
-// through SSH, and moviemov: an admin login on a site made from web_movie.
+// through SSH, moviemov: an admin login on a site made from web_movie, and
+// exness: an Exness trading account, through the Exness Trader API.
 service ConnectionService {
   // ListConnections lists the connections by name.
   rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
@@ -52,7 +53,39 @@ message ConnectionSettings {
     GitHubSettings github = 5;
     SSHSettings ssh = 6;
     MovieMovSettings moviemov = 7;
+    ExnessSettings exness = 8;
   }
+}
+
+// ExnessSettings is an Exness trading account, through the Exness Trader
+// API (the user, 2026-11-14: "Can we have exness ?", then yes to a Finance
+// connection like Binance; golang/packages/san_exness). Exness has no test
+// network: every order is real money, so the account is read only until
+// allow_trading is set (the user, 2026-11-14: "A", read-only until Allow
+// Trading, plus each Exness Order's limits).
+message ExnessSettings {
+  // api_key is the key's identifier from Key Management, exnsk-...
+  string api_key = 1;
+  // private_key signs the requests: Key Management's 128 hex characters,
+  // or an unencrypted PKCS#8 PEM Ed25519 key. Like a MovieMov password it
+  // goes in and never comes out: every connection ConnectionService gives
+  // has it empty, with private_key_set true; saving one with it empty
+  // keeps the saved key.
+  string private_key = 2;
+  // private_key_set says the saved connection has a private key. Only the
+  // tower sets it.
+  bool private_key_set = 3;
+  // account_id is the trading account the key may use.
+  string account_id = 4;
+  // gateway is the host Key Management's DNS widget shows
+  // (https://...), where the account's Access Point is asked once.
+  string gateway = 5;
+  // access_point is the account's Access Point, to skip discovery; empty
+  // asks the gateway.
+  string access_point = 6;
+  // allow_trading lets the Exness Order, Close Position and Move Stop
+  // steps trade; off, they refuse and the connection only reads.
+  bool allow_trading = 7;
 }
 
 // MovieMovSettings is an admin login on a site made from web_movie

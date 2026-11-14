@@ -129,6 +129,9 @@ type Engine struct {
 	// movieMov are the MovieMov connections' tokens, kept in memory from
 	// run to run (moviemov.go).
 	movieMov *moviemov.Sessions
+	// exness are the Exness connections' clients, kept from run to run
+	// (exness.go).
+	exness *ExnessClients
 
 	// TelegramAPI is where the Bot API answers, telegram.API when empty;
 	// tests set a fake's before Start.
@@ -175,13 +178,17 @@ func New(st *store.Store, b *broker.Broker, log *slog.Logger) *Engine {
 		oaServers: make(map[string]*openAIServer), oaStates: make(map[uint32][]*v1.TriggerState), oaWaiting: make(map[string]*openAIWait),
 		waiting: make(map[uint32]*waiter), readers: make(map[uint32]context.CancelFunc), queues: make(map[uint32]string),
 		turns: make(map[string]chan struct{}), afterRan: make(map[string][]eventStamp),
-		ssh: NewSSHShells(), movieMov: moviemov.NewSessions(),
+		ssh: NewSSHShells(), movieMov: moviemov.NewSessions(), exness: NewExnessClients(nil),
 	}
 }
 
 // MovieMov are the MovieMov connections' kept tokens, which TestConnection
 // shares with the steps.
 func (e *Engine) MovieMov() *moviemov.Sessions { return e.movieMov }
+
+// Exness are the Exness connections' clients, which TestConnection shares
+// with the steps.
+func (e *Engine) Exness() *ExnessClients { return e.exness }
 
 // Close closes the triggers' streams, cuts the runs still going short, and
 // waits until each is recorded. Calling it again does nothing more.
@@ -218,6 +225,7 @@ func (e *Engine) env() Env {
 		TelegramAPI:      e.TelegramAPI,
 		GitHubAPI:        e.GitHubAPI,
 		MovieMov:         e.movieMov,
+		Exness:           e.exness,
 		SSH:              e.ssh,
 		KeepHostKey:      e.store.KeepSSHHostKey,
 		TelegramMessages: e.store.TelegramMessages,

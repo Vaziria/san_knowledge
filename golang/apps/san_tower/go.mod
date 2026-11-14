@@ -9,9 +9,11 @@ require (
 	github.com/mstrYoda/goraphdb v0.0.0-20260220134623-01eff165f35c
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/urfave/cli/v3 v3.14.0
+	github.com/wargasipil/san_exness v0.0.0-00010101000000-000000000000
 	github.com/wargasipil/san_message v0.0.0
 	github.com/wargasipil/san_remote v0.0.0-00010101000000-000000000000
 	github.com/yuin/goldmark v1.8.6
+	go.etcd.io/bbolt v1.4.0
 	google.golang.org/protobuf v1.36.12
 	gorm.io/gorm v1.31.2
 )
@@ -26,7 +28,6 @@ require (
 	github.com/itlightning/dateparse v0.2.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	go.etcd.io/bbolt v1.4.0 // indirect
 )
 
 require (
@@ -69,6 +70,8 @@ require (
 	modernc.org/sqlite v1.23.1 // indirect
 	san_knowledge v0.0.0
 )
+
+replace github.com/wargasipil/san_exness => ../../packages/san_exness
 
 replace github.com/wargasipil/san_message => ../../packages/san_message
 

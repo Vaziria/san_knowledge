@@ -2168,6 +2168,32 @@ connection is gone fails, saying so.
   Binance Order cannot trade. The secret is stored and listed as a bot's
   token is. From this PC only the test network answered: fapi.binance.com
   and demo-fapi.binance.com timed out (2026-10-27, likely the ISP).
+- **Exness** (the user, 2026-11-14: "Can we have exness ?", then a Finance
+  connection like Binance; `golang/packages/san_exness`): an Exness trading
+  account through the Exness Trader API. API Key is the key's identifier
+  from Exness's Key Management (`exnsk-...`), Private Key the Ed25519 key
+  that signs the requests (Key Management's 128 hexadecimal characters, or
+  your own key as unencrypted PKCS#8 PEM; saving checks it can be read),
+  Account the trading account's number, Gateway the host Key Management's
+  DNS widget shows (https only), where the account's Access Point is asked
+  once, and Access Point, optional, skips asking. Exness has no test
+  network, so every order is real money: **Allow Trading** is off by
+  default, and while it is off Exness Order, Close Position and Move Stop
+  refuse before anything reaches Exness (the user, 2026-11-14: "A", this
+  switch and the Order step's limits both). The private key goes in and
+  never comes out, as a MovieMov password: every connection
+  ConnectionService returns has it empty with `private_key_set` true,
+  saving it empty keeps the saved one, and Test uses the saved one by the
+  connection's id; an export leaves it behind. Test reads the account and
+  its money, which changes nothing ("Exness 123456 answers: Standard, USD,
+  leverage 1:200, balance 10000.00, equity 10000.00, 0 open positions;
+  Allow Trading is off: the steps only read"). The clients are kept in
+  memory by the connection's settings (`engine.ExnessClients`), with the
+  Access Point and the offset from Exness's clock they learned, so a step
+  does not ask the Gateway each time. Exness's requirements: a fully
+  verified Exness trading account (standard MetaTrader accounts cannot
+  connect), in a region where the API is offered. Not yet run against a
+  real account.
 - **GitHub** (the user, 2026-10-31: "github connection with api key";
   `internal/github`): a GitHub account through a personal access token
   (GitHub › Settings › Developer settings › Personal access tokens),
@@ -2387,6 +2413,74 @@ that One Per Symbol then guarded and Binance Tidy cancelled, with its
 stops, once it expired. A take profit already passed by the mark price is
 refused by the exchange ("would immediately trigger"), and Binance Order
 then cancels the entry.
+
+### Exness
+
+The Exness steps (the user, 2026-11-14: the basic set, "Basic: connection
++ Order, Candles, Portfolio, Orders history, Positions, Close Position,
+Move Stop"; `engine/exness.go`) work on an Exness connection through
+`golang/packages/san_exness`. They are in Finance › Exness. Every line they
+log starts with the account ("Exness 123456: buy 0.10 XAUUSD at market
+(2650.200), stop loss 2640.000, take profit 2700.000: confirmed"). An
+instrument is named as the account shows it, case kept (XAUUSD, or
+EURUSDm on some account types). Exness takes a trading request at once
+and does it after: the steps that trade wait until Exness says it is done
+(30 s at most, asking every 0.5 s) and fail with Exness's reason when it
+refuses ("refused: TRADING_RULE_INSUFFICIENT_MARGIN (5006)"). A wait that
+runs out says to look at the account before sending again. Exness Order,
+Close Position and Move Stop refuse unless the connection's Allow Trading
+is ticked.
+
+- **Exness Order**: Market opens a position now, Limit and Stop wait at
+  Price; Buy or Sell Volume lots of Instrument, rounded down to its volume
+  step (prices to its digits), with an optional Stop Loss and Take Profit.
+  An **Order** object, as an AI gives it through a Workflow Tool
+  (instrument or symbol, side, type market, limit or stop, volume or
+  quantity, price, stop_loss, take_profit), wins over the settings and
+  fields. Refused before anything is sent: a volume under the
+  instrument's least or over its most, a stop or a take profit on the
+  wrong side of the entry (the ask for a market buy, the bid for a sell,
+  the order's price for a limit or stop), and the step's own limits:
+  **Require Stop**; **Max Volume** (lots); **Max Loss** (USD lost at the
+  stop: the distance × volume × contract size, in USD for an instrument
+  quoted in USD, divided by the price at the stop for one based on USD
+  such as USDJPY; it needs a stop, and other instruments, such as EURGBP,
+  are refused under it). A refusal says the most that fits. Order is what
+  was sent with its operation's status, Operation ID the operation's id.
+- **Exness Candles** reads Instrument's latest candles at Timeframe (M1 to
+  MN), Limit of them (100, up to 1000), oldest first, as Bid (Exness's
+  charts), Ask or Both. Last Closed is the newest that has closed by
+  Exness's clock, Close its close (the bid's for Both).
+- **Exness Portfolio**: Account (currency, leverage, balance, equity, used
+  and free margin, allow_trading), Positions, and Orders waiting.
+- **Exness Orders**, newest first, of Instrument or every instrument, by
+  Show: Open, the orders waiting (limit, stop, and the positions' SL/TP
+  orders); History, the orders filled, cancelled or rejected in the last
+  Days (7, up to 365); Deals, the deals of those days (opens, closes,
+  balance changes), in Deals. Limit, 50, up to 1000. Last is the newest.
+- **Exness Positions**: the open positions, of Instrument or every one,
+  Found or None, then Done. An account can hold several positions of one
+  instrument, both ways; Position is the first.
+- **Exness Close Position** closes Instrument's open positions at market,
+  whole; their SL/TP orders go with them. The instrument's limit and stop
+  orders still waiting are cancelled first, so none fills after. **Position
+  ID** closes only that position and cancels nothing. None when there was
+  nothing, then Done. Positions are the positions as they were, Cancelled
+  the orders cancelled.
+- **Exness Move Stop** moves the stop loss, and the take profit, of
+  Instrument's open position: its SL/TP order is changed (PATCH), or one
+  placed when it has none. A stop loss only ever moves closer to the price
+  (up for a buy, down for a sell) and stays on the right side of it (the
+  bid for a buy, the ask for a sell). With several positions of the
+  instrument, Position ID picks one; an Order object can give instrument,
+  position_id, stop_loss and take_profit.
+
+Tested against a fake Exness Access Point (`san_exness/exnesstest`: it
+checks every request's signature as Exness documents it and keeps an
+account in memory) in `exness_test.go`, and the connection in
+`server/exness_test.go`. Not run against a real account yet: there is no
+key, Exness has no test network, and from this PC Exness's hosts may be
+blocked as fapi.binance.com was.
 
 ## Storage
 

@@ -70,6 +70,7 @@ import {
   ImageIcon,
   ImageDownIcon,
   ImagePlusIcon,
+  LandmarkIcon,
   LayersIcon,
   LibraryBigIcon,
   LightbulbIcon,
@@ -171,6 +172,7 @@ const groupIcons: Record<string, LucideIcon> = {
   Telegram: SendIcon,
   WhatsApp: MessageCircleIcon,
   Binance: CoinsIcon,
+  Exness: LandmarkIcon,
   GitHub: GitPullRequestIcon,
   SSH: ServerIcon,
   ChatGPT: BotIcon,
@@ -299,6 +301,13 @@ const kindIcons: Record<string, LucideIcon> = {
   'binance-tidy': BrushCleaningIcon,
   'binance-snapshot': ScanEyeIcon,
   'binance-closed-trades': ReceiptTextIcon,
+  'exness-order': ArrowRightLeftIcon,
+  'exness-candles': ChartCandlestickIcon,
+  'exness-portfolio': WalletIcon,
+  'exness-orders': HistoryIcon,
+  'exness-positions': LayersIcon,
+  'exness-close-position': CircleXIcon,
+  'exness-move-stop': ChevronsUpIcon,
 };
 const iconOf = (k: StepKind) => kindIcons[k.kind] ?? categoryIcons[k.category] ?? BoxIcon;
 

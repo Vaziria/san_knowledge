@@ -2,6 +2,7 @@ import { timestampDate } from '@bufbuild/protobuf/wkt';
 import {
   Badge,
   Button,
+  Checkbox,
   HStack,
   Heading,
   IconButton,
@@ -32,11 +33,12 @@ const typeLabels: Record<string, string> = {
   telegramBot: 'Telegram Bot',
   whatsapp: 'WhatsApp',
   binance: 'Binance',
+  exness: 'Exness',
   github: 'GitHub',
   ssh: 'SSH',
   moviemov: 'MovieMov',
 };
-type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance' | 'github' | 'ssh' | 'moviemov';
+type ConnectionType = 'sanRemote' | 'telegramBot' | 'whatsapp' | 'binance' | 'exness' | 'github' | 'ssh' | 'moviemov';
 
 // typeHelp says what a connection of each type is, over its tab's list.
 const typeHelp: Record<ConnectionType, string> = {
@@ -45,6 +47,8 @@ const typeHelp: Record<ConnectionType, string> = {
   telegramBot: 'A bot from @BotFather, which the tower reads and sends Telegram messages as.',
   whatsapp: 'Your WhatsApp account, linked by scanning a QR code as WhatsApp Web is.',
   binance: 'A Binance futures account, through an API key, which the Finance steps read and trade on.',
+  exness:
+    'An Exness trading account, through the Exness Trader API, which the Exness steps read, and trade on with real money once Allow Trading is ticked.',
   github: 'A GitHub account, through a personal access token, which GitHub Create Issue uses.',
   ssh: 'An account on a server, through SSH: an SSH Session opens a shell there, which SSH Exec steps run commands in.',
   moviemov:
@@ -61,7 +65,8 @@ const binanceNetworks: Record<string, string> = {
 // address is what a connection points at, for the list: a bot by its id,
 // the part of its token before the colon, which is not secret; a WhatsApp
 // account by its number; a Binance account by its network and the start of
-// its API key; a GitHub token by its kind only, since all of it is secret;
+// its API key; an Exness account by its number and whether steps may trade
+// on it; a GitHub token by its kind only, since all of it is secret;
 // a server by user@host:port; a MovieMov site by its admin and API.
 const address = (s?: ConnectionSettings) => {
   switch (s?.type.case) {
@@ -75,6 +80,8 @@ const address = (s?: ConnectionSettings) => {
       return `+${s.type.value.phone}`;
     case 'binance':
       return `${s.type.value.network || 'testnet'} · key ${s.type.value.apiKey.slice(0, 6)}…`;
+    case 'exness':
+      return `account ${s.type.value.accountId} · ${s.type.value.allowTrading ? 'trading allowed' : 'read only'}`;
     case 'github':
       return s.type.value.token.startsWith('github_pat_') ? 'fine-grained token' : 'classic token';
     case 'ssh':
@@ -125,7 +132,8 @@ export function Connections() {
 
   const test = async (c: Connection) => {
     try {
-      // The id fills in what the tower does not send back (a MovieMov password).
+      // The id fills in what the tower does not send back (a MovieMov password,
+      // an Exness private key).
       const r = await connections.testConnection({ settings: c.settings, id: c.id });
       toast(`${c.name}: ${r.message}`, !r.ok);
     } catch (err) {
@@ -307,6 +315,27 @@ function ConnectionDialog({
   const [apiSecret, setApiSecret] = useState(old?.case === 'binance' ? old.value.apiSecret : '');
   const [network, setNetwork] = useState(old?.case === 'binance' ? old.value.network || 'testnet' : 'testnet');
   const [githubToken, setGithubToken] = useState(old?.case === 'github' ? old.value.token : '');
+  // An Exness account. Like a MovieMov password, the tower never sends the
+  // private key back: empty keeps the saved one (privateKeySet).
+  const [exness, setExness] = useState(() => {
+    const e = old?.case === 'exness' ? old.value : undefined;
+    return {
+      apiKey: e?.apiKey ?? '',
+      privateKey: '',
+      accountId: e?.accountId ?? '',
+      gateway: e?.gateway ?? '',
+      accessPoint: e?.accessPoint ?? '',
+      allowTrading: e?.allowTrading ?? false,
+    };
+  });
+  const privateKeySet = old?.case === 'exness' && old.value.privateKeySet;
+  const exnessInput = (field: 'apiKey' | 'privateKey' | 'accountId' | 'gateway' | 'accessPoint') => ({
+    value: exness[field],
+    onChange: (e: { currentTarget: { value: string } }) => {
+      const value = e.currentTarget.value;
+      setExness((x) => ({ ...x, [field]: value }));
+    },
+  });
   // A MovieMov login. The tower never sends the password back: empty keeps
   // the saved one (passwordSet), a typed one replaces it.
   const [movieMov, setMovieMov] = useState(() => ({
@@ -365,6 +394,20 @@ function ConnectionDialog({
         ? { type: { case: 'telegramBot' as const, value: { token: token.trim(), allowedUsers: allowedIds } } }
         : type === 'binance'
           ? { type: { case: 'binance' as const, value: { apiKey: apiKey.trim(), apiSecret: apiSecret.trim(), network } } }
+          : type === 'exness'
+            ? {
+                type: {
+                  case: 'exness' as const,
+                  value: {
+                    apiKey: exness.apiKey.trim(),
+                    privateKey: exness.privateKey.trim(),
+                    accountId: exness.accountId.trim(),
+                    gateway: exness.gateway.trim(),
+                    accessPoint: exness.accessPoint.trim(),
+                    allowTrading: exness.allowTrading,
+                  },
+                },
+              }
           : type === 'github'
             ? { type: { case: 'github' as const, value: { token: githubToken.trim() } } }
             : type === 'ssh'
@@ -474,7 +517,7 @@ function ConnectionDialog({
           autoFocus
           value={name}
           onChange={(e) => setName(e.currentTarget.value)}
-          placeholder={({ sanRemote: 'My Chrome', telegramBot: 'My bot', whatsapp: 'My WhatsApp', binance: 'Binance testnet', github: 'My GitHub', ssh: 'My server', moviemov: 'MovieMov' } as Record<ConnectionType, string>)[type]}
+          placeholder={({ sanRemote: 'My Chrome', telegramBot: 'My bot', whatsapp: 'My WhatsApp', binance: 'Binance testnet', exness: 'My Exness', github: 'My GitHub', ssh: 'My server', moviemov: 'MovieMov' } as Record<ConnectionType, string>)[type]}
         />
       </FormField>
       {type === 'whatsapp' ? (
@@ -568,6 +611,57 @@ function ConnectionDialog({
               onChange={(e) => setApiSecret(e.currentTarget.value)}
             />
           </FormField>
+        </>
+      ) : type === 'exness' ? (
+        <>
+          <Text textStyle="sm" color="fg.muted">
+            Exness has no test network: every order is real money. Make the key in Exness's Personal Area › Key
+            Management (a fully verified Exness trading account; standard MetaTrader accounts cannot connect).
+          </Text>
+          <FormField label="API key" help="The key's identifier from Key Management (exnsk-…).">
+            <Input fontFamily="mono" placeholder="exnsk-…" {...exnessInput('apiKey')} />
+          </FormField>
+          <FormField
+            label="Private key"
+            help="Signs the requests: the 128 hexadecimal characters Key Management gave, or your own Ed25519 key as unencrypted PKCS#8 PEM. It stays in the tower: it is never shown again, and an export leaves connection settings behind."
+          >
+            <Textarea
+              fontFamily="mono"
+              textStyle="xs"
+              rows={3}
+              autoComplete="off"
+              placeholder={privateKeySet ? 'Saved; paste a new one to change it' : ''}
+              css={{ WebkitTextSecurity: exness.privateKey ? 'disc' : 'none' }}
+              {...exnessInput('privateKey')}
+            />
+          </FormField>
+          <FormField label="Account" help="The trading account's number, which the key may use.">
+            <Input fontFamily="mono" inputMode="numeric" placeholder="123456" {...exnessInput('accountId')} />
+          </FormField>
+          <FormField
+            label="Gateway"
+            help="The host Key Management's DNS widget shows (https://…). The tower asks it once for the account's Access Point."
+          >
+            <Input fontFamily="mono" placeholder="https://…" {...exnessInput('gateway')} />
+          </FormField>
+          <FormField label="Access Point" help="Optional: the account's own address, to skip asking the Gateway.">
+            <Input fontFamily="mono" placeholder="Asked from the Gateway" {...exnessInput('accessPoint')} />
+          </FormField>
+          <Checkbox.Root
+            size="sm"
+            checked={exness.allowTrading}
+            onCheckedChange={(e) => setExness((x) => ({ ...x, allowTrading: e.checked === true }))}
+          >
+            <Checkbox.HiddenInput />
+            <Checkbox.Control />
+            <Checkbox.Label fontWeight="normal">
+              Allow Trading: Exness Order, Close Position and Move Stop may trade real money. Off, they refuse and the
+              connection only reads.
+            </Checkbox.Label>
+          </Checkbox.Root>
+          <Text textStyle="xs" color="fg.muted">
+            Test reads the account and its money; nothing is traded.
+          </Text>
         </>
       ) : type === 'ssh' ? (
         <>

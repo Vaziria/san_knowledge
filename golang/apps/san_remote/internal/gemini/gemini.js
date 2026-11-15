@@ -13,7 +13,11 @@
 //     answer has "Copy", "Redo" and "Show more options"
 //   - a new chat is a Temporary chat after the "Temporary chat" button: its
 //     greeting says "Temporary chats ... don't appear in recent chats", and
-//     once a prompt is sent a "Temporary chat" label stands in the header
+//     once a prompt is sent a "Temporary chat" label stands in the header.
+//     Gemini's redesign (seen 2026-11-10, everywhere by 2026-11-15) has an
+//     icon button at the top right instead, "Turn on temporary chat", which
+//     becomes "Turn off temporary chat" while the chat is temporary; both
+//     are known
 //   - the prompt box has no file input until its "Upload & tools" menu
 //     opens a file dialog, so images are pasted into it, as a person pastes
 //     a copied image (2026-11-03); the first upload of an account asks to
@@ -25,6 +29,8 @@ globalThis.__sanGemini = (() => {
     return r.width > 0 && r.height > 0;
   };
   const label = (l) => [...document.querySelectorAll(`button[aria-label="${l}"]`)].find(vis);
+  // tempButton is the button that starts a Temporary chat, either design.
+  const tempButton = () => label('Temporary chat') ?? label('Turn on temporary chat');
   const editor = () => [...document.querySelectorAll('.ql-editor[contenteditable=true]')].find(vis);
   const queries = () => [...document.querySelectorAll('user-query')];
   const responses = () => [...document.querySelectorAll('model-response')];
@@ -76,8 +82,8 @@ globalThis.__sanGemini = (() => {
         lang: document.documentElement.lang,
         composer: !!editor(),
         signedOut: [...document.querySelectorAll('a, button')].filter(vis).some((b) => /^Sign in$/.test((b.innerText || b.getAttribute('aria-label') || '').trim())),
-        temporary: /Temporary chats/.test(greeting) || leaf('Temporary chat'),
-        temporaryButton: !!label('Temporary chat'),
+        temporary: /Temporary chats/.test(greeting) || leaf('Temporary chat') || !!label('Turn off temporary chat'),
+        temporaryButton: !!tempButton(),
         turns: queries().length,
         answers: responses().length,
         answered: !!md,
@@ -96,7 +102,7 @@ globalThis.__sanGemini = (() => {
       const m = a.getAttribute('aria-label').match(/^Google Account:\s*(.*?)\s*(\(.*\))?$/);
       return { name: m ? m[1] : '' };
     },
-    temporary: () => press(label('Temporary chat')),
+    temporary: () => press(tempButton()),
     // write replaces what the prompt box holds with text, as one insertion.
     write(text) {
       const ed = editor();

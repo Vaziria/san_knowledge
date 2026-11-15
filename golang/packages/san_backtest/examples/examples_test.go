@@ -70,7 +70,7 @@ func TestExamplesRun(t *testing.T) {
 	writeMarket(t, dir, 40)
 	reg := bt.NewRegistry()
 	Register(reg)
-	if got := strings.Join(reg.Names(), ","); got != "big_trend,breakout_retest,moving_average" {
+	if got := strings.Join(reg.Names(), ","); got != "big_trend,big_trend_chain,breakout_retest,breakout_retest_chain,moving_average,moving_average_chain" {
 		t.Fatalf("names %s", got)
 	}
 	total := 0

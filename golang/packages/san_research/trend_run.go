@@ -24,6 +24,9 @@ type TrendOptions struct {
 	// Params override the candidates' defaults (not the benchmark's), for
 	// sensitivity checks; the walk-forward grid then centres on them.
 	Params map[string]float64
+	// Chains runs the candidates' chain versions (TrendChains) instead of
+	// the hand-written ones; they trade the same, so the results match.
+	Chains bool
 	Log    io.Writer
 }
 
@@ -64,7 +67,11 @@ func RunTrendApproaches(ctx context.Context, o TrendOptions) ([]BacktestRow, err
 	train, _ := bt.ParseSpan("3m")
 	test, _ := bt.ParseSpan("1m")
 	var rows []BacktestRow
-	for _, mk := range TrendApproaches() {
+	makers := TrendApproaches()
+	if o.Chains {
+		makers = TrendChains()
+	}
+	for _, mk := range makers {
 		name := mk().Name()
 		if len(o.Only) > 0 && !contains(o.Only, name) {
 			continue

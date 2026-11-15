@@ -10,11 +10,15 @@ import (
 	bt "github.com/wargasipil/san_backtest"
 )
 
-// Register adds every example under its name.
+// Register adds every example under its name, and each one's chain
+// version (chains.go) as <name>_chain.
 func Register(r *bt.Registry) {
 	r.Register("big_trend", func() bt.Strategy { return &BigTrend{} })
 	r.Register("breakout_retest", func() bt.Strategy { return &BreakoutRetest{} })
 	r.Register("moving_average", func() bt.Strategy { return &MovingAverage{} })
+	r.Register("big_trend_chain", BigTrendChain)
+	r.Register("breakout_retest_chain", BreakoutRetestChain)
+	r.Register("moving_average_chain", MovingAverageChain)
 }
 
 // BigTrend (big_trend.md): trade only the way the larger timeframes

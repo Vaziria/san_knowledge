@@ -24,9 +24,29 @@ type WalkWindow struct {
 	Train, Test        Stats
 }
 
-// grid is the values tried for one parameter: its default times 0.5,
-// 0.75, 1, 1.25 and 1.5, rounded to whole numbers when the default is
-// whole (a period), at least 1.
+// DefaultGrid is the values walk-forward tries for one parameter: its
+// default times 0.5, 0.75, 1, 1.25 and 1.5, rounded to whole numbers when
+// the default is whole (a period), at least 1. A strategy that is a
+// GridTuner (chains are) may give a param another grid.
+func DefaultGrid(v float64) []float64 { return grid(v) }
+
+// FineGrid is DefaultGrid without the rounding: a whole default such as an
+// RR of 2 tries 1, 1.5, 2, 2.5 and 3.
+func FineGrid(v float64) []float64 {
+	if v == 0 {
+		return []float64{0}
+	}
+	var out []float64
+	seen := map[float64]bool{}
+	for _, f := range []float64{0.5, 0.75, 1, 1.25, 1.5} {
+		if x := v * f; !seen[x] {
+			seen[x] = true
+			out = append(out, x)
+		}
+	}
+	return out
+}
+
 func grid(v float64) []float64 {
 	if v == 0 {
 		return []float64{0}
@@ -70,6 +90,14 @@ func (ld *loaded) walk(w Walk) (*WalkResult, error) {
 	skipped := map[string]int{}
 	var oosFrom, oosTo time.Time
 	defaults := ld.legs[0].params
+	gridOf := func(name string, v float64) []float64 {
+		if g, ok := ld.legs[0].leg.Strategy.(GridTuner); ok {
+			if vs := g.Grid(name, v); vs != nil {
+				return vs
+			}
+		}
+		return grid(v)
+	}
 	for s := ld.from; !s.Add(w.Train + w.Test).After(ld.to); s = s.Add(w.Test) {
 		win := WalkWindow{TrainFrom: s, TrainTo: s.Add(w.Train), TestFrom: s.Add(w.Train), TestTo: s.Add(w.Train + w.Test)}
 		best := cloneParams(defaults)
@@ -80,7 +108,7 @@ func (ld *loaded) walk(w Walk) (*WalkResult, error) {
 		win.Trials = 1
 		bestScore, bestStats := r.Stats.NetProfit, r.Stats
 		for _, name := range sortedKeys(defaults) {
-			for _, v := range grid(defaults[name]) {
+			for _, v := range gridOf(name, defaults[name]) {
 				if v == best[name] {
 					continue
 				}

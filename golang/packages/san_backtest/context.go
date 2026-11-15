@@ -68,6 +68,22 @@ type Context struct {
 	// trials record nothing).
 	notes  []string
 	record bool
+
+	// The chain fields (chain strategies, see Chain): the steps of a chain
+	// share them, and the chain resets them at the start of every candle.
+	// Other strategies may ignore them.
+
+	// Dir is the side the chain is looking at: Long, Short, or "" while no
+	// direction step or trigger has set it.
+	Dir Side
+	// Entry is the planned entry price: the step candle's close (NaN when
+	// there is none). A step may change it; rule #1 and RR read it.
+	Entry float64
+	// Stop and Target are the planned stop-loss and take-profit prices,
+	// NaN until a step sets them.
+	Stop, Target float64
+
+	chain *chainState
 }
 
 // Time is the close time of the current step candle, UTC.
@@ -185,6 +201,50 @@ func (c *Context) Note(format string, args ...any) {
 		return
 	}
 	c.notes = append(c.notes, fmt.Sprintf(format, args...))
+}
+
+// TF is the timeframe in force for tf, one of a chain's own timeframes:
+// the chain's timeframes map by position onto Timeframes(), so a step
+// written for "H4" follows a --tf override. "" is the step timeframe.
+// Outside a chain (or for a name the chain does not declare) it is tf.
+func (c *Context) TF(tf string) string {
+	if tf == "" {
+		return c.step
+	}
+	if c.chain != nil {
+		for i, x := range c.chain.tfs {
+			if x == tf && i < len(c.tfs) {
+				return c.tfs[i]
+			}
+		}
+	}
+	return tf
+}
+
+// Held is what a chain has tracked about the open position: the candles
+// held, the best price since the entry and the first stop (1R). Zero when
+// flat or outside a chain.
+func (c *Context) Held() Held {
+	if c.chain == nil || c.pos == nil {
+		return Held{}
+	}
+	return c.chain.held
+}
+
+// Explain adds detail to the running chain step's entry in the decision
+// path (logged only on candles where something happened). Outside a chain
+// it is Note.
+func (c *Context) Explain(format string, args ...any) {
+	if c.chain == nil {
+		c.Note(format, args...)
+		return
+	}
+	st := c.chain
+	if !st.record || st.quiet > 0 || len(st.stack) == 0 {
+		return
+	}
+	e := st.stack[len(st.stack)-1]
+	e.details = append(e.details, fmt.Sprintf(format, args...))
 }
 
 // Account is the account at this step.

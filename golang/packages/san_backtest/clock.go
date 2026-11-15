@@ -73,6 +73,10 @@ func rollovers(from, to time.Time) []time.Time {
 	return out
 }
 
+// Rollovers lists the daily swap moments in (from, to]: 17:00 New York
+// time, Monday to Friday (04:00 or 05:00 WIB).
+func Rollovers(from, to time.Time) []time.Time { return rollovers(from, to) }
+
 // Last is the range of the last d up to now: (now - d, now), UTC, to the
 // minute.
 func Last(d time.Duration) (from, to time.Time) {

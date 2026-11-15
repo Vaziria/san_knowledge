@@ -33,7 +33,10 @@ and create better approach in code ?") have their own command:
 Flags: `--cache`, `--instrument`, `--from 2022-05-02`, `--to`, `--only
 daily_trend,pullback_trend` and `--param name=value,...` (overrides the
 candidates' defaults for sensitivity checks; send those to a scratch
-`--out`). It writes `backtests/<approach>/<run>/` (real with walk-forward,
+`--out`) and `--chains` (runs the candidates' san_backtest chain versions,
+`trend_chains.go`, instead of the hand-written ones: same trades, so the
+same summary.json and results.md; only the decision notes differ, since a
+chain logs the path each eventful candle took). It writes `backtests/<approach>/<run>/` (real with walk-forward,
 harsh, each year, and `real-100k`, information only), `backtests/summary.json`
 and `backtests/results.md`, where the pass rule (`trend_rule.go`) is applied.
 About 10 seconds; the summary and verdict are in that folder's `summary.md`.
@@ -71,6 +74,12 @@ About 10 seconds; the summary and verdict are in that folder's `summary.md`.
   and the 1R trailing stop) and `trend_others.go` (`overlap_momentum`,
   `pullback_trend`, the benchmark `buy_and_hold_xau` run at 50% risk with a
   50% stop, about 1x the balance). All step on H1 with H4 context.
+- `trend_chains.go`: `daily_trend`, `overlap_momentum` and
+  `pullback_trend` written as san_backtest chains (built-in steps plus a
+  small adapter for the daily bars), `TrendChains`. `trend_chains_test.go`
+  checks they trade exactly like the hand-written ones on made markets
+  and, when san_backtest's cache is on the machine, on the whole cached
+  history (with san_backtest's three examples and their chains).
 - `trend_run.go`: `RunTrendApproaches`, with `floorSource`, which clamps
   queries to the first cached month so a warm-up that reaches before the
   cache starts the run later (noted) instead of failing. `trend_rule.go`:

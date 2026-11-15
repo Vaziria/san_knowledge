@@ -281,6 +281,116 @@ Helpers: `Last(d)`, `ParseSpan("3m")` (m = months of 30 days),
 `ParseZone("WIB")`, `ParseTimeframe("h1")`, `TimeframeDuration`,
 `SessionAt(t)`, `WIB`, `NewRegistry()` / `Register` / `New` / `Names`.
 
+## Chain strategies
+
+A strategy can also be written as an ordered list of small steps, a chain
+of responsibility (the user, 2026-11-15: "can we make strategy code like
+chainable pipeline" and "In function like chain of responsibility"; the
+design below was agreed the same day: "Okay, agree"). `Build()` returns an
+ordinary `Strategy`, so the engine, the reports, `run.json`,
+`decisions.jsonl` and the tower's Backtest Analysis work unchanged.
+
+```go
+type Next func(c *bt.Context) bt.Signal
+type Step func(c *bt.Context, next Next) bt.Signal   // a step as a plain function
+
+bt.Chain(name, timeframes...).Use(steps...).Warmup(n).Build() // (bt.Strategy, error); MustBuild panics instead
+```
+
+Each step gets the Context and `next` (the rest of the chain). It may stop
+the chain (`return bt.Wait.Because("spread %.2f", sp)`), call `next` and
+pass its answer on, change that answer on the way back, or answer itself (a
+`Close`, a `MoveStop`). A step only runs when every step before it called
+`next`, so order matters.
+
+- **Shared fields, reset every candle:** `c.Dir` (`bt.Long`, `bt.Short`
+  or `""` = not set), `c.Entry` (the planned entry, the step candle's
+  close), `c.Stop` and `c.Target` (NaN until set). A direction step sets
+  `Dir`; the steps after it are written once and mirror for shorts;
+  triggers check both sides while `Dir` is not set. At the end of the
+  chain, with `Dir` set and flat, the chain answers `Buy`/`Sell(c.Stop,
+  c.Target)`. `c.SetStop(dist)` puts the stop `dist` from `Entry` on
+  `Dir`'s side and `c.Risk()` is that 1R. These are plain fields on
+  `Context` (other strategies ignore them), which keeps every existing
+  method as it was and lets custom steps read and write them directly.
+- **ManageOpen goes first.** While a position is open it runs its own steps
+  (each acts or passes, so the first that acts wins) and never reaches the
+  entry steps; while flat it calls `next`. `c.Held()` gives the open
+  position's candles held, best price since the entry and first stop (1R).
+- **Rule #1** (every trade has a stop-loss and a take-profit): `Build`
+  always adds `RequireSLTP` as the innermost step, and the final answer is
+  checked again, so an entry without both on the right sides of `Entry`
+  becomes Wait with a note.
+- **Decision log:** the path a candle took (each step, what it saw, which
+  one blocked and why) goes into `decisions.jsonl` through `c.Note`, only
+  on candles where something happened: a signal, a trigger that fired
+  (and was blocked later), rule #1 blocking, or a pure trigger that would
+  have fired on a candle an earlier filter blocked ("pullback_to would
+  fire buy"). Quiet candles log nothing (the user's earlier "2b"). Steps
+  add detail with `c.Explain(...)`.
+- **Params:** `steps.P("rr", 2)` is a tunable number; the chain's
+  `Params()` lists every one, so `Config.Params`, `--param` and
+  walk-forward tune them. Pass the same `P` value to every step sharing
+  it; two `P`s with one name are an error from `Build`. Walk-forward tries
+  a `P` as a fraction (`FineGrid`: 1, 1.5, 2, 2.5, 3 for 2), or as whole
+  numbers (`DefaultGrid`) when a step uses it as a period or count;
+  `.Whole()` and `.Grid(v...)` choose. Strategies other than chains keep
+  `DefaultGrid` unless they implement `GridTuner`.
+- **Warmup:** the largest period/bars any step declares plus
+  `max(5, 20%)`, or `.Warmup(n)`.
+- **Timeframes:** steps name the chain's own timeframes ("H4"); `c.TF`
+  maps them by position onto the timeframes in force, so `--tf` works.
+- Missing data (NaN indicators, too few candles) makes a step Wait; it
+  never becomes a signal.
+
+### Example: pullback_trend as a chain
+
+The research approach `pullback_trend` (san_research, `trend_chains.go`)
+trades exactly like its hand-written version; `days` is that package's
+small adapter for daily bars built from H4 (the cache has no D1).
+
+```go
+v := &days{}
+trend, stopBuf := steps.P("trend", 50).Whole(), steps.P("stop_buf", 0.5)
+targetR, holdDays := steps.P("target_r", 2).Whole(), steps.P("hold_days", 3).Whole()
+atr := steps.ATR("H1", 14)
+ema20 := steps.EMA("H4", 20)
+st := bt.Chain("pullback_trend", "H1", "H4").Use(
+	steps.ManageOpen(steps.TimeStop(holdDays.Times(23))), // about hold_days trading days
+	steps.Hours(14, 23),                                  // the step candle opens 14:00-22:59 WIB
+	steps.OncePerDay(),
+	v.direction(trend),                                   // the daily trend (custom step)
+	steps.Agree(ema20, steps.EMA("H4", 50)),              // H4 EMA20 above EMA50 for longs
+	steps.PullbackTo("H1", ema20).CameFrom(24, atr),      // dipped to the H4 EMA20 after being 1 ATR above
+	steps.SwingStop("H1", 12, atr.Times(stopBuf), atr),   // under the 12-candle low by stop_buf ATR, at least 1 ATR
+	steps.MaxStop(v.atr().Times(1.5)),                    // no trade when wider than 1.5 daily ATR
+	steps.RR(targetR),
+).Warmup(330).MustBuild()
+```
+
+A custom step is a `bt.Step` func, or `bt.Define(name, role, run, setup)`
+when it also declares params, bars or state (`d.Param`, `d.Bars`,
+`d.OnStart`, `d.EveryCandle`, `d.Sub`, `d.Directions`).
+
+### Built-in steps (package `steps`)
+
+Numbers are `any`: a constant, `steps.P(...)`, or a value expression.
+
+| Kind | Steps |
+|---|---|
+| Filters | `Hours(from, to)` (WIB, of the step candle's open; wraps past midnight), `Weekdays(days...)`, `Sessions(names...)` (`asia`, `london`, `newyork`, `overlap`), `SkipRollover()` (within 1 h of 17:00 New York), `SkipMondayOpen()` (2 h after a gap of a day or more), `MinATR(tf, n, x)`, `MaxATR(tf, n, x)`, `MaxSpread(x)`, `OncePerDay()` (WIB day; marks the day when an entry comes back through it) |
+| Direction | `TrendSMA(tf, n, back)` (close above an SMA higher than `back` candles ago; 0 = n/5), `EMAAgree(tf, fast, slow)` (fast and close above slow), `Agree(a, b)` (a above b = long), `Momentum(tf, bars)`, `OnlyLong()`, `OnlyShort()` |
+| Triggers | `PullbackTo(tf, level)` with `.CameFrom(bars, dist)`, `Breakout(tf, n)` (Donchian), `Impulse(tf, bars, dist)`, `Cross(tf, fast, slow)` (EMAs), `CloseCross(tf, level)`, `CloseBeyond(upper, lower)`, `Custom(name, func(c) bt.Side)` |
+| Stop and target | `ATRStop(tf, n, x)`, `StopDist(dist)`, `StopAt(level, min)`, `SwingStop(tf, bars, buffer, min)`, `MaxStop(x)`, `RR(r)`, `ATRTarget(tf, n, x)`, `TargetDist(dist)`, `TargetAt(level)`, `RequireSLTP()` |
+| Manage (in `ManageOpen`) | `BreakEven(atR)`, `Trail(afterR, distR)`, `TimeStop(bars)`, `CloseAt(hour, reason...)` (WIB), `CloseIf(reason, func(c) bool)`, `ExitOnTrendFlip(dirs...)` (none = the chain's direction steps) |
+| Values | `P`, `Const`, `EMA`, `SMA`, `RSI`, `ATR`, `MACDHist`, `Close`/`Open`/`High`/`Low`, `SwingLow`/`SwingHigh(tf, bars)`, `Entry()`, `Prev(v, tf)`, `Mirror(long, short)`, `Func(name, f, needs)`; `.Plus .Minus .Times .Div .Max .Min` |
+
+The examples `big_trend_chain`, `breakout_retest_chain` and
+`moving_average_chain` (`examples/chains.go`) are the three examples as
+chains; tests show each trades exactly like its hand-written twin (count,
+times, prices, P/L, walk-forward), and san_research checks the same on the
+whole cached XAUUSD history.
+
 ## CLI
 
 `cmd/san_backtest` reads candles and conditions only; it never trades.
@@ -528,7 +638,9 @@ that first run; a wrong one shows as a note or as odd costs, and
   them. Sessions in `Session()` are Tokyo 09-18, London 08-17 and New York
   08-17 local time.
 - **Walk-forward** tunes leg 0 of a `Run` only, by one coordinate-search
-  pass over a fixed x0.5..x1.5 grid (not a full grid search).
+  pass over a fixed x0.5..x1.5 grid (not a full grid search). The grid
+  rounds whole defaults (`DefaultGrid`); a `GridTuner` strategy (every
+  chain) may give a param another grid, e.g. `FineGrid` for fractions.
 - **Cache** holds candles only for the Exness source; CSV is read as is.
   A run whose `To` is now tops up the current month on every run (a few
   requests); a range fully in the past makes none.
@@ -557,7 +669,9 @@ that first run; a wrong one shows as a note or as odd costs, and
 | `instrument.go` | `Instrument`, `FromExness`, sessions |
 | `candle.go`, `clock.go` | timeframes, WIB, sessions, rollovers, `Last`, `ParseSpan` |
 | `result.go`, `report.go`, `chart.go` | stats, text/CSV reports, the PNG |
-| `examples/` | three example approaches |
+| `chain.go`, `chain_build.go`, `chain_run.go` | chain strategies: `Chain`, `Step`, `Link`, `Define`, `Decl`, `ParamDef`, `RequireSLTP` |
+| `steps/` | the built-in chain steps and value expressions |
+| `examples/` | three example approaches, and the same three as chains |
 | `cmd/san_backtest/` | the CLI |
 
 ## Build and test

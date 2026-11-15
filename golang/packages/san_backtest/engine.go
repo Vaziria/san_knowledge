@@ -585,6 +585,9 @@ func (s *sim) decideSignal(l *legRun, t time.Time, sig Signal, notes []string) {
 	}
 	reason := strings.Join(notes, "; ")
 	if sig.Action == ActWait {
+		if sig.Reason != "" {
+			reason = strings.Join(append([]string{sig.Reason}, notes...), "; ")
+		}
 		if reason != "" {
 			s.decide(l, t, DecisionNote, "", nil, reason)
 		}

@@ -32,7 +32,7 @@ func main() {
 }
 
 const usage = "usage: san_research xauusd --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--backtests]\n" +
-	"       san_research approaches --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--only a,b]"
+	"       san_research approaches --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--only a,b] [--chains]"
 
 func run(ctx context.Context, args []string) error {
 	if len(args) > 0 && args[0] == "approaches" {
@@ -77,13 +77,14 @@ func runApproaches(ctx context.Context, args []string) error {
 	to := fs.String("to", "", "end, UTC, exclusive; empty = the cache's covered_to")
 	only := fs.String("only", "", "comma-separated approach names; empty = all")
 	params := fs.String("param", "", "comma-separated name=value overrides of the candidates' defaults (sensitivity checks)")
+	chains := fs.Bool("chains", false, "run the candidates' chain versions (san_backtest chains; same trades)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	if *out == "" {
 		return fmt.Errorf("--out is needed\n%s", usage)
 	}
-	o := research.TrendOptions{Cache: *cache, Instrument: *inst, Out: *out, Log: os.Stdout}
+	o := research.TrendOptions{Cache: *cache, Instrument: *inst, Out: *out, Log: os.Stdout, Chains: *chains}
 	if *only != "" {
 		o.Only = strings.Split(*only, ",")
 	}

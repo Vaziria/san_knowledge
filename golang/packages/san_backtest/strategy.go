@@ -73,6 +73,14 @@ type Signal struct {
 // Wait does nothing this step.
 var Wait = Signal{}
 
+// Because sets the signal's reason, e.g. bt.Wait.Because("spread %.2f too
+// wide", sp) for a chain step that stops the chain. A Wait's reason goes
+// to the decision log as a note; a chain keeps it in its path instead.
+func (s Signal) Because(format string, args ...any) Signal {
+	s.Reason = fmt.Sprintf(format, args...)
+	return s
+}
+
 // Buy opens a long at the next candle's open (at the ask).
 func Buy(stop, target float64) Signal { return Signal{Action: ActBuy, Stop: stop, Target: target} }
 

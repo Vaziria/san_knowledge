@@ -1,0 +1,16 @@
+dip_fade_m1
+range       2024-05-01 00:40 UTC (2024-05-01 07:40 WIB) to 2026-11-13 21:58 UTC (2026-11-14 04:58 WIB)
+note        XAUUSD history starts too late for From 2024-05-01T00:00:00Z (40 warm-up candles of M1 needed before it): the run starts at 2024-05-01T00:40:00Z
+costs XAUUSD: spread override: 0.4 fixed; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage override: 0.1 per market fill
+params      sl=1 tp=2
+trades         713 (262 won, 451 lost)
+win rate       36.7%
+profit factor  0.76
+average R      -0.12
+net profit     -6024.99 (-60.25%), commission 0.00, swap 0.00
+balance        10000.00 -> 3975.01
+max drawdown   7017.29 (68.20%)
+losing streak  21
+first half     343 trades, 35.0% won, net -5713.03, avg R -0.24
+second half    370 trades, 38.4% won, net -311.96, avg R -0.01
+skipped        too small 2

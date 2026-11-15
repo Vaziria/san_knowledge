@@ -57,6 +57,11 @@ func NewOffline(dir, name string) (*Offline, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cache %s: %w", root, err)
 	}
+	// The clock is the newest covered_to of the M15-and-longer timeframes
+	// (the short ones, M1 and seconds, are often topped up later and would
+	// move the clock past what H1/H4 cover); short ones count only when
+	// nothing longer is cached.
+	var short time.Time
 	for _, tf := range tfs {
 		if !tf.IsDir() {
 			continue
@@ -66,14 +71,34 @@ func NewOffline(dir, name string) (*Offline, error) {
 		if len(files) == 0 {
 			continue
 		}
-		if t, err := coveredTo(files[len(files)-1]); err == nil && t.After(o.now) {
+		t, err := coveredTo(files[len(files)-1])
+		if err != nil {
+			continue
+		}
+		if shortTF(tf.Name()) {
+			if t.After(short) {
+				short = t
+			}
+		} else if t.After(o.now) {
 			o.now = t
 		}
+	}
+	if o.now.IsZero() {
+		o.now = short
 	}
 	if o.now.IsZero() {
 		return nil, fmt.Errorf("cache %s: no month files", root)
 	}
 	return o, nil
+}
+
+// shortTF is a timeframe shorter than M15 (S1..S15, M1..M10).
+func shortTF(tf string) bool {
+	switch tf {
+	case "S1", "S5", "S15", "M1", "M3", "M5", "M10":
+		return true
+	}
+	return false
 }
 
 func coveredTo(path string) (time.Time, error) {

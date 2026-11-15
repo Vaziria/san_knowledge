@@ -1,0 +1,2169 @@
+{
+  "schema": 1,
+  "kind": "run",
+  "approach": "dip_fade_m1",
+  "instrument": "XAUUSD",
+  "timeframes": [
+    "M1"
+  ],
+  "params": {
+    "sl": 1,
+    "tp": 2
+  },
+  "ran_at": "2026-11-15T13:29:05Z",
+  "requested": {
+    "from": "2024-05-01T00:00:00Z",
+    "to": "2026-11-13T21:58:00Z"
+  },
+  "range": {
+    "from": "2024-05-01T00:40:00Z",
+    "to": "2026-11-13T21:58:00Z",
+    "notes": [
+      "XAUUSD history starts too late for From 2024-05-01T00:00:00Z (40 warm-up candles of M1 needed before it): the run starts at 2024-05-01T00:40:00Z"
+    ]
+  },
+  "account": {
+    "balance": 10000,
+    "currency": "USD",
+    "leverage": 2000,
+    "max_open": 0,
+    "max_open_risk": 0,
+    "max_daily_loss": 0,
+    "day_tz": "WIB"
+  },
+  "costs": [
+    {
+      "leg": 0,
+      "instrument": "XAUUSD",
+      "spread": "exness: each candle's ask - bid",
+      "commission": "exness: 0  per lot per side",
+      "swap": "exness: long -471.7, short 0 points per lot per night",
+      "slippage": "0 (0 unless set)",
+      "overridden": [],
+      "notes": [
+        "XAUUSD history starts too late for From 2024-05-01T00:00:00Z (40 warm-up candles of M1 needed before it): the run starts at 2024-05-01T00:40:00Z"
+      ]
+    }
+  ],
+  "legs": [
+    {
+      "leg": 0,
+      "strategy": "dip_fade_m1",
+      "instrument": "XAUUSD",
+      "timeframes": [
+        "M1"
+      ],
+      "risk": 1,
+      "params": {
+        "sl": 1,
+        "tp": 2
+      },
+      "contribution": 0
+    }
+  ],
+  "stats": {
+    "trades": 715,
+    "wins": 265,
+    "losses": 450,
+    "win_rate": 37.06,
+    "profit_factor": 1.007,
+    "avg_r": 0.015,
+    "net_profit": 295.14,
+    "gross_win": 40984.47,
+    "gross_loss": 40689.33,
+    "commission": 0,
+    "swap": 0,
+    "start_balance": 10000,
+    "end_balance": 10295.14,
+    "return_pct": 2.951,
+    "max_drawdown": 3790.57,
+    "max_drawdown_pct": 35.249,
+    "longest_losing_streak": 21,
+    "first_half": {
+      "trades": 343,
+      "win_rate": 34.99,
+      "net_profit": -2223.91,
+      "avg_r": -0.066
+    },
+    "second_half": {
+      "trades": 372,
+      "win_rate": 38.98,
+      "net_profit": 2519.05,
+      "avg_r": 0.09
+    },
+    "skipped": {}
+  },
+  "walk": {
+    "train": "2160h0m0s",
+    "test": "720h0m0s",
+    "windows": [
+      {
+        "train_from": "2024-05-01T00:40:00Z",
+        "train_to": "2024-07-30T00:40:00Z",
+        "test_from": "2024-07-30T00:40:00Z",
+        "test_to": "2024-08-29T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 1.5
+        },
+        "trials": 10,
+        "train": {
+          "trades": 67,
+          "wins": 40,
+          "losses": 27,
+          "win_rate": 59.7,
+          "profit_factor": 1.205,
+          "avg_r": 0.086,
+          "net_profit": 567.16,
+          "gross_win": 3338.71,
+          "gross_loss": 2771.54,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10567.16,
+          "return_pct": 5.672,
+          "max_drawdown": 355.63,
+          "max_drawdown_pct": 3.382,
+          "longest_losing_streak": 3,
+          "first_half": {
+            "trades": 31,
+            "win_rate": 61.29,
+            "net_profit": 363.66,
+            "avg_r": 0.119
+          },
+          "second_half": {
+            "trades": 36,
+            "win_rate": 58.33,
+            "net_profit": 203.5,
+            "avg_r": 0.058
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 29,
+          "wins": 16,
+          "losses": 13,
+          "win_rate": 55.17,
+          "profit_factor": 1.049,
+          "avg_r": 0.027,
+          "net_profit": 63.32,
+          "gross_win": 1347.33,
+          "gross_loss": 1284,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10063.32,
+          "return_pct": 0.633,
+          "max_drawdown": 455.8,
+          "max_drawdown_pct": 4.489,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 8,
+            "win_rate": 62.5,
+            "net_profit": 117.19,
+            "avg_r": 0.154
+          },
+          "second_half": {
+            "trades": 21,
+            "win_rate": 52.38,
+            "net_profit": -53.87,
+            "avg_r": -0.022
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-05-31T00:40:00Z",
+        "train_to": "2024-08-29T00:40:00Z",
+        "test_from": "2024-08-29T00:40:00Z",
+        "test_to": "2024-09-28T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 3
+        },
+        "trials": 10,
+        "train": {
+          "trades": 75,
+          "wins": 29,
+          "losses": 46,
+          "win_rate": 38.67,
+          "profit_factor": 1.065,
+          "avg_r": 0.047,
+          "net_profit": 282.67,
+          "gross_win": 4646.12,
+          "gross_loss": 4363.45,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10282.67,
+          "return_pct": 2.827,
+          "max_drawdown": 1124.25,
+          "max_drawdown_pct": 11.243,
+          "longest_losing_streak": 8,
+          "first_half": {
+            "trades": 35,
+            "win_rate": 37.14,
+            "net_profit": -122.9,
+            "avg_r": -0.029
+          },
+          "second_half": {
+            "trades": 40,
+            "win_rate": 40,
+            "net_profit": 405.56,
+            "avg_r": 0.113
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 17,
+          "wins": 10,
+          "losses": 7,
+          "win_rate": 58.82,
+          "profit_factor": 2.1,
+          "avg_r": 0.475,
+          "net_profit": 820.02,
+          "gross_win": 1565.37,
+          "gross_loss": 745.36,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10063.32,
+          "end_balance": 10883.34,
+          "return_pct": 8.149,
+          "max_drawdown": 328.37,
+          "max_drawdown_pct": 2.929,
+          "longest_losing_streak": 3,
+          "first_half": {
+            "trades": 8,
+            "win_rate": 75,
+            "net_profit": 735.66,
+            "avg_r": 0.901
+          },
+          "second_half": {
+            "trades": 9,
+            "win_rate": 44.44,
+            "net_profit": 84.36,
+            "avg_r": 0.096
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-06-30T00:40:00Z",
+        "train_to": "2024-09-28T00:40:00Z",
+        "test_from": "2024-09-28T00:40:00Z",
+        "test_to": "2024-10-28T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 3
+        },
+        "trials": 10,
+        "train": {
+          "trades": 67,
+          "wins": 31,
+          "losses": 36,
+          "win_rate": 46.27,
+          "profit_factor": 1.443,
+          "avg_r": 0.235,
+          "net_profit": 1615.84,
+          "gross_win": 5260.57,
+          "gross_loss": 3644.73,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 11615.84,
+          "return_pct": 16.158,
+          "max_drawdown": 1131.1,
+          "max_drawdown_pct": 10.879,
+          "longest_losing_streak": 8,
+          "first_half": {
+            "trades": 29,
+            "win_rate": 34.48,
+            "net_profit": -229.85,
+            "avg_r": -0.072
+          },
+          "second_half": {
+            "trades": 38,
+            "win_rate": 55.26,
+            "net_profit": 1845.69,
+            "avg_r": 0.47
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 6,
+          "wins": 4,
+          "losses": 2,
+          "win_rate": 66.67,
+          "profit_factor": 3.616,
+          "avg_r": 0.886,
+          "net_profit": 583.79,
+          "gross_win": 806.92,
+          "gross_loss": 223.13,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10883.34,
+          "end_balance": 11467.13,
+          "return_pct": 5.364,
+          "max_drawdown": 149.21,
+          "max_drawdown_pct": 1.36,
+          "longest_losing_streak": 1,
+          "first_half": {
+            "trades": 3,
+            "win_rate": 66.67,
+            "net_profit": 314.64,
+            "avg_r": 0.969
+          },
+          "second_half": {
+            "trades": 3,
+            "win_rate": 66.67,
+            "net_profit": 269.15,
+            "avg_r": 0.803
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-07-30T00:40:00Z",
+        "train_to": "2024-10-28T00:40:00Z",
+        "test_from": "2024-10-28T00:40:00Z",
+        "test_to": "2024-11-27T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 3
+        },
+        "trials": 9,
+        "train": {
+          "trades": 52,
+          "wins": 29,
+          "losses": 23,
+          "win_rate": 55.77,
+          "profit_factor": 2.127,
+          "avg_r": 0.501,
+          "net_profit": 2860.8,
+          "gross_win": 5399.15,
+          "gross_loss": 2538.35,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 12860.8,
+          "return_pct": 28.608,
+          "max_drawdown": 474.28,
+          "max_drawdown_pct": 4.513,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 37,
+            "win_rate": 56.76,
+            "net_profit": 2117.36,
+            "avg_r": 0.538
+          },
+          "second_half": {
+            "trades": 15,
+            "win_rate": 53.33,
+            "net_profit": 743.44,
+            "avg_r": 0.412
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 22,
+          "wins": 7,
+          "losses": 15,
+          "win_rate": 31.82,
+          "profit_factor": 0.826,
+          "avg_r": -0.114,
+          "net_profit": -290.82,
+          "gross_win": 1379.13,
+          "gross_loss": 1669.95,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 11467.13,
+          "end_balance": 11176.3,
+          "return_pct": -2.536,
+          "max_drawdown": 679.55,
+          "max_drawdown_pct": 5.871,
+          "longest_losing_streak": 5,
+          "first_half": {
+            "trades": 12,
+            "win_rate": 33.33,
+            "net_profit": -119.27,
+            "avg_r": -0.085
+          },
+          "second_half": {
+            "trades": 10,
+            "win_rate": 30,
+            "net_profit": -171.56,
+            "avg_r": -0.149
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-08-29T00:40:00Z",
+        "train_to": "2024-11-27T00:40:00Z",
+        "test_from": "2024-11-27T00:40:00Z",
+        "test_to": "2024-12-27T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 3
+        },
+        "trials": 11,
+        "train": {
+          "trades": 45,
+          "wins": 21,
+          "losses": 24,
+          "win_rate": 46.67,
+          "profit_factor": 1.415,
+          "avg_r": 0.242,
+          "net_profit": 1092.21,
+          "gross_win": 3724.74,
+          "gross_loss": 2632.53,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 11092.21,
+          "return_pct": 10.922,
+          "max_drawdown": 722.64,
+          "max_drawdown_pct": 6.265,
+          "longest_losing_streak": 5,
+          "first_half": {
+            "trades": 20,
+            "win_rate": 60,
+            "net_profit": 1131.35,
+            "avg_r": 0.549
+          },
+          "second_half": {
+            "trades": 25,
+            "win_rate": 36,
+            "net_profit": -39.14,
+            "avg_r": -0.004
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 15,
+          "wins": 4,
+          "losses": 11,
+          "win_rate": 26.67,
+          "profit_factor": 0.631,
+          "avg_r": -0.265,
+          "net_profit": -445.56,
+          "gross_win": 761.42,
+          "gross_loss": 1206.98,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 11176.3,
+          "end_balance": 10730.74,
+          "return_pct": -3.987,
+          "max_drawdown": 548.46,
+          "max_drawdown_pct": 4.863,
+          "longest_losing_streak": 3,
+          "first_half": {
+            "trades": 9,
+            "win_rate": 33.33,
+            "net_profit": -95.02,
+            "avg_r": -0.087
+          },
+          "second_half": {
+            "trades": 6,
+            "win_rate": 16.67,
+            "net_profit": -350.54,
+            "avg_r": -0.532
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-09-28T00:40:00Z",
+        "train_to": "2024-12-27T00:40:00Z",
+        "test_from": "2024-12-27T00:40:00Z",
+        "test_to": "2025-01-26T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 2.5
+        },
+        "trials": 10,
+        "train": {
+          "trades": 43,
+          "wins": 18,
+          "losses": 25,
+          "win_rate": 41.86,
+          "profit_factor": 1.052,
+          "avg_r": 0.036,
+          "net_profit": 130.97,
+          "gross_win": 2643.29,
+          "gross_loss": 2512.32,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10130.97,
+          "return_pct": 1.31,
+          "max_drawdown": 732.17,
+          "max_drawdown_pct": 6.951,
+          "longest_losing_streak": 5,
+          "first_half": {
+            "trades": 18,
+            "win_rate": 44.44,
+            "net_profit": 173.15,
+            "avg_r": 0.101
+          },
+          "second_half": {
+            "trades": 25,
+            "win_rate": 40,
+            "net_profit": -42.18,
+            "avg_r": -0.01
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 22,
+          "wins": 6,
+          "losses": 16,
+          "win_rate": 27.27,
+          "profit_factor": 0.52,
+          "avg_r": -0.336,
+          "net_profit": -782.02,
+          "gross_win": 848.74,
+          "gross_loss": 1630.76,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10730.74,
+          "end_balance": 9948.72,
+          "return_pct": -7.288,
+          "max_drawdown": 933.07,
+          "max_drawdown_pct": 8.664,
+          "longest_losing_streak": 8,
+          "first_half": {
+            "trades": 16,
+            "win_rate": 18.75,
+            "net_profit": -894.33,
+            "avg_r": -0.541
+          },
+          "second_half": {
+            "trades": 6,
+            "win_rate": 50,
+            "net_profit": 112.3,
+            "avg_r": 0.21
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-10-28T00:40:00Z",
+        "train_to": "2025-01-26T00:40:00Z",
+        "test_from": "2025-01-26T00:40:00Z",
+        "test_to": "2025-02-25T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 2
+        },
+        "trials": 10,
+        "train": {
+          "trades": 59,
+          "wins": 24,
+          "losses": 35,
+          "win_rate": 40.68,
+          "profit_factor": 0.784,
+          "avg_r": -0.126,
+          "net_profit": -721.73,
+          "gross_win": 2617.52,
+          "gross_loss": 3339.25,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9278.27,
+          "return_pct": -7.217,
+          "max_drawdown": 773.33,
+          "max_drawdown_pct": 7.718,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 31,
+            "win_rate": 41.94,
+            "net_profit": -307.1,
+            "avg_r": -0.098
+          },
+          "second_half": {
+            "trades": 28,
+            "win_rate": 39.29,
+            "net_profit": -414.64,
+            "avg_r": -0.156
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 30,
+          "wins": 10,
+          "losses": 20,
+          "win_rate": 33.33,
+          "profit_factor": 0.613,
+          "avg_r": -0.243,
+          "net_profit": -707.51,
+          "gross_win": 1119.69,
+          "gross_loss": 1827.21,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 9948.72,
+          "end_balance": 9241.21,
+          "return_pct": -7.112,
+          "max_drawdown": 819.02,
+          "max_drawdown_pct": 8.141,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 16,
+            "win_rate": 25,
+            "net_profit": -631.94,
+            "avg_r": -0.408
+          },
+          "second_half": {
+            "trades": 14,
+            "win_rate": 42.86,
+            "net_profit": -75.57,
+            "avg_r": -0.054
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-11-27T00:40:00Z",
+        "train_to": "2025-02-25T00:40:00Z",
+        "test_from": "2025-02-25T00:40:00Z",
+        "test_to": "2025-03-27T00:40:00Z",
+        "params": {
+          "sl": 1.25,
+          "tp": 2
+        },
+        "trials": 9,
+        "train": {
+          "trades": 71,
+          "wins": 26,
+          "losses": 45,
+          "win_rate": 36.62,
+          "profit_factor": 0.787,
+          "avg_r": -0.131,
+          "net_profit": -924.76,
+          "gross_win": 3425.79,
+          "gross_loss": 4350.55,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9075.24,
+          "return_pct": -9.248,
+          "max_drawdown": 1278.34,
+          "max_drawdown_pct": 12.347,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 34,
+            "win_rate": 38.24,
+            "net_profit": -342.91,
+            "avg_r": -0.097
+          },
+          "second_half": {
+            "trades": 37,
+            "win_rate": 35.14,
+            "net_profit": -581.85,
+            "avg_r": -0.162
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 26,
+          "wins": 10,
+          "losses": 16,
+          "win_rate": 38.46,
+          "profit_factor": 0.84,
+          "avg_r": -0.096,
+          "net_profit": -233.5,
+          "gross_win": 1225.71,
+          "gross_loss": 1459.21,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 9241.21,
+          "end_balance": 9007.71,
+          "return_pct": -2.527,
+          "max_drawdown": 634.97,
+          "max_drawdown_pct": 6.672,
+          "longest_losing_streak": 3,
+          "first_half": {
+            "trades": 13,
+            "win_rate": 38.46,
+            "net_profit": -78.23,
+            "avg_r": -0.066
+          },
+          "second_half": {
+            "trades": 13,
+            "win_rate": 38.46,
+            "net_profit": -155.27,
+            "avg_r": -0.127
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2024-12-27T00:40:00Z",
+        "train_to": "2025-03-27T00:40:00Z",
+        "test_from": "2025-03-27T00:40:00Z",
+        "test_to": "2025-04-26T00:40:00Z",
+        "params": {
+          "sl": 1.25,
+          "tp": 3
+        },
+        "trials": 11,
+        "train": {
+          "trades": 81,
+          "wins": 23,
+          "losses": 58,
+          "win_rate": 28.4,
+          "profit_factor": 0.813,
+          "avg_r": -0.122,
+          "net_profit": -999.88,
+          "gross_win": 4339.32,
+          "gross_loss": 5339.19,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9000.12,
+          "return_pct": -9.999,
+          "max_drawdown": 1286.96,
+          "max_drawdown_pct": 12.751,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 42,
+            "win_rate": 26.19,
+            "net_profit": -800.3,
+            "avg_r": -0.191
+          },
+          "second_half": {
+            "trades": 39,
+            "win_rate": 30.77,
+            "net_profit": -199.58,
+            "avg_r": -0.047
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 29,
+          "wins": 8,
+          "losses": 21,
+          "win_rate": 27.59,
+          "profit_factor": 0.819,
+          "avg_r": -0.127,
+          "net_profit": -337.53,
+          "gross_win": 1531.93,
+          "gross_loss": 1869.45,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 9007.71,
+          "end_balance": 8670.18,
+          "return_pct": -3.747,
+          "max_drawdown": 1007.08,
+          "max_drawdown_pct": 10.516,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 15,
+            "win_rate": 40,
+            "net_profit": 332.15,
+            "avg_r": 0.256
+          },
+          "second_half": {
+            "trades": 14,
+            "win_rate": 14.29,
+            "net_profit": -669.68,
+            "avg_r": -0.537
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-01-26T00:40:00Z",
+        "train_to": "2025-04-26T00:40:00Z",
+        "test_from": "2025-04-26T00:40:00Z",
+        "test_to": "2025-05-26T00:40:00Z",
+        "params": {
+          "sl": 1.25,
+          "tp": 1.5
+        },
+        "trials": 11,
+        "train": {
+          "trades": 88,
+          "wins": 43,
+          "losses": 45,
+          "win_rate": 48.86,
+          "profit_factor": 0.992,
+          "avg_r": 0.001,
+          "net_profit": -34.5,
+          "gross_win": 4243.29,
+          "gross_loss": 4277.79,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9965.5,
+          "return_pct": -0.345,
+          "max_drawdown": 806.78,
+          "max_drawdown_pct": 7.989,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 45,
+            "win_rate": 44.44,
+            "net_profit": -425.54,
+            "avg_r": -0.093
+          },
+          "second_half": {
+            "trades": 43,
+            "win_rate": 53.49,
+            "net_profit": 391.04,
+            "avg_r": 0.099
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 11,
+          "wins": 6,
+          "losses": 5,
+          "win_rate": 54.55,
+          "profit_factor": 1.244,
+          "avg_r": 0.125,
+          "net_profit": 106.88,
+          "gross_win": 544.15,
+          "gross_loss": 437.27,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 8670.18,
+          "end_balance": 8777.06,
+          "return_pct": 1.233,
+          "max_drawdown": 350.52,
+          "max_drawdown_pct": 3.918,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 6,
+            "win_rate": 66.67,
+            "net_profit": 186.8,
+            "avg_r": 0.363
+          },
+          "second_half": {
+            "trades": 5,
+            "win_rate": 40,
+            "net_profit": -79.91,
+            "avg_r": -0.16
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-02-25T00:40:00Z",
+        "train_to": "2025-05-26T00:40:00Z",
+        "test_from": "2025-05-26T00:40:00Z",
+        "test_to": "2025-06-25T00:40:00Z",
+        "params": {
+          "sl": 0.5,
+          "tp": 2.5
+        },
+        "trials": 10,
+        "train": {
+          "trades": 73,
+          "wins": 17,
+          "losses": 56,
+          "win_rate": 23.29,
+          "profit_factor": 1.198,
+          "avg_r": 0.177,
+          "net_profit": 1172.28,
+          "gross_win": 7083.87,
+          "gross_loss": 5911.59,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 11172.28,
+          "return_pct": 11.723,
+          "max_drawdown": 1584.59,
+          "max_drawdown_pct": 13.693,
+          "longest_losing_streak": 8,
+          "first_half": {
+            "trades": 45,
+            "win_rate": 24.44,
+            "net_profit": 886.88,
+            "avg_r": 0.214
+          },
+          "second_half": {
+            "trades": 28,
+            "win_rate": 21.43,
+            "net_profit": 285.4,
+            "avg_r": 0.116
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 24,
+          "wins": 5,
+          "losses": 19,
+          "win_rate": 20.83,
+          "profit_factor": 1.05,
+          "avg_r": 0.06,
+          "net_profit": 83.84,
+          "gross_win": 1763.01,
+          "gross_loss": 1679.17,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 8777.06,
+          "end_balance": 8860.9,
+          "return_pct": 0.955,
+          "max_drawdown": 1240,
+          "max_drawdown_pct": 12.902,
+          "longest_losing_streak": 11,
+          "first_half": {
+            "trades": 10,
+            "win_rate": 20,
+            "net_profit": -64.46,
+            "avg_r": -0.057
+          },
+          "second_half": {
+            "trades": 14,
+            "win_rate": 21.43,
+            "net_profit": 148.3,
+            "avg_r": 0.144
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-03-27T00:40:00Z",
+        "train_to": "2025-06-25T00:40:00Z",
+        "test_from": "2025-06-25T00:40:00Z",
+        "test_to": "2025-07-25T00:40:00Z",
+        "params": {
+          "sl": 0.75,
+          "tp": 2
+        },
+        "trials": 10,
+        "train": {
+          "trades": 65,
+          "wins": 24,
+          "losses": 41,
+          "win_rate": 36.92,
+          "profit_factor": 1.319,
+          "avg_r": 0.208,
+          "net_profit": 1338.31,
+          "gross_win": 5530.25,
+          "gross_loss": 4191.93,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 11338.31,
+          "return_pct": 13.383,
+          "max_drawdown": 734.81,
+          "max_drawdown_pct": 7.192,
+          "longest_losing_streak": 6,
+          "first_half": {
+            "trades": 38,
+            "win_rate": 34.21,
+            "net_profit": 430.47,
+            "avg_r": 0.123
+          },
+          "second_half": {
+            "trades": 27,
+            "win_rate": 40.74,
+            "net_profit": 907.84,
+            "avg_r": 0.328
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 20,
+          "wins": 1,
+          "losses": 19,
+          "win_rate": 5,
+          "profit_factor": 0.113,
+          "avg_r": -0.839,
+          "net_profit": -1364.88,
+          "gross_win": 173.88,
+          "gross_loss": 1538.77,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 8860.9,
+          "end_balance": 7496.02,
+          "return_pct": -15.403,
+          "max_drawdown": 1364.88,
+          "max_drawdown_pct": 15.403,
+          "longest_losing_streak": 12,
+          "first_half": {
+            "trades": 5,
+            "win_rate": 0,
+            "net_profit": -432.08,
+            "avg_r": -1
+          },
+          "second_half": {
+            "trades": 15,
+            "win_rate": 6.67,
+            "net_profit": -932.81,
+            "avg_r": -0.785
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-04-26T00:40:00Z",
+        "train_to": "2025-07-25T00:40:00Z",
+        "test_from": "2025-07-25T00:40:00Z",
+        "test_to": "2025-08-24T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 2.5
+        },
+        "trials": 9,
+        "train": {
+          "trades": 46,
+          "wins": 21,
+          "losses": 25,
+          "win_rate": 45.65,
+          "profit_factor": 1.206,
+          "avg_r": 0.127,
+          "net_profit": 535.72,
+          "gross_win": 3137.24,
+          "gross_loss": 2601.52,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10535.72,
+          "return_pct": 5.357,
+          "max_drawdown": 572.08,
+          "max_drawdown_pct": 5.275,
+          "longest_losing_streak": 3,
+          "first_half": {
+            "trades": 19,
+            "win_rate": 52.63,
+            "net_profit": 568.45,
+            "avg_r": 0.306
+          },
+          "second_half": {
+            "trades": 27,
+            "win_rate": 40.74,
+            "net_profit": -32.73,
+            "avg_r": 0
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 13,
+          "wins": 4,
+          "losses": 9,
+          "win_rate": 30.77,
+          "profit_factor": 0.64,
+          "avg_r": -0.237,
+          "net_profit": -230.69,
+          "gross_win": 410.27,
+          "gross_loss": 640.96,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 7496.02,
+          "end_balance": 7265.33,
+          "return_pct": -3.077,
+          "max_drawdown": 545.55,
+          "max_drawdown_pct": 7.237,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 10,
+            "win_rate": 20,
+            "net_profit": -368.99,
+            "avg_r": -0.507
+          },
+          "second_half": {
+            "trades": 3,
+            "win_rate": 66.67,
+            "net_profit": 138.3,
+            "avg_r": 0.663
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-05-26T00:40:00Z",
+        "train_to": "2025-08-24T00:40:00Z",
+        "test_from": "2025-08-24T00:40:00Z",
+        "test_to": "2025-09-23T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 1
+        },
+        "trials": 10,
+        "train": {
+          "trades": 52,
+          "wins": 32,
+          "losses": 20,
+          "win_rate": 61.54,
+          "profit_factor": 0.895,
+          "avg_r": -0.037,
+          "net_profit": -208.19,
+          "gross_win": 1777.28,
+          "gross_loss": 1985.47,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9791.81,
+          "return_pct": -2.082,
+          "max_drawdown": 705.8,
+          "max_drawdown_pct": 6.793,
+          "longest_losing_streak": 2,
+          "first_half": {
+            "trades": 26,
+            "win_rate": 61.54,
+            "net_profit": -109.84,
+            "avg_r": -0.038
+          },
+          "second_half": {
+            "trades": 26,
+            "win_rate": 61.54,
+            "net_profit": -98.34,
+            "avg_r": -0.035
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 17,
+          "wins": 12,
+          "losses": 5,
+          "win_rate": 70.59,
+          "profit_factor": 1.35,
+          "avg_r": 0.109,
+          "net_profit": 125.99,
+          "gross_win": 485.83,
+          "gross_loss": 359.83,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 7265.33,
+          "end_balance": 7391.32,
+          "return_pct": 1.734,
+          "max_drawdown": 145.26,
+          "max_drawdown_pct": 1.968,
+          "longest_losing_streak": 2,
+          "first_half": {
+            "trades": 3,
+            "win_rate": 66.67,
+            "net_profit": 10.9,
+            "avg_r": 0.06
+          },
+          "second_half": {
+            "trades": 14,
+            "win_rate": 71.43,
+            "net_profit": 115.09,
+            "avg_r": 0.119
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-06-25T00:40:00Z",
+        "train_to": "2025-09-23T00:40:00Z",
+        "test_from": "2025-09-23T00:40:00Z",
+        "test_to": "2025-10-23T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 2.5
+        },
+        "trials": 10,
+        "train": {
+          "trades": 44,
+          "wins": 18,
+          "losses": 26,
+          "win_rate": 40.91,
+          "profit_factor": 0.996,
+          "avg_r": 0.009,
+          "net_profit": -8.82,
+          "gross_win": 2506.11,
+          "gross_loss": 2514.93,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9991.18,
+          "return_pct": -0.088,
+          "max_drawdown": 812.96,
+          "max_drawdown_pct": 8.083,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 25,
+            "win_rate": 32,
+            "net_profit": -586.46,
+            "avg_r": -0.231
+          },
+          "second_half": {
+            "trades": 19,
+            "win_rate": 52.63,
+            "net_profit": 577.63,
+            "avg_r": 0.325
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 26,
+          "wins": 13,
+          "losses": 13,
+          "win_rate": 50,
+          "profit_factor": 1.504,
+          "avg_r": 0.272,
+          "net_profit": 498.36,
+          "gross_win": 1486.88,
+          "gross_loss": 988.52,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 7391.32,
+          "end_balance": 7889.68,
+          "return_pct": 6.743,
+          "max_drawdown": 326.85,
+          "max_drawdown_pct": 4.136,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 13,
+            "win_rate": 53.85,
+            "net_profit": 336.57,
+            "avg_r": 0.354
+          },
+          "second_half": {
+            "trades": 13,
+            "win_rate": 46.15,
+            "net_profit": 161.79,
+            "avg_r": 0.19
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-07-25T00:40:00Z",
+        "train_to": "2025-10-23T00:40:00Z",
+        "test_from": "2025-10-23T00:40:00Z",
+        "test_to": "2025-11-22T00:40:00Z",
+        "params": {
+          "sl": 1.25,
+          "tp": 2.5
+        },
+        "trials": 9,
+        "train": {
+          "trades": 60,
+          "wins": 25,
+          "losses": 35,
+          "win_rate": 41.67,
+          "profit_factor": 1.278,
+          "avg_r": 0.17,
+          "net_profit": 976.79,
+          "gross_win": 4487.97,
+          "gross_loss": 3511.18,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10976.79,
+          "return_pct": 9.768,
+          "max_drawdown": 836.2,
+          "max_drawdown_pct": 8.305,
+          "longest_losing_streak": 8,
+          "first_half": {
+            "trades": 18,
+            "win_rate": 33.33,
+            "net_profit": -162.63,
+            "avg_r": -0.08
+          },
+          "second_half": {
+            "trades": 42,
+            "win_rate": 45.24,
+            "net_profit": 1139.42,
+            "avg_r": 0.278
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 26,
+          "wins": 10,
+          "losses": 16,
+          "win_rate": 38.46,
+          "profit_factor": 1.112,
+          "avg_r": 0.08,
+          "net_profit": 140.42,
+          "gross_win": 1397.83,
+          "gross_loss": 1257.41,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 7889.68,
+          "end_balance": 8030.1,
+          "return_pct": 1.78,
+          "max_drawdown": 592.48,
+          "max_drawdown_pct": 7.101,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 10,
+            "win_rate": 50,
+            "net_profit": 274.31,
+            "avg_r": 0.356
+          },
+          "second_half": {
+            "trades": 16,
+            "win_rate": 31.25,
+            "net_profit": -133.89,
+            "avg_r": -0.092
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-08-24T00:40:00Z",
+        "train_to": "2025-11-22T00:40:00Z",
+        "test_from": "2025-11-22T00:40:00Z",
+        "test_to": "2025-12-22T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 2.5
+        },
+        "trials": 9,
+        "train": {
+          "trades": 64,
+          "wins": 32,
+          "losses": 32,
+          "win_rate": 50,
+          "profit_factor": 1.466,
+          "avg_r": 0.245,
+          "net_profit": 1598.63,
+          "gross_win": 5027.67,
+          "gross_loss": 3429.04,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 11598.63,
+          "return_pct": 15.986,
+          "max_drawdown": 467.68,
+          "max_drawdown_pct": 4.203,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 29,
+            "win_rate": 51.72,
+            "net_profit": 871.72,
+            "avg_r": 0.303
+          },
+          "second_half": {
+            "trades": 35,
+            "win_rate": 48.57,
+            "net_profit": 726.9,
+            "avg_r": 0.196
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 29,
+          "wins": 6,
+          "losses": 23,
+          "win_rate": 20.69,
+          "profit_factor": 0.347,
+          "avg_r": -0.513,
+          "net_profit": -1082.34,
+          "gross_win": 574.17,
+          "gross_loss": 1656.51,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 8030.1,
+          "end_balance": 6947.77,
+          "return_pct": -13.479,
+          "max_drawdown": 1367.21,
+          "max_drawdown_pct": 16.936,
+          "longest_losing_streak": 12,
+          "first_half": {
+            "trades": 17,
+            "win_rate": 17.65,
+            "net_profit": -780.97,
+            "avg_r": -0.622
+          },
+          "second_half": {
+            "trades": 12,
+            "win_rate": 25,
+            "net_profit": -301.37,
+            "avg_r": -0.357
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-09-23T00:40:00Z",
+        "train_to": "2025-12-22T00:40:00Z",
+        "test_from": "2025-12-22T00:40:00Z",
+        "test_to": "2026-01-21T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 3
+        },
+        "trials": 10,
+        "train": {
+          "trades": 76,
+          "wins": 27,
+          "losses": 49,
+          "win_rate": 35.53,
+          "profit_factor": 0.938,
+          "avg_r": -0.032,
+          "net_profit": -310.48,
+          "gross_win": 4724.07,
+          "gross_loss": 5034.55,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9689.52,
+          "return_pct": -3.105,
+          "max_drawdown": 2088.46,
+          "max_drawdown_pct": 18.392,
+          "longest_losing_streak": 12,
+          "first_half": {
+            "trades": 33,
+            "win_rate": 45.45,
+            "net_profit": 913.88,
+            "avg_r": 0.277
+          },
+          "second_half": {
+            "trades": 43,
+            "win_rate": 27.91,
+            "net_profit": -1224.36,
+            "avg_r": -0.268
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 30,
+          "wins": 8,
+          "losses": 22,
+          "win_rate": 26.67,
+          "profit_factor": 0.679,
+          "avg_r": -0.226,
+          "net_profit": -448.9,
+          "gross_win": 950.17,
+          "gross_loss": 1399.08,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 6947.77,
+          "end_balance": 6498.86,
+          "return_pct": -6.461,
+          "max_drawdown": 908,
+          "max_drawdown_pct": 13.003,
+          "longest_losing_streak": 10,
+          "first_half": {
+            "trades": 17,
+            "win_rate": 17.65,
+            "net_profit": -542.44,
+            "avg_r": -0.491
+          },
+          "second_half": {
+            "trades": 13,
+            "win_rate": 38.46,
+            "net_profit": 93.53,
+            "avg_r": 0.121
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-10-23T00:40:00Z",
+        "train_to": "2026-01-21T00:40:00Z",
+        "test_from": "2026-01-21T00:40:00Z",
+        "test_to": "2026-02-20T00:40:00Z",
+        "params": {
+          "sl": 1,
+          "tp": 1
+        },
+        "trials": 10,
+        "train": {
+          "trades": 102,
+          "wins": 49,
+          "losses": 53,
+          "win_rate": 48.04,
+          "profit_factor": 0.807,
+          "avg_r": -0.095,
+          "net_profit": -953.88,
+          "gross_win": 3991.8,
+          "gross_loss": 4945.68,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 9046.12,
+          "return_pct": -9.539,
+          "max_drawdown": 1664.71,
+          "max_drawdown_pct": 16.24,
+          "longest_losing_streak": 8,
+          "first_half": {
+            "trades": 48,
+            "win_rate": 45.83,
+            "net_profit": -680.94,
+            "avg_r": -0.145
+          },
+          "second_half": {
+            "trades": 54,
+            "win_rate": 50,
+            "net_profit": -272.94,
+            "avg_r": -0.05
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 55,
+          "wins": 29,
+          "losses": 26,
+          "win_rate": 52.73,
+          "profit_factor": 0.976,
+          "avg_r": 0.012,
+          "net_profit": -39.13,
+          "gross_win": 1563.11,
+          "gross_loss": 1602.25,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 6498.86,
+          "end_balance": 6459.73,
+          "return_pct": -0.602,
+          "max_drawdown": 308.65,
+          "max_drawdown_pct": 4.614,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 28,
+            "win_rate": 53.57,
+            "net_profit": 31,
+            "avg_r": 0.049
+          },
+          "second_half": {
+            "trades": 27,
+            "win_rate": 51.85,
+            "net_profit": -70.13,
+            "avg_r": -0.027
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-11-22T00:40:00Z",
+        "train_to": "2026-02-20T00:40:00Z",
+        "test_from": "2026-02-20T00:40:00Z",
+        "test_to": "2026-03-22T00:40:00Z",
+        "params": {
+          "sl": 1,
+          "tp": 2
+        },
+        "trials": 9,
+        "train": {
+          "trades": 123,
+          "wins": 45,
+          "losses": 78,
+          "win_rate": 36.59,
+          "profit_factor": 1.053,
+          "avg_r": 0.042,
+          "net_profit": 375.56,
+          "gross_win": 7407.86,
+          "gross_loss": 7032.31,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10375.56,
+          "return_pct": 3.756,
+          "max_drawdown": 2164.22,
+          "max_drawdown_pct": 20.88,
+          "longest_losing_streak": 21,
+          "first_half": {
+            "trades": 56,
+            "win_rate": 26.79,
+            "net_profit": -1333.26,
+            "avg_r": -0.251
+          },
+          "second_half": {
+            "trades": 67,
+            "win_rate": 44.78,
+            "net_profit": 1708.82,
+            "avg_r": 0.287
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 38,
+          "wins": 15,
+          "losses": 23,
+          "win_rate": 39.47,
+          "profit_factor": 1.176,
+          "avg_r": 0.109,
+          "net_profit": 250.07,
+          "gross_win": 1674.51,
+          "gross_loss": 1424.44,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 6459.73,
+          "end_balance": 6709.8,
+          "return_pct": 3.871,
+          "max_drawdown": 342.57,
+          "max_drawdown_pct": 5.077,
+          "longest_losing_streak": 5,
+          "first_half": {
+            "trades": 28,
+            "win_rate": 39.29,
+            "net_profit": 179.09,
+            "avg_r": 0.106
+          },
+          "second_half": {
+            "trades": 10,
+            "win_rate": 40,
+            "net_profit": 70.98,
+            "avg_r": 0.119
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2025-12-22T00:40:00Z",
+        "train_to": "2026-03-22T00:40:00Z",
+        "test_from": "2026-03-22T00:40:00Z",
+        "test_to": "2026-04-21T00:40:00Z",
+        "params": {
+          "sl": 0.5,
+          "tp": 2
+        },
+        "trials": 10,
+        "train": {
+          "trades": 141,
+          "wins": 40,
+          "losses": 101,
+          "win_rate": 28.37,
+          "profit_factor": 1.374,
+          "avg_r": 0.277,
+          "net_profit": 4181.79,
+          "gross_win": 15363.31,
+          "gross_loss": 11181.51,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 14181.79,
+          "return_pct": 41.818,
+          "max_drawdown": 1611.48,
+          "max_drawdown_pct": 14.756,
+          "longest_losing_streak": 16,
+          "first_half": {
+            "trades": 69,
+            "win_rate": 26.09,
+            "net_profit": 1399.25,
+            "avg_r": 0.217
+          },
+          "second_half": {
+            "trades": 72,
+            "win_rate": 30.56,
+            "net_profit": 2782.55,
+            "avg_r": 0.335
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 18,
+          "wins": 10,
+          "losses": 8,
+          "win_rate": 55.56,
+          "profit_factor": 4.221,
+          "avg_r": 1.397,
+          "net_profit": 1841.23,
+          "gross_win": 2412.81,
+          "gross_loss": 571.57,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 6709.8,
+          "end_balance": 8551.03,
+          "return_pct": 27.441,
+          "max_drawdown": 258.91,
+          "max_drawdown_pct": 3.859,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 8,
+            "win_rate": 50,
+            "net_profit": 699.65,
+            "avg_r": 1.292
+          },
+          "second_half": {
+            "trades": 10,
+            "win_rate": 60,
+            "net_profit": 1141.59,
+            "avg_r": 1.481
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2026-01-21T00:40:00Z",
+        "train_to": "2026-04-21T00:40:00Z",
+        "test_from": "2026-04-21T00:40:00Z",
+        "test_to": "2026-05-21T00:40:00Z",
+        "params": {
+          "sl": 0.5,
+          "tp": 3
+        },
+        "trials": 10,
+        "train": {
+          "trades": 120,
+          "wins": 31,
+          "losses": 89,
+          "win_rate": 25.83,
+          "profit_factor": 1.839,
+          "avg_r": 0.624,
+          "net_profit": 10056.85,
+          "gross_win": 22050.39,
+          "gross_loss": 11993.55,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 20056.85,
+          "return_pct": 100.568,
+          "max_drawdown": 1944.75,
+          "max_drawdown_pct": 13.73,
+          "longest_losing_streak": 13,
+          "first_half": {
+            "trades": 92,
+            "win_rate": 23.91,
+            "net_profit": 5405.08,
+            "avg_r": 0.51
+          },
+          "second_half": {
+            "trades": 28,
+            "win_rate": 32.14,
+            "net_profit": 4651.76,
+            "avg_r": 0.998
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 24,
+          "wins": 6,
+          "losses": 18,
+          "win_rate": 25,
+          "profit_factor": 1.415,
+          "avg_r": 0.314,
+          "net_profit": 609.03,
+          "gross_win": 2078.16,
+          "gross_loss": 1469.13,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 8551.03,
+          "end_balance": 9160.06,
+          "return_pct": 7.122,
+          "max_drawdown": 729.77,
+          "max_drawdown_pct": 8.499,
+          "longest_losing_streak": 6,
+          "first_half": {
+            "trades": 11,
+            "win_rate": 18.18,
+            "net_profit": -294.1,
+            "avg_r": -0.305
+          },
+          "second_half": {
+            "trades": 13,
+            "win_rate": 30.77,
+            "net_profit": 903.14,
+            "avg_r": 0.838
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2026-02-20T00:40:00Z",
+        "train_to": "2026-05-21T00:40:00Z",
+        "test_from": "2026-05-21T00:40:00Z",
+        "test_to": "2026-06-20T00:40:00Z",
+        "params": {
+          "sl": 0.5,
+          "tp": 3
+        },
+        "trials": 10,
+        "train": {
+          "trades": 83,
+          "wins": 23,
+          "losses": 60,
+          "win_rate": 27.71,
+          "profit_factor": 1.855,
+          "avg_r": 0.645,
+          "net_profit": 6372.65,
+          "gross_win": 13824.93,
+          "gross_loss": 7452.29,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 16372.65,
+          "return_pct": 63.726,
+          "max_drawdown": 1939.42,
+          "max_drawdown_pct": 12.124,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 49,
+            "win_rate": 26.53,
+            "net_profit": 3475.99,
+            "avg_r": 0.666
+          },
+          "second_half": {
+            "trades": 34,
+            "win_rate": 29.41,
+            "net_profit": 2896.66,
+            "avg_r": 0.614
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 20,
+          "wins": 4,
+          "losses": 16,
+          "win_rate": 20,
+          "profit_factor": 1.327,
+          "avg_r": 0.29,
+          "net_profit": 470.81,
+          "gross_win": 1911.88,
+          "gross_loss": 1441.06,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 9160.06,
+          "end_balance": 9630.88,
+          "return_pct": 5.14,
+          "max_drawdown": 608.05,
+          "max_drawdown_pct": 6.581,
+          "longest_losing_streak": 6,
+          "first_half": {
+            "trades": 8,
+            "win_rate": 12.5,
+            "net_profit": -89.49,
+            "avg_r": -0.091
+          },
+          "second_half": {
+            "trades": 12,
+            "win_rate": 25,
+            "net_profit": 560.3,
+            "avg_r": 0.543
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2026-03-22T00:40:00Z",
+        "train_to": "2026-06-20T00:40:00Z",
+        "test_from": "2026-06-20T00:40:00Z",
+        "test_to": "2026-07-20T00:40:00Z",
+        "params": {
+          "sl": 0.5,
+          "tp": 2.5
+        },
+        "trials": 10,
+        "train": {
+          "trades": 62,
+          "wins": 19,
+          "losses": 43,
+          "win_rate": 30.65,
+          "profit_factor": 1.726,
+          "avg_r": 0.543,
+          "net_profit": 3707.95,
+          "gross_win": 8813.38,
+          "gross_loss": 5105.43,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 13707.95,
+          "return_pct": 37.08,
+          "max_drawdown": 1166.97,
+          "max_drawdown_pct": 9.314,
+          "longest_losing_streak": 6,
+          "first_half": {
+            "trades": 29,
+            "win_rate": 34.48,
+            "net_profit": 1942.61,
+            "avg_r": 0.647
+          },
+          "second_half": {
+            "trades": 33,
+            "win_rate": 27.27,
+            "net_profit": 1765.34,
+            "avg_r": 0.451
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 15,
+          "wins": 4,
+          "losses": 11,
+          "win_rate": 26.67,
+          "profit_factor": 1.562,
+          "avg_r": 0.453,
+          "net_profit": 617.73,
+          "gross_win": 1716.66,
+          "gross_loss": 1098.93,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 9630.88,
+          "end_balance": 10248.61,
+          "return_pct": 6.414,
+          "max_drawdown": 548.52,
+          "max_drawdown_pct": 5.08,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 7,
+            "win_rate": 28.57,
+            "net_profit": 364.86,
+            "avg_r": 0.582
+          },
+          "second_half": {
+            "trades": 8,
+            "win_rate": 25,
+            "net_profit": 252.88,
+            "avg_r": 0.34
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2026-04-21T00:40:00Z",
+        "train_to": "2026-07-20T00:40:00Z",
+        "test_from": "2026-07-20T00:40:00Z",
+        "test_to": "2026-08-19T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 3
+        },
+        "trials": 10,
+        "train": {
+          "trades": 51,
+          "wins": 26,
+          "losses": 25,
+          "win_rate": 50.98,
+          "profit_factor": 1.719,
+          "avg_r": 0.349,
+          "net_profit": 1840.94,
+          "gross_win": 4400.83,
+          "gross_loss": 2559.89,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 11840.94,
+          "return_pct": 18.409,
+          "max_drawdown": 462.7,
+          "max_drawdown_pct": 4.412,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 30,
+            "win_rate": 43.33,
+            "net_profit": 531.66,
+            "avg_r": 0.192
+          },
+          "second_half": {
+            "trades": 21,
+            "win_rate": 61.9,
+            "net_profit": 1309.28,
+            "avg_r": 0.572
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 12,
+          "wins": 5,
+          "losses": 7,
+          "win_rate": 41.67,
+          "profit_factor": 1.109,
+          "avg_r": 0.074,
+          "net_profit": 78.23,
+          "gross_win": 795.61,
+          "gross_loss": 717.37,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10248.61,
+          "end_balance": 10326.85,
+          "return_pct": 0.763,
+          "max_drawdown": 257.28,
+          "max_drawdown_pct": 2.431,
+          "longest_losing_streak": 2,
+          "first_half": {
+            "trades": 5,
+            "win_rate": 40,
+            "net_profit": 3.58,
+            "avg_r": 0.019
+          },
+          "second_half": {
+            "trades": 7,
+            "win_rate": 42.86,
+            "net_profit": 74.66,
+            "avg_r": 0.113
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2026-05-21T00:40:00Z",
+        "train_to": "2026-08-19T00:40:00Z",
+        "test_from": "2026-08-19T00:40:00Z",
+        "test_to": "2026-09-18T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 3
+        },
+        "trials": 10,
+        "train": {
+          "trades": 41,
+          "wins": 20,
+          "losses": 21,
+          "win_rate": 48.78,
+          "profit_factor": 1.488,
+          "avg_r": 0.265,
+          "net_profit": 1052.25,
+          "gross_win": 3209.34,
+          "gross_loss": 2157.1,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 11052.25,
+          "return_pct": 10.522,
+          "max_drawdown": 428.62,
+          "max_drawdown_pct": 4.286,
+          "longest_losing_streak": 4,
+          "first_half": {
+            "trades": 23,
+            "win_rate": 52.17,
+            "net_profit": 720.55,
+            "avg_r": 0.328
+          },
+          "second_half": {
+            "trades": 18,
+            "win_rate": 44.44,
+            "net_profit": 331.7,
+            "avg_r": 0.185
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 18,
+          "wins": 6,
+          "losses": 12,
+          "win_rate": 33.33,
+          "profit_factor": 0.797,
+          "avg_r": -0.134,
+          "net_profit": -236.76,
+          "gross_win": 929.68,
+          "gross_loss": 1166.44,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10326.85,
+          "end_balance": 10090.09,
+          "return_pct": -2.293,
+          "max_drawdown": 873.09,
+          "max_drawdown_pct": 8.145,
+          "longest_losing_streak": 7,
+          "first_half": {
+            "trades": 12,
+            "win_rate": 25,
+            "net_profit": -481.09,
+            "avg_r": -0.424
+          },
+          "second_half": {
+            "trades": 6,
+            "win_rate": 50,
+            "net_profit": 244.33,
+            "avg_r": 0.447
+          },
+          "skipped": {}
+        }
+      },
+      {
+        "train_from": "2026-06-20T00:40:00Z",
+        "train_to": "2026-09-18T00:40:00Z",
+        "test_from": "2026-09-18T00:40:00Z",
+        "test_to": "2026-10-18T00:40:00Z",
+        "params": {
+          "sl": 1.5,
+          "tp": 1
+        },
+        "trials": 11,
+        "train": {
+          "trades": 48,
+          "wins": 36,
+          "losses": 12,
+          "win_rate": 75,
+          "profit_factor": 1.689,
+          "avg_r": 0.175,
+          "net_profit": 844.51,
+          "gross_win": 2070.43,
+          "gross_loss": 1225.92,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10000,
+          "end_balance": 10844.51,
+          "return_pct": 8.445,
+          "max_drawdown": 311.61,
+          "max_drawdown_pct": 2.882,
+          "longest_losing_streak": 2,
+          "first_half": {
+            "trades": 19,
+            "win_rate": 73.68,
+            "net_profit": 295.28,
+            "avg_r": 0.155
+          },
+          "second_half": {
+            "trades": 29,
+            "win_rate": 75.86,
+            "net_profit": 549.23,
+            "avg_r": 0.189
+          },
+          "skipped": {}
+        },
+        "test": {
+          "trades": 10,
+          "wins": 7,
+          "losses": 3,
+          "win_rate": 70,
+          "profit_factor": 1.352,
+          "avg_r": 0.119,
+          "net_profit": 106.19,
+          "gross_win": 407.69,
+          "gross_loss": 301.51,
+          "commission": 0,
+          "swap": 0,
+          "start_balance": 10090.09,
+          "end_balance": 10196.27,
+          "return_pct": 1.052,
+          "max_drawdown": 214.22,
+          "max_drawdown_pct": 2.081,
+          "longest_losing_streak": 2,
+          "first_half": {
+            "trades": 7,
+            "win_rate": 71.43,
+            "net_profit": 90.52,
+            "avg_r": 0.147
+          },
+          "second_half": {
+            "trades": 3,
+            "win_rate": 66.67,
+            "net_profit": 15.66,
+            "avg_r": 0.054
+          },
+          "skipped": {}
+        }
+      }
+    ],
+    "out_of_sample": {
+      "trades": 602,
+      "wins": 226,
+      "losses": 376,
+      "win_rate": 37.54,
+      "profit_factor": 1.006,
+      "avg_r": 0.015,
+      "net_profit": 196.27,
+      "gross_win": 31862.55,
+      "gross_loss": 31666.28,
+      "commission": 0,
+      "swap": 0,
+      "start_balance": 10000,
+      "end_balance": 10196.27,
+      "return_pct": 1.963,
+      "max_drawdown": 5532.94,
+      "max_drawdown_pct": 47.666,
+      "longest_losing_streak": 15,
+      "first_half": {
+        "trades": 267,
+        "win_rate": 34.83,
+        "net_profit": -2723.77,
+        "avg_r": -0.113
+      },
+      "second_half": {
+        "trades": 335,
+        "win_rate": 39.7,
+        "net_profit": 2920.04,
+        "avg_r": 0.116
+      },
+      "skipped": {}
+    }
+  },
+  "files": [
+    "summary.txt",
+    "trades.csv",
+    "missed.csv",
+    "equity.csv",
+    "equity.png",
+    "decisions.jsonl",
+    "candles.csv",
+    "walk.csv"
+  ]
+}

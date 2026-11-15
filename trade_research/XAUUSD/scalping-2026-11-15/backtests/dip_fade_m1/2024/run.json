@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "kind": "run",
+  "approach": "dip_fade_m1",
+  "instrument": "XAUUSD",
+  "timeframes": [
+    "M1"
+  ],
+  "params": {
+    "sl": 1,
+    "tp": 2
+  },
+  "ran_at": "2026-11-15T13:30:06Z",
+  "requested": {
+    "from": "2024-05-01T00:00:00Z",
+    "to": "2025-01-01T00:00:00Z"
+  },
+  "range": {
+    "from": "2024-05-01T00:40:00Z",
+    "to": "2024-12-31T21:58:00Z",
+    "notes": [
+      "XAUUSD history starts too late for From 2024-05-01T00:00:00Z (40 warm-up candles of M1 needed before it): the run starts at 2024-05-01T00:40:00Z"
+    ]
+  },
+  "account": {
+    "balance": 10000,
+    "currency": "USD",
+    "leverage": 2000,
+    "max_open": 0,
+    "max_open_risk": 0,
+    "max_daily_loss": 0,
+    "day_tz": "WIB"
+  },
+  "costs": [
+    {
+      "leg": 0,
+      "instrument": "XAUUSD",
+      "spread": "exness: each candle's ask - bid",
+      "commission": "exness: 0  per lot per side",
+      "swap": "exness: long -471.7, short 0 points per lot per night",
+      "slippage": "0 (0 unless set)",
+      "overridden": [],
+      "notes": [
+        "XAUUSD history starts too late for From 2024-05-01T00:00:00Z (40 warm-up candles of M1 needed before it): the run starts at 2024-05-01T00:40:00Z"
+      ]
+    }
+  ],
+  "legs": [
+    {
+      "leg": 0,
+      "strategy": "dip_fade_m1",
+      "instrument": "XAUUSD",
+      "timeframes": [
+        "M1"
+      ],
+      "risk": 1,
+      "params": {
+        "sl": 1,
+        "tp": 2
+      },
+      "contribution": 0
+    }
+  ],
+  "stats": {
+    "trades": 171,
+    "wins": 65,
+    "losses": 106,
+    "win_rate": 38.01,
+    "profit_factor": 0.991,
+    "avg_r": 0.002,
+    "net_profit": -96.81,
+    "gross_win": 10500.7,
+    "gross_loss": 10597.51,
+    "commission": 0,
+    "swap": 0,
+    "start_balance": 10000,
+    "end_balance": 9903.19,
+    "return_pct": -0.968,
+    "max_drawdown": 1230.94,
+    "max_drawdown_pct": 11.447,
+    "longest_losing_streak": 8,
+    "first_half": {
+      "trades": 104,
+      "win_rate": 37.5,
+      "net_profit": -229.64,
+      "avg_r": -0.015
+    },
+    "second_half": {
+      "trades": 67,
+      "win_rate": 38.81,
+      "net_profit": 132.84,
+      "avg_r": 0.029
+    },
+    "skipped": {}
+  },
+  "files": [
+    "summary.txt",
+    "trades.csv",
+    "missed.csv",
+    "equity.csv",
+    "equity.png",
+    "decisions.jsonl",
+    "candles.csv"
+  ]
+}

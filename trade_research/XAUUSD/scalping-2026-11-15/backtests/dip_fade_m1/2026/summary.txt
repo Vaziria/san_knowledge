@@ -1,0 +1,15 @@
+dip_fade_m1
+range       2026-01-01 23:05 UTC (2026-01-02 06:05 WIB) to 2026-11-13 21:58 UTC (2026-11-14 04:58 WIB)
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      sl=1 tp=2
+trades         241 (98 won, 143 lost)
+win rate       40.7%
+profit factor  1.20
+average R      0.14
+net profit     3371.65 (33.72%), commission 0.00, swap 0.00
+balance        10000.00 -> 13371.65
+max drawdown   1285.62 (9.97%)
+losing streak  10
+first half     159 trades, 42.1% won, net 2973.11, avg R 0.18
+second half    82 trades, 37.8% won, net 398.53, avg R 0.04
+skipped        none

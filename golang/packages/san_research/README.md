@@ -3,8 +3,9 @@
 Data-first market research on Exness candles, starting with gold
 (XAUUSD) (the user, 2026-11-15: "Let's true research about xauusd"). Go
 programs on san_backtest's data and cache, plus a markdown report with
-charts (the user, 2026-11-15: "1a"). It never trades: it reads the candle
-cache only and makes no Exness calls at all.
+charts (the user, 2026-11-15: "1a"). It never trades. The research commands
+read the candle cache only and make no Exness calls; only `fetch` (below)
+calls Exness, for read-only candles.
 
 ## Run
 
@@ -36,10 +37,47 @@ candidates' defaults for sensitivity checks; send those to a scratch
 `--out`) and `--chains` (runs the candidates' san_backtest chain versions,
 `trend_chains.go`, instead of the hand-written ones: same trades, so the
 same summary.json and results.md; only the decision notes differ, since a
-chain logs the path each eventful candle took). It writes `backtests/<approach>/<run>/` (real with walk-forward,
+chain logs the path each eventful candle took), and `--demo` (runs
+`pullback_trend` next to `pullback_limit`, `trend_limit.go`: the same
+rules with a buy limit at the H4 EMA20 that expires after 4 H1 candles and
+up to two positions, a demonstration of san_backtest's pending orders;
+research only, write it to a scratch `--out`). It writes `backtests/<approach>/<run>/` (real with walk-forward,
 harsh, each year, and `real-100k`, information only), `backtests/summary.json`
 and `backtests/results.md`, where the pass rule (`trend_rule.go`) is applied.
 About 10 seconds; the summary and verdict are in that folder's `summary.md`.
+
+### Scalping in San's window (M1)
+
+The scalping study (the user, 2026-11-15: "So usually, I take 8 pm and
+leave 12") works on M1 inside 20:00-24:00 WIB:
+
+```sh
+set -a; . D:/research/marketing/.env.agent; set +a   # only for fetch
+<scratch>/san_research.exe fetch --tf M1 --from 2024-05        # resumable, read-only candle calls, counts them
+<scratch>/san_research.exe fetch --tf S15 --from 2026-10       # optional, for the stop-first check
+<scratch>/san_research.exe scalping --out D:/research/marketing/trade_research/XAUUSD/scalping-2026-11-15 --backtests
+```
+
+- `fetch` fills san_backtest's cache month by month through its Exness
+  source and `Cache` (whole months; a covered month costs no call), paces
+  calls (`--pace 150ms`) and waits out HTTP 429 itself. Exness keeps M1 only
+  from 2024-05-01 and S15 for about 2.5 weeks; a month before that is written
+  as an empty, covered file, so start at 2024-05. M1 is about 3 MB a month.
+- `scalping` (about 5 s, plus about 70 s with `--backtests`) runs the studies
+  of `scalp_study1.go` .. `scalp_study5.go` (activity and spread by WIB
+  minute, pushes and autocorrelation, the 20:00 opening range against a
+  random-walk baseline, the US data minute at 08:30 New York with DST via
+  America/New_York, with- vs against-trend pushes), the one-position scalp
+  simulator (`scalp_sim.go`, `scalp_simreport.go`: real per-minute spread,
+  stop first, flat at 00:00 WIB, +$0.10 slippage harsh run, S15 check of
+  candles that touch SL and TP) and, with `--backtests`, the closest rule as
+  a san_backtest chain on M1 (`scalp_backtest.go`: real with walk-forward
+  3m:1m, harsh, each year). Without `--backtests` the backtest section is
+  rebuilt from `backtests/summary.json`. Data files: `data/push_cells.csv`,
+  `data/sim_results.csv`.
+- `Offline`'s clock and the approaches' first month ignore the short
+  timeframes (M1, seconds) when M15 or longer ones are cached, so adding M1
+  changes nothing in the other commands.
 
 ## What it does
 

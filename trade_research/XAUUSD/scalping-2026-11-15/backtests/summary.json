@@ -1,0 +1,74 @@
+[
+  {
+    "approach": "dip_fade_m1",
+    "run": "real",
+    "trades": 715,
+    "win_rate": 37.06293706293706,
+    "profit_factor": 1.0072534964642026,
+    "net_pct": 2.9513992558073916,
+    "max_dd_pct": 35.249276129000364,
+    "avg_r": 0.015017309384449888,
+    "skipped": 0,
+    "dir": "backtests/dip_fade_m1/real"
+  },
+  {
+    "approach": "dip_fade_m1",
+    "run": "walk-forward OOS",
+    "trades": 602,
+    "win_rate": 37.541528239202655,
+    "profit_factor": 1.0061982061093668,
+    "net_pct": 1.962741176635791,
+    "max_dd_pct": 47.666170976331216,
+    "avg_r": 0.014727196542125065,
+    "skipped": 0,
+    "dir": "backtests/dip_fade_m1/real"
+  },
+  {
+    "approach": "dip_fade_m1",
+    "run": "harsh",
+    "trades": 713,
+    "win_rate": 36.74614305750351,
+    "profit_factor": 0.7590973063604811,
+    "net_pct": -60.24992636877214,
+    "max_dd_pct": 68.20072635207323,
+    "avg_r": -0.12257458520708504,
+    "skipped": 2,
+    "dir": "backtests/dip_fade_m1/harsh"
+  },
+  {
+    "approach": "dip_fade_m1",
+    "run": "2024",
+    "trades": 171,
+    "win_rate": 38.01169590643275,
+    "profit_factor": 0.9908650654112037,
+    "net_pct": -0.9680753841883597,
+    "max_dd_pct": 11.446740413375835,
+    "avg_r": 0.0019499422263305596,
+    "skipped": 0,
+    "dir": "backtests/dip_fade_m1/2024"
+  },
+  {
+    "approach": "dip_fade_m1",
+    "run": "2025",
+    "trades": 303,
+    "win_rate": 33.663366336633665,
+    "profit_factor": 0.8720727859347313,
+    "net_pct": -22.1320690122606,
+    "max_dd_pct": 29.733538537951187,
+    "avg_r": -0.07474672285658474,
+    "skipped": 0,
+    "dir": "backtests/dip_fade_m1/2025"
+  },
+  {
+    "approach": "dip_fade_m1",
+    "run": "2026",
+    "trades": 241,
+    "win_rate": 40.66390041493776,
+    "profit_factor": 1.199433276403217,
+    "net_pct": 33.71645455096319,
+    "max_dd_pct": 9.971663361420214,
+    "avg_r": 0.13714602952167762,
+    "skipped": 0,
+    "dir": "backtests/dip_fade_m1/2026"
+  }
+]

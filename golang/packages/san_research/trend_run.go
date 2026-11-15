@@ -27,7 +27,11 @@ type TrendOptions struct {
 	// Chains runs the candidates' chain versions (TrendChains) instead of
 	// the hand-written ones; they trade the same, so the results match.
 	Chains bool
-	Log    io.Writer
+	// Demo runs DemoChains instead: pullback_trend next to pullback_limit,
+	// its pending-order version (san_backtest's limit orders and several
+	// positions).
+	Demo bool
+	Log  io.Writer
 }
 
 // infoBalance is the extra information-only run: the same rules with a
@@ -70,6 +74,9 @@ func RunTrendApproaches(ctx context.Context, o TrendOptions) ([]BacktestRow, err
 	makers := TrendApproaches()
 	if o.Chains {
 		makers = TrendChains()
+	}
+	if o.Demo {
+		makers = DemoChains()
 	}
 	for _, mk := range makers {
 		name := mk().Name()
@@ -157,7 +164,8 @@ func (f floorSource) Candles(ctx context.Context, q bt.Query) ([]bt.Candle, erro
 }
 
 // firstMonth is the latest of each timeframe's first month file, so every
-// timeframe has data from there on.
+// timeframe has data from there on. The short timeframes (M1, seconds),
+// which Exness keeps for less history, are left out as in NewOffline.
 func firstMonth(cache, name string) (time.Time, error) {
 	root := filepath.Join(cache, "exness", name)
 	tfs, err := os.ReadDir(root)
@@ -167,7 +175,7 @@ func firstMonth(cache, name string) (time.Time, error) {
 	var out time.Time
 	for _, tf := range tfs {
 		files, _ := filepath.Glob(filepath.Join(root, tf.Name(), "*.csv"))
-		if !tf.IsDir() || len(files) == 0 {
+		if !tf.IsDir() || len(files) == 0 || shortTF(tf.Name()) {
 			continue
 		}
 		sort.Strings(files)

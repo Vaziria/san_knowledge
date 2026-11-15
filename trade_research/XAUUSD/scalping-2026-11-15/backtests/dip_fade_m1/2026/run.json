@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "kind": "run",
+  "approach": "dip_fade_m1",
+  "instrument": "XAUUSD",
+  "timeframes": [
+    "M1"
+  ],
+  "params": {
+    "sl": 1,
+    "tp": 2
+  },
+  "ran_at": "2026-11-15T13:30:09Z",
+  "requested": {
+    "from": "2026-01-01T00:00:00Z",
+    "to": "2026-11-13T21:58:00Z"
+  },
+  "range": {
+    "from": "2026-01-01T23:05:00Z",
+    "to": "2026-11-13T21:58:00Z"
+  },
+  "account": {
+    "balance": 10000,
+    "currency": "USD",
+    "leverage": 2000,
+    "max_open": 0,
+    "max_open_risk": 0,
+    "max_daily_loss": 0,
+    "day_tz": "WIB"
+  },
+  "costs": [
+    {
+      "leg": 0,
+      "instrument": "XAUUSD",
+      "spread": "exness: each candle's ask - bid",
+      "commission": "exness: 0  per lot per side",
+      "swap": "exness: long -471.7, short 0 points per lot per night",
+      "slippage": "0 (0 unless set)",
+      "overridden": []
+    }
+  ],
+  "legs": [
+    {
+      "leg": 0,
+      "strategy": "dip_fade_m1",
+      "instrument": "XAUUSD",
+      "timeframes": [
+        "M1"
+      ],
+      "risk": 1,
+      "params": {
+        "sl": 1,
+        "tp": 2
+      },
+      "contribution": 0
+    }
+  ],
+  "stats": {
+    "trades": 241,
+    "wins": 98,
+    "losses": 143,
+    "win_rate": 40.66,
+    "profit_factor": 1.199,
+    "avg_r": 0.137,
+    "net_profit": 3371.65,
+    "gross_win": 20277.78,
+    "gross_loss": 16906.13,
+    "commission": 0,
+    "swap": 0,
+    "start_balance": 10000,
+    "end_balance": 13371.65,
+    "return_pct": 33.716,
+    "max_drawdown": 1285.62,
+    "max_drawdown_pct": 9.972,
+    "longest_losing_streak": 10,
+    "first_half": {
+      "trades": 159,
+      "win_rate": 42.14,
+      "net_profit": 2973.11,
+      "avg_r": 0.185
+    },
+    "second_half": {
+      "trades": 82,
+      "win_rate": 37.8,
+      "net_profit": 398.53,
+      "avg_r": 0.045
+    },
+    "skipped": {}
+  },
+  "files": [
+    "summary.txt",
+    "trades.csv",
+    "missed.csv",
+    "equity.csv",
+    "equity.png",
+    "decisions.jsonl",
+    "candles.csv"
+  ]
+}

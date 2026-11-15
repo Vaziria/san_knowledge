@@ -4,6 +4,8 @@
 //
 //	san_research xauusd --out <dir> [--cache <dir>] [--from 2022-05-02] [--to 2026-11-14T18:00] [--backtests]
 //	san_research approaches --out <dir> [--cache <dir>] [--from 2022-05-02] [--to <UTC time>] [--only daily_trend,...]
+//	san_research scalping --out <dir> [--cache <dir>] [--from 2024-05-01] [--backtests]
+//	san_research fetch --tf M1 --from 2024-05 [--to <UTC time>]
 //
 // approaches backtests the trend approaches of approaches-2026-11-15 and
 // the buy-and-hold benchmark, also from the cache only.
@@ -32,11 +34,19 @@ func main() {
 }
 
 const usage = "usage: san_research xauusd --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--backtests]\n" +
-	"       san_research approaches --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--only a,b] [--chains]"
+	"       san_research approaches --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--only a,b] [--chains] [--demo]\n" +
+	"       san_research scalping --out <dir> [--cache <dir>] [--from 2024-05-01] [--to <UTC time>] [--backtests]\n" +
+	"       san_research fetch --tf M1 --from 2024-05 [--to <UTC time>] (read-only Exness candle calls; needs EXN_* env)"
 
 func run(ctx context.Context, args []string) error {
 	if len(args) > 0 && args[0] == "approaches" {
 		return runApproaches(ctx, args[1:])
+	}
+	if len(args) > 0 && args[0] == "fetch" {
+		return runFetch(ctx, args[1:])
+	}
+	if len(args) > 0 && args[0] == "scalping" {
+		return runScalping(ctx, args[1:])
 	}
 	if len(args) == 0 || args[0] != "xauusd" {
 		return fmt.Errorf("%s", usage)
@@ -78,13 +88,14 @@ func runApproaches(ctx context.Context, args []string) error {
 	only := fs.String("only", "", "comma-separated approach names; empty = all")
 	params := fs.String("param", "", "comma-separated name=value overrides of the candidates' defaults (sensitivity checks)")
 	chains := fs.Bool("chains", false, "run the candidates' chain versions (san_backtest chains; same trades)")
+	demo := fs.Bool("demo", false, "run pullback_trend next to pullback_limit, its limit-order version (research only)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	if *out == "" {
 		return fmt.Errorf("--out is needed\n%s", usage)
 	}
-	o := research.TrendOptions{Cache: *cache, Instrument: *inst, Out: *out, Log: os.Stdout, Chains: *chains}
+	o := research.TrendOptions{Cache: *cache, Instrument: *inst, Out: *out, Log: os.Stdout, Chains: *chains, Demo: *demo}
 	if *only != "" {
 		o.Only = strings.Split(*only, ",")
 	}

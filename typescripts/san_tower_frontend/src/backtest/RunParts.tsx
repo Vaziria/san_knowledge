@@ -1,8 +1,8 @@
 import { Badge, Box, Button, Grid, HStack, NativeSelect, Stack, Table, Text } from '@chakra-ui/react';
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import type { BacktestDecision, BacktestRun, BacktestStats, BacktestTrade } from '../gen/san/tower/v1/backtest_analysis_pb';
+import { useEffect, useMemo, useState } from 'react';
+import type { BacktestDecision, BacktestRun, BacktestStats, BacktestTrade, BacktestWalkWindow } from '../gen/san/tower/v1/backtest_analysis_pb';
 import { money, pct, pf, price, sec, signed, utc, wib } from './format';
+import { useSort, type SortValue } from './sort';
 
 // The run page's panels: stats, trades, missed signals, decision log.
 
@@ -36,6 +36,10 @@ function StatsGrid({ s }: { s: BacktestStats }) {
   );
 }
 
+type WalkKey = 'from' | 'params' | 'trainNet' | 'testTrades' | 'testNet' | 'testWinRate';
+
+const walkValue = (w: BacktestWalkWindow, k: WalkKey): SortValue => (k === 'from' ? sec(w.testFrom) : w[k]);
+
 // StatsPanel is the summary, the first half against the second, skipped
 // signals, the walk-forward windows, costs, params and account.
 export function StatsPanel({ run }: { run: BacktestRun }) {
@@ -45,6 +49,7 @@ export function StatsPanel({ run }: { run: BacktestRun }) {
     ['Second half', s?.secondHalf],
   ] as const;
   const skipped = Object.entries(s?.skipped ?? {});
+  const { sorted: walk, header: walkHead } = useSort(run.walk, { key: 'from', desc: false }, walkValue, (k) => k !== 'from' && k !== 'params');
   return (
     <Stack gap="4" data-testid="stats-panel">
       {s && <StatsGrid s={s} />}
@@ -91,16 +96,16 @@ export function StatsPanel({ run }: { run: BacktestRun }) {
             <Table.Root size="sm">
               <Table.Header>
                 <Table.Row>
-                  <Table.ColumnHeader>Test from</Table.ColumnHeader>
-                  <Table.ColumnHeader>Params</Table.ColumnHeader>
-                  <Table.ColumnHeader textAlign="end">Train net</Table.ColumnHeader>
-                  <Table.ColumnHeader textAlign="end">Test trades</Table.ColumnHeader>
-                  <Table.ColumnHeader textAlign="end">Test net</Table.ColumnHeader>
-                  <Table.ColumnHeader textAlign="end">Test win %</Table.ColumnHeader>
+                  {walkHead('from', 'Test from')}
+                  {walkHead('params', 'Params')}
+                  {walkHead('trainNet', 'Train net', true)}
+                  {walkHead('testTrades', 'Test trades', true)}
+                  {walkHead('testNet', 'Test net', true)}
+                  {walkHead('testWinRate', 'Test win %', true)}
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {run.walk.map((w, i) => (
+                {walk.map((w, i) => (
                   <Table.Row key={i}>
                     <Table.Cell>{wib(sec(w.testFrom), false)}</Table.Cell>
                     <Table.Cell>{w.params}</Table.Cell>
@@ -142,6 +147,7 @@ export function StatsPanel({ run }: { run: BacktestRun }) {
             </Text>
             {money(run.account.balance)} {run.account.currency}, leverage 1:{run.account.leverage}
             {run.account.maxOpen > 0 && `, max open ${run.account.maxOpen}`}
+            {run.legs.some((l) => l.maxOpen > 1) && `, up to ${Math.max(...run.legs.map((l) => l.maxOpen))} positions at once per leg`}
             {run.account.maxDailyLoss > 0 && `, max daily loss ${run.account.maxDailyLoss}%`}
           </Text>
         )}
@@ -166,7 +172,30 @@ export function StatsPanel({ run }: { run: BacktestRun }) {
   );
 }
 
-type TradeKey = 'index' | 'open' | 'side' | 'net' | 'r' | 'reason' | 'session';
+type TradeKey =
+  | 'index'
+  | 'open'
+  | 'close'
+  | 'side'
+  | 'entry'
+  | 'exit'
+  | 'lots'
+  | 'net'
+  | 'r'
+  | 'swap'
+  | 'reason'
+  | 'session'
+  | 'positionId'
+  | 'orderType';
+
+// orderKey sorts by order type, then by order number.
+export const orderKey = (type: string, id: number) => `${type} ${String(id).padStart(9, '0')}`;
+
+const tradeValue = (t: BacktestTrade, k: TradeKey): SortValue =>
+  k === 'open' ? sec(t.openTime) : k === 'close' ? sec(t.closeTime) : k === 'orderType' ? orderKey(t.orderType, t.orderId) : (t[k] as number | string);
+
+// money and size columns start with the largest first.
+const tradeDescFirst = (k: TradeKey) => ['lots', 'net', 'r', 'swap'].includes(k);
 
 function Select({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) {
   return (
@@ -184,9 +213,33 @@ function Select({ label, value, options, onChange }: { label: string; value: str
   );
 }
 
-export type TradeFilter = { side: string; result: string; session: string; month: string; reason: string };
+export type TradeFilter = { side: string; result: string; session: string; month: string; reason: string; orderType: string };
 
-export const noFilter: TradeFilter = { side: '', result: '', session: '', month: '', reason: '' };
+export const noFilter: TradeFilter = { side: '', result: '', session: '', month: '', reason: '', orderType: '' };
+
+// hasOrders: the report knows positions and order types (San Backtest's
+// several positions and pending orders; older reports have neither).
+export const hasOrders = (ts: BacktestTrade[]) => ts.some((t) => t.positionId > 0 || t.orderType !== '');
+
+const orderColor: Record<string, string> = { market: 'gray', limit: 'cyan', stop: 'purple' };
+
+// OrderBadge is how a position was opened: market, or the pending order's type, id and tag.
+export function OrderBadge({ type, id, tag }: { type: string; id: number; tag: string }) {
+  if (!type) return <>-</>;
+  return (
+    <HStack gap="1">
+      <Badge size="sm" variant="subtle" colorPalette={orderColor[type] ?? 'gray'}>
+        {type}
+      </Badge>
+      {id > 0 && (
+        <Text as="span" color="fg.muted">
+          #{id}
+        </Text>
+      )}
+      {tag && <Text as="span">{tag}</Text>}
+    </HStack>
+  );
+}
 
 export function filterTrades(ts: BacktestTrade[], f: TradeFilter) {
   return ts.filter(
@@ -195,7 +248,8 @@ export function filterTrades(ts: BacktestTrade[], f: TradeFilter) {
       (!f.result || (f.result === 'win' ? t.net > 0 : t.net <= 0)) &&
       (!f.session || t.session === f.session) &&
       (!f.month || t.month === f.month) &&
-      (!f.reason || t.reason === f.reason),
+      (!f.reason || t.reason === f.reason) &&
+      (!f.orderType || t.orderType === f.orderType),
   );
 }
 
@@ -216,38 +270,17 @@ export function TradesTable({
   selected?: BacktestTrade;
   onSelect: (t: BacktestTrade) => void;
 }) {
-  const [sort, setSort] = useState<{ key: TradeKey; desc: boolean }>({ key: 'index', desc: false });
   const [page, setPage] = useState(0);
   const uniq = (f: (t: BacktestTrade) => string) => [...new Set(all.map(f))].sort();
-  const list = useMemo(() => {
-    const v = (t: BacktestTrade): number | string =>
-      sort.key === 'open' ? sec(t.openTime) : sort.key === 'index' ? t.index : (t[sort.key] as number | string);
-    const out = filterTrades(all, filter);
-    out.sort((a, b) => {
-      const x = v(a);
-      const y = v(b);
-      const c = typeof x === 'string' ? x.localeCompare(String(y)) : x - (y as number);
-      return sort.desc ? -c : c;
-    });
-    return out;
-  }, [all, filter, sort]);
+  const filtered = useMemo(() => filterTrades(all, filter), [all, filter]);
+  const { sorted: list, header, sort } = useSort(filtered, { key: 'index', desc: false }, tradeValue, tradeDescFirst);
+  useEffect(() => setPage(0), [sort]); // a new order starts at its first page
   const pages = Math.max(1, Math.ceil(list.length / PAGE));
   const p = Math.min(page, pages - 1);
   const net = list.reduce((a, t) => a + t.net, 0);
   const wins = list.filter((t) => t.net > 0).length;
-  const head = (key: TradeKey, label: string, end = false) => (
-    <Table.ColumnHeader
-      textAlign={end ? 'end' : undefined}
-      cursor="pointer"
-      userSelect="none"
-      onClick={() => setSort((s) => ({ key, desc: s.key === key ? !s.desc : false }))}
-    >
-      <HStack gap="1" justify={end ? 'flex-end' : undefined}>
-        {label}
-        {sort.key === key && (sort.desc ? <ChevronDownIcon size={12} /> : <ChevronUpIcon size={12} />)}
-      </HStack>
-    </Table.ColumnHeader>
-  );
+  const head = (key: TradeKey, label: string, end = false) => header(key, label, end);
+  const orders = hasOrders(all);
   const set = (k: keyof TradeFilter) => (v: string) => {
     setPage(0);
     onFilter({ ...filter, [k]: v });
@@ -260,6 +293,7 @@ export function TradesTable({
         <Select label="Session" value={filter.session} options={uniq((t) => t.session)} onChange={set('session')} />
         <Select label="Month" value={filter.month} options={uniq((t) => t.month)} onChange={set('month')} />
         <Select label="Reason" value={filter.reason} options={uniq((t) => t.reason)} onChange={set('reason')} />
+        {orders && <Select label="Order" value={filter.orderType} options={uniq((t) => t.orderType)} onChange={set('orderType')} />}
         <Text textStyle="xs" color="fg.muted">
           {list.length} trades, {list.length ? pct((100 * wins) / list.length) : '-'} won, net {money(net)}
         </Text>
@@ -269,14 +303,19 @@ export function TradesTable({
           <Table.Header>
             <Table.Row>
               {head('index', '#', true)}
+              {orders && head('positionId', 'Pos', true)}
               {head('open', 'Open (WIB)')}
               {head('side', 'Side')}
-              <Table.ColumnHeader textAlign="end">Entry</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="end">Exit</Table.ColumnHeader>
+              {head('close', 'Close (WIB)')}
+              {head('entry', 'Entry', true)}
+              {head('exit', 'Exit', true)}
+              {head('lots', 'Lots', true)}
               {head('net', 'Net', true)}
               {head('r', 'R', true)}
+              {head('swap', 'Swap', true)}
               {head('reason', 'Reason')}
               {head('session', 'Session')}
+              {orders && head('orderType', 'Order')}
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -289,20 +328,29 @@ export function TradesTable({
                 data-testid="trade-row"
               >
                 <Table.Cell textAlign="end">{t.index + 1}</Table.Cell>
+                {orders && <Table.Cell textAlign="end">{t.positionId || '-'}</Table.Cell>}
                 <Table.Cell title={utc(sec(t.openTime))}>{wib(sec(t.openTime))}</Table.Cell>
                 <Table.Cell>
                   <Badge size="sm" colorPalette={t.side === 'buy' ? 'green' : 'red'}>
                     {t.side}
                   </Badge>
                 </Table.Cell>
+                <Table.Cell title={utc(sec(t.closeTime))}>{wib(sec(t.closeTime))}</Table.Cell>
                 <Table.Cell textAlign="end">{price(t.entry)}</Table.Cell>
                 <Table.Cell textAlign="end">{price(t.exit)}</Table.Cell>
+                <Table.Cell textAlign="end">{t.lots.toFixed(2)}</Table.Cell>
                 <Table.Cell textAlign="end" color={t.net > 0 ? 'fg.success' : 'fg.error'}>
                   {money(t.net)}
                 </Table.Cell>
                 <Table.Cell textAlign="end">{t.r.toFixed(2)}</Table.Cell>
+                <Table.Cell textAlign="end">{t.swap ? money(t.swap) : '-'}</Table.Cell>
                 <Table.Cell>{t.reason}</Table.Cell>
                 <Table.Cell>{t.session}</Table.Cell>
+                {orders && (
+                  <Table.Cell>
+                    <OrderBadge type={t.orderType} id={t.orderId} tag={t.tag} />
+                  </Table.Cell>
+                )}
               </Table.Row>
             ))}
           </Table.Body>
@@ -325,12 +373,35 @@ export function TradesTable({
   );
 }
 
-const kindColor: Record<string, string> = { signal: 'blue', note: 'gray', entry: 'green', exit: 'orange', stop_move: 'purple', missed: 'red' };
+const kindColor: Record<string, string> = {
+  signal: 'blue',
+  note: 'gray',
+  entry: 'green',
+  exit: 'orange',
+  stop_move: 'purple',
+  missed: 'red',
+  // pending orders (San Backtest's limit and stop orders)
+  order_placed: 'cyan',
+  order_filled: 'teal',
+  order_cancelled: 'yellow',
+  order_expired: 'pink',
+};
+
+// detail keys that are numbers of positions and orders, not prices
+const idKeys: Record<string, string> = { position_id: 'position', order_id: 'order', id: 'for' };
 
 const detailText = (d: Record<string, number>) =>
   Object.entries(d)
     .filter(([k]) => k !== 'action')
-    .map(([k, v]) => `${k} ${k === 'lots' || k === 'r' ? v : price(v)}`)
+    .map(([k, v]) =>
+      idKeys[k]
+        ? `${idKeys[k]} #${v}`
+        : k === 'type'
+          ? v === 2
+            ? 'stop order'
+            : 'limit order'
+          : `${k} ${k === 'lots' || k === 'r' || k === 'bars' ? v : price(v)}`,
+    )
     .join(', ');
 
 // DecisionLog shows decision log lines (decisions.jsonl): what the
@@ -360,7 +431,7 @@ export function DecisionLog({ lines, title, available }: { lines?: BacktestDecis
                 {wib(sec(d.time))}
               </Text>
               <Badge size="xs" colorPalette={kindColor[d.kind] ?? 'gray'}>
-                {d.kind.replace('_', ' ')}
+                {d.kind.replaceAll('_', ' ')}
               </Badge>
               {d.side && <Text>{d.side}</Text>}
               <Text flex="1">

@@ -133,6 +133,11 @@ func (d *Decl) Once(key any) bool {
 	return true
 }
 
+// MaxOpen declares that the chain may hold n positions at once (and
+// enter while fewer are open and pending): the strategy's MaxOpen(), which
+// Config.MaxOpen overrides. steps.MaxOpen calls it.
+func (d *Decl) MaxOpen(n int) { d.b.s.maxOpen = max(n, 0) }
+
 // Fail makes Build return err (a bad argument found at setup).
 func (d *Decl) Fail(err error) { d.b.errs = append(d.b.errs, err) }
 

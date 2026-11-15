@@ -2850,6 +2850,21 @@ by backtest").
   chart or a missed signal. The stats panel has the summary, first against
   second half, skipped signals, the walk-forward windows with the
   out-of-sample line, params, account and costs. Times show in WIB.
+  Every table sorts by any column (the user, 2026-11-15: "Add sort column
+  in backtest analysis"): a click sorts, a second click reverses, and an
+  unsorted header shows a faint up/down mark; sorting keeps the filters
+  and starts again at page 1.
+- **Several positions and pending orders** (San Backtest run.json schema
+  2): trades.csv's `position_id`, `order_id`, `order_type` and `tag` show
+  as the trades table's Pos and Order columns (with an Order filter), and
+  missed.csv's as the missed table's Order column, where `expired` and
+  `cancelled` orders are told apart from refused trades. On the chart each
+  open position has its own stop, target and entry lines (overlapping
+  trades go to separate lanes), and an order's entry arrow says `lmt` or
+  `stp`. The decision log colours the `order_placed`, `order_filled`,
+  `order_cancelled` and `order_expired` lines, and shows position and
+  order numbers as `#n`. Older reports, without these columns, read as
+  before.
 - **Local only:** the service names this computer's paths, so it answers
   only callers on this computer (a loopback peer), also on a tower started
   with `--lan`, where it refuses others with PermissionDenied.

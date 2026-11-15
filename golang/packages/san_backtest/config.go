@@ -46,6 +46,15 @@ type Config struct {
 	// Timeframes override the strategy's own Timeframes() (CLI --tf); the
 	// first is the step.
 	Timeframes []string
+	// MaxOpen is how many positions may be open at once (longs and shorts
+	// together; the user, 2026-11-15: "limits = max open positions plus
+	// max total risk %"). 0 = the strategy's own MaxOpen() (a chain with
+	// steps.MaxOpen), else 1: one position at a time, as before.
+	MaxOpen int
+	// MaxOpenRisk is the max total risk: the percent of the balance the
+	// open positions may lose at their current stops, the new one
+	// included, checked at each fill. 0 = no limit.
+	MaxOpenRisk float64
 }
 
 // Costs overrides Exness's real costs; a nil field keeps the real one.
@@ -90,6 +99,9 @@ type Leg struct {
 	Costs      *Costs  // nil: the portfolio's
 	Params     map[string]float64
 	Timeframes []string // nil: the strategy's
+	// MaxOpen is the leg's open positions at once; 0 = the strategy's own
+	// MaxOpen() (MultiPosition), else 1. Portfolio.MaxOpen caps all legs.
+	MaxOpen int
 }
 
 // Defaults.
@@ -116,8 +128,8 @@ func (c Config) Validate() error { return c.portfolio().validate("Config") }
 
 func (c Config) portfolio() Portfolio {
 	return Portfolio{Data: c.Data, From: c.From, To: c.To, Strict: c.Strict, Balance: c.Balance, Currency: c.Currency, Leverage: c.Leverage,
-		MaxDailyLoss: c.MaxDailyLoss, DayTZ: c.DayTZ, Costs: c.Costs, Cache: c.Cache, walk: c.Walk,
-		Legs: []Leg{{Strategy: c.Strategy, Instrument: c.Instrument, Risk: c.Risk, Params: c.Params, Timeframes: c.Timeframes}}}
+		MaxDailyLoss: c.MaxDailyLoss, DayTZ: c.DayTZ, Costs: c.Costs, Cache: c.Cache, walk: c.Walk, MaxOpenRisk: c.MaxOpenRisk,
+		Legs: []Leg{{Strategy: c.Strategy, Instrument: c.Instrument, Risk: c.Risk, Params: c.Params, Timeframes: c.Timeframes, MaxOpen: c.MaxOpen}}}
 }
 
 // Validate says exactly which fields are wrong (all of them, joined).
@@ -207,6 +219,9 @@ func (p Portfolio) validate(root string) error {
 		}
 		if l.Costs != nil {
 			checkCosts(legField(i, "Costs"), *l.Costs)
+		}
+		if l.MaxOpen < 0 {
+			bad(legField(i, "MaxOpen"), "must be 0 (the strategy's own, else 1) or more, got %d", l.MaxOpen)
 		}
 		if l.Strategy == nil {
 			continue

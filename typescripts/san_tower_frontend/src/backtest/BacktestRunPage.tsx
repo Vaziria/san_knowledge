@@ -3,11 +3,12 @@ import { ArrowLeftIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { backtestAnalysis, errorText } from '../api';
-import type { BacktestDecision, BacktestRun, BacktestTrade } from '../gen/san/tower/v1/backtest_analysis_pb';
+import type { BacktestDecision, BacktestMissed, BacktestRun, BacktestTrade } from '../gen/san/tower/v1/backtest_analysis_pb';
 import { EquityChart, type TimeRange } from './EquityChart';
 import { chartColors, rangeText, sec, utc, wib } from './format';
 import { PriceChart } from './PriceChart';
-import { DecisionLog, filterTrades, noFilter, StatsPanel, TradesTable, type TradeFilter } from './RunParts';
+import { useSort, type SortValue } from './sort';
+import { DecisionLog, filterTrades, noFilter, OrderBadge, orderKey, StatsPanel, TradesTable, type TradeFilter } from './RunParts';
 import { timestampFromDate } from '@bufbuild/protobuf/wkt';
 
 // defaultTimeframe is the step timeframe, or H1 when a long run would make
@@ -134,7 +135,7 @@ export function BacktestRunPage() {
                 ))}
                 <Text textStyle="xs" color="fg.muted" ms="2">
                   Wheel zooms, drag pans. Arrows are entries, dots exits; green won, red lost; dashed lines are stops and
-                  targets.
+                  targets, one set per open position.
                 </Text>
               </HStack>
               <PriceChart
@@ -204,28 +205,48 @@ function BackLink({ folder }: { folder: string }) {
   );
 }
 
+type MissedKey = 'time' | 'side' | 'reason' | 'strategy' | 'orderType';
+
+// reasonColor: a pending order that ended unfilled is not a refused trade
+const reasonColor: Record<string, string> = { expired: 'gray', cancelled: 'yellow' };
+
+const missedValue = (m: BacktestMissed, k: MissedKey): SortValue =>
+  k === 'time' ? sec(m.time) : k === 'orderType' ? orderKey(m.orderType, m.orderId) : m[k];
+
 function MissedTable({ run, onTime }: { run: BacktestRun; onTime: (t: number) => void }) {
+  const { sorted, header } = useSort(run.missed, { key: 'time', desc: false }, missedValue);
   if (run.missed.length === 0) return <Text color="fg.muted">No missed signals.</Text>;
+  const orders = run.missed.some((m) => m.orderType !== '');
   return (
     <Table.ScrollArea borderWidth="1px" rounded="md" maxH="lg" data-testid="missed-table">
       <Table.Root size="sm" interactive stickyHeader>
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeader>Time (WIB)</Table.ColumnHeader>
-            <Table.ColumnHeader>Side</Table.ColumnHeader>
-            <Table.ColumnHeader>Reason</Table.ColumnHeader>
-            <Table.ColumnHeader>Strategy</Table.ColumnHeader>
+            {header('time', 'Time (WIB)')}
+            {header('side', 'Side')}
+            {header('reason', 'Reason')}
+            {header('strategy', 'Strategy')}
+            {orders && header('orderType', 'Order')}
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {run.missed.map((m, i) => (
+          {sorted.map((m, i) => (
             <Table.Row key={i} cursor="pointer" onClick={() => onTime(sec(m.time))}>
               <Table.Cell title={utc(sec(m.time))}>{wib(sec(m.time))}</Table.Cell>
               <Table.Cell>{m.side}</Table.Cell>
-              <Table.Cell>{m.reason}</Table.Cell>
+              <Table.Cell>
+                <Badge size="sm" variant="subtle" colorPalette={reasonColor[m.reason] ?? 'red'}>
+                  {m.reason}
+                </Badge>
+              </Table.Cell>
               <Table.Cell>
                 {m.strategy} {run.legs.length > 1 && `(leg ${m.leg})`}
               </Table.Cell>
+              {orders && (
+                <Table.Cell>
+                  <OrderBadge type={m.orderType} id={m.orderId} tag={m.tag} />
+                </Table.Cell>
+              )}
             </Table.Row>
           ))}
         </Table.Body>

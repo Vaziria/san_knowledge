@@ -165,6 +165,9 @@ message BacktestLeg {
   map<string, double> params = 6;
   BacktestStats stats = 7;
   double contribution = 8;
+  // max_open is the leg's open positions at once (run.json schema 2; 0 =
+  // not given: one at a time).
+  uint32 max_open = 9;
 }
 
 message BacktestCost {
@@ -219,6 +222,15 @@ message BacktestTrade {
   string session = 23;
   // month is the entry's month, "2026-05" (UTC).
   string month = 24;
+  // position_id and order_id are San Backtest's numbers (trades.csv's
+  // position_id and order_id; 0 when the report predates them, or for a
+  // market entry's order_id). Several positions may be open at once.
+  uint32 position_id = 25;
+  uint32 order_id = 26;
+  // order_type is "market", "limit" or "stop" ("" for old reports).
+  string order_type = 27;
+  // tag is the pending order's tag.
+  string tag = 28;
 }
 
 message BacktestMissed {
@@ -228,6 +240,11 @@ message BacktestMissed {
   string instrument = 4;
   string side = 5;
   string reason = 6;
+  // order_id, order_type and tag say which pending order it was (empty
+  // for a market signal and for old reports).
+  uint32 order_id = 7;
+  string order_type = 8;
+  string tag = 9;
 }
 
 message BacktestEquityPoint {

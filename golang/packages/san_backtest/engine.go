@@ -272,7 +272,11 @@ func costReport(d *legData, ccy string) CostReport {
 
 // The simulation.
 
+// openPos is one open position. A leg may hold several (the user,
+// 2026-11-15: "1b": hedging allowed, longs and shorts open together).
 type openPos struct {
+	id, orderID    int
+	kind, tag      string // TypeMarket/TypeLimit/TypeStop, the order's Tag
 	side           Side
 	entry          float64
 	stop, initStop float64
@@ -288,19 +292,37 @@ type openPos struct {
 	spread         float64
 }
 
+// pendingOrder is a limit or stop order waiting for its price.
+type pendingOrder struct {
+	id                  int
+	side                Side
+	kind                string // TypeLimit or TypeStop
+	price, stop, target float64
+	tag                 string
+	signalTime          time.Time // the close of the candle that asked for it
+	placed              time.Time // the open of the candle it went live on
+	bars, seen          int       // Expire's candles, the candles checked so far
+	until               time.Time
+}
+
 type legRun struct {
 	d          *legData
 	frames     map[string]*series
 	ctx        *Context
-	pos        *openPos
-	pending    *Signal
+	positions  []*openPos // in open order
+	orders     []*pendingOrder
+	pending    []Signal // the last signal's actions, run at the next open
 	signalTime time.Time
-	bid, ask   float64
-	prevClose  time.Time
-	trades     []Trade
-	firstIdx   int
-	lastIdx    int
-	params     map[string]float64
+	// maxOpen is the leg's position limit: Leg.MaxOpen, else the
+	// strategy's MaxOpen(); 0 = neither, one position at a time as before
+	// (a Buy or Sell while one is open is ignored, unrecorded).
+	maxOpen   int
+	bid, ask  float64
+	prevClose time.Time
+	trades    []Trade
+	firstIdx  int
+	lastIdx   int
+	params    map[string]float64
 }
 
 type sim struct {
@@ -318,6 +340,7 @@ type sim struct {
 	// the walk-forward trials).
 	record    bool
 	decisions []Decision
+	ids       int // the last position or order number given out
 }
 
 type event struct {
@@ -337,7 +360,10 @@ func (ld *loaded) run(balance float64, from, to time.Time, override map[string]f
 		step := d.candles[d.tfs[0]]
 		first := max(d.start, sort.Search(len(step), func(k int) bool { return !step[k].OpenTime.Before(from) }))
 		last := sort.Search(len(step), func(k int) bool { return step[k].CloseTime.After(to) }) - 1
-		l := &legRun{d: d, frames: map[string]*series{}, firstIdx: first, lastIdx: last, params: map[string]float64{}}
+		l := &legRun{d: d, frames: map[string]*series{}, firstIdx: first, lastIdx: last, params: map[string]float64{}, maxOpen: d.leg.MaxOpen}
+		if mp, ok := d.leg.Strategy.(MultiPosition); ok && l.maxOpen == 0 {
+			l.maxOpen = max(mp.MaxOpen(), 0)
+		}
 		for k, v := range d.params {
 			l.params[k] = v
 		}
@@ -393,12 +419,17 @@ func (ld *loaded) run(balance float64, from, to time.Time, override map[string]f
 	}
 	var end time.Time
 	for _, l := range s.legs {
-		if l.pos != nil {
+		for _, o := range l.orders {
+			s.endOrder(l, o, l.prevClose, DecisionOrderCancelled, "", "end of the run")
+		}
+		l.orders = nil
+		for len(l.positions) > 0 {
+			p := l.positions[0]
 			exit := l.bid
-			if l.pos.side == Short {
+			if p.side == Short {
 				exit = l.ask
 			}
-			s.closePos(l, exit, l.prevClose, "closed at end", l.prevClose)
+			s.closePos(l, p, exit, l.prevClose, "closed at end", l.prevClose)
 		}
 		if l.prevClose.After(end) {
 			end = l.prevClose
@@ -417,16 +448,20 @@ func (s *sim) newDay(t time.Time) {
 	}
 }
 
-func (s *sim) floating(l *legRun) float64 {
-	p := l.pos
-	if p == nil {
-		return 0
-	}
+func (s *sim) floatingOf(l *legRun, p *openPos) float64 {
 	exit, sign := l.bid, 1.0
 	if p.side == Short {
 		exit, sign = l.ask, -1
 	}
 	return sign*(exit-p.entry)*p.lots*l.d.inst.ContractSize*l.d.conv(exit) + p.swap
+}
+
+// floating is the leg's open positions' floating profit, swap included.
+func (s *sim) floating(l *legRun) (f float64) {
+	for _, p := range l.positions {
+		f += s.floatingOf(l, p)
+	}
+	return f
 }
 
 func (s *sim) equityNow() float64 {
@@ -437,10 +472,11 @@ func (s *sim) equityNow() float64 {
 	return e
 }
 
+// usedMargin is the margin of every open position, all legs.
 func (s *sim) usedMargin() (m float64) {
 	for _, l := range s.legs {
-		if l.pos != nil {
-			m += l.pos.margin
+		for _, p := range l.positions {
+			m += p.margin
 		}
 	}
 	return m
@@ -448,9 +484,7 @@ func (s *sim) usedMargin() (m float64) {
 
 func (s *sim) openCount() (n int) {
 	for _, l := range s.legs {
-		if l.pos != nil {
-			n++
-		}
+		n += len(l.positions)
 	}
 	return n
 }
@@ -458,7 +492,7 @@ func (s *sim) openCount() (n int) {
 // openRisk is the money open positions lose if all stops are hit now.
 func (s *sim) openRisk() (r float64) {
 	for _, l := range s.legs {
-		if p := l.pos; p != nil {
+		for _, p := range l.positions {
 			adverse := p.entry - p.stop
 			if p.side == Short {
 				adverse = p.stop - p.entry
@@ -469,104 +503,280 @@ func (s *sim) openRisk() (r float64) {
 	return r
 }
 
+func (s *sim) newID() int {
+	s.ids++
+	return s.ids
+}
+
+// onOpen runs the last signal's actions at the candle's open, in order. A
+// Close that waits for the market to open keeps itself and the actions
+// after it for the next open.
 func (s *sim) onOpen(l *legRun, c Candle) {
 	l.bid, l.ask = c.Open, c.AskOpen
-	if l.pending == nil {
-		return
-	}
-	sig := *l.pending
-	slip := l.d.costs.Slippage
-	switch sig.Action {
-	case ActBuy, ActSell:
-		l.pending = nil
-		if l.pos == nil {
-			s.enter(l, c, sig)
-		}
-	case ActClose:
-		if l.pos == nil {
-			l.pending = nil
+	for len(l.pending) > 0 {
+		if !s.act(l, c, l.pending[0]) {
 			return
 		}
-		if !l.d.inst.Open(c.OpenTime) {
-			return // waits for the market to open
+		l.pending = l.pending[1:]
+	}
+	l.pending = nil
+}
+
+// act runs one action; false when it waits for the market to open.
+func (s *sim) act(l *legRun, c Candle, sig Signal) bool {
+	switch sig.Action {
+	case ActBuy, ActSell:
+		if l.maxOpen == 0 && len(l.positions) > 0 {
+			return true // one position at a time, as before: ignored
 		}
-		l.pending = nil
-		exit := c.Open - slip
-		if l.pos.side == Short {
-			exit = c.AskOpen + slip
+		s.enter(l, c, sig)
+	case ActClose, ActCloseAll:
+		if sig.Action == ActCloseAll {
+			for _, o := range l.orders {
+				s.endOrder(l, o, c.OpenTime, DecisionOrderCancelled, SkipCancelled, reasonOr(sig.Reason, "close all"))
+			}
+			l.orders = nil
+		}
+		ps := l.targets(sig.ID)
+		if len(ps) == 0 {
+			return true
+		}
+		if !l.d.inst.Open(c.OpenTime) {
+			return false // waits for the market to open
 		}
 		reason := "close"
 		if sig.Reason != "" {
 			reason += ": " + sig.Reason
 		}
-		s.closePos(l, exit, c.OpenTime, reason, c.OpenTime)
+		slip := l.d.costs.Slippage
+		for _, p := range ps {
+			exit := c.Open - slip
+			if p.side == Short {
+				exit = c.AskOpen + slip
+			}
+			s.closePos(l, p, exit, c.OpenTime, reason, c.OpenTime)
+		}
 	case ActMoveStop:
-		l.pending = nil
-		if p := l.pos; p != nil && !math.IsNaN(sig.Stop) && sig.Stop > 0 {
+		if math.IsNaN(sig.Stop) || sig.Stop <= 0 {
+			return true
+		}
+		for _, p := range l.targets(sig.ID) {
 			if (p.side == Long && sig.Stop > p.stop) || (p.side == Short && sig.Stop < p.stop) {
-				s.decide(l, c.OpenTime, DecisionStopMove, p.side, map[string]float64{"old_stop": p.stop, "stop": sig.Stop}, sig.Reason)
+				s.decide(l, c.OpenTime, DecisionStopMove, p.side, posDetails(p, map[string]float64{"old_stop": p.stop, "stop": sig.Stop}), sig.Reason)
 				p.stop = sig.Stop
 			}
 		}
+	case ActBuyLimit, ActSellLimit, ActBuyStop, ActSellStop:
+		s.place(l, c, sig)
+	case ActCancel, ActCancelAll:
+		var keep []*pendingOrder
+		for _, o := range l.orders {
+			if sig.Action == ActCancelAll || o.id == sig.ID {
+				s.endOrder(l, o, c.OpenTime, DecisionOrderCancelled, SkipCancelled, reasonOr(sig.Reason, "cancel"))
+				continue
+			}
+			keep = append(keep, o)
+		}
+		l.orders = keep
 	}
+	return true
 }
 
+func reasonOr(r, def string) string {
+	if r != "" {
+		return r
+	}
+	return def
+}
+
+// targets are the open positions an action is for: id's, or all for 0.
+func (l *legRun) targets(id int) []*openPos {
+	if id == 0 {
+		return append([]*openPos{}, l.positions...)
+	}
+	for _, p := range l.positions {
+		if p.id == id {
+			return []*openPos{p}
+		}
+	}
+	return nil
+}
+
+// posDetails adds a position's numbers to a decision's details.
+func posDetails(p *openPos, det map[string]float64) map[string]float64 {
+	det["position_id"] = float64(p.id)
+	if p.orderID != 0 {
+		det["order_id"] = float64(p.orderID)
+	}
+	return det
+}
+
+// entryMeta is where an entry comes from: a market Buy/Sell or an order.
+type entryMeta struct {
+	kind       string
+	orderID    int
+	tag        string
+	signalTime time.Time
+}
+
+func (s *sim) miss(l *legRun, t time.Time, side Side, det map[string]float64, reason string, m entryMeta) {
+	d := l.d
+	s.skipped[reason]++
+	s.missed = append(s.missed, Missed{Time: t, Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Side: side, Reason: reason, OrderID: m.orderID,
+		OrderType: m.kind, Tag: m.tag})
+	if m.orderID != 0 {
+		det["order_id"] = float64(m.orderID)
+	}
+	s.decide(l, t, DecisionMissed, side, det, reason)
+}
+
+// enter opens a market Buy or Sell at the candle's open.
 func (s *sim) enter(l *legRun, c Candle, sig Signal) {
 	d := l.d
-	side := Long
-	if sig.Action == ActSell {
-		side = Short
-	}
-	miss := func(reason string) {
-		s.skipped[reason]++
-		s.missed = append(s.missed, Missed{Time: c.OpenTime, Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Side: side, Reason: reason})
-		s.decide(l, c.OpenTime, DecisionMissed, side, map[string]float64{"stop": sig.Stop, "target": sig.Target}, reason)
-	}
+	side := sig.Action.Side()
+	m := entryMeta{kind: TypeMarket, signalTime: l.signalTime}
+	st, tg := sig.Stop, sig.Target
 	if !d.inst.Open(c.OpenTime) {
-		miss(SkipMarketClosed)
+		s.miss(l, c.OpenTime, side, map[string]float64{"stop": st, "target": tg}, SkipMarketClosed, m)
 		return
 	}
 	fill := c.AskOpen + d.costs.Slippage
 	if side == Short {
 		fill = c.Open - d.costs.Slippage
 	}
-	st, tg := sig.Stop, sig.Target
 	if math.IsNaN(st) || math.IsNaN(tg) || st <= 0 || tg < 0 ||
 		(side == Long && (st >= fill || (tg > 0 && tg <= fill))) || (side == Short && (st <= fill || (tg > 0 && tg >= fill))) {
-		miss(SkipLevels)
+		s.miss(l, c.OpenTime, side, map[string]float64{"stop": st, "target": tg}, SkipLevels, m)
 		return
+	}
+	s.open(l, c, side, fill, st, tg, m)
+}
+
+// open checks the account limits and sizes a new position at fill: the
+// daily loss, MaxOpen (the portfolio's, then the leg's), the risk % of the
+// balance now rounded down to the lot step (the user, 2026-11-15: "sizing
+// = risk % of the current balance, as now"), MaxOpenRisk and the free
+// margin. nil when it is skipped (recorded).
+func (s *sim) open(l *legRun, c Candle, side Side, fill, st, tg float64, m entryMeta) *openPos {
+	d := l.d
+	miss := func(reason string) {
+		s.miss(l, c.OpenTime, side, map[string]float64{"stop": st, "target": tg}, reason, m)
 	}
 	eq := s.equityNow()
 	if s.p.MaxDailyLoss > 0 && s.dayStart > 0 && 100*(s.dayStart-eq)/s.dayStart >= s.p.MaxDailyLoss {
 		miss(SkipDailyLoss)
-		return
+		return nil
 	}
 	if s.p.MaxOpen > 0 && s.openCount() >= s.p.MaxOpen {
 		miss(SkipMaxOpen)
-		return
+		return nil
+	}
+	if len(l.positions) >= max(l.maxOpen, 1) {
+		miss(SkipMaxOpen)
+		return nil
 	}
 	perLot := math.Abs(fill-st) * d.inst.ContractSize * d.conv(fill)
 	lots := lotsFor(s.balance*d.leg.Risk/100/perLot, d.inst)
 	if lots == 0 {
 		miss(SkipTooSmall)
-		return
+		return nil
 	}
 	risk := lots * perLot
 	if s.p.MaxOpenRisk > 0 && 100*(s.openRisk()+risk)/s.balance > s.p.MaxOpenRisk+1e-9 {
 		miss(SkipMaxOpenRisk)
-		return
+		return nil
 	}
 	margin := d.margin(lots, fill, s.p.Leverage)
 	if margin > eq-s.usedMargin()+1e-9 {
 		miss(SkipMargin)
-		return
+		return nil
 	}
 	comm := lots * d.inst.Commission
 	s.balance -= comm
-	l.pos = &openPos{side: side, entry: fill, stop: st, initStop: st, target: tg, lots: lots, signalTime: l.signalTime, openTime: c.OpenTime,
-		risk: risk, margin: margin, commission: comm, lastRoll: c.OpenTime, spread: c.AskOpen - c.Open}
-	s.decide(l, c.OpenTime, DecisionEntry, side, map[string]float64{"price": fill, "stop": st, "target": tg, "lots": lots, "risk": risk,
-		"spread": c.AskOpen - c.Open}, "")
+	p := &openPos{id: s.newID(), orderID: m.orderID, kind: m.kind, tag: m.tag, side: side, entry: fill, stop: st, initStop: st, target: tg, lots: lots,
+		signalTime: m.signalTime, openTime: c.OpenTime, risk: risk, margin: margin, commission: comm, lastRoll: c.OpenTime, spread: c.AskOpen - c.Open}
+	l.positions = append(l.positions, p)
+	if m.orderID != 0 {
+		s.decide(l, c.OpenTime, DecisionOrderFilled, side, map[string]float64{"order_id": float64(m.orderID), "position_id": float64(p.id), "price": fill,
+			"type": orderTypeCode(m.kind)}, orderName(side, m.kind, m.tag))
+	}
+	s.decide(l, c.OpenTime, DecisionEntry, side, posDetails(p, map[string]float64{"price": fill, "stop": st, "target": tg, "lots": lots, "risk": risk,
+		"spread": c.AskOpen - c.Open}), "")
+	return p
+}
+
+func orderTypeCode(kind string) float64 {
+	if kind == TypeStop {
+		return 2
+	}
+	return 1
+}
+
+// orderName is e.g. "buy limit" or "sell stop (tag)".
+func orderName(side Side, kind, tag string) string {
+	n := string(side) + " " + kind
+	if tag != "" {
+		n += " (" + tag + ")"
+	}
+	return n
+}
+
+// orderLevels is rule #1 for a pending order at price: a stop-loss and a
+// take-profit, real prices, on the right sides (below and above price for
+// a buy). "" when it holds.
+func orderLevels(side Side, price, st, tg float64) string {
+	bad := func(x float64) bool { return math.IsNaN(x) || math.IsInf(x, 0) || x <= 0 }
+	switch {
+	case bad(price):
+		return "no order price"
+	case bad(st):
+		return "no stop-loss"
+	case bad(tg):
+		return "no take-profit"
+	case side == Long && !(st < price && price < tg):
+		return fmt.Sprintf("buy at %.5g with stop %.5g and target %.5g", price, st, tg)
+	case side == Short && !(tg < price && price < st):
+		return fmt.Sprintf("sell at %.5g with stop %.5g and target %.5g", price, st, tg)
+	}
+	return ""
+}
+
+// place makes a pending order live from this candle on (the signal came at
+// the previous candle's close). Rule #1 is checked here and again at the
+// fill; a refused order is recorded as "invalid levels".
+func (s *sim) place(l *legRun, c Candle, sig Signal) {
+	side := sig.Action.Side()
+	kind := TypeLimit
+	if sig.Action == ActBuyStop || sig.Action == ActSellStop {
+		kind = TypeStop
+	}
+	o := &pendingOrder{id: s.newID(), side: side, kind: kind, price: sig.Price, stop: sig.Stop, target: sig.Target, tag: sig.Label,
+		signalTime: l.signalTime, placed: c.OpenTime, bars: max(sig.Bars, 0), until: sig.Expires}
+	det := map[string]float64{"price": o.price, "stop": o.stop, "target": o.target, "type": orderTypeCode(kind)}
+	if why := orderLevels(side, o.price, o.stop, o.target); why != "" {
+		s.miss(l, c.OpenTime, side, det, SkipLevels, entryMeta{kind: kind, orderID: o.id, tag: o.tag})
+		return
+	}
+	det["order_id"] = float64(o.id)
+	if o.bars > 0 {
+		det["bars"] = float64(o.bars)
+	}
+	l.orders = append(l.orders, o)
+	s.decide(l, c.OpenTime, DecisionOrderPlaced, side, det, orderName(side, kind, o.tag))
+}
+
+// endOrder records an order that ends unfilled: kind is the decision,
+// skip the Missed reason ("" = not a missed trade, e.g. the end of the
+// run).
+func (s *sim) endOrder(l *legRun, o *pendingOrder, t time.Time, kind, skip, reason string) {
+	det := map[string]float64{"order_id": float64(o.id), "price": o.price, "type": orderTypeCode(o.kind)}
+	s.decide(l, t, kind, o.side, det, reason)
+	if skip != "" {
+		d := l.d
+		s.skipped[skip]++
+		s.missed = append(s.missed, Missed{Time: t, Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Side: o.side, Reason: skip, OrderID: o.id,
+			OrderType: o.kind, Tag: o.tag})
+	}
 }
 
 // decide adds a line to the decision log when the run records one.
@@ -578,7 +788,8 @@ func (s *sim) decide(l *legRun, t time.Time, kind string, side Side, details map
 }
 
 // decideSignal logs what OnCandle asked for at t, with its notes as the
-// reason; a step that waits but noted something is a note line.
+// reason; a step that waits but noted something is a note line. A Do is
+// one signal line per action, the reason on the first.
 func (s *sim) decideSignal(l *legRun, t time.Time, sig Signal, notes []string) {
 	if !s.record {
 		return
@@ -593,28 +804,51 @@ func (s *sim) decideSignal(l *legRun, t time.Time, sig Signal, notes []string) {
 		}
 		return
 	}
-	if sig.Reason != "" {
+	list := sig.List()
+	if sig.Action != ActDo && sig.Reason != "" {
 		reason = strings.Join(append([]string{sig.Reason}, notes...), "; ")
 	}
-	det := map[string]float64{"action": float64(sig.Action)}
-	var side Side
-	switch sig.Action {
-	case ActBuy, ActSell:
-		side = Long
-		if sig.Action == ActSell {
-			side = Short
+	for i, x := range list {
+		det := map[string]float64{"action": float64(x.Action)}
+		side := x.Action.Side()
+		switch {
+		case x.Action == ActBuy || x.Action == ActSell:
+			det["stop"], det["target"] = x.Stop, x.Target
+			if k, ok := l.ctx.Last(l.ctx.step); ok {
+				det["close"] = k.Close
+			}
+		case x.Action.IsOrder():
+			det["price"], det["stop"], det["target"] = x.Price, x.Stop, x.Target
+		case x.Action == ActMoveStop:
+			det["stop"] = x.Stop
 		}
-		det["stop"], det["target"] = sig.Stop, sig.Target
-		if k, ok := l.ctx.Last(l.ctx.step); ok {
-			det["close"] = k.Close
+		if x.ID != 0 {
+			det["id"] = float64(x.ID)
 		}
-	case ActMoveStop:
-		det["stop"] = sig.Stop
+		if side == "" && len(l.positions) > 0 {
+			side = l.positions[0].side
+			for _, p := range l.positions {
+				if p.id == x.ID {
+					side = p.side
+				}
+			}
+		}
+		r := reason
+		if sig.Action == ActDo {
+			r = x.Reason
+			if i == 0 {
+				r = strings.Join(append(nonEmpty(x.Reason), notes...), "; ")
+			}
+		}
+		s.decide(l, t, DecisionSignal, side, det, r)
 	}
-	if side == "" && l.pos != nil {
-		side = l.pos.side
+}
+
+func nonEmpty(s string) []string {
+	if s == "" {
+		return nil
 	}
-	s.decide(l, t, DecisionSignal, side, det, reason)
+	return []string{s}
 }
 
 // lotsFor rounds want down to the lot step, capped at the maximum; 0 when
@@ -645,12 +879,17 @@ func (s *sim) onClose(l *legRun, idx int, c Candle) {
 			f.n++
 		}
 	}
-	if p := l.pos; p != nil && !p.openTime.After(c.OpenTime) && l.d.inst.Open(c.OpenTime) {
-		s.exits(l, c)
+	if l.d.inst.Open(c.OpenTime) {
+		for _, p := range append([]*openPos{}, l.positions...) {
+			if !p.openTime.After(c.OpenTime) {
+				s.exits(l, p, c)
+			}
+		}
 	}
+	s.fills(l, c)
 	l.bid, l.ask = c.Close, c.AskClose
-	if l.pos != nil {
-		s.swap(l, c.CloseTime)
+	for _, p := range l.positions {
+		s.swap(l, p, c.CloseTime)
 	}
 	gap := time.Duration(0)
 	if !l.prevClose.IsZero() {
@@ -664,47 +903,164 @@ func (s *sim) onClose(l *legRun, idx int, c Candle) {
 	x := l.ctx
 	x.time, x.gap = c.CloseTime, gap
 	x.inst.Spread = c.AskClose - c.Close
-	x.pos = nil
-	if p := l.pos; p != nil {
-		x.pos = &Position{Side: p.side, Entry: p.entry, Stop: p.stop, Target: p.target, Lots: p.lots, OpenTime: p.openTime, Risk: p.risk,
-			Profit: s.floating(l) - p.commission}
+	x.positions, x.cur, x.orders, x.maxOpen = x.positions[:0], nil, x.orders[:0], l.maxOpen
+	for _, p := range l.positions {
+		x.positions = append(x.positions, Position{Side: p.side, Entry: p.entry, Stop: p.stop, Target: p.target, Lots: p.lots, OpenTime: p.openTime,
+			Risk: p.risk, Profit: s.floatingOf(l, p) - p.commission, ID: p.id, OrderID: p.orderID, Type: p.kind, Tag: p.tag})
+	}
+	for _, o := range l.orders {
+		left := 0
+		if o.bars > 0 {
+			left = o.bars - o.seen
+		}
+		x.orders = append(x.orders, Order{ID: o.id, Side: o.side, Type: o.kind, Price: o.price, Stop: o.stop, Target: o.target, Placed: o.placed,
+			BarsLeft: left, Expires: o.until, Tag: o.tag})
 	}
 	x.account = Account{Currency: s.p.Currency, Balance: s.balance, Equity: s.equityNow(), Margin: s.usedMargin(), Open: s.openCount()}
 	x.notes = nil
 	sig := l.d.leg.Strategy.OnCandle(x)
 	s.decideSignal(l, c.CloseTime, sig, x.notes)
 	x.notes = nil
-	if sig.Action != ActWait {
-		l.pending, l.signalTime = &sig, c.CloseTime
+	if list := sig.List(); len(list) > 0 {
+		l.pending, l.signalTime = list, c.CloseTime
+	}
+}
+
+// fills checks the pending orders on c, oldest first, after the open
+// positions' stops and targets. An order fills once (the user, 2026-11-15:
+// "each order fills once only"); one past its Until or its Expire candles
+// expires.
+func (s *sim) fills(l *legRun, c Candle) {
+	if len(l.orders) == 0 {
+		return
+	}
+	open := l.d.inst.Open(c.OpenTime)
+	var keep []*pendingOrder
+	for _, o := range l.orders {
+		if !o.until.IsZero() && !c.OpenTime.Before(o.until) {
+			s.endOrder(l, o, c.OpenTime, DecisionOrderExpired, SkipExpired, "until "+o.until.UTC().Format(time.RFC3339))
+			continue
+		}
+		if open {
+			if px, atOpen, ok := o.fillOn(c, l.d.costs.Slippage); ok {
+				s.fill(l, o, c, px, atOpen)
+				continue
+			}
+		}
+		o.seen++
+		if o.bars > 0 && o.seen >= o.bars {
+			s.endOrder(l, o, c.CloseTime, DecisionOrderExpired, SkipExpired, fmt.Sprintf("after %d candles", o.bars))
+			continue
+		}
+		keep = append(keep, o)
+	}
+	l.orders = keep
+}
+
+// fillOn says whether o fills in c and at what price. A buy fills on the
+// ask, a sell on the bid. Limits: at the limit once the range reaches it,
+// or at the open when the candle opens through it (better), no slippage.
+// Stops: at the stop price once the range reaches it, or at the open when
+// it gaps past (worse), plus slippage. atOpen: it filled at the open.
+func (o *pendingOrder) fillOn(c Candle, slip float64) (px float64, atOpen, ok bool) {
+	switch {
+	case o.side == Long && o.kind == TypeLimit:
+		if c.AskOpen <= o.price {
+			return c.AskOpen, true, true
+		}
+		if c.AskLow <= o.price {
+			return o.price, false, true
+		}
+	case o.side == Short && o.kind == TypeLimit:
+		if c.Open >= o.price {
+			return c.Open, true, true
+		}
+		if c.High >= o.price {
+			return o.price, false, true
+		}
+	case o.side == Long:
+		if c.AskOpen >= o.price {
+			return c.AskOpen + slip, true, true
+		}
+		if c.AskHigh >= o.price {
+			return o.price + slip, false, true
+		}
+	default:
+		if c.Open <= o.price {
+			return c.Open - slip, true, true
+		}
+		if c.Low <= o.price {
+			return o.price - slip, false, true
+		}
+	}
+	return 0, false, false
+}
+
+// fill opens o's position at px, then looks at the rest of the fill
+// candle the worst way (the user, 2026-11-15: "2a"): if its range also
+// reaches the stop, the stop is hit in this candle (and wins over the
+// target). A fill at the open has the whole candle after it, so the stop
+// and the target count as for a market entry. A stop order filled inside
+// the candle can also reach its target there (the price went through the
+// order on its way); a limit filled inside cannot, since the far side of
+// the range may have come before the fill.
+func (s *sim) fill(l *legRun, o *pendingOrder, c Candle, px float64, atOpen bool) {
+	m := entryMeta{kind: o.kind, orderID: o.id, tag: o.tag, signalTime: o.signalTime}
+	if why := orderLevels(o.side, px, o.stop, o.target); why != "" {
+		det := map[string]float64{"price": px, "stop": o.stop, "target": o.target, "type": orderTypeCode(o.kind)}
+		s.miss(l, c.OpenTime, o.side, det, SkipLevels, m)
+		return
+	}
+	p := s.open(l, c, o.side, px, o.stop, o.target, m)
+	if p == nil {
+		return
+	}
+	if atOpen {
+		s.exits(l, p, c)
+		return
+	}
+	slip := l.d.costs.Slippage
+	if p.side == Long {
+		switch {
+		case c.Low <= p.stop:
+			s.closePos(l, p, p.stop-slip, c.CloseTime, "stop", c.OpenTime)
+		case o.kind == TypeStop && c.High >= p.target:
+			s.closePos(l, p, p.target, c.CloseTime, "target", c.OpenTime)
+		}
+		return
+	}
+	switch {
+	case c.AskHigh >= p.stop:
+		s.closePos(l, p, p.stop+slip, c.CloseTime, "stop", c.OpenTime)
+	case o.kind == TypeStop && c.AskLow <= p.target:
+		s.closePos(l, p, p.target, c.CloseTime, "target", c.OpenTime)
 	}
 }
 
 // exits checks the stop and the target on c's range; the stop counts first
 // when both are inside one candle. A candle opening past a level fills at
 // its open.
-func (s *sim) exits(l *legRun, c Candle) {
-	p := l.pos
+func (s *sim) exits(l *legRun, p *openPos, c Candle) {
 	slip := l.d.costs.Slippage
 	if p.side == Long {
 		switch {
 		case c.Low <= p.stop:
-			s.closePos(l, math.Min(p.stop, c.Open)-slip, c.CloseTime, "stop", c.OpenTime)
+			s.closePos(l, p, math.Min(p.stop, c.Open)-slip, c.CloseTime, "stop", c.OpenTime)
 		case p.target > 0 && c.High >= p.target:
-			s.closePos(l, math.Max(p.target, c.Open), c.CloseTime, "target", c.OpenTime)
+			s.closePos(l, p, math.Max(p.target, c.Open), c.CloseTime, "target", c.OpenTime)
 		}
 		return
 	}
 	switch {
 	case c.AskHigh >= p.stop:
-		s.closePos(l, math.Max(p.stop, c.AskOpen)+slip, c.CloseTime, "stop", c.OpenTime)
+		s.closePos(l, p, math.Max(p.stop, c.AskOpen)+slip, c.CloseTime, "stop", c.OpenTime)
 	case p.target > 0 && c.AskLow <= p.target:
-		s.closePos(l, math.Min(p.target, c.AskOpen), c.CloseTime, "target", c.OpenTime)
+		s.closePos(l, p, math.Min(p.target, c.AskOpen), c.CloseTime, "target", c.OpenTime)
 	}
 }
 
-// swap charges the rollovers in (lastRoll, until].
-func (s *sim) swap(l *legRun, until time.Time) {
-	p := l.pos
+// swap charges p the rollovers in (lastRoll, until].
+func (s *sim) swap(l *legRun, p *openPos, until time.Time) {
 	in := l.d.inst
 	for _, r := range rollovers(p.lastRoll, until) {
 		mult := 1
@@ -731,9 +1087,9 @@ func (s *sim) swap(l *legRun, until time.Time) {
 	}
 }
 
-func (s *sim) closePos(l *legRun, exit float64, at time.Time, reason string, swapUntil time.Time) {
-	s.swap(l, swapUntil)
-	p, d := l.pos, l.d
+func (s *sim) closePos(l *legRun, p *openPos, exit float64, at time.Time, reason string, swapUntil time.Time) {
+	s.swap(l, p, swapUntil)
+	d := l.d
 	sign := 1.0
 	if p.side == Short {
 		sign = -1
@@ -741,17 +1097,26 @@ func (s *sim) closePos(l *legRun, exit float64, at time.Time, reason string, swa
 	gross := sign * (exit - p.entry) * p.lots * d.inst.ContractSize * d.conv(exit)
 	comm := p.lots * d.inst.Commission
 	s.balance += gross + p.swap - comm
+	kind := p.kind
+	if kind == "" {
+		kind = TypeMarket
+	}
 	t := Trade{Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Side: p.side, SignalTime: p.signalTime, OpenTime: p.openTime, CloseTime: at,
 		Entry: p.entry, Exit: exit, Stop: p.initStop, FinalStop: p.stop, Target: p.target, Lots: p.lots, Spread: p.spread, Risk: p.risk,
-		Gross: gross, Commission: p.commission + comm, Swap: p.swap, Reason: reason}
+		Gross: gross, Commission: p.commission + comm, Swap: p.swap, Reason: reason, PositionID: p.id, OrderID: p.orderID, OrderType: kind, Tag: p.tag}
 	t.Net = t.Gross - t.Commission + t.Swap
 	if t.Risk > 0 {
 		t.R = t.Net / t.Risk
 	}
 	s.trades = append(s.trades, t)
 	l.trades = append(l.trades, t)
-	l.pos = nil
-	s.decide(l, at, DecisionExit, t.Side, map[string]float64{"price": exit, "entry": t.Entry, "lots": t.Lots, "net": t.Net, "r": t.R}, reason)
+	for i, q := range l.positions {
+		if q == p {
+			l.positions = append(l.positions[:i:i], l.positions[i+1:]...)
+			break
+		}
+	}
+	s.decide(l, at, DecisionExit, t.Side, posDetails(p, map[string]float64{"price": exit, "entry": t.Entry, "lots": t.Lots, "net": t.Net, "r": t.R}), reason)
 }
 
 func (s *sim) mark(t time.Time) {
@@ -779,7 +1144,7 @@ func (s *sim) result(balance float64, from, to time.Time, params []map[string]fl
 	for i, l := range s.legs {
 		d := l.d
 		res.Run.Legs = append(res.Run.Legs, LegInfo{Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Timeframes: append([]string{}, d.tfs...),
-			Risk: d.leg.Risk, Params: cloneParams(params[i]), Overridden: overridden(d.costs)})
+			Risk: d.leg.Risk, Params: cloneParams(params[i]), Overridden: overridden(d.costs), MaxOpen: max(l.maxOpen, 1)})
 		if s.record && l.firstIdx <= l.lastIdx {
 			res.Candles = append(res.Candles, CandleSet{Leg: d.i, Instrument: d.inst.Name, Timeframe: d.tfs[0],
 				Candles: d.candles[d.tfs[0]][l.firstIdx : l.lastIdx+1]})

@@ -14,13 +14,39 @@ import (
 // or passes to the next one, so the first that acts wins, in the order
 // given. While flat it calls next. ManageOpen() with no steps simply keeps
 // the entry steps from running while a position is open.
+//
+// With several positions open (MaxOpen above 1) it runs its steps once for
+// EACH open position, oldest first, with that position as c.Position() /
+// c.Current() and c.Held(); a Close or MoveStop a step returns is aimed at
+// that position (CloseID, MoveStopID). Then, while the open positions and
+// pending orders leave room under c.MaxOpen(), it also calls next for a new
+// entry; every answer goes out together (bt.Do).
 func ManageOpen(links ...bt.Link) bt.Link {
 	var sub bt.Next
 	return bt.Define("manage", bt.RoleManage, func(c *bt.Context, next bt.Next) bt.Signal {
-		if c.Position() == nil {
+		ps := c.Positions()
+		if len(ps) == 0 {
 			return next(c)
 		}
-		return sub(c)
+		if len(ps) == 1 && c.MaxOpen() <= 1 {
+			return sub(c) // one position at a time, as before
+		}
+		var out []bt.Signal
+		for _, p := range ps {
+			c.Manage(p, func() {
+				c.Explain("#%d", p.ID)
+				for _, x := range sub(c).List() {
+					if x.ID == 0 && (x.Action == bt.ActClose || x.Action == bt.ActMoveStop) {
+						x.ID = p.ID
+					}
+					out = append(out, x)
+				}
+			})
+		}
+		if len(ps)+len(c.Orders()) < c.MaxOpen() {
+			out = append(out, next(c))
+		}
+		return bt.Do(out...)
 	}, func(d *bt.Decl) { sub = d.Sub("manage", links...) })
 }
 

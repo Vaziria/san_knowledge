@@ -58,6 +58,13 @@ type Trade struct {
 	Net        float64 // Gross - Commission + Swap
 	R          float64 // Net / Risk
 	Reason     string  // "stop", "target", "close: <reason>", "closed at end"
+	// PositionID is the position's number (unique in the run), OrderID
+	// the pending order it filled from (0 for a market entry), OrderType
+	// "market", "limit" or "stop", Tag the order's Tag.
+	PositionID int
+	OrderID    int
+	OrderType  string
+	Tag        string
 }
 
 // Missed is a Buy or Sell that did not open.
@@ -68,6 +75,11 @@ type Missed struct {
 	Instrument string
 	Side       Side
 	Reason     string // one of the Skip* reasons
+	// OrderID, OrderType ("market", "limit", "stop") and Tag say which
+	// order it was; OrderID is 0 for a market Buy or Sell.
+	OrderID   int
+	OrderType string
+	Tag       string
 }
 
 // Reasons a signal is skipped (Stats.Skipped keys).
@@ -79,6 +91,21 @@ const (
 	SkipDailyLoss    = "daily loss"    // MaxDailyLoss reached today
 	SkipMarketClosed = "market closed" // outside the instrument's trading sessions
 	SkipLevels       = "invalid levels"
+)
+
+// Reasons a pending order ends without a fill (Missed and Stats.Skipped
+// too). A fill refused by a limit gives the Skip* reason above, and the
+// order is gone (it fills once; the user, 2026-11-15: "4a").
+const (
+	SkipExpired   = "expired"   // Expire's candles or Until's time passed
+	SkipCancelled = "cancelled" // Cancel, CancelAll or CloseAll
+)
+
+// Order types (Trade.OrderType, Position.Type, Order.Type).
+const (
+	TypeMarket = "market"
+	TypeLimit  = "limit"
+	TypeStop   = "stop"
 )
 
 // EquityPoint is the account after a step.

@@ -869,15 +869,18 @@ func (x *BacktestStats) GetSkipped() map[string]uint32 {
 }
 
 type BacktestLeg struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Leg           uint32                 `protobuf:"varint,1,opt,name=leg,proto3" json:"leg,omitempty"`
-	Strategy      string                 `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
-	Instrument    string                 `protobuf:"bytes,3,opt,name=instrument,proto3" json:"instrument,omitempty"`
-	Timeframes    []string               `protobuf:"bytes,4,rep,name=timeframes,proto3" json:"timeframes,omitempty"`
-	Risk          float64                `protobuf:"fixed64,5,opt,name=risk,proto3" json:"risk,omitempty"`
-	Params        map[string]float64     `protobuf:"bytes,6,rep,name=params,proto3" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	Stats         *BacktestStats         `protobuf:"bytes,7,opt,name=stats,proto3" json:"stats,omitempty"`
-	Contribution  float64                `protobuf:"fixed64,8,opt,name=contribution,proto3" json:"contribution,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Leg          uint32                 `protobuf:"varint,1,opt,name=leg,proto3" json:"leg,omitempty"`
+	Strategy     string                 `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Instrument   string                 `protobuf:"bytes,3,opt,name=instrument,proto3" json:"instrument,omitempty"`
+	Timeframes   []string               `protobuf:"bytes,4,rep,name=timeframes,proto3" json:"timeframes,omitempty"`
+	Risk         float64                `protobuf:"fixed64,5,opt,name=risk,proto3" json:"risk,omitempty"`
+	Params       map[string]float64     `protobuf:"bytes,6,rep,name=params,proto3" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	Stats        *BacktestStats         `protobuf:"bytes,7,opt,name=stats,proto3" json:"stats,omitempty"`
+	Contribution float64                `protobuf:"fixed64,8,opt,name=contribution,proto3" json:"contribution,omitempty"`
+	// max_open is the leg's open positions at once (run.json schema 2; 0 =
+	// not given: one at a time).
+	MaxOpen       uint32 `protobuf:"varint,9,opt,name=max_open,json=maxOpen,proto3" json:"max_open,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -964,6 +967,13 @@ func (x *BacktestLeg) GetStats() *BacktestStats {
 func (x *BacktestLeg) GetContribution() float64 {
 	if x != nil {
 		return x.Contribution
+	}
+	return 0
+}
+
+func (x *BacktestLeg) GetMaxOpen() uint32 {
+	if x != nil {
+		return x.MaxOpen
 	}
 	return 0
 }
@@ -1191,7 +1201,16 @@ type BacktestTrade struct {
 	// 08-17, New York 08-17 local time, as San Backtest's Session().
 	Session string `protobuf:"bytes,23,opt,name=session,proto3" json:"session,omitempty"`
 	// month is the entry's month, "2026-05" (UTC).
-	Month         string `protobuf:"bytes,24,opt,name=month,proto3" json:"month,omitempty"`
+	Month string `protobuf:"bytes,24,opt,name=month,proto3" json:"month,omitempty"`
+	// position_id and order_id are San Backtest's numbers (trades.csv's
+	// position_id and order_id; 0 when the report predates them, or for a
+	// market entry's order_id). Several positions may be open at once.
+	PositionId uint32 `protobuf:"varint,25,opt,name=position_id,json=positionId,proto3" json:"position_id,omitempty"`
+	OrderId    uint32 `protobuf:"varint,26,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	// order_type is "market", "limit" or "stop" ("" for old reports).
+	OrderType string `protobuf:"bytes,27,opt,name=order_type,json=orderType,proto3" json:"order_type,omitempty"`
+	// tag is the pending order's tag.
+	Tag           string `protobuf:"bytes,28,opt,name=tag,proto3" json:"tag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1394,14 +1413,47 @@ func (x *BacktestTrade) GetMonth() string {
 	return ""
 }
 
+func (x *BacktestTrade) GetPositionId() uint32 {
+	if x != nil {
+		return x.PositionId
+	}
+	return 0
+}
+
+func (x *BacktestTrade) GetOrderId() uint32 {
+	if x != nil {
+		return x.OrderId
+	}
+	return 0
+}
+
+func (x *BacktestTrade) GetOrderType() string {
+	if x != nil {
+		return x.OrderType
+	}
+	return ""
+}
+
+func (x *BacktestTrade) GetTag() string {
+	if x != nil {
+		return x.Tag
+	}
+	return ""
+}
+
 type BacktestMissed struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Time          *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
-	Leg           uint32                 `protobuf:"varint,2,opt,name=leg,proto3" json:"leg,omitempty"`
-	Strategy      string                 `protobuf:"bytes,3,opt,name=strategy,proto3" json:"strategy,omitempty"`
-	Instrument    string                 `protobuf:"bytes,4,opt,name=instrument,proto3" json:"instrument,omitempty"`
-	Side          string                 `protobuf:"bytes,5,opt,name=side,proto3" json:"side,omitempty"`
-	Reason        string                 `protobuf:"bytes,6,opt,name=reason,proto3" json:"reason,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Time       *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
+	Leg        uint32                 `protobuf:"varint,2,opt,name=leg,proto3" json:"leg,omitempty"`
+	Strategy   string                 `protobuf:"bytes,3,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Instrument string                 `protobuf:"bytes,4,opt,name=instrument,proto3" json:"instrument,omitempty"`
+	Side       string                 `protobuf:"bytes,5,opt,name=side,proto3" json:"side,omitempty"`
+	Reason     string                 `protobuf:"bytes,6,opt,name=reason,proto3" json:"reason,omitempty"`
+	// order_id, order_type and tag say which pending order it was (empty
+	// for a market signal and for old reports).
+	OrderId       uint32 `protobuf:"varint,7,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderType     string `protobuf:"bytes,8,opt,name=order_type,json=orderType,proto3" json:"order_type,omitempty"`
+	Tag           string `protobuf:"bytes,9,opt,name=tag,proto3" json:"tag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1474,6 +1526,27 @@ func (x *BacktestMissed) GetSide() string {
 func (x *BacktestMissed) GetReason() string {
 	if x != nil {
 		return x.Reason
+	}
+	return ""
+}
+
+func (x *BacktestMissed) GetOrderId() uint32 {
+	if x != nil {
+		return x.OrderId
+	}
+	return 0
+}
+
+func (x *BacktestMissed) GetOrderType() string {
+	if x != nil {
+		return x.OrderType
+	}
+	return ""
+}
+
+func (x *BacktestMissed) GetTag() string {
+	if x != nil {
+		return x.Tag
 	}
 	return ""
 }
@@ -2863,7 +2936,7 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\askipped\x18\x14 \x03(\v2(.san.tower.v1.BacktestStats.SkippedEntryR\askipped\x1a:\n" +
 	"\fSkippedEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\rR\x05value:\x028\x01\"\xe0\x02\n" +
+	"\x05value\x18\x02 \x01(\rR\x05value:\x028\x01\"\xfb\x02\n" +
 	"\vBacktestLeg\x12\x10\n" +
 	"\x03leg\x18\x01 \x01(\rR\x03leg\x12\x1a\n" +
 	"\bstrategy\x18\x02 \x01(\tR\bstrategy\x12\x1e\n" +
@@ -2876,7 +2949,8 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\x04risk\x18\x05 \x01(\x01R\x04risk\x12=\n" +
 	"\x06params\x18\x06 \x03(\v2%.san.tower.v1.BacktestLeg.ParamsEntryR\x06params\x121\n" +
 	"\x05stats\x18\a \x01(\v2\x1b.san.tower.v1.BacktestStatsR\x05stats\x12\"\n" +
-	"\fcontribution\x18\b \x01(\x01R\fcontribution\x1a9\n" +
+	"\fcontribution\x18\b \x01(\x01R\fcontribution\x12\x19\n" +
+	"\bmax_open\x18\t \x01(\rR\amaxOpen\x1a9\n" +
 	"\vParamsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"\xde\x01\n" +
@@ -2902,7 +2976,7 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\bmax_open\x18\x04 \x01(\rR\amaxOpen\x12\"\n" +
 	"\rmax_open_risk\x18\x05 \x01(\x01R\vmaxOpenRisk\x12$\n" +
 	"\x0emax_daily_loss\x18\x06 \x01(\x01R\fmaxDailyLoss\x12\x15\n" +
-	"\x06day_tz\x18\a \x01(\tR\x05dayTz\"\x9f\x05\n" +
+	"\x06day_tz\x18\a \x01(\tR\x05dayTz\"\x8c\x06\n" +
 	"\rBacktestTrade\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\rR\x05index\x12\x10\n" +
 	"\x03leg\x18\x02 \x01(\rR\x03leg\x12\x1a\n" +
@@ -2935,7 +3009,13 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\x01r\x18\x15 \x01(\x01R\x01r\x12\x16\n" +
 	"\x06reason\x18\x16 \x01(\tR\x06reason\x12\x18\n" +
 	"\asession\x18\x17 \x01(\tR\asession\x12\x14\n" +
-	"\x05month\x18\x18 \x01(\tR\x05month\"\xba\x01\n" +
+	"\x05month\x18\x18 \x01(\tR\x05month\x12\x1f\n" +
+	"\vposition_id\x18\x19 \x01(\rR\n" +
+	"positionId\x12\x19\n" +
+	"\border_id\x18\x1a \x01(\rR\aorderId\x12\x1d\n" +
+	"\n" +
+	"order_type\x18\x1b \x01(\tR\torderType\x12\x10\n" +
+	"\x03tag\x18\x1c \x01(\tR\x03tag\"\x86\x02\n" +
 	"\x0eBacktestMissed\x12.\n" +
 	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x10\n" +
 	"\x03leg\x18\x02 \x01(\rR\x03leg\x12\x1a\n" +
@@ -2944,7 +3024,11 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"instrument\x18\x04 \x01(\tR\n" +
 	"instrument\x12\x12\n" +
 	"\x04side\x18\x05 \x01(\tR\x04side\x12\x16\n" +
-	"\x06reason\x18\x06 \x01(\tR\x06reason\"\x9a\x01\n" +
+	"\x06reason\x18\x06 \x01(\tR\x06reason\x12\x19\n" +
+	"\border_id\x18\a \x01(\rR\aorderId\x12\x1d\n" +
+	"\n" +
+	"order_type\x18\b \x01(\tR\torderType\x12\x10\n" +
+	"\x03tag\x18\t \x01(\tR\x03tag\"\x9a\x01\n" +
 	"\x13BacktestEquityPoint\x12.\n" +
 	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x18\n" +
 	"\abalance\x18\x02 \x01(\x01R\abalance\x12\x16\n" +

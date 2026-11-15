@@ -164,7 +164,7 @@ func OncePerDay() bt.Link {
 			return block("already entered on %s", day)
 		}
 		sig := next(c)
-		if sig.Action == bt.ActBuy || sig.Action == bt.ActSell {
+		if sig.IsEntry() {
 			lastDay = day
 		}
 		return sig

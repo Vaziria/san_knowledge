@@ -47,13 +47,35 @@ function segments(times: number[], trades: BacktestTrade[], level: (t: BacktestT
     const b = barAt(times, sec(t.closeTime));
     let last: LineData | undefined;
     for (let i = times.indexOf(a); i >= 0 && i < times.length && times[i] <= b; i++) {
-      if (out.has(times[i])) continue; // another leg's trade holds this candle
+      if (out.has(times[i])) continue; // the lane's previous trade ends on this candle
       last = { time: times[i] as UTCTimestamp, value: v };
       out.set(times[i], last);
     }
     if (last) last.color = 'transparent';
   }
   return [...out.values()].sort((x, y) => (x.time as number) - (y.time as number));
+}
+
+// lanes splits trades so no two in one lane are open on the same candle:
+// several positions can be open at once (San Backtest's MaxOpen, hedging,
+// or several legs), and one line series can draw only one level a candle,
+// so each lane gets its own stop, target and entry lines.
+function lanes(times: number[], trades: BacktestTrade[]): BacktestTrade[][] {
+  const sorted = [...trades].sort((x, y) => sec(x.openTime) - sec(y.openTime) || x.index - y.index);
+  const ends: number[] = [];
+  const out: BacktestTrade[][] = [];
+  for (const t of sorted) {
+    const a = barAt(times, sec(t.openTime));
+    const b = barAt(times, sec(t.closeTime));
+    let k = ends.findIndex((e) => e < a);
+    if (k < 0) {
+      k = ends.length;
+      ends.push(b);
+      out.push([]);
+    } else ends[k] = b;
+    out[k].push(t);
+  }
+  return out;
 }
 
 // PriceChart is a report's candles (candles.csv, in the timeframe picked)
@@ -123,9 +145,11 @@ export function PriceChart({
     s.setData(candles.map((k) => ({ time: Number(k.time) as UTCTimestamp, open: k.open, high: k.high, low: k.low, close: k.close })));
     const line = (color: string, style: LineStyle) =>
       ch.addSeries(LineSeries, { color, lineWidth: 1, lineStyle: style, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-    line(c.stop, LineStyle.Dashed).setData(segments(times, trades, (t) => t.stop));
-    line(c.target, LineStyle.Dashed).setData(segments(times, trades, (t) => t.target));
-    line(c.entry, LineStyle.Dotted).setData(segments(times, trades, (t) => t.entry));
+    for (const lane of lanes(times, trades)) {
+      line(c.stop, LineStyle.Dashed).setData(segments(times, lane, (t) => t.stop));
+      line(c.target, LineStyle.Dashed).setData(segments(times, lane, (t) => t.target));
+      line(c.entry, LineStyle.Dotted).setData(segments(times, lane, (t) => t.entry));
+    }
     const markers: SeriesMarker<Time>[] = [];
     for (const t of trades) {
       const win = t.net > 0;
@@ -136,7 +160,7 @@ export function PriceChart({
         shape: buy ? 'arrowUp' : 'arrowDown',
         color: win ? c.win : c.loss,
         id: `e${t.index}`,
-        text: buy ? 'B' : 'S',
+        text: (buy ? 'B' : 'S') + (t.orderType === 'limit' ? ' lmt' : t.orderType === 'stop' ? ' stp' : ''),
       });
       markers.push({
         time: barAt(times, sec(t.closeTime)) as UTCTimestamp,

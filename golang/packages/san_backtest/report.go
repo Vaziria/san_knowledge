@@ -121,17 +121,36 @@ func Compare(rs ...*Result) string {
 
 func fnum(v float64) string { return fmt.Sprintf("%.6g", v) }
 
+// id is a position or order number, "" for none (a hand-built Trade).
+func id(n int) string {
+	if n == 0 {
+		return ""
+	}
+	return fmt.Sprint(n)
+}
+
+// orderType is "market" for an entry without a type (a hand-built Trade).
+func orderType(t string) string {
+	if t == "" {
+		return TypeMarket
+	}
+	return t
+}
+
 // WriteTrades writes the trade list as CSV, times in UTC and WIB.
 func (r *Result) WriteTrades(out io.Writer) error {
 	w := csv.NewWriter(out)
 	w.Write([]string{"leg", "strategy", "instrument", "side", "signal_utc", "open_utc", "open_wib", "close_utc", "close_wib", "entry", "exit", "stop",
-		"final_stop", "target", "lots", "spread", "risk", "gross", "commission", "swap", "net", "r", "reason"})
+		"final_stop", "target", "lots", "spread", "risk", "gross", "commission", "swap", "net", "r", "reason",
+		// added with several positions and pending orders, at the end so old readers keep working
+		"position_id", "order_id", "order_type", "tag"})
 	t := func(x time.Time) string { return x.UTC().Format(time.RFC3339) }
 	wib := func(x time.Time) string { return x.In(WIB).Format("2006-01-02T15:04:05") + "+07:00" }
 	for _, x := range r.Trades {
 		w.Write([]string{fmt.Sprint(x.Leg), x.Strategy, x.Instrument, string(x.Side), t(x.SignalTime), t(x.OpenTime), wib(x.OpenTime), t(x.CloseTime),
 			wib(x.CloseTime), fnum(x.Entry), fnum(x.Exit), fnum(x.Stop), fnum(x.FinalStop), fnum(x.Target), fnum(x.Lots), fnum(x.Spread), money(x.Risk),
-			money(x.Gross), money(x.Commission), money(x.Swap), money(x.Net), fmt.Sprintf("%.3f", x.R), x.Reason})
+			money(x.Gross), money(x.Commission), money(x.Swap), money(x.Net), fmt.Sprintf("%.3f", x.R), x.Reason, id(x.PositionID), id(x.OrderID),
+			orderType(x.OrderType), x.Tag})
 	}
 	w.Flush()
 	return w.Error()
@@ -140,10 +159,10 @@ func (r *Result) WriteTrades(out io.Writer) error {
 // WriteMissed writes the skipped signals as CSV.
 func (r *Result) WriteMissed(out io.Writer) error {
 	w := csv.NewWriter(out)
-	w.Write([]string{"time_utc", "time_wib", "leg", "strategy", "instrument", "side", "reason"})
+	w.Write([]string{"time_utc", "time_wib", "leg", "strategy", "instrument", "side", "reason", "order_id", "order_type", "tag"})
 	for _, m := range r.Missed {
 		w.Write([]string{m.Time.UTC().Format(time.RFC3339), m.Time.In(WIB).Format("2006-01-02T15:04:05") + "+07:00", fmt.Sprint(m.Leg), m.Strategy,
-			m.Instrument, string(m.Side), m.Reason})
+			m.Instrument, string(m.Side), m.Reason, id(m.OrderID), orderType(m.OrderType), m.Tag})
 	}
 	w.Flush()
 	return w.Error()

@@ -96,6 +96,8 @@ func app(out io.Writer, reg *bt.Registry) *cli.Command {
 					&cli.Float64Flag{Name: "risk", Value: bt.DefaultRisk, Usage: "percent of the balance risked per trade (Config.Risk)"},
 					&cli.StringFlag{Name: "walk", Usage: "walk-forward TRAIN:TEST, e.g. 3m:1m (Config.Walk)"},
 					&cli.StringSliceFlag{Name: "param", Usage: "NAME=VALUE overriding a strategy number, repeatable (Config.Params)"},
+					&cli.IntFlag{Name: "max-open", Usage: "positions open at once; 0 = the strategy's own, else 1 (Config.MaxOpen)"},
+					&cli.Float64Flag{Name: "max-open-risk", Usage: "max total risk: percent of the balance the open positions lose at their stops; 0 = no limit (Config.MaxOpenRisk)"},
 				),
 				Action: func(ctx context.Context, cmd *cli.Command) error { return runCmd(ctx, cmd, out, reg) },
 			},
@@ -289,7 +291,7 @@ func configs(cmd *cli.Command, reg *bt.Registry) ([]bt.Config, error) {
 		out = append(out, bt.Config{Strategy: st, Instrument: cmd.String("instrument"), Data: c.data, From: c.from, To: c.to, Strict: cmd.Bool("strict"),
 			Balance: cmd.Float64("balance"), Currency: cmd.String("currency"), Risk: cmd.Float64("risk"), Leverage: cmd.Int("leverage"),
 			Costs: c.costs, DayTZ: c.tz, MaxDailyLoss: cmd.Float64("max-daily-loss"), Walk: walk, Params: params, Cache: cmd.String("cache"),
-			Timeframes: tfs})
+			Timeframes: tfs, MaxOpen: cmd.Int("max-open"), MaxOpenRisk: cmd.Float64("max-open-risk")})
 	}
 	return out, nil
 }

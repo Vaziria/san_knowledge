@@ -1,5 +1,5 @@
 import { Badge, Box, Button, Checkbox, CloseButton, HStack, Heading, Input, InputGroup, Stack, Table, Text, Wrap } from '@chakra-ui/react';
-import { ChevronDownIcon, ChevronUpIcon, FolderOpenIcon, SearchIcon } from 'lucide-react';
+import { FolderOpenIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { backtestAnalysis, errorText } from '../api';
@@ -8,6 +8,7 @@ import { Compare } from './Compare';
 import { FolderPicker } from './FolderPicker';
 import { pct, pf, rangeText, runLink, sec } from './format';
 import { StreamIndicator, useStream } from '../stream';
+import { SortHeader } from './sort';
 
 type SortKey = 'approach' | 'instrument' | 'from' | 'trades' | 'winRate' | 'profitFactor' | 'returnPct' | 'maxDrawdownPct' | 'relPath';
 
@@ -195,18 +196,16 @@ export function BacktestAnalysisList() {
                   <Table.Row>
                     <Table.ColumnHeader w="10" />
                     {columns.map((c) => (
-                      <Table.ColumnHeader
+                      <SortHeader
                         key={c.key}
-                        textAlign={c.end ? 'end' : undefined}
-                        cursor="pointer"
-                        userSelect="none"
+                        label={c.label}
+                        end={c.end}
+                        w={c.w}
+                        size={14}
+                        active={sort.key === c.key}
+                        desc={sort.desc}
                         onClick={() => setSort((s) => ({ key: c.key, desc: s.key === c.key ? !s.desc : c.end === true }))}
-                      >
-                        <HStack gap="1" justify={c.end ? 'flex-end' : undefined}>
-                          {c.label}
-                          {sort.key === c.key && (sort.desc ? <ChevronDownIcon size={14} /> : <ChevronUpIcon size={14} />)}
-                        </HStack>
-                      </Table.ColumnHeader>
+                      />
                     ))}
                   </Table.Row>
                 </Table.Header>

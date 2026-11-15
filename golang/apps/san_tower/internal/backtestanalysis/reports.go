@@ -128,6 +128,7 @@ type legJSON struct {
 	Params       map[string]float64 `json:"params"`
 	Stats        *statsJSON         `json:"stats"`
 	Contribution float64            `json:"contribution"`
+	MaxOpen      uint32             `json:"max_open"` // schema 2; missing = one at a time
 }
 
 type halfJSON struct {

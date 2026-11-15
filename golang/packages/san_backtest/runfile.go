@@ -10,8 +10,11 @@ import (
 )
 
 // RunSchema is the version of run.json's layout. A reader that finds a
-// higher one may meet fields it does not know.
-const RunSchema = 1
+// higher one may meet fields it does not know. 2 (several positions and
+// pending orders): legs[].max_open; trades.csv gained position_id,
+// order_id, order_type and tag, missed.csv order_id, order_type and tag,
+// both at the end; decisions.jsonl the order_* kinds. Nothing else moved.
+const RunSchema = 2
 
 // Run kinds (RunInfo.Kind).
 const (
@@ -45,6 +48,7 @@ type LegInfo struct {
 	Risk       float64  // percent per trade
 	Params     map[string]float64
 	Overridden []string // costs not taken from Exness: "spread", "commission", "swap", "slippage"
+	MaxOpen    int      // open positions at once on this leg (1 = one at a time)
 }
 
 // CandleSet is one leg's step candles over the range that ran.
@@ -185,6 +189,7 @@ type legJSON struct {
 	Timeframes   []string           `json:"timeframes"`
 	Risk         float64            `json:"risk"`
 	Params       map[string]float64 `json:"params"`
+	MaxOpen      int                `json:"max_open,omitempty"` // the leg's open positions at once; missing = 1
 	Stats        *statsJSON         `json:"stats,omitempty"`
 	Contribution float64            `json:"contribution"` // percent of the run's net profit
 }
@@ -238,7 +243,7 @@ func (r *Result) runJSONOf(files []string) runJSON {
 		out.Account.Balance = r.Stats.StartBalance
 	}
 	for i, l := range ri.Legs {
-		lj := legJSON{Leg: l.Leg, Strategy: l.Strategy, Instrument: l.Instrument, Timeframes: l.Timeframes, Risk: l.Risk, Params: l.Params}
+		lj := legJSON{Leg: l.Leg, Strategy: l.Strategy, Instrument: l.Instrument, Timeframes: l.Timeframes, Risk: l.Risk, Params: l.Params, MaxOpen: l.MaxOpen}
 		if lj.Params == nil {
 			lj.Params = map[string]float64{}
 		}

@@ -24,6 +24,29 @@ type Position struct {
 	OpenTime time.Time
 	Risk     float64 // money at risk when it opened (account currency)
 	Profit   float64 // floating profit now, after commission and swap so far
+	// ID is the position's number, unique in the run (orders and
+	// positions share the numbering); OrderID the pending order it filled
+	// from, 0 for a market entry. Type is "market", "limit" or "stop".
+	ID      int
+	OrderID int
+	Type    string
+	Tag     string // the order's Tag
+}
+
+// Order is a pending order, as the strategy sees it.
+type Order struct {
+	ID     int
+	Side   Side
+	Type   string  // "limit" or "stop"
+	Price  float64 // the limit, or the stop price that triggers it
+	Stop   float64 // the position's stop once filled
+	Target float64
+	Placed time.Time // the open of the candle it went live on
+	// BarsLeft is the step candles it may still fill in (Expire), 0 = no
+	// candle limit; Expires its Until time (zero = none).
+	BarsLeft int
+	Expires  time.Time
+	Tag      string
 }
 
 // Account is the account's money at this step. In a portfolio it is the
@@ -60,10 +83,15 @@ type Context struct {
 	frames  map[string]*series
 	anchors map[string]time.Time
 	gap     time.Duration
-	pos     *Position
-	account Account
-	inst    InstrumentInfo
-	params  map[string]float64
+	// positions are the leg's open positions in open order; cur is the
+	// one ManageOpen is managing (nil otherwise); orders the pending ones.
+	positions []Position
+	cur       *Position
+	orders    []Order
+	maxOpen   int // the leg's position limit in force (1 = one at a time)
+	account   Account
+	inst      InstrumentInfo
+	params    map[string]float64
 	// notes are this step's Note calls; nil record drops them (walk-forward
 	// trials record nothing).
 	notes  []string
@@ -183,13 +211,53 @@ func (c *Context) Session() Session { return SessionAt(c.time.Add(-time.Nanoseco
 // stretch. Gaps are never filled with made-up candles.
 func (c *Context) Gap() time.Duration { return c.gap }
 
-// Position is the open position, nil when flat. It is a copy.
+// Position is the open position, nil when flat. It is a copy. With
+// several open it is the first (the oldest), or, while a chain's
+// ManageOpen manages each position in turn, the one being managed (see
+// Current).
 func (c *Context) Position() *Position {
-	if c.pos == nil {
+	p := c.pos()
+	if p == nil {
 		return nil
 	}
-	p := *c.pos
-	return &p
+	q := *p
+	return &q
+}
+
+// pos is Position without the copy.
+func (c *Context) pos() *Position {
+	if c.cur != nil {
+		return c.cur
+	}
+	if len(c.positions) == 0 {
+		return nil
+	}
+	return &c.positions[0]
+}
+
+// Current is the position a chain's ManageOpen is managing now (it runs
+// its steps once per open position); outside that, Position.
+func (c *Context) Current() *Position { return c.Position() }
+
+// Positions are the leg's open positions, oldest first (copies). Longs and
+// shorts can be open together (hedging, the user, 2026-11-15: "1b").
+func (c *Context) Positions() []Position { return append([]Position{}, c.positions...) }
+
+// Orders are the leg's pending orders, oldest first (copies).
+func (c *Context) Orders() []Order { return append([]Order{}, c.orders...) }
+
+// MaxOpen is the leg's limit of open positions in force: Leg.MaxOpen
+// (Config.MaxOpen), else the strategy's own (MultiPosition), else 1.
+func (c *Context) MaxOpen() int { return max(c.maxOpen, 1) }
+
+// Manage runs f with p as the current position (Position and Current
+// return it, Held is its own), for steps that manage each open position
+// in turn (ManageOpen).
+func (c *Context) Manage(p Position, f func()) {
+	old := c.cur
+	c.cur = &p
+	defer func() { c.cur = old }()
+	f()
 }
 
 // Note explains the current step in the decision log (decisions.jsonl),
@@ -225,10 +293,14 @@ func (c *Context) TF(tf string) string {
 // held, the best price since the entry and the first stop (1R). Zero when
 // flat or outside a chain.
 func (c *Context) Held() Held {
-	if c.chain == nil || c.pos == nil {
+	p := c.pos()
+	if c.chain == nil || p == nil {
 		return Held{}
 	}
-	return c.chain.held
+	if h, ok := c.chain.held[p.ID]; ok {
+		return *h
+	}
+	return Held{}
 }
 
 // Explain adds detail to the running chain step's entry in the decision

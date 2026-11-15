@@ -126,7 +126,9 @@ func readTrades(dir string) ([]*v1.BacktestTrade, error) {
 			SignalTime: tp(rfc(r["signal_utc"])), OpenTime: tp(open), CloseTime: tp(rfc(r["close_utc"])), Entry: num(r["entry"]), Exit: num(r["exit"]),
 			Stop: num(r["stop"]), FinalStop: num(r["final_stop"]), Target: num(r["target"]), Lots: num(r["lots"]), Spread: num(r["spread"]),
 			Risk: num(r["risk"]), Gross: num(r["gross"]), Commission: num(r["commission"]), Swap: num(r["swap"]), Net: num(r["net"]), R: num(r["r"]),
-			Reason: r["reason"], Session: Session(open), Month: open.UTC().Format("2006-01")})
+			Reason: r["reason"], Session: Session(open), Month: open.UTC().Format("2006-01"),
+			// added by San Backtest's several positions and pending orders (absent in older reports)
+			PositionId: u32(r["position_id"]), OrderId: u32(r["order_id"]), OrderType: r["order_type"], Tag: r["tag"]})
 	})
 	return out, err
 }
@@ -135,7 +137,7 @@ func readMissed(dir string) ([]*v1.BacktestMissed, error) {
 	var out []*v1.BacktestMissed
 	err := csvRows(dir, MissedFile, func(_ int, r map[string]string) {
 		out = append(out, &v1.BacktestMissed{Time: tp(rfc(r["time_utc"])), Leg: u32(r["leg"]), Strategy: r["strategy"], Instrument: r["instrument"],
-			Side: r["side"], Reason: r["reason"]})
+			Side: r["side"], Reason: r["reason"], OrderId: u32(r["order_id"]), OrderType: r["order_type"], Tag: r["tag"]})
 	})
 	return out, err
 }
@@ -284,7 +286,7 @@ func fillRun(run *v1.BacktestRun, r *runJSON) {
 	}
 	for _, l := range r.Legs {
 		leg := &v1.BacktestLeg{Leg: l.Leg, Strategy: l.Strategy, Instrument: l.Instrument, Timeframes: l.Timeframes, Risk: l.Risk, Params: l.Params,
-			Contribution: l.Contribution}
+			Contribution: l.Contribution, MaxOpen: l.MaxOpen}
 		if l.Stats != nil {
 			leg.Stats = l.Stats.proto()
 		}

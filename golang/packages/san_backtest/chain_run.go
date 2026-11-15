@@ -21,7 +21,14 @@ type chainStrategy struct {
 	every  []func(c *Context)
 	count  int
 	st     chainState
+	// maxOpen is what steps.MaxOpen declared (MultiPosition); 0 = one
+	// position at a time, as before.
+	maxOpen int
 }
+
+// MaxOpen is the positions the chain may hold at once (steps.MaxOpen); 0
+// when it declares none (one at a time).
+func (s *chainStrategy) MaxOpen() int { return s.maxOpen }
 
 // Held is what a chain knows about the open position: tracked from the
 // first candle it saw it (see Context.Held).
@@ -36,8 +43,8 @@ type Held struct {
 // chainState is one chain's state during a candle (and the held position
 // across candles). The Context points at it while the chain runs.
 type chainState struct {
-	tfs    []string // the chain's declared timeframes, for Context.TF
-	held   Held
+	tfs    []string      // the chain's declared timeframes, for Context.TF
+	held   map[int]*Held // by position ID
 	record bool
 	quiet  int // > 0 while a step runs on its own (probe, Directions)
 	trace  []*traceEntry
@@ -79,7 +86,7 @@ func (s *chainStrategy) Grid(name string, centre float64) []float64 {
 
 // OnStart resets the chain and every step's state.
 func (s *chainStrategy) OnStart(StartInfo) {
-	s.st = chainState{tfs: s.tfs}
+	s.st = chainState{tfs: s.tfs, held: map[int]*Held{}}
 	for _, f := range s.starts {
 		f()
 	}
@@ -94,19 +101,35 @@ func (s *chainStrategy) OnCandle(c *Context) Signal {
 	c.Dir, c.Stop, c.Target = "", math.NaN(), math.NaN()
 	c.Entry = c.Close(c.step)
 	st.stopAt, st.risk = math.NaN(), 0
-	if p := c.pos; p != nil {
+	if st.held == nil {
+		st.held = map[int]*Held{}
+	}
+	if len(c.positions) > 0 {
 		if k, ok := c.Last(c.step); ok {
-			h := &st.held
-			if !p.OpenTime.Equal(h.OpenTime) {
-				*h = Held{OpenTime: p.OpenTime, InitStop: p.Stop, Best: p.Entry, R: math.Abs(p.Entry - p.Stop)}
+			open := map[int]bool{}
+			for i := range c.positions {
+				p := &c.positions[i]
+				open[p.ID] = true
+				h := st.held[p.ID]
+				if h == nil {
+					h = &Held{OpenTime: p.OpenTime, InitStop: p.Stop, Best: p.Entry, R: math.Abs(p.Entry - p.Stop)}
+					st.held[p.ID] = h
+				}
+				h.Bars++
+				if p.Side == Long {
+					h.Best = math.Max(h.Best, k.High)
+				} else {
+					h.Best = math.Min(h.Best, k.Low)
+				}
 			}
-			h.Bars++
-			if p.Side == Long {
-				h.Best = math.Max(h.Best, k.High)
-			} else {
-				h.Best = math.Min(h.Best, k.Low)
+			for id := range st.held {
+				if !open[id] {
+					delete(st.held, id)
+				}
 			}
 		}
+	} else if len(st.held) > 0 {
+		clear(st.held)
 	}
 	for _, f := range s.every {
 		f(c)
@@ -118,10 +141,10 @@ func (s *chainStrategy) OnCandle(c *Context) Signal {
 		}
 		return sig
 	})
-	if sig.Action == ActBuy || sig.Action == ActSell {
-		if why := checkSLTP(c, sig); why != "" {
+	if sig.IsEntry() {
+		var why string
+		if sig, why = keepValidEntries(c, sig); why != "" {
 			st.trace = append(st.trace, &traceEntry{name: "rule #1", outcome: "blocked: " + why})
-			sig = Wait
 		}
 	}
 	if st.record && (sig.Action != ActWait || st.event || len(st.would) > 0) {
@@ -164,10 +187,18 @@ func (c *Context) Risk() float64 {
 	return math.Abs(c.Entry - c.Stop)
 }
 
-// terminal is the end of the chain: an entry on Dir with Stop and Target.
+// terminal is the end of the chain: an entry on Dir with Stop and Target,
+// while the open positions and pending orders leave room under MaxOpen
+// (one at a time unless steps.MaxOpen or Config.MaxOpen allow more).
 func (s *chainStrategy) terminal(c *Context) Signal {
-	if c.pos != nil {
-		return Wait.Because("a position is open")
+	if lim, n := c.MaxOpen(), len(c.positions)+len(c.orders); n >= lim {
+		switch {
+		case lim > 1:
+			return Wait.Because("%d open and %d pending, max %d", len(c.positions), len(c.orders), lim)
+		case len(c.positions) > 0:
+			return Wait.Because("a position is open")
+		}
+		return Wait.Because("an order is pending")
 	}
 	switch c.Dir {
 	case Long:
@@ -295,20 +326,46 @@ func (st *chainState) path() string {
 // sameSignal compares signals with NaN prices equal.
 func sameSignal(a, b Signal) bool {
 	eq := func(x, y float64) bool { return x == y || (math.IsNaN(x) && math.IsNaN(y)) }
-	return a.Action == b.Action && a.Reason == b.Reason && eq(a.Stop, b.Stop) && eq(a.Target, b.Target)
+	if a.Action != b.Action || a.Reason != b.Reason || !eq(a.Stop, b.Stop) || !eq(a.Target, b.Target) || !eq(a.Price, b.Price) || a.ID != b.ID ||
+		a.Bars != b.Bars || !a.Expires.Equal(b.Expires) || a.Label != b.Label || len(a.Batch) != len(b.Batch) {
+		return false
+	}
+	for i := range a.Batch {
+		if !sameSignal(a.Batch[i], b.Batch[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 func describe(s Signal) string {
+	on := ""
+	if s.ID != 0 {
+		on = fmt.Sprintf(" #%d", s.ID)
+	}
 	switch s.Action {
 	case ActBuy, ActSell:
 		return fmt.Sprintf("%s, stop %.5g, target %.5g", s.Action, s.Stop, s.Target)
-	case ActMoveStop:
-		return fmt.Sprintf("move stop to %.5g", s.Stop)
-	case ActClose:
-		if s.Reason != "" {
-			return "close: " + s.Reason
+	case ActBuyLimit, ActSellLimit, ActBuyStop, ActSellStop:
+		out := fmt.Sprintf("%s at %.5g, stop %.5g, target %.5g", s.Action, s.Price, s.Stop, s.Target)
+		if s.Bars > 0 {
+			out += fmt.Sprintf(", expires after %d candles", s.Bars)
 		}
-		return "close"
+		return out
+	case ActMoveStop:
+		return fmt.Sprintf("move stop%s to %.5g", on, s.Stop)
+	case ActClose, ActCloseAll, ActCancel, ActCancelAll:
+		out := s.Action.String() + on
+		if s.Reason != "" {
+			out += ": " + s.Reason
+		}
+		return out
+	case ActDo:
+		var parts []string
+		for _, x := range s.Batch {
+			parts = append(parts, describe(x))
+		}
+		return strings.Join(parts, " + ")
 	}
 	if s.Reason != "" {
 		return "wait: " + s.Reason
@@ -316,11 +373,40 @@ func describe(s Signal) string {
 	return "wait"
 }
 
+// keepValidEntries drops the entries of sig that break rule #1 (a Do keeps
+// its other actions); why is the first broken one's reason, "" when all
+// hold. A single entry that breaks it becomes Wait.
+func keepValidEntries(c *Context, sig Signal) (Signal, string) {
+	list := sig.List()
+	var keep []Signal
+	why := ""
+	for _, x := range list {
+		if x.Action.entry() {
+			if w := checkSLTP(c, x); w != "" {
+				if why == "" {
+					why = w
+				}
+				continue
+			}
+		}
+		keep = append(keep, x)
+	}
+	if len(keep) == len(list) {
+		return sig, ""
+	}
+	return Do(keep...), why
+}
+
 // checkSLTP is rule #1 for an entry: a stop-loss and a take-profit, both
-// real prices, on the right sides of c.Entry. "" when it holds.
+// real prices, on the right sides of c.Entry (of a pending order's price).
+// "" when it holds.
 func checkSLTP(c *Context, sig Signal) string {
 	bad := func(x float64) bool { return math.IsNaN(x) || math.IsInf(x, 0) || x <= 0 }
 	e := c.Entry
+	if sig.Action.IsOrder() {
+		e = sig.Price
+	}
+	side := sig.Action.Side()
 	switch {
 	case bad(sig.Stop):
 		return "no stop-loss"
@@ -328,10 +414,10 @@ func checkSLTP(c *Context, sig Signal) string {
 		return "no take-profit"
 	case bad(e):
 		return "no entry price"
-	case sig.Action == ActBuy && !(sig.Stop < e && e < sig.Target):
-		return fmt.Sprintf("buy with stop %.5g and target %.5g around entry %.5g", sig.Stop, sig.Target, e)
-	case sig.Action == ActSell && !(sig.Target < e && e < sig.Stop):
-		return fmt.Sprintf("sell with stop %.5g and target %.5g around entry %.5g", sig.Stop, sig.Target, e)
+	case side == Long && !(sig.Stop < e && e < sig.Target):
+		return fmt.Sprintf("%s with stop %.5g and target %.5g around entry %.5g", sig.Action, sig.Stop, sig.Target, e)
+	case side == Short && !(sig.Target < e && e < sig.Stop):
+		return fmt.Sprintf("%s with stop %.5g and target %.5g around entry %.5g", sig.Action, sig.Stop, sig.Target, e)
 	}
 	return ""
 }
@@ -346,13 +432,17 @@ const requireName = "require_sltp"
 func RequireSLTP() Link {
 	return Define(requireName, RoleCheck, func(c *Context, next Next) Signal {
 		sig := next(c)
-		if sig.Action == ActBuy || sig.Action == ActSell {
-			if why := checkSLTP(c, sig); why != "" {
+		if sig.IsEntry() {
+			out, why := keepValidEntries(c, sig)
+			if why != "" {
 				if c.chain != nil {
 					c.chain.event = true
 				}
-				return Wait.Because("rule #1: %s", why)
+				if out.Action == ActWait {
+					return Wait.Because("rule #1: %s", why)
+				}
 			}
+			return out
 		}
 		return sig
 	}, nil)

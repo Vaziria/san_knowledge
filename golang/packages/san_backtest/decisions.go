@@ -33,6 +33,17 @@ const (
 	DecisionNote     = "note"      // the approach explained a step that did not signal
 )
 
+// Decision kinds of pending orders. Details carry "order_id" (and
+// "position_id" once filled), "price", "stop", "target"; "type" is 1 for a
+// limit, 2 for a stop. Entries, exits and stop moves carry "position_id"
+// (and "order_id" when the position came from an order).
+const (
+	DecisionOrderPlaced    = "order_placed"    // a pending order went live
+	DecisionOrderFilled    = "order_filled"    // it filled (an entry line follows)
+	DecisionOrderCancelled = "order_cancelled" // Cancel, CancelAll, CloseAll or the end of the run
+	DecisionOrderExpired   = "order_expired"   // Expire or Until ran out
+)
+
 // decisionLine is a Decision as JSON.
 type decisionLine struct {
 	Time    string             `json:"time"`

@@ -1,0 +1,16 @@
+control_line_fade
+range       2022-05-03 00:00 UTC (2022-05-03 07:00 WIB) to 2022-12-30 22:00 UTC (2022-12-31 05:00 WIB)
+note        XAUUSD history starts too late for From 2022-05-02T00:00:00Z (100 warm-up candles of M15 needed before it): the run starts at 2022-05-03T00:00:00Z
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      stop_atr=1 target_atr=1
+trades         103 (61 won, 42 lost)
+win rate       59.2%
+profit factor  0.95
+average R      -0.02
+net profit     -204.60 (-2.05%), commission 0.00, swap 0.00
+balance        10000.00 -> 9795.40
+max drawdown   738.09 (7.36%)
+losing streak  8
+first half     51 trades, 52.9% won, net -703.10, avg R -0.14
+second half    52 trades, 65.4% won, net 498.50, avg R 0.11
+skipped        invalid levels 11

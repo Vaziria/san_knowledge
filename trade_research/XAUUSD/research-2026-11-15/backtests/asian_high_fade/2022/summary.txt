@@ -1,0 +1,16 @@
+asian_high_fade
+range       2022-05-03 00:00 UTC (2022-05-03 07:00 WIB) to 2022-12-30 22:00 UTC (2022-12-31 05:00 WIB)
+note        XAUUSD history starts too late for From 2022-05-02T00:00:00Z (100 warm-up candles of M15 needed before it): the run starts at 2022-05-03T00:00:00Z
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      stop_atr=1 target_atr=1
+trades         104 (52 won, 52 lost)
+win rate       50.0%
+profit factor  0.86
+average R      -0.07
+net profit     -692.59 (-6.93%), commission 0.00, swap 0.00
+balance        10000.00 -> 9307.41
+max drawdown   1220.06 (12.20%)
+losing streak  6
+first half     48 trades, 41.7% won, net -1048.55, avg R -0.23
+second half    56 trades, 57.1% won, net 355.96, avg R 0.07
+skipped        invalid levels 5

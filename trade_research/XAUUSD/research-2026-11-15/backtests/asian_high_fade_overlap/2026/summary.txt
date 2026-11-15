@@ -1,0 +1,15 @@
+asian_high_fade_overlap
+range       2026-01-01 23:00 UTC (2026-01-02 06:00 WIB) to 2026-11-13 22:00 UTC (2026-11-14 05:00 WIB)
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      stop_atr=1 target_atr=1
+trades         71 (36 won, 35 lost)
+win rate       50.7%
+profit factor  0.67
+average R      -0.15
+net profit     -1080.25 (-10.80%), commission 0.00, swap 0.00
+balance        10000.00 -> 8919.75
+max drawdown   1452.56 (14.10%)
+losing streak  7
+first half     41 trades, 56.1% won, net -322.36, avg R -0.06
+second half    30 trades, 43.3% won, net -757.89, avg R -0.28
+skipped        invalid levels 4

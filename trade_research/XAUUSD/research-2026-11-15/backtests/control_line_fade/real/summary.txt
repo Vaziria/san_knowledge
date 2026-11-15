@@ -1,0 +1,73 @@
+control_line_fade
+range       2022-05-03 00:00 UTC (2022-05-03 07:00 WIB) to 2026-11-13 22:00 UTC (2026-11-14 05:00 WIB)
+note        XAUUSD history starts too late for From 2022-05-02T00:00:00Z (100 warm-up candles of M15 needed before it): the run starts at 2022-05-03T00:00:00Z
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      stop_atr=1 target_atr=1
+trades         1438 (799 won, 639 lost)
+win rate       55.6%
+profit factor  0.96
+average R      -0.01
+net profit     -1746.13 (-17.46%), commission 0.00, swap 0.00
+balance        10000.00 -> 8253.87
+max drawdown   4307.09 (41.66%)
+losing streak  9
+first half     402 trades, 52.7% won, net -2624.41, avg R -0.07
+second half    1036 trades, 56.7% won, net 878.28, avg R 0.02
+skipped        invalid levels 103, too small 2
+
+walk-forward (train tunes Params, test checks the pick)
+test from      test to     params                   train net  test trades  test net  test win %
+2022-08-01     2022-08-31  stop_atr=2 target_atr=2  570.47     12           -12.78    50.0
+2022-08-31     2022-09-30  stop_atr=2 target_atr=2  403.92     15           652.38    66.7
+2022-09-30     2022-10-30  stop_atr=2 target_atr=2  637.97     16           -203.53   50.0
+2022-10-30     2022-11-29  stop_atr=1 target_atr=2  1048.27    10           255.57    50.0
+2022-11-29     2022-12-29  stop_atr=1 target_atr=1  1024.39    11           -752.29   18.2
+2022-12-29     2023-01-28  stop_atr=2 target_atr=1  285.88     17           -139.32   52.9
+2023-01-28     2023-02-27  stop_atr=2 target_atr=1  -200.34    17           301.81    82.4
+2023-02-27     2023-03-29  stop_atr=2 target_atr=2  109.96     22           -105.86   54.5
+2023-03-29     2023-04-28  stop_atr=1 target_atr=2  936.89     15           -707.58   26.7
+2023-04-28     2023-05-28  stop_atr=1 target_atr=2  525.50     17           -160.00   52.9
+2023-05-28     2023-06-27  stop_atr=2 target_atr=2  -313.54    15           513.82    80.0
+2023-06-27     2023-07-27  stop_atr=2 target_atr=2  329.16     14           120.94    64.3
+2023-07-27     2023-08-26  stop_atr=2 target_atr=2  632.15     11           -337.73   45.5
+2023-08-26     2023-09-25  stop_atr=2 target_atr=2  341.39     9            -142.63   44.4
+2023-09-25     2023-10-25  stop_atr=2 target_atr=1  3.97       13           -47.15    69.2
+2023-10-25     2023-11-24  stop_atr=2 target_atr=1  -197.80    14           283.96    78.6
+2023-11-24     2023-12-24  stop_atr=2 target_atr=1  351.65     15           212.68    73.3
+2023-12-24     2024-01-23  stop_atr=2 target_atr=1  476.64     12           -356.91   50.0
+2024-01-23     2024-02-22  stop_atr=2 target_atr=1  144.01     14           7.42      64.3
+2024-02-22     2024-03-23  stop_atr=2 target_atr=1  -135.99    19           -406.95   47.4
+2024-03-23     2024-04-22  stop_atr=2 target_atr=2  -752.17    17           -849.16   23.5
+2024-04-22     2024-05-22  stop_atr=1 target_atr=1  -664.20    20           -225.38   50.0
+2024-05-22     2024-06-21  stop_atr=1 target_atr=1  -1041.36   19           -8.60     63.2
+2024-06-21     2024-07-21  stop_atr=1 target_atr=1  -634.62    23           40.42     52.2
+2024-07-21     2024-08-20  stop_atr=2 target_atr=2  940.55     15           -311.95   40.0
+2024-08-20     2024-09-19  stop_atr=2 target_atr=2  1164.39    22           -192.04   45.5
+2024-09-19     2024-10-19  stop_atr=2 target_atr=2  599.66     19           422.56    73.7
+2024-10-19     2024-11-18  stop_atr=1 target_atr=2  444.81     21           -499.48   33.3
+2024-11-18     2024-12-18  stop_atr=1 target_atr=1  947.69     17           -311.82   47.1
+2024-12-18     2025-01-17  stop_atr=2 target_atr=1  249.08     17           124.63    82.4
+2025-01-17     2025-02-16  stop_atr=1 target_atr=1  377.02     16           -219.46   50.0
+2025-02-16     2025-03-18  stop_atr=2 target_atr=1  -65.90     17           109.74    76.5
+2025-03-18     2025-04-17  stop_atr=2 target_atr=1  254.13     37           -114.18   64.9
+2025-04-17     2025-05-17  stop_atr=1 target_atr=1  -117.64    40           -430.35   47.5
+2025-05-17     2025-06-16  stop_atr=2 target_atr=1  144.21     25           0.02      72.0
+2025-06-16     2025-07-16  stop_atr=2 target_atr=1  -30.58     24           27.41     70.8
+2025-07-16     2025-08-15  stop_atr=2 target_atr=1  246.74     21           108.93    76.2
+2025-08-15     2025-09-14  stop_atr=2 target_atr=1  150.89     20           -431.39   35.0
+2025-09-14     2025-10-14  stop_atr=2 target_atr=1  -504.79    34           -282.39   58.8
+2025-10-14     2025-11-13  stop_atr=2 target_atr=1  -945.34    58           272.71    75.9
+2025-11-13     2025-12-13  stop_atr=2 target_atr=1  -698.26    46           210.74    71.7
+2025-12-13     2026-01-12  stop_atr=2 target_atr=1  422.99     37           40.54     67.6
+2026-01-12     2026-02-11  stop_atr=2 target_atr=1  1042.04    56           170.47    67.9
+2026-02-11     2026-03-13  stop_atr=2 target_atr=1  1013.76    61           675.48    82.0
+2026-03-13     2026-04-12  stop_atr=1 target_atr=2  2597.46    77           603.91    42.9
+2026-04-12     2026-05-12  stop_atr=1 target_atr=1  4037.91    48           -403.96   47.9
+2026-05-12     2026-06-11  stop_atr=1 target_atr=2  2608.42    48           -262.77   33.3
+2026-06-11     2026-07-11  stop_atr=2 target_atr=2  1932.93    53           217.25    56.6
+2026-07-11     2026-08-10  stop_atr=2 target_atr=2  1449.85    42           443.93    64.3
+2026-08-10     2026-09-09  stop_atr=1 target_atr=2  2745.77    56           -1084.10  30.4
+2026-09-09     2026-10-09  stop_atr=1 target_atr=2  1236.59    46           1015.53   50.0
+2026-10-09     2026-11-08  stop_atr=1 target_atr=2  1677.79    38           -173.74   44.7
+out of sample                                                  1378         -2340.65  56.5
+out of sample: profit factor 0.94, average R -0.01, max drawdown 45.71%

@@ -1,0 +1,15 @@
+asian_high_fade
+range       2023-01-02 23:00 UTC (2023-01-03 06:00 WIB) to 2023-12-29 22:00 UTC (2023-12-30 05:00 WIB)
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      stop_atr=1 target_atr=1
+trades         149 (63 won, 86 lost)
+win rate       42.3%
+profit factor  0.49
+average R      -0.27
+net profit     -3336.33 (-33.36%), commission 0.00, swap 0.00
+balance        10000.00 -> 6663.67
+max drawdown   3561.17 (35.42%)
+losing streak  8
+first half     73 trades, 38.4% won, net -2434.75, avg R -0.38
+second half    76 trades, 46.1% won, net -901.58, avg R -0.17
+skipped        invalid levels 21

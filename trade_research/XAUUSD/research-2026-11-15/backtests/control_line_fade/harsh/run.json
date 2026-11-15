@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "kind": "run",
+  "approach": "control_line_fade",
+  "instrument": "XAUUSD",
+  "timeframes": [
+    "M15"
+  ],
+  "params": {
+    "stop_atr": 1,
+    "target_atr": 1
+  },
+  "ran_at": "2026-11-15T10:20:04Z",
+  "requested": {
+    "from": "2022-05-02T00:00:00Z",
+    "to": "2026-11-13T22:00:00Z"
+  },
+  "range": {
+    "from": "2022-05-03T00:00:00Z",
+    "to": "2026-11-13T22:00:00Z",
+    "notes": [
+      "XAUUSD history starts too late for From 2022-05-02T00:00:00Z (100 warm-up candles of M15 needed before it): the run starts at 2022-05-03T00:00:00Z"
+    ]
+  },
+  "account": {
+    "balance": 10000,
+    "currency": "USD",
+    "leverage": 2000,
+    "max_open": 0,
+    "max_open_risk": 0,
+    "max_daily_loss": 0,
+    "day_tz": "WIB"
+  },
+  "costs": [
+    {
+      "leg": 0,
+      "instrument": "XAUUSD",
+      "spread": "override: 0.4 fixed",
+      "commission": "exness: 0  per lot per side",
+      "swap": "exness: long -471.7, short 0 points per lot per night",
+      "slippage": "override: 0.1 per market fill",
+      "overridden": [
+        "spread",
+        "slippage"
+      ],
+      "notes": [
+        "XAUUSD history starts too late for From 2022-05-02T00:00:00Z (100 warm-up candles of M15 needed before it): the run starts at 2022-05-03T00:00:00Z"
+      ]
+    }
+  ],
+  "legs": [
+    {
+      "leg": 0,
+      "strategy": "control_line_fade",
+      "instrument": "XAUUSD",
+      "timeframes": [
+        "M15"
+      ],
+      "risk": 1,
+      "params": {
+        "stop_atr": 1,
+        "target_atr": 1
+      },
+      "contribution": 0
+    }
+  ],
+  "stats": {
+    "trades": 1356,
+    "wins": 706,
+    "losses": 650,
+    "win_rate": 52.06,
+    "profit_factor": 0.705,
+    "avg_r": -0.095,
+    "net_profit": -7319.66,
+    "gross_win": 17458.53,
+    "gross_loss": 24778.18,
+    "commission": 0,
+    "swap": 0,
+    "start_balance": 10000,
+    "end_balance": 2680.34,
+    "return_pct": -73.197,
+    "max_drawdown": 7515.08,
+    "max_drawdown_pct": 75.151,
+    "longest_losing_streak": 10,
+    "first_half": {
+      "trades": 398,
+      "win_rate": 46.73,
+      "net_profit": -6144.88,
+      "avg_r": -0.241
+    },
+    "second_half": {
+      "trades": 958,
+      "win_rate": 54.28,
+      "net_profit": -1174.77,
+      "avg_r": -0.035
+    },
+    "skipped": {
+      "invalid levels": 110,
+      "too small": 83
+    }
+  },
+  "files": [
+    "summary.txt",
+    "trades.csv",
+    "missed.csv",
+    "equity.csv",
+    "equity.png",
+    "decisions.jsonl",
+    "candles.csv"
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "kind": "run",
+  "approach": "control_line_fade",
+  "instrument": "XAUUSD",
+  "timeframes": [
+    "M15"
+  ],
+  "params": {
+    "stop_atr": 1,
+    "target_atr": 1
+  },
+  "ran_at": "2026-11-15T10:20:04Z",
+  "requested": {
+    "from": "2026-01-01T00:00:00Z",
+    "to": "2026-11-13T22:00:00Z"
+  },
+  "range": {
+    "from": "2026-01-01T23:00:00Z",
+    "to": "2026-11-13T22:00:00Z"
+  },
+  "account": {
+    "balance": 10000,
+    "currency": "USD",
+    "leverage": 2000,
+    "max_open": 0,
+    "max_open_risk": 0,
+    "max_daily_loss": 0,
+    "day_tz": "WIB"
+  },
+  "costs": [
+    {
+      "leg": 0,
+      "instrument": "XAUUSD",
+      "spread": "exness: each candle's ask - bid",
+      "commission": "exness: 0  per lot per side",
+      "swap": "exness: long -471.7, short 0 points per lot per night",
+      "slippage": "0 (0 unless set)",
+      "overridden": []
+    }
+  ],
+  "legs": [
+    {
+      "leg": 0,
+      "strategy": "control_line_fade",
+      "instrument": "XAUUSD",
+      "timeframes": [
+        "M15"
+      ],
+      "risk": 1,
+      "params": {
+        "stop_atr": 1,
+        "target_atr": 1
+      },
+      "contribution": 0
+    }
+  ],
+  "stats": {
+    "trades": 579,
+    "wins": 329,
+    "losses": 250,
+    "win_rate": 56.82,
+    "profit_factor": 1.083,
+    "avg_r": 0.048,
+    "net_profit": 2392.65,
+    "gross_win": 31080.82,
+    "gross_loss": 28688.17,
+    "commission": 0,
+    "swap": 0,
+    "start_balance": 10000,
+    "end_balance": 12392.65,
+    "return_pct": 23.927,
+    "max_drawdown": 2938.52,
+    "max_drawdown_pct": 20.15,
+    "longest_losing_streak": 9,
+    "first_half": {
+      "trades": 343,
+      "win_rate": 57.43,
+      "net_profit": 2350.56,
+      "avg_r": 0.077
+    },
+    "second_half": {
+      "trades": 236,
+      "win_rate": 55.93,
+      "net_profit": 42.09,
+      "avg_r": 0.008
+    },
+    "skipped": {
+      "invalid levels": 40
+    }
+  },
+  "files": [
+    "summary.txt",
+    "trades.csv",
+    "missed.csv",
+    "equity.csv",
+    "equity.png",
+    "decisions.jsonl",
+    "candles.csv"
+  ]
+}

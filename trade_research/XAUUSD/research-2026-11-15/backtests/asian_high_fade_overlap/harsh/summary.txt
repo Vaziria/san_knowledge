@@ -1,0 +1,16 @@
+asian_high_fade_overlap
+range       2022-05-03 00:00 UTC (2022-05-03 07:00 WIB) to 2026-11-13 22:00 UTC (2026-11-14 05:00 WIB)
+note        XAUUSD history starts too late for From 2022-05-02T00:00:00Z (100 warm-up candles of M15 needed before it): the run starts at 2022-05-03T00:00:00Z
+costs XAUUSD: spread override: 0.4 fixed; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage override: 0.1 per market fill
+params      stop_atr=1 target_atr=1
+trades         399 (195 won, 204 lost)
+win rate       48.9%
+profit factor  0.57
+average R      -0.22
+net profit     -5866.44 (-58.66%), commission 0.00, swap 0.00
+balance        10000.00 -> 4133.56
+max drawdown   6036.16 (59.56%)
+losing streak  7
+first half     204 trades, 48.0% won, net -3806.77, avg R -0.23
+second half    195 trades, 49.7% won, net -2059.68, avg R -0.21
+skipped        invalid levels 64, too small 1

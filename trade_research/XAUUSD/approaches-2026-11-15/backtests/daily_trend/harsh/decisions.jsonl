@@ -1,0 +1,740 @@
+{"time":"2022-07-01T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":1789.767,"stop":1840.448429,"target":1637.722714},"reason":"daily trend down (close 1806.55 \u003c 50-day mean 1850.05, falling); H1 close 1789.77 at Fri 2022-07-01 19:00 WIB broke the 20-day low 1802.63; daily ATR 25.34: sell, stop 1840.45 (2.0 ATR), target 1637.72 (3.0R)"}
+{"time":"2022-07-01T13:00:00Z","leg":0,"kind":"entry","side":"sell","details":{"lots":0.01,"price":1789.699,"risk":50.749429,"spread":0.4,"stop":1840.448429,"target":1637.722714}}
+{"time":"2022-07-06T16:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1783.302429},"reason":"best 1732.55 is 1.1R from entry 1789.70: trail the stop to 1783.30 (1R behind)"}
+{"time":"2022-07-06T16:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1840.448429,"stop":1783.302429}}
+{"time":"2022-07-06T17:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1782.970429},"reason":"best 1732.22 is 1.1R from entry 1789.70: trail the stop to 1782.97 (1R behind)"}
+{"time":"2022-07-06T17:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1783.302429,"stop":1782.970429}}
+{"time":"2022-07-11T20:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1781.972429},"reason":"best 1731.22 is 1.2R from entry 1789.70: trail the stop to 1781.97 (1R behind)"}
+{"time":"2022-07-11T20:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1782.970429,"stop":1781.972429}}
+{"time":"2022-07-12T02:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1773.785429},"reason":"best 1723.04 is 1.3R from entry 1789.70: trail the stop to 1773.79 (1R behind)"}
+{"time":"2022-07-12T02:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1781.972429,"stop":1773.785429}}
+{"time":"2022-07-13T01:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1773.364429},"reason":"best 1722.62 is 1.3R from entry 1789.70: trail the stop to 1773.36 (1R behind)"}
+{"time":"2022-07-13T01:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1773.785429,"stop":1773.364429}}
+{"time":"2022-07-13T07:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1773.245429},"reason":"best 1722.50 is 1.3R from entry 1789.70: trail the stop to 1773.25 (1R behind)"}
+{"time":"2022-07-13T07:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1773.364429,"stop":1773.245429}}
+{"time":"2022-07-13T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1757.820429},"reason":"best 1707.07 is 1.6R from entry 1789.70: trail the stop to 1757.82 (1R behind)"}
+{"time":"2022-07-13T13:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1773.245429,"stop":1757.820429}}
+{"time":"2022-07-14T14:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1748.314429},"reason":"best 1697.57 is 1.8R from entry 1789.70: trail the stop to 1748.31 (1R behind)"}
+{"time":"2022-07-14T14:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1757.820429,"stop":1748.314429}}
+{"time":"2022-07-20T20:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1746.326429},"reason":"best 1695.58 is 1.9R from entry 1789.70: trail the stop to 1746.33 (1R behind)"}
+{"time":"2022-07-20T20:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1748.314429,"stop":1746.326429}}
+{"time":"2022-07-20T21:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1742.940429},"reason":"best 1692.19 is 1.9R from entry 1789.70: trail the stop to 1742.94 (1R behind)"}
+{"time":"2022-07-20T22:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1746.326429,"stop":1742.940429}}
+{"time":"2022-07-21T01:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1742.501429},"reason":"best 1691.75 is 1.9R from entry 1789.70: trail the stop to 1742.50 (1R behind)"}
+{"time":"2022-07-21T01:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1742.940429,"stop":1742.501429}}
+{"time":"2022-07-21T02:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1740.535429},"reason":"best 1689.79 is 2.0R from entry 1789.70: trail the stop to 1740.54 (1R behind)"}
+{"time":"2022-07-21T02:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1742.501429,"stop":1740.535429}}
+{"time":"2022-07-21T07:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1739.303429},"reason":"best 1688.55 is 2.0R from entry 1789.70: trail the stop to 1739.30 (1R behind)"}
+{"time":"2022-07-21T07:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1740.535429,"stop":1739.303429}}
+{"time":"2022-07-21T08:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1735.459429},"reason":"best 1684.71 is 2.1R from entry 1789.70: trail the stop to 1735.46 (1R behind)"}
+{"time":"2022-07-21T08:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1739.303429,"stop":1735.459429}}
+{"time":"2022-07-21T10:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1732.989429},"reason":"best 1682.24 is 2.1R from entry 1789.70: trail the stop to 1732.99 (1R behind)"}
+{"time":"2022-07-21T10:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1735.459429,"stop":1732.989429}}
+{"time":"2022-07-21T11:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1731.828429},"reason":"best 1681.08 is 2.1R from entry 1789.70: trail the stop to 1731.83 (1R behind)"}
+{"time":"2022-07-21T11:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1732.989429,"stop":1731.828429}}
+{"time":"2022-07-21T12:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1731.560429},"reason":"best 1680.81 is 2.1R from entry 1789.70: trail the stop to 1731.56 (1R behind)"}
+{"time":"2022-07-21T12:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1731.828429,"stop":1731.560429}}
+{"time":"2022-07-22T14:00:00Z","leg":0,"kind":"exit","side":"sell","details":{"entry":1789.699,"lots":0.01,"net":58.038571,"price":1731.660429,"r":1.14363},"reason":"stop"}
+{"time":"2022-08-31T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":1711.517,"stop":1749.954714,"target":1596.203857},"reason":"daily trend down (close 1723.30 \u003c 50-day mean 1761.49, falling); H1 close 1711.52 at Wed 2022-08-31 19:00 WIB broke the 20-day low 1720.28; daily ATR 19.22: sell, stop 1749.95 (2.0 ATR), target 1596.20 (3.0R)"}
+{"time":"2022-08-31T13:00:00Z","leg":0,"kind":"entry","side":"sell","details":{"lots":0.02,"price":1711.448,"risk":77.013429,"spread":0.4,"stop":1749.954714,"target":1596.203857}}
+{"time":"2022-09-15T15:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1701.846714},"reason":"best 1663.34 is 1.2R from entry 1711.45: trail the stop to 1701.85 (1R behind)"}
+{"time":"2022-09-15T15:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1749.954714,"stop":1701.846714}}
+{"time":"2022-09-15T17:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1698.687714},"reason":"best 1660.18 is 1.3R from entry 1711.45: trail the stop to 1698.69 (1R behind)"}
+{"time":"2022-09-15T17:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1701.846714,"stop":1698.687714}}
+{"time":"2022-09-16T07:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1697.884714},"reason":"best 1659.38 is 1.4R from entry 1711.45: trail the stop to 1697.88 (1R behind)"}
+{"time":"2022-09-16T07:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1698.687714,"stop":1697.884714}}
+{"time":"2022-09-16T08:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1692.601714},"reason":"best 1654.10 is 1.5R from entry 1711.45: trail the stop to 1692.60 (1R behind)"}
+{"time":"2022-09-16T08:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1697.884714,"stop":1692.601714}}
+{"time":"2022-09-21T19:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1692.278714},"reason":"best 1653.77 is 1.5R from entry 1711.45: trail the stop to 1692.28 (1R behind)"}
+{"time":"2022-09-21T19:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1692.601714,"stop":1692.278714}}
+{"time":"2022-09-23T10:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1690.873714},"reason":"best 1652.37 is 1.5R from entry 1711.45: trail the stop to 1690.87 (1R behind)"}
+{"time":"2022-09-23T10:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1692.278714,"stop":1690.873714}}
+{"time":"2022-09-23T11:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1679.479714},"reason":"best 1640.97 is 1.8R from entry 1711.45: trail the stop to 1679.48 (1R behind)"}
+{"time":"2022-09-23T11:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1690.873714,"stop":1679.479714}}
+{"time":"2022-09-23T19:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1678.220714},"reason":"best 1639.71 is 1.9R from entry 1711.45: trail the stop to 1678.22 (1R behind)"}
+{"time":"2022-09-23T19:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1679.479714,"stop":1678.220714}}
+{"time":"2022-09-26T01:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1664.940714},"reason":"best 1626.43 is 2.2R from entry 1711.45: trail the stop to 1664.94 (1R behind)"}
+{"time":"2022-09-26T01:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1678.220714,"stop":1664.940714}}
+{"time":"2022-09-26T18:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1660.069714},"reason":"best 1621.56 is 2.3R from entry 1711.45: trail the stop to 1660.07 (1R behind)"}
+{"time":"2022-09-26T18:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1664.940714,"stop":1660.069714}}
+{"time":"2022-09-26T21:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1659.554714},"reason":"best 1621.05 is 2.3R from entry 1711.45: trail the stop to 1659.55 (1R behind)"}
+{"time":"2022-09-26T22:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1660.069714,"stop":1659.554714}}
+{"time":"2022-09-28T07:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1658.338714},"reason":"best 1619.83 is 2.4R from entry 1711.45: trail the stop to 1658.34 (1R behind)"}
+{"time":"2022-09-28T07:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1659.554714,"stop":1658.338714}}
+{"time":"2022-09-28T08:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1652.933714},"reason":"best 1614.43 is 2.5R from entry 1711.45: trail the stop to 1652.93 (1R behind)"}
+{"time":"2022-09-28T08:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1658.338714,"stop":1652.933714}}
+{"time":"2022-09-28T14:00:00Z","leg":0,"kind":"exit","side":"sell","details":{"entry":1711.448,"lots":0.02,"net":116.828571,"price":1653.033714,"r":1.51699},"reason":"stop"}
+{"time":"2022-12-01T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":1789.343,"stop":1750.006,"target":1907.354},"reason":"daily trend up (close 1773.33 \u003e 50-day mean 1691.94, rising); H1 close 1789.34 at Thu 2022-12-01 20:00 WIB broke the 20-day high 1786.47; daily ATR 19.67: buy, stop 1750.01 (2.0 ATR), target 1907.35 (3.0R)"}
+{"time":"2022-12-01T14:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.02,"price":1789.812,"risk":79.612,"spread":0.4,"stop":1750.006,"target":1907.354}}
+{"time":"2022-12-27T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1793.463},"reason":"best 1833.27 is 1.1R from entry 1789.81: trail the stop to 1793.46 (1R behind)"}
+{"time":"2022-12-27T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1750.006,"stop":1793.463}}
+{"time":"2023-01-03T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1799.841},"reason":"best 1839.65 is 1.3R from entry 1789.81: trail the stop to 1799.84 (1R behind)"}
+{"time":"2023-01-03T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1793.463,"stop":1799.841}}
+{"time":"2023-01-03T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1803.273},"reason":"best 1843.08 is 1.3R from entry 1789.81: trail the stop to 1803.27 (1R behind)"}
+{"time":"2023-01-03T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1799.841,"stop":1803.273}}
+{"time":"2023-01-03T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1804.414},"reason":"best 1844.22 is 1.4R from entry 1789.81: trail the stop to 1804.41 (1R behind)"}
+{"time":"2023-01-03T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1803.273,"stop":1804.414}}
+{"time":"2023-01-03T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1810.096},"reason":"best 1849.90 is 1.5R from entry 1789.81: trail the stop to 1810.10 (1R behind)"}
+{"time":"2023-01-03T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1804.414,"stop":1810.096}}
+{"time":"2023-01-04T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1818.796},"reason":"best 1858.60 is 1.7R from entry 1789.81: trail the stop to 1818.80 (1R behind)"}
+{"time":"2023-01-04T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1810.096,"stop":1818.796}}
+{"time":"2023-01-04T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1825.28},"reason":"best 1865.09 is 1.9R from entry 1789.81: trail the stop to 1825.28 (1R behind)"}
+{"time":"2023-01-04T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1818.796,"stop":1825.28}}
+{"time":"2023-01-05T16:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":1789.812,"lots":0.02,"net":37.717,"price":1825.18,"r":0.47376},"reason":"stop"}
+{"time":"2023-01-09T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":1874.879,"stop":1830.422143,"target":2008.249571},"reason":"daily trend up (close 1865.99 \u003e 50-day mean 1769.03, rising); H1 close 1874.88 at Mon 2023-01-09 19:00 WIB broke the 20-day high 1869.78; daily ATR 22.23: buy, stop 1830.42 (2.0 ATR), target 2008.25 (3.0R)"}
+{"time":"2023-01-09T13:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.02,"price":1875.409,"risk":89.973714,"spread":0.4,"stop":1830.422143,"target":2008.249571}}
+{"time":"2023-01-13T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1876.867143},"reason":"best 1921.85 is 1.0R from entry 1875.41: trail the stop to 1876.87 (1R behind)"}
+{"time":"2023-01-13T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1830.422143,"stop":1876.867143}}
+{"time":"2023-01-16T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1879.298143},"reason":"best 1924.29 is 1.1R from entry 1875.41: trail the stop to 1879.30 (1R behind)"}
+{"time":"2023-01-16T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1876.867143,"stop":1879.298143}}
+{"time":"2023-01-16T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1883.555143},"reason":"best 1928.54 is 1.2R from entry 1875.41: trail the stop to 1883.56 (1R behind)"}
+{"time":"2023-01-16T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1879.298143,"stop":1883.555143}}
+{"time":"2023-01-16T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1883.764143},"reason":"best 1928.75 is 1.2R from entry 1875.41: trail the stop to 1883.76 (1R behind)"}
+{"time":"2023-01-16T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1883.555143,"stop":1883.764143}}
+{"time":"2023-01-19T20:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1886.371143},"reason":"best 1931.36 is 1.2R from entry 1875.41: trail the stop to 1886.37 (1R behind)"}
+{"time":"2023-01-19T20:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1883.764143,"stop":1886.371143}}
+{"time":"2023-01-19T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1890.142143},"reason":"best 1935.13 is 1.3R from entry 1875.41: trail the stop to 1890.14 (1R behind)"}
+{"time":"2023-01-19T21:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1886.371143,"stop":1890.142143}}
+{"time":"2023-01-20T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1892.396143},"reason":"best 1937.38 is 1.4R from entry 1875.41: trail the stop to 1892.40 (1R behind)"}
+{"time":"2023-01-20T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1890.142143,"stop":1892.396143}}
+{"time":"2023-01-24T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1894.988143},"reason":"best 1939.97 is 1.4R from entry 1875.41: trail the stop to 1894.99 (1R behind)"}
+{"time":"2023-01-24T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1892.396143,"stop":1894.988143}}
+{"time":"2023-01-24T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1896.396143},"reason":"best 1941.38 is 1.5R from entry 1875.41: trail the stop to 1896.40 (1R behind)"}
+{"time":"2023-01-24T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1894.988143,"stop":1896.396143}}
+{"time":"2023-01-24T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1897.408143},"reason":"best 1942.39 is 1.5R from entry 1875.41: trail the stop to 1897.41 (1R behind)"}
+{"time":"2023-01-24T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1896.396143,"stop":1897.408143}}
+{"time":"2023-01-25T20:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1898.177143},"reason":"best 1943.16 is 1.5R from entry 1875.41: trail the stop to 1898.18 (1R behind)"}
+{"time":"2023-01-25T20:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1897.408143,"stop":1898.177143}}
+{"time":"2023-01-25T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1903.042143},"reason":"best 1948.03 is 1.6R from entry 1875.41: trail the stop to 1903.04 (1R behind)"}
+{"time":"2023-01-25T21:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1898.177143,"stop":1903.042143}}
+{"time":"2023-01-26T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1903.752143},"reason":"best 1948.74 is 1.6R from entry 1875.41: trail the stop to 1903.75 (1R behind)"}
+{"time":"2023-01-26T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1903.042143,"stop":1903.752143}}
+{"time":"2023-01-26T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1904.129143},"reason":"best 1949.12 is 1.6R from entry 1875.41: trail the stop to 1904.13 (1R behind)"}
+{"time":"2023-01-26T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1903.752143,"stop":1904.129143}}
+{"time":"2023-01-31T10:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":1875.409,"lots":0.02,"net":36.485486,"price":1904.029143,"r":0.405513},"reason":"stop"}
+{"time":"2023-03-15T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":1927.766,"stop":1881.473571,"target":2066.643286},"reason":"daily trend up (close 1903.06 \u003e 50-day mean 1874.21, rising); H1 close 1927.77 at Wed 2023-03-15 19:00 WIB broke the 20-day high 1914.58; daily ATR 23.15: buy, stop 1881.47 (2.0 ATR), target 2066.64 (3.0R)"}
+{"time":"2023-03-15T13:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.02,"price":1928.232,"risk":93.516857,"spread":0.4,"stop":1881.473571,"target":2066.643286}}
+{"time":"2023-03-17T18:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1928.343571},"reason":"best 1975.10 is 1.0R from entry 1928.23: trail the stop to 1928.34 (1R behind)"}
+{"time":"2023-03-17T18:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1881.473571,"stop":1928.343571}}
+{"time":"2023-03-17T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1940.959571},"reason":"best 1987.72 is 1.3R from entry 1928.23: trail the stop to 1940.96 (1R behind)"}
+{"time":"2023-03-17T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1928.343571,"stop":1940.959571}}
+{"time":"2023-03-17T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1941.552571},"reason":"best 1988.31 is 1.3R from entry 1928.23: trail the stop to 1941.55 (1R behind)"}
+{"time":"2023-03-19T22:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1940.959571,"stop":1941.552571}}
+{"time":"2023-03-20T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1941.846571},"reason":"best 1988.61 is 1.3R from entry 1928.23: trail the stop to 1941.85 (1R behind)"}
+{"time":"2023-03-20T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1941.552571,"stop":1941.846571}}
+{"time":"2023-03-20T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1946.306571},"reason":"best 1993.07 is 1.4R from entry 1928.23: trail the stop to 1946.31 (1R behind)"}
+{"time":"2023-03-20T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1941.846571,"stop":1946.306571}}
+{"time":"2023-03-20T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":1962.909571},"reason":"best 2009.67 is 1.7R from entry 1928.23: trail the stop to 1962.91 (1R behind)"}
+{"time":"2023-03-20T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1946.306571,"stop":1962.909571}}
+{"time":"2023-03-21T09:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":1928.232,"lots":0.02,"net":63.494743,"price":1962.809571,"r":0.678966},"reason":"stop"}
+{"time":"2023-04-04T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2016.082,"stop":1942.183429,"target":2237.777714},"reason":"daily trend up (close 1984.93 \u003e 50-day mean 1894.15, rising); H1 close 2016.08 at Tue 2023-04-04 21:00 WIB broke the 20-day high 2009.67; daily ATR 36.95: buy, stop 1942.18 (2.0 ATR), target 2237.78 (3.0R)"}
+{"time":"2023-04-04T15:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2016.612,"risk":74.428571,"spread":0.4,"stop":1942.183429,"target":2237.777714}}
+{"time":"2023-05-19T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":3},"reason":"daily close across the trend mean; trend over: 2023-05-18 closed 1958.36, across the 50-day mean 1985.21"}
+{"time":"2023-05-19T01:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2016.612,"lots":0.01,"net":-81.2589,"price":1957.523,"r":-1.09177},"reason":"close: daily close across the trend mean"}
+{"time":"2023-06-22T15:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":1915.253,"stop":1961.712714,"target":1775.873857},"reason":"daily trend down (close 1933.84 \u003c 50-day mean 1982.19, falling); H1 close 1915.25 at Thu 2023-06-22 21:00 WIB broke the 20-day low 1918.90; daily ATR 23.23: sell, stop 1961.71 (2.0 ATR), target 1775.87 (3.0R)"}
+{"time":"2023-06-22T15:00:00Z","leg":0,"kind":"entry","side":"sell","details":{"lots":0.02,"price":1915.122,"risk":93.181429,"spread":0.4,"stop":1961.712714,"target":1775.873857}}
+{"time":"2023-07-13T03:00:00Z","leg":0,"kind":"exit","side":"sell","details":{"entry":1915.122,"lots":0.02,"net":-93.381429,"price":1961.812714,"r":-1.002146},"reason":"stop"}
+{"time":"2023-08-09T15:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":1917.319,"stop":1955.808286,"target":1801.851143},"reason":"daily trend down (close 1925.57 \u003c 50-day mean 1945.06, falling); H1 close 1917.32 at Wed 2023-08-09 21:00 WIB broke the 20-day low 1922.71; daily ATR 19.24: sell, stop 1955.81 (2.0 ATR), target 1801.85 (3.0R)"}
+{"time":"2023-08-09T15:00:00Z","leg":0,"kind":"entry","side":"sell","details":{"lots":0.02,"price":1917.184,"risk":77.248571,"spread":0.4,"stop":1955.808286,"target":1801.851143}}
+{"time":"2023-08-30T01:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":3},"reason":"daily close across the trend mean; trend over: 2023-08-29 closed 1936.17, across the 50-day mean 1930.74"}
+{"time":"2023-08-30T01:00:00Z","leg":0,"kind":"exit","side":"sell","details":{"entry":1917.184,"lots":0.02,"net":-40.11,"price":1937.239,"r":-0.519233},"reason":"close: daily close across the trend mean"}
+{"time":"2023-09-27T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":1891.761,"stop":1918.392429,"target":1811.866714},"reason":"daily trend down (close 1901.53 \u003c 50-day mean 1928.15, falling); H1 close 1891.76 at Wed 2023-09-27 19:00 WIB broke the 20-day low 1899.10; daily ATR 13.32: sell, stop 1918.39 (2.0 ATR), target 1811.87 (3.0R)"}
+{"time":"2023-09-27T13:00:00Z","leg":0,"kind":"entry","side":"sell","details":{"lots":0.03,"price":1891.63,"risk":80.287286,"spread":0.4,"stop":1918.392429,"target":1811.866714}}
+{"time":"2023-09-28T16:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1884.406429},"reason":"best 1857.64 is 1.3R from entry 1891.63: trail the stop to 1884.41 (1R behind)"}
+{"time":"2023-09-28T16:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1918.392429,"stop":1884.406429}}
+{"time":"2023-09-29T16:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1878.956429},"reason":"best 1852.19 is 1.5R from entry 1891.63: trail the stop to 1878.96 (1R behind)"}
+{"time":"2023-09-29T16:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1884.406429,"stop":1878.956429}}
+{"time":"2023-09-29T18:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1876.390429},"reason":"best 1849.63 is 1.6R from entry 1891.63: trail the stop to 1876.39 (1R behind)"}
+{"time":"2023-09-29T18:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1878.956429,"stop":1876.390429}}
+{"time":"2023-09-29T19:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1873.044429},"reason":"best 1846.28 is 1.7R from entry 1891.63: trail the stop to 1873.04 (1R behind)"}
+{"time":"2023-09-29T19:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1876.390429,"stop":1873.044429}}
+{"time":"2023-10-01T23:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1872.449429},"reason":"best 1845.69 is 1.7R from entry 1891.63: trail the stop to 1872.45 (1R behind)"}
+{"time":"2023-10-01T23:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1873.044429,"stop":1872.449429}}
+{"time":"2023-10-02T01:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1871.879429},"reason":"best 1845.12 is 1.7R from entry 1891.63: trail the stop to 1871.88 (1R behind)"}
+{"time":"2023-10-02T01:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1872.449429,"stop":1871.879429}}
+{"time":"2023-10-02T02:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1870.692429},"reason":"best 1843.93 is 1.8R from entry 1891.63: trail the stop to 1870.69 (1R behind)"}
+{"time":"2023-10-02T02:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1871.879429,"stop":1870.692429}}
+{"time":"2023-10-02T03:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1869.612429},"reason":"best 1842.85 is 1.8R from entry 1891.63: trail the stop to 1869.61 (1R behind)"}
+{"time":"2023-10-02T03:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1870.692429,"stop":1869.612429}}
+{"time":"2023-10-02T05:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1869.079429},"reason":"best 1842.32 is 1.8R from entry 1891.63: trail the stop to 1869.08 (1R behind)"}
+{"time":"2023-10-02T05:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1869.612429,"stop":1869.079429}}
+{"time":"2023-10-02T06:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1866.019429},"reason":"best 1839.26 is 2.0R from entry 1891.63: trail the stop to 1866.02 (1R behind)"}
+{"time":"2023-10-02T06:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1869.079429,"stop":1866.019429}}
+{"time":"2023-10-02T10:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1857.807429},"reason":"best 1831.05 is 2.3R from entry 1891.63: trail the stop to 1857.81 (1R behind)"}
+{"time":"2023-10-02T10:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1866.019429,"stop":1857.807429}}
+{"time":"2023-10-02T15:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1853.875429},"reason":"best 1827.11 is 2.4R from entry 1891.63: trail the stop to 1853.88 (1R behind)"}
+{"time":"2023-10-02T15:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1857.807429,"stop":1853.875429}}
+{"time":"2023-10-03T00:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1847.166429},"reason":"best 1820.40 is 2.7R from entry 1891.63: trail the stop to 1847.17 (1R behind)"}
+{"time":"2023-10-03T00:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1853.875429,"stop":1847.166429}}
+{"time":"2023-10-03T03:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1841.980429},"reason":"best 1815.22 is 2.9R from entry 1891.63: trail the stop to 1841.98 (1R behind)"}
+{"time":"2023-10-03T03:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1847.166429,"stop":1841.980429}}
+{"time":"2023-10-05T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":4,"stop":1839.756429},"reason":"best 1812.99 is 2.9R from entry 1891.63: trail the stop to 1839.76 (1R behind)"}
+{"time":"2023-10-05T13:00:00Z","leg":0,"kind":"stop_move","side":"sell","details":{"old_stop":1841.980429,"stop":1839.756429}}
+{"time":"2023-10-06T13:00:00Z","leg":0,"kind":"exit","side":"sell","details":{"entry":1891.63,"lots":0.03,"net":239.289857,"price":1811.866714,"r":2.98042},"reason":"target"}
+{"time":"2023-11-27T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2013.5,"stop":1969.559429,"target":2145.321714},"reason":"daily trend up (close 2002.21 \u003e 50-day mean 1935.68, rising); H1 close 2013.50 at Mon 2023-11-27 19:00 WIB broke the 20-day high 2007.85; daily ATR 21.97: buy, stop 1969.56 (2.0 ATR), target 2145.32 (3.0R)"}
+{"time":"2023-11-27T13:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.02,"price":2014.082,"risk":89.045143,"spread":0.4,"stop":1969.559429,"target":2145.321714}}
+{"time":"2023-12-01T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2016.096429},"reason":"best 2060.62 is 1.0R from entry 2014.08: trail the stop to 2016.10 (1R behind)"}
+{"time":"2023-12-01T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":1969.559429,"stop":2016.096429}}
+{"time":"2023-12-01T18:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2023.143429},"reason":"best 2067.67 is 1.2R from entry 2014.08: trail the stop to 2023.14 (1R behind)"}
+{"time":"2023-12-01T18:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2016.096429,"stop":2023.143429}}
+{"time":"2023-12-01T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2030.754429},"reason":"best 2075.28 is 1.4R from entry 2014.08: trail the stop to 2030.75 (1R behind)"}
+{"time":"2023-12-01T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2023.143429,"stop":2030.754429}}
+{"time":"2023-12-04T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2099.978429},"reason":"best 2144.50 is 2.9R from entry 2014.08: trail the stop to 2099.98 (1R behind)"}
+{"time":"2023-12-04T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2030.754429,"stop":2099.978429}}
+{"time":"2023-12-04T01:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2014.082,"lots":0.02,"net":164.989057,"price":2099.878429,"r":1.85287},"reason":"stop"}
+{"time":"2024-03-01T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2069.182,"stop":2031.850143,"target":2181.177571},"reason":"daily trend up (close 2043.98 \u003e 50-day mean 2033.94, rising); H1 close 2069.18 at Fri 2024-03-01 22:00 WIB broke the 20-day high 2057.62; daily ATR 18.67: buy, stop 2031.85 (2.0 ATR), target 2181.18 (3.0R)"}
+{"time":"2024-03-01T16:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.02,"price":2069.711,"risk":75.721714,"spread":0.4,"stop":2031.850143,"target":2181.177571}}
+{"time":"2024-03-04T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2071.500143},"reason":"best 2109.36 is 1.0R from entry 2069.71: trail the stop to 2071.50 (1R behind)"}
+{"time":"2024-03-04T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2031.850143,"stop":2071.500143}}
+{"time":"2024-03-04T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2082.023143},"reason":"best 2119.88 is 1.3R from entry 2069.71: trail the stop to 2082.02 (1R behind)"}
+{"time":"2024-03-04T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2071.500143,"stop":2082.023143}}
+{"time":"2024-03-05T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2085.502143},"reason":"best 2123.36 is 1.4R from entry 2069.71: trail the stop to 2085.50 (1R behind)"}
+{"time":"2024-03-05T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2082.023143,"stop":2085.502143}}
+{"time":"2024-03-05T10:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2087.528143},"reason":"best 2125.39 is 1.5R from entry 2069.71: trail the stop to 2087.53 (1R behind)"}
+{"time":"2024-03-05T10:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2085.502143,"stop":2087.528143}}
+{"time":"2024-03-05T11:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2089.464143},"reason":"best 2127.32 is 1.5R from entry 2069.71: trail the stop to 2089.46 (1R behind)"}
+{"time":"2024-03-05T11:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2087.528143,"stop":2089.464143}}
+{"time":"2024-03-05T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2104.020143},"reason":"best 2141.88 is 1.9R from entry 2069.71: trail the stop to 2104.02 (1R behind)"}
+{"time":"2024-03-05T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2089.464143,"stop":2104.020143}}
+{"time":"2024-03-06T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2111.333143},"reason":"best 2149.19 is 2.1R from entry 2069.71: trail the stop to 2111.33 (1R behind)"}
+{"time":"2024-03-06T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2104.020143,"stop":2111.333143}}
+{"time":"2024-03-06T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2112.026143},"reason":"best 2149.89 is 2.1R from entry 2069.71: trail the stop to 2112.03 (1R behind)"}
+{"time":"2024-03-06T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2111.333143,"stop":2112.026143}}
+{"time":"2024-03-06T18:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2112.087143},"reason":"best 2149.95 is 2.1R from entry 2069.71: trail the stop to 2112.09 (1R behind)"}
+{"time":"2024-03-06T18:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2112.026143,"stop":2112.087143}}
+{"time":"2024-03-06T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2114.373143},"reason":"best 2152.23 is 2.2R from entry 2069.71: trail the stop to 2114.37 (1R behind)"}
+{"time":"2024-03-06T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2112.087143,"stop":2114.373143}}
+{"time":"2024-03-07T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2114.633143},"reason":"best 2152.49 is 2.2R from entry 2069.71: trail the stop to 2114.63 (1R behind)"}
+{"time":"2024-03-07T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2114.373143,"stop":2114.633143}}
+{"time":"2024-03-07T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2123.727143},"reason":"best 2161.59 is 2.4R from entry 2069.71: trail the stop to 2123.73 (1R behind)"}
+{"time":"2024-03-07T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2114.633143,"stop":2123.727143}}
+{"time":"2024-03-07T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2126.892143},"reason":"best 2164.75 is 2.5R from entry 2069.71: trail the stop to 2126.89 (1R behind)"}
+{"time":"2024-03-07T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2123.727143,"stop":2126.892143}}
+{"time":"2024-03-08T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2130.845143},"reason":"best 2168.71 is 2.6R from entry 2069.71: trail the stop to 2130.85 (1R behind)"}
+{"time":"2024-03-08T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2126.892143,"stop":2130.845143}}
+{"time":"2024-03-08T10:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2133.253143},"reason":"best 2171.11 is 2.7R from entry 2069.71: trail the stop to 2133.25 (1R behind)"}
+{"time":"2024-03-08T10:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2130.845143,"stop":2133.253143}}
+{"time":"2024-03-08T14:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2069.711,"lots":0.02,"net":216.329343,"price":2181.177571,"r":2.8569},"reason":"target"}
+{"time":"2024-03-08T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2171.09,"stop":2124.927,"target":2309.579},"reason":"daily trend up (close 2161.48 \u003e 50-day mean 2040.25, rising); H1 close 2171.09 at Fri 2024-03-08 20:00 WIB broke the 20-day high 2164.75; daily ATR 23.08: buy, stop 2124.93 (2.0 ATR), target 2309.58 (3.0R)"}
+{"time":"2024-03-08T14:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.02,"price":2171.558,"risk":93.262,"spread":0.4,"stop":2124.927,"target":2309.579}}
+{"time":"2024-03-28T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2178.945},"reason":"best 2225.58 is 1.2R from entry 2171.56: trail the stop to 2178.95 (1R behind)"}
+{"time":"2024-03-28T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2124.927,"stop":2178.945}}
+{"time":"2024-03-28T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2189.662},"reason":"best 2236.29 is 1.4R from entry 2171.56: trail the stop to 2189.66 (1R behind)"}
+{"time":"2024-03-31T22:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2178.945,"stop":2189.662}}
+{"time":"2024-03-31T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2196.49},"reason":"best 2243.12 is 1.5R from entry 2171.56: trail the stop to 2196.49 (1R behind)"}
+{"time":"2024-03-31T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2189.662,"stop":2196.49}}
+{"time":"2024-04-01T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2200.67},"reason":"best 2247.30 is 1.6R from entry 2171.56: trail the stop to 2200.67 (1R behind)"}
+{"time":"2024-04-01T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2196.49,"stop":2200.67}}
+{"time":"2024-04-01T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2209.671},"reason":"best 2256.30 is 1.8R from entry 2171.56: trail the stop to 2209.67 (1R behind)"}
+{"time":"2024-04-01T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2200.67,"stop":2209.671}}
+{"time":"2024-04-01T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2212.92},"reason":"best 2259.55 is 1.9R from entry 2171.56: trail the stop to 2212.92 (1R behind)"}
+{"time":"2024-04-01T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2209.671,"stop":2212.92}}
+{"time":"2024-04-01T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2218.518},"reason":"best 2265.15 is 2.0R from entry 2171.56: trail the stop to 2218.52 (1R behind)"}
+{"time":"2024-04-01T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2212.92,"stop":2218.518}}
+{"time":"2024-04-01T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2218.992},"reason":"best 2265.62 is 2.0R from entry 2171.56: trail the stop to 2218.99 (1R behind)"}
+{"time":"2024-04-01T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2218.518,"stop":2218.992}}
+{"time":"2024-04-02T10:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2220.15},"reason":"best 2266.78 is 2.0R from entry 2171.56: trail the stop to 2220.15 (1R behind)"}
+{"time":"2024-04-02T10:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2218.992,"stop":2220.15}}
+{"time":"2024-04-02T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2220.184},"reason":"best 2266.82 is 2.0R from entry 2171.56: trail the stop to 2220.18 (1R behind)"}
+{"time":"2024-04-02T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2220.15,"stop":2220.184}}
+{"time":"2024-04-02T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2230.351},"reason":"best 2276.98 is 2.3R from entry 2171.56: trail the stop to 2230.35 (1R behind)"}
+{"time":"2024-04-02T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2220.184,"stop":2230.351}}
+{"time":"2024-04-02T20:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2232.673},"reason":"best 2279.30 is 2.3R from entry 2171.56: trail the stop to 2232.67 (1R behind)"}
+{"time":"2024-04-02T20:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2230.351,"stop":2232.673}}
+{"time":"2024-04-02T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2234.527},"reason":"best 2281.16 is 2.4R from entry 2171.56: trail the stop to 2234.53 (1R behind)"}
+{"time":"2024-04-02T22:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2232.673,"stop":2234.527}}
+{"time":"2024-04-02T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2241.605},"reason":"best 2288.24 is 2.5R from entry 2171.56: trail the stop to 2241.61 (1R behind)"}
+{"time":"2024-04-02T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2234.527,"stop":2241.605}}
+{"time":"2024-04-03T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2241.721},"reason":"best 2288.35 is 2.5R from entry 2171.56: trail the stop to 2241.72 (1R behind)"}
+{"time":"2024-04-03T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2241.605,"stop":2241.721}}
+{"time":"2024-04-03T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2248.52},"reason":"best 2295.15 is 2.7R from entry 2171.56: trail the stop to 2248.52 (1R behind)"}
+{"time":"2024-04-03T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2241.721,"stop":2248.52}}
+{"time":"2024-04-03T18:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2248.939},"reason":"best 2295.57 is 2.7R from entry 2171.56: trail the stop to 2248.94 (1R behind)"}
+{"time":"2024-04-03T18:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2248.52,"stop":2248.939}}
+{"time":"2024-04-03T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2251.259},"reason":"best 2297.89 is 2.7R from entry 2171.56: trail the stop to 2251.26 (1R behind)"}
+{"time":"2024-04-03T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2248.939,"stop":2251.259}}
+{"time":"2024-04-03T20:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2252.235},"reason":"best 2298.87 is 2.7R from entry 2171.56: trail the stop to 2252.24 (1R behind)"}
+{"time":"2024-04-03T20:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2251.259,"stop":2252.235}}
+{"time":"2024-04-03T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2254.538},"reason":"best 2301.17 is 2.8R from entry 2171.56: trail the stop to 2254.54 (1R behind)"}
+{"time":"2024-04-03T22:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2252.235,"stop":2254.538}}
+{"time":"2024-04-03T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2255.786},"reason":"best 2302.42 is 2.8R from entry 2171.56: trail the stop to 2255.79 (1R behind)"}
+{"time":"2024-04-03T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2254.538,"stop":2255.786}}
+{"time":"2024-04-04T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2255.847},"reason":"best 2302.48 is 2.8R from entry 2171.56: trail the stop to 2255.85 (1R behind)"}
+{"time":"2024-04-04T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2255.786,"stop":2255.847}}
+{"time":"2024-04-04T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2258.238},"reason":"best 2304.87 is 2.9R from entry 2171.56: trail the stop to 2258.24 (1R behind)"}
+{"time":"2024-04-04T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2255.847,"stop":2258.238}}
+{"time":"2024-04-04T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2258.906},"reason":"best 2305.54 is 2.9R from entry 2171.56: trail the stop to 2258.91 (1R behind)"}
+{"time":"2024-04-04T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2258.238,"stop":2258.906}}
+{"time":"2024-04-05T15:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2171.558,"lots":0.02,"net":249.6268,"price":2309.579,"r":2.676619},"reason":"target"}
+{"time":"2024-04-05T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2317.593,"stop":2252.878714,"target":2511.735857},"reason":"daily trend up (close 2288.89 \u003e 50-day mean 2101.72, rising); H1 close 2317.59 at Fri 2024-04-05 21:00 WIB broke the 20-day high 2305.54; daily ATR 32.36: buy, stop 2252.88 (2.0 ATR), target 2511.74 (3.0R)"}
+{"time":"2024-04-05T15:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2318.134,"risk":65.255286,"spread":0.4,"stop":2252.878714,"target":2511.735857}}
+{"time":"2024-04-12T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2326.170714},"reason":"best 2391.43 is 1.1R from entry 2318.13: trail the stop to 2326.17 (1R behind)"}
+{"time":"2024-04-12T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2252.878714,"stop":2326.170714}}
+{"time":"2024-04-12T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2330.202714},"reason":"best 2395.46 is 1.2R from entry 2318.13: trail the stop to 2330.20 (1R behind)"}
+{"time":"2024-04-12T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2326.170714,"stop":2330.202714}}
+{"time":"2024-04-12T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2335.092714},"reason":"best 2400.35 is 1.3R from entry 2318.13: trail the stop to 2335.09 (1R behind)"}
+{"time":"2024-04-12T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2330.202714,"stop":2335.092714}}
+{"time":"2024-04-12T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2335.384714},"reason":"best 2400.64 is 1.3R from entry 2318.13: trail the stop to 2335.38 (1R behind)"}
+{"time":"2024-04-12T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2335.092714,"stop":2335.384714}}
+{"time":"2024-04-12T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2341.288714},"reason":"best 2406.54 is 1.4R from entry 2318.13: trail the stop to 2341.29 (1R behind)"}
+{"time":"2024-04-12T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2335.384714,"stop":2341.288714}}
+{"time":"2024-04-12T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2363.818714},"reason":"best 2429.07 is 1.7R from entry 2318.13: trail the stop to 2363.82 (1R behind)"}
+{"time":"2024-04-12T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2341.288714,"stop":2363.818714}}
+{"time":"2024-04-12T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2366.271714},"reason":"best 2431.53 is 1.7R from entry 2318.13: trail the stop to 2366.27 (1R behind)"}
+{"time":"2024-04-12T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2363.818714,"stop":2366.271714}}
+{"time":"2024-04-12T17:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2318.134,"lots":0.01,"net":44.735814,"price":2366.171714,"r":0.685551},"reason":"stop"}
+{"time":"2024-05-20T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2422.959,"stop":2350.419,"target":2640.579},"reason":"daily trend up (close 2413.94 \u003e 50-day mean 2289.70, rising); H1 close 2422.96 at Mon 2024-05-20 21:00 WIB broke the 20-day high 2422.74; daily ATR 36.27: buy, stop 2350.42 (2.0 ATR), target 2640.58 (3.0R)"}
+{"time":"2024-05-20T15:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2423.531,"risk":73.112,"spread":0.4,"stop":2350.419,"target":2640.579}}
+{"time":"2024-05-23T15:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2423.531,"lots":0.01,"net":-75.5705,"price":2350.319,"r":-1.033626},"reason":"stop"}
+{"time":"2024-07-11T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2406.309,"stop":2349.300286,"target":2577.335143},"reason":"daily trend up (close 2372.85 \u003e 50-day mean 2343.53, rising); H1 close 2406.31 at Thu 2024-07-11 19:00 WIB broke the 20-day high 2392.94; daily ATR 28.50: buy, stop 2349.30 (2.0 ATR), target 2577.34 (3.0R)"}
+{"time":"2024-07-11T13:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2406.761,"risk":57.460714,"spread":0.4,"stop":2349.300286,"target":2577.335143}}
+{"time":"2024-07-16T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2407.822286},"reason":"best 2465.28 is 1.0R from entry 2406.76: trail the stop to 2407.82 (1R behind)"}
+{"time":"2024-07-16T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2349.300286,"stop":2407.822286}}
+{"time":"2024-07-16T18:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2408.945286},"reason":"best 2466.41 is 1.0R from entry 2406.76: trail the stop to 2408.95 (1R behind)"}
+{"time":"2024-07-16T18:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2407.822286,"stop":2408.945286}}
+{"time":"2024-07-16T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2409.138286},"reason":"best 2466.60 is 1.0R from entry 2406.76: trail the stop to 2409.14 (1R behind)"}
+{"time":"2024-07-16T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2408.945286,"stop":2409.138286}}
+{"time":"2024-07-16T20:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2411.239286},"reason":"best 2468.70 is 1.1R from entry 2406.76: trail the stop to 2411.24 (1R behind)"}
+{"time":"2024-07-16T20:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2409.138286,"stop":2411.239286}}
+{"time":"2024-07-16T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2412.345286},"reason":"best 2469.81 is 1.1R from entry 2406.76: trail the stop to 2412.35 (1R behind)"}
+{"time":"2024-07-16T22:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2411.239286,"stop":2412.345286}}
+{"time":"2024-07-16T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2412.506286},"reason":"best 2469.97 is 1.1R from entry 2406.76: trail the stop to 2412.51 (1R behind)"}
+{"time":"2024-07-16T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2412.345286,"stop":2412.506286}}
+{"time":"2024-07-17T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2415.869286},"reason":"best 2473.33 is 1.2R from entry 2406.76: trail the stop to 2415.87 (1R behind)"}
+{"time":"2024-07-17T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2412.506286,"stop":2415.869286}}
+{"time":"2024-07-17T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2423.780286},"reason":"best 2481.24 is 1.3R from entry 2406.76: trail the stop to 2423.78 (1R behind)"}
+{"time":"2024-07-17T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2415.869286,"stop":2423.780286}}
+{"time":"2024-07-17T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2424.904286},"reason":"best 2482.36 is 1.3R from entry 2406.76: trail the stop to 2424.90 (1R behind)"}
+{"time":"2024-07-17T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2423.780286,"stop":2424.904286}}
+{"time":"2024-07-17T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2425.982286},"reason":"best 2483.44 is 1.3R from entry 2406.76: trail the stop to 2425.98 (1R behind)"}
+{"time":"2024-07-17T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2424.904286,"stop":2425.982286}}
+{"time":"2024-07-17T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2426.278286},"reason":"best 2483.74 is 1.3R from entry 2406.76: trail the stop to 2426.28 (1R behind)"}
+{"time":"2024-07-17T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2425.982286,"stop":2426.278286}}
+{"time":"2024-07-19T01:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2406.761,"lots":0.01,"net":15.643686,"price":2426.178286,"r":0.27225},"reason":"stop"}
+{"time":"2024-08-16T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2491.591,"stop":2407.136,"target":2744.956},"reason":"daily trend up (close 2457.30 \u003e 50-day mean 2379.64, rising); H1 close 2491.59 at Fri 2024-08-16 19:00 WIB broke the 20-day high 2480.06; daily ATR 42.23: buy, stop 2407.14 (2.0 ATR), target 2744.96 (3.0R)"}
+{"time":"2024-08-16T13:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2492.137,"risk":85.001,"spread":0.4,"stop":2407.136,"target":2744.956}}
+{"time":"2024-09-13T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2498.479},"reason":"best 2583.48 is 1.1R from entry 2492.14: trail the stop to 2498.48 (1R behind)"}
+{"time":"2024-09-13T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2407.136,"stop":2498.479}}
+{"time":"2024-09-13T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2500.231},"reason":"best 2585.23 is 1.1R from entry 2492.14: trail the stop to 2500.23 (1R behind)"}
+{"time":"2024-09-13T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2498.479,"stop":2500.231}}
+{"time":"2024-09-13T18:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2501.119},"reason":"best 2586.12 is 1.1R from entry 2492.14: trail the stop to 2501.12 (1R behind)"}
+{"time":"2024-09-13T18:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2500.231,"stop":2501.119}}
+{"time":"2024-09-16T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2504},"reason":"best 2589.00 is 1.1R from entry 2492.14: trail the stop to 2504.00 (1R behind)"}
+{"time":"2024-09-16T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2501.119,"stop":2504}}
+{"time":"2024-09-16T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2504.415},"reason":"best 2589.42 is 1.1R from entry 2492.14: trail the stop to 2504.41 (1R behind)"}
+{"time":"2024-09-16T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2504,"stop":2504.415}}
+{"time":"2024-09-16T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2504.65},"reason":"best 2589.65 is 1.1R from entry 2492.14: trail the stop to 2504.65 (1R behind)"}
+{"time":"2024-09-16T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2504.415,"stop":2504.65}}
+{"time":"2024-09-18T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2515.137},"reason":"best 2600.14 is 1.3R from entry 2492.14: trail the stop to 2515.14 (1R behind)"}
+{"time":"2024-09-18T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2504.65,"stop":2515.137}}
+{"time":"2024-09-20T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2522.186},"reason":"best 2607.19 is 1.4R from entry 2492.14: trail the stop to 2522.19 (1R behind)"}
+{"time":"2024-09-20T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2515.137,"stop":2522.186}}
+{"time":"2024-09-20T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2524.796},"reason":"best 2609.80 is 1.4R from entry 2492.14: trail the stop to 2524.80 (1R behind)"}
+{"time":"2024-09-20T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2522.186,"stop":2524.796}}
+{"time":"2024-09-20T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2527.707},"reason":"best 2612.71 is 1.4R from entry 2492.14: trail the stop to 2527.71 (1R behind)"}
+{"time":"2024-09-20T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2524.796,"stop":2527.707}}
+{"time":"2024-09-20T11:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2529.242},"reason":"best 2614.24 is 1.4R from entry 2492.14: trail the stop to 2529.24 (1R behind)"}
+{"time":"2024-09-20T11:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2527.707,"stop":2529.242}}
+{"time":"2024-09-20T12:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2530.499},"reason":"best 2615.50 is 1.5R from entry 2492.14: trail the stop to 2530.50 (1R behind)"}
+{"time":"2024-09-20T12:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2529.242,"stop":2530.499}}
+{"time":"2024-09-20T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2534.282},"reason":"best 2619.28 is 1.5R from entry 2492.14: trail the stop to 2534.28 (1R behind)"}
+{"time":"2024-09-20T13:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2530.499,"stop":2534.282}}
+{"time":"2024-09-20T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2538.034},"reason":"best 2623.03 is 1.5R from entry 2492.14: trail the stop to 2538.03 (1R behind)"}
+{"time":"2024-09-20T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2534.282,"stop":2538.034}}
+{"time":"2024-09-20T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2540.753},"reason":"best 2625.75 is 1.6R from entry 2492.14: trail the stop to 2540.75 (1R behind)"}
+{"time":"2024-09-20T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2538.034,"stop":2540.753}}
+{"time":"2024-09-23T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2541.81},"reason":"best 2626.81 is 1.6R from entry 2492.14: trail the stop to 2541.81 (1R behind)"}
+{"time":"2024-09-23T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2540.753,"stop":2541.81}}
+{"time":"2024-09-23T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2546.127},"reason":"best 2631.13 is 1.6R from entry 2492.14: trail the stop to 2546.13 (1R behind)"}
+{"time":"2024-09-23T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2541.81,"stop":2546.127}}
+{"time":"2024-09-23T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2546.394},"reason":"best 2631.39 is 1.6R from entry 2492.14: trail the stop to 2546.39 (1R behind)"}
+{"time":"2024-09-23T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2546.127,"stop":2546.394}}
+{"time":"2024-09-23T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2549.327},"reason":"best 2634.33 is 1.7R from entry 2492.14: trail the stop to 2549.33 (1R behind)"}
+{"time":"2024-09-23T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2546.394,"stop":2549.327}}
+{"time":"2024-09-23T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2549.88},"reason":"best 2634.88 is 1.7R from entry 2492.14: trail the stop to 2549.88 (1R behind)"}
+{"time":"2024-09-23T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2549.327,"stop":2549.88}}
+{"time":"2024-09-24T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2551.145},"reason":"best 2636.15 is 1.7R from entry 2492.14: trail the stop to 2551.14 (1R behind)"}
+{"time":"2024-09-24T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2549.88,"stop":2551.145}}
+{"time":"2024-09-24T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2553.294},"reason":"best 2638.30 is 1.7R from entry 2492.14: trail the stop to 2553.29 (1R behind)"}
+{"time":"2024-09-24T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2551.145,"stop":2553.294}}
+{"time":"2024-09-24T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2555.091},"reason":"best 2640.09 is 1.7R from entry 2492.14: trail the stop to 2555.09 (1R behind)"}
+{"time":"2024-09-24T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2553.294,"stop":2555.091}}
+{"time":"2024-09-24T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2562.163},"reason":"best 2647.16 is 1.8R from entry 2492.14: trail the stop to 2562.16 (1R behind)"}
+{"time":"2024-09-24T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2555.091,"stop":2562.163}}
+{"time":"2024-09-24T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2563.503},"reason":"best 2648.50 is 1.8R from entry 2492.14: trail the stop to 2563.50 (1R behind)"}
+{"time":"2024-09-24T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2562.163,"stop":2563.503}}
+{"time":"2024-09-24T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2570.277},"reason":"best 2655.28 is 1.9R from entry 2492.14: trail the stop to 2570.28 (1R behind)"}
+{"time":"2024-09-24T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2563.503,"stop":2570.277}}
+{"time":"2024-09-24T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2572.753},"reason":"best 2657.75 is 1.9R from entry 2492.14: trail the stop to 2572.75 (1R behind)"}
+{"time":"2024-09-24T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2570.277,"stop":2572.753}}
+{"time":"2024-09-24T20:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2579.365},"reason":"best 2664.37 is 2.0R from entry 2492.14: trail the stop to 2579.36 (1R behind)"}
+{"time":"2024-09-24T20:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2572.753,"stop":2579.365}}
+{"time":"2024-09-25T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2585.628},"reason":"best 2670.63 is 2.1R from entry 2492.14: trail the stop to 2585.63 (1R behind)"}
+{"time":"2024-09-25T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2579.365,"stop":2585.628}}
+{"time":"2024-09-26T11:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2590.622},"reason":"best 2675.62 is 2.2R from entry 2492.14: trail the stop to 2590.62 (1R behind)"}
+{"time":"2024-09-26T11:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2585.628,"stop":2590.622}}
+{"time":"2024-09-26T12:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2600.61},"reason":"best 2685.61 is 2.3R from entry 2492.14: trail the stop to 2600.61 (1R behind)"}
+{"time":"2024-09-26T12:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2590.622,"stop":2600.61}}
+{"time":"2024-10-17T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2600.755},"reason":"best 2685.76 is 2.3R from entry 2492.14: trail the stop to 2600.75 (1R behind)"}
+{"time":"2024-10-17T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2600.61,"stop":2600.755}}
+{"time":"2024-10-17T11:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2603.857},"reason":"best 2688.86 is 2.3R from entry 2492.14: trail the stop to 2603.86 (1R behind)"}
+{"time":"2024-10-17T11:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2600.755,"stop":2603.857}}
+{"time":"2024-10-17T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2605.138},"reason":"best 2690.14 is 2.3R from entry 2492.14: trail the stop to 2605.14 (1R behind)"}
+{"time":"2024-10-17T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2603.857,"stop":2605.138}}
+{"time":"2024-10-17T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2611.54},"reason":"best 2696.54 is 2.4R from entry 2492.14: trail the stop to 2611.54 (1R behind)"}
+{"time":"2024-10-17T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2605.138,"stop":2611.54}}
+{"time":"2024-10-17T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2611.787},"reason":"best 2696.79 is 2.4R from entry 2492.14: trail the stop to 2611.79 (1R behind)"}
+{"time":"2024-10-17T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2611.54,"stop":2611.787}}
+{"time":"2024-10-18T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2621.792},"reason":"best 2706.79 is 2.5R from entry 2492.14: trail the stop to 2621.79 (1R behind)"}
+{"time":"2024-10-18T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2611.787,"stop":2621.792}}
+{"time":"2024-10-18T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2626.963},"reason":"best 2711.96 is 2.6R from entry 2492.14: trail the stop to 2626.96 (1R behind)"}
+{"time":"2024-10-18T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2621.792,"stop":2626.963}}
+{"time":"2024-10-18T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2629.079},"reason":"best 2714.08 is 2.6R from entry 2492.14: trail the stop to 2629.08 (1R behind)"}
+{"time":"2024-10-18T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2626.963,"stop":2629.079}}
+{"time":"2024-10-18T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2632.074},"reason":"best 2717.07 is 2.6R from entry 2492.14: trail the stop to 2632.07 (1R behind)"}
+{"time":"2024-10-18T13:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2629.079,"stop":2632.074}}
+{"time":"2024-10-18T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2635.13},"reason":"best 2720.13 is 2.7R from entry 2492.14: trail the stop to 2635.13 (1R behind)"}
+{"time":"2024-10-18T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2632.074,"stop":2635.13}}
+{"time":"2024-10-18T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2636.28},"reason":"best 2721.28 is 2.7R from entry 2492.14: trail the stop to 2636.28 (1R behind)"}
+{"time":"2024-10-18T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2635.13,"stop":2636.28}}
+{"time":"2024-10-18T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2637.632},"reason":"best 2722.63 is 2.7R from entry 2492.14: trail the stop to 2637.63 (1R behind)"}
+{"time":"2024-10-20T22:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2636.28,"stop":2637.632}}
+{"time":"2024-10-20T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2638.838},"reason":"best 2723.84 is 2.7R from entry 2492.14: trail the stop to 2638.84 (1R behind)"}
+{"time":"2024-10-20T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2637.632,"stop":2638.838}}
+{"time":"2024-10-21T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2640.128},"reason":"best 2725.13 is 2.7R from entry 2492.14: trail the stop to 2640.13 (1R behind)"}
+{"time":"2024-10-21T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2638.838,"stop":2640.128}}
+{"time":"2024-10-21T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2640.829},"reason":"best 2725.83 is 2.7R from entry 2492.14: trail the stop to 2640.83 (1R behind)"}
+{"time":"2024-10-21T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2640.128,"stop":2640.829}}
+{"time":"2024-10-21T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2644.29},"reason":"best 2729.29 is 2.8R from entry 2492.14: trail the stop to 2644.29 (1R behind)"}
+{"time":"2024-10-21T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2640.829,"stop":2644.29}}
+{"time":"2024-10-21T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2646.481},"reason":"best 2731.48 is 2.8R from entry 2492.14: trail the stop to 2646.48 (1R behind)"}
+{"time":"2024-10-21T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2644.29,"stop":2646.481}}
+{"time":"2024-10-21T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2647.825},"reason":"best 2732.83 is 2.8R from entry 2492.14: trail the stop to 2647.82 (1R behind)"}
+{"time":"2024-10-21T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2646.481,"stop":2647.825}}
+{"time":"2024-10-21T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2648.119},"reason":"best 2733.12 is 2.8R from entry 2492.14: trail the stop to 2648.12 (1R behind)"}
+{"time":"2024-10-21T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2647.825,"stop":2648.119}}
+{"time":"2024-10-21T10:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2651.906},"reason":"best 2736.91 is 2.9R from entry 2492.14: trail the stop to 2651.91 (1R behind)"}
+{"time":"2024-10-21T10:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2648.119,"stop":2651.906}}
+{"time":"2024-10-21T12:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2653.127},"reason":"best 2738.13 is 2.9R from entry 2492.14: trail the stop to 2653.13 (1R behind)"}
+{"time":"2024-10-21T12:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2651.906,"stop":2653.127}}
+{"time":"2024-10-21T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2654.793},"reason":"best 2739.79 is 2.9R from entry 2492.14: trail the stop to 2654.79 (1R behind)"}
+{"time":"2024-10-21T13:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2653.127,"stop":2654.793}}
+{"time":"2024-10-21T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2655.514},"reason":"best 2740.51 is 2.9R from entry 2492.14: trail the stop to 2655.51 (1R behind)"}
+{"time":"2024-10-21T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2654.793,"stop":2655.514}}
+{"time":"2024-10-22T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2657.079},"reason":"best 2742.08 is 2.9R from entry 2492.14: trail the stop to 2657.08 (1R behind)"}
+{"time":"2024-10-22T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2655.514,"stop":2657.079}}
+{"time":"2024-10-22T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2658.222},"reason":"best 2743.22 is 3.0R from entry 2492.14: trail the stop to 2658.22 (1R behind)"}
+{"time":"2024-10-22T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2657.079,"stop":2658.222}}
+{"time":"2024-10-22T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2659.205},"reason":"best 2744.21 is 3.0R from entry 2492.14: trail the stop to 2659.20 (1R behind)"}
+{"time":"2024-10-22T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2658.222,"stop":2659.205}}
+{"time":"2024-10-22T17:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2492.137,"lots":0.01,"net":222.1585,"price":2744.956,"r":2.613599},"reason":"target"}
+{"time":"2024-10-29T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2760.795,"stop":2703.574286,"target":2932.457143},"reason":"daily trend up (close 2744.43 \u003e 50-day mean 2604.28, rising); H1 close 2760.80 at Tue 2024-10-29 20:00 WIB broke the 20-day high 2758.51; daily ATR 28.61: buy, stop 2703.57 (2.0 ATR), target 2932.46 (3.0R)"}
+{"time":"2024-10-29T14:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2761.311,"risk":57.736714,"spread":0.4,"stop":2703.574286,"target":2932.457143}}
+{"time":"2024-11-06T07:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2761.311,"lots":0.01,"net":-61.610314,"price":2703.474286,"r":-1.067091},"reason":"stop"}
+{"time":"2025-01-24T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2778.521,"stop":2721.927571,"target":2948.301286},"reason":"daily trend up (close 2754.54 \u003e 50-day mean 2654.37, rising); H1 close 2778.52 at Fri 2025-01-24 19:00 WIB broke the 20-day high 2763.43; daily ATR 28.30: buy, stop 2721.93 (2.0 ATR), target 2948.30 (3.0R)"}
+{"time":"2025-01-24T13:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2778.997,"risk":57.069429,"spread":0.4,"stop":2721.927571,"target":2948.301286}}
+{"time":"2025-02-04T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2780.016571},"reason":"best 2837.09 is 1.0R from entry 2779.00: trail the stop to 2780.02 (1R behind)"}
+{"time":"2025-02-04T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2721.927571,"stop":2780.016571}}
+{"time":"2025-02-04T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2784.236571},"reason":"best 2841.31 is 1.1R from entry 2779.00: trail the stop to 2784.24 (1R behind)"}
+{"time":"2025-02-04T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2780.016571,"stop":2784.236571}}
+{"time":"2025-02-04T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2788.438571},"reason":"best 2845.51 is 1.2R from entry 2779.00: trail the stop to 2788.44 (1R behind)"}
+{"time":"2025-02-04T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2784.236571,"stop":2788.438571}}
+{"time":"2025-02-05T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2791.191571},"reason":"best 2848.26 is 1.2R from entry 2779.00: trail the stop to 2791.19 (1R behind)"}
+{"time":"2025-02-05T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2788.438571,"stop":2791.191571}}
+{"time":"2025-02-05T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2791.969571},"reason":"best 2849.04 is 1.2R from entry 2779.00: trail the stop to 2791.97 (1R behind)"}
+{"time":"2025-02-05T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2791.191571,"stop":2791.969571}}
+{"time":"2025-02-05T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2796.742571},"reason":"best 2853.81 is 1.3R from entry 2779.00: trail the stop to 2796.74 (1R behind)"}
+{"time":"2025-02-05T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2791.969571,"stop":2796.742571}}
+{"time":"2025-02-05T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2797.244571},"reason":"best 2854.31 is 1.3R from entry 2779.00: trail the stop to 2797.24 (1R behind)"}
+{"time":"2025-02-05T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2796.742571,"stop":2797.244571}}
+{"time":"2025-02-05T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2801.043571},"reason":"best 2858.11 is 1.4R from entry 2779.00: trail the stop to 2801.04 (1R behind)"}
+{"time":"2025-02-05T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2797.244571,"stop":2801.043571}}
+{"time":"2025-02-05T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2803.561571},"reason":"best 2860.63 is 1.4R from entry 2779.00: trail the stop to 2803.56 (1R behind)"}
+{"time":"2025-02-05T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2801.043571,"stop":2803.561571}}
+{"time":"2025-02-05T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2804.741571},"reason":"best 2861.81 is 1.5R from entry 2779.00: trail the stop to 2804.74 (1R behind)"}
+{"time":"2025-02-05T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2803.561571,"stop":2804.741571}}
+{"time":"2025-02-05T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2807.140571},"reason":"best 2864.21 is 1.5R from entry 2779.00: trail the stop to 2807.14 (1R behind)"}
+{"time":"2025-02-05T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2804.741571,"stop":2807.140571}}
+{"time":"2025-02-05T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2812.762571},"reason":"best 2869.83 is 1.6R from entry 2779.00: trail the stop to 2812.76 (1R behind)"}
+{"time":"2025-02-05T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2807.140571,"stop":2812.762571}}
+{"time":"2025-02-05T10:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2815.178571},"reason":"best 2872.25 is 1.6R from entry 2779.00: trail the stop to 2815.18 (1R behind)"}
+{"time":"2025-02-05T10:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2812.762571,"stop":2815.178571}}
+{"time":"2025-02-05T11:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2819.995571},"reason":"best 2877.07 is 1.7R from entry 2779.00: trail the stop to 2820.00 (1R behind)"}
+{"time":"2025-02-05T11:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2815.178571,"stop":2819.995571}}
+{"time":"2025-02-05T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2825.359571},"reason":"best 2882.43 is 1.8R from entry 2779.00: trail the stop to 2825.36 (1R behind)"}
+{"time":"2025-02-05T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2819.995571,"stop":2825.359571}}
+{"time":"2025-02-07T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2829.681571},"reason":"best 2886.75 is 1.9R from entry 2779.00: trail the stop to 2829.68 (1R behind)"}
+{"time":"2025-02-07T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2825.359571,"stop":2829.681571}}
+{"time":"2025-02-10T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2835.216571},"reason":"best 2892.29 is 2.0R from entry 2779.00: trail the stop to 2835.22 (1R behind)"}
+{"time":"2025-02-10T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2829.681571,"stop":2835.216571}}
+{"time":"2025-02-10T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2839.530571},"reason":"best 2896.60 is 2.1R from entry 2779.00: trail the stop to 2839.53 (1R behind)"}
+{"time":"2025-02-10T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2835.216571,"stop":2839.530571}}
+{"time":"2025-02-10T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2841.827571},"reason":"best 2898.90 is 2.1R from entry 2779.00: trail the stop to 2841.83 (1R behind)"}
+{"time":"2025-02-10T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2839.530571,"stop":2841.827571}}
+{"time":"2025-02-10T10:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2846.188571},"reason":"best 2903.26 is 2.2R from entry 2779.00: trail the stop to 2846.19 (1R behind)"}
+{"time":"2025-02-10T10:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2841.827571,"stop":2846.188571}}
+{"time":"2025-02-10T11:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2849.227571},"reason":"best 2906.30 is 2.2R from entry 2779.00: trail the stop to 2849.23 (1R behind)"}
+{"time":"2025-02-10T11:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2846.188571,"stop":2849.227571}}
+{"time":"2025-02-10T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2849.899571},"reason":"best 2906.97 is 2.2R from entry 2779.00: trail the stop to 2849.90 (1R behind)"}
+{"time":"2025-02-10T13:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2849.227571,"stop":2849.899571}}
+{"time":"2025-02-10T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2853.992571},"reason":"best 2911.06 is 2.3R from entry 2779.00: trail the stop to 2853.99 (1R behind)"}
+{"time":"2025-02-10T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2849.899571,"stop":2853.992571}}
+{"time":"2025-02-10T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2854.992571},"reason":"best 2912.06 is 2.3R from entry 2779.00: trail the stop to 2854.99 (1R behind)"}
+{"time":"2025-02-10T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2853.992571,"stop":2854.992571}}
+{"time":"2025-02-11T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2864.533571},"reason":"best 2921.60 is 2.5R from entry 2779.00: trail the stop to 2864.53 (1R behind)"}
+{"time":"2025-02-11T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2854.992571,"stop":2864.533571}}
+{"time":"2025-02-11T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2868.012571},"reason":"best 2925.08 is 2.6R from entry 2779.00: trail the stop to 2868.01 (1R behind)"}
+{"time":"2025-02-11T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2864.533571,"stop":2868.012571}}
+{"time":"2025-02-11T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2879.180571},"reason":"best 2936.25 is 2.8R from entry 2779.00: trail the stop to 2879.18 (1R behind)"}
+{"time":"2025-02-11T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2868.012571,"stop":2879.180571}}
+{"time":"2025-02-11T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2885.554571},"reason":"best 2942.62 is 2.9R from entry 2779.00: trail the stop to 2885.55 (1R behind)"}
+{"time":"2025-02-11T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2879.180571,"stop":2885.554571}}
+{"time":"2025-02-11T14:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2778.997,"lots":0.01,"net":98.910371,"price":2885.454571,"r":1.733159},"reason":"stop"}
+{"time":"2025-03-13T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2969.861,"stop":2887.215857,"target":3217.796429},"reason":"daily trend up (close 2938.04 \u003e 50-day mean 2817.78, rising); H1 close 2969.86 at Thu 2025-03-13 21:00 WIB broke the 20-day high 2956.18; daily ATR 41.32: buy, stop 2887.22 (2.0 ATR), target 3217.80 (3.0R)"}
+{"time":"2025-03-13T15:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":2970.386,"risk":83.170143,"spread":0.4,"stop":2887.215857,"target":3217.796429}}
+{"time":"2025-03-20T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2972.318857},"reason":"best 3055.49 is 1.0R from entry 2970.39: trail the stop to 2972.32 (1R behind)"}
+{"time":"2025-03-20T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2887.215857,"stop":2972.318857}}
+{"time":"2025-03-20T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2973.029857},"reason":"best 3056.20 is 1.0R from entry 2970.39: trail the stop to 2973.03 (1R behind)"}
+{"time":"2025-03-20T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2972.318857,"stop":2973.029857}}
+{"time":"2025-03-20T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2974.288857},"reason":"best 3057.46 is 1.0R from entry 2970.39: trail the stop to 2974.29 (1R behind)"}
+{"time":"2025-03-20T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2973.029857,"stop":2974.288857}}
+{"time":"2025-03-27T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2976.714857},"reason":"best 3059.89 is 1.1R from entry 2970.39: trail the stop to 2976.71 (1R behind)"}
+{"time":"2025-03-27T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2974.288857,"stop":2976.714857}}
+{"time":"2025-03-28T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2980.305857},"reason":"best 3063.48 is 1.1R from entry 2970.39: trail the stop to 2980.31 (1R behind)"}
+{"time":"2025-03-28T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2976.714857,"stop":2980.305857}}
+{"time":"2025-03-28T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2990.887857},"reason":"best 3074.06 is 1.2R from entry 2970.39: trail the stop to 2990.89 (1R behind)"}
+{"time":"2025-03-28T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2980.305857,"stop":2990.887857}}
+{"time":"2025-03-28T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2994.373857},"reason":"best 3077.54 is 1.3R from entry 2970.39: trail the stop to 2994.37 (1R behind)"}
+{"time":"2025-03-28T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2990.887857,"stop":2994.373857}}
+{"time":"2025-03-28T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":2998.816857},"reason":"best 3081.99 is 1.3R from entry 2970.39: trail the stop to 2998.82 (1R behind)"}
+{"time":"2025-03-28T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2994.373857,"stop":2998.816857}}
+{"time":"2025-03-28T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3001.767857},"reason":"best 3084.94 is 1.4R from entry 2970.39: trail the stop to 3001.77 (1R behind)"}
+{"time":"2025-03-28T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":2998.816857,"stop":3001.767857}}
+{"time":"2025-03-28T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3002.846857},"reason":"best 3086.02 is 1.4R from entry 2970.39: trail the stop to 3002.85 (1R behind)"}
+{"time":"2025-03-28T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3001.767857,"stop":3002.846857}}
+{"time":"2025-03-28T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3003.660857},"reason":"best 3086.83 is 1.4R from entry 2970.39: trail the stop to 3003.66 (1R behind)"}
+{"time":"2025-03-28T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3002.846857,"stop":3003.660857}}
+{"time":"2025-03-30T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3014.663857},"reason":"best 3097.83 is 1.5R from entry 2970.39: trail the stop to 3014.66 (1R behind)"}
+{"time":"2025-03-30T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3003.660857,"stop":3014.663857}}
+{"time":"2025-03-31T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3024.118857},"reason":"best 3107.29 is 1.6R from entry 2970.39: trail the stop to 3024.12 (1R behind)"}
+{"time":"2025-03-31T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3014.663857,"stop":3024.118857}}
+{"time":"2025-03-31T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3028.524857},"reason":"best 3111.70 is 1.7R from entry 2970.39: trail the stop to 3028.52 (1R behind)"}
+{"time":"2025-03-31T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3024.118857,"stop":3028.524857}}
+{"time":"2025-03-31T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3032.767857},"reason":"best 3115.94 is 1.8R from entry 2970.39: trail the stop to 3032.77 (1R behind)"}
+{"time":"2025-03-31T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3028.524857,"stop":3032.767857}}
+{"time":"2025-03-31T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3036.918857},"reason":"best 3120.09 is 1.8R from entry 2970.39: trail the stop to 3036.92 (1R behind)"}
+{"time":"2025-03-31T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3032.767857,"stop":3036.918857}}
+{"time":"2025-03-31T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3044.994857},"reason":"best 3128.16 is 1.9R from entry 2970.39: trail the stop to 3044.99 (1R behind)"}
+{"time":"2025-03-31T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3036.918857,"stop":3044.994857}}
+{"time":"2025-04-01T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3055.061857},"reason":"best 3138.23 is 2.0R from entry 2970.39: trail the stop to 3055.06 (1R behind)"}
+{"time":"2025-04-01T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3044.994857,"stop":3055.061857}}
+{"time":"2025-04-01T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3062.531857},"reason":"best 3145.70 is 2.1R from entry 2970.39: trail the stop to 3062.53 (1R behind)"}
+{"time":"2025-04-01T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3055.061857,"stop":3062.531857}}
+{"time":"2025-04-01T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3064.164857},"reason":"best 3147.34 is 2.1R from entry 2970.39: trail the stop to 3064.16 (1R behind)"}
+{"time":"2025-04-01T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3062.531857,"stop":3064.164857}}
+{"time":"2025-04-01T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3064.768857},"reason":"best 3147.94 is 2.1R from entry 2970.39: trail the stop to 3064.77 (1R behind)"}
+{"time":"2025-04-01T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3064.164857,"stop":3064.768857}}
+{"time":"2025-04-01T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3065.888857},"reason":"best 3149.06 is 2.1R from entry 2970.39: trail the stop to 3065.89 (1R behind)"}
+{"time":"2025-04-01T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3064.768857,"stop":3065.888857}}
+{"time":"2025-04-03T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3084.621857},"reason":"best 3167.79 is 2.4R from entry 2970.39: trail the stop to 3084.62 (1R behind)"}
+{"time":"2025-04-03T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3065.888857,"stop":3084.621857}}
+{"time":"2025-04-03T13:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2970.386,"lots":0.01,"net":104.230157,"price":3084.521857,"r":1.253216},"reason":"stop"}
+{"time":"2025-04-11T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":3233.669,"stop":3099.943143,"target":3634.846571},"reason":"daily trend up (close 3188.97 \u003e 50-day mean 2962.69, rising); H1 close 3233.67 at Fri 2025-04-11 19:00 WIB broke the 20-day high 3191.34; daily ATR 66.86: buy, stop 3099.94 (2.0 ATR), target 3634.85 (3.0R)"}
+{"time":"2025-04-11T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":3099.943143,"target":3634.846571},"reason":"too small"}
+{"time":"2025-04-16T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":3307.343,"stop":3162.799286,"target":3740.974143},"reason":"daily trend up (close 3251.78 \u003e 50-day mean 2987.63, rising); H1 close 3307.34 at Wed 2025-04-16 19:00 WIB broke the 20-day high 3251.83; daily ATR 72.27: buy, stop 3162.80 (2.0 ATR), target 3740.97 (3.0R)"}
+{"time":"2025-04-16T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":3162.799286,"target":3740.974143},"reason":"too small"}
+{"time":"2025-04-21T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":3414.86,"stop":3254.826857,"target":3894.959429},"reason":"daily trend up (close 3327.67 \u003e 50-day mean 3006.64, rising); H1 close 3414.86 at Mon 2025-04-21 19:00 WIB broke the 20-day high 3357.76; daily ATR 80.02: buy, stop 3254.83 (2.0 ATR), target 3894.96 (3.0R)"}
+{"time":"2025-04-21T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":3254.826857,"target":3894.959429},"reason":"too small"}
+{"time":"2025-06-13T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":3436.608,"stop":3315.272286,"target":3800.615143},"reason":"daily trend up (close 3395.76 \u003e 50-day mean 3280.47, rising); H1 close 3436.61 at Fri 2025-06-13 19:00 WIB broke the 20-day high 3403.59; daily ATR 60.67: buy, stop 3315.27 (2.0 ATR), target 3800.62 (3.0R)"}
+{"time":"2025-06-13T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":3315.272286,"target":3800.615143},"reason":"too small"}
+{"time":"2025-07-21T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":3400.316,"stop":3319.068,"target":3644.06},"reason":"daily trend up (close 3350.39 \u003e 50-day mean 3325.83, rising); H1 close 3400.32 at Mon 2025-07-21 21:00 WIB broke the 20-day high 3393.51; daily ATR 40.62: buy, stop 3319.07 (2.0 ATR), target 3644.06 (3.0R)"}
+{"time":"2025-07-21T15:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":3400.792,"risk":81.724,"spread":0.4,"stop":3319.068,"target":3644.06}}
+{"time":"2025-07-27T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":3},"reason":"daily close across the trend mean; trend over: 2025-07-25 closed 3336.87, across the 50-day mean 3341.90"}
+{"time":"2025-07-28T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":3},"reason":"daily close across the trend mean; trend over: 2025-07-25 closed 3336.87, across the 50-day mean 3341.90"}
+{"time":"2025-07-28T00:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":3400.792,"lots":0.01,"net":-70.5189,"price":3333.575,"r":-0.862891},"reason":"close: daily close across the trend mean"}
+{"time":"2025-09-02T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":3511.05,"stop":3437.932286,"target":3730.403143},"reason":"daily trend up (close 3479.21 \u003e 50-day mean 3352.32, rising); H1 close 3511.05 at Tue 2025-09-02 21:00 WIB broke the 20-day high 3489.93; daily ATR 36.56: buy, stop 3437.93 (2.0 ATR), target 3730.40 (3.0R)"}
+{"time":"2025-09-02T15:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":3511.58,"risk":73.647714,"spread":0.4,"stop":3437.932286,"target":3730.403143}}
+{"time":"2025-09-05T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3513.211286},"reason":"best 3586.86 is 1.0R from entry 3511.58: trail the stop to 3513.21 (1R behind)"}
+{"time":"2025-09-05T13:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3437.932286,"stop":3513.211286}}
+{"time":"2025-09-05T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3521.602286},"reason":"best 3595.25 is 1.1R from entry 3511.58: trail the stop to 3521.60 (1R behind)"}
+{"time":"2025-09-05T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3513.211286,"stop":3521.602286}}
+{"time":"2025-09-05T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3524.245286},"reason":"best 3597.89 is 1.2R from entry 3511.58: trail the stop to 3524.25 (1R behind)"}
+{"time":"2025-09-05T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3521.602286,"stop":3524.245286}}
+{"time":"2025-09-05T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3526.428286},"reason":"best 3600.08 is 1.2R from entry 3511.58: trail the stop to 3526.43 (1R behind)"}
+{"time":"2025-09-05T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3524.245286,"stop":3526.428286}}
+{"time":"2025-09-08T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3539.938286},"reason":"best 3613.59 is 1.4R from entry 3511.58: trail the stop to 3539.94 (1R behind)"}
+{"time":"2025-09-08T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3526.428286,"stop":3539.938286}}
+{"time":"2025-09-08T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3543.697286},"reason":"best 3617.34 is 1.4R from entry 3511.58: trail the stop to 3543.70 (1R behind)"}
+{"time":"2025-09-08T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3539.938286,"stop":3543.697286}}
+{"time":"2025-09-08T11:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3548.848286},"reason":"best 3622.50 is 1.5R from entry 3511.58: trail the stop to 3548.85 (1R behind)"}
+{"time":"2025-09-08T11:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3543.697286,"stop":3548.848286}}
+{"time":"2025-09-08T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3552.480286},"reason":"best 3626.13 is 1.6R from entry 3511.58: trail the stop to 3552.48 (1R behind)"}
+{"time":"2025-09-08T13:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3548.848286,"stop":3552.480286}}
+{"time":"2025-09-08T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3563.256286},"reason":"best 3636.90 is 1.7R from entry 3511.58: trail the stop to 3563.26 (1R behind)"}
+{"time":"2025-09-08T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3552.480286,"stop":3563.256286}}
+{"time":"2025-09-08T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3567.308286},"reason":"best 3640.96 is 1.8R from entry 3511.58: trail the stop to 3567.31 (1R behind)"}
+{"time":"2025-09-08T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3563.256286,"stop":3567.308286}}
+{"time":"2025-09-08T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3572.668286},"reason":"best 3646.32 is 1.8R from entry 3511.58: trail the stop to 3572.67 (1R behind)"}
+{"time":"2025-09-08T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3567.308286,"stop":3572.668286}}
+{"time":"2025-09-09T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3573.778286},"reason":"best 3647.43 is 1.8R from entry 3511.58: trail the stop to 3573.78 (1R behind)"}
+{"time":"2025-09-09T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3572.668286,"stop":3573.778286}}
+{"time":"2025-09-09T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3580.949286},"reason":"best 3654.60 is 1.9R from entry 3511.58: trail the stop to 3580.95 (1R behind)"}
+{"time":"2025-09-09T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3573.778286,"stop":3580.949286}}
+{"time":"2025-09-09T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3583.491286},"reason":"best 3657.14 is 2.0R from entry 3511.58: trail the stop to 3583.49 (1R behind)"}
+{"time":"2025-09-09T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3580.949286,"stop":3583.491286}}
+{"time":"2025-09-09T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3585.651286},"reason":"best 3659.30 is 2.0R from entry 3511.58: trail the stop to 3585.65 (1R behind)"}
+{"time":"2025-09-09T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3583.491286,"stop":3585.651286}}
+{"time":"2025-09-09T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3594.674286},"reason":"best 3668.32 is 2.1R from entry 3511.58: trail the stop to 3594.67 (1R behind)"}
+{"time":"2025-09-09T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3585.651286,"stop":3594.674286}}
+{"time":"2025-09-09T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3600.896286},"reason":"best 3674.54 is 2.2R from entry 3511.58: trail the stop to 3600.90 (1R behind)"}
+{"time":"2025-09-09T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3594.674286,"stop":3600.896286}}
+{"time":"2025-09-15T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3608.290286},"reason":"best 3681.94 is 2.3R from entry 3511.58: trail the stop to 3608.29 (1R behind)"}
+{"time":"2025-09-15T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3600.896286,"stop":3608.290286}}
+{"time":"2025-09-15T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3611.975286},"reason":"best 3685.62 is 2.4R from entry 3511.58: trail the stop to 3611.98 (1R behind)"}
+{"time":"2025-09-15T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3608.290286,"stop":3611.975286}}
+{"time":"2025-09-16T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3613.256286},"reason":"best 3686.90 is 2.4R from entry 3511.58: trail the stop to 3613.26 (1R behind)"}
+{"time":"2025-09-16T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3611.975286,"stop":3613.256286}}
+{"time":"2025-09-16T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3615.806286},"reason":"best 3689.45 is 2.4R from entry 3511.58: trail the stop to 3615.81 (1R behind)"}
+{"time":"2025-09-16T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3613.256286,"stop":3615.806286}}
+{"time":"2025-09-16T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3620.563286},"reason":"best 3694.21 is 2.5R from entry 3511.58: trail the stop to 3620.56 (1R behind)"}
+{"time":"2025-09-16T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3615.806286,"stop":3620.563286}}
+{"time":"2025-09-16T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3623.551286},"reason":"best 3697.20 is 2.5R from entry 3511.58: trail the stop to 3623.55 (1R behind)"}
+{"time":"2025-09-16T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3620.563286,"stop":3623.551286}}
+{"time":"2025-09-16T10:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3625.217286},"reason":"best 3698.86 is 2.5R from entry 3511.58: trail the stop to 3625.22 (1R behind)"}
+{"time":"2025-09-16T10:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3623.551286,"stop":3625.217286}}
+{"time":"2025-09-16T12:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3625.865286},"reason":"best 3699.51 is 2.6R from entry 3511.58: trail the stop to 3625.87 (1R behind)"}
+{"time":"2025-09-16T12:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3625.217286,"stop":3625.865286}}
+{"time":"2025-09-16T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3629.497286},"reason":"best 3703.14 is 2.6R from entry 3511.58: trail the stop to 3629.50 (1R behind)"}
+{"time":"2025-09-16T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3625.865286,"stop":3629.497286}}
+{"time":"2025-09-17T19:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3633.799286},"reason":"best 3707.45 is 2.7R from entry 3511.58: trail the stop to 3633.80 (1R behind)"}
+{"time":"2025-09-17T19:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3629.497286,"stop":3633.799286}}
+{"time":"2025-09-18T07:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":3511.58,"lots":0.01,"net":113.628686,"price":3633.699286,"r":1.542868},"reason":"stop"}
+{"time":"2025-09-22T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":3721.574,"stop":3622.422857,"target":4019.027429},"reason":"daily trend up (close 3684.86 \u003e 50-day mean 3436.88, rising); H1 close 3721.57 at Mon 2025-09-22 19:00 WIB broke the 20-day high 3707.45; daily ATR 49.58: buy, stop 3622.42 (2.0 ATR), target 4019.03 (3.0R)"}
+{"time":"2025-09-22T13:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.01,"price":3722.12,"risk":99.697143,"spread":0.4,"stop":3622.422857,"target":4019.027429}}
+{"time":"2025-09-29T12:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3731.662857},"reason":"best 3831.36 is 1.1R from entry 3722.12: trail the stop to 3731.66 (1R behind)"}
+{"time":"2025-09-29T12:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3622.422857,"stop":3731.662857}}
+{"time":"2025-09-29T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3733.498857},"reason":"best 3833.20 is 1.1R from entry 3722.12: trail the stop to 3733.50 (1R behind)"}
+{"time":"2025-09-29T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3731.662857,"stop":3733.498857}}
+{"time":"2025-09-29T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3733.887857},"reason":"best 3833.59 is 1.1R from entry 3722.12: trail the stop to 3733.89 (1R behind)"}
+{"time":"2025-09-29T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3733.498857,"stop":3733.887857}}
+{"time":"2025-09-29T21:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3734.327857},"reason":"best 3834.03 is 1.1R from entry 3722.12: trail the stop to 3734.33 (1R behind)"}
+{"time":"2025-09-29T22:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3733.887857,"stop":3734.327857}}
+{"time":"2025-09-30T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3740.907857},"reason":"best 3840.61 is 1.2R from entry 3722.12: trail the stop to 3740.91 (1R behind)"}
+{"time":"2025-09-30T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3734.327857,"stop":3740.907857}}
+{"time":"2025-09-30T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3750.963857},"reason":"best 3850.66 is 1.3R from entry 3722.12: trail the stop to 3750.96 (1R behind)"}
+{"time":"2025-09-30T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3740.907857,"stop":3750.963857}}
+{"time":"2025-09-30T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3752.315857},"reason":"best 3852.01 is 1.3R from entry 3722.12: trail the stop to 3752.32 (1R behind)"}
+{"time":"2025-09-30T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3750.963857,"stop":3752.315857}}
+{"time":"2025-09-30T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3767.507857},"reason":"best 3867.20 is 1.5R from entry 3722.12: trail the stop to 3767.51 (1R behind)"}
+{"time":"2025-09-30T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3752.315857,"stop":3767.507857}}
+{"time":"2025-09-30T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3770.728857},"reason":"best 3870.43 is 1.5R from entry 3722.12: trail the stop to 3770.73 (1R behind)"}
+{"time":"2025-09-30T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3767.507857,"stop":3770.728857}}
+{"time":"2025-09-30T07:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3772.000857},"reason":"best 3871.70 is 1.5R from entry 3722.12: trail the stop to 3772.00 (1R behind)"}
+{"time":"2025-09-30T07:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3770.728857,"stop":3772.000857}}
+{"time":"2025-10-01T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3775.916857},"reason":"best 3875.61 is 1.5R from entry 3722.12: trail the stop to 3775.92 (1R behind)"}
+{"time":"2025-10-01T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3772.000857,"stop":3775.916857}}
+{"time":"2025-10-01T08:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3780.133857},"reason":"best 3879.83 is 1.6R from entry 3722.12: trail the stop to 3780.13 (1R behind)"}
+{"time":"2025-10-01T08:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3775.916857,"stop":3780.133857}}
+{"time":"2025-10-01T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3795.678857},"reason":"best 3895.38 is 1.7R from entry 3722.12: trail the stop to 3795.68 (1R behind)"}
+{"time":"2025-10-01T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3780.133857,"stop":3795.678857}}
+{"time":"2025-10-02T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3797.456857},"reason":"best 3897.15 is 1.8R from entry 3722.12: trail the stop to 3797.46 (1R behind)"}
+{"time":"2025-10-02T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3795.678857,"stop":3797.456857}}
+{"time":"2025-10-05T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3804.228857},"reason":"best 3903.93 is 1.8R from entry 3722.12: trail the stop to 3804.23 (1R behind)"}
+{"time":"2025-10-05T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3797.456857,"stop":3804.228857}}
+{"time":"2025-10-06T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3821.288857},"reason":"best 3920.99 is 2.0R from entry 3722.12: trail the stop to 3821.29 (1R behind)"}
+{"time":"2025-10-06T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3804.228857,"stop":3821.288857}}
+{"time":"2025-10-06T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3824.918857},"reason":"best 3924.62 is 2.0R from entry 3722.12: trail the stop to 3824.92 (1R behind)"}
+{"time":"2025-10-06T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3821.288857,"stop":3824.918857}}
+{"time":"2025-10-06T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3832.318857},"reason":"best 3932.02 is 2.1R from entry 3722.12: trail the stop to 3832.32 (1R behind)"}
+{"time":"2025-10-06T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3824.918857,"stop":3832.318857}}
+{"time":"2025-10-06T05:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3840.645857},"reason":"best 3940.34 is 2.2R from entry 3722.12: trail the stop to 3840.65 (1R behind)"}
+{"time":"2025-10-06T05:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3832.318857,"stop":3840.645857}}
+{"time":"2025-10-06T06:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3845.507857},"reason":"best 3945.20 is 2.2R from entry 3722.12: trail the stop to 3845.51 (1R behind)"}
+{"time":"2025-10-06T06:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3840.645857,"stop":3845.507857}}
+{"time":"2025-10-06T09:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3849.899857},"reason":"best 3949.60 is 2.3R from entry 3722.12: trail the stop to 3849.90 (1R behind)"}
+{"time":"2025-10-06T09:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3845.507857,"stop":3849.899857}}
+{"time":"2025-10-06T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3859.198857},"reason":"best 3958.90 is 2.4R from entry 3722.12: trail the stop to 3859.20 (1R behind)"}
+{"time":"2025-10-06T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3849.899857,"stop":3859.198857}}
+{"time":"2025-10-06T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3864.457857},"reason":"best 3964.16 is 2.4R from entry 3722.12: trail the stop to 3864.46 (1R behind)"}
+{"time":"2025-10-06T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3859.198857,"stop":3864.457857}}
+{"time":"2025-10-06T17:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3870.309857},"reason":"best 3970.01 is 2.5R from entry 3722.12: trail the stop to 3870.31 (1R behind)"}
+{"time":"2025-10-06T17:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3864.457857,"stop":3870.309857}}
+{"time":"2025-10-06T23:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3876.500857},"reason":"best 3976.20 is 2.5R from entry 3722.12: trail the stop to 3876.50 (1R behind)"}
+{"time":"2025-10-06T23:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3870.309857,"stop":3876.500857}}
+{"time":"2025-10-07T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3877.777857},"reason":"best 3977.47 is 2.6R from entry 3722.12: trail the stop to 3877.78 (1R behind)"}
+{"time":"2025-10-07T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3876.500857,"stop":3877.777857}}
+{"time":"2025-10-07T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3880.425857},"reason":"best 3980.12 is 2.6R from entry 3722.12: trail the stop to 3880.43 (1R behind)"}
+{"time":"2025-10-07T13:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3877.777857,"stop":3880.425857}}
+{"time":"2025-10-07T14:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3885.959857},"reason":"best 3985.66 is 2.6R from entry 3722.12: trail the stop to 3885.96 (1R behind)"}
+{"time":"2025-10-07T14:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3880.425857,"stop":3885.959857}}
+{"time":"2025-10-07T15:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3886.987857},"reason":"best 3986.68 is 2.7R from entry 3722.12: trail the stop to 3886.99 (1R behind)"}
+{"time":"2025-10-07T15:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3885.959857,"stop":3886.987857}}
+{"time":"2025-10-07T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3891.361857},"reason":"best 3991.06 is 2.7R from entry 3722.12: trail the stop to 3891.36 (1R behind)"}
+{"time":"2025-10-07T16:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3886.987857,"stop":3891.361857}}
+{"time":"2025-10-08T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3896.248857},"reason":"best 3995.95 is 2.7R from entry 3722.12: trail the stop to 3896.25 (1R behind)"}
+{"time":"2025-10-08T00:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3891.361857,"stop":3896.248857}}
+{"time":"2025-10-08T01:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3899.550857},"reason":"best 3999.25 is 2.8R from entry 3722.12: trail the stop to 3899.55 (1R behind)"}
+{"time":"2025-10-08T01:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3896.248857,"stop":3899.550857}}
+{"time":"2025-10-08T02:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3901.113857},"reason":"best 4000.81 is 2.8R from entry 3722.12: trail the stop to 3901.11 (1R behind)"}
+{"time":"2025-10-08T02:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3899.550857,"stop":3901.113857}}
+{"time":"2025-10-08T03:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3912.015857},"reason":"best 4011.71 is 2.9R from entry 3722.12: trail the stop to 3912.02 (1R behind)"}
+{"time":"2025-10-08T03:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3901.113857,"stop":3912.015857}}
+{"time":"2025-10-08T04:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":4,"stop":3916.829857},"reason":"best 4016.53 is 3.0R from entry 3722.12: trail the stop to 3916.83 (1R behind)"}
+{"time":"2025-10-08T04:00:00Z","leg":0,"kind":"stop_move","side":"buy","details":{"old_stop":3912.015857,"stop":3916.829857}}
+{"time":"2025-10-08T05:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":3722.12,"lots":0.01,"net":289.360229,"price":4019.027429,"r":2.902392},"reason":"target"}
+{"time":"2025-10-08T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4039.984,"stop":3919.769571,"target":4400.627286},"reason":"daily trend up (close 3994.41 \u003e 50-day mean 3552.06, rising); H1 close 4039.98 at Wed 2025-10-08 19:00 WIB broke the 20-day high 3995.95; daily ATR 60.11: buy, stop 3919.77 (2.0 ATR), target 4400.63 (3.0R)"}
+{"time":"2025-10-08T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":3919.769571,"target":4400.627286},"reason":"too small"}
+{"time":"2025-10-13T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4079.554,"stop":3945.009143,"target":4483.188571},"reason":"daily trend up (close 4010.40 \u003e 50-day mean 3593.56, rising); H1 close 4079.55 at Mon 2025-10-13 19:00 WIB broke the 20-day high 4059.32; daily ATR 67.27: buy, stop 3945.01 (2.0 ATR), target 4483.19 (3.0R)"}
+{"time":"2025-10-13T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":3945.009143,"target":4483.188571},"reason":"too small"}
+{"time":"2025-10-14T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4137.989,"stop":3993.584286,"target":4571.203143},"reason":"daily trend up (close 4128.05 \u003e 50-day mean 3608.57, rising); H1 close 4137.99 at Tue 2025-10-14 22:00 WIB broke the 20-day high 4132.07; daily ATR 72.20: buy, stop 3993.58 (2.0 ATR), target 4571.20 (3.0R)"}
+{"time":"2025-10-14T16:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":3993.584286,"target":4571.203143},"reason":"too small"}
+{"time":"2025-10-15T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4190.544,"stop":4042.237286,"target":4635.464143},"reason":"daily trend up (close 4161.61 \u003e 50-day mean 3624.14, rising); H1 close 4190.54 at Wed 2025-10-15 19:00 WIB broke the 20-day high 4179.72; daily ATR 74.15: buy, stop 4042.24 (2.0 ATR), target 4635.46 (3.0R)"}
+{"time":"2025-10-15T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4042.237286,"target":4635.464143},"reason":"too small"}
+{"time":"2025-10-16T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4235.98,"stop":4084.148714,"target":4691.473857},"reason":"daily trend up (close 4209.46 \u003e 50-day mean 3640.92, rising); H1 close 4235.98 at Thu 2025-10-16 19:00 WIB broke the 20-day high 4218.25; daily ATR 75.92: buy, stop 4084.15 (2.0 ATR), target 4691.47 (3.0R)"}
+{"time":"2025-10-16T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4084.148714,"target":4691.473857},"reason":"too small"}
+{"time":"2025-12-01T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4246.508,"stop":4081.44,"target":4741.712},"reason":"daily trend up (close 4219.18 \u003e 50-day mean 4034.01, rising); H1 close 4246.51 at Mon 2025-12-01 19:00 WIB broke the 20-day high 4245.33; daily ATR 82.53: buy, stop 4081.44 (2.0 ATR), target 4741.71 (3.0R)"}
+{"time":"2025-12-01T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4081.44,"target":4741.712},"reason":"too small"}
+{"time":"2025-12-12T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4325.88,"stop":4209.086143,"target":4676.261571},"reason":"daily trend up (close 4276.52 \u003e 50-day mean 4109.70, rising); H1 close 4325.88 at Fri 2025-12-12 19:00 WIB broke the 20-day high 4285.96; daily ATR 58.40: buy, stop 4209.09 (2.0 ATR), target 4676.26 (3.0R)"}
+{"time":"2025-12-12T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4209.086143,"target":4676.261571},"reason":"too small"}
+{"time":"2025-12-22T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4415.561,"stop":4295.480143,"target":4775.803571},"reason":"daily trend up (close 4339.36 \u003e 50-day mean 4150.98, rising); H1 close 4415.56 at Mon 2025-12-22 19:00 WIB broke the 20-day high 4374.64; daily ATR 60.04: buy, stop 4295.48 (2.0 ATR), target 4775.80 (3.0R)"}
+{"time":"2025-12-22T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4295.480143,"target":4775.803571},"reason":"too small"}
+{"time":"2025-12-23T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4486.336,"stop":4358.377,"target":4870.213},"reason":"daily trend up (close 4460.24 \u003e 50-day mean 4157.62, rising); H1 close 4486.34 at Tue 2025-12-23 19:00 WIB broke the 20-day high 4461.78; daily ATR 63.98: buy, stop 4358.38 (2.0 ATR), target 4870.21 (3.0R)"}
+{"time":"2025-12-23T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4358.377,"target":4870.213},"reason":"too small"}
+{"time":"2025-12-26T16:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4546.631,"stop":4416.136714,"target":4938.113857},"reason":"daily trend up (close 4495.24 \u003e 50-day mean 4172.47, rising); H1 close 4546.63 at Fri 2025-12-26 22:00 WIB broke the 20-day high 4525.99; daily ATR 65.25: buy, stop 4416.14 (2.0 ATR), target 4938.11 (3.0R)"}
+{"time":"2025-12-26T16:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4416.136714,"target":4938.113857},"reason":"too small"}
+{"time":"2026-01-12T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4590.556,"stop":4419.101286,"target":5104.920143},"reason":"daily trend up (close 4509.07 \u003e 50-day mean 4244.80, rising); H1 close 4590.56 at Mon 2026-01-12 19:00 WIB broke the 20-day high 4550.22; daily ATR 85.73: buy, stop 4419.10 (2.0 ATR), target 5104.92 (3.0R)"}
+{"time":"2026-01-12T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4419.101286,"target":5104.920143},"reason":"too small"}
+{"time":"2026-01-14T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4638.924,"stop":4463.323429,"target":5165.725714},"reason":"daily trend up (close 4597.14 \u003e 50-day mean 4270.09, rising); H1 close 4638.92 at Wed 2026-01-14 19:00 WIB broke the 20-day high 4634.73; daily ATR 87.80: buy, stop 4463.32 (2.0 ATR), target 5165.73 (3.0R)"}
+{"time":"2026-01-14T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4463.323429,"target":5165.725714},"reason":"too small"}
+{"time":"2026-01-19T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4671.958,"stop":4517.760571,"target":5134.550286},"reason":"daily trend up (close 4596.59 \u003e 50-day mean 4307.25, rising); H1 close 4671.96 at Mon 2026-01-19 19:00 WIB broke the 20-day high 4643.19; daily ATR 77.10: buy, stop 4517.76 (2.0 ATR), target 5134.55 (3.0R)"}
+{"time":"2026-01-19T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4517.760571,"target":5134.550286},"reason":"too small"}
+{"time":"2026-01-20T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4727.523,"stop":4571.285857,"target":5196.234429},"reason":"daily trend up (close 4665.41 \u003e 50-day mean 4318.16, rising); H1 close 4727.52 at Tue 2026-01-20 19:00 WIB broke the 20-day high 4690.74; daily ATR 78.12: buy, stop 4571.29 (2.0 ATR), target 5196.23 (3.0R)"}
+{"time":"2026-01-20T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4571.285857,"target":5196.234429},"reason":"too small"}
+{"time":"2026-01-21T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4865.009,"stop":4705.554857,"target":5343.371429},"reason":"daily trend up (close 4775.88 \u003e 50-day mean 4330.82, rising); H1 close 4865.01 at Wed 2026-01-21 19:00 WIB broke the 20-day high 4781.08; daily ATR 79.73: buy, stop 4705.55 (2.0 ATR), target 5343.37 (3.0R)"}
+{"time":"2026-01-21T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4705.554857,"target":5343.371429},"reason":"too small"}
+{"time":"2026-01-26T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":5078.886,"stop":4896.949571,"target":5624.695286},"reason":"daily trend up (close 4988.34 \u003e 50-day mean 4376.10, rising); H1 close 5078.89 at Mon 2026-01-26 19:00 WIB broke the 20-day high 4989.80; daily ATR 90.97: buy, stop 4896.95 (2.0 ATR), target 5624.70 (3.0R)"}
+{"time":"2026-01-26T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4896.949571,"target":5624.695286},"reason":"too small"}
+{"time":"2026-01-28T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":5279.192,"stop":5075.166714,"target":5891.267857},"reason":"daily trend up (close 5172.43 \u003e 50-day mean 4418.15, rising); H1 close 5279.19 at Wed 2026-01-28 19:00 WIB broke the 20-day high 5190.49; daily ATR 102.01: buy, stop 5075.17 (2.0 ATR), target 5891.27 (3.0R)"}
+{"time":"2026-01-28T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":5075.166714,"target":5891.267857},"reason":"too small"}
+{"time":"2026-03-02T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":5396.773,"stop":5161.370286,"target":6102.981143},"reason":"daily trend up (close 5279.16 \u003e 50-day mean 4804.28, rising); H1 close 5396.77 at Mon 2026-03-02 19:00 WIB broke the 20-day high 5281.38; daily ATR 117.70: buy, stop 5161.37 (2.0 ATR), target 6102.98 (3.0R)"}
+{"time":"2026-03-02T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":5161.370286,"target":6102.981143},"reason":"too small"}
+{"time":"2026-05-27T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":4438.689,"stop":4623.116714,"target":3885.405857},"reason":"daily trend down (close 4519.75 \u003c 50-day mean 4658.47, falling); H1 close 4438.69 at Wed 2026-05-27 19:00 WIB broke the 20-day low 4453.41; daily ATR 92.21: sell, stop 4623.12 (2.0 ATR), target 3885.41 (3.0R)"}
+{"time":"2026-05-27T13:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4623.116714,"target":3885.405857},"reason":"too small"}
+{"time":"2026-06-05T14:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":4365.645,"stop":4553.801571,"target":3801.175286},"reason":"daily trend down (close 4461.46 \u003c 50-day mean 4636.33, falling); H1 close 4365.65 at Fri 2026-06-05 20:00 WIB broke the 20-day low 4366.25; daily ATR 94.08: sell, stop 4553.80 (2.0 ATR), target 3801.18 (3.0R)"}
+{"time":"2026-06-05T14:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4553.801571,"target":3801.175286},"reason":"too small"}
+{"time":"2026-06-10T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":4146.909,"stop":4344.964286,"target":3552.743143},"reason":"daily trend down (close 4222.12 \u003c 50-day mean 4625.42, falling); H1 close 4146.91 at Wed 2026-06-10 19:00 WIB broke the 20-day low 4210.24; daily ATR 99.03: sell, stop 4344.96 (2.0 ATR), target 3552.74 (3.0R)"}
+{"time":"2026-06-10T13:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4344.964286,"target":3552.743143},"reason":"too small"}
+{"time":"2026-06-24T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":3987.865,"stop":4236.472,"target":3242.044},"reason":"daily trend down (close 4099.05 \u003c 50-day mean 4516.83, falling); H1 close 3987.86 at Wed 2026-06-24 19:00 WIB broke the 20-day low 4023.77; daily ATR 124.30: sell, stop 4236.47 (2.0 ATR), target 3242.04 (3.0R)"}
+{"time":"2026-06-24T13:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4236.472,"target":3242.044},"reason":"too small"}
+{"time":"2026-08-21T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4577.853,"stop":4369.401714,"target":5203.206857},"reason":"daily trend up (close 4526.46 \u003e 50-day mean 4166.18, rising); H1 close 4577.85 at Fri 2026-08-21 19:00 WIB broke the 20-day high 4540.87; daily ATR 104.23: buy, stop 4369.40 (2.0 ATR), target 5203.21 (3.0R)"}
+{"time":"2026-08-21T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4369.401714,"target":5203.206857},"reason":"too small"}
+{"time":"2026-08-24T13:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":4662.916,"stop":4445.452143,"target":5315.307571},"reason":"daily trend up (close 4603.83 \u003e 50-day mean 4173.88, rising); H1 close 4662.92 at Mon 2026-08-24 19:00 WIB broke the 20-day high 4632.13; daily ATR 108.73: buy, stop 4445.45 (2.0 ATR), target 5315.31 (3.0R)"}
+{"time":"2026-08-24T13:00:00Z","leg":0,"kind":"missed","side":"buy","details":{"stop":4445.452143,"target":5315.307571},"reason":"too small"}
+{"time":"2026-10-22T14:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":4056.977,"stop":4187.564571,"target":3665.214286},"reason":"daily trend down (close 4125.44 \u003c 50-day mean 4317.09, falling); H1 close 4056.98 at Thu 2026-10-22 20:00 WIB broke the 20-day low 4066.31; daily ATR 65.29: sell, stop 4187.56 (2.0 ATR), target 3665.21 (3.0R)"}
+{"time":"2026-10-22T14:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4187.564571,"target":3665.214286},"reason":"too small"}
+{"time":"2026-10-23T15:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":4000.51,"stop":4131.397714,"target":3607.846857},"reason":"daily trend down (close 4023.60 \u003c 50-day mean 4310.43, falling); H1 close 4000.51 at Fri 2026-10-23 21:00 WIB broke the 20-day low 4020.94; daily ATR 65.44: sell, stop 4131.40 (2.0 ATR), target 3607.85 (3.0R)"}
+{"time":"2026-10-23T15:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4131.397714,"target":3607.846857},"reason":"too small"}
+{"time":"2026-10-30T13:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":3954.335,"stop":4081.168,"target":3573.836},"reason":"daily trend down (close 4008.00 \u003c 50-day mean 4269.51, falling); H1 close 3954.34 at Fri 2026-10-30 19:00 WIB broke the 20-day low 3975.37; daily ATR 63.42: sell, stop 4081.17 (2.0 ATR), target 3573.84 (3.0R)"}
+{"time":"2026-10-30T13:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4081.168,"target":3573.836},"reason":"too small"}
+{"time":"2026-11-12T16:00:00Z","leg":0,"kind":"signal","side":"sell","details":{"action":2,"close":3869.919,"stop":4049.698571,"target":3330.580286},"reason":"daily trend down (close 3978.60 \u003c 50-day mean 4176.83, falling); H1 close 3869.92 at Thu 2026-11-12 22:00 WIB broke the 20-day low 3869.93; daily ATR 89.89: sell, stop 4049.70 (2.0 ATR), target 3330.58 (3.0R)"}
+{"time":"2026-11-12T16:00:00Z","leg":0,"kind":"missed","side":"sell","details":{"stop":4049.698571,"target":3330.580286},"reason":"too small"}

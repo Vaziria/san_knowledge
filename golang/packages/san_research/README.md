@@ -23,6 +23,21 @@ Output in `--out`: `report.md`, `charts/*.png`, and with `--backtests`
 `backtests/<approach>/<run>/` (san_backtest report folders: real, harsh,
 2022 ... 2026; `real` carries the walk-forward) and `backtests/summary.json`.
 
+The trend approaches (the user, 2026-11-15: "Can you summary the approach
+and create better approach in code ?") have their own command:
+
+```sh
+<scratch>/san_research.exe approaches --out D:/research/marketing/trade_research/XAUUSD/approaches-2026-11-15
+```
+
+Flags: `--cache`, `--instrument`, `--from 2022-05-02`, `--to`, `--only
+daily_trend,pullback_trend` and `--param name=value,...` (overrides the
+candidates' defaults for sensitivity checks; send those to a scratch
+`--out`). It writes `backtests/<approach>/<run>/` (real with walk-forward,
+harsh, each year, and `real-100k`, information only), `backtests/summary.json`
+and `backtests/results.md`, where the pass rule (`trend_rule.go`) is applied.
+About 10 seconds; the summary and verdict are in that folder's `summary.md`.
+
 ## What it does
 
 - `data.go`: `Offline`, a san_backtest `Cacheable` that serves only the
@@ -48,6 +63,18 @@ Output in `--out`: `report.md`, `charts/*.png`, and with `--backtests`
   `backtest.go` runs them (real, harsh 0.40/0.10, walk-forward 3m:1m, by
   year; balance 10000, risk 1%, leverage 2000) and keeps the folders small
   (daily equity points, candles only around trades).
+- `trend.go`: daily bars built from H4 (`dailyBars`, incremental; UTC days,
+  weekend candles count as Monday), daily mean/channel/ATR, the daily trend
+  (close vs the 50-day mean, mean vs 10 days ago), the overlap window
+  (19:00-23:00 WIB) and the active hours (14:00-23:00 WIB).
+- `trend_approaches.go` (`daily_trend`, with the shared position tracking
+  and the 1R trailing stop) and `trend_others.go` (`overlap_momentum`,
+  `pullback_trend`, the benchmark `buy_and_hold_xau` run at 50% risk with a
+  50% stop, about 1x the balance). All step on H1 with H4 context.
+- `trend_run.go`: `RunTrendApproaches`, with `floorSource`, which clamps
+  queries to the first cached month so a warm-up that reaches before the
+  cache starts the run later (noted) instead of failing. `trend_rule.go`:
+  the pass rule fixed before the first run, and `results.md`.
 
 ## Conventions
 

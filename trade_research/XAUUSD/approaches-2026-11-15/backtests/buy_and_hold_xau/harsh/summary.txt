@@ -1,0 +1,14 @@
+buy_and_hold_xau
+range       2022-05-02 00:00 UTC (2022-05-02 07:00 WIB) to 2026-11-14 00:00 UTC (2026-11-14 07:00 WIB)
+costs XAUUSD: spread override: 0.4 fixed; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage override: 0.1 per market fill
+trades         1 (1 won, 0 lost)
+win rate       100.0%
+profit factor  inf
+average R      1.28
+net profit     6057.22 (60.57%), commission 0.00, swap -3912.75
+balance        10000.00 -> 16057.22
+max drawdown   9072.13 (36.19%)
+losing streak  0
+first half     1 trades, 100.0% won, net 6057.22, avg R 1.28
+second half    0 trades, 0.0% won, net 0.00, avg R 0.00
+skipped        none

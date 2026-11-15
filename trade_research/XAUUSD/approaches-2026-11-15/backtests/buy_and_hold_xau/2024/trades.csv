@@ -1,0 +1,2 @@
+leg,strategy,instrument,side,signal_utc,open_utc,open_wib,close_utc,close_wib,entry,exit,stop,final_stop,target,lots,spread,risk,gross,commission,swap,net,r,reason
+0,buy_and_hold_xau,XAUUSD,buy,2024-01-02T00:00:00Z,2024-01-02T00:00:00Z,2024-01-02T07:00:00+07:00,2025-01-01T00:00:00Z,2025-01-01T07:00:00+07:00,2063.98,2624.38,1031.77,1031.77,6190.63,0.04,0.372,4128.83,2241.60,0.00,-688.68,1552.92,0.376,closed at end

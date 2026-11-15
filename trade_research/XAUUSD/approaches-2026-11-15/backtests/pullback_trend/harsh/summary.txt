@@ -1,0 +1,16 @@
+pullback_trend
+range       2022-06-16 04:00 UTC (2022-06-16 11:00 WIB) to 2026-11-13 22:00 UTC (2026-11-14 05:00 WIB)
+note        XAUUSD history starts too late for From 2022-05-02T00:00:00Z (330 warm-up candles of H1/H4 needed before it): the run starts at 2022-06-16T04:00:00Z
+costs XAUUSD: spread override: 0.4 fixed; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage override: 0.1 per market fill
+params      hold_days=3 stop_buf=0.5 target_r=2 trend=50
+trades         146 (62 won, 84 lost)
+win rate       42.5%
+profit factor  1.20
+average R      0.13
+net profit     1808.36 (18.08%), commission 0.00, swap -374.06
+balance        10000.00 -> 11808.36
+max drawdown   1399.66 (11.27%)
+losing streak  6
+first half     71 trades, 47.9% won, net 1642.59, avg R 0.25
+second half    75 trades, 37.3% won, net 165.78, avg R 0.02
+skipped        none

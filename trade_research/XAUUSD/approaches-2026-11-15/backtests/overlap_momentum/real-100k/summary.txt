@@ -1,0 +1,16 @@
+overlap_momentum
+range       2022-06-16 04:00 UTC (2022-06-16 11:00 WIB) to 2026-11-13 22:00 UTC (2026-11-14 05:00 WIB)
+note        XAUUSD history starts too late for From 2022-05-02T00:00:00Z (330 warm-up candles of H1/H4 needed before it): the run starts at 2022-06-16T04:00:00Z
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      imp_atr=3 stop_atr=1.5 target_r=2 trend=50
+trades         91 (43 won, 48 lost)
+win rate       47.3%
+profit factor  0.96
+average R      -0.01
+net profit     -1538.57 (-1.54%), commission 0.00, swap 0.00
+balance        100000.00 -> 98461.43
+max drawdown   9524.35 (9.21%)
+losing streak  6
+first half     57 trades, 43.9% won, net -4640.42, avg R -0.08
+second half    34 trades, 52.9% won, net 3101.85, avg R 0.10
+skipped        none

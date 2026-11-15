@@ -1,0 +1,15 @@
+overlap_momentum
+range       2025-01-01 23:00 UTC (2025-01-02 06:00 WIB) to 2025-12-31 22:00 UTC (2026-01-01 05:00 WIB)
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      imp_atr=3 stop_atr=1.5 target_r=2 trend=50
+trades         22 (13 won, 9 lost)
+win rate       59.1%
+profit factor  1.57
+average R      0.20
+net profit     417.73 (4.18%), commission 0.00, swap 0.00
+balance        10000.00 -> 10417.73
+max drawdown   198.18 (1.87%)
+losing streak  2
+first half     9 trades, 66.7% won, net 237.82, avg R 0.28
+second half    13 trades, 53.8% won, net 179.91, avg R 0.15
+skipped        none

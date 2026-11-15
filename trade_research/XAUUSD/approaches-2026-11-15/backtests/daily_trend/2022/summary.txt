@@ -1,0 +1,16 @@
+daily_trend
+range       2022-06-16 04:00 UTC (2022-06-16 11:00 WIB) to 2022-12-30 22:00 UTC (2022-12-31 05:00 WIB)
+note        XAUUSD history starts too late for From 2022-05-02T00:00:00Z (330 warm-up candles of H1/H4 needed before it): the run starts at 2022-06-16T04:00:00Z
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      channel=20 stop_atr=2 target_r=3 trend=50
+trades         3 (3 won, 0 lost)
+win rate       100.0%
+profit factor  inf
+average R      1.06
+net profit     215.46 (2.15%), commission 0.00, swap -28.30
+balance        10000.00 -> 10215.46
+max drawdown   119.67 (1.17%)
+losing streak  0
+first half     2 trades, 100.0% won, net 175.77, avg R 1.34
+second half    1 trades, 100.0% won, net 39.69, avg R 0.50
+skipped        none

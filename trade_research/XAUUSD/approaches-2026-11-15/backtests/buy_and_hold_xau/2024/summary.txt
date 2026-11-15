@@ -1,0 +1,14 @@
+buy_and_hold_xau
+range       2024-01-01 20:00 UTC (2024-01-02 03:00 WIB) to 2025-01-01 00:00 UTC (2025-01-01 07:00 WIB)
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+trades         1 (1 won, 0 lost)
+win rate       100.0%
+profit factor  inf
+average R      0.38
+net profit     1552.92 (15.53%), commission 0.00, swap -688.68
+balance        10000.00 -> 11552.92
+max drawdown   966.90 (7.85%)
+losing streak  0
+first half     1 trades, 100.0% won, net 1552.92, avg R 0.38
+second half    0 trades, 0.0% won, net 0.00, avg R 0.00
+skipped        none

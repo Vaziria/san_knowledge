@@ -3,6 +3,10 @@
 // 2026-11-15: "1a"). It reads the cache only: no Exness calls, no orders.
 //
 //	san_research xauusd --out <dir> [--cache <dir>] [--from 2022-05-02] [--to 2026-11-14T18:00] [--backtests]
+//	san_research approaches --out <dir> [--cache <dir>] [--from 2022-05-02] [--to <UTC time>] [--only daily_trend,...]
+//
+// approaches backtests the trend approaches of approaches-2026-11-15 and
+// the buy-and-hold benchmark, also from the cache only.
 package main
 
 import (
@@ -11,6 +15,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"time"
 
 	research "github.com/wargasipil/san_research"
@@ -25,9 +31,13 @@ func main() {
 	}
 }
 
-const usage = "usage: san_research xauusd --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--backtests]"
+const usage = "usage: san_research xauusd --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--backtests]\n" +
+	"       san_research approaches --out <dir> [--cache <dir>] [--instrument XAUUSD] [--from 2022-05-02] [--to <UTC time>] [--only a,b]"
 
 func run(ctx context.Context, args []string) error {
+	if len(args) > 0 && args[0] == "approaches" {
+		return runApproaches(ctx, args[1:])
+	}
 	if len(args) == 0 || args[0] != "xauusd" {
 		return fmt.Errorf("%s", usage)
 	}
@@ -55,6 +65,49 @@ func run(ctx context.Context, args []string) error {
 		}
 	}
 	_, err = research.Research(ctx, o)
+	return err
+}
+
+func runApproaches(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("approaches", flag.ContinueOnError)
+	out := fs.String("out", "", "folder for backtests/<approach>/<run>, backtests/summary.json and backtests/results.md")
+	cache := fs.String("cache", defaultCache(), "san_backtest's candle cache folder")
+	inst := fs.String("instrument", "XAUUSD", "instrument name in the cache")
+	from := fs.String("from", "2022-05-02", "first candle, UTC")
+	to := fs.String("to", "", "end, UTC, exclusive; empty = the cache's covered_to")
+	only := fs.String("only", "", "comma-separated approach names; empty = all")
+	params := fs.String("param", "", "comma-separated name=value overrides of the candidates' defaults (sensitivity checks)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *out == "" {
+		return fmt.Errorf("--out is needed\n%s", usage)
+	}
+	o := research.TrendOptions{Cache: *cache, Instrument: *inst, Out: *out, Log: os.Stdout}
+	if *only != "" {
+		o.Only = strings.Split(*only, ",")
+	}
+	if *params != "" {
+		o.Params = map[string]float64{}
+		for _, kv := range strings.Split(*params, ",") {
+			k, v, ok := strings.Cut(kv, "=")
+			f, err := strconv.ParseFloat(v, 64)
+			if !ok || err != nil {
+				return fmt.Errorf("--param %q: want name=number", kv)
+			}
+			o.Params[k] = f
+		}
+	}
+	var err error
+	if o.From, err = parseWhen(*from); err != nil {
+		return fmt.Errorf("--from: %w", err)
+	}
+	if *to != "" {
+		if o.To, err = parseWhen(*to); err != nil {
+			return fmt.Errorf("--to: %w", err)
+		}
+	}
+	_, err = research.RunTrendApproaches(ctx, o)
 	return err
 }
 

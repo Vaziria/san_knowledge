@@ -64,12 +64,16 @@ func NewControlFade() *LevelFade {
 	return &LevelFade{ID: BenchmarkControlFade, FromH: 7, ToH: 20, Levels: controlLevels, what: "control line"}
 }
 
-// Register adds the approaches and the benchmark to a san_backtest
-// registry.
+// Register adds the approaches and the benchmarks to a san_backtest
+// registry: the Asian-high fades, and the trend approaches of
+// approaches-2026-11-15 (trend_approaches.go, trend_others.go).
 func Register(r *bt.Registry) {
 	r.Register(ApproachAsianHighFade, func() bt.Strategy { return NewAsianHighFade() })
 	r.Register(ApproachOverlapFade, func() bt.Strategy { return NewOverlapFade() })
 	r.Register(BenchmarkControlFade, func() bt.Strategy { return NewControlFade() })
+	for _, mk := range TrendApproaches() {
+		r.Register(mk().Name(), mk)
+	}
 }
 
 func (s *LevelFade) Name() string         { return s.ID }

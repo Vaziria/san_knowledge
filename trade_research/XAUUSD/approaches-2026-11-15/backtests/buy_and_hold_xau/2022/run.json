@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "kind": "run",
+  "approach": "buy_and_hold_xau",
+  "instrument": "XAUUSD",
+  "timeframes": [
+    "H4"
+  ],
+  "params": {},
+  "ran_at": "2026-11-15T10:43:05Z",
+  "requested": {
+    "from": "2022-05-02T00:00:00Z",
+    "to": "2023-01-01T00:00:00Z"
+  },
+  "range": {
+    "from": "2022-05-02T00:00:00Z",
+    "to": "2022-12-31T00:00:00Z"
+  },
+  "account": {
+    "balance": 10000,
+    "currency": "USD",
+    "leverage": 2000,
+    "max_open": 0,
+    "max_open_risk": 0,
+    "max_daily_loss": 0,
+    "day_tz": "WIB"
+  },
+  "costs": [
+    {
+      "leg": 0,
+      "instrument": "XAUUSD",
+      "spread": "exness: each candle's ask - bid",
+      "commission": "exness: 0  per lot per side",
+      "swap": "exness: long -471.7, short 0 points per lot per night",
+      "slippage": "0 (0 unless set)",
+      "overridden": []
+    }
+  ],
+  "legs": [
+    {
+      "leg": 0,
+      "strategy": "buy_and_hold_xau",
+      "instrument": "XAUUSD",
+      "timeframes": [
+        "H4"
+      ],
+      "risk": 50,
+      "params": {},
+      "contribution": 0
+    }
+  ],
+  "stats": {
+    "trades": 1,
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0,
+    "profit_factor": 0,
+    "avg_r": -0.191,
+    "net_profit": -904.18,
+    "gross_win": 0,
+    "gross_loss": 904.18,
+    "commission": 0,
+    "swap": -577.83,
+    "start_balance": 10000,
+    "end_balance": 9095.82,
+    "return_pct": -9.042,
+    "max_drawdown": 1836.35,
+    "max_drawdown_pct": 18.271,
+    "longest_losing_streak": 1,
+    "first_half": {
+      "trades": 1,
+      "win_rate": 0,
+      "net_profit": -904.18,
+      "avg_r": -0.191
+    },
+    "second_half": {
+      "trades": 0,
+      "win_rate": 0,
+      "net_profit": 0,
+      "avg_r": 0
+    },
+    "skipped": {}
+  },
+  "files": [
+    "summary.txt",
+    "trades.csv",
+    "missed.csv",
+    "equity.csv",
+    "equity.png",
+    "decisions.jsonl",
+    "candles.csv"
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "kind": "run",
+  "approach": "daily_trend",
+  "instrument": "XAUUSD",
+  "timeframes": [
+    "H1",
+    "H4"
+  ],
+  "params": {
+    "channel": 20,
+    "stop_atr": 2,
+    "target_r": 3,
+    "trend": 50
+  },
+  "ran_at": "2026-11-15T10:43:00Z",
+  "requested": {
+    "from": "2024-01-01T00:00:00Z",
+    "to": "2025-01-01T00:00:00Z"
+  },
+  "range": {
+    "from": "2024-01-01T23:00:00Z",
+    "to": "2024-12-31T22:00:00Z"
+  },
+  "account": {
+    "balance": 10000,
+    "currency": "USD",
+    "leverage": 2000,
+    "max_open": 0,
+    "max_open_risk": 0,
+    "max_daily_loss": 0,
+    "day_tz": "WIB"
+  },
+  "costs": [
+    {
+      "leg": 0,
+      "instrument": "XAUUSD",
+      "spread": "exness: each candle's ask - bid",
+      "commission": "exness: 0  per lot per side",
+      "swap": "exness: long -471.7, short 0 points per lot per night",
+      "slippage": "0 (0 unless set)",
+      "overridden": []
+    }
+  ],
+  "legs": [
+    {
+      "leg": 0,
+      "strategy": "daily_trend",
+      "instrument": "XAUUSD",
+      "timeframes": [
+        "H1",
+        "H4"
+      ],
+      "risk": 1,
+      "params": {
+        "channel": 20,
+        "stop_atr": 2,
+        "target_r": 3,
+        "trend": 50
+      },
+      "contribution": 0
+    }
+  ],
+  "stats": {
+    "trades": 7,
+    "wins": 5,
+    "losses": 2,
+    "win_rate": 71.43,
+    "profit_factor": 5.511,
+    "avg_r": 1.015,
+    "net_profit": 615.08,
+    "gross_win": 751.43,
+    "gross_loss": 136.34,
+    "commission": 0,
+    "swap": -76.89,
+    "start_balance": 10000,
+    "end_balance": 10615.08,
+    "return_pct": 6.151,
+    "max_drawdown": 145.32,
+    "max_drawdown_pct": 1.375,
+    "longest_losing_streak": 1,
+    "first_half": {
+      "trades": 4,
+      "win_rate": 75,
+      "net_profit": 437.42,
+      "avg_r": 1.314
+    },
+    "second_half": {
+      "trades": 3,
+      "win_rate": 66.67,
+      "net_profit": 177.66,
+      "avg_r": 0.616
+    },
+    "skipped": {}
+  },
+  "files": [
+    "summary.txt",
+    "trades.csv",
+    "missed.csv",
+    "equity.csv",
+    "equity.png",
+    "decisions.jsonl",
+    "candles.csv"
+  ]
+}

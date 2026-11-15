@@ -1,0 +1,3 @@
+{"time":"2024-01-02T00:00:00Z","leg":0,"kind":"signal","side":"buy","details":{"action":1,"close":2063.543,"stop":1031.7715,"target":6190.629},"reason":"benchmark: buy and hold from 2063.54, about 1x the balance; disaster stop 1031.77 (-50%), target 6190.63 (3x); pays the long swap every night"}
+{"time":"2024-01-02T00:00:00Z","leg":0,"kind":"entry","side":"buy","details":{"lots":0.04,"price":2063.98,"risk":4128.834,"spread":0.372,"stop":1031.7715,"target":6190.629}}
+{"time":"2025-01-01T00:00:00Z","leg":0,"kind":"exit","side":"buy","details":{"entry":2063.98,"lots":0.04,"net":1552.922,"price":2624.381,"r":0.376116},"reason":"closed at end"}

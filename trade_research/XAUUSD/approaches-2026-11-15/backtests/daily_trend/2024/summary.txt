@@ -1,0 +1,15 @@
+daily_trend
+range       2024-01-01 23:00 UTC (2024-01-02 06:00 WIB) to 2024-12-31 22:00 UTC (2025-01-01 05:00 WIB)
+costs XAUUSD: spread exness: each candle's ask - bid; commission exness: 0  per lot per side; swap exness: long -471.7, short 0 points per lot per night; slippage 0 (0 unless set)
+params      channel=20 stop_atr=2 target_r=3 trend=50
+trades         7 (5 won, 2 lost)
+win rate       71.4%
+profit factor  5.51
+average R      1.01
+net profit     615.08 (6.15%), commission 0.00, swap -76.89
+balance        10000.00 -> 10615.08
+max drawdown   145.32 (1.37%)
+losing streak  1
+first half     4 trades, 75.0% won, net 437.42, avg R 1.31
+second half    3 trades, 66.7% won, net 177.66, avg R 0.62
+skipped        none

@@ -57,6 +57,11 @@ func (s *Server) Close() {
 		s.crawler.Close()
 	}
 	s.watch.Close()
+	s.closeOnce.Do(func() {
+		if s.analysisStop != nil {
+			close(s.analysisStop)
+		}
+	})
 }
 
 // remoteTrends looks up related queries through a San Remote connection's

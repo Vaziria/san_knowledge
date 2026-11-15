@@ -18,6 +18,16 @@ const File = "tower.json"
 type Settings struct {
 	Broker        Broker        `json:"broker"`
 	BrowserRemote BrowserRemote `json:"browser_remote"`
+	// BacktestAnalysis is the Backtest Analysis page's own: kept here, not
+	// in the report folders it opens, which it never writes to. A pointer
+	// keeps Settings comparable.
+	BacktestAnalysis *BacktestAnalysis `json:"backtest_analysis,omitempty"`
+}
+
+// BacktestAnalysis holds the folders the Backtest Analysis page opened.
+type BacktestAnalysis struct {
+	// Recent are the folders opened last, newest first (10 at most).
+	Recent []string `json:"recent,omitempty"`
 }
 
 // Broker is the setup of the San Message broker the tower uses: its own,

@@ -73,7 +73,7 @@ func (ld *loaded) walk(w Walk) (*WalkResult, error) {
 	for s := ld.from; !s.Add(w.Train + w.Test).After(ld.to); s = s.Add(w.Test) {
 		win := WalkWindow{TrainFrom: s, TrainTo: s.Add(w.Train), TestFrom: s.Add(w.Train), TestTo: s.Add(w.Train + w.Test)}
 		best := cloneParams(defaults)
-		r, err := ld.run(ld.p.Balance, win.TrainFrom, win.TrainTo, best)
+		r, err := ld.run(ld.p.Balance, win.TrainFrom, win.TrainTo, best, false)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +86,7 @@ func (ld *loaded) walk(w Walk) (*WalkResult, error) {
 				}
 				trial := cloneParams(best)
 				trial[name] = v
-				r, err := ld.run(ld.p.Balance, win.TrainFrom, win.TrainTo, trial)
+				r, err := ld.run(ld.p.Balance, win.TrainFrom, win.TrainTo, trial, false)
 				if err != nil {
 					return nil, err
 				}
@@ -97,7 +97,7 @@ func (ld *loaded) walk(w Walk) (*WalkResult, error) {
 			}
 		}
 		win.Params, win.Train = best, bestStats
-		test, err := ld.run(balance, win.TestFrom, win.TestTo, best)
+		test, err := ld.run(balance, win.TestFrom, win.TestTo, best, false)
 		if err != nil {
 			return nil, err
 		}

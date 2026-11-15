@@ -21,7 +21,7 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	res, err := ld.run(p.Balance, ld.from, ld.to, nil)
+	res, err := ld.run(p.Balance, ld.from, ld.to, nil, true)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,10 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 		if res.Walk, err = ld.walk(*cfg.Walk); err != nil {
 			return nil, err
 		}
+		w := *cfg.Walk
+		res.Run.Walk = &w
 	}
+	res.Run.Kind = KindRun
 	return res, nil
 }
 
@@ -44,7 +47,12 @@ func RunPortfolio(ctx context.Context, p Portfolio) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ld.run(p.Balance, ld.from, ld.to, nil)
+	res, err := ld.run(p.Balance, ld.from, ld.to, nil, true)
+	if err != nil {
+		return nil, err
+	}
+	res.Run.Kind = KindPortfolio
+	return res, nil
 }
 
 // loaded is every leg's candles and conditions, fetched once; runs and
@@ -290,6 +298,7 @@ type legRun struct {
 	bid, ask   float64
 	prevClose  time.Time
 	trades     []Trade
+	firstIdx   int
 	lastIdx    int
 	params     map[string]float64
 }
@@ -305,6 +314,10 @@ type sim struct {
 	equity   []EquityPoint
 	day      string
 	dayStart float64
+	// record keeps the decision log and the candles (the main run; never
+	// the walk-forward trials).
+	record    bool
+	decisions []Decision
 }
 
 type event struct {
@@ -315,16 +328,16 @@ type event struct {
 }
 
 // run replays [from, to) from balance; override replaces leg 0's params
-// (walk-forward trials).
-func (ld *loaded) run(balance float64, from, to time.Time, override map[string]float64) (res *Result, err error) {
-	s := &sim{ld: ld, p: ld.p, balance: balance, skipped: map[string]int{}}
+// (walk-forward trials). record keeps the decision log and the candles.
+func (ld *loaded) run(balance float64, from, to time.Time, override map[string]float64, record bool) (res *Result, err error) {
+	s := &sim{ld: ld, p: ld.p, balance: balance, skipped: map[string]int{}, record: record}
 	var events []event
 	var params []map[string]float64
 	for i, d := range ld.legs {
 		step := d.candles[d.tfs[0]]
 		first := max(d.start, sort.Search(len(step), func(k int) bool { return !step[k].OpenTime.Before(from) }))
 		last := sort.Search(len(step), func(k int) bool { return step[k].CloseTime.After(to) }) - 1
-		l := &legRun{d: d, frames: map[string]*series{}, lastIdx: last, params: map[string]float64{}}
+		l := &legRun{d: d, frames: map[string]*series{}, firstIdx: first, lastIdx: last, params: map[string]float64{}}
 		for k, v := range d.params {
 			l.params[k] = v
 		}
@@ -343,7 +356,7 @@ func (ld *loaded) run(balance float64, from, to time.Time, override map[string]f
 			}
 		}
 		in := d.inst
-		l.ctx = &Context{step: d.tfs[0], tfs: d.tfs, frames: l.frames, anchors: anchors, params: l.params, inst: InstrumentInfo{Name: in.Name, Base: in.Base,
+		l.ctx = &Context{step: d.tfs[0], tfs: d.tfs, frames: l.frames, anchors: anchors, params: l.params, record: record, inst: InstrumentInfo{Name: in.Name, Base: in.Base,
 			Quote: in.Quote, Digits: in.Digits, Point: in.Point(), ContractSize: in.ContractSize, LotMin: in.LotMin, LotMax: in.LotMax, LotStep: in.LotStep}}
 		s.legs = append(s.legs, l)
 		for k := first; k <= last; k++ {
@@ -491,6 +504,7 @@ func (s *sim) onOpen(l *legRun, c Candle) {
 		l.pending = nil
 		if p := l.pos; p != nil && !math.IsNaN(sig.Stop) && sig.Stop > 0 {
 			if (p.side == Long && sig.Stop > p.stop) || (p.side == Short && sig.Stop < p.stop) {
+				s.decide(l, c.OpenTime, DecisionStopMove, p.side, map[string]float64{"old_stop": p.stop, "stop": sig.Stop}, sig.Reason)
 				p.stop = sig.Stop
 			}
 		}
@@ -506,6 +520,7 @@ func (s *sim) enter(l *legRun, c Candle, sig Signal) {
 	miss := func(reason string) {
 		s.skipped[reason]++
 		s.missed = append(s.missed, Missed{Time: c.OpenTime, Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Side: side, Reason: reason})
+		s.decide(l, c.OpenTime, DecisionMissed, side, map[string]float64{"stop": sig.Stop, "target": sig.Target}, reason)
 	}
 	if !d.inst.Open(c.OpenTime) {
 		miss(SkipMarketClosed)
@@ -550,6 +565,53 @@ func (s *sim) enter(l *legRun, c Candle, sig Signal) {
 	s.balance -= comm
 	l.pos = &openPos{side: side, entry: fill, stop: st, initStop: st, target: tg, lots: lots, signalTime: l.signalTime, openTime: c.OpenTime,
 		risk: risk, margin: margin, commission: comm, lastRoll: c.OpenTime, spread: c.AskOpen - c.Open}
+	s.decide(l, c.OpenTime, DecisionEntry, side, map[string]float64{"price": fill, "stop": st, "target": tg, "lots": lots, "risk": risk,
+		"spread": c.AskOpen - c.Open}, "")
+}
+
+// decide adds a line to the decision log when the run records one.
+func (s *sim) decide(l *legRun, t time.Time, kind string, side Side, details map[string]float64, reason string) {
+	if !s.record {
+		return
+	}
+	s.decisions = append(s.decisions, Decision{Time: t, Leg: l.d.i, Kind: kind, Side: side, Details: details, Reason: reason})
+}
+
+// decideSignal logs what OnCandle asked for at t, with its notes as the
+// reason; a step that waits but noted something is a note line.
+func (s *sim) decideSignal(l *legRun, t time.Time, sig Signal, notes []string) {
+	if !s.record {
+		return
+	}
+	reason := strings.Join(notes, "; ")
+	if sig.Action == ActWait {
+		if reason != "" {
+			s.decide(l, t, DecisionNote, "", nil, reason)
+		}
+		return
+	}
+	if sig.Reason != "" {
+		reason = strings.Join(append([]string{sig.Reason}, notes...), "; ")
+	}
+	det := map[string]float64{"action": float64(sig.Action)}
+	var side Side
+	switch sig.Action {
+	case ActBuy, ActSell:
+		side = Long
+		if sig.Action == ActSell {
+			side = Short
+		}
+		det["stop"], det["target"] = sig.Stop, sig.Target
+		if k, ok := l.ctx.Last(l.ctx.step); ok {
+			det["close"] = k.Close
+		}
+	case ActMoveStop:
+		det["stop"] = sig.Stop
+	}
+	if side == "" && l.pos != nil {
+		side = l.pos.side
+	}
+	s.decide(l, t, DecisionSignal, side, det, reason)
 }
 
 // lotsFor rounds want down to the lot step, capped at the maximum; 0 when
@@ -605,7 +667,10 @@ func (s *sim) onClose(l *legRun, idx int, c Candle) {
 			Profit: s.floating(l) - p.commission}
 	}
 	x.account = Account{Currency: s.p.Currency, Balance: s.balance, Equity: s.equityNow(), Margin: s.usedMargin(), Open: s.openCount()}
+	x.notes = nil
 	sig := l.d.leg.Strategy.OnCandle(x)
+	s.decideSignal(l, c.CloseTime, sig, x.notes)
+	x.notes = nil
 	if sig.Action != ActWait {
 		l.pending, l.signalTime = &sig, c.CloseTime
 	}
@@ -683,6 +748,7 @@ func (s *sim) closePos(l *legRun, exit float64, at time.Time, reason string, swa
 	s.trades = append(s.trades, t)
 	l.trades = append(l.trades, t)
 	l.pos = nil
+	s.decide(l, at, DecisionExit, t.Side, map[string]float64{"price": exit, "entry": t.Entry, "lots": t.Lots, "net": t.Net, "r": t.R}, reason)
 }
 
 func (s *sim) mark(t time.Time) {
@@ -701,9 +767,20 @@ func (s *sim) result(balance float64, from, to time.Time, params []map[string]fl
 	res := &Result{Trades: s.trades, Missed: s.missed, Equity: s.equity, Params: params,
 		Range: Range{From: from, To: to, RequestedFrom: ld.p.From, RequestedTo: ld.p.To, Notes: append([]string{}, ld.notes...)}}
 	res.Stats = computeStats(s.trades, s.equity, balance, mid, s.skipped)
+	res.Run = RunInfo{RanAt: time.Now().UTC(), Balance: balance, Currency: ld.p.Currency, Leverage: ld.p.Leverage, MaxOpen: ld.p.MaxOpen,
+		MaxOpenRisk: ld.p.MaxOpenRisk, MaxDailyLoss: ld.p.MaxDailyLoss, DayTZ: ld.p.DayTZ.String()}
+	if s.record {
+		res.Decisions = s.decisions
+	}
 	var names []string
-	for _, l := range s.legs {
+	for i, l := range s.legs {
 		d := l.d
+		res.Run.Legs = append(res.Run.Legs, LegInfo{Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Timeframes: append([]string{}, d.tfs...),
+			Risk: d.leg.Risk, Params: cloneParams(params[i]), Overridden: overridden(d.costs)})
+		if s.record && l.firstIdx <= l.lastIdx {
+			res.Candles = append(res.Candles, CandleSet{Leg: d.i, Instrument: d.inst.Name, Timeframe: d.tfs[0],
+				Candles: d.candles[d.tfs[0]][l.firstIdx : l.lastIdx+1]})
+		}
 		res.Costs = append(res.Costs, d.report)
 		res.Range.Notes = append(res.Range.Notes, d.report.Notes...)
 		skipped := map[string]int{}

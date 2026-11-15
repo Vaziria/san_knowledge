@@ -19,7 +19,7 @@ func TestReportFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(paths) != 5 {
+	if len(paths) != 8 {
 		t.Fatalf("paths %v", paths)
 	}
 	f, _ := os.Open(filepath.Join(dir, "trades.csv"))

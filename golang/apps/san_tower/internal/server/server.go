@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -55,6 +56,10 @@ type Server struct {
 	// (keyword_research_watch.go).
 	crawler *keywordresearch.Crawler
 	watch   *keywordresearch.Watch
+	// analysisStop ends the Backtest Analysis folder watches when the
+	// tower stops (backtest_analysis.go).
+	analysisStop chan struct{}
+	closeOnce    sync.Once
 
 	// LAN answers on the network too, behind GuardLAN, not only on
 	// loopback (serve --lan; the user's choice, 2026-10-26).
@@ -79,7 +84,8 @@ var (
 func New(version string, broker *broker.Broker, store *store.Store, engine *engine.Engine, remote *browserremote.Remote) *Server {
 	host, _ := os.Hostname()
 	exe, _ := os.Executable()
-	s := &Server{version: version, hostname: host, executable: exe, started: time.Now(), broker: broker, store: store, engine: engine, remote: remote}
+	s := &Server{version: version, hostname: host, executable: exe, started: time.Now(), broker: broker, store: store, engine: engine, remote: remote,
+		analysisStop: make(chan struct{})}
 	s.watch = &keywordresearch.Watch{}
 	s.crawler = s.newCrawler()
 	s.crawler.Start()
@@ -102,6 +108,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle(towerv1connect.NewChatServiceHandler(s))
 	mux.Handle(towerv1connect.NewKnowledgeServiceHandler(s))
 	mux.Handle(towerv1connect.NewKeywordResearchServiceHandler(s))
+	mux.Handle(towerv1connect.NewBacktestAnalysisServiceHandler(analysisService{s}))
 	mux.Handle(s.broker.Handler())
 	// /api/claude-health is the UI startup banner's probe: a plain-JSON
 	// endpoint because the frontend's proto codegen (@bufbuild/protoc-gen-es)

@@ -2,6 +2,7 @@ import {
   AppWindowIcon,
   BrainIcon,
   CableIcon,
+  ChartCandlestickIcon,
   HardDriveIcon,
   HouseIcon,
   MessageSquareTextIcon,
@@ -11,6 +12,8 @@ import {
   WorkflowIcon,
 } from 'lucide-react';
 import { createBrowserRouter } from 'react-router';
+import { BacktestAnalysisList } from './backtest/BacktestAnalysisList';
+import { BacktestRunPage } from './backtest/BacktestRunPage';
 import { Layout, type Page } from './Layout';
 import { BrowserRemoteServer } from './pages/BrowserRemoteServer';
 import { Chat } from './pages/Chat';
@@ -38,6 +41,14 @@ const pages: Page[] = [
   { path: '/knowledge', label: 'Knowledge', icon: BrainIcon, element: <Knowledge /> },
   // After Knowledge (the user, 2026-11-11): Google Trends keyword maps.
   { path: '/keyword-research', label: 'Keyword Research', icon: TrendingUpIcon, element: <KeywordResearchList /> },
+  // After Keyword Research (the user, 2026-11-15: "Sorry 'backtest
+  // analysis'"): San Backtest's report folders, read-only.
+  {
+    path: '/backtest-analysis',
+    label: 'Backtest Analysis',
+    icon: ChartCandlestickIcon,
+    element: <BacktestAnalysisList />,
+  },
   { path: '/workflow', label: 'Workflow', icon: WorkflowIcon, element: <WorkflowList /> },
   { path: '/message-broker', label: 'Message Broker', icon: MessagesSquareIcon, element: <MessageBroker /> },
   { path: '/connections', label: 'Connections', icon: CableIcon, element: <Connections /> },
@@ -52,6 +63,7 @@ const subpages = [
   { path: '/workflow/:id', element: <WorkflowEditor /> },
   { path: '/knowledge/:id', element: <KnowledgeGraph /> },
   { path: '/keyword-research/:id', element: <KeywordResearchPage /> },
+  { path: '/backtest-analysis/run', element: <BacktestRunPage /> },
 ];
 
 export const router = createBrowserRouter([

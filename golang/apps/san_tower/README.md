@@ -2801,12 +2801,66 @@ months gave 138 keywords and 240 links in three communities ("kode pos",
 queries a keyword, so deep limit 2 is about 51 lookups (some 7-12 minutes),
 and each level more multiplies that by about 50.
 
+## Backtest Analysis
+
+The Backtest Analysis page (`/backtest-analysis`, after Keyword Research;
+the user, 2026-11-15: "We should have menu in tower named backtest" ...
+"Sorry 'backtest analysis'"; `internal/backtestanalysis`,
+`server/backtest_analysis.go`, BacktestAnalysisService) opens folders of
+San Backtest reports on this computer (`golang/packages/san_backtest`,
+written by `san_backtest run ... --out <dir>` or `Result.Save`; the user,
+2026-11-15: "It can open directory that contain report log that generated
+by backtest").
+
+- **Read only.** It only opens reports and never starts a run (the user,
+  2026-11-15: "1a"), and nothing in a report folder is written, moved or
+  deleted. The tower reads the report files itself (run.json, the CSVs,
+  decisions.jsonl): it does not import san_backtest, so its go.mod is the
+  same.
+- **Opening a folder:** a path, the folder picker (ListFolders: the tower
+  lists this computer's drives and folders, since a browser's file dialog
+  gives no real path; report folders are marked), or a recent folder. The
+  last 10 folders opened are kept in `tower.json` (`backtest_analysis.
+  recent`), never in the report folders; a recent one can be forgotten.
+- **What is a report:** a folder with `run.json`, or an older one with
+  `summary.txt` and `trades.csv` (before run.json: its stats come from
+  summary.txt, and it has no candles or decision log, so no price chart).
+  OpenFolder scans the folder and its subfolders (8 levels, 5000 folders;
+  hidden folders, `node_modules` and `backtest_cache` are skipped).
+- **The run list:** approach, instrument and step timeframe, range (WIB),
+  trades, win %, profit factor, net %, max drawdown and the subfolder;
+  sortable by each column, with a search. It is live (WatchFolder: the
+  folder is read every 3 s, a heartbeat every 15 s): a report written into
+  the open folder shows by itself. Ticking two or more runs compares them:
+  their stats side by side and their equity curves on one chart, as return
+  % from each run's start.
+- **A run's page** (`/backtest-analysis/run?path=<folder>`): the candles of
+  candles.csv (lightweight-charts; wheel zooms, drag pans) in the step
+  timeframe or a higher one built from it (GetCandles: first open, highest
+  high, lowest low, last close, summed volume; days from 00:00 UTC, weeks
+  from Sunday, months from the 1st), every trade drawn (an arrow at the
+  entry, a dot at the exit, green won and red lost, its stop and target as
+  dashed lines while it is open), and under it the equity and the
+  drawdown on the same time axis. The trades table filters by side,
+  result, session (Tokyo 09-18, London 08-17, New York 08-17 local time, as
+  San Backtest's `Session()`), month and reason, sorts, and a click on a
+  trade jumps the chart to it with its entry, stop, target and exit as
+  price lines. The decision log (GetDecisions) shows the selected trade's
+  lines (signal to exit), or the 30 lines around a candle clicked on the
+  chart or a missed signal. The stats panel has the summary, first against
+  second half, skipped signals, the walk-forward windows with the
+  out-of-sample line, params, account and costs. Times show in WIB.
+- **Local only:** the service names this computer's paths, so it answers
+  only callers on this computer (a loopback peer), also on a tower started
+  with `--lan`, where it refuses others with PermissionDenied.
+
 ## Data
 
 `--data` (default `data`, relative to where the tower runs; `$env:SAN_TOWER_DATA`)
 is the tower's folder, git-ignored. It holds:
-- `tower.json`, the settings changed from the UI. A broken file stops the
-  tower from starting rather than falling back to the defaults.
+- `tower.json`, the settings changed from the UI, and the Backtest
+  Analysis page's recent folders. A broken file stops the tower from
+  starting rather than falling back to the defaults.
 - `tower.db` (with its `-wal` and `-shm` files), the tower's SQLite
   database: the workflows, their runs, the connections, the storages, the
   messages the Telegram bots got, and the keyword researches with their
@@ -2923,7 +2977,10 @@ second fails to listen before it opens the broker.
   `keyword_research.proto` (KeywordResearchService: the researches and
   their folders, Run, Explore from here, Stop, Clear, a research's graph,
   Trends' filter lists, and the WatchResearch and WatchResearches
-  streams). `buf.gen.yaml` makes their Go
+  streams) and `backtest_analysis.proto` (BacktestAnalysisService: the
+  folder picker, open a folder of San Backtest reports, a run, its candles
+  and decision log, recent folders, and the WatchFolder stream).
+  `buf.gen.yaml` makes their Go
   code (`gen/`) and the UI's TS client. `buf.gen.san_message.yaml` makes
   the UI's TS client for san_message's proto; the Go side uses san_message's
   own generated code.
@@ -2996,6 +3053,16 @@ second fails to listen before it opens the broker.
   and the UI behind `Guard`, which only accepts a loopback Host and
   loopback pages. `Close` ends the keyword research crawl and the watch
   streams before the HTTP server shuts down.
+- `internal/backtestanalysis`: Backtest Analysis's readers of San
+  Backtest's report files, read-only: `reports.go` (what a report is,
+  run.json, the folder scan), `legacy.go` (summary.txt of reports before
+  run.json), `run.go` (trades with their session, missed, equity with its
+  drawdown and thinning, walk.csv), `candles.go` (candles.csv, higher
+  timeframes, a small cache), `decisions.go` (decisions.jsonl by range or
+  around a time) and `folders.go` (the picker). `server/
+  backtest_analysis.go` is its service (a type of its own,
+  `analysisService`, since WorkflowService has a GetRun and a ListFolders
+  too), the recent folders and the WatchFolder poll.
 - `internal/keywordresearch`: Keyword Research's graphs (`graph.go`: a
   research's goraphdb graph, opened per use, its nodes and relationships,
   Leiden communities), the crawl (`crawl.go`: one at a time in the tower,

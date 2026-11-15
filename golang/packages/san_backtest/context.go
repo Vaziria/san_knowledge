@@ -64,6 +64,10 @@ type Context struct {
 	account Account
 	inst    InstrumentInfo
 	params  map[string]float64
+	// notes are this step's Note calls; nil record drops them (walk-forward
+	// trials record nothing).
+	notes  []string
+	record bool
 }
 
 // Time is the close time of the current step candle, UTC.
@@ -170,6 +174,17 @@ func (c *Context) Position() *Position {
 	}
 	p := *c.pos
 	return &p
+}
+
+// Note explains the current step in the decision log (decisions.jsonl),
+// e.g. c.Note("ema20 above ema50, rsi %.0f", r). A note goes with the
+// step's signal as its reason, or stands alone when the step waits. Notes
+// cost nothing when the run records no decisions (walk-forward trials).
+func (c *Context) Note(format string, args ...any) {
+	if !c.record {
+		return
+	}
+	c.notes = append(c.notes, fmt.Sprintf(format, args...))
 }
 
 // Account is the account at this step.

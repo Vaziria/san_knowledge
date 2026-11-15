@@ -68,7 +68,7 @@ func shared() []cli.Flag {
 		&cli.BoolFlag{Name: "strict", Usage: "fail when history starts after --from (Config.Strict)"},
 		&cli.StringFlag{Name: "cache", Value: bt.DefaultCache, Usage: `folder for downloaded Exness candles; "off" keeps none (Config.Cache)`},
 		&cli.StringFlag{Name: "csv", Usage: "read candles from CSV files in this folder instead of Exness (see README)"},
-		&cli.StringFlag{Name: "out", Usage: "write summary.txt, trades.csv, missed.csv, equity.csv, equity.png (and walk.csv) here"},
+		&cli.StringFlag{Name: "out", Usage: "write summary.txt, trades.csv, missed.csv, equity.csv, equity.png, decisions.jsonl, candles.csv (and walk.csv) and run.json here"},
 	}
 }
 

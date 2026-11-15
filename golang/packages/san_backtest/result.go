@@ -18,6 +18,14 @@ type Result struct {
 	Legs   []LegResult  // per leg: its contribution
 	Params []map[string]float64
 	Walk   *WalkResult // with Config.Walk
+	// Run is what ran (run.json): the account, the legs and their params.
+	Run RunInfo
+	// Decisions is the decision log (decisions.jsonl): the candles where
+	// something happened, in time order.
+	Decisions []Decision
+	// Candles are each leg's step candles over the range that ran
+	// (candles.csv), so a report can be charted offline.
+	Candles []CandleSet
 }
 
 // Range is the period that really ran.

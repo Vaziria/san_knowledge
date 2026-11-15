@@ -60,8 +60,10 @@ func (*BigTrend) OnCandle(c *bt.Context) bt.Signal {
 		case p.Side == bt.Long && h1 < 0, p.Side == bt.Short && h1 > 0:
 			return bt.Close("H1 trend turned")
 		case p.Side == bt.Long && p.Stop < p.Entry && c.Close(step) >= p.Entry+r:
+			c.Note("1R in profit: stop to break-even")
 			return bt.MoveStop(p.Entry)
 		case p.Side == bt.Short && p.Stop > p.Entry && c.Close(step) <= p.Entry-r:
+			c.Note("1R in profit: stop to break-even")
 			return bt.MoveStop(p.Entry)
 		}
 		return bt.Wait
@@ -76,9 +78,11 @@ func (*BigTrend) OnCandle(c *bt.Context) bt.Signal {
 	}
 	dist := c.Param("stop_atr") * atr
 	if h1 > 0 && k.Low <= ema && k.Close > ema && k.Close > k.Open {
+		c.Note("%s and %s up; pullback to ema%d held, atr %.2f", tf(c, 1), tf(c, 2), fast, atr)
 		return bt.Buy(k.Close-dist, k.Close+c.Param("rr")*dist)
 	}
 	if h1 < 0 && k.High >= ema && k.Close < ema && k.Close < k.Open {
+		c.Note("%s and %s down; pullback to ema%d held, atr %.2f", tf(c, 1), tf(c, 2), fast, atr)
 		return bt.Sell(k.Close+dist, k.Close-c.Param("rr")*dist)
 	}
 	return bt.Wait
@@ -124,11 +128,13 @@ func (b *BreakoutRetest) OnCandle(c *bt.Context) bt.Signal {
 			b.dir = 0
 			stop := math.Min(k.Low, b.level) - 0.1*atr
 			stop = math.Min(stop, k.Close-floor)
+			c.Note("retest of %.2f held after the breakout up", b.level)
 			return bt.Buy(stop, b.target(c, k.Close, k.Close-stop, true))
 		case !up && k.High >= b.level-0.2*atr && k.Close < b.level:
 			b.dir = 0
 			stop := math.Max(k.High, b.level) + 0.1*atr
 			stop = math.Max(stop, k.Close+floor)
+			c.Note("retest of %.2f held after the breakout down", b.level)
 			return bt.Sell(stop, b.target(c, k.Close, stop-k.Close, false))
 		}
 		return bt.Wait
@@ -157,8 +163,10 @@ func (b *BreakoutRetest) OnCandle(c *bt.Context) bt.Signal {
 	switch {
 	case k.Close > hi && heavy && touches(hi, true) >= need:
 		b.level, b.dir, b.expires = hi, 1, int(c.Param("wait"))
+		c.Note("breakout up through %.2f on %.1fx volume: waiting for a retest", hi, k.Volume/vol)
 	case k.Close < lo && heavy && touches(lo, false) >= need:
 		b.level, b.dir, b.expires = lo, -1, int(c.Param("wait"))
+		c.Note("breakout down through %.2f on %.1fx volume: waiting for a retest", lo, k.Volume/vol)
 	}
 	return bt.Wait
 }
@@ -222,10 +230,12 @@ func (m *MovingAverage) OnCandle(c *bt.Context) bt.Signal {
 	rr := c.Param("rr")
 	if fast > slow && before.Close <= fast && k.Close > fast && rsi > 50 && hist > prev {
 		stop := math.Min(slow, k.Close-atr)
+		c.Note("ema%.0f above ema%.0f, close back over ema%.0f, rsi %.0f, macd histogram rising", c.Param("fast"), c.Param("slow"), c.Param("fast"), rsi)
 		return bt.Buy(stop, k.Close+rr*(k.Close-stop))
 	}
 	if fast < slow && before.Close >= fast && k.Close < fast && rsi < 50 && hist < prev {
 		stop := math.Max(slow, k.Close+atr)
+		c.Note("ema%.0f below ema%.0f, close back under ema%.0f, rsi %.0f, macd histogram falling", c.Param("fast"), c.Param("slow"), c.Param("fast"), rsi)
 		return bt.Sell(stop, k.Close-rr*(stop-k.Close))
 	}
 	return bt.Wait

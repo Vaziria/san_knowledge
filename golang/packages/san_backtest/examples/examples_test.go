@@ -83,6 +83,12 @@ func TestExamplesRun(t *testing.T) {
 		}
 		t.Logf("%s: %d trades, net %.2f, skipped %v", name, res.Stats.Trades, res.Stats.NetProfit, res.Stats.Skipped)
 		total += res.Stats.Trades
+		// every buy or sell signal explains itself with a Note
+		for _, d := range res.Decisions {
+			if d.Kind == bt.DecisionSignal && d.Details["action"] <= 2 && d.Reason == "" {
+				t.Errorf("%s: signal without a note %+v", name, d)
+			}
+		}
 		for _, tr := range res.Trades {
 			if tr.Risk <= 0 || tr.Lots <= 0 {
 				t.Errorf("%s: trade %+v", name, tr)
@@ -134,5 +140,14 @@ func TestBreakoutRetestTrades(t *testing.T) {
 	tr := res.Trades[0]
 	if tr.Side != bt.Long || tr.Entry != 100.6 || tr.Stop >= 100 || tr.Reason != "target" || !tr.OpenTime.Equal(next(2)) {
 		t.Fatalf("%+v", tr)
+	}
+	var notes []string
+	for _, d := range res.Decisions {
+		if d.Kind == bt.DecisionNote || d.Kind == bt.DecisionSignal {
+			notes = append(notes, d.Reason)
+		}
+	}
+	if len(notes) != 2 || !strings.HasPrefix(notes[0], "breakout up through 100.00") || notes[1] != "retest of 100.00 held after the breakout up" {
+		t.Errorf("notes %q", notes)
 	}
 }

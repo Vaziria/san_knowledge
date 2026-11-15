@@ -182,7 +182,7 @@ func TestRunCSVWritesFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"moving_average", "big_trend"} {
-		for _, f := range []string{"summary.txt", "trades.csv", "missed.csv", "equity.csv", "equity.png"} {
+		for _, f := range []string{"summary.txt", "trades.csv", "missed.csv", "equity.csv", "equity.png", "run.json", "decisions.jsonl", "candles.csv"} {
 			if _, err := os.Stat(filepath.Join(out, name, f)); err != nil {
 				t.Errorf("%s/%s: %v", name, f, err)
 			}
@@ -201,6 +201,9 @@ func TestRunCSVWritesFiles(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(out, "p", "equity.png")); err != nil {
 		t.Error(err)
+	}
+	if b, err := os.ReadFile(filepath.Join(out, "p", "run.json")); err != nil || !strings.Contains(string(b), `"kind": "portfolio"`) {
+		t.Errorf("portfolio run.json: %v\n%s", err, b)
 	}
 	text, _ = run(t, "list")
 	if !strings.Contains(text, "big_trend\ttimeframes M15,H1,H4\twarmup 60") {

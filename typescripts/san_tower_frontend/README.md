@@ -373,6 +373,33 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
   to read are not drawn. The selected node's links are labelled. A
   right-click on a node asks for its menu (`onMenu`, at the pointer); the
   browser's own menu is kept off the graph.
+- `src/backtest/`: the Backtest Analysis page (`/backtest-analysis`, after
+  Keyword Research; the user, 2026-11-15), read-only over
+  BacktestAnalysisService.
+  - `BacktestAnalysisList.tsx`: the folder (`?folder=`): a path, Browse
+    (`FolderPicker.tsx`, the tower's own folder browser, report folders
+    marked) and the recent folders (each can be forgotten); the runs in it
+    and its subfolders, live (WatchFolder through `useStream`), sortable by
+    every column and searchable; ticking two or more opens `Compare.tsx`
+    (stats side by side, equity as return % on one chart).
+  - `BacktestRunPage.tsx` (`/backtest-analysis/run?path=`): the price
+    chart with its timeframe switch, the equity and drawdown on the same
+    time axis (it follows the price chart's visible range), the stats
+    panel, the trades / missed / summary.txt tabs and the decision log.
+    `RunParts.tsx` has the stats panel, the trades table (filters: side,
+    result, session, month, reason; 50 a page) and the decision log.
+  - `PriceChart.tsx`: candles in `lightweight-charts` (TradingView's,
+    Apache-2.0, ~180 kB; the only candlestick chart in the UI: cytoscape
+    and React Flow draw graphs, not prices). Trades as series markers
+    (arrow at the entry, dot at the exit, green won, red lost), stops,
+    targets and entries as dashed line series per trade: a line series
+    joins every point even over whitespace, so each trade's last point is
+    transparent (a point's colour is the stretch after it). A click on a
+    trade selects it; any click picks the candle for the decision log.
+  - `EquityChart.tsx`: equity curves and the drawdown pane, plus the
+    charts' shared options (light or dark colours, WIB times, a small
+    `minBarSpacing` so months of points fit the width); `format.ts` the
+    page's number and time formats.
 - `src/keywordresearch/`: `KeywordGraph.tsx`, a research's graph in
   cytoscape, sorted by Leiden community (the user, 2026-11-12): a full
   layout lays each community out on its own with san_knowledge's cose

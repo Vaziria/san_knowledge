@@ -3,6 +3,7 @@ import { StringValueSchema, ValueSchema } from '@bufbuild/protobuf/wkt';
 import { ConnectError, createClient } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-web';
 import { MessageService } from './gen/san/message/v1/message_pb';
+import { BacktestAnalysisService } from './gen/san/tower/v1/backtest_analysis_pb';
 import { BrokerService } from './gen/san/tower/v1/broker_pb';
 import { BrowserRemoteService } from './gen/san/tower/v1/browser_remote_pb';
 import { ChatService } from './gen/san/tower/v1/chat_pb';
@@ -52,6 +53,10 @@ export const knowledge = createClient(KnowledgeService, transport);
 // keywordResearch is the Keyword Research page's researches, their folders,
 // crawls and graphs.
 export const keywordResearch = createClient(KeywordResearchService, transport);
+
+// backtestAnalysis is the Backtest Analysis page's reader of San Backtest
+// report folders on this computer (read-only).
+export const backtestAnalysis = createClient(BacktestAnalysisService, transport);
 
 // errorText is an error as a sentence: the server's own message, without
 // Connect's "[code]" prefix.

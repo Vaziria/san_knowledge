@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -23,6 +24,9 @@ const (
 	EventHMRUpdate    = "hmr_update"
 	EventTick         = "tick"
 	EventError        = "error"
+	// EventAck is a command's success answer, {"id":..,"code":"200"} (seen
+	// on the live streams, 2026-11-15); Message.Error is nil for it.
+	EventAck = "ack"
 )
 
 // Subprotocol is what Exness's own WebSocket example asks for.
@@ -249,15 +253,54 @@ type Tick struct {
 	Timestamp  time.Time `json:"timestamp"`
 }
 
-// StreamError is a refused stream command.
+// StreamError is a refused stream command. Exness sends its code as a
+// number or as a text such as "INVALID_REQUEST" (seen on the live events
+// stream, 2026-11-15); a number lands in Code, a text in CodeText.
 type StreamError struct {
-	ID      string `json:"id"`
-	Code    int    `json:"code"`
-	Message string `json:"error_message"`
+	ID       string `json:"id"`
+	Code     int    `json:"-"`
+	CodeText string `json:"-"`
+	Message  string `json:"error_message"`
+}
+
+func (e *StreamError) UnmarshalJSON(b []byte) error {
+	var raw struct {
+		ID      string          `json:"id"`
+		Code    json.RawMessage `json:"code"`
+		Message string          `json:"error_message"`
+		Alt     string          `json:"message"`
+	}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	e.ID, e.Message = raw.ID, raw.Message
+	if e.Message == "" {
+		e.Message = raw.Alt
+	}
+	if len(raw.Code) > 0 && json.Unmarshal(raw.Code, &e.Code) != nil {
+		if err := json.Unmarshal(raw.Code, &e.CodeText); err != nil {
+			e.CodeText = string(raw.Code)
+		}
+	}
+	return nil
 }
 
 func (e *StreamError) Error() string {
+	if e.CodeText != "" {
+		return fmt.Sprintf("exness: stream command %s: %s (%s)", e.ID, e.Message, e.CodeText)
+	}
 	return fmt.Sprintf("exness: stream command %s: %s (%d)", e.ID, e.Message, e.Code)
+}
+
+// zoneOffset matches a JSON time ending in a zone offset without a colon,
+// "2026-11-15T16:33:13.04179508+0000", which the live events stream sends
+// (2026-11-15) and Go's RFC 3339 parser refuses.
+var zoneOffset = regexp.MustCompile(`(T\d{2}:\d{2}:\d{2}(?:\.\d+)?[+-]\d{2})(\d{2})"`)
+
+// fixZoneOffsets rewrites those offsets as "+00:00" so every time.Time
+// field of a stream message parses; Message.Raw keeps the original bytes.
+func fixZoneOffsets(b []byte) []byte {
+	return zoneOffset.ReplaceAll(b, []byte(`$1:$2"`))
 }
 
 // Next waits for the next message. An unknown event type comes with Raw
@@ -268,12 +311,13 @@ func (s *Stream) Next(ctx context.Context) (Message, error) {
 		return Message{}, err
 	}
 	m := Message{Raw: data}
+	data = fixZoneOffsets(data)
 	var head struct {
 		EventType string          `json:"event_type"`
 		EventTime time.Time       `json:"event_time"`
 		Action    string          `json:"action"`
 		Payload   json.RawMessage `json:"payload"`
-		Code      *int            `json:"code"`
+		Code      json.RawMessage `json:"code"`
 		ID        string          `json:"id"`
 	}
 	if err := json.Unmarshal(data, &head); err != nil {
@@ -281,9 +325,13 @@ func (s *Stream) Next(ctx context.Context) (Message, error) {
 	}
 	m.Type = head.EventType
 	switch {
-	case head.EventType == "" && head.Code != nil:
-		m.Type, m.Error = EventError, &StreamError{}
-		err = json.Unmarshal(data, m.Error)
+	case head.EventType == "" && len(head.Code) > 0 && string(head.Code) != "null":
+		e := &StreamError{}
+		if err = json.Unmarshal(data, e); err == nil && (e.Code == 200 || e.CodeText == "200") {
+			m.Type = EventAck
+			break
+		}
+		m.Type, m.Error = EventError, e
 	case head.EventType == "" && !s.events:
 		m.Type, m.Tick = EventTick, &Tick{}
 		err = json.Unmarshal(data, m.Tick)

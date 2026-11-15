@@ -117,6 +117,11 @@ export function BacktestRunPage() {
           </Text>
           {s.kind === 'portfolio' && <Badge>portfolio</Badge>}
           {s.format === 'legacy' && <Badge title="Written before run.json">old report</Badge>}
+          {s.paper && (
+            <Badge colorPalette="purple" data-testid="paper-badge" title="A Live Trading paper session: no orders are sent">
+              PAPER - no orders are sent{s.status && ` · ${s.status.replace('_', ' ')}`}
+            </Badge>
+          )}
         </HStack>
         <Text textStyle="sm" color="fg.muted">
           {rangeText(s.from, s.to)} WIB{s.ranAt && `, ran ${wib(sec(s.ranAt))} WIB`} · {s.path}
@@ -133,6 +138,12 @@ export function BacktestRunPage() {
                     {x}
                   </Button>
                 ))}
+                {s.candlesFrom && (
+                  <Badge size="sm" variant="subtle" colorPalette="blue" data-testid="candles-from"
+                    title="This report saved no candles of its own: the chart uses a sibling report's, clipped to this report's range">
+                    candles from {s.candlesFrom}
+                  </Badge>
+                )}
                 <Text textStyle="xs" color="fg.muted" ms="2">
                   Wheel zooms, drag pans. Arrows are entries, dots exits; green won, red lost; dashed lines are stops and
                   targets, one set per open position.
@@ -149,9 +160,9 @@ export function BacktestRunPage() {
               />
             </>
           ) : (
-            <Text color="fg.muted" borderWidth="1px" rounded="md" p="4">
-              No price chart: this report has no candles.csv (written before San Backtest saved its candles). Run the
-              backtest again to chart its trades.
+            <Text color="fg.muted" borderWidth="1px" rounded="md" p="4" data-testid="no-chart">
+              No price chart: this report saved no candles and no sibling report has them; run the backtest again to
+              chart its trades.
             </Text>
           )}
           <Text textStyle="sm" fontWeight="medium">

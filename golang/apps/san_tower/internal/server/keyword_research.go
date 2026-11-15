@@ -57,6 +57,9 @@ func (s *Server) Close() {
 		s.crawler.Close()
 	}
 	s.watch.Close()
+	if s.live != nil {
+		s.live.Close() // the paper sessions are recorded as stopped
+	}
 	s.closeOnce.Do(func() {
 		if s.analysisStop != nil {
 			close(s.analysisStop)

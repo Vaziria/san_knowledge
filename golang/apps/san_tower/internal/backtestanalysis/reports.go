@@ -251,8 +251,11 @@ func Summary(dir string) (*v1.BacktestRunSummary, error) {
 	if !IsReport(dir) {
 		return nil, ErrNotReport
 	}
-	s := &v1.BacktestRunSummary{Path: dir, HasCandles: exists(dir, CandlesFile), HasDecisions: exists(dir, DecisionsFile),
-		HasWalk: exists(dir, WalkFile)}
+	s := &v1.BacktestRunSummary{Path: dir, HasDecisions: exists(dir, DecisionsFile), HasWalk: exists(dir, WalkFile)}
+	// a chart needs candle rows: its own, or a sibling report's (sibling.go)
+	if src, rel := candleSource(dir); src != "" {
+		s.HasCandles, s.CandlesFrom = true, rel
+	}
 	if m := newest(dir); !m.IsZero() {
 		s.Modified = timestamppb.New(m)
 	}

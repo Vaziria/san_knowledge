@@ -1,9 +1,14 @@
 import { Badge, Box, Button, Checkbox, CloseButton, HStack, Heading, Input, InputGroup, Stack, Table, Text, Wrap } from '@chakra-ui/react';
-import { FolderOpenIcon, SearchIcon } from 'lucide-react';
+import { create } from '@bufbuild/protobuf';
+import { FileClockIcon, FolderOpenIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { backtestAnalysis, errorText } from '../api';
-import type { BacktestRunSummary, BacktestWatchFolderResponse } from '../gen/san/tower/v1/backtest_analysis_pb';
+import {
+  BacktestWatchFolderResponseSchema,
+  type BacktestRunSummary,
+  type BacktestWatchFolderResponse,
+} from '../gen/san/tower/v1/backtest_analysis_pb';
 import { Compare } from './Compare';
 import { FolderPicker } from './FolderPicker';
 import { pct, pf, rangeText, runLink, sec } from './format';
@@ -27,6 +32,27 @@ const columns: { key: SortKey; label: string; end?: boolean; w?: string }[] = [
 // idle is a stream that sends nothing until it is closed: no folder open.
 async function* idle(signal: AbortSignal): AsyncIterable<BacktestWatchFolderResponse> {
   await new Promise<void>((resolve) => signal.addEventListener('abort', () => resolve()));
+}
+
+// PAPER is the "folder" of the Live Trading page's paper sessions (the
+// Paper sessions source next to Open folder): each run's path is
+// "paper:<id>" and opens like a report, so a session compares with
+// backtests.
+export const PAPER = 'paper:';
+
+// paperRuns lists the paper sessions every 5 s, as a folder watch would.
+async function* paperRuns(signal: AbortSignal): AsyncIterable<BacktestWatchFolderResponse> {
+  while (!signal.aborted) {
+    const r = await backtestAnalysis.listPaperRuns({}, { signal });
+    yield create(BacktestWatchFolderResponseSchema, { event: { case: 'snapshot', value: r } });
+    await new Promise<void>((resolve) => {
+      const t = setTimeout(resolve, 5000);
+      signal.addEventListener('abort', () => {
+        clearTimeout(t);
+        resolve();
+      });
+    });
+  }
 }
 
 const value = (r: BacktestRunSummary, k: SortKey) => (k === 'from' ? sec(r.from) : r[k]);
@@ -76,7 +102,8 @@ export function BacktestAnalysisList() {
   };
 
   const live = useStream<BacktestWatchFolderResponse>(
-    (signal) => (folder ? backtestAnalysis.watchFolder({ path: folder }, { signal }) : idle(signal)),
+    (signal) =>
+      folder === PAPER ? paperRuns(signal) : folder ? backtestAnalysis.watchFolder({ path: folder }, { signal }) : idle(signal),
     (m) => {
       const ev = m.event;
       if (ev.case === 'snapshot') {
@@ -141,6 +168,19 @@ export function BacktestAnalysisList() {
           <Button size="sm" colorPalette="blue" type="submit" disabled={!typed.trim()}>
             Open
           </Button>
+          <Button
+            size="sm"
+            variant={folder === PAPER ? 'solid' : 'outline'}
+            colorPalette="purple"
+            onClick={() => {
+              setParams({ folder: PAPER });
+              setTicked([]);
+            }}
+            title="The Live Trading page's paper sessions, opened like reports"
+            data-testid="paper-source"
+          >
+            <FileClockIcon /> Paper sessions
+          </Button>
         </HStack>
       </form>
       {recent.length > 0 && (
@@ -184,6 +224,10 @@ export function BacktestAnalysisList() {
           </HStack>
           {!runs ? (
             <Text color="fg.muted">Reading the folder...</Text>
+          ) : runs.length === 0 && folder === PAPER ? (
+            <Text color="fg.muted">
+              No paper sessions yet: make one on the <Link to="/live-trading">Live Trading</Link> page.
+            </Text>
           ) : runs.length === 0 ? (
             <Text color="fg.muted">
               No reports in this folder or its subfolders. A report is a folder san_backtest wrote with --out (run.json, or
@@ -231,6 +275,16 @@ export function BacktestAnalysisList() {
                             </Text>
                           </Link>
                           {r.kind === 'portfolio' && <Badge size="sm">portfolio</Badge>}
+                          {r.paper && (
+                            <Badge size="sm" colorPalette="purple" title="A Live Trading paper session: no orders are sent">
+                              PAPER{r.status && ` · ${r.status.replace('_', ' ')}`}
+                            </Badge>
+                          )}
+                          {r.candlesFrom && (
+                            <Badge size="sm" colorPalette="blue" variant="subtle" title="Charted with a sibling report's candles">
+                              candles {r.candlesFrom}
+                            </Badge>
+                          )}
                           {r.format === 'legacy' && (
                             <Badge size="sm" colorPalette="gray" title="Written before run.json: no candles or decision log">
                               old

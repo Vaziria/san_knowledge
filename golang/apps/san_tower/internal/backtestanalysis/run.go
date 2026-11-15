@@ -268,8 +268,10 @@ func Run(dir string, equityPoints int) (*v1.BacktestRun, error) {
 		}
 	}
 	if sum.HasCandles {
-		if step := stepTimeframe(dir); step != "" {
-			run.ChartTimeframes = chartTimeframes(step)
+		if src, _ := candleSource(dir); src != "" {
+			if step := stepTimeframe(src); step != "" {
+				run.ChartTimeframes = chartTimeframes(step)
+			}
 		}
 	}
 	return run, nil

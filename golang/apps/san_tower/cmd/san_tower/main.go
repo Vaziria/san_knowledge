@@ -21,6 +21,8 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -112,6 +114,11 @@ const restartEnv = "SAN_TOWER_RESTARTED"
 // telegramAPIEnv points the tower's Telegram bots at another Bot API.
 const telegramAPIEnv = "SAN_TOWER_TELEGRAM_API"
 
+// exnessCAEnv names a PEM file of certificates the Exness clients trust
+// besides the system's: a fake Access Point's, for a throwaway tower's
+// replay check of the Live Trading page.
+const exnessCAEnv = "SAN_TOWER_EXNESS_CA"
+
 // listen opens the tower's address: a loopback one, or with lan any (the
 // user's choice, 2026-10-26: the tower on the Raspberry Pi, opened from the
 // PC). After a restart it tries for 10 s.
@@ -165,6 +172,21 @@ func serveTower(ctx context.Context, log *slog.Logger, ln net.Listener, dataDir 
 	if api := os.Getenv(telegramAPIEnv); api != "" {
 		eng.TelegramAPI = api
 		log.Warn("the Telegram bots use another Bot API", "url", api)
+	}
+	if ca := os.Getenv(exnessCAEnv); ca != "" {
+		pem, err := os.ReadFile(ca)
+		if err != nil {
+			return fmt.Errorf("%s: %w", exnessCAEnv, err)
+		}
+		pool, err := x509.SystemCertPool()
+		if err != nil || pool == nil {
+			pool = x509.NewCertPool()
+		}
+		if !pool.AppendCertsFromPEM(pem) {
+			return fmt.Errorf("%s: %s holds no certificate", exnessCAEnv, ca)
+		}
+		eng.Exness().UseHTTPClient(&http.Client{Timeout: 15 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: pool}}})
+		log.Warn("the Exness clients also trust another certificate (a fake Access Point)", "file", ca)
 	}
 	// Runs still going are cut short and recorded before the database closes.
 	defer eng.Close()

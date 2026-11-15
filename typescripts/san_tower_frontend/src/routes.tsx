@@ -7,6 +7,7 @@ import {
   HouseIcon,
   MessageSquareTextIcon,
   MessagesSquareIcon,
+  RadioTowerIcon,
   SettingsIcon,
   TrendingUpIcon,
   WorkflowIcon,
@@ -15,6 +16,8 @@ import { createBrowserRouter } from 'react-router';
 import { BacktestAnalysisList } from './backtest/BacktestAnalysisList';
 import { BacktestRunPage } from './backtest/BacktestRunPage';
 import { Layout, type Page } from './Layout';
+import { LiveTrading } from './live/LiveTrading';
+import { PaperSessionPage } from './live/PaperSessionPage';
 import { BrowserRemoteServer } from './pages/BrowserRemoteServer';
 import { Chat } from './pages/Chat';
 import { Connections } from './pages/Connections';
@@ -49,6 +52,10 @@ const pages: Page[] = [
     icon: ChartCandlestickIcon,
     element: <BacktestAnalysisList />,
   },
+  // After Backtest Analysis (the user, 2026-11-15: "can we have realtime
+  // trading menu in tower ?", named "Live Trading"): the read-only monitor
+  // of the Exness connection and paper sessions; no orders are sent.
+  { path: '/live-trading', label: 'Live Trading', icon: RadioTowerIcon, element: <LiveTrading /> },
   { path: '/workflow', label: 'Workflow', icon: WorkflowIcon, element: <WorkflowList /> },
   { path: '/message-broker', label: 'Message Broker', icon: MessagesSquareIcon, element: <MessageBroker /> },
   { path: '/connections', label: 'Connections', icon: CableIcon, element: <Connections /> },
@@ -64,6 +71,7 @@ const subpages = [
   { path: '/knowledge/:id', element: <KnowledgeGraph /> },
   { path: '/keyword-research/:id', element: <KeywordResearchPage /> },
   { path: '/backtest-analysis/run', element: <BacktestRunPage /> },
+  { path: '/live-trading/session/:id', element: <PaperSessionPage /> },
 ];
 
 export const router = createBrowserRouter([

@@ -12,7 +12,20 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/backtest_analysis.proto.
  */
 export const file_san_tower_v1_backtest_analysis: GenFile = /*@__PURE__*/
-  fileDesc("CiRzYW4vdG93ZXIvdjEvYmFja3Rlc3RfYW5hbHlzaXMucHJvdG8SDHNhbi50b3dlci52MSIqChpCYWNrdGVzdExpc3RGb2xkZXJzUmVxdWVzdBIMCgRwYXRoGAEgASgJIkEKE0JhY2t0ZXN0Rm9sZGVyRW50cnkSDAoEbmFtZRgBIAEoCRIMCgRwYXRoGAIgASgJEg4KBnJlcG9ydBgDIAEoCCKNAQobQmFja3Rlc3RMaXN0Rm9sZGVyc1Jlc3BvbnNlEgwKBHBhdGgYASABKAkSDgoGcGFyZW50GAIgASgJEjIKB2ZvbGRlcnMYAyADKAsyIS5zYW4udG93ZXIudjEuQmFja3Rlc3RGb2xkZXJFbnRyeRIMCgRob21lGAQgASgJEg4KBnJlcG9ydBgFIAEoCCIpChlCYWNrdGVzdE9wZW5Gb2xkZXJSZXF1ZXN0EgwKBHBhdGgYASABKAkitwQKEkJhY2t0ZXN0UnVuU3VtbWFyeRIMCgRwYXRoGAEgASgJEhAKCHJlbF9wYXRoGAIgASgJEg4KBmZvcm1hdBgDIAEoCRIOCgZzY2hlbWEYBCABKA0SDAoEa2luZBgFIAEoCRIQCghhcHByb2FjaBgGIAEoCRISCgppbnN0cnVtZW50GAcgASgJEhIKCnRpbWVmcmFtZXMYCCADKAkSKAoEZnJvbRgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASJgoCdG8YCiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKBnJhbl9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLAoIbW9kaWZpZWQYDCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg4KBnRyYWRlcxgNIAEoDRIQCgh3aW5fcmF0ZRgOIAEoARIVCg1wcm9maXRfZmFjdG9yGA8gASgBEhIKCm5ldF9wcm9maXQYECABKAESEgoKcmV0dXJuX3BjdBgRIAEoARIYChBtYXhfZHJhd2Rvd25fcGN0GBIgASgBEhUKDXN0YXJ0X2JhbGFuY2UYEyABKAESDAoEbGVncxgUIAEoDRITCgtoYXNfY2FuZGxlcxgVIAEoCBIVCg1oYXNfZGVjaXNpb25zGBYgASgIEhAKCGhhc193YWxrGBcgASgIEg8KB3Byb2JsZW0YGCABKAkibQoaQmFja3Rlc3RPcGVuRm9sZGVyUmVzcG9uc2USDAoEcGF0aBgBIAEoCRIuCgRydW5zGAIgAygLMiAuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0UnVuU3VtbWFyeRIRCgl0cnVuY2F0ZWQYAyABKAgiPAoVQmFja3Rlc3RHZXRSdW5SZXF1ZXN0EgwKBHBhdGgYASABKAkSFQoNZXF1aXR5X3BvaW50cxgCIAEoDSJTCgxCYWNrdGVzdEhhbGYSDgoGdHJhZGVzGAEgASgNEhAKCHdpbl9yYXRlGAIgASgBEhIKCm5ldF9wcm9maXQYAyABKAESDQoFYXZnX3IYBCABKAEirQQKDUJhY2t0ZXN0U3RhdHMSDgoGdHJhZGVzGAEgASgNEgwKBHdpbnMYAiABKA0SDgoGbG9zc2VzGAMgASgNEhAKCHdpbl9yYXRlGAQgASgBEhUKDXByb2ZpdF9mYWN0b3IYBSABKAESDQoFYXZnX3IYBiABKAESEgoKbmV0X3Byb2ZpdBgHIAEoARIRCglncm9zc193aW4YCCABKAESEgoKZ3Jvc3NfbG9zcxgJIAEoARISCgpjb21taXNzaW9uGAogASgBEgwKBHN3YXAYCyABKAESFQoNc3RhcnRfYmFsYW5jZRgMIAEoARITCgtlbmRfYmFsYW5jZRgNIAEoARISCgpyZXR1cm5fcGN0GA4gASgBEhQKDG1heF9kcmF3ZG93bhgPIAEoARIYChBtYXhfZHJhd2Rvd25fcGN0GBAgASgBEh0KFWxvbmdlc3RfbG9zaW5nX3N0cmVhaxgRIAEoDRIuCgpmaXJzdF9oYWxmGBIgASgLMhouc2FuLnRvd2VyLnYxLkJhY2t0ZXN0SGFsZhIvCgtzZWNvbmRfaGFsZhgTIAEoCzIaLnNhbi50b3dlci52MS5CYWNrdGVzdEhhbGYSOQoHc2tpcHBlZBgUIAMoCzIoLnNhbi50b3dlci52MS5CYWNrdGVzdFN0YXRzLlNraXBwZWRFbnRyeRouCgxTa2lwcGVkRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgNOgI4ASKcAgoLQmFja3Rlc3RMZWcSCwoDbGVnGAEgASgNEhAKCHN0cmF0ZWd5GAIgASgJEhIKCmluc3RydW1lbnQYAyABKAkSEgoKdGltZWZyYW1lcxgEIAMoCRIMCgRyaXNrGAUgASgBEjUKBnBhcmFtcxgGIAMoCzIlLnNhbi50b3dlci52MS5CYWNrdGVzdExlZy5QYXJhbXNFbnRyeRIqCgVzdGF0cxgHIAEoCzIbLnNhbi50b3dlci52MS5CYWNrdGVzdFN0YXRzEhQKDGNvbnRyaWJ1dGlvbhgIIAEoARIQCghtYXhfb3BlbhgJIAEoDRotCgtQYXJhbXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIpYBCgxCYWNrdGVzdENvc3QSCwoDbGVnGAEgASgNEhIKCmluc3RydW1lbnQYAiABKAkSDgoGc3ByZWFkGAMgASgJEhIKCmNvbW1pc3Npb24YBCABKAkSDAoEc3dhcBgFIAEoCRIQCghzbGlwcGFnZRgGIAEoCRISCgpvdmVycmlkZGVuGAcgAygJEg0KBW5vdGVzGAggAygJIpcBCg9CYWNrdGVzdEFjY291bnQSDwoHYmFsYW5jZRgBIAEoARIQCghjdXJyZW5jeRgCIAEoCRIQCghsZXZlcmFnZRgDIAEoDRIQCghtYXhfb3BlbhgEIAEoDRIVCg1tYXhfb3Blbl9yaXNrGAUgASgBEhYKDm1heF9kYWlseV9sb3NzGAYgASgBEg4KBmRheV90ehgHIAEoCSKrBAoNQmFja3Rlc3RUcmFkZRINCgVpbmRleBgBIAEoDRILCgNsZWcYAiABKA0SEAoIc3RyYXRlZ3kYAyABKAkSEgoKaW5zdHJ1bWVudBgEIAEoCRIMCgRzaWRlGAUgASgJEi8KC3NpZ25hbF90aW1lGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBItCglvcGVuX3RpbWUYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmNsb3NlX3RpbWUYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBWVudHJ5GAkgASgBEgwKBGV4aXQYCiABKAESDAoEc3RvcBgLIAEoARISCgpmaW5hbF9zdG9wGAwgASgBEg4KBnRhcmdldBgNIAEoARIMCgRsb3RzGA4gASgBEg4KBnNwcmVhZBgPIAEoARIMCgRyaXNrGBAgASgBEg0KBWdyb3NzGBEgASgBEhIKCmNvbW1pc3Npb24YEiABKAESDAoEc3dhcBgTIAEoARILCgNuZXQYFCABKAESCQoBchgVIAEoARIOCgZyZWFzb24YFiABKAkSDwoHc2Vzc2lvbhgXIAEoCRINCgVtb250aBgYIAEoCRITCgtwb3NpdGlvbl9pZBgZIAEoDRIQCghvcmRlcl9pZBgaIAEoDRISCgpvcmRlcl90eXBlGBsgASgJEgsKA3RhZxgcIAEoCSK+AQoOQmFja3Rlc3RNaXNzZWQSKAoEdGltZRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASCwoDbGVnGAIgASgNEhAKCHN0cmF0ZWd5GAMgASgJEhIKCmluc3RydW1lbnQYBCABKAkSDAoEc2lkZRgFIAEoCRIOCgZyZWFzb24YBiABKAkSEAoIb3JkZXJfaWQYByABKA0SEgoKb3JkZXJfdHlwZRgIIAEoCRILCgN0YWcYCSABKAkidgoTQmFja3Rlc3RFcXVpdHlQb2ludBIoCgR0aW1lGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIPCgdiYWxhbmNlGAIgASgBEg4KBmVxdWl0eRgDIAEoARIUCgxkcmF3ZG93bl9wY3QYBCABKAEi1QIKEkJhY2t0ZXN0V2Fsa1dpbmRvdxIuCgp0cmFpbl9mcm9tGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIsCgh0cmFpbl90bxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLQoJdGVzdF9mcm9tGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIrCgd0ZXN0X3RvGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZwYXJhbXMYBSABKAkSDgoGdHJpYWxzGAYgASgNEhQKDHRyYWluX3RyYWRlcxgHIAEoDRIRCgl0cmFpbl9uZXQYCCABKAESEwoLdGVzdF90cmFkZXMYCSABKA0SEAoIdGVzdF9uZXQYCiABKAESFQoNdGVzdF93aW5fcmF0ZRgLIAEoASKqBgoLQmFja3Rlc3RSdW4SMQoHc3VtbWFyeRgBIAEoCzIgLnNhbi50b3dlci52MS5CYWNrdGVzdFJ1blN1bW1hcnkSMgoOcmVxdWVzdGVkX2Zyb20YAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjAKDHJlcXVlc3RlZF90bxgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDQoFbm90ZXMYBCADKAkSLgoHYWNjb3VudBgFIAEoCzIdLnNhbi50b3dlci52MS5CYWNrdGVzdEFjY291bnQSKQoFY29zdHMYBiADKAsyGi5zYW4udG93ZXIudjEuQmFja3Rlc3RDb3N0EicKBGxlZ3MYByADKAsyGS5zYW4udG93ZXIudjEuQmFja3Rlc3RMZWcSNQoGcGFyYW1zGAggAygLMiUuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0UnVuLlBhcmFtc0VudHJ5EioKBXN0YXRzGAkgASgLMhsuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0U3RhdHMSKwoGdHJhZGVzGAogAygLMhsuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0VHJhZGUSLAoGbWlzc2VkGAsgAygLMhwuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0TWlzc2VkEjEKBmVxdWl0eRgMIAMoCzIhLnNhbi50b3dlci52MS5CYWNrdGVzdEVxdWl0eVBvaW50EhQKDGVxdWl0eV90b3RhbBgNIAEoDRIuCgR3YWxrGA4gAygLMiAuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0V2Fsa1dpbmRvdxIyCg1vdXRfb2Zfc2FtcGxlGA8gASgLMhsuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0U3RhdHMSEgoKd2Fsa190cmFpbhgQIAEoCRIRCgl3YWxrX3Rlc3QYESABKAkSFAoMc3VtbWFyeV90ZXh0GBIgASgJEhgKEGNoYXJ0X3RpbWVmcmFtZXMYEyADKAkaLQoLUGFyYW1zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgBOgI4ASJAChZCYWNrdGVzdEdldFJ1blJlc3BvbnNlEiYKA3J1bhgBIAEoCzIZLnNhbi50b3dlci52MS5CYWNrdGVzdFJ1biKxAQoZQmFja3Rlc3RHZXRDYW5kbGVzUmVxdWVzdBIMCgRwYXRoGAEgASgJEigKBGZyb20YAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiYKAnRvGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIRCgl0aW1lZnJhbWUYBCABKAkSEgoKaW5zdHJ1bWVudBgFIAEoCRINCgVsaW1pdBgGIAEoDSJ2Cg5CYWNrdGVzdENhbmRsZRIMCgR0aW1lGAEgASgDEgwKBG9wZW4YAiABKAESDAoEaGlnaBgDIAEoARILCgNsb3cYBCABKAESDQoFY2xvc2UYBSABKAESDgoGdm9sdW1lGAYgASgBEg4KBnNwcmVhZBgHIAEoASKyAQoaQmFja3Rlc3RHZXRDYW5kbGVzUmVzcG9uc2USEgoKaW5zdHJ1bWVudBgBIAEoCRIRCgl0aW1lZnJhbWUYAiABKAkSFgoOc3RlcF90aW1lZnJhbWUYAyABKAkSLQoHY2FuZGxlcxgEIAMoCzIcLnNhbi50b3dlci52MS5CYWNrdGVzdENhbmRsZRIRCgl0cnVuY2F0ZWQYBSABKAgSEwoLaW5zdHJ1bWVudHMYBiADKAki5QEKG0JhY2t0ZXN0R2V0RGVjaXNpb25zUmVxdWVzdBIMCgRwYXRoGAEgASgJEioKBmFyb3VuZBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKAoEZnJvbRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASJgoCdG8YBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBWxpbWl0GAUgASgNEg0KBWtpbmRzGAYgAygJEg8KB2hhc19sZWcYByABKAgSCwoDbGVnGAggASgNIvEBChBCYWNrdGVzdERlY2lzaW9uEigKBHRpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEgsKA2xlZxgCIAEoDRIMCgRraW5kGAMgASgJEgwKBHNpZGUYBCABKAkSPAoHZGV0YWlscxgFIAMoCzIrLnNhbi50b3dlci52MS5CYWNrdGVzdERlY2lzaW9uLkRldGFpbHNFbnRyeRIOCgZyZWFzb24YBiABKAkSDAoEbGluZRgHIAEoDRouCgxEZXRhaWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgBOgI4ASJzChxCYWNrdGVzdEdldERlY2lzaW9uc1Jlc3BvbnNlEjEKCWRlY2lzaW9ucxgBIAMoCzIeLnNhbi50b3dlci52MS5CYWNrdGVzdERlY2lzaW9uEg0KBXRvdGFsGAIgASgNEhEKCWF2YWlsYWJsZRgDIAEoCCIiCiBCYWNrdGVzdExpc3RSZWNlbnRGb2xkZXJzUmVxdWVzdCI0CiFCYWNrdGVzdExpc3RSZWNlbnRGb2xkZXJzUmVzcG9uc2USDwoHZm9sZGVycxgBIAMoCSIxCiFCYWNrdGVzdEZvcmdldFJlY2VudEZvbGRlclJlcXVlc3QSDAoEcGF0aBgBIAEoCSI1CiJCYWNrdGVzdEZvcmdldFJlY2VudEZvbGRlclJlc3BvbnNlEg8KB2ZvbGRlcnMYASADKAkiKgoaQmFja3Rlc3RXYXRjaEZvbGRlclJlcXVlc3QSDAoEcGF0aBgBIAEoCSLBAQobQmFja3Rlc3RXYXRjaEZvbGRlclJlc3BvbnNlEjwKCHNuYXBzaG90GAEgASgLMiguc2FuLnRvd2VyLnYxLkJhY2t0ZXN0T3BlbkZvbGRlclJlc3BvbnNlSAASMwoHY2hhbmdlZBgCIAEoCzIgLnNhbi50b3dlci52MS5CYWNrdGVzdFJ1blN1bW1hcnlIABIRCgdyZW1vdmVkGAMgASgJSAASEwoJaGVhcnRiZWF0GAQgASgISABCBwoFZXZlbnQy0AYKF0JhY2t0ZXN0QW5hbHlzaXNTZXJ2aWNlEmIKC0xpc3RGb2xkZXJzEiguc2FuLnRvd2VyLnYxLkJhY2t0ZXN0TGlzdEZvbGRlcnNSZXF1ZXN0Gikuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0TGlzdEZvbGRlcnNSZXNwb25zZRJfCgpPcGVuRm9sZGVyEicuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0T3BlbkZvbGRlclJlcXVlc3QaKC5zYW4udG93ZXIudjEuQmFja3Rlc3RPcGVuRm9sZGVyUmVzcG9uc2USUwoGR2V0UnVuEiMuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0R2V0UnVuUmVxdWVzdBokLnNhbi50b3dlci52MS5CYWNrdGVzdEdldFJ1blJlc3BvbnNlEl8KCkdldENhbmRsZXMSJy5zYW4udG93ZXIudjEuQmFja3Rlc3RHZXRDYW5kbGVzUmVxdWVzdBooLnNhbi50b3dlci52MS5CYWNrdGVzdEdldENhbmRsZXNSZXNwb25zZRJlCgxHZXREZWNpc2lvbnMSKS5zYW4udG93ZXIudjEuQmFja3Rlc3RHZXREZWNpc2lvbnNSZXF1ZXN0Giouc2FuLnRvd2VyLnYxLkJhY2t0ZXN0R2V0RGVjaXNpb25zUmVzcG9uc2USdAoRTGlzdFJlY2VudEZvbGRlcnMSLi5zYW4udG93ZXIudjEuQmFja3Rlc3RMaXN0UmVjZW50Rm9sZGVyc1JlcXVlc3QaLy5zYW4udG93ZXIudjEuQmFja3Rlc3RMaXN0UmVjZW50Rm9sZGVyc1Jlc3BvbnNlEncKEkZvcmdldFJlY2VudEZvbGRlchIvLnNhbi50b3dlci52MS5CYWNrdGVzdEZvcmdldFJlY2VudEZvbGRlclJlcXVlc3QaMC5zYW4udG93ZXIudjEuQmFja3Rlc3RGb3JnZXRSZWNlbnRGb2xkZXJSZXNwb25zZRJkCgtXYXRjaEZvbGRlchIoLnNhbi50b3dlci52MS5CYWNrdGVzdFdhdGNoRm9sZGVyUmVxdWVzdBopLnNhbi50b3dlci52MS5CYWNrdGVzdFdhdGNoRm9sZGVyUmVzcG9uc2UwAUK1AQoQY29tLnNhbi50b3dlci52MUIVQmFja3Rlc3RBbmFseXNpc1Byb3RvUAFaOGdpdGh1Yi5jb20vd2FyZ2FzaXBpbC9zYW5fdG93ZXIvZ2VuL3Nhbi90b3dlci92MTt0b3dlcnYxogIDU1RYqgIMU2FuLlRvd2VyLlYxygIMU2FuXFRvd2VyXFYx4gIYU2FuXFRvd2VyXFYxXEdQQk1ldGFkYXRh6gIOU2FuOjpUb3dlcjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("CiRzYW4vdG93ZXIvdjEvYmFja3Rlc3RfYW5hbHlzaXMucHJvdG8SDHNhbi50b3dlci52MSIeChxCYWNrdGVzdExpc3RQYXBlclJ1bnNSZXF1ZXN0IioKGkJhY2t0ZXN0TGlzdEZvbGRlcnNSZXF1ZXN0EgwKBHBhdGgYASABKAkiQQoTQmFja3Rlc3RGb2xkZXJFbnRyeRIMCgRuYW1lGAEgASgJEgwKBHBhdGgYAiABKAkSDgoGcmVwb3J0GAMgASgIIo0BChtCYWNrdGVzdExpc3RGb2xkZXJzUmVzcG9uc2USDAoEcGF0aBgBIAEoCRIOCgZwYXJlbnQYAiABKAkSMgoHZm9sZGVycxgDIAMoCzIhLnNhbi50b3dlci52MS5CYWNrdGVzdEZvbGRlckVudHJ5EgwKBGhvbWUYBCABKAkSDgoGcmVwb3J0GAUgASgIIikKGUJhY2t0ZXN0T3BlbkZvbGRlclJlcXVlc3QSDAoEcGF0aBgBIAEoCSLsBAoSQmFja3Rlc3RSdW5TdW1tYXJ5EgwKBHBhdGgYASABKAkSEAoIcmVsX3BhdGgYAiABKAkSDgoGZm9ybWF0GAMgASgJEg4KBnNjaGVtYRgEIAEoDRIMCgRraW5kGAUgASgJEhAKCGFwcHJvYWNoGAYgASgJEhIKCmluc3RydW1lbnQYByABKAkSEgoKdGltZWZyYW1lcxgIIAMoCRIoCgRmcm9tGAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBImCgJ0bxgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKgoGcmFuX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIsCghtb2RpZmllZBgMIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGdHJhZGVzGA0gASgNEhAKCHdpbl9yYXRlGA4gASgBEhUKDXByb2ZpdF9mYWN0b3IYDyABKAESEgoKbmV0X3Byb2ZpdBgQIAEoARISCgpyZXR1cm5fcGN0GBEgASgBEhgKEG1heF9kcmF3ZG93bl9wY3QYEiABKAESFQoNc3RhcnRfYmFsYW5jZRgTIAEoARIMCgRsZWdzGBQgASgNEhMKC2hhc19jYW5kbGVzGBUgASgIEhUKDWhhc19kZWNpc2lvbnMYFiABKAgSEAoIaGFzX3dhbGsYFyABKAgSDwoHcHJvYmxlbRgYIAEoCRIUCgxjYW5kbGVzX2Zyb20YGSABKAkSDQoFcGFwZXIYGiABKAgSDgoGc3RhdHVzGBsgASgJIm0KGkJhY2t0ZXN0T3BlbkZvbGRlclJlc3BvbnNlEgwKBHBhdGgYASABKAkSLgoEcnVucxgCIAMoCzIgLnNhbi50b3dlci52MS5CYWNrdGVzdFJ1blN1bW1hcnkSEQoJdHJ1bmNhdGVkGAMgASgIIjwKFUJhY2t0ZXN0R2V0UnVuUmVxdWVzdBIMCgRwYXRoGAEgASgJEhUKDWVxdWl0eV9wb2ludHMYAiABKA0iUwoMQmFja3Rlc3RIYWxmEg4KBnRyYWRlcxgBIAEoDRIQCgh3aW5fcmF0ZRgCIAEoARISCgpuZXRfcHJvZml0GAMgASgBEg0KBWF2Z19yGAQgASgBIq0ECg1CYWNrdGVzdFN0YXRzEg4KBnRyYWRlcxgBIAEoDRIMCgR3aW5zGAIgASgNEg4KBmxvc3NlcxgDIAEoDRIQCgh3aW5fcmF0ZRgEIAEoARIVCg1wcm9maXRfZmFjdG9yGAUgASgBEg0KBWF2Z19yGAYgASgBEhIKCm5ldF9wcm9maXQYByABKAESEQoJZ3Jvc3Nfd2luGAggASgBEhIKCmdyb3NzX2xvc3MYCSABKAESEgoKY29tbWlzc2lvbhgKIAEoARIMCgRzd2FwGAsgASgBEhUKDXN0YXJ0X2JhbGFuY2UYDCABKAESEwoLZW5kX2JhbGFuY2UYDSABKAESEgoKcmV0dXJuX3BjdBgOIAEoARIUCgxtYXhfZHJhd2Rvd24YDyABKAESGAoQbWF4X2RyYXdkb3duX3BjdBgQIAEoARIdChVsb25nZXN0X2xvc2luZ19zdHJlYWsYESABKA0SLgoKZmlyc3RfaGFsZhgSIAEoCzIaLnNhbi50b3dlci52MS5CYWNrdGVzdEhhbGYSLwoLc2Vjb25kX2hhbGYYEyABKAsyGi5zYW4udG93ZXIudjEuQmFja3Rlc3RIYWxmEjkKB3NraXBwZWQYFCADKAsyKC5zYW4udG93ZXIudjEuQmFja3Rlc3RTdGF0cy5Ta2lwcGVkRW50cnkaLgoMU2tpcHBlZEVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoDToCOAEinAIKC0JhY2t0ZXN0TGVnEgsKA2xlZxgBIAEoDRIQCghzdHJhdGVneRgCIAEoCRISCgppbnN0cnVtZW50GAMgASgJEhIKCnRpbWVmcmFtZXMYBCADKAkSDAoEcmlzaxgFIAEoARI1CgZwYXJhbXMYBiADKAsyJS5zYW4udG93ZXIudjEuQmFja3Rlc3RMZWcuUGFyYW1zRW50cnkSKgoFc3RhdHMYByABKAsyGy5zYW4udG93ZXIudjEuQmFja3Rlc3RTdGF0cxIUCgxjb250cmlidXRpb24YCCABKAESEAoIbWF4X29wZW4YCSABKA0aLQoLUGFyYW1zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgBOgI4ASKWAQoMQmFja3Rlc3RDb3N0EgsKA2xlZxgBIAEoDRISCgppbnN0cnVtZW50GAIgASgJEg4KBnNwcmVhZBgDIAEoCRISCgpjb21taXNzaW9uGAQgASgJEgwKBHN3YXAYBSABKAkSEAoIc2xpcHBhZ2UYBiABKAkSEgoKb3ZlcnJpZGRlbhgHIAMoCRINCgVub3RlcxgIIAMoCSKXAQoPQmFja3Rlc3RBY2NvdW50Eg8KB2JhbGFuY2UYASABKAESEAoIY3VycmVuY3kYAiABKAkSEAoIbGV2ZXJhZ2UYAyABKA0SEAoIbWF4X29wZW4YBCABKA0SFQoNbWF4X29wZW5fcmlzaxgFIAEoARIWCg5tYXhfZGFpbHlfbG9zcxgGIAEoARIOCgZkYXlfdHoYByABKAkiqwQKDUJhY2t0ZXN0VHJhZGUSDQoFaW5kZXgYASABKA0SCwoDbGVnGAIgASgNEhAKCHN0cmF0ZWd5GAMgASgJEhIKCmluc3RydW1lbnQYBCABKAkSDAoEc2lkZRgFIAEoCRIvCgtzaWduYWxfdGltZRgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLQoJb3Blbl90aW1lGAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgpjbG9zZV90aW1lGAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVlbnRyeRgJIAEoARIMCgRleGl0GAogASgBEgwKBHN0b3AYCyABKAESEgoKZmluYWxfc3RvcBgMIAEoARIOCgZ0YXJnZXQYDSABKAESDAoEbG90cxgOIAEoARIOCgZzcHJlYWQYDyABKAESDAoEcmlzaxgQIAEoARINCgVncm9zcxgRIAEoARISCgpjb21taXNzaW9uGBIgASgBEgwKBHN3YXAYEyABKAESCwoDbmV0GBQgASgBEgkKAXIYFSABKAESDgoGcmVhc29uGBYgASgJEg8KB3Nlc3Npb24YFyABKAkSDQoFbW9udGgYGCABKAkSEwoLcG9zaXRpb25faWQYGSABKA0SEAoIb3JkZXJfaWQYGiABKA0SEgoKb3JkZXJfdHlwZRgbIAEoCRILCgN0YWcYHCABKAkivgEKDkJhY2t0ZXN0TWlzc2VkEigKBHRpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEgsKA2xlZxgCIAEoDRIQCghzdHJhdGVneRgDIAEoCRISCgppbnN0cnVtZW50GAQgASgJEgwKBHNpZGUYBSABKAkSDgoGcmVhc29uGAYgASgJEhAKCG9yZGVyX2lkGAcgASgNEhIKCm9yZGVyX3R5cGUYCCABKAkSCwoDdGFnGAkgASgJInYKE0JhY2t0ZXN0RXF1aXR5UG9pbnQSKAoEdGltZRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHYmFsYW5jZRgCIAEoARIOCgZlcXVpdHkYAyABKAESFAoMZHJhd2Rvd25fcGN0GAQgASgBItUCChJCYWNrdGVzdFdhbGtXaW5kb3cSLgoKdHJhaW5fZnJvbRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLAoIdHJhaW5fdG8YAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KCXRlc3RfZnJvbRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKwoHdGVzdF90bxgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGcGFyYW1zGAUgASgJEg4KBnRyaWFscxgGIAEoDRIUCgx0cmFpbl90cmFkZXMYByABKA0SEQoJdHJhaW5fbmV0GAggASgBEhMKC3Rlc3RfdHJhZGVzGAkgASgNEhAKCHRlc3RfbmV0GAogASgBEhUKDXRlc3Rfd2luX3JhdGUYCyABKAEiqgYKC0JhY2t0ZXN0UnVuEjEKB3N1bW1hcnkYASABKAsyIC5zYW4udG93ZXIudjEuQmFja3Rlc3RSdW5TdW1tYXJ5EjIKDnJlcXVlc3RlZF9mcm9tGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIwCgxyZXF1ZXN0ZWRfdG8YAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBW5vdGVzGAQgAygJEi4KB2FjY291bnQYBSABKAsyHS5zYW4udG93ZXIudjEuQmFja3Rlc3RBY2NvdW50EikKBWNvc3RzGAYgAygLMhouc2FuLnRvd2VyLnYxLkJhY2t0ZXN0Q29zdBInCgRsZWdzGAcgAygLMhkuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0TGVnEjUKBnBhcmFtcxgIIAMoCzIlLnNhbi50b3dlci52MS5CYWNrdGVzdFJ1bi5QYXJhbXNFbnRyeRIqCgVzdGF0cxgJIAEoCzIbLnNhbi50b3dlci52MS5CYWNrdGVzdFN0YXRzEisKBnRyYWRlcxgKIAMoCzIbLnNhbi50b3dlci52MS5CYWNrdGVzdFRyYWRlEiwKBm1pc3NlZBgLIAMoCzIcLnNhbi50b3dlci52MS5CYWNrdGVzdE1pc3NlZBIxCgZlcXVpdHkYDCADKAsyIS5zYW4udG93ZXIudjEuQmFja3Rlc3RFcXVpdHlQb2ludBIUCgxlcXVpdHlfdG90YWwYDSABKA0SLgoEd2FsaxgOIAMoCzIgLnNhbi50b3dlci52MS5CYWNrdGVzdFdhbGtXaW5kb3cSMgoNb3V0X29mX3NhbXBsZRgPIAEoCzIbLnNhbi50b3dlci52MS5CYWNrdGVzdFN0YXRzEhIKCndhbGtfdHJhaW4YECABKAkSEQoJd2Fsa190ZXN0GBEgASgJEhQKDHN1bW1hcnlfdGV4dBgSIAEoCRIYChBjaGFydF90aW1lZnJhbWVzGBMgAygJGi0KC1BhcmFtc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEiQAoWQmFja3Rlc3RHZXRSdW5SZXNwb25zZRImCgNydW4YASABKAsyGS5zYW4udG93ZXIudjEuQmFja3Rlc3RSdW4isQEKGUJhY2t0ZXN0R2V0Q2FuZGxlc1JlcXVlc3QSDAoEcGF0aBgBIAEoCRIoCgRmcm9tGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBImCgJ0bxgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEQoJdGltZWZyYW1lGAQgASgJEhIKCmluc3RydW1lbnQYBSABKAkSDQoFbGltaXQYBiABKA0idgoOQmFja3Rlc3RDYW5kbGUSDAoEdGltZRgBIAEoAxIMCgRvcGVuGAIgASgBEgwKBGhpZ2gYAyABKAESCwoDbG93GAQgASgBEg0KBWNsb3NlGAUgASgBEg4KBnZvbHVtZRgGIAEoARIOCgZzcHJlYWQYByABKAEisgEKGkJhY2t0ZXN0R2V0Q2FuZGxlc1Jlc3BvbnNlEhIKCmluc3RydW1lbnQYASABKAkSEQoJdGltZWZyYW1lGAIgASgJEhYKDnN0ZXBfdGltZWZyYW1lGAMgASgJEi0KB2NhbmRsZXMYBCADKAsyHC5zYW4udG93ZXIudjEuQmFja3Rlc3RDYW5kbGUSEQoJdHJ1bmNhdGVkGAUgASgIEhMKC2luc3RydW1lbnRzGAYgAygJIuUBChtCYWNrdGVzdEdldERlY2lzaW9uc1JlcXVlc3QSDAoEcGF0aBgBIAEoCRIqCgZhcm91bmQYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEigKBGZyb20YAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiYKAnRvGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVsaW1pdBgFIAEoDRINCgVraW5kcxgGIAMoCRIPCgdoYXNfbGVnGAcgASgIEgsKA2xlZxgIIAEoDSLxAQoQQmFja3Rlc3REZWNpc2lvbhIoCgR0aW1lGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBILCgNsZWcYAiABKA0SDAoEa2luZBgDIAEoCRIMCgRzaWRlGAQgASgJEjwKB2RldGFpbHMYBSADKAsyKy5zYW4udG93ZXIudjEuQmFja3Rlc3REZWNpc2lvbi5EZXRhaWxzRW50cnkSDgoGcmVhc29uGAYgASgJEgwKBGxpbmUYByABKA0aLgoMRGV0YWlsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEicwocQmFja3Rlc3RHZXREZWNpc2lvbnNSZXNwb25zZRIxCglkZWNpc2lvbnMYASADKAsyHi5zYW4udG93ZXIudjEuQmFja3Rlc3REZWNpc2lvbhINCgV0b3RhbBgCIAEoDRIRCglhdmFpbGFibGUYAyABKAgiIgogQmFja3Rlc3RMaXN0UmVjZW50Rm9sZGVyc1JlcXVlc3QiNAohQmFja3Rlc3RMaXN0UmVjZW50Rm9sZGVyc1Jlc3BvbnNlEg8KB2ZvbGRlcnMYASADKAkiMQohQmFja3Rlc3RGb3JnZXRSZWNlbnRGb2xkZXJSZXF1ZXN0EgwKBHBhdGgYASABKAkiNQoiQmFja3Rlc3RGb3JnZXRSZWNlbnRGb2xkZXJSZXNwb25zZRIPCgdmb2xkZXJzGAEgAygJIioKGkJhY2t0ZXN0V2F0Y2hGb2xkZXJSZXF1ZXN0EgwKBHBhdGgYASABKAkiwQEKG0JhY2t0ZXN0V2F0Y2hGb2xkZXJSZXNwb25zZRI8CghzbmFwc2hvdBgBIAEoCzIoLnNhbi50b3dlci52MS5CYWNrdGVzdE9wZW5Gb2xkZXJSZXNwb25zZUgAEjMKB2NoYW5nZWQYAiABKAsyIC5zYW4udG93ZXIudjEuQmFja3Rlc3RSdW5TdW1tYXJ5SAASEQoHcmVtb3ZlZBgDIAEoCUgAEhMKCWhlYXJ0YmVhdBgEIAEoCEgAQgcKBWV2ZW50MrcHChdCYWNrdGVzdEFuYWx5c2lzU2VydmljZRJiCgtMaXN0Rm9sZGVycxIoLnNhbi50b3dlci52MS5CYWNrdGVzdExpc3RGb2xkZXJzUmVxdWVzdBopLnNhbi50b3dlci52MS5CYWNrdGVzdExpc3RGb2xkZXJzUmVzcG9uc2USXwoKT3BlbkZvbGRlchInLnNhbi50b3dlci52MS5CYWNrdGVzdE9wZW5Gb2xkZXJSZXF1ZXN0Giguc2FuLnRvd2VyLnYxLkJhY2t0ZXN0T3BlbkZvbGRlclJlc3BvbnNlElMKBkdldFJ1bhIjLnNhbi50b3dlci52MS5CYWNrdGVzdEdldFJ1blJlcXVlc3QaJC5zYW4udG93ZXIudjEuQmFja3Rlc3RHZXRSdW5SZXNwb25zZRJfCgpHZXRDYW5kbGVzEicuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0R2V0Q2FuZGxlc1JlcXVlc3QaKC5zYW4udG93ZXIudjEuQmFja3Rlc3RHZXRDYW5kbGVzUmVzcG9uc2USZQoMR2V0RGVjaXNpb25zEikuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0R2V0RGVjaXNpb25zUmVxdWVzdBoqLnNhbi50b3dlci52MS5CYWNrdGVzdEdldERlY2lzaW9uc1Jlc3BvbnNlEnQKEUxpc3RSZWNlbnRGb2xkZXJzEi4uc2FuLnRvd2VyLnYxLkJhY2t0ZXN0TGlzdFJlY2VudEZvbGRlcnNSZXF1ZXN0Gi8uc2FuLnRvd2VyLnYxLkJhY2t0ZXN0TGlzdFJlY2VudEZvbGRlcnNSZXNwb25zZRJ3ChJGb3JnZXRSZWNlbnRGb2xkZXISLy5zYW4udG93ZXIudjEuQmFja3Rlc3RGb3JnZXRSZWNlbnRGb2xkZXJSZXF1ZXN0GjAuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0Rm9yZ2V0UmVjZW50Rm9sZGVyUmVzcG9uc2USZAoLV2F0Y2hGb2xkZXISKC5zYW4udG93ZXIudjEuQmFja3Rlc3RXYXRjaEZvbGRlclJlcXVlc3QaKS5zYW4udG93ZXIudjEuQmFja3Rlc3RXYXRjaEZvbGRlclJlc3BvbnNlMAESZQoNTGlzdFBhcGVyUnVucxIqLnNhbi50b3dlci52MS5CYWNrdGVzdExpc3RQYXBlclJ1bnNSZXF1ZXN0Giguc2FuLnRvd2VyLnYxLkJhY2t0ZXN0T3BlbkZvbGRlclJlc3BvbnNlQrUBChBjb20uc2FuLnRvd2VyLnYxQhVCYWNrdGVzdEFuYWx5c2lzUHJvdG9QAVo4Z2l0aHViLmNvbS93YXJnYXNpcGlsL3Nhbl90b3dlci9nZW4vc2FuL3Rvd2VyL3YxO3Rvd2VydjGiAgNTVFiqAgxTYW4uVG93ZXIuVjHKAgxTYW5cVG93ZXJcVjHiAhhTYW5cVG93ZXJcVjFcR1BCTWV0YWRhdGHqAg5TYW46OlRvd2VyOjpWMWIGcHJvdG8z", [file_google_protobuf_timestamp]);
+
+/**
+ * @generated from message san.tower.v1.BacktestListPaperRunsRequest
+ */
+export type BacktestListPaperRunsRequest = Message<"san.tower.v1.BacktestListPaperRunsRequest"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.BacktestListPaperRunsRequest.
+ * Use `create(BacktestListPaperRunsRequestSchema)` to create a new message.
+ */
+export const BacktestListPaperRunsRequestSchema: GenMessage<BacktestListPaperRunsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_backtest_analysis, 0);
 
 /**
  * @generated from message san.tower.v1.BacktestListFoldersRequest
@@ -29,7 +42,7 @@ export type BacktestListFoldersRequest = Message<"san.tower.v1.BacktestListFolde
  * Use `create(BacktestListFoldersRequestSchema)` to create a new message.
  */
 export const BacktestListFoldersRequestSchema: GenMessage<BacktestListFoldersRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 0);
+  messageDesc(file_san_tower_v1_backtest_analysis, 1);
 
 /**
  * @generated from message san.tower.v1.BacktestFolderEntry
@@ -58,7 +71,7 @@ export type BacktestFolderEntry = Message<"san.tower.v1.BacktestFolderEntry"> & 
  * Use `create(BacktestFolderEntrySchema)` to create a new message.
  */
 export const BacktestFolderEntrySchema: GenMessage<BacktestFolderEntry> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 1);
+  messageDesc(file_san_tower_v1_backtest_analysis, 2);
 
 /**
  * @generated from message san.tower.v1.BacktestListFoldersResponse
@@ -103,7 +116,7 @@ export type BacktestListFoldersResponse = Message<"san.tower.v1.BacktestListFold
  * Use `create(BacktestListFoldersResponseSchema)` to create a new message.
  */
 export const BacktestListFoldersResponseSchema: GenMessage<BacktestListFoldersResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 2);
+  messageDesc(file_san_tower_v1_backtest_analysis, 3);
 
 /**
  * @generated from message san.tower.v1.BacktestOpenFolderRequest
@@ -120,7 +133,7 @@ export type BacktestOpenFolderRequest = Message<"san.tower.v1.BacktestOpenFolder
  * Use `create(BacktestOpenFolderRequestSchema)` to create a new message.
  */
 export const BacktestOpenFolderRequestSchema: GenMessage<BacktestOpenFolderRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 3);
+  messageDesc(file_san_tower_v1_backtest_analysis, 4);
 
 /**
  * BacktestRunSummary is one report in a folder.
@@ -262,6 +275,28 @@ export type BacktestRunSummary = Message<"san.tower.v1.BacktestRunSummary"> & {
    * @generated from field: string problem = 24;
    */
   problem: string;
+
+  /**
+   * candles_from is set when the report saved no candles of its own and
+   * the chart uses a sibling report's ("../real"), clipped to this
+   * report's range.
+   *
+   * @generated from field: string candles_from = 25;
+   */
+  candlesFrom: string;
+
+  /**
+   * paper: a Live Trading paper session (path "paper:<id>"), not a
+   * backtest; status is its status (running, stopped, ...).
+   *
+   * @generated from field: bool paper = 26;
+   */
+  paper: boolean;
+
+  /**
+   * @generated from field: string status = 27;
+   */
+  status: string;
 };
 
 /**
@@ -269,7 +304,7 @@ export type BacktestRunSummary = Message<"san.tower.v1.BacktestRunSummary"> & {
  * Use `create(BacktestRunSummarySchema)` to create a new message.
  */
 export const BacktestRunSummarySchema: GenMessage<BacktestRunSummary> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 4);
+  messageDesc(file_san_tower_v1_backtest_analysis, 5);
 
 /**
  * @generated from message san.tower.v1.BacktestOpenFolderResponse
@@ -298,7 +333,7 @@ export type BacktestOpenFolderResponse = Message<"san.tower.v1.BacktestOpenFolde
  * Use `create(BacktestOpenFolderResponseSchema)` to create a new message.
  */
 export const BacktestOpenFolderResponseSchema: GenMessage<BacktestOpenFolderResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 5);
+  messageDesc(file_san_tower_v1_backtest_analysis, 6);
 
 /**
  * @generated from message san.tower.v1.BacktestGetRunRequest
@@ -323,7 +358,7 @@ export type BacktestGetRunRequest = Message<"san.tower.v1.BacktestGetRunRequest"
  * Use `create(BacktestGetRunRequestSchema)` to create a new message.
  */
 export const BacktestGetRunRequestSchema: GenMessage<BacktestGetRunRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 6);
+  messageDesc(file_san_tower_v1_backtest_analysis, 7);
 
 /**
  * @generated from message san.tower.v1.BacktestHalf
@@ -355,7 +390,7 @@ export type BacktestHalf = Message<"san.tower.v1.BacktestHalf"> & {
  * Use `create(BacktestHalfSchema)` to create a new message.
  */
 export const BacktestHalfSchema: GenMessage<BacktestHalf> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 7);
+  messageDesc(file_san_tower_v1_backtest_analysis, 8);
 
 /**
  * @generated from message san.tower.v1.BacktestStats
@@ -467,7 +502,7 @@ export type BacktestStats = Message<"san.tower.v1.BacktestStats"> & {
  * Use `create(BacktestStatsSchema)` to create a new message.
  */
 export const BacktestStatsSchema: GenMessage<BacktestStats> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 8);
+  messageDesc(file_san_tower_v1_backtest_analysis, 9);
 
 /**
  * @generated from message san.tower.v1.BacktestLeg
@@ -527,7 +562,7 @@ export type BacktestLeg = Message<"san.tower.v1.BacktestLeg"> & {
  * Use `create(BacktestLegSchema)` to create a new message.
  */
 export const BacktestLegSchema: GenMessage<BacktestLeg> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 9);
+  messageDesc(file_san_tower_v1_backtest_analysis, 10);
 
 /**
  * @generated from message san.tower.v1.BacktestCost
@@ -579,7 +614,7 @@ export type BacktestCost = Message<"san.tower.v1.BacktestCost"> & {
  * Use `create(BacktestCostSchema)` to create a new message.
  */
 export const BacktestCostSchema: GenMessage<BacktestCost> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 10);
+  messageDesc(file_san_tower_v1_backtest_analysis, 11);
 
 /**
  * @generated from message san.tower.v1.BacktestAccount
@@ -626,7 +661,7 @@ export type BacktestAccount = Message<"san.tower.v1.BacktestAccount"> & {
  * Use `create(BacktestAccountSchema)` to create a new message.
  */
 export const BacktestAccountSchema: GenMessage<BacktestAccount> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 11);
+  messageDesc(file_san_tower_v1_backtest_analysis, 12);
 
 /**
  * @generated from message san.tower.v1.BacktestTrade
@@ -796,7 +831,7 @@ export type BacktestTrade = Message<"san.tower.v1.BacktestTrade"> & {
  * Use `create(BacktestTradeSchema)` to create a new message.
  */
 export const BacktestTradeSchema: GenMessage<BacktestTrade> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 12);
+  messageDesc(file_san_tower_v1_backtest_analysis, 13);
 
 /**
  * @generated from message san.tower.v1.BacktestMissed
@@ -856,7 +891,7 @@ export type BacktestMissed = Message<"san.tower.v1.BacktestMissed"> & {
  * Use `create(BacktestMissedSchema)` to create a new message.
  */
 export const BacktestMissedSchema: GenMessage<BacktestMissed> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 13);
+  messageDesc(file_san_tower_v1_backtest_analysis, 14);
 
 /**
  * @generated from message san.tower.v1.BacktestEquityPoint
@@ -890,7 +925,7 @@ export type BacktestEquityPoint = Message<"san.tower.v1.BacktestEquityPoint"> & 
  * Use `create(BacktestEquityPointSchema)` to create a new message.
  */
 export const BacktestEquityPointSchema: GenMessage<BacktestEquityPoint> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 14);
+  messageDesc(file_san_tower_v1_backtest_analysis, 15);
 
 /**
  * @generated from message san.tower.v1.BacktestWalkWindow
@@ -957,7 +992,7 @@ export type BacktestWalkWindow = Message<"san.tower.v1.BacktestWalkWindow"> & {
  * Use `create(BacktestWalkWindowSchema)` to create a new message.
  */
 export const BacktestWalkWindowSchema: GenMessage<BacktestWalkWindow> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 15);
+  messageDesc(file_san_tower_v1_backtest_analysis, 16);
 
 /**
  * @generated from message san.tower.v1.BacktestRun
@@ -1074,7 +1109,7 @@ export type BacktestRun = Message<"san.tower.v1.BacktestRun"> & {
  * Use `create(BacktestRunSchema)` to create a new message.
  */
 export const BacktestRunSchema: GenMessage<BacktestRun> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 16);
+  messageDesc(file_san_tower_v1_backtest_analysis, 17);
 
 /**
  * @generated from message san.tower.v1.BacktestGetRunResponse
@@ -1091,7 +1126,7 @@ export type BacktestGetRunResponse = Message<"san.tower.v1.BacktestGetRunRespons
  * Use `create(BacktestGetRunResponseSchema)` to create a new message.
  */
 export const BacktestGetRunResponseSchema: GenMessage<BacktestGetRunResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 17);
+  messageDesc(file_san_tower_v1_backtest_analysis, 18);
 
 /**
  * @generated from message san.tower.v1.BacktestGetCandlesRequest
@@ -1142,7 +1177,7 @@ export type BacktestGetCandlesRequest = Message<"san.tower.v1.BacktestGetCandles
  * Use `create(BacktestGetCandlesRequestSchema)` to create a new message.
  */
 export const BacktestGetCandlesRequestSchema: GenMessage<BacktestGetCandlesRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 18);
+  messageDesc(file_san_tower_v1_backtest_analysis, 19);
 
 /**
  * @generated from message san.tower.v1.BacktestCandle
@@ -1191,7 +1226,7 @@ export type BacktestCandle = Message<"san.tower.v1.BacktestCandle"> & {
  * Use `create(BacktestCandleSchema)` to create a new message.
  */
 export const BacktestCandleSchema: GenMessage<BacktestCandle> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 19);
+  messageDesc(file_san_tower_v1_backtest_analysis, 20);
 
 /**
  * @generated from message san.tower.v1.BacktestGetCandlesResponse
@@ -1235,7 +1270,7 @@ export type BacktestGetCandlesResponse = Message<"san.tower.v1.BacktestGetCandle
  * Use `create(BacktestGetCandlesResponseSchema)` to create a new message.
  */
 export const BacktestGetCandlesResponseSchema: GenMessage<BacktestGetCandlesResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 20);
+  messageDesc(file_san_tower_v1_backtest_analysis, 21);
 
 /**
  * @generated from message san.tower.v1.BacktestGetDecisionsRequest
@@ -1297,7 +1332,7 @@ export type BacktestGetDecisionsRequest = Message<"san.tower.v1.BacktestGetDecis
  * Use `create(BacktestGetDecisionsRequestSchema)` to create a new message.
  */
 export const BacktestGetDecisionsRequestSchema: GenMessage<BacktestGetDecisionsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 21);
+  messageDesc(file_san_tower_v1_backtest_analysis, 22);
 
 /**
  * @generated from message san.tower.v1.BacktestDecision
@@ -1346,7 +1381,7 @@ export type BacktestDecision = Message<"san.tower.v1.BacktestDecision"> & {
  * Use `create(BacktestDecisionSchema)` to create a new message.
  */
 export const BacktestDecisionSchema: GenMessage<BacktestDecision> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 22);
+  messageDesc(file_san_tower_v1_backtest_analysis, 23);
 
 /**
  * @generated from message san.tower.v1.BacktestGetDecisionsResponse
@@ -1377,7 +1412,7 @@ export type BacktestGetDecisionsResponse = Message<"san.tower.v1.BacktestGetDeci
  * Use `create(BacktestGetDecisionsResponseSchema)` to create a new message.
  */
 export const BacktestGetDecisionsResponseSchema: GenMessage<BacktestGetDecisionsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 23);
+  messageDesc(file_san_tower_v1_backtest_analysis, 24);
 
 /**
  * @generated from message san.tower.v1.BacktestListRecentFoldersRequest
@@ -1390,7 +1425,7 @@ export type BacktestListRecentFoldersRequest = Message<"san.tower.v1.BacktestLis
  * Use `create(BacktestListRecentFoldersRequestSchema)` to create a new message.
  */
 export const BacktestListRecentFoldersRequestSchema: GenMessage<BacktestListRecentFoldersRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 24);
+  messageDesc(file_san_tower_v1_backtest_analysis, 25);
 
 /**
  * @generated from message san.tower.v1.BacktestListRecentFoldersResponse
@@ -1407,7 +1442,7 @@ export type BacktestListRecentFoldersResponse = Message<"san.tower.v1.BacktestLi
  * Use `create(BacktestListRecentFoldersResponseSchema)` to create a new message.
  */
 export const BacktestListRecentFoldersResponseSchema: GenMessage<BacktestListRecentFoldersResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 25);
+  messageDesc(file_san_tower_v1_backtest_analysis, 26);
 
 /**
  * @generated from message san.tower.v1.BacktestForgetRecentFolderRequest
@@ -1424,7 +1459,7 @@ export type BacktestForgetRecentFolderRequest = Message<"san.tower.v1.BacktestFo
  * Use `create(BacktestForgetRecentFolderRequestSchema)` to create a new message.
  */
 export const BacktestForgetRecentFolderRequestSchema: GenMessage<BacktestForgetRecentFolderRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 26);
+  messageDesc(file_san_tower_v1_backtest_analysis, 27);
 
 /**
  * @generated from message san.tower.v1.BacktestForgetRecentFolderResponse
@@ -1441,7 +1476,7 @@ export type BacktestForgetRecentFolderResponse = Message<"san.tower.v1.BacktestF
  * Use `create(BacktestForgetRecentFolderResponseSchema)` to create a new message.
  */
 export const BacktestForgetRecentFolderResponseSchema: GenMessage<BacktestForgetRecentFolderResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 27);
+  messageDesc(file_san_tower_v1_backtest_analysis, 28);
 
 /**
  * @generated from message san.tower.v1.BacktestWatchFolderRequest
@@ -1458,7 +1493,7 @@ export type BacktestWatchFolderRequest = Message<"san.tower.v1.BacktestWatchFold
  * Use `create(BacktestWatchFolderRequestSchema)` to create a new message.
  */
 export const BacktestWatchFolderRequestSchema: GenMessage<BacktestWatchFolderRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 28);
+  messageDesc(file_san_tower_v1_backtest_analysis, 29);
 
 /**
  * @generated from message san.tower.v1.BacktestWatchFolderResponse
@@ -1505,7 +1540,7 @@ export type BacktestWatchFolderResponse = Message<"san.tower.v1.BacktestWatchFol
  * Use `create(BacktestWatchFolderResponseSchema)` to create a new message.
  */
 export const BacktestWatchFolderResponseSchema: GenMessage<BacktestWatchFolderResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_backtest_analysis, 29);
+  messageDesc(file_san_tower_v1_backtest_analysis, 30);
 
 /**
  * BacktestAnalysisService opens folders of San Backtest reports
@@ -1616,6 +1651,19 @@ export const BacktestAnalysisService: GenService<{
     methodKind: "server_streaming";
     input: typeof BacktestWatchFolderRequestSchema;
     output: typeof BacktestWatchFolderResponseSchema;
+  },
+  /**
+   * ListPaperRuns lists the Live Trading page's paper sessions as runs
+   * (the "Paper sessions" source next to Open folder): each one's path is
+   * "paper:<id>", which GetRun, GetCandles and GetDecisions open like a
+   * report folder, so a session compares with backtests.
+   *
+   * @generated from rpc san.tower.v1.BacktestAnalysisService.ListPaperRuns
+   */
+  listPaperRuns: {
+    methodKind: "unary";
+    input: typeof BacktestListPaperRunsRequestSchema;
+    output: typeof BacktestOpenFolderResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_san_tower_v1_backtest_analysis, 0);

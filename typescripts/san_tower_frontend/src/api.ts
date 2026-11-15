@@ -10,6 +10,7 @@ import { ChatService } from './gen/san/tower/v1/chat_pb';
 import { ConnectionService } from './gen/san/tower/v1/connection_pb';
 import { KeywordResearchService } from './gen/san/tower/v1/keyword_research_pb';
 import { KnowledgeService } from './gen/san/tower/v1/knowledge_pb';
+import { LiveTradingService } from './gen/san/tower/v1/live_trading_pb';
 import { StorageService } from './gen/san/tower/v1/storage_pb';
 import { TowerService } from './gen/san/tower/v1/tower_pb';
 import { WorkflowService } from './gen/san/tower/v1/workflow_pb';
@@ -57,6 +58,10 @@ export const keywordResearch = createClient(KeywordResearchService, transport);
 // backtestAnalysis is the Backtest Analysis page's reader of San Backtest
 // report folders on this computer (read-only).
 export const backtestAnalysis = createClient(BacktestAnalysisService, transport);
+
+// liveTrading is the Live Trading page: the read-only monitor of an Exness
+// connection and the paper sessions (no orders are ever sent).
+export const liveTrading = createClient(LiveTradingService, transport);
 
 // errorText is an error as a sentence: the server's own message, without
 // Connect's "[code]" prefix.

@@ -11,6 +11,12 @@ import (
 	v1 "github.com/wargasipil/san_tower/gen/san/tower/v1"
 )
 
+// noCandles is a report with nothing to chart (a NotFound to the page).
+type noCandles string
+
+func (e noCandles) Error() string { return string(e) }
+func (e noCandles) Unwrap() error { return os.ErrNotExist }
+
 // DefaultCandleLimit is how many candles GetCandles sends at most.
 const DefaultCandleLimit = 50000
 
@@ -164,12 +170,29 @@ func aggregate(cs []*v1.BacktestCandle, tf string) []*v1.BacktestCandle {
 // Candles reads a report's candles of instrument (empty: the first) in
 // tf (empty: the step timeframe) whose open time is in [from, to] (zero:
 // unbounded), at most limit (0: DefaultCandleLimit; past it the newest).
+//
+// A report that saved no candles of its own charts a sibling report's
+// (sibling.go), clipped to its own range.
 func Candles(dir, instrument, tf string, from, to time.Time, limit int) (*v1.BacktestGetCandlesResponse, error) {
-	f, err := loadCandles(dir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("this report has no %s (written before San Backtest wrote candles)", CandlesFile)
+	src, rel := candleSource(dir)
+	if src == "" {
+		if !exists(dir, CandlesFile) {
+			return nil, noCandles(fmt.Sprintf("this report has no %s (written before San Backtest wrote candles)", CandlesFile))
 		}
+		return nil, noCandles("this report saved no candles and no sibling report has them; run the backtest again to chart its trades")
+	}
+	if rel != "" {
+		if own, ok := rangeOf(dir); ok {
+			if !own.from.IsZero() && (from.IsZero() || from.Before(own.from)) {
+				from = own.from
+			}
+			if last := own.to.Add(-time.Second); !own.to.IsZero() && (to.IsZero() || to.After(last)) {
+				to = last
+			}
+		}
+	}
+	f, err := loadCandles(src)
+	if err != nil {
 		return nil, err
 	}
 	if instrument == "" && len(f.inst) > 0 {

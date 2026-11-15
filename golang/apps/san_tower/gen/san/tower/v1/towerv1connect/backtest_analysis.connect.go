@@ -57,6 +57,9 @@ const (
 	// BacktestAnalysisServiceWatchFolderProcedure is the fully-qualified name of the
 	// BacktestAnalysisService's WatchFolder RPC.
 	BacktestAnalysisServiceWatchFolderProcedure = "/san.tower.v1.BacktestAnalysisService/WatchFolder"
+	// BacktestAnalysisServiceListPaperRunsProcedure is the fully-qualified name of the
+	// BacktestAnalysisService's ListPaperRuns RPC.
+	BacktestAnalysisServiceListPaperRunsProcedure = "/san.tower.v1.BacktestAnalysisService/ListPaperRuns"
 )
 
 // BacktestAnalysisServiceClient is a client for the san.tower.v1.BacktestAnalysisService service.
@@ -87,6 +90,11 @@ type BacktestAnalysisServiceClient interface {
 	// changes or goes away (the folder is read every few seconds), with a
 	// heartbeat every 15 seconds.
 	WatchFolder(context.Context, *connect.Request[v1.BacktestWatchFolderRequest]) (*connect.ServerStreamForClient[v1.BacktestWatchFolderResponse], error)
+	// ListPaperRuns lists the Live Trading page's paper sessions as runs
+	// (the "Paper sessions" source next to Open folder): each one's path is
+	// "paper:<id>", which GetRun, GetCandles and GetDecisions open like a
+	// report folder, so a session compares with backtests.
+	ListPaperRuns(context.Context, *connect.Request[v1.BacktestListPaperRunsRequest]) (*connect.Response[v1.BacktestOpenFolderResponse], error)
 }
 
 // NewBacktestAnalysisServiceClient constructs a client for the san.tower.v1.BacktestAnalysisService
@@ -148,6 +156,12 @@ func NewBacktestAnalysisServiceClient(httpClient connect.HTTPClient, baseURL str
 			connect.WithSchema(backtestAnalysisServiceMethods.ByName("WatchFolder")),
 			connect.WithClientOptions(opts...),
 		),
+		listPaperRuns: connect.NewClient[v1.BacktestListPaperRunsRequest, v1.BacktestOpenFolderResponse](
+			httpClient,
+			baseURL+BacktestAnalysisServiceListPaperRunsProcedure,
+			connect.WithSchema(backtestAnalysisServiceMethods.ByName("ListPaperRuns")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -161,6 +175,7 @@ type backtestAnalysisServiceClient struct {
 	listRecentFolders  *connect.Client[v1.BacktestListRecentFoldersRequest, v1.BacktestListRecentFoldersResponse]
 	forgetRecentFolder *connect.Client[v1.BacktestForgetRecentFolderRequest, v1.BacktestForgetRecentFolderResponse]
 	watchFolder        *connect.Client[v1.BacktestWatchFolderRequest, v1.BacktestWatchFolderResponse]
+	listPaperRuns      *connect.Client[v1.BacktestListPaperRunsRequest, v1.BacktestOpenFolderResponse]
 }
 
 // ListFolders calls san.tower.v1.BacktestAnalysisService.ListFolders.
@@ -203,6 +218,11 @@ func (c *backtestAnalysisServiceClient) WatchFolder(ctx context.Context, req *co
 	return c.watchFolder.CallServerStream(ctx, req)
 }
 
+// ListPaperRuns calls san.tower.v1.BacktestAnalysisService.ListPaperRuns.
+func (c *backtestAnalysisServiceClient) ListPaperRuns(ctx context.Context, req *connect.Request[v1.BacktestListPaperRunsRequest]) (*connect.Response[v1.BacktestOpenFolderResponse], error) {
+	return c.listPaperRuns.CallUnary(ctx, req)
+}
+
 // BacktestAnalysisServiceHandler is an implementation of the san.tower.v1.BacktestAnalysisService
 // service.
 type BacktestAnalysisServiceHandler interface {
@@ -232,6 +252,11 @@ type BacktestAnalysisServiceHandler interface {
 	// changes or goes away (the folder is read every few seconds), with a
 	// heartbeat every 15 seconds.
 	WatchFolder(context.Context, *connect.Request[v1.BacktestWatchFolderRequest], *connect.ServerStream[v1.BacktestWatchFolderResponse]) error
+	// ListPaperRuns lists the Live Trading page's paper sessions as runs
+	// (the "Paper sessions" source next to Open folder): each one's path is
+	// "paper:<id>", which GetRun, GetCandles and GetDecisions open like a
+	// report folder, so a session compares with backtests.
+	ListPaperRuns(context.Context, *connect.Request[v1.BacktestListPaperRunsRequest]) (*connect.Response[v1.BacktestOpenFolderResponse], error)
 }
 
 // NewBacktestAnalysisServiceHandler builds an HTTP handler from the service implementation. It
@@ -289,6 +314,12 @@ func NewBacktestAnalysisServiceHandler(svc BacktestAnalysisServiceHandler, opts 
 		connect.WithSchema(backtestAnalysisServiceMethods.ByName("WatchFolder")),
 		connect.WithHandlerOptions(opts...),
 	)
+	backtestAnalysisServiceListPaperRunsHandler := connect.NewUnaryHandler(
+		BacktestAnalysisServiceListPaperRunsProcedure,
+		svc.ListPaperRuns,
+		connect.WithSchema(backtestAnalysisServiceMethods.ByName("ListPaperRuns")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.BacktestAnalysisService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case BacktestAnalysisServiceListFoldersProcedure:
@@ -307,6 +338,8 @@ func NewBacktestAnalysisServiceHandler(svc BacktestAnalysisServiceHandler, opts 
 			backtestAnalysisServiceForgetRecentFolderHandler.ServeHTTP(w, r)
 		case BacktestAnalysisServiceWatchFolderProcedure:
 			backtestAnalysisServiceWatchFolderHandler.ServeHTTP(w, r)
+		case BacktestAnalysisServiceListPaperRunsProcedure:
+			backtestAnalysisServiceListPaperRunsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -346,4 +379,8 @@ func (UnimplementedBacktestAnalysisServiceHandler) ForgetRecentFolder(context.Co
 
 func (UnimplementedBacktestAnalysisServiceHandler) WatchFolder(context.Context, *connect.Request[v1.BacktestWatchFolderRequest], *connect.ServerStream[v1.BacktestWatchFolderResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.BacktestAnalysisService.WatchFolder is not implemented"))
+}
+
+func (UnimplementedBacktestAnalysisServiceHandler) ListPaperRuns(context.Context, *connect.Request[v1.BacktestListPaperRunsRequest]) (*connect.Response[v1.BacktestOpenFolderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.BacktestAnalysisService.ListPaperRuns is not implemented"))
 }

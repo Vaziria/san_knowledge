@@ -2815,8 +2815,7 @@ by backtest").
 - **Read only.** It only opens reports and never starts a run (the user,
   2026-11-15: "1a"), and nothing in a report folder is written, moved or
   deleted. The tower reads the report files itself (run.json, the CSVs,
-  decisions.jsonl): it does not import san_backtest, so its go.mod is the
-  same.
+  decisions.jsonl); san_backtest is imported only by Live Trading.
 - **Opening a folder:** a path, the folder picker (ListFolders: the tower
   lists this computer's drives and folders, since a browser's file dialog
   gives no real path; report folders are marked), or a recent folder. The
@@ -2865,9 +2864,107 @@ by backtest").
   `order_cancelled` and `order_expired` lines, and shows position and
   order numbers as `#n`. Older reports, without these columns, read as
   before.
+- **Candles from a sibling report** (`internal/backtestanalysis/sibling.go`):
+  san_research writes the full candles.csv only in each approach's `real`
+  run; its year runs, `harsh` and `real-100k` keep a header-only one (to
+  keep the repo small). A report whose own candles.csv is missing or has
+  no rows charts with a sibling's (a folder next to it, same parent): the
+  same instrument and step timeframe, `real` first, then one covering the
+  report's whole range, then the largest overlap; clipped to the report's
+  own range, read only and cached like any candles.csv. The run list and
+  the run page say "candles ../real". The chart flag (HasCandles) comes
+  from whether usable candles exist, not whether the file does. With none,
+  the page says why: "this report saved no candles and no sibling report
+  has them; run the backtest again to chart its trades" (or, with no
+  candles.csv at all, that it was written before San Backtest wrote
+  candles).
+- **Paper sessions** (a source next to Open folder): Live Trading's paper
+  sessions listed like a folder of reports (ListPaperRuns), with a PAPER
+  badge and their status. Each opens like a report (path `paper:<id>`):
+  the tower writes the session's report folder from its journal in the
+  database (`live_trading/view/<id>` in the data folder, made again when
+  the session changed), so its chart, trades, decision log and equity
+  show, and it compares with backtests.
 - **Local only:** the service names this computer's paths, so it answers
   only callers on this computer (a loopback peer), also on a tower started
   with `--lan`, where it refuses others with PermissionDenied.
+
+## Live Trading
+
+The Live Trading page (`/live-trading`, after Backtest Analysis; the user,
+2026-11-15: "Beside backtest analysis, can we have realtime trading menu in
+tower ?", named "Live Trading"; `internal/livetrading`,
+`server/live_trading.go`, LiveTradingService). Its first stage is "Monitor
++ Signals (paper trading)" (the user, 2026-11-15: "1a"): **nothing on it
+places, changes, cancels or closes an order or a position**, since San's
+Exness account is real money.
+
+- **Read only, enforced.** Every Exness call goes through
+  `livetrading.Exness`, an interface with only Account, Snapshot, Candles,
+  Instrument, Events and Ticks. `safety_test.go` fails if OpenPosition,
+  PlaceOrder, ModifyOrder, CancelOrder or ClosePosition (or any trading
+  method of san_exness) is named anywhere under `internal/livetrading` or
+  in `server/live_trading.go`, or if the interface grows another method.
+  The test fake (`livetrading/livefake`) refuses every trading route with
+  403 and counts it; the tests check none was asked.
+- **Monitor** (the user, 2026-11-15: "1a": the tower's existing Exness
+  connection; the first one, or one picked when there are several): the
+  account (balance, equity, margin, free margin), open positions and
+  pending orders with live P/L, from the Events stream (its snapshot, then
+  the transactions and the account state every ~2 s), with the REST
+  Snapshot every 10 s while the stream is down; bid/ask from the Ticks
+  stream for the instruments on screen. A dropped stream is dialled again
+  (backing off to 30 s), resubscribed and rebuilt from its new snapshot.
+  One monitor per connection, shared by every watcher; it stops 30 s after
+  the last one leaves. The chart (GetLiveCandles, REST Candles) has the
+  closed candles; the forming one is drawn from the ticks, with the
+  positions' entry, SL and TP lines.
+- **Paper sessions** (the user, 2026-11-15: "2a": run inside the tower with
+  San Backtest's chain code; "several paper sessions at once"): a session
+  is an approach of san_backtest's examples or san_research (ListApproaches;
+  chains included), an instrument, balance, risk, leverage, max open, the
+  approach's params, and Exness's real costs. It is San Backtest's engine
+  stepped one closed candle at a time (`bt.Live`): the same fills, spread,
+  swap, worst case, orders, positions and decisions as `san_backtest run`,
+  so a session over a past range trades exactly as a backtest of it
+  (proved in san_backtest's and san_research's tests). A new session
+  starts with the step candle forming at its first start.
+  - **Candles:** the warm-up history from the tower's cache
+    (`live_trading/cache/` in the data folder, as san_backtest's Cache),
+    then Exness's REST Candles. The session wakes 5 s after each close of
+    its step timeframe and asks for the candles that closed since its last
+    one, in order: a missed close (the PC asleep, the network down) is
+    caught up at the next wake, and a failed read is tried again after
+    30 s. The forming candle (ticks) is for the chart only; the approach
+    never sees it. A signal at a close fills at the next candle's open.
+  - **Market closed** (weekends): the session waits, asking nothing, and
+    shows "market closed". Session hours come from Exness's instrument
+    schedule, never fixed times (the user: "Time 20:00 and 24:00 is not
+    fixed time").
+  - **Storage** (the user, 2026-11-15: "4b (using storage)"): the
+    settings, state (open positions and orders), trades, decisions, equity
+    points, missed signals and the candles it ran are kept in the tower's
+    database (`PaperSession`, `PaperRecord`), never in San's files.
+  - **Restart** (the user, 2026-11-15: "3b"): sessions that were going
+    when the tower stopped show "stopped" ("the tower restarted: start the
+    session again to continue it") with their history, and wait to be
+    started by hand. A start (after a restart or a Stop) replays the
+    session from its first candle with the same engine on the same
+    candles, which gives the same history up to the stop, then catches up
+    the time it was stopped and goes on live; the journal is written again
+    from the replay. This is simpler and safer than restoring engine state.
+  - **Statuses:** starting, waiting (for the next candle), running,
+    market closed, stopped, error (with the reason).
+  - **Export** writes a session as a normal report folder (run.json,
+    trades.csv, candles.csv, decisions.jsonl...; San Backtest's Save), by
+    default under `live_trading/exports/` in the data folder.
+- **Testing on a fake:** `SAN_TOWER_EXNESS_CA` (a PEM file of extra CAs the
+  Exness clients trust) and `SAN_TOWER_LIVE_CLOCK`
+  (`<start RFC3339>*<speed>@<anchor unix>`, a virtual clock for paper
+  sessions) let a throwaway tower replay real candles at speed from a fake
+  Access Point. Both log a warning; never set them on San's tower.
+- **Local only:** like Backtest Analysis, it answers only callers on this
+  computer, also with `--lan`.
 
 ## Data
 
@@ -2994,7 +3091,11 @@ second fails to listen before it opens the broker.
   Trends' filter lists, and the WatchResearch and WatchResearches
   streams) and `backtest_analysis.proto` (BacktestAnalysisService: the
   folder picker, open a folder of San Backtest reports, a run, its candles
-  and decision log, recent folders, and the WatchFolder stream).
+  and decision log, recent folders, the paper sessions as runs, and the
+  WatchFolder stream) and `live_trading.proto` (LiveTradingService: the
+  read-only monitor and its WatchMonitor stream, live candles, approaches,
+  paper sessions with their WatchPaperSessions and WatchPaperSession
+  streams, and Export).
   `buf.gen.yaml` makes their Go
   code (`gen/`) and the UI's TS client. `buf.gen.san_message.yaml` makes
   the UI's TS client for san_message's proto; the Go side uses san_message's
@@ -3074,10 +3175,22 @@ second fails to listen before it opens the broker.
   run.json), `run.go` (trades with their session, missed, equity with its
   drawdown and thinning, walk.csv), `candles.go` (candles.csv, higher
   timeframes, a small cache), `decisions.go` (decisions.jsonl by range or
-  around a time) and `folders.go` (the picker). `server/
+  around a time), `folders.go` (the picker), `sibling.go` (a sibling
+  report's candles for reports that saved none) and `paper.go` (the
+  `paper:<id>` paths of paper sessions). `server/
   backtest_analysis.go` is its service (a type of its own,
   `analysisService`, since WorkflowService has a GetRun and a ListFolders
   too), the recent folders and the WatchFolder poll.
+- `internal/livetrading`: Live Trading, read-only: `exness.go` (the
+  read-only Exness interface), `monitor.go` (the account, positions and
+  orders from the Events stream, REST fallback, ticks, reconnects),
+  `manager.go` (sessions, approaches, restarts), `session.go` (a paper
+  session's runner: warm-up, catch-up, a step per closed candle, the
+  journal), `result.go` (a session as a san_backtest Result: the report
+  view and Export), `clock.go` (the test clock), `safety_test.go` (no
+  trading call) and `livefake/` (a fake Exness Access Point for tests).
+  `server/live_trading.go` is its service; the store's
+  `paper_session.go` keeps the sessions and their journals.
 - `internal/keywordresearch`: Keyword Research's graphs (`graph.go`: a
   research's goraphdb graph, opened per use, its nodes and relationships,
   Leiden communities), the crawl (`crawl.go`: one at a time in the tower,

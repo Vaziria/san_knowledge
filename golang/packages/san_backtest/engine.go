@@ -129,9 +129,28 @@ func load(ctx context.Context, p Portfolio) (*loaded, error) {
 }
 
 func loadLeg(ctx context.Context, src DataSource, p Portfolio, i int, l Leg) (*legData, error) {
+	d, err := newLegData(ctx, src, p, i, l)
+	if err != nil {
+		return nil, err
+	}
+	return loadCandles(ctx, src, p, d)
+}
+
+// newLegData reads a leg's instrument and settles its params and costs.
+// usdStable are dollar stablecoins, as Exness names them; profit in one
+// is taken 1:1 as USD (an approximation: their price drifts by a fraction
+// of a percent).
+var usdStable = map[string]bool{"USDT": true, "TET": true, "USDC": true}
+
+func newLegData(ctx context.Context, src DataSource, p Portfolio, i int, l Leg) (*legData, error) {
 	inst, err := src.Instrument(ctx, l.Instrument)
 	if err != nil {
 		return nil, fmt.Errorf("san_backtest: instrument %s: %w", l.Instrument, err)
+	}
+	// A USD account counts a dollar stablecoin as a dollar (the user,
+	// 2026-11-16: BTCUSDT on Exness, whose profit currency is "TET").
+	if p.Currency == "USD" && usdStable[inst.Quote] {
+		inst.Quote = "USD"
 	}
 	if inst.Quote != p.Currency && inst.Base != p.Currency {
 		return nil, fmt.Errorf("san_backtest: %s makes profit in %s and the account is in %s: only instruments quoted in or based on the account currency convert (see README, known limits)",
@@ -155,62 +174,98 @@ func loadLeg(ctx context.Context, src DataSource, p Portfolio, i int, l Leg) (*l
 		d.inst.Commission, d.inst.CommissionCurrency = *d.costs.Commission, p.Currency
 	}
 	d.swapMoney = d.costs.Swap
-	w := l.Strategy.Warmup()
-	for j, tf := range d.tfs {
-		need := w
-		if j == 0 {
-			need = max(w, 1)
-		}
-		cs, err := fetchWarm(ctx, src, inst.Name, tf, p.From, p.To, need)
-		if err != nil {
-			return nil, fmt.Errorf("san_backtest: %w", err)
-		}
-		if d.costs.Spread != nil {
-			sp := *d.costs.Spread
-			out := make([]Candle, len(cs))
-			for k, c := range cs {
-				c.AskOpen, c.AskHigh, c.AskLow, c.AskClose = c.Open+sp, c.High+sp, c.Low+sp, c.Close+sp
-				out[k] = c
-			}
-			cs = out
-		}
-		d.candles[tf] = cs
+	return d, nil
+}
+
+// loadLeg's candles and their first step candle, after newLegData.
+func loadCandles(ctx context.Context, src DataSource, p Portfolio, d *legData) (*legData, error) {
+	inst, l := d.inst, d.leg
+	if err := d.fetch(ctx, src, p.From, p.To); err != nil {
+		return nil, err
 	}
 	step := d.candles[d.tfs[0]]
 	s0 := sort.Search(len(step), func(k int) bool { return !step[k].OpenTime.Before(p.From) })
 	if s0 == len(step) {
 		return nil, fmt.Errorf("san_backtest: no %s %s candles between %s and %s", inst.Name, d.tfs[0], p.From.Format(time.RFC3339), p.To.Format(time.RFC3339))
 	}
-	ready := func(s int) bool {
-		if s < max(w, 1) {
-			return false
-		}
-		for _, tf := range d.tfs[1:] {
-			cs := d.candles[tf]
-			n := sort.Search(len(cs), func(k int) bool { return cs[k].CloseTime.After(step[s].OpenTime) })
-			if n < w {
-				return false
-			}
-		}
-		return true
-	}
 	s := s0
-	for s < len(step) && !ready(s) {
+	for s < len(step) && !d.ready(s) {
 		s++
 	}
 	if s == len(step) {
-		return nil, fmt.Errorf("san_backtest: %s: not enough history for %d warm-up candles on %s", inst.Name, w, strings.Join(d.tfs, ", "))
+		return nil, fmt.Errorf("san_backtest: %s: not enough history for %d warm-up candles on %s", inst.Name, l.Strategy.Warmup(), strings.Join(d.tfs, ", "))
 	}
-	if s > s0 {
-		msg := fmt.Sprintf("%s history starts too late for From %s (%d warm-up candles of %s needed before it): the run starts at %s",
-			inst.Name, p.From.Format(time.RFC3339), w, strings.Join(d.tfs, "/"), step[s].OpenTime.Format(time.RFC3339))
-		if p.Strict {
-			return nil, &FieldError{Field: "Strict", Problem: msg}
-		}
-		d.report.Notes = append(d.report.Notes, msg)
+	if err := d.lateStart(p, s0, s); err != nil {
+		return nil, err
 	}
 	d.start = s
 	return d, nil
+}
+
+// fetch loads every timeframe's candles of [from, to) with the warm-up
+// before from.
+func (d *legData) fetch(ctx context.Context, src DataSource, from, to time.Time) error {
+	w := d.leg.Strategy.Warmup()
+	for j, tf := range d.tfs {
+		need := w
+		if j == 0 {
+			need = max(w, 1)
+		}
+		cs, err := fetchWarm(ctx, src, d.inst.Name, tf, from, to, need)
+		if err != nil {
+			return fmt.Errorf("san_backtest: %w", err)
+		}
+		d.candles[tf] = d.adjust(cs)
+	}
+	return nil
+}
+
+// adjust applies Costs.Spread (a fixed ask over the bid) to new candles.
+func (d *legData) adjust(cs []Candle) []Candle {
+	if d.costs.Spread == nil {
+		return cs
+	}
+	sp := *d.costs.Spread
+	out := make([]Candle, len(cs))
+	for k, c := range cs {
+		c.AskOpen, c.AskHigh, c.AskLow, c.AskClose = c.Open+sp, c.High+sp, c.Low+sp, c.Close+sp
+		out[k] = c
+	}
+	return out
+}
+
+// ready says whether step candle s has the warm-up behind it on every
+// timeframe.
+func (d *legData) ready(s int) bool {
+	w := d.leg.Strategy.Warmup()
+	if s < max(w, 1) {
+		return false
+	}
+	step := d.candles[d.tfs[0]]
+	for _, tf := range d.tfs[1:] {
+		cs := d.candles[tf]
+		n := sort.Search(len(cs), func(k int) bool { return cs[k].CloseTime.After(step[s].OpenTime) })
+		if n < w {
+			return false
+		}
+	}
+	return true
+}
+
+// lateStart notes (or with Strict refuses) a run that starts at step
+// candle s instead of s0, the first at or after From, for want of warm-up.
+func (d *legData) lateStart(p Portfolio, s0, s int) error {
+	if s <= s0 {
+		return nil
+	}
+	step := d.candles[d.tfs[0]]
+	msg := fmt.Sprintf("%s history starts too late for From %s (%d warm-up candles of %s needed before it): the run starts at %s",
+		d.inst.Name, p.From.Format(time.RFC3339), d.leg.Strategy.Warmup(), strings.Join(d.tfs, "/"), step[s].OpenTime.Format(time.RFC3339))
+	if p.Strict {
+		return &FieldError{Field: "Strict", Problem: msg}
+	}
+	d.report.Notes = append(d.report.Notes, msg)
+	return nil
 }
 
 // fetchWarm gets [from, to) plus need candles before from, looking further
@@ -322,7 +377,10 @@ type legRun struct {
 	trades    []Trade
 	firstIdx  int
 	lastIdx   int
-	params    map[string]float64
+	// ranIdx is the last step candle whose close has run (Live's results
+	// end there; a whole run reaches lastIdx).
+	ranIdx int
+	params map[string]float64
 }
 
 type sim struct {
@@ -341,6 +399,9 @@ type sim struct {
 	record    bool
 	decisions []Decision
 	ids       int // the last position or order number given out
+	params    []map[string]float64
+	// live: a Live run, whose results end at the last candle run so far.
+	live bool
 }
 
 type event struct {
@@ -353,43 +414,12 @@ type event struct {
 // run replays [from, to) from balance; override replaces leg 0's params
 // (walk-forward trials). record keeps the decision log and the candles.
 func (ld *loaded) run(balance float64, from, to time.Time, override map[string]float64, record bool) (res *Result, err error) {
-	s := &sim{ld: ld, p: ld.p, balance: balance, skipped: map[string]int{}, record: record}
+	s := ld.newSim(balance, from, to, override, record, nil)
 	var events []event
-	var params []map[string]float64
-	for i, d := range ld.legs {
-		step := d.candles[d.tfs[0]]
-		first := max(d.start, sort.Search(len(step), func(k int) bool { return !step[k].OpenTime.Before(from) }))
-		last := sort.Search(len(step), func(k int) bool { return step[k].CloseTime.After(to) }) - 1
-		l := &legRun{d: d, frames: map[string]*series{}, firstIdx: first, lastIdx: last, params: map[string]float64{}, maxOpen: d.leg.MaxOpen}
-		if mp, ok := d.leg.Strategy.(MultiPosition); ok && l.maxOpen == 0 {
-			l.maxOpen = max(mp.MaxOpen(), 0)
-		}
-		for k, v := range d.params {
-			l.params[k] = v
-		}
-		if i == 0 {
-			for k, v := range override {
-				l.params[k] = v
-			}
-		}
-		params = append(params, l.params)
-		anchors := map[string]time.Time{}
-		for _, tf := range d.tfs {
-			l.frames[tf] = newSeries(tf, d.candles[tf])
-			anchors[tf] = time.Date(1970, 1, 4, 0, 0, 0, 0, time.UTC) // a Sunday, MT5's week start
-			if cs := d.candles[tf]; len(cs) > 0 {
-				anchors[tf] = cs[0].OpenTime
-			}
-		}
-		in := d.inst
-		l.ctx = &Context{step: d.tfs[0], tfs: d.tfs, frames: l.frames, anchors: anchors, params: l.params, record: record, inst: InstrumentInfo{Name: in.Name, Base: in.Base,
-			Quote: in.Quote, Digits: in.Digits, Point: in.Point(), ContractSize: in.ContractSize, LotMin: in.LotMin, LotMax: in.LotMax, LotStep: in.LotStep}}
-		s.legs = append(s.legs, l)
-		for k := first; k <= last; k++ {
-			events = append(events, event{t: step[k].OpenTime, leg: i, idx: k}, event{t: step[k].CloseTime, close: true, leg: i, idx: k})
-		}
-		if st, ok := d.leg.Strategy.(Starter); ok {
-			st.OnStart(StartInfo{Instrument: l.ctx.inst, Timeframes: d.tfs, From: from, To: to, Balance: balance, Currency: ld.p.Currency, Params: l.params})
+	for i, l := range s.legs {
+		for k := l.firstIdx; k <= l.lastIdx; k++ {
+			c := l.d.candles[l.d.tfs[0]][k]
+			events = append(events, event{t: c.OpenTime, leg: i, idx: k}, event{t: c.CloseTime, close: true, leg: i, idx: k})
 		}
 	}
 	sort.SliceStable(events, func(i, j int) bool {
@@ -408,15 +438,75 @@ func (ld *loaded) run(balance float64, from, to time.Time, override map[string]f
 		}
 	}()
 	for _, e := range events {
-		s.newDay(e.t)
-		l := s.legs[e.leg]
-		c := l.d.candles[l.d.tfs[0]][e.idx]
-		if e.close {
-			s.onClose(l, e.idx, c)
+		s.step(e)
+	}
+	s.finish()
+	return s.result(balance, from, to, s.params), nil
+}
+
+// newSim sets up a run of [from, to) from balance and calls the
+// strategies' OnStart. first, when set, is each leg's first step candle
+// (Live gives the one it found ready); otherwise the first one at or after
+// from that the warm-up allows.
+func (ld *loaded) newSim(balance float64, from, to time.Time, override map[string]float64, record bool, first []int) *sim {
+	s := &sim{ld: ld, p: ld.p, balance: balance, skipped: map[string]int{}, record: record}
+	for i, d := range ld.legs {
+		step := d.candles[d.tfs[0]]
+		var firstIdx, last int
+		if first != nil {
+			firstIdx, last = first[i], math.MaxInt // a live run: no last candle yet
 		} else {
-			s.onOpen(l, c)
+			firstIdx = max(d.start, sort.Search(len(step), func(k int) bool { return !step[k].OpenTime.Before(from) }))
+			last = sort.Search(len(step), func(k int) bool { return step[k].CloseTime.After(to) }) - 1
+		}
+		l := &legRun{d: d, frames: map[string]*series{}, firstIdx: firstIdx, lastIdx: last, params: map[string]float64{}, maxOpen: d.leg.MaxOpen}
+		if mp, ok := d.leg.Strategy.(MultiPosition); ok && l.maxOpen == 0 {
+			l.maxOpen = max(mp.MaxOpen(), 0)
+		}
+		for k, v := range d.params {
+			l.params[k] = v
+		}
+		if i == 0 {
+			for k, v := range override {
+				l.params[k] = v
+			}
+		}
+		s.params = append(s.params, l.params)
+		anchors := map[string]time.Time{}
+		for _, tf := range d.tfs {
+			l.frames[tf] = newSeries(tf, d.candles[tf])
+			anchors[tf] = time.Date(1970, 1, 4, 0, 0, 0, 0, time.UTC) // a Sunday, MT5's week start
+			if cs := d.candles[tf]; len(cs) > 0 {
+				anchors[tf] = cs[0].OpenTime
+			}
+		}
+		in := d.inst
+		l.ctx = &Context{step: d.tfs[0], tfs: d.tfs, frames: l.frames, anchors: anchors, params: l.params, record: record, inst: InstrumentInfo{Name: in.Name, Base: in.Base,
+			Quote: in.Quote, Digits: in.Digits, Point: in.Point(), ContractSize: in.ContractSize, LotMin: in.LotMin, LotMax: in.LotMax, LotStep: in.LotStep}}
+		s.legs = append(s.legs, l)
+		if st, ok := d.leg.Strategy.(Starter); ok {
+			st.OnStart(StartInfo{Instrument: l.ctx.inst, Timeframes: d.tfs, From: from, To: to, Balance: balance, Currency: ld.p.Currency, Params: l.params})
 		}
 	}
+	return s
+}
+
+// step runs one event: a step candle's open or its close.
+func (s *sim) step(e event) {
+	s.newDay(e.t)
+	l := s.legs[e.leg]
+	c := l.d.candles[l.d.tfs[0]][e.idx]
+	if e.close {
+		s.onClose(l, e.idx, c)
+		l.ranIdx = e.idx
+	} else {
+		s.onOpen(l, c)
+	}
+}
+
+// finish ends the run: pending orders are cancelled and open positions
+// closed at the last price.
+func (s *sim) finish() {
 	var end time.Time
 	for _, l := range s.legs {
 		for _, o := range l.orders {
@@ -438,7 +528,6 @@ func (ld *loaded) run(balance float64, from, to time.Time, override map[string]f
 	if !end.IsZero() {
 		s.mark(end)
 	}
-	return s.result(balance, from, to, params), nil
 }
 
 func (s *sim) newDay(t time.Time) {
@@ -1130,11 +1219,12 @@ func (s *sim) mark(t time.Time) {
 
 func (s *sim) result(balance float64, from, to time.Time, params []map[string]float64) *Result {
 	ld := s.ld
-	sort.SliceStable(s.trades, func(i, j int) bool { return s.trades[i].CloseTime.Before(s.trades[j].CloseTime) })
+	trades := append([]Trade(nil), s.trades...) // a Live run keeps adding to s.trades
+	sort.SliceStable(trades, func(i, j int) bool { return trades[i].CloseTime.Before(trades[j].CloseTime) })
 	mid := from.Add(to.Sub(from) / 2)
-	res := &Result{Trades: s.trades, Missed: s.missed, Equity: s.equity, Params: params,
+	res := &Result{Trades: trades, Missed: s.missed, Equity: s.equity, Params: params,
 		Range: Range{From: from, To: to, RequestedFrom: ld.p.From, RequestedTo: ld.p.To, Notes: append([]string{}, ld.notes...)}}
-	res.Stats = computeStats(s.trades, s.equity, balance, mid, s.skipped)
+	res.Stats = computeStats(trades, s.equity, balance, mid, s.skipped)
 	res.Run = RunInfo{RanAt: time.Now().UTC(), Balance: balance, Currency: ld.p.Currency, Leverage: ld.p.Leverage, MaxOpen: ld.p.MaxOpen,
 		MaxOpenRisk: ld.p.MaxOpenRisk, MaxDailyLoss: ld.p.MaxDailyLoss, DayTZ: ld.p.DayTZ.String()}
 	if s.record {
@@ -1145,9 +1235,13 @@ func (s *sim) result(balance float64, from, to time.Time, params []map[string]fl
 		d := l.d
 		res.Run.Legs = append(res.Run.Legs, LegInfo{Leg: d.i, Strategy: d.name, Instrument: d.inst.Name, Timeframes: append([]string{}, d.tfs...),
 			Risk: d.leg.Risk, Params: cloneParams(params[i]), Overridden: overridden(d.costs), MaxOpen: max(l.maxOpen, 1)})
-		if s.record && l.firstIdx <= l.lastIdx {
+		last := l.lastIdx
+		if s.live {
+			last = l.ranIdx
+		}
+		if s.record && l.firstIdx <= last {
 			res.Candles = append(res.Candles, CandleSet{Leg: d.i, Instrument: d.inst.Name, Timeframe: d.tfs[0],
-				Candles: d.candles[d.tfs[0]][l.firstIdx : l.lastIdx+1]})
+				Candles: d.candles[d.tfs[0]][l.firstIdx : last+1]})
 		}
 		res.Costs = append(res.Costs, d.report)
 		res.Range.Notes = append(res.Range.Notes, d.report.Notes...)

@@ -22,6 +22,42 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type BacktestListPaperRunsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BacktestListPaperRunsRequest) Reset() {
+	*x = BacktestListPaperRunsRequest{}
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BacktestListPaperRunsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BacktestListPaperRunsRequest) ProtoMessage() {}
+
+func (x *BacktestListPaperRunsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BacktestListPaperRunsRequest.ProtoReflect.Descriptor instead.
+func (*BacktestListPaperRunsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{0}
+}
+
 type BacktestListFoldersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
@@ -31,7 +67,7 @@ type BacktestListFoldersRequest struct {
 
 func (x *BacktestListFoldersRequest) Reset() {
 	*x = BacktestListFoldersRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[0]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +79,7 @@ func (x *BacktestListFoldersRequest) String() string {
 func (*BacktestListFoldersRequest) ProtoMessage() {}
 
 func (x *BacktestListFoldersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[0]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +92,7 @@ func (x *BacktestListFoldersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestListFoldersRequest.ProtoReflect.Descriptor instead.
 func (*BacktestListFoldersRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{0}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *BacktestListFoldersRequest) GetPath() string {
@@ -78,7 +114,7 @@ type BacktestFolderEntry struct {
 
 func (x *BacktestFolderEntry) Reset() {
 	*x = BacktestFolderEntry{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[1]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -90,7 +126,7 @@ func (x *BacktestFolderEntry) String() string {
 func (*BacktestFolderEntry) ProtoMessage() {}
 
 func (x *BacktestFolderEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[1]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -103,7 +139,7 @@ func (x *BacktestFolderEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestFolderEntry.ProtoReflect.Descriptor instead.
 func (*BacktestFolderEntry) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{1}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *BacktestFolderEntry) GetName() string {
@@ -144,7 +180,7 @@ type BacktestListFoldersResponse struct {
 
 func (x *BacktestListFoldersResponse) Reset() {
 	*x = BacktestListFoldersResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[2]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -156,7 +192,7 @@ func (x *BacktestListFoldersResponse) String() string {
 func (*BacktestListFoldersResponse) ProtoMessage() {}
 
 func (x *BacktestListFoldersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[2]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +205,7 @@ func (x *BacktestListFoldersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestListFoldersResponse.ProtoReflect.Descriptor instead.
 func (*BacktestListFoldersResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{2}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *BacktestListFoldersResponse) GetPath() string {
@@ -216,7 +252,7 @@ type BacktestOpenFolderRequest struct {
 
 func (x *BacktestOpenFolderRequest) Reset() {
 	*x = BacktestOpenFolderRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[3]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -228,7 +264,7 @@ func (x *BacktestOpenFolderRequest) String() string {
 func (*BacktestOpenFolderRequest) ProtoMessage() {}
 
 func (x *BacktestOpenFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[3]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -241,7 +277,7 @@ func (x *BacktestOpenFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestOpenFolderRequest.ProtoReflect.Descriptor instead.
 func (*BacktestOpenFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{3}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *BacktestOpenFolderRequest) GetPath() string {
@@ -286,14 +322,22 @@ type BacktestRunSummary struct {
 	HasWalk        bool    `protobuf:"varint,23,opt,name=has_walk,json=hasWalk,proto3" json:"has_walk,omitempty"`
 	// problem is why the report could not be read whole (a broken
 	// run.json); the rest of it may still show.
-	Problem       string `protobuf:"bytes,24,opt,name=problem,proto3" json:"problem,omitempty"`
+	Problem string `protobuf:"bytes,24,opt,name=problem,proto3" json:"problem,omitempty"`
+	// candles_from is set when the report saved no candles of its own and
+	// the chart uses a sibling report's ("../real"), clipped to this
+	// report's range.
+	CandlesFrom string `protobuf:"bytes,25,opt,name=candles_from,json=candlesFrom,proto3" json:"candles_from,omitempty"`
+	// paper: a Live Trading paper session (path "paper:<id>"), not a
+	// backtest; status is its status (running, stopped, ...).
+	Paper         bool   `protobuf:"varint,26,opt,name=paper,proto3" json:"paper,omitempty"`
+	Status        string `protobuf:"bytes,27,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BacktestRunSummary) Reset() {
 	*x = BacktestRunSummary{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[4]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -305,7 +349,7 @@ func (x *BacktestRunSummary) String() string {
 func (*BacktestRunSummary) ProtoMessage() {}
 
 func (x *BacktestRunSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[4]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -318,7 +362,7 @@ func (x *BacktestRunSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestRunSummary.ProtoReflect.Descriptor instead.
 func (*BacktestRunSummary) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{4}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *BacktestRunSummary) GetPath() string {
@@ -489,6 +533,27 @@ func (x *BacktestRunSummary) GetProblem() string {
 	return ""
 }
 
+func (x *BacktestRunSummary) GetCandlesFrom() string {
+	if x != nil {
+		return x.CandlesFrom
+	}
+	return ""
+}
+
+func (x *BacktestRunSummary) GetPaper() bool {
+	if x != nil {
+		return x.Paper
+	}
+	return false
+}
+
+func (x *BacktestRunSummary) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type BacktestOpenFolderResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Path  string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
@@ -501,7 +566,7 @@ type BacktestOpenFolderResponse struct {
 
 func (x *BacktestOpenFolderResponse) Reset() {
 	*x = BacktestOpenFolderResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[5]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +578,7 @@ func (x *BacktestOpenFolderResponse) String() string {
 func (*BacktestOpenFolderResponse) ProtoMessage() {}
 
 func (x *BacktestOpenFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[5]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,7 +591,7 @@ func (x *BacktestOpenFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestOpenFolderResponse.ProtoReflect.Descriptor instead.
 func (*BacktestOpenFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{5}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *BacktestOpenFolderResponse) GetPath() string {
@@ -562,7 +627,7 @@ type BacktestGetRunRequest struct {
 
 func (x *BacktestGetRunRequest) Reset() {
 	*x = BacktestGetRunRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[6]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -574,7 +639,7 @@ func (x *BacktestGetRunRequest) String() string {
 func (*BacktestGetRunRequest) ProtoMessage() {}
 
 func (x *BacktestGetRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[6]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -587,7 +652,7 @@ func (x *BacktestGetRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestGetRunRequest.ProtoReflect.Descriptor instead.
 func (*BacktestGetRunRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{6}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *BacktestGetRunRequest) GetPath() string {
@@ -616,7 +681,7 @@ type BacktestHalf struct {
 
 func (x *BacktestHalf) Reset() {
 	*x = BacktestHalf{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[7]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -628,7 +693,7 @@ func (x *BacktestHalf) String() string {
 func (*BacktestHalf) ProtoMessage() {}
 
 func (x *BacktestHalf) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[7]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -641,7 +706,7 @@ func (x *BacktestHalf) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestHalf.ProtoReflect.Descriptor instead.
 func (*BacktestHalf) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{7}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *BacktestHalf) GetTrades() uint32 {
@@ -700,7 +765,7 @@ type BacktestStats struct {
 
 func (x *BacktestStats) Reset() {
 	*x = BacktestStats{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[8]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -712,7 +777,7 @@ func (x *BacktestStats) String() string {
 func (*BacktestStats) ProtoMessage() {}
 
 func (x *BacktestStats) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[8]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -725,7 +790,7 @@ func (x *BacktestStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestStats.ProtoReflect.Descriptor instead.
 func (*BacktestStats) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{8}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *BacktestStats) GetTrades() uint32 {
@@ -887,7 +952,7 @@ type BacktestLeg struct {
 
 func (x *BacktestLeg) Reset() {
 	*x = BacktestLeg{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[9]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -899,7 +964,7 @@ func (x *BacktestLeg) String() string {
 func (*BacktestLeg) ProtoMessage() {}
 
 func (x *BacktestLeg) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[9]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -912,7 +977,7 @@ func (x *BacktestLeg) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestLeg.ProtoReflect.Descriptor instead.
 func (*BacktestLeg) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{9}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *BacktestLeg) GetLeg() uint32 {
@@ -994,7 +1059,7 @@ type BacktestCost struct {
 
 func (x *BacktestCost) Reset() {
 	*x = BacktestCost{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[10]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1006,7 +1071,7 @@ func (x *BacktestCost) String() string {
 func (*BacktestCost) ProtoMessage() {}
 
 func (x *BacktestCost) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[10]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1019,7 +1084,7 @@ func (x *BacktestCost) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestCost.ProtoReflect.Descriptor instead.
 func (*BacktestCost) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{10}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *BacktestCost) GetLeg() uint32 {
@@ -1093,7 +1158,7 @@ type BacktestAccount struct {
 
 func (x *BacktestAccount) Reset() {
 	*x = BacktestAccount{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[11]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1105,7 +1170,7 @@ func (x *BacktestAccount) String() string {
 func (*BacktestAccount) ProtoMessage() {}
 
 func (x *BacktestAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[11]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1118,7 +1183,7 @@ func (x *BacktestAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestAccount.ProtoReflect.Descriptor instead.
 func (*BacktestAccount) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{11}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *BacktestAccount) GetBalance() float64 {
@@ -1217,7 +1282,7 @@ type BacktestTrade struct {
 
 func (x *BacktestTrade) Reset() {
 	*x = BacktestTrade{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[12]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1229,7 +1294,7 @@ func (x *BacktestTrade) String() string {
 func (*BacktestTrade) ProtoMessage() {}
 
 func (x *BacktestTrade) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[12]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1242,7 +1307,7 @@ func (x *BacktestTrade) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestTrade.ProtoReflect.Descriptor instead.
 func (*BacktestTrade) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{12}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *BacktestTrade) GetIndex() uint32 {
@@ -1460,7 +1525,7 @@ type BacktestMissed struct {
 
 func (x *BacktestMissed) Reset() {
 	*x = BacktestMissed{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[13]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1472,7 +1537,7 @@ func (x *BacktestMissed) String() string {
 func (*BacktestMissed) ProtoMessage() {}
 
 func (x *BacktestMissed) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[13]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1485,7 +1550,7 @@ func (x *BacktestMissed) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestMissed.ProtoReflect.Descriptor instead.
 func (*BacktestMissed) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{13}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *BacktestMissed) GetTime() *timestamppb.Timestamp {
@@ -1564,7 +1629,7 @@ type BacktestEquityPoint struct {
 
 func (x *BacktestEquityPoint) Reset() {
 	*x = BacktestEquityPoint{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[14]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1576,7 +1641,7 @@ func (x *BacktestEquityPoint) String() string {
 func (*BacktestEquityPoint) ProtoMessage() {}
 
 func (x *BacktestEquityPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[14]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1589,7 +1654,7 @@ func (x *BacktestEquityPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestEquityPoint.ProtoReflect.Descriptor instead.
 func (*BacktestEquityPoint) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{14}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BacktestEquityPoint) GetTime() *timestamppb.Timestamp {
@@ -1639,7 +1704,7 @@ type BacktestWalkWindow struct {
 
 func (x *BacktestWalkWindow) Reset() {
 	*x = BacktestWalkWindow{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[15]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1651,7 +1716,7 @@ func (x *BacktestWalkWindow) String() string {
 func (*BacktestWalkWindow) ProtoMessage() {}
 
 func (x *BacktestWalkWindow) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[15]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1664,7 +1729,7 @@ func (x *BacktestWalkWindow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestWalkWindow.ProtoReflect.Descriptor instead.
 func (*BacktestWalkWindow) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{15}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *BacktestWalkWindow) GetTrainFrom() *timestamppb.Timestamp {
@@ -1777,7 +1842,7 @@ type BacktestRun struct {
 
 func (x *BacktestRun) Reset() {
 	*x = BacktestRun{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[16]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1789,7 +1854,7 @@ func (x *BacktestRun) String() string {
 func (*BacktestRun) ProtoMessage() {}
 
 func (x *BacktestRun) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[16]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1802,7 +1867,7 @@ func (x *BacktestRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestRun.ProtoReflect.Descriptor instead.
 func (*BacktestRun) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{16}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *BacktestRun) GetSummary() *BacktestRunSummary {
@@ -1947,7 +2012,7 @@ type BacktestGetRunResponse struct {
 
 func (x *BacktestGetRunResponse) Reset() {
 	*x = BacktestGetRunResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[17]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1959,7 +2024,7 @@ func (x *BacktestGetRunResponse) String() string {
 func (*BacktestGetRunResponse) ProtoMessage() {}
 
 func (x *BacktestGetRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[17]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1972,7 +2037,7 @@ func (x *BacktestGetRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestGetRunResponse.ProtoReflect.Descriptor instead.
 func (*BacktestGetRunResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{17}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *BacktestGetRunResponse) GetRun() *BacktestRun {
@@ -2001,7 +2066,7 @@ type BacktestGetCandlesRequest struct {
 
 func (x *BacktestGetCandlesRequest) Reset() {
 	*x = BacktestGetCandlesRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[18]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2013,7 +2078,7 @@ func (x *BacktestGetCandlesRequest) String() string {
 func (*BacktestGetCandlesRequest) ProtoMessage() {}
 
 func (x *BacktestGetCandlesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[18]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2026,7 +2091,7 @@ func (x *BacktestGetCandlesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestGetCandlesRequest.ProtoReflect.Descriptor instead.
 func (*BacktestGetCandlesRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{18}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *BacktestGetCandlesRequest) GetPath() string {
@@ -2087,7 +2152,7 @@ type BacktestCandle struct {
 
 func (x *BacktestCandle) Reset() {
 	*x = BacktestCandle{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[19]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2099,7 +2164,7 @@ func (x *BacktestCandle) String() string {
 func (*BacktestCandle) ProtoMessage() {}
 
 func (x *BacktestCandle) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[19]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2112,7 +2177,7 @@ func (x *BacktestCandle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestCandle.ProtoReflect.Descriptor instead.
 func (*BacktestCandle) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{19}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *BacktestCandle) GetTime() int64 {
@@ -2179,7 +2244,7 @@ type BacktestGetCandlesResponse struct {
 
 func (x *BacktestGetCandlesResponse) Reset() {
 	*x = BacktestGetCandlesResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[20]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2191,7 +2256,7 @@ func (x *BacktestGetCandlesResponse) String() string {
 func (*BacktestGetCandlesResponse) ProtoMessage() {}
 
 func (x *BacktestGetCandlesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[20]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2204,7 +2269,7 @@ func (x *BacktestGetCandlesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestGetCandlesResponse.ProtoReflect.Descriptor instead.
 func (*BacktestGetCandlesResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{20}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *BacktestGetCandlesResponse) GetInstrument() string {
@@ -2271,7 +2336,7 @@ type BacktestGetDecisionsRequest struct {
 
 func (x *BacktestGetDecisionsRequest) Reset() {
 	*x = BacktestGetDecisionsRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[21]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2283,7 +2348,7 @@ func (x *BacktestGetDecisionsRequest) String() string {
 func (*BacktestGetDecisionsRequest) ProtoMessage() {}
 
 func (x *BacktestGetDecisionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[21]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2296,7 +2361,7 @@ func (x *BacktestGetDecisionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestGetDecisionsRequest.ProtoReflect.Descriptor instead.
 func (*BacktestGetDecisionsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{21}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *BacktestGetDecisionsRequest) GetPath() string {
@@ -2371,7 +2436,7 @@ type BacktestDecision struct {
 
 func (x *BacktestDecision) Reset() {
 	*x = BacktestDecision{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[22]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2383,7 +2448,7 @@ func (x *BacktestDecision) String() string {
 func (*BacktestDecision) ProtoMessage() {}
 
 func (x *BacktestDecision) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[22]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2396,7 +2461,7 @@ func (x *BacktestDecision) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestDecision.ProtoReflect.Descriptor instead.
 func (*BacktestDecision) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{22}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *BacktestDecision) GetTime() *timestamppb.Timestamp {
@@ -2461,7 +2526,7 @@ type BacktestGetDecisionsResponse struct {
 
 func (x *BacktestGetDecisionsResponse) Reset() {
 	*x = BacktestGetDecisionsResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[23]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2473,7 +2538,7 @@ func (x *BacktestGetDecisionsResponse) String() string {
 func (*BacktestGetDecisionsResponse) ProtoMessage() {}
 
 func (x *BacktestGetDecisionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[23]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2486,7 +2551,7 @@ func (x *BacktestGetDecisionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestGetDecisionsResponse.ProtoReflect.Descriptor instead.
 func (*BacktestGetDecisionsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{23}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *BacktestGetDecisionsResponse) GetDecisions() []*BacktestDecision {
@@ -2518,7 +2583,7 @@ type BacktestListRecentFoldersRequest struct {
 
 func (x *BacktestListRecentFoldersRequest) Reset() {
 	*x = BacktestListRecentFoldersRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[24]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2530,7 +2595,7 @@ func (x *BacktestListRecentFoldersRequest) String() string {
 func (*BacktestListRecentFoldersRequest) ProtoMessage() {}
 
 func (x *BacktestListRecentFoldersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[24]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2543,7 +2608,7 @@ func (x *BacktestListRecentFoldersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestListRecentFoldersRequest.ProtoReflect.Descriptor instead.
 func (*BacktestListRecentFoldersRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{24}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{25}
 }
 
 type BacktestListRecentFoldersResponse struct {
@@ -2555,7 +2620,7 @@ type BacktestListRecentFoldersResponse struct {
 
 func (x *BacktestListRecentFoldersResponse) Reset() {
 	*x = BacktestListRecentFoldersResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[25]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2567,7 +2632,7 @@ func (x *BacktestListRecentFoldersResponse) String() string {
 func (*BacktestListRecentFoldersResponse) ProtoMessage() {}
 
 func (x *BacktestListRecentFoldersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[25]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2580,7 +2645,7 @@ func (x *BacktestListRecentFoldersResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use BacktestListRecentFoldersResponse.ProtoReflect.Descriptor instead.
 func (*BacktestListRecentFoldersResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{25}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *BacktestListRecentFoldersResponse) GetFolders() []string {
@@ -2599,7 +2664,7 @@ type BacktestForgetRecentFolderRequest struct {
 
 func (x *BacktestForgetRecentFolderRequest) Reset() {
 	*x = BacktestForgetRecentFolderRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[26]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2611,7 +2676,7 @@ func (x *BacktestForgetRecentFolderRequest) String() string {
 func (*BacktestForgetRecentFolderRequest) ProtoMessage() {}
 
 func (x *BacktestForgetRecentFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[26]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2624,7 +2689,7 @@ func (x *BacktestForgetRecentFolderRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use BacktestForgetRecentFolderRequest.ProtoReflect.Descriptor instead.
 func (*BacktestForgetRecentFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{26}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *BacktestForgetRecentFolderRequest) GetPath() string {
@@ -2643,7 +2708,7 @@ type BacktestForgetRecentFolderResponse struct {
 
 func (x *BacktestForgetRecentFolderResponse) Reset() {
 	*x = BacktestForgetRecentFolderResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[27]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2655,7 +2720,7 @@ func (x *BacktestForgetRecentFolderResponse) String() string {
 func (*BacktestForgetRecentFolderResponse) ProtoMessage() {}
 
 func (x *BacktestForgetRecentFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[27]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2668,7 +2733,7 @@ func (x *BacktestForgetRecentFolderResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use BacktestForgetRecentFolderResponse.ProtoReflect.Descriptor instead.
 func (*BacktestForgetRecentFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{27}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *BacktestForgetRecentFolderResponse) GetFolders() []string {
@@ -2687,7 +2752,7 @@ type BacktestWatchFolderRequest struct {
 
 func (x *BacktestWatchFolderRequest) Reset() {
 	*x = BacktestWatchFolderRequest{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[28]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2699,7 +2764,7 @@ func (x *BacktestWatchFolderRequest) String() string {
 func (*BacktestWatchFolderRequest) ProtoMessage() {}
 
 func (x *BacktestWatchFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[28]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2712,7 +2777,7 @@ func (x *BacktestWatchFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestWatchFolderRequest.ProtoReflect.Descriptor instead.
 func (*BacktestWatchFolderRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{28}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *BacktestWatchFolderRequest) GetPath() string {
@@ -2737,7 +2802,7 @@ type BacktestWatchFolderResponse struct {
 
 func (x *BacktestWatchFolderResponse) Reset() {
 	*x = BacktestWatchFolderResponse{}
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[29]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2749,7 +2814,7 @@ func (x *BacktestWatchFolderResponse) String() string {
 func (*BacktestWatchFolderResponse) ProtoMessage() {}
 
 func (x *BacktestWatchFolderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[29]
+	mi := &file_san_tower_v1_backtest_analysis_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2762,7 +2827,7 @@ func (x *BacktestWatchFolderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BacktestWatchFolderResponse.ProtoReflect.Descriptor instead.
 func (*BacktestWatchFolderResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{29}
+	return file_san_tower_v1_backtest_analysis_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *BacktestWatchFolderResponse) GetEvent() isBacktestWatchFolderResponse_Event {
@@ -2843,7 +2908,8 @@ var File_san_tower_v1_backtest_analysis_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\n" +
-	"$san/tower/v1/backtest_analysis.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"0\n" +
+	"$san/tower/v1/backtest_analysis.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x1e\n" +
+	"\x1cBacktestListPaperRunsRequest\"0\n" +
 	"\x1aBacktestListFoldersRequest\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\"U\n" +
 	"\x13BacktestFolderEntry\x12\x12\n" +
@@ -2857,7 +2923,7 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\x04home\x18\x04 \x01(\tR\x04home\x12\x16\n" +
 	"\x06report\x18\x05 \x01(\bR\x06report\"/\n" +
 	"\x19BacktestOpenFolderRequest\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\"\x9e\x06\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\"\xef\x06\n" +
 	"\x12BacktestRunSummary\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x19\n" +
 	"\brel_path\x18\x02 \x01(\tR\arelPath\x12\x16\n" +
@@ -2890,7 +2956,10 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"hasCandles\x12#\n" +
 	"\rhas_decisions\x18\x16 \x01(\bR\fhasDecisions\x12\x19\n" +
 	"\bhas_walk\x18\x17 \x01(\bR\ahasWalk\x12\x18\n" +
-	"\aproblem\x18\x18 \x01(\tR\aproblem\"\x84\x01\n" +
+	"\aproblem\x18\x18 \x01(\tR\aproblem\x12!\n" +
+	"\fcandles_from\x18\x19 \x01(\tR\vcandlesFrom\x12\x14\n" +
+	"\x05paper\x18\x1a \x01(\bR\x05paper\x12\x16\n" +
+	"\x06status\x18\x1b \x01(\tR\x06status\"\x84\x01\n" +
 	"\x1aBacktestOpenFolderResponse\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x124\n" +
 	"\x04runs\x18\x02 \x03(\v2 .san.tower.v1.BacktestRunSummaryR\x04runs\x12\x1c\n" +
@@ -3140,7 +3209,7 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\achanged\x18\x02 \x01(\v2 .san.tower.v1.BacktestRunSummaryH\x00R\achanged\x12\x1a\n" +
 	"\aremoved\x18\x03 \x01(\tH\x00R\aremoved\x12\x1e\n" +
 	"\theartbeat\x18\x04 \x01(\bH\x00R\theartbeatB\a\n" +
-	"\x05event2\xd0\x06\n" +
+	"\x05event2\xb7\a\n" +
 	"\x17BacktestAnalysisService\x12b\n" +
 	"\vListFolders\x12(.san.tower.v1.BacktestListFoldersRequest\x1a).san.tower.v1.BacktestListFoldersResponse\x12_\n" +
 	"\n" +
@@ -3151,7 +3220,8 @@ const file_san_tower_v1_backtest_analysis_proto_rawDesc = "" +
 	"\fGetDecisions\x12).san.tower.v1.BacktestGetDecisionsRequest\x1a*.san.tower.v1.BacktestGetDecisionsResponse\x12t\n" +
 	"\x11ListRecentFolders\x12..san.tower.v1.BacktestListRecentFoldersRequest\x1a/.san.tower.v1.BacktestListRecentFoldersResponse\x12w\n" +
 	"\x12ForgetRecentFolder\x12/.san.tower.v1.BacktestForgetRecentFolderRequest\x1a0.san.tower.v1.BacktestForgetRecentFolderResponse\x12d\n" +
-	"\vWatchFolder\x12(.san.tower.v1.BacktestWatchFolderRequest\x1a).san.tower.v1.BacktestWatchFolderResponse0\x01B\xb5\x01\n" +
+	"\vWatchFolder\x12(.san.tower.v1.BacktestWatchFolderRequest\x1a).san.tower.v1.BacktestWatchFolderResponse0\x01\x12e\n" +
+	"\rListPaperRuns\x12*.san.tower.v1.BacktestListPaperRunsRequest\x1a(.san.tower.v1.BacktestOpenFolderResponseB\xb5\x01\n" +
 	"\x10com.san.tower.v1B\x15BacktestAnalysisProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -3166,108 +3236,111 @@ func file_san_tower_v1_backtest_analysis_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_backtest_analysis_proto_rawDescData
 }
 
-var file_san_tower_v1_backtest_analysis_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_san_tower_v1_backtest_analysis_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_san_tower_v1_backtest_analysis_proto_goTypes = []any{
-	(*BacktestListFoldersRequest)(nil),         // 0: san.tower.v1.BacktestListFoldersRequest
-	(*BacktestFolderEntry)(nil),                // 1: san.tower.v1.BacktestFolderEntry
-	(*BacktestListFoldersResponse)(nil),        // 2: san.tower.v1.BacktestListFoldersResponse
-	(*BacktestOpenFolderRequest)(nil),          // 3: san.tower.v1.BacktestOpenFolderRequest
-	(*BacktestRunSummary)(nil),                 // 4: san.tower.v1.BacktestRunSummary
-	(*BacktestOpenFolderResponse)(nil),         // 5: san.tower.v1.BacktestOpenFolderResponse
-	(*BacktestGetRunRequest)(nil),              // 6: san.tower.v1.BacktestGetRunRequest
-	(*BacktestHalf)(nil),                       // 7: san.tower.v1.BacktestHalf
-	(*BacktestStats)(nil),                      // 8: san.tower.v1.BacktestStats
-	(*BacktestLeg)(nil),                        // 9: san.tower.v1.BacktestLeg
-	(*BacktestCost)(nil),                       // 10: san.tower.v1.BacktestCost
-	(*BacktestAccount)(nil),                    // 11: san.tower.v1.BacktestAccount
-	(*BacktestTrade)(nil),                      // 12: san.tower.v1.BacktestTrade
-	(*BacktestMissed)(nil),                     // 13: san.tower.v1.BacktestMissed
-	(*BacktestEquityPoint)(nil),                // 14: san.tower.v1.BacktestEquityPoint
-	(*BacktestWalkWindow)(nil),                 // 15: san.tower.v1.BacktestWalkWindow
-	(*BacktestRun)(nil),                        // 16: san.tower.v1.BacktestRun
-	(*BacktestGetRunResponse)(nil),             // 17: san.tower.v1.BacktestGetRunResponse
-	(*BacktestGetCandlesRequest)(nil),          // 18: san.tower.v1.BacktestGetCandlesRequest
-	(*BacktestCandle)(nil),                     // 19: san.tower.v1.BacktestCandle
-	(*BacktestGetCandlesResponse)(nil),         // 20: san.tower.v1.BacktestGetCandlesResponse
-	(*BacktestGetDecisionsRequest)(nil),        // 21: san.tower.v1.BacktestGetDecisionsRequest
-	(*BacktestDecision)(nil),                   // 22: san.tower.v1.BacktestDecision
-	(*BacktestGetDecisionsResponse)(nil),       // 23: san.tower.v1.BacktestGetDecisionsResponse
-	(*BacktestListRecentFoldersRequest)(nil),   // 24: san.tower.v1.BacktestListRecentFoldersRequest
-	(*BacktestListRecentFoldersResponse)(nil),  // 25: san.tower.v1.BacktestListRecentFoldersResponse
-	(*BacktestForgetRecentFolderRequest)(nil),  // 26: san.tower.v1.BacktestForgetRecentFolderRequest
-	(*BacktestForgetRecentFolderResponse)(nil), // 27: san.tower.v1.BacktestForgetRecentFolderResponse
-	(*BacktestWatchFolderRequest)(nil),         // 28: san.tower.v1.BacktestWatchFolderRequest
-	(*BacktestWatchFolderResponse)(nil),        // 29: san.tower.v1.BacktestWatchFolderResponse
-	nil,                                        // 30: san.tower.v1.BacktestStats.SkippedEntry
-	nil,                                        // 31: san.tower.v1.BacktestLeg.ParamsEntry
-	nil,                                        // 32: san.tower.v1.BacktestRun.ParamsEntry
-	nil,                                        // 33: san.tower.v1.BacktestDecision.DetailsEntry
-	(*timestamppb.Timestamp)(nil),              // 34: google.protobuf.Timestamp
+	(*BacktestListPaperRunsRequest)(nil),       // 0: san.tower.v1.BacktestListPaperRunsRequest
+	(*BacktestListFoldersRequest)(nil),         // 1: san.tower.v1.BacktestListFoldersRequest
+	(*BacktestFolderEntry)(nil),                // 2: san.tower.v1.BacktestFolderEntry
+	(*BacktestListFoldersResponse)(nil),        // 3: san.tower.v1.BacktestListFoldersResponse
+	(*BacktestOpenFolderRequest)(nil),          // 4: san.tower.v1.BacktestOpenFolderRequest
+	(*BacktestRunSummary)(nil),                 // 5: san.tower.v1.BacktestRunSummary
+	(*BacktestOpenFolderResponse)(nil),         // 6: san.tower.v1.BacktestOpenFolderResponse
+	(*BacktestGetRunRequest)(nil),              // 7: san.tower.v1.BacktestGetRunRequest
+	(*BacktestHalf)(nil),                       // 8: san.tower.v1.BacktestHalf
+	(*BacktestStats)(nil),                      // 9: san.tower.v1.BacktestStats
+	(*BacktestLeg)(nil),                        // 10: san.tower.v1.BacktestLeg
+	(*BacktestCost)(nil),                       // 11: san.tower.v1.BacktestCost
+	(*BacktestAccount)(nil),                    // 12: san.tower.v1.BacktestAccount
+	(*BacktestTrade)(nil),                      // 13: san.tower.v1.BacktestTrade
+	(*BacktestMissed)(nil),                     // 14: san.tower.v1.BacktestMissed
+	(*BacktestEquityPoint)(nil),                // 15: san.tower.v1.BacktestEquityPoint
+	(*BacktestWalkWindow)(nil),                 // 16: san.tower.v1.BacktestWalkWindow
+	(*BacktestRun)(nil),                        // 17: san.tower.v1.BacktestRun
+	(*BacktestGetRunResponse)(nil),             // 18: san.tower.v1.BacktestGetRunResponse
+	(*BacktestGetCandlesRequest)(nil),          // 19: san.tower.v1.BacktestGetCandlesRequest
+	(*BacktestCandle)(nil),                     // 20: san.tower.v1.BacktestCandle
+	(*BacktestGetCandlesResponse)(nil),         // 21: san.tower.v1.BacktestGetCandlesResponse
+	(*BacktestGetDecisionsRequest)(nil),        // 22: san.tower.v1.BacktestGetDecisionsRequest
+	(*BacktestDecision)(nil),                   // 23: san.tower.v1.BacktestDecision
+	(*BacktestGetDecisionsResponse)(nil),       // 24: san.tower.v1.BacktestGetDecisionsResponse
+	(*BacktestListRecentFoldersRequest)(nil),   // 25: san.tower.v1.BacktestListRecentFoldersRequest
+	(*BacktestListRecentFoldersResponse)(nil),  // 26: san.tower.v1.BacktestListRecentFoldersResponse
+	(*BacktestForgetRecentFolderRequest)(nil),  // 27: san.tower.v1.BacktestForgetRecentFolderRequest
+	(*BacktestForgetRecentFolderResponse)(nil), // 28: san.tower.v1.BacktestForgetRecentFolderResponse
+	(*BacktestWatchFolderRequest)(nil),         // 29: san.tower.v1.BacktestWatchFolderRequest
+	(*BacktestWatchFolderResponse)(nil),        // 30: san.tower.v1.BacktestWatchFolderResponse
+	nil,                                        // 31: san.tower.v1.BacktestStats.SkippedEntry
+	nil,                                        // 32: san.tower.v1.BacktestLeg.ParamsEntry
+	nil,                                        // 33: san.tower.v1.BacktestRun.ParamsEntry
+	nil,                                        // 34: san.tower.v1.BacktestDecision.DetailsEntry
+	(*timestamppb.Timestamp)(nil),              // 35: google.protobuf.Timestamp
 }
 var file_san_tower_v1_backtest_analysis_proto_depIdxs = []int32{
-	1,  // 0: san.tower.v1.BacktestListFoldersResponse.folders:type_name -> san.tower.v1.BacktestFolderEntry
-	34, // 1: san.tower.v1.BacktestRunSummary.from:type_name -> google.protobuf.Timestamp
-	34, // 2: san.tower.v1.BacktestRunSummary.to:type_name -> google.protobuf.Timestamp
-	34, // 3: san.tower.v1.BacktestRunSummary.ran_at:type_name -> google.protobuf.Timestamp
-	34, // 4: san.tower.v1.BacktestRunSummary.modified:type_name -> google.protobuf.Timestamp
-	4,  // 5: san.tower.v1.BacktestOpenFolderResponse.runs:type_name -> san.tower.v1.BacktestRunSummary
-	7,  // 6: san.tower.v1.BacktestStats.first_half:type_name -> san.tower.v1.BacktestHalf
-	7,  // 7: san.tower.v1.BacktestStats.second_half:type_name -> san.tower.v1.BacktestHalf
-	30, // 8: san.tower.v1.BacktestStats.skipped:type_name -> san.tower.v1.BacktestStats.SkippedEntry
-	31, // 9: san.tower.v1.BacktestLeg.params:type_name -> san.tower.v1.BacktestLeg.ParamsEntry
-	8,  // 10: san.tower.v1.BacktestLeg.stats:type_name -> san.tower.v1.BacktestStats
-	34, // 11: san.tower.v1.BacktestTrade.signal_time:type_name -> google.protobuf.Timestamp
-	34, // 12: san.tower.v1.BacktestTrade.open_time:type_name -> google.protobuf.Timestamp
-	34, // 13: san.tower.v1.BacktestTrade.close_time:type_name -> google.protobuf.Timestamp
-	34, // 14: san.tower.v1.BacktestMissed.time:type_name -> google.protobuf.Timestamp
-	34, // 15: san.tower.v1.BacktestEquityPoint.time:type_name -> google.protobuf.Timestamp
-	34, // 16: san.tower.v1.BacktestWalkWindow.train_from:type_name -> google.protobuf.Timestamp
-	34, // 17: san.tower.v1.BacktestWalkWindow.train_to:type_name -> google.protobuf.Timestamp
-	34, // 18: san.tower.v1.BacktestWalkWindow.test_from:type_name -> google.protobuf.Timestamp
-	34, // 19: san.tower.v1.BacktestWalkWindow.test_to:type_name -> google.protobuf.Timestamp
-	4,  // 20: san.tower.v1.BacktestRun.summary:type_name -> san.tower.v1.BacktestRunSummary
-	34, // 21: san.tower.v1.BacktestRun.requested_from:type_name -> google.protobuf.Timestamp
-	34, // 22: san.tower.v1.BacktestRun.requested_to:type_name -> google.protobuf.Timestamp
-	11, // 23: san.tower.v1.BacktestRun.account:type_name -> san.tower.v1.BacktestAccount
-	10, // 24: san.tower.v1.BacktestRun.costs:type_name -> san.tower.v1.BacktestCost
-	9,  // 25: san.tower.v1.BacktestRun.legs:type_name -> san.tower.v1.BacktestLeg
-	32, // 26: san.tower.v1.BacktestRun.params:type_name -> san.tower.v1.BacktestRun.ParamsEntry
-	8,  // 27: san.tower.v1.BacktestRun.stats:type_name -> san.tower.v1.BacktestStats
-	12, // 28: san.tower.v1.BacktestRun.trades:type_name -> san.tower.v1.BacktestTrade
-	13, // 29: san.tower.v1.BacktestRun.missed:type_name -> san.tower.v1.BacktestMissed
-	14, // 30: san.tower.v1.BacktestRun.equity:type_name -> san.tower.v1.BacktestEquityPoint
-	15, // 31: san.tower.v1.BacktestRun.walk:type_name -> san.tower.v1.BacktestWalkWindow
-	8,  // 32: san.tower.v1.BacktestRun.out_of_sample:type_name -> san.tower.v1.BacktestStats
-	16, // 33: san.tower.v1.BacktestGetRunResponse.run:type_name -> san.tower.v1.BacktestRun
-	34, // 34: san.tower.v1.BacktestGetCandlesRequest.from:type_name -> google.protobuf.Timestamp
-	34, // 35: san.tower.v1.BacktestGetCandlesRequest.to:type_name -> google.protobuf.Timestamp
-	19, // 36: san.tower.v1.BacktestGetCandlesResponse.candles:type_name -> san.tower.v1.BacktestCandle
-	34, // 37: san.tower.v1.BacktestGetDecisionsRequest.around:type_name -> google.protobuf.Timestamp
-	34, // 38: san.tower.v1.BacktestGetDecisionsRequest.from:type_name -> google.protobuf.Timestamp
-	34, // 39: san.tower.v1.BacktestGetDecisionsRequest.to:type_name -> google.protobuf.Timestamp
-	34, // 40: san.tower.v1.BacktestDecision.time:type_name -> google.protobuf.Timestamp
-	33, // 41: san.tower.v1.BacktestDecision.details:type_name -> san.tower.v1.BacktestDecision.DetailsEntry
-	22, // 42: san.tower.v1.BacktestGetDecisionsResponse.decisions:type_name -> san.tower.v1.BacktestDecision
-	5,  // 43: san.tower.v1.BacktestWatchFolderResponse.snapshot:type_name -> san.tower.v1.BacktestOpenFolderResponse
-	4,  // 44: san.tower.v1.BacktestWatchFolderResponse.changed:type_name -> san.tower.v1.BacktestRunSummary
-	0,  // 45: san.tower.v1.BacktestAnalysisService.ListFolders:input_type -> san.tower.v1.BacktestListFoldersRequest
-	3,  // 46: san.tower.v1.BacktestAnalysisService.OpenFolder:input_type -> san.tower.v1.BacktestOpenFolderRequest
-	6,  // 47: san.tower.v1.BacktestAnalysisService.GetRun:input_type -> san.tower.v1.BacktestGetRunRequest
-	18, // 48: san.tower.v1.BacktestAnalysisService.GetCandles:input_type -> san.tower.v1.BacktestGetCandlesRequest
-	21, // 49: san.tower.v1.BacktestAnalysisService.GetDecisions:input_type -> san.tower.v1.BacktestGetDecisionsRequest
-	24, // 50: san.tower.v1.BacktestAnalysisService.ListRecentFolders:input_type -> san.tower.v1.BacktestListRecentFoldersRequest
-	26, // 51: san.tower.v1.BacktestAnalysisService.ForgetRecentFolder:input_type -> san.tower.v1.BacktestForgetRecentFolderRequest
-	28, // 52: san.tower.v1.BacktestAnalysisService.WatchFolder:input_type -> san.tower.v1.BacktestWatchFolderRequest
-	2,  // 53: san.tower.v1.BacktestAnalysisService.ListFolders:output_type -> san.tower.v1.BacktestListFoldersResponse
-	5,  // 54: san.tower.v1.BacktestAnalysisService.OpenFolder:output_type -> san.tower.v1.BacktestOpenFolderResponse
-	17, // 55: san.tower.v1.BacktestAnalysisService.GetRun:output_type -> san.tower.v1.BacktestGetRunResponse
-	20, // 56: san.tower.v1.BacktestAnalysisService.GetCandles:output_type -> san.tower.v1.BacktestGetCandlesResponse
-	23, // 57: san.tower.v1.BacktestAnalysisService.GetDecisions:output_type -> san.tower.v1.BacktestGetDecisionsResponse
-	25, // 58: san.tower.v1.BacktestAnalysisService.ListRecentFolders:output_type -> san.tower.v1.BacktestListRecentFoldersResponse
-	27, // 59: san.tower.v1.BacktestAnalysisService.ForgetRecentFolder:output_type -> san.tower.v1.BacktestForgetRecentFolderResponse
-	29, // 60: san.tower.v1.BacktestAnalysisService.WatchFolder:output_type -> san.tower.v1.BacktestWatchFolderResponse
-	53, // [53:61] is the sub-list for method output_type
-	45, // [45:53] is the sub-list for method input_type
+	2,  // 0: san.tower.v1.BacktestListFoldersResponse.folders:type_name -> san.tower.v1.BacktestFolderEntry
+	35, // 1: san.tower.v1.BacktestRunSummary.from:type_name -> google.protobuf.Timestamp
+	35, // 2: san.tower.v1.BacktestRunSummary.to:type_name -> google.protobuf.Timestamp
+	35, // 3: san.tower.v1.BacktestRunSummary.ran_at:type_name -> google.protobuf.Timestamp
+	35, // 4: san.tower.v1.BacktestRunSummary.modified:type_name -> google.protobuf.Timestamp
+	5,  // 5: san.tower.v1.BacktestOpenFolderResponse.runs:type_name -> san.tower.v1.BacktestRunSummary
+	8,  // 6: san.tower.v1.BacktestStats.first_half:type_name -> san.tower.v1.BacktestHalf
+	8,  // 7: san.tower.v1.BacktestStats.second_half:type_name -> san.tower.v1.BacktestHalf
+	31, // 8: san.tower.v1.BacktestStats.skipped:type_name -> san.tower.v1.BacktestStats.SkippedEntry
+	32, // 9: san.tower.v1.BacktestLeg.params:type_name -> san.tower.v1.BacktestLeg.ParamsEntry
+	9,  // 10: san.tower.v1.BacktestLeg.stats:type_name -> san.tower.v1.BacktestStats
+	35, // 11: san.tower.v1.BacktestTrade.signal_time:type_name -> google.protobuf.Timestamp
+	35, // 12: san.tower.v1.BacktestTrade.open_time:type_name -> google.protobuf.Timestamp
+	35, // 13: san.tower.v1.BacktestTrade.close_time:type_name -> google.protobuf.Timestamp
+	35, // 14: san.tower.v1.BacktestMissed.time:type_name -> google.protobuf.Timestamp
+	35, // 15: san.tower.v1.BacktestEquityPoint.time:type_name -> google.protobuf.Timestamp
+	35, // 16: san.tower.v1.BacktestWalkWindow.train_from:type_name -> google.protobuf.Timestamp
+	35, // 17: san.tower.v1.BacktestWalkWindow.train_to:type_name -> google.protobuf.Timestamp
+	35, // 18: san.tower.v1.BacktestWalkWindow.test_from:type_name -> google.protobuf.Timestamp
+	35, // 19: san.tower.v1.BacktestWalkWindow.test_to:type_name -> google.protobuf.Timestamp
+	5,  // 20: san.tower.v1.BacktestRun.summary:type_name -> san.tower.v1.BacktestRunSummary
+	35, // 21: san.tower.v1.BacktestRun.requested_from:type_name -> google.protobuf.Timestamp
+	35, // 22: san.tower.v1.BacktestRun.requested_to:type_name -> google.protobuf.Timestamp
+	12, // 23: san.tower.v1.BacktestRun.account:type_name -> san.tower.v1.BacktestAccount
+	11, // 24: san.tower.v1.BacktestRun.costs:type_name -> san.tower.v1.BacktestCost
+	10, // 25: san.tower.v1.BacktestRun.legs:type_name -> san.tower.v1.BacktestLeg
+	33, // 26: san.tower.v1.BacktestRun.params:type_name -> san.tower.v1.BacktestRun.ParamsEntry
+	9,  // 27: san.tower.v1.BacktestRun.stats:type_name -> san.tower.v1.BacktestStats
+	13, // 28: san.tower.v1.BacktestRun.trades:type_name -> san.tower.v1.BacktestTrade
+	14, // 29: san.tower.v1.BacktestRun.missed:type_name -> san.tower.v1.BacktestMissed
+	15, // 30: san.tower.v1.BacktestRun.equity:type_name -> san.tower.v1.BacktestEquityPoint
+	16, // 31: san.tower.v1.BacktestRun.walk:type_name -> san.tower.v1.BacktestWalkWindow
+	9,  // 32: san.tower.v1.BacktestRun.out_of_sample:type_name -> san.tower.v1.BacktestStats
+	17, // 33: san.tower.v1.BacktestGetRunResponse.run:type_name -> san.tower.v1.BacktestRun
+	35, // 34: san.tower.v1.BacktestGetCandlesRequest.from:type_name -> google.protobuf.Timestamp
+	35, // 35: san.tower.v1.BacktestGetCandlesRequest.to:type_name -> google.protobuf.Timestamp
+	20, // 36: san.tower.v1.BacktestGetCandlesResponse.candles:type_name -> san.tower.v1.BacktestCandle
+	35, // 37: san.tower.v1.BacktestGetDecisionsRequest.around:type_name -> google.protobuf.Timestamp
+	35, // 38: san.tower.v1.BacktestGetDecisionsRequest.from:type_name -> google.protobuf.Timestamp
+	35, // 39: san.tower.v1.BacktestGetDecisionsRequest.to:type_name -> google.protobuf.Timestamp
+	35, // 40: san.tower.v1.BacktestDecision.time:type_name -> google.protobuf.Timestamp
+	34, // 41: san.tower.v1.BacktestDecision.details:type_name -> san.tower.v1.BacktestDecision.DetailsEntry
+	23, // 42: san.tower.v1.BacktestGetDecisionsResponse.decisions:type_name -> san.tower.v1.BacktestDecision
+	6,  // 43: san.tower.v1.BacktestWatchFolderResponse.snapshot:type_name -> san.tower.v1.BacktestOpenFolderResponse
+	5,  // 44: san.tower.v1.BacktestWatchFolderResponse.changed:type_name -> san.tower.v1.BacktestRunSummary
+	1,  // 45: san.tower.v1.BacktestAnalysisService.ListFolders:input_type -> san.tower.v1.BacktestListFoldersRequest
+	4,  // 46: san.tower.v1.BacktestAnalysisService.OpenFolder:input_type -> san.tower.v1.BacktestOpenFolderRequest
+	7,  // 47: san.tower.v1.BacktestAnalysisService.GetRun:input_type -> san.tower.v1.BacktestGetRunRequest
+	19, // 48: san.tower.v1.BacktestAnalysisService.GetCandles:input_type -> san.tower.v1.BacktestGetCandlesRequest
+	22, // 49: san.tower.v1.BacktestAnalysisService.GetDecisions:input_type -> san.tower.v1.BacktestGetDecisionsRequest
+	25, // 50: san.tower.v1.BacktestAnalysisService.ListRecentFolders:input_type -> san.tower.v1.BacktestListRecentFoldersRequest
+	27, // 51: san.tower.v1.BacktestAnalysisService.ForgetRecentFolder:input_type -> san.tower.v1.BacktestForgetRecentFolderRequest
+	29, // 52: san.tower.v1.BacktestAnalysisService.WatchFolder:input_type -> san.tower.v1.BacktestWatchFolderRequest
+	0,  // 53: san.tower.v1.BacktestAnalysisService.ListPaperRuns:input_type -> san.tower.v1.BacktestListPaperRunsRequest
+	3,  // 54: san.tower.v1.BacktestAnalysisService.ListFolders:output_type -> san.tower.v1.BacktestListFoldersResponse
+	6,  // 55: san.tower.v1.BacktestAnalysisService.OpenFolder:output_type -> san.tower.v1.BacktestOpenFolderResponse
+	18, // 56: san.tower.v1.BacktestAnalysisService.GetRun:output_type -> san.tower.v1.BacktestGetRunResponse
+	21, // 57: san.tower.v1.BacktestAnalysisService.GetCandles:output_type -> san.tower.v1.BacktestGetCandlesResponse
+	24, // 58: san.tower.v1.BacktestAnalysisService.GetDecisions:output_type -> san.tower.v1.BacktestGetDecisionsResponse
+	26, // 59: san.tower.v1.BacktestAnalysisService.ListRecentFolders:output_type -> san.tower.v1.BacktestListRecentFoldersResponse
+	28, // 60: san.tower.v1.BacktestAnalysisService.ForgetRecentFolder:output_type -> san.tower.v1.BacktestForgetRecentFolderResponse
+	30, // 61: san.tower.v1.BacktestAnalysisService.WatchFolder:output_type -> san.tower.v1.BacktestWatchFolderResponse
+	6,  // 62: san.tower.v1.BacktestAnalysisService.ListPaperRuns:output_type -> san.tower.v1.BacktestOpenFolderResponse
+	54, // [54:63] is the sub-list for method output_type
+	45, // [45:54] is the sub-list for method input_type
 	45, // [45:45] is the sub-list for extension type_name
 	45, // [45:45] is the sub-list for extension extendee
 	0,  // [0:45] is the sub-list for field type_name
@@ -3278,7 +3351,7 @@ func file_san_tower_v1_backtest_analysis_proto_init() {
 	if File_san_tower_v1_backtest_analysis_proto != nil {
 		return
 	}
-	file_san_tower_v1_backtest_analysis_proto_msgTypes[29].OneofWrappers = []any{
+	file_san_tower_v1_backtest_analysis_proto_msgTypes[30].OneofWrappers = []any{
 		(*BacktestWatchFolderResponse_Snapshot)(nil),
 		(*BacktestWatchFolderResponse_Changed)(nil),
 		(*BacktestWatchFolderResponse_Removed)(nil),
@@ -3290,7 +3363,7 @@ func file_san_tower_v1_backtest_analysis_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_backtest_analysis_proto_rawDesc), len(file_san_tower_v1_backtest_analysis_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   34,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

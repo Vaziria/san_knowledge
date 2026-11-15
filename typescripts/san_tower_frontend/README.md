@@ -382,6 +382,9 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     and its subfolders, live (WatchFolder through `useStream`), sortable by
     every column and searchable; ticking two or more opens `Compare.tsx`
     (stats side by side, equity as return % on one chart).
+    Paper sessions (`?folder=paper:`) lists Live Trading's paper
+    sessions like reports (ListPaperRuns, every 5 s). A run charted with a
+    sibling report's candles says "candles ../real".
   - `BacktestRunPage.tsx` (`/backtest-analysis/run?path=`): the price
     chart with its timeframe switch, the equity and drawdown on the same
     time axis (it follows the price chart's visible range), the stats
@@ -400,6 +403,27 @@ to compare them at 16 to 128 px). The user chose 1, the watchtower
     charts' shared options (light or dark colours, WIB times, a small
     `minBarSpacing` so months of points fit the width); `format.ts` the
     page's number and time formats.
+- `src/live/`: the Live Trading page (`/live-trading`, after Backtest
+  Analysis; the user, 2026-11-15), over LiveTradingService. Nothing in it
+  sends an order: the monitor is marked "read-only" and every session
+  "PAPER - no orders are sent".
+  - `LiveTrading.tsx`: the page: the monitor, then the paper sessions
+    (WatchPaperSessions through `useStream`; sortable; status, approach,
+    instrument, balance, equity, P/L, trades, last signal), the New
+    session dialog (approach, instrument, balance, risk, leverage, max
+    open, the approach's params with their defaults) and each session's
+    Start / Stop / Delete (asks first) / Export / Open in Backtest Analysis
+    (`paper:<id>`).
+  - `MonitorPanel.tsx`: the account, positions and pending orders (sorted
+    with `backtest/sort.tsx`) from WatchMonitor, the connection status, and
+    the live chart of an instrument and timeframe.
+  - `LiveChart.tsx`: a `lightweight-charts` candle chart of closed candles
+    plus the candle forming from the ticks, price lines (entry, SL, TP)
+    and trade markers.
+  - `PaperSessionPage.tsx` (`/live-trading/session/:id`): one session
+    live (WatchPaperSession): its chart, open positions and orders,
+    equity (`backtest/EquityChart.tsx`), decision log and trades table
+    (`backtest/RunParts.tsx`).
 - `src/keywordresearch/`: `KeywordGraph.tsx`, a research's graph in
   cytoscape, sorted by Leiden community (the user, 2026-11-12): a full
   layout lays each community out on its own with san_knowledge's cose

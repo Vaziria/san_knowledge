@@ -69,6 +69,15 @@ func analysisError(err error) error {
 	return connect.NewError(connect.CodeInvalidArgument, err)
 }
 
+// reportDir checks a report path: absolute, a report folder; or a paper
+// session's "paper:<id>", made into its report folder.
+func (s analysisService) reportDir(path string) (string, error) {
+	if dir, _, ok, err := s.paperDir(path); ok {
+		return dir, err
+	}
+	return reportDir(path)
+}
+
 // reportDir checks a report path: absolute, a report folder.
 func reportDir(path string) (string, error) {
 	dir, err := backtestanalysis.Clean(path)
@@ -127,7 +136,7 @@ func (s analysisService) GetRun(_ context.Context, req *connect.Request[v1.Backt
 	if !fromThisComputer(req.Peer()) {
 		return nil, errNotLocal
 	}
-	dir, err := reportDir(req.Msg.GetPath())
+	dir, err := s.reportDir(req.Msg.GetPath())
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +145,11 @@ func (s analysisService) GetRun(_ context.Context, req *connect.Request[v1.Backt
 		return nil, analysisError(err)
 	}
 	run.Summary.RelPath = filepath.Base(dir)
+	if id, ok := backtestanalysis.PaperID(req.Msg.GetPath()); ok {
+		if p, err := s.live.Session(id); err == nil {
+			backtestanalysis.PaperSummary(run.Summary, id, p.Name, p.Status)
+		}
+	}
 	return connect.NewResponse(&v1.BacktestGetRunResponse{Run: run}), nil
 }
 
@@ -143,7 +157,7 @@ func (s analysisService) GetCandles(_ context.Context, req *connect.Request[v1.B
 	if !fromThisComputer(req.Peer()) {
 		return nil, errNotLocal
 	}
-	dir, err := reportDir(req.Msg.GetPath())
+	dir, err := s.reportDir(req.Msg.GetPath())
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +180,7 @@ func (s analysisService) GetDecisions(_ context.Context, req *connect.Request[v1
 	if !fromThisComputer(req.Peer()) {
 		return nil, errNotLocal
 	}
-	dir, err := reportDir(req.Msg.GetPath())
+	dir, err := s.reportDir(req.Msg.GetPath())
 	if err != nil {
 		return nil, err
 	}
@@ -188,6 +202,18 @@ func (s analysisService) GetDecisions(_ context.Context, req *connect.Request[v1
 	res, err := backtestanalysis.Decisions(dir, q)
 	if err != nil {
 		return nil, analysisError(err)
+	}
+	return connect.NewResponse(res), nil
+}
+
+// ListPaperRuns lists the Live Trading page's paper sessions as runs.
+func (s analysisService) ListPaperRuns(_ context.Context, req *connect.Request[v1.BacktestListPaperRunsRequest]) (*connect.Response[v1.BacktestOpenFolderResponse], error) {
+	if !fromThisComputer(req.Peer()) {
+		return nil, errNotLocal
+	}
+	res, err := s.paperRuns()
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(res), nil
 }

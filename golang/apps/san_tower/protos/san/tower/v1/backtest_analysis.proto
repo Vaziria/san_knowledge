@@ -46,7 +46,14 @@ service BacktestAnalysisService {
   // changes or goes away (the folder is read every few seconds), with a
   // heartbeat every 15 seconds.
   rpc WatchFolder(BacktestWatchFolderRequest) returns (stream BacktestWatchFolderResponse);
+  // ListPaperRuns lists the Live Trading page's paper sessions as runs
+  // (the "Paper sessions" source next to Open folder): each one's path is
+  // "paper:<id>", which GetRun, GetCandles and GetDecisions open like a
+  // report folder, so a session compares with backtests.
+  rpc ListPaperRuns(BacktestListPaperRunsRequest) returns (BacktestOpenFolderResponse);
 }
+
+message BacktestListPaperRunsRequest {}
 
 message BacktestListFoldersRequest {
   string path = 1;
@@ -110,6 +117,14 @@ message BacktestRunSummary {
   // problem is why the report could not be read whole (a broken
   // run.json); the rest of it may still show.
   string problem = 24;
+  // candles_from is set when the report saved no candles of its own and
+  // the chart uses a sibling report's ("../real"), clipped to this
+  // report's range.
+  string candles_from = 25;
+  // paper: a Live Trading paper session (path "paper:<id>"), not a
+  // backtest; status is its status (running, stopped, ...).
+  bool paper = 26;
+  string status = 27;
 }
 
 message BacktestOpenFolderResponse {

@@ -341,6 +341,38 @@ report, `Save(dir)` writes the files, `WriteTrades`, `WriteMissed`,
 and `WriteRun` write one each, and `Compare(results...)` is the
 side-by-side table.
 
+### Live (paper trading)
+
+`NewLive(ctx, LiveConfig{Config, Now, Grace})` runs a strategy one closed
+candle at a time, as the candles come (San Tower's Live Trading paper
+sessions; the user, 2026-11-15: "Monitor + Signals (paper trading)"). It
+never sends an order: it is the backtest engine fed step by step, so the
+fills, spread, swap, worst case, pending orders, positions, MaxOpen, the
+decision log and rule #1 are Run's code, and a Live over a past range
+gives exactly Run's trades and stats (`examples/live_test.go` and
+san_research's `live_test.go` replay the real cached candles one at a
+time, with gaps and catch-ups, against Run).
+
+- `NewLive` loads the warm-up history through the Cache, like Run, and
+  runs any candles from `From` to now at once (a catch-up).
+- `Advance(ctx)` asks Data for the candles that closed since the last
+  call, on every timeframe, and runs the step candles that are ready,
+  oldest first; missed candles are fetched in order. `Feed(tf, through,
+  candles...)` plus `Step()` do the same with candles of your own.
+- Each returns an `Update{Candles, Decisions, Trades, Missed, Equity}`
+  (what that call added). `State()` is where it is now (candles run, last
+  and next close, balance, equity, margin, open positions and orders),
+  `Result()` the run so far, `Finish()` closes what is open and ends it.
+- Only closed candles: a signal at one close fills at the next candle's
+  open, as in a backtest, learned one candle later; the forming candle is
+  never fed. A higher-timeframe candle late from the broker is waited for
+  `Grace` (default 2 minutes).
+- A strategy's own state cannot be saved, so a Live is not serialized: to
+  continue after a restart, make a new Live with the same `From`; it
+  replays to now and gives the same run as if it had never stopped.
+- `Result.Restat()` recomputes Stats from Trades and Equity (a result
+  rebuilt from a journal).
+
 Helpers: `Last(d)`, `ParseSpan("3m")` (m = months of 30 days),
 `ParseZone("WIB")`, `ParseTimeframe("h1")`, `TimeframeDuration`,
 `SessionAt(t)`, `WIB`, `NewRegistry()` / `Register` / `New` / `Names`.
@@ -807,6 +839,7 @@ that first run; a wrong one shows as a note or as odd costs, and
 | `indicators.go` | incremental EMA, SMA/Bollinger, RSI, ATR, MACD, swings |
 | `config.go` | `Config`, `Costs`, `Walk`, `Portfolio`, `Leg`, defaults, `Validate` |
 | `engine.go` | loading with warm-up, the event-clock simulation, fills, sizing, costs |
+| `live.go` | `Live`: the engine stepped one closed candle at a time (paper trading) |
 | `walk.go` | walk-forward windows and tuning |
 | `data.go` | `DataSource`, the Exness source, CSV |
 | `cache.go` | the disk cache |

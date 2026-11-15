@@ -19,11 +19,21 @@ import (
 // study 2), TP 2 / SL 1 M1 ATR, entries 20:00-23:58 WIB, flat at 00:00 WIB.
 const ApproachDipFadeM1 = "dip_fade_m1"
 
+// ApproachDipFadeM1Always is the same rule with no time window: entries at
+// any hour and no session close; a trade ends at its SL or TP (the user,
+// 2026-11-16: "remove window setting", for BTCUSDT, which trades 24/7).
+const ApproachDipFadeM1Always = "dip_fade_m1_24h"
+
 // DipFadeChain is that rule as a san_backtest chain on M1, one position at
 // a time. The push is the close minus the close 3 minutes before, below
 // -x * ATR(14) * sqrt(3), with the ATR read 3 minutes before (as in
 // study 2).
-func DipFadeChain() bt.Strategy {
+func DipFadeChain() bt.Strategy { return dipFadeChain(ApproachDipFadeM1, true) }
+
+// DipFadeAlwaysChain is DipFadeChain without the 20:00-24:00 WIB window.
+func DipFadeAlwaysChain() bt.Strategy { return dipFadeChain(ApproachDipFadeM1Always, false) }
+
+func dipFadeChain(name string, window bool) bt.Strategy {
 	type rec struct {
 		t          time.Time
 		close, atr float64
@@ -70,17 +80,18 @@ func DipFadeChain() bt.Strategy {
 		return ""
 	})
 	sl, tp := steps.P("sl", 1), steps.P("tp", 2)
-	return bt.Chain(ApproachDipFadeM1, "M1").Use(
-		steps.ManageOpen(steps.CloseIf("session close 00:00 WIB", func(c *bt.Context) bool {
-			return c.Local().Hour() < 20 // the 23:59 candle has closed
-		})),
-		history,
-		steps.Hours(20, 0),
-		before2359,
-		dip,
-		steps.ATRStop("M1", 14, sl),
-		steps.ATRTarget("M1", 14, tp),
-	).Warmup(40).MustBuild()
+	links := []bt.Link{history, dip, steps.ATRStop("M1", 14, sl), steps.ATRTarget("M1", 14, tp)}
+	if window {
+		links = append([]bt.Link{
+			steps.ManageOpen(steps.CloseIf("session close 00:00 WIB", func(c *bt.Context) bool {
+				return c.Local().Hour() < 20 // the 23:59 candle has closed
+			})),
+			history,
+			steps.Hours(20, 0),
+			before2359,
+		}, links[1:]...)
+	}
+	return bt.Chain(name, "M1").Use(links...).Warmup(40).MustBuild()
 }
 
 // ScalpBacktests runs DipFadeChain through san_backtest from the cache:

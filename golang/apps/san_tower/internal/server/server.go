@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -27,6 +28,7 @@ import (
 	"github.com/wargasipil/san_tower/internal/browserremote"
 	"github.com/wargasipil/san_tower/internal/engine"
 	"github.com/wargasipil/san_tower/internal/keywordresearch"
+	"github.com/wargasipil/san_tower/internal/livetrading"
 	"github.com/wargasipil/san_tower/internal/settings"
 	"github.com/wargasipil/san_tower/internal/store"
 	"github.com/wargasipil/san_tower/internal/web"
@@ -56,6 +58,9 @@ type Server struct {
 	// (keyword_research_watch.go).
 	crawler *keywordresearch.Crawler
 	watch   *keywordresearch.Watch
+	// live runs the Live Trading page's monitors and paper sessions
+	// (live_trading.go).
+	live *livetrading.Manager
 	// analysisStop ends the Backtest Analysis folder watches when the
 	// tower stops (backtest_analysis.go).
 	analysisStop chan struct{}
@@ -89,6 +94,15 @@ func New(version string, broker *broker.Broker, store *store.Store, engine *engi
 	s.watch = &keywordresearch.Watch{}
 	s.crawler = s.newCrawler()
 	s.crawler.Start()
+	// The paper sessions that were going stop here: they wait to be
+	// started by hand (the user, 2026-11-15: "3b").
+	clock, err := livetrading.ParseClock(os.Getenv(livetrading.ClockEnv))
+	if err != nil {
+		slog.Error("live trading: the virtual clock", "err", err)
+	} else if clock != nil {
+		slog.Warn("live trading runs on a virtual clock (replay checks with a fake Exness only)", livetrading.ClockEnv, os.Getenv(livetrading.ClockEnv))
+	}
+	s.live = livetrading.New(livetrading.Config{Store: store, DataDir: store.Dir(), Client: s.exnessClient, Log: slog.Default(), Clock: clock})
 	return s
 }
 
@@ -109,6 +123,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle(towerv1connect.NewKnowledgeServiceHandler(s))
 	mux.Handle(towerv1connect.NewKeywordResearchServiceHandler(s))
 	mux.Handle(towerv1connect.NewBacktestAnalysisServiceHandler(analysisService{s}))
+	mux.Handle(towerv1connect.NewLiveTradingServiceHandler(liveService{s}))
 	mux.Handle(s.broker.Handler())
 	// /api/claude-health is the UI startup banner's probe: a plain-JSON
 	// endpoint because the frontend's proto codegen (@bufbuild/protoc-gen-es)

@@ -1,0 +1,345 @@
+syntax = "proto3";
+
+package san.tower.v1;
+
+import "google/protobuf/timestamp.proto";
+import "san/tower/v1/backtest_analysis.proto";
+
+// LiveTradingService is the tower's Live Trading page (the user,
+// 2026-11-15: "Beside backtest analysis, can we have realtime trading menu
+// in tower ?"; the menu named "Live Trading"). Its first stage is "Monitor
+// + Signals (paper trading)" (the user, 2026-11-15: "1a"): it watches an
+// Exness connection read-only and runs paper sessions, San Backtest
+// approaches stepped on live candles inside the tower. It places, changes,
+// cancels and closes NO order or position: San's Exness account is real
+// money. It answers callers on this computer only, also on a tower started
+// with --lan.
+service LiveTradingService {
+  // GetMonitor reads an Exness connection's account, positions and orders
+  // as the monitor has them now (starting it when needed).
+  rpc GetMonitor(LiveGetMonitorRequest) returns (LiveGetMonitorResponse);
+  // WatchMonitor sends the monitor's state, then each change (the account
+  // every ~2 s, positions and orders as they change) and the ticks of the
+  // instruments asked for and of the positions, with a heartbeat every 15
+  // seconds.
+  rpc WatchMonitor(LiveWatchMonitorRequest) returns (stream LiveWatchMonitorResponse);
+  // GetLiveCandles reads an instrument's latest candles (Exness REST
+  // Candles, bid), for the monitor's chart; the last one may be forming.
+  rpc GetLiveCandles(LiveGetCandlesRequest) returns (LiveGetCandlesResponse);
+  // ListApproaches lists the approaches a paper session may run, with
+  // their timeframes and params' defaults.
+  rpc ListApproaches(LiveListApproachesRequest) returns (LiveListApproachesResponse);
+  // CreatePaperSession saves a new paper session, stopped.
+  rpc CreatePaperSession(LiveCreatePaperSessionRequest) returns (LivePaperSessionResponse);
+  // StartPaperSession starts a stopped session: a new one from the step
+  // candle forming now; one that ran before replays from its first candle
+  // to now and goes on, so the time it was stopped is caught up.
+  rpc StartPaperSession(LivePaperSessionRequest) returns (LivePaperSessionResponse);
+  // StopPaperSession stops a session; it keeps its journal.
+  rpc StopPaperSession(LivePaperSessionRequest) returns (LivePaperSessionResponse);
+  // DeletePaperSession stops and deletes a session and its journal.
+  rpc DeletePaperSession(LivePaperSessionRequest) returns (LiveDeletePaperSessionResponse);
+  // ListPaperSessions lists the sessions, newest first.
+  rpc ListPaperSessions(LiveListPaperSessionsRequest) returns (LiveListPaperSessionsResponse);
+  // GetPaperSession reads one session with its open positions and orders.
+  rpc GetPaperSession(LivePaperSessionRequest) returns (LivePaperSessionResponse);
+  // WatchPaperSessions sends every session, then each one that changes or
+  // goes away, with a heartbeat every 15 seconds.
+  rpc WatchPaperSessions(LiveWatchPaperSessionsRequest) returns (stream LiveWatchPaperSessionsResponse);
+  // WatchPaperSession sends a session with its journal (the trades, the
+  // newest decisions, equity and candles), then what each step adds.
+  rpc WatchPaperSession(LiveWatchPaperSessionRequest) returns (stream LiveWatchPaperSessionResponse);
+  // ExportPaperSession writes a session as a San Backtest report folder
+  // (run.json, trades.csv, decisions.jsonl, ...).
+  rpc ExportPaperSession(LiveExportPaperSessionRequest) returns (LiveExportPaperSessionResponse);
+}
+
+message LiveConnection {
+  uint32 id = 1;
+  string name = 2;
+}
+
+message LiveAccount {
+  string account_id = 1;
+  string name = 2;
+  string currency = 3;
+  string leverage = 4;
+  double balance = 5;
+  double equity = 6;
+  double margin = 7;
+  double free_margin = 8;
+}
+
+message LivePosition {
+  string id = 1;
+  string instrument = 2;
+  // side is "buy" or "sell".
+  string side = 3;
+  double volume = 4;
+  double open_price = 5;
+  google.protobuf.Timestamp open_time = 6;
+  // stop_loss and take_profit are 0 when not set.
+  double stop_loss = 7;
+  double take_profit = 8;
+  // price is what it would close at now (bid for a buy, ask for a sell);
+  // profit is floating, in currency.
+  double price = 9;
+  double profit = 10;
+  string currency = 11;
+  double swap = 12;
+  double commission = 13;
+}
+
+message LiveOrder {
+  string id = 1;
+  string instrument = 2;
+  string side = 3;
+  // type is "limit" or "stop".
+  string type = 4;
+  double volume = 5;
+  double price = 6;
+  double stop_loss = 7;
+  double take_profit = 8;
+  google.protobuf.Timestamp created = 9;
+}
+
+message LiveTick {
+  string instrument = 1;
+  double bid = 2;
+  double ask = 3;
+  google.protobuf.Timestamp time = 4;
+}
+
+message LiveMonitorState {
+  LiveConnection connection = 1;
+  // status is connecting, connected, reconnecting or no_connection.
+  string status = 2;
+  string message = 3;
+  LiveAccount account = 4;
+  repeated LivePosition positions = 5;
+  repeated LiveOrder orders = 6;
+  google.protobuf.Timestamp updated = 7;
+  // source is where the positions came from last: "stream" or "rest".
+  string source = 8;
+  // read_only is always true: the monitor never trades.
+  bool read_only = 9;
+}
+
+message LiveGetMonitorRequest {
+  // connection_id is an Exness connection; 0: the first one.
+  uint32 connection_id = 1;
+}
+
+message LiveGetMonitorResponse {
+  LiveMonitorState state = 1;
+  // connections are the tower's Exness connections.
+  repeated LiveConnection connections = 2;
+}
+
+message LiveWatchMonitorRequest {
+  uint32 connection_id = 1;
+  // instruments to get ticks of, besides the positions' and orders'.
+  repeated string instruments = 2;
+}
+
+message LiveWatchMonitorResponse {
+  oneof event {
+    LiveMonitorState state = 1;
+    LiveTick tick = 2;
+    bool heartbeat = 3;
+  }
+}
+
+message LiveGetCandlesRequest {
+  uint32 connection_id = 1;
+  string instrument = 2;
+  // timeframe such as M1, M15, H1 (default M15).
+  string timeframe = 3;
+  // count of the newest candles (0: 300, at most 1000).
+  uint32 count = 4;
+}
+
+message LiveGetCandlesResponse {
+  string instrument = 1;
+  string timeframe = 2;
+  // candles are the bid's, oldest first; time is the open, Unix seconds.
+  repeated BacktestCandle candles = 3;
+  // forming: the last candle has not closed yet.
+  bool forming = 4;
+}
+
+message LiveListApproachesRequest {}
+
+message LiveApproach {
+  string name = 1;
+  // timeframes: the step first.
+  repeated string timeframes = 2;
+  uint32 warmup = 3;
+  map<string, double> params = 4;
+  // max_open is the approach's own positions at once (0: one at a time).
+  uint32 max_open = 5;
+}
+
+message LiveListApproachesResponse {
+  repeated LiveApproach approaches = 1;
+}
+
+// LivePaperCosts overrides Exness's real costs; unset fields keep them
+// (the default: real costs).
+message LivePaperCosts {
+  optional double spread = 1;
+  optional double commission = 2;
+  optional double swap_long = 3;
+  optional double swap_short = 4;
+  double slippage = 5;
+}
+
+message LivePaperSettings {
+  string name = 1;
+  uint32 connection_id = 2;
+  string approach = 3;
+  string instrument = 4;
+  double balance = 5;
+  // risk is the percent of the balance risked per trade.
+  double risk = 6;
+  uint32 leverage = 7;
+  // max_open: 0 = the approach's own, else 1.
+  uint32 max_open = 8;
+  double max_open_risk = 9;
+  // params are the approach's params (the defaults when left out).
+  map<string, double> params = 10;
+  LivePaperCosts costs = 11;
+}
+
+message LivePaperPosition {
+  uint32 id = 1;
+  string side = 2;
+  double entry = 3;
+  double stop = 4;
+  double target = 5;
+  double lots = 6;
+  google.protobuf.Timestamp open_time = 7;
+  double profit = 8;
+  string type = 9;
+  string tag = 10;
+}
+
+message LivePaperOrder {
+  uint32 id = 1;
+  string side = 2;
+  string type = 3;
+  double price = 4;
+  double stop = 5;
+  double target = 6;
+  google.protobuf.Timestamp placed = 7;
+  uint32 bars_left = 8;
+  string tag = 9;
+}
+
+message LivePaperSession {
+  uint32 id = 1;
+  LivePaperSettings settings = 2;
+  // status is stopped, starting, running, waiting, market_closed or error.
+  string status = 3;
+  string message = 4;
+  repeated string timeframes = 5;
+  // from is the open of the session's first candle.
+  google.protobuf.Timestamp from = 6;
+  google.protobuf.Timestamp started_at = 7;
+  google.protobuf.Timestamp stopped_at = 8;
+  double balance = 9;
+  double equity = 10;
+  double net_profit = 11;
+  uint32 trades = 12;
+  uint32 open_positions = 13;
+  uint32 pending_orders = 14;
+  uint32 candles = 15;
+  google.protobuf.Timestamp last_close = 16;
+  google.protobuf.Timestamp next_close = 17;
+  string last_signal = 18;
+  google.protobuf.Timestamp last_signal_at = 19;
+  repeated LivePaperPosition positions = 20;
+  repeated LivePaperOrder orders = 21;
+  google.protobuf.Timestamp created_at = 22;
+  google.protobuf.Timestamp updated_at = 23;
+  // report_path opens it in Backtest Analysis ("paper:<id>").
+  string report_path = 24;
+  // paper is always true: no orders are sent.
+  bool paper = 25;
+}
+
+message LiveCreatePaperSessionRequest {
+  LivePaperSettings settings = 1;
+}
+
+message LivePaperSessionRequest {
+  uint32 id = 1;
+}
+
+message LivePaperSessionResponse {
+  LivePaperSession session = 1;
+}
+
+message LiveDeletePaperSessionResponse {}
+
+message LiveListPaperSessionsRequest {}
+
+message LiveListPaperSessionsResponse {
+  repeated LivePaperSession sessions = 1;
+}
+
+message LiveWatchPaperSessionsRequest {}
+
+message LiveWatchPaperSessionsResponse {
+  oneof event {
+    LiveListPaperSessionsResponse snapshot = 1;
+    LivePaperSession changed = 2;
+    uint32 removed = 3;
+    bool heartbeat = 4;
+  }
+}
+
+message LiveWatchPaperSessionRequest {
+  uint32 id = 1;
+  // decisions caps the decisions in the snapshot (0: the newest 500).
+  uint32 decisions = 2;
+  // candles caps the candles in the snapshot (0: the newest 2000).
+  uint32 candles = 3;
+}
+
+message LivePaperJournal {
+  repeated BacktestTrade trades = 1;
+  repeated BacktestDecision decisions = 2;
+  repeated BacktestEquityPoint equity = 3;
+  repeated BacktestCandle candles = 4;
+  repeated BacktestMissed missed = 5;
+}
+
+message LivePaperSessionDetail {
+  LivePaperSession session = 1;
+  LivePaperJournal journal = 2;
+}
+
+message LiveWatchPaperSessionResponse {
+  oneof event {
+    // snapshot is the session and its journal, first.
+    LivePaperSessionDetail snapshot = 1;
+    // update is the session after a step, with what the step added.
+    LivePaperSessionDetail update = 2;
+    // removed: the session was deleted.
+    bool removed = 3;
+    bool heartbeat = 4;
+  }
+}
+
+message LiveExportPaperSessionRequest {
+  uint32 id = 1;
+  // path is an absolute folder, new or empty; empty: under the tower's
+  // data folder (live_trading/exports).
+  string path = 2;
+}
+
+message LiveExportPaperSessionResponse {
+  string path = 1;
+  repeated string files = 2;
+}

@@ -76,6 +76,26 @@ func Register(r *bt.Registry) {
 	}
 }
 
+// RegisterAll is Register plus the approaches that exist only as chains
+// (the pullback_limit demo): every approach a live paper session (San
+// Tower's Live Trading) may run. A chain named like a hand-written approach
+// (they trade the same) leaves the hand-written one in place.
+func RegisterAll(r *bt.Registry) {
+	Register(r)
+	have := map[string]bool{}
+	for _, n := range r.Names() {
+		have[n] = true
+	}
+	// dip_fade_m1, the scalp rule that came closest (the user, 2026-11-15:
+	// "Dip approach not appear in live trading ?").
+	for _, mk := range append(append(TrendChains(), DemoChains()...), DipFadeChain, DipFadeAlwaysChain) {
+		if n := mk().Name(); !have[n] {
+			r.Register(n, mk)
+			have[n] = true
+		}
+	}
+}
+
 func (s *LevelFade) Name() string         { return s.ID }
 func (s *LevelFade) Timeframes() []string { return []string{"M15"} }
 func (s *LevelFade) Warmup() int          { return 100 }

@@ -22,6 +22,273 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type LiveListPluginsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LiveListPluginsRequest) Reset() {
+	*x = LiveListPluginsRequest{}
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LiveListPluginsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LiveListPluginsRequest) ProtoMessage() {}
+
+func (x *LiveListPluginsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LiveListPluginsRequest.ProtoReflect.Descriptor instead.
+func (*LiveListPluginsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{0}
+}
+
+type LiveReloadPluginsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LiveReloadPluginsRequest) Reset() {
+	*x = LiveReloadPluginsRequest{}
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LiveReloadPluginsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LiveReloadPluginsRequest) ProtoMessage() {}
+
+func (x *LiveReloadPluginsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LiveReloadPluginsRequest.ProtoReflect.Descriptor instead.
+func (*LiveReloadPluginsRequest) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{1}
+}
+
+// LivePluginFile is one file of the plugins folder.
+type LivePluginFile struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Name       string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Path       string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	ModTime    *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=mod_time,json=modTime,proto3" json:"mod_time,omitempty"`
+	Approaches []string               `protobuf:"bytes,4,rep,name=approaches,proto3" json:"approaches,omitempty"`
+	// error is why the file, or some of its approaches, cannot be used.
+	Error         string `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LivePluginFile) Reset() {
+	*x = LivePluginFile{}
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LivePluginFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LivePluginFile) ProtoMessage() {}
+
+func (x *LivePluginFile) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LivePluginFile.ProtoReflect.Descriptor instead.
+func (*LivePluginFile) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *LivePluginFile) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *LivePluginFile) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *LivePluginFile) GetModTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ModTime
+	}
+	return nil
+}
+
+func (x *LivePluginFile) GetApproaches() []string {
+	if x != nil {
+		return x.Approaches
+	}
+	return nil
+}
+
+func (x *LivePluginFile) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type LiveListPluginsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// dir is the plugins folder.
+	Dir           string            `protobuf:"bytes,1,opt,name=dir,proto3" json:"dir,omitempty"`
+	Files         []*LivePluginFile `protobuf:"bytes,2,rep,name=files,proto3" json:"files,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LiveListPluginsResponse) Reset() {
+	*x = LiveListPluginsResponse{}
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LiveListPluginsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LiveListPluginsResponse) ProtoMessage() {}
+
+func (x *LiveListPluginsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LiveListPluginsResponse.ProtoReflect.Descriptor instead.
+func (*LiveListPluginsResponse) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *LiveListPluginsResponse) GetDir() string {
+	if x != nil {
+		return x.Dir
+	}
+	return ""
+}
+
+func (x *LiveListPluginsResponse) GetFiles() []*LivePluginFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+// LivePluginRun is the plugin a running session uses.
+type LivePluginRun struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	File  string                 `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
+	// mod_time is the file's modification time when the session started.
+	ModTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=mod_time,json=modTime,proto3" json:"mod_time,omitempty"`
+	// changed: the file is newer now (a rebuild); a restart of the session
+	// uses it.
+	Changed       bool `protobuf:"varint,3,opt,name=changed,proto3" json:"changed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LivePluginRun) Reset() {
+	*x = LivePluginRun{}
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LivePluginRun) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LivePluginRun) ProtoMessage() {}
+
+func (x *LivePluginRun) ProtoReflect() protoreflect.Message {
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LivePluginRun.ProtoReflect.Descriptor instead.
+func (*LivePluginRun) Descriptor() ([]byte, []int) {
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LivePluginRun) GetFile() string {
+	if x != nil {
+		return x.File
+	}
+	return ""
+}
+
+func (x *LivePluginRun) GetModTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ModTime
+	}
+	return nil
+}
+
+func (x *LivePluginRun) GetChanged() bool {
+	if x != nil {
+		return x.Changed
+	}
+	return false
+}
+
 type LiveConnection struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -32,7 +299,7 @@ type LiveConnection struct {
 
 func (x *LiveConnection) Reset() {
 	*x = LiveConnection{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[0]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +311,7 @@ func (x *LiveConnection) String() string {
 func (*LiveConnection) ProtoMessage() {}
 
 func (x *LiveConnection) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[0]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +324,7 @@ func (x *LiveConnection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveConnection.ProtoReflect.Descriptor instead.
 func (*LiveConnection) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{0}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *LiveConnection) GetId() uint32 {
@@ -90,7 +357,7 @@ type LiveAccount struct {
 
 func (x *LiveAccount) Reset() {
 	*x = LiveAccount{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[1]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -102,7 +369,7 @@ func (x *LiveAccount) String() string {
 func (*LiveAccount) ProtoMessage() {}
 
 func (x *LiveAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[1]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +382,7 @@ func (x *LiveAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveAccount.ProtoReflect.Descriptor instead.
 func (*LiveAccount) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{1}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *LiveAccount) GetAccountId() string {
@@ -199,7 +466,7 @@ type LivePosition struct {
 
 func (x *LivePosition) Reset() {
 	*x = LivePosition{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[2]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -211,7 +478,7 @@ func (x *LivePosition) String() string {
 func (*LivePosition) ProtoMessage() {}
 
 func (x *LivePosition) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[2]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -224,7 +491,7 @@ func (x *LivePosition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePosition.ProtoReflect.Descriptor instead.
 func (*LivePosition) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{2}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *LivePosition) GetId() string {
@@ -336,7 +603,7 @@ type LiveOrder struct {
 
 func (x *LiveOrder) Reset() {
 	*x = LiveOrder{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[3]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -348,7 +615,7 @@ func (x *LiveOrder) String() string {
 func (*LiveOrder) ProtoMessage() {}
 
 func (x *LiveOrder) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[3]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -361,7 +628,7 @@ func (x *LiveOrder) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveOrder.ProtoReflect.Descriptor instead.
 func (*LiveOrder) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{3}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *LiveOrder) GetId() string {
@@ -439,7 +706,7 @@ type LiveTick struct {
 
 func (x *LiveTick) Reset() {
 	*x = LiveTick{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[4]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -451,7 +718,7 @@ func (x *LiveTick) String() string {
 func (*LiveTick) ProtoMessage() {}
 
 func (x *LiveTick) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[4]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -464,7 +731,7 @@ func (x *LiveTick) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveTick.ProtoReflect.Descriptor instead.
 func (*LiveTick) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{4}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *LiveTick) GetInstrument() string {
@@ -515,7 +782,7 @@ type LiveMonitorState struct {
 
 func (x *LiveMonitorState) Reset() {
 	*x = LiveMonitorState{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[5]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -527,7 +794,7 @@ func (x *LiveMonitorState) String() string {
 func (*LiveMonitorState) ProtoMessage() {}
 
 func (x *LiveMonitorState) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[5]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -540,7 +807,7 @@ func (x *LiveMonitorState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveMonitorState.ProtoReflect.Descriptor instead.
 func (*LiveMonitorState) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{5}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *LiveMonitorState) GetConnection() *LiveConnection {
@@ -616,7 +883,7 @@ type LiveGetMonitorRequest struct {
 
 func (x *LiveGetMonitorRequest) Reset() {
 	*x = LiveGetMonitorRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[6]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -628,7 +895,7 @@ func (x *LiveGetMonitorRequest) String() string {
 func (*LiveGetMonitorRequest) ProtoMessage() {}
 
 func (x *LiveGetMonitorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[6]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -641,7 +908,7 @@ func (x *LiveGetMonitorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveGetMonitorRequest.ProtoReflect.Descriptor instead.
 func (*LiveGetMonitorRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{6}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *LiveGetMonitorRequest) GetConnectionId() uint32 {
@@ -662,7 +929,7 @@ type LiveGetMonitorResponse struct {
 
 func (x *LiveGetMonitorResponse) Reset() {
 	*x = LiveGetMonitorResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[7]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -674,7 +941,7 @@ func (x *LiveGetMonitorResponse) String() string {
 func (*LiveGetMonitorResponse) ProtoMessage() {}
 
 func (x *LiveGetMonitorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[7]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -687,7 +954,7 @@ func (x *LiveGetMonitorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveGetMonitorResponse.ProtoReflect.Descriptor instead.
 func (*LiveGetMonitorResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{7}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *LiveGetMonitorResponse) GetState() *LiveMonitorState {
@@ -715,7 +982,7 @@ type LiveWatchMonitorRequest struct {
 
 func (x *LiveWatchMonitorRequest) Reset() {
 	*x = LiveWatchMonitorRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[8]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -727,7 +994,7 @@ func (x *LiveWatchMonitorRequest) String() string {
 func (*LiveWatchMonitorRequest) ProtoMessage() {}
 
 func (x *LiveWatchMonitorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[8]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -740,7 +1007,7 @@ func (x *LiveWatchMonitorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveWatchMonitorRequest.ProtoReflect.Descriptor instead.
 func (*LiveWatchMonitorRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{8}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *LiveWatchMonitorRequest) GetConnectionId() uint32 {
@@ -771,7 +1038,7 @@ type LiveWatchMonitorResponse struct {
 
 func (x *LiveWatchMonitorResponse) Reset() {
 	*x = LiveWatchMonitorResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[9]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -783,7 +1050,7 @@ func (x *LiveWatchMonitorResponse) String() string {
 func (*LiveWatchMonitorResponse) ProtoMessage() {}
 
 func (x *LiveWatchMonitorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[9]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -796,7 +1063,7 @@ func (x *LiveWatchMonitorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveWatchMonitorResponse.ProtoReflect.Descriptor instead.
 func (*LiveWatchMonitorResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{9}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *LiveWatchMonitorResponse) GetEvent() isLiveWatchMonitorResponse_Event {
@@ -869,7 +1136,7 @@ type LiveGetCandlesRequest struct {
 
 func (x *LiveGetCandlesRequest) Reset() {
 	*x = LiveGetCandlesRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[10]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -881,7 +1148,7 @@ func (x *LiveGetCandlesRequest) String() string {
 func (*LiveGetCandlesRequest) ProtoMessage() {}
 
 func (x *LiveGetCandlesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[10]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -894,7 +1161,7 @@ func (x *LiveGetCandlesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveGetCandlesRequest.ProtoReflect.Descriptor instead.
 func (*LiveGetCandlesRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{10}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *LiveGetCandlesRequest) GetConnectionId() uint32 {
@@ -939,7 +1206,7 @@ type LiveGetCandlesResponse struct {
 
 func (x *LiveGetCandlesResponse) Reset() {
 	*x = LiveGetCandlesResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[11]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -951,7 +1218,7 @@ func (x *LiveGetCandlesResponse) String() string {
 func (*LiveGetCandlesResponse) ProtoMessage() {}
 
 func (x *LiveGetCandlesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[11]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -964,7 +1231,7 @@ func (x *LiveGetCandlesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveGetCandlesResponse.ProtoReflect.Descriptor instead.
 func (*LiveGetCandlesResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{11}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *LiveGetCandlesResponse) GetInstrument() string {
@@ -1003,7 +1270,7 @@ type LiveListApproachesRequest struct {
 
 func (x *LiveListApproachesRequest) Reset() {
 	*x = LiveListApproachesRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[12]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1015,7 +1282,7 @@ func (x *LiveListApproachesRequest) String() string {
 func (*LiveListApproachesRequest) ProtoMessage() {}
 
 func (x *LiveListApproachesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[12]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1028,7 +1295,7 @@ func (x *LiveListApproachesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveListApproachesRequest.ProtoReflect.Descriptor instead.
 func (*LiveListApproachesRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{12}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{17}
 }
 
 type LiveApproach struct {
@@ -1039,14 +1306,16 @@ type LiveApproach struct {
 	Warmup     uint32             `protobuf:"varint,3,opt,name=warmup,proto3" json:"warmup,omitempty"`
 	Params     map[string]float64 `protobuf:"bytes,4,rep,name=params,proto3" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
 	// max_open is the approach's own positions at once (0: one at a time).
-	MaxOpen       uint32 `protobuf:"varint,5,opt,name=max_open,json=maxOpen,proto3" json:"max_open,omitempty"`
+	MaxOpen uint32 `protobuf:"varint,5,opt,name=max_open,json=maxOpen,proto3" json:"max_open,omitempty"`
+	// plugin is the plugin file's name serving it ("" = compiled in).
+	Plugin        string `protobuf:"bytes,6,opt,name=plugin,proto3" json:"plugin,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LiveApproach) Reset() {
 	*x = LiveApproach{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[13]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1058,7 +1327,7 @@ func (x *LiveApproach) String() string {
 func (*LiveApproach) ProtoMessage() {}
 
 func (x *LiveApproach) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[13]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,7 +1340,7 @@ func (x *LiveApproach) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveApproach.ProtoReflect.Descriptor instead.
 func (*LiveApproach) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{13}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *LiveApproach) GetName() string {
@@ -1109,6 +1378,13 @@ func (x *LiveApproach) GetMaxOpen() uint32 {
 	return 0
 }
 
+func (x *LiveApproach) GetPlugin() string {
+	if x != nil {
+		return x.Plugin
+	}
+	return ""
+}
+
 type LiveListApproachesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Approaches    []*LiveApproach        `protobuf:"bytes,1,rep,name=approaches,proto3" json:"approaches,omitempty"`
@@ -1118,7 +1394,7 @@ type LiveListApproachesResponse struct {
 
 func (x *LiveListApproachesResponse) Reset() {
 	*x = LiveListApproachesResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[14]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1130,7 +1406,7 @@ func (x *LiveListApproachesResponse) String() string {
 func (*LiveListApproachesResponse) ProtoMessage() {}
 
 func (x *LiveListApproachesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[14]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1143,7 +1419,7 @@ func (x *LiveListApproachesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveListApproachesResponse.ProtoReflect.Descriptor instead.
 func (*LiveListApproachesResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{14}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *LiveListApproachesResponse) GetApproaches() []*LiveApproach {
@@ -1168,7 +1444,7 @@ type LivePaperCosts struct {
 
 func (x *LivePaperCosts) Reset() {
 	*x = LivePaperCosts{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[15]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1180,7 +1456,7 @@ func (x *LivePaperCosts) String() string {
 func (*LivePaperCosts) ProtoMessage() {}
 
 func (x *LivePaperCosts) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[15]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1193,7 +1469,7 @@ func (x *LivePaperCosts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperCosts.ProtoReflect.Descriptor instead.
 func (*LivePaperCosts) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{15}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *LivePaperCosts) GetSpread() float64 {
@@ -1253,7 +1529,7 @@ type LivePaperSettings struct {
 
 func (x *LivePaperSettings) Reset() {
 	*x = LivePaperSettings{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[16]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1265,7 +1541,7 @@ func (x *LivePaperSettings) String() string {
 func (*LivePaperSettings) ProtoMessage() {}
 
 func (x *LivePaperSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[16]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1278,7 +1554,7 @@ func (x *LivePaperSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperSettings.ProtoReflect.Descriptor instead.
 func (*LivePaperSettings) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{16}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *LivePaperSettings) GetName() string {
@@ -1376,7 +1652,7 @@ type LivePaperPosition struct {
 
 func (x *LivePaperPosition) Reset() {
 	*x = LivePaperPosition{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[17]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1388,7 +1664,7 @@ func (x *LivePaperPosition) String() string {
 func (*LivePaperPosition) ProtoMessage() {}
 
 func (x *LivePaperPosition) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[17]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1401,7 +1677,7 @@ func (x *LivePaperPosition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperPosition.ProtoReflect.Descriptor instead.
 func (*LivePaperPosition) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{17}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *LivePaperPosition) GetId() uint32 {
@@ -1491,7 +1767,7 @@ type LivePaperOrder struct {
 
 func (x *LivePaperOrder) Reset() {
 	*x = LivePaperOrder{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[18]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1503,7 +1779,7 @@ func (x *LivePaperOrder) String() string {
 func (*LivePaperOrder) ProtoMessage() {}
 
 func (x *LivePaperOrder) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[18]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1516,7 +1792,7 @@ func (x *LivePaperOrder) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperOrder.ProtoReflect.Descriptor instead.
 func (*LivePaperOrder) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{18}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *LivePaperOrder) GetId() uint32 {
@@ -1612,14 +1888,16 @@ type LivePaperSession struct {
 	// report_path opens it in Backtest Analysis ("paper:<id>").
 	ReportPath string `protobuf:"bytes,24,opt,name=report_path,json=reportPath,proto3" json:"report_path,omitempty"`
 	// paper is always true: no orders are sent.
-	Paper         bool `protobuf:"varint,25,opt,name=paper,proto3" json:"paper,omitempty"`
+	Paper bool `protobuf:"varint,25,opt,name=paper,proto3" json:"paper,omitempty"`
+	// plugin is set while the session runs a plugin approach.
+	Plugin        *LivePluginRun `protobuf:"bytes,26,opt,name=plugin,proto3" json:"plugin,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LivePaperSession) Reset() {
 	*x = LivePaperSession{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[19]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1631,7 +1909,7 @@ func (x *LivePaperSession) String() string {
 func (*LivePaperSession) ProtoMessage() {}
 
 func (x *LivePaperSession) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[19]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1644,7 +1922,7 @@ func (x *LivePaperSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperSession.ProtoReflect.Descriptor instead.
 func (*LivePaperSession) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{19}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *LivePaperSession) GetId() uint32 {
@@ -1822,6 +2100,13 @@ func (x *LivePaperSession) GetPaper() bool {
 	return false
 }
 
+func (x *LivePaperSession) GetPlugin() *LivePluginRun {
+	if x != nil {
+		return x.Plugin
+	}
+	return nil
+}
+
 type LiveCreatePaperSessionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Settings      *LivePaperSettings     `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
@@ -1831,7 +2116,7 @@ type LiveCreatePaperSessionRequest struct {
 
 func (x *LiveCreatePaperSessionRequest) Reset() {
 	*x = LiveCreatePaperSessionRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[20]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1843,7 +2128,7 @@ func (x *LiveCreatePaperSessionRequest) String() string {
 func (*LiveCreatePaperSessionRequest) ProtoMessage() {}
 
 func (x *LiveCreatePaperSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[20]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1856,7 +2141,7 @@ func (x *LiveCreatePaperSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveCreatePaperSessionRequest.ProtoReflect.Descriptor instead.
 func (*LiveCreatePaperSessionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{20}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *LiveCreatePaperSessionRequest) GetSettings() *LivePaperSettings {
@@ -1875,7 +2160,7 @@ type LivePaperSessionRequest struct {
 
 func (x *LivePaperSessionRequest) Reset() {
 	*x = LivePaperSessionRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[21]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1887,7 +2172,7 @@ func (x *LivePaperSessionRequest) String() string {
 func (*LivePaperSessionRequest) ProtoMessage() {}
 
 func (x *LivePaperSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[21]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1900,7 +2185,7 @@ func (x *LivePaperSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperSessionRequest.ProtoReflect.Descriptor instead.
 func (*LivePaperSessionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{21}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *LivePaperSessionRequest) GetId() uint32 {
@@ -1919,7 +2204,7 @@ type LivePaperSessionResponse struct {
 
 func (x *LivePaperSessionResponse) Reset() {
 	*x = LivePaperSessionResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[22]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1931,7 +2216,7 @@ func (x *LivePaperSessionResponse) String() string {
 func (*LivePaperSessionResponse) ProtoMessage() {}
 
 func (x *LivePaperSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[22]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1944,7 +2229,7 @@ func (x *LivePaperSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperSessionResponse.ProtoReflect.Descriptor instead.
 func (*LivePaperSessionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{22}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *LivePaperSessionResponse) GetSession() *LivePaperSession {
@@ -1962,7 +2247,7 @@ type LiveDeletePaperSessionResponse struct {
 
 func (x *LiveDeletePaperSessionResponse) Reset() {
 	*x = LiveDeletePaperSessionResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[23]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1974,7 +2259,7 @@ func (x *LiveDeletePaperSessionResponse) String() string {
 func (*LiveDeletePaperSessionResponse) ProtoMessage() {}
 
 func (x *LiveDeletePaperSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[23]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1987,7 +2272,7 @@ func (x *LiveDeletePaperSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveDeletePaperSessionResponse.ProtoReflect.Descriptor instead.
 func (*LiveDeletePaperSessionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{23}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{28}
 }
 
 type LiveListPaperSessionsRequest struct {
@@ -1998,7 +2283,7 @@ type LiveListPaperSessionsRequest struct {
 
 func (x *LiveListPaperSessionsRequest) Reset() {
 	*x = LiveListPaperSessionsRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[24]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2010,7 +2295,7 @@ func (x *LiveListPaperSessionsRequest) String() string {
 func (*LiveListPaperSessionsRequest) ProtoMessage() {}
 
 func (x *LiveListPaperSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[24]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2023,7 +2308,7 @@ func (x *LiveListPaperSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveListPaperSessionsRequest.ProtoReflect.Descriptor instead.
 func (*LiveListPaperSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{24}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{29}
 }
 
 type LiveListPaperSessionsResponse struct {
@@ -2035,7 +2320,7 @@ type LiveListPaperSessionsResponse struct {
 
 func (x *LiveListPaperSessionsResponse) Reset() {
 	*x = LiveListPaperSessionsResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[25]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2047,7 +2332,7 @@ func (x *LiveListPaperSessionsResponse) String() string {
 func (*LiveListPaperSessionsResponse) ProtoMessage() {}
 
 func (x *LiveListPaperSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[25]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2060,7 +2345,7 @@ func (x *LiveListPaperSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveListPaperSessionsResponse.ProtoReflect.Descriptor instead.
 func (*LiveListPaperSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{25}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *LiveListPaperSessionsResponse) GetSessions() []*LivePaperSession {
@@ -2078,7 +2363,7 @@ type LiveWatchPaperSessionsRequest struct {
 
 func (x *LiveWatchPaperSessionsRequest) Reset() {
 	*x = LiveWatchPaperSessionsRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[26]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2090,7 +2375,7 @@ func (x *LiveWatchPaperSessionsRequest) String() string {
 func (*LiveWatchPaperSessionsRequest) ProtoMessage() {}
 
 func (x *LiveWatchPaperSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[26]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2103,7 +2388,7 @@ func (x *LiveWatchPaperSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveWatchPaperSessionsRequest.ProtoReflect.Descriptor instead.
 func (*LiveWatchPaperSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{26}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{31}
 }
 
 type LiveWatchPaperSessionsResponse struct {
@@ -2121,7 +2406,7 @@ type LiveWatchPaperSessionsResponse struct {
 
 func (x *LiveWatchPaperSessionsResponse) Reset() {
 	*x = LiveWatchPaperSessionsResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[27]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2133,7 +2418,7 @@ func (x *LiveWatchPaperSessionsResponse) String() string {
 func (*LiveWatchPaperSessionsResponse) ProtoMessage() {}
 
 func (x *LiveWatchPaperSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[27]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2146,7 +2431,7 @@ func (x *LiveWatchPaperSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveWatchPaperSessionsResponse.ProtoReflect.Descriptor instead.
 func (*LiveWatchPaperSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{27}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *LiveWatchPaperSessionsResponse) GetEvent() isLiveWatchPaperSessionsResponse_Event {
@@ -2233,7 +2518,7 @@ type LiveWatchPaperSessionRequest struct {
 
 func (x *LiveWatchPaperSessionRequest) Reset() {
 	*x = LiveWatchPaperSessionRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[28]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2245,7 +2530,7 @@ func (x *LiveWatchPaperSessionRequest) String() string {
 func (*LiveWatchPaperSessionRequest) ProtoMessage() {}
 
 func (x *LiveWatchPaperSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[28]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2258,7 +2543,7 @@ func (x *LiveWatchPaperSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveWatchPaperSessionRequest.ProtoReflect.Descriptor instead.
 func (*LiveWatchPaperSessionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{28}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *LiveWatchPaperSessionRequest) GetId() uint32 {
@@ -2295,7 +2580,7 @@ type LivePaperJournal struct {
 
 func (x *LivePaperJournal) Reset() {
 	*x = LivePaperJournal{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[29]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2307,7 +2592,7 @@ func (x *LivePaperJournal) String() string {
 func (*LivePaperJournal) ProtoMessage() {}
 
 func (x *LivePaperJournal) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[29]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2320,7 +2605,7 @@ func (x *LivePaperJournal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperJournal.ProtoReflect.Descriptor instead.
 func (*LivePaperJournal) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{29}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *LivePaperJournal) GetTrades() []*BacktestTrade {
@@ -2368,7 +2653,7 @@ type LivePaperSessionDetail struct {
 
 func (x *LivePaperSessionDetail) Reset() {
 	*x = LivePaperSessionDetail{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[30]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2380,7 +2665,7 @@ func (x *LivePaperSessionDetail) String() string {
 func (*LivePaperSessionDetail) ProtoMessage() {}
 
 func (x *LivePaperSessionDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[30]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2393,7 +2678,7 @@ func (x *LivePaperSessionDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LivePaperSessionDetail.ProtoReflect.Descriptor instead.
 func (*LivePaperSessionDetail) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{30}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *LivePaperSessionDetail) GetSession() *LivePaperSession {
@@ -2425,7 +2710,7 @@ type LiveWatchPaperSessionResponse struct {
 
 func (x *LiveWatchPaperSessionResponse) Reset() {
 	*x = LiveWatchPaperSessionResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[31]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2437,7 +2722,7 @@ func (x *LiveWatchPaperSessionResponse) String() string {
 func (*LiveWatchPaperSessionResponse) ProtoMessage() {}
 
 func (x *LiveWatchPaperSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[31]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2450,7 +2735,7 @@ func (x *LiveWatchPaperSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveWatchPaperSessionResponse.ProtoReflect.Descriptor instead.
 func (*LiveWatchPaperSessionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{31}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *LiveWatchPaperSessionResponse) GetEvent() isLiveWatchPaperSessionResponse_Event {
@@ -2539,7 +2824,7 @@ type LiveExportPaperSessionRequest struct {
 
 func (x *LiveExportPaperSessionRequest) Reset() {
 	*x = LiveExportPaperSessionRequest{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[32]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2551,7 +2836,7 @@ func (x *LiveExportPaperSessionRequest) String() string {
 func (*LiveExportPaperSessionRequest) ProtoMessage() {}
 
 func (x *LiveExportPaperSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[32]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2564,7 +2849,7 @@ func (x *LiveExportPaperSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveExportPaperSessionRequest.ProtoReflect.Descriptor instead.
 func (*LiveExportPaperSessionRequest) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{32}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *LiveExportPaperSessionRequest) GetId() uint32 {
@@ -2591,7 +2876,7 @@ type LiveExportPaperSessionResponse struct {
 
 func (x *LiveExportPaperSessionResponse) Reset() {
 	*x = LiveExportPaperSessionResponse{}
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[33]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2603,7 +2888,7 @@ func (x *LiveExportPaperSessionResponse) String() string {
 func (*LiveExportPaperSessionResponse) ProtoMessage() {}
 
 func (x *LiveExportPaperSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_san_tower_v1_live_trading_proto_msgTypes[33]
+	mi := &file_san_tower_v1_live_trading_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2616,7 +2901,7 @@ func (x *LiveExportPaperSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LiveExportPaperSessionResponse.ProtoReflect.Descriptor instead.
 func (*LiveExportPaperSessionResponse) Descriptor() ([]byte, []int) {
-	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{33}
+	return file_san_tower_v1_live_trading_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *LiveExportPaperSessionResponse) GetPath() string {
@@ -2637,7 +2922,24 @@ var File_san_tower_v1_live_trading_proto protoreflect.FileDescriptor
 
 const file_san_tower_v1_live_trading_proto_rawDesc = "" +
 	"\n" +
-	"\x1fsan/tower/v1/live_trading.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$san/tower/v1/backtest_analysis.proto\"4\n" +
+	"\x1fsan/tower/v1/live_trading.proto\x12\fsan.tower.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$san/tower/v1/backtest_analysis.proto\"\x18\n" +
+	"\x16LiveListPluginsRequest\"\x1a\n" +
+	"\x18LiveReloadPluginsRequest\"\xa5\x01\n" +
+	"\x0eLivePluginFile\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x125\n" +
+	"\bmod_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\amodTime\x12\x1e\n" +
+	"\n" +
+	"approaches\x18\x04 \x03(\tR\n" +
+	"approaches\x12\x14\n" +
+	"\x05error\x18\x05 \x01(\tR\x05error\"_\n" +
+	"\x17LiveListPluginsResponse\x12\x10\n" +
+	"\x03dir\x18\x01 \x01(\tR\x03dir\x122\n" +
+	"\x05files\x18\x02 \x03(\v2\x1c.san.tower.v1.LivePluginFileR\x05files\"t\n" +
+	"\rLivePluginRun\x12\x12\n" +
+	"\x04file\x18\x01 \x01(\tR\x04file\x125\n" +
+	"\bmod_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\amodTime\x12\x18\n" +
+	"\achanged\x18\x03 \x01(\bR\achanged\"4\n" +
 	"\x0eLiveConnection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"\xe3\x01\n" +
@@ -2732,7 +3034,7 @@ const file_san_tower_v1_live_trading_proto_rawDesc = "" +
 	"\ttimeframe\x18\x02 \x01(\tR\ttimeframe\x126\n" +
 	"\acandles\x18\x03 \x03(\v2\x1c.san.tower.v1.BacktestCandleR\acandles\x12\x18\n" +
 	"\aforming\x18\x04 \x01(\bR\aforming\"\x1b\n" +
-	"\x19LiveListApproachesRequest\"\xf0\x01\n" +
+	"\x19LiveListApproachesRequest\"\x88\x02\n" +
 	"\fLiveApproach\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1e\n" +
 	"\n" +
@@ -2740,7 +3042,8 @@ const file_san_tower_v1_live_trading_proto_rawDesc = "" +
 	"timeframes\x12\x16\n" +
 	"\x06warmup\x18\x03 \x01(\rR\x06warmup\x12>\n" +
 	"\x06params\x18\x04 \x03(\v2&.san.tower.v1.LiveApproach.ParamsEntryR\x06params\x12\x19\n" +
-	"\bmax_open\x18\x05 \x01(\rR\amaxOpen\x1a9\n" +
+	"\bmax_open\x18\x05 \x01(\rR\amaxOpen\x12\x16\n" +
+	"\x06plugin\x18\x06 \x01(\tR\x06plugin\x1a9\n" +
 	"\vParamsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"X\n" +
@@ -2801,7 +3104,7 @@ const file_san_tower_v1_live_trading_proto_rawDesc = "" +
 	"\x06target\x18\x06 \x01(\x01R\x06target\x122\n" +
 	"\x06placed\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\x06placed\x12\x1b\n" +
 	"\tbars_left\x18\b \x01(\rR\bbarsLeft\x12\x10\n" +
-	"\x03tag\x18\t \x01(\tR\x03tag\"\xa3\b\n" +
+	"\x03tag\x18\t \x01(\tR\x03tag\"\xd8\b\n" +
 	"\x10LivePaperSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12;\n" +
 	"\bsettings\x18\x02 \x01(\v2\x1f.san.tower.v1.LivePaperSettingsR\bsettings\x12\x16\n" +
@@ -2839,7 +3142,8 @@ const file_san_tower_v1_live_trading_proto_rawDesc = "" +
 	"updated_at\x18\x17 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1f\n" +
 	"\vreport_path\x18\x18 \x01(\tR\n" +
 	"reportPath\x12\x14\n" +
-	"\x05paper\x18\x19 \x01(\bR\x05paper\"\\\n" +
+	"\x05paper\x18\x19 \x01(\bR\x05paper\x123\n" +
+	"\x06plugin\x18\x1a \x01(\v2\x1b.san.tower.v1.LivePluginRunR\x06plugin\"\\\n" +
 	"\x1dLiveCreatePaperSessionRequest\x12;\n" +
 	"\bsettings\x18\x01 \x01(\v2\x1f.san.tower.v1.LivePaperSettingsR\bsettings\")\n" +
 	"\x17LivePaperSessionRequest\x12\x0e\n" +
@@ -2881,8 +3185,7 @@ const file_san_tower_v1_live_trading_proto_rawDesc = "" +
 	"\x04path\x18\x02 \x01(\tR\x04path\"J\n" +
 	"\x1eLiveExportPaperSessionResponse\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x14\n" +
-	"\x05files\x18\x02 \x03(\tR\x05files2\xd1\n" +
-	"\n" +
+	"\x05files\x18\x02 \x03(\tR\x05files2\x8d\f\n" +
 	"\x12LiveTradingService\x12W\n" +
 	"\n" +
 	"GetMonitor\x12#.san.tower.v1.LiveGetMonitorRequest\x1a$.san.tower.v1.LiveGetMonitorResponse\x12_\n" +
@@ -2897,7 +3200,9 @@ const file_san_tower_v1_live_trading_proto_rawDesc = "" +
 	"\x0fGetPaperSession\x12%.san.tower.v1.LivePaperSessionRequest\x1a&.san.tower.v1.LivePaperSessionResponse\x12q\n" +
 	"\x12WatchPaperSessions\x12+.san.tower.v1.LiveWatchPaperSessionsRequest\x1a,.san.tower.v1.LiveWatchPaperSessionsResponse0\x01\x12n\n" +
 	"\x11WatchPaperSession\x12*.san.tower.v1.LiveWatchPaperSessionRequest\x1a+.san.tower.v1.LiveWatchPaperSessionResponse0\x01\x12o\n" +
-	"\x12ExportPaperSession\x12+.san.tower.v1.LiveExportPaperSessionRequest\x1a,.san.tower.v1.LiveExportPaperSessionResponseB\xb0\x01\n" +
+	"\x12ExportPaperSession\x12+.san.tower.v1.LiveExportPaperSessionRequest\x1a,.san.tower.v1.LiveExportPaperSessionResponse\x12Z\n" +
+	"\vListPlugins\x12$.san.tower.v1.LiveListPluginsRequest\x1a%.san.tower.v1.LiveListPluginsResponse\x12^\n" +
+	"\rReloadPlugins\x12&.san.tower.v1.LiveReloadPluginsRequest\x1a%.san.tower.v1.LiveListPluginsResponseB\xb0\x01\n" +
 	"\x10com.san.tower.v1B\x10LiveTradingProtoP\x01Z8github.com/wargasipil/san_tower/gen/san/tower/v1;towerv1\xa2\x02\x03STX\xaa\x02\fSan.Tower.V1\xca\x02\fSan\\Tower\\V1\xe2\x02\x18San\\Tower\\V1\\GPBMetadata\xea\x02\x0eSan::Tower::V1b\x06proto3"
 
 var (
@@ -2912,127 +3217,140 @@ func file_san_tower_v1_live_trading_proto_rawDescGZIP() []byte {
 	return file_san_tower_v1_live_trading_proto_rawDescData
 }
 
-var file_san_tower_v1_live_trading_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_san_tower_v1_live_trading_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_san_tower_v1_live_trading_proto_goTypes = []any{
-	(*LiveConnection)(nil),                 // 0: san.tower.v1.LiveConnection
-	(*LiveAccount)(nil),                    // 1: san.tower.v1.LiveAccount
-	(*LivePosition)(nil),                   // 2: san.tower.v1.LivePosition
-	(*LiveOrder)(nil),                      // 3: san.tower.v1.LiveOrder
-	(*LiveTick)(nil),                       // 4: san.tower.v1.LiveTick
-	(*LiveMonitorState)(nil),               // 5: san.tower.v1.LiveMonitorState
-	(*LiveGetMonitorRequest)(nil),          // 6: san.tower.v1.LiveGetMonitorRequest
-	(*LiveGetMonitorResponse)(nil),         // 7: san.tower.v1.LiveGetMonitorResponse
-	(*LiveWatchMonitorRequest)(nil),        // 8: san.tower.v1.LiveWatchMonitorRequest
-	(*LiveWatchMonitorResponse)(nil),       // 9: san.tower.v1.LiveWatchMonitorResponse
-	(*LiveGetCandlesRequest)(nil),          // 10: san.tower.v1.LiveGetCandlesRequest
-	(*LiveGetCandlesResponse)(nil),         // 11: san.tower.v1.LiveGetCandlesResponse
-	(*LiveListApproachesRequest)(nil),      // 12: san.tower.v1.LiveListApproachesRequest
-	(*LiveApproach)(nil),                   // 13: san.tower.v1.LiveApproach
-	(*LiveListApproachesResponse)(nil),     // 14: san.tower.v1.LiveListApproachesResponse
-	(*LivePaperCosts)(nil),                 // 15: san.tower.v1.LivePaperCosts
-	(*LivePaperSettings)(nil),              // 16: san.tower.v1.LivePaperSettings
-	(*LivePaperPosition)(nil),              // 17: san.tower.v1.LivePaperPosition
-	(*LivePaperOrder)(nil),                 // 18: san.tower.v1.LivePaperOrder
-	(*LivePaperSession)(nil),               // 19: san.tower.v1.LivePaperSession
-	(*LiveCreatePaperSessionRequest)(nil),  // 20: san.tower.v1.LiveCreatePaperSessionRequest
-	(*LivePaperSessionRequest)(nil),        // 21: san.tower.v1.LivePaperSessionRequest
-	(*LivePaperSessionResponse)(nil),       // 22: san.tower.v1.LivePaperSessionResponse
-	(*LiveDeletePaperSessionResponse)(nil), // 23: san.tower.v1.LiveDeletePaperSessionResponse
-	(*LiveListPaperSessionsRequest)(nil),   // 24: san.tower.v1.LiveListPaperSessionsRequest
-	(*LiveListPaperSessionsResponse)(nil),  // 25: san.tower.v1.LiveListPaperSessionsResponse
-	(*LiveWatchPaperSessionsRequest)(nil),  // 26: san.tower.v1.LiveWatchPaperSessionsRequest
-	(*LiveWatchPaperSessionsResponse)(nil), // 27: san.tower.v1.LiveWatchPaperSessionsResponse
-	(*LiveWatchPaperSessionRequest)(nil),   // 28: san.tower.v1.LiveWatchPaperSessionRequest
-	(*LivePaperJournal)(nil),               // 29: san.tower.v1.LivePaperJournal
-	(*LivePaperSessionDetail)(nil),         // 30: san.tower.v1.LivePaperSessionDetail
-	(*LiveWatchPaperSessionResponse)(nil),  // 31: san.tower.v1.LiveWatchPaperSessionResponse
-	(*LiveExportPaperSessionRequest)(nil),  // 32: san.tower.v1.LiveExportPaperSessionRequest
-	(*LiveExportPaperSessionResponse)(nil), // 33: san.tower.v1.LiveExportPaperSessionResponse
-	nil,                                    // 34: san.tower.v1.LiveApproach.ParamsEntry
-	nil,                                    // 35: san.tower.v1.LivePaperSettings.ParamsEntry
-	(*timestamppb.Timestamp)(nil),          // 36: google.protobuf.Timestamp
-	(*BacktestCandle)(nil),                 // 37: san.tower.v1.BacktestCandle
-	(*BacktestTrade)(nil),                  // 38: san.tower.v1.BacktestTrade
-	(*BacktestDecision)(nil),               // 39: san.tower.v1.BacktestDecision
-	(*BacktestEquityPoint)(nil),            // 40: san.tower.v1.BacktestEquityPoint
-	(*BacktestMissed)(nil),                 // 41: san.tower.v1.BacktestMissed
+	(*LiveListPluginsRequest)(nil),         // 0: san.tower.v1.LiveListPluginsRequest
+	(*LiveReloadPluginsRequest)(nil),       // 1: san.tower.v1.LiveReloadPluginsRequest
+	(*LivePluginFile)(nil),                 // 2: san.tower.v1.LivePluginFile
+	(*LiveListPluginsResponse)(nil),        // 3: san.tower.v1.LiveListPluginsResponse
+	(*LivePluginRun)(nil),                  // 4: san.tower.v1.LivePluginRun
+	(*LiveConnection)(nil),                 // 5: san.tower.v1.LiveConnection
+	(*LiveAccount)(nil),                    // 6: san.tower.v1.LiveAccount
+	(*LivePosition)(nil),                   // 7: san.tower.v1.LivePosition
+	(*LiveOrder)(nil),                      // 8: san.tower.v1.LiveOrder
+	(*LiveTick)(nil),                       // 9: san.tower.v1.LiveTick
+	(*LiveMonitorState)(nil),               // 10: san.tower.v1.LiveMonitorState
+	(*LiveGetMonitorRequest)(nil),          // 11: san.tower.v1.LiveGetMonitorRequest
+	(*LiveGetMonitorResponse)(nil),         // 12: san.tower.v1.LiveGetMonitorResponse
+	(*LiveWatchMonitorRequest)(nil),        // 13: san.tower.v1.LiveWatchMonitorRequest
+	(*LiveWatchMonitorResponse)(nil),       // 14: san.tower.v1.LiveWatchMonitorResponse
+	(*LiveGetCandlesRequest)(nil),          // 15: san.tower.v1.LiveGetCandlesRequest
+	(*LiveGetCandlesResponse)(nil),         // 16: san.tower.v1.LiveGetCandlesResponse
+	(*LiveListApproachesRequest)(nil),      // 17: san.tower.v1.LiveListApproachesRequest
+	(*LiveApproach)(nil),                   // 18: san.tower.v1.LiveApproach
+	(*LiveListApproachesResponse)(nil),     // 19: san.tower.v1.LiveListApproachesResponse
+	(*LivePaperCosts)(nil),                 // 20: san.tower.v1.LivePaperCosts
+	(*LivePaperSettings)(nil),              // 21: san.tower.v1.LivePaperSettings
+	(*LivePaperPosition)(nil),              // 22: san.tower.v1.LivePaperPosition
+	(*LivePaperOrder)(nil),                 // 23: san.tower.v1.LivePaperOrder
+	(*LivePaperSession)(nil),               // 24: san.tower.v1.LivePaperSession
+	(*LiveCreatePaperSessionRequest)(nil),  // 25: san.tower.v1.LiveCreatePaperSessionRequest
+	(*LivePaperSessionRequest)(nil),        // 26: san.tower.v1.LivePaperSessionRequest
+	(*LivePaperSessionResponse)(nil),       // 27: san.tower.v1.LivePaperSessionResponse
+	(*LiveDeletePaperSessionResponse)(nil), // 28: san.tower.v1.LiveDeletePaperSessionResponse
+	(*LiveListPaperSessionsRequest)(nil),   // 29: san.tower.v1.LiveListPaperSessionsRequest
+	(*LiveListPaperSessionsResponse)(nil),  // 30: san.tower.v1.LiveListPaperSessionsResponse
+	(*LiveWatchPaperSessionsRequest)(nil),  // 31: san.tower.v1.LiveWatchPaperSessionsRequest
+	(*LiveWatchPaperSessionsResponse)(nil), // 32: san.tower.v1.LiveWatchPaperSessionsResponse
+	(*LiveWatchPaperSessionRequest)(nil),   // 33: san.tower.v1.LiveWatchPaperSessionRequest
+	(*LivePaperJournal)(nil),               // 34: san.tower.v1.LivePaperJournal
+	(*LivePaperSessionDetail)(nil),         // 35: san.tower.v1.LivePaperSessionDetail
+	(*LiveWatchPaperSessionResponse)(nil),  // 36: san.tower.v1.LiveWatchPaperSessionResponse
+	(*LiveExportPaperSessionRequest)(nil),  // 37: san.tower.v1.LiveExportPaperSessionRequest
+	(*LiveExportPaperSessionResponse)(nil), // 38: san.tower.v1.LiveExportPaperSessionResponse
+	nil,                                    // 39: san.tower.v1.LiveApproach.ParamsEntry
+	nil,                                    // 40: san.tower.v1.LivePaperSettings.ParamsEntry
+	(*timestamppb.Timestamp)(nil),          // 41: google.protobuf.Timestamp
+	(*BacktestCandle)(nil),                 // 42: san.tower.v1.BacktestCandle
+	(*BacktestTrade)(nil),                  // 43: san.tower.v1.BacktestTrade
+	(*BacktestDecision)(nil),               // 44: san.tower.v1.BacktestDecision
+	(*BacktestEquityPoint)(nil),            // 45: san.tower.v1.BacktestEquityPoint
+	(*BacktestMissed)(nil),                 // 46: san.tower.v1.BacktestMissed
 }
 var file_san_tower_v1_live_trading_proto_depIdxs = []int32{
-	36, // 0: san.tower.v1.LivePosition.open_time:type_name -> google.protobuf.Timestamp
-	36, // 1: san.tower.v1.LiveOrder.created:type_name -> google.protobuf.Timestamp
-	36, // 2: san.tower.v1.LiveTick.time:type_name -> google.protobuf.Timestamp
-	0,  // 3: san.tower.v1.LiveMonitorState.connection:type_name -> san.tower.v1.LiveConnection
-	1,  // 4: san.tower.v1.LiveMonitorState.account:type_name -> san.tower.v1.LiveAccount
-	2,  // 5: san.tower.v1.LiveMonitorState.positions:type_name -> san.tower.v1.LivePosition
-	3,  // 6: san.tower.v1.LiveMonitorState.orders:type_name -> san.tower.v1.LiveOrder
-	36, // 7: san.tower.v1.LiveMonitorState.updated:type_name -> google.protobuf.Timestamp
-	5,  // 8: san.tower.v1.LiveGetMonitorResponse.state:type_name -> san.tower.v1.LiveMonitorState
-	0,  // 9: san.tower.v1.LiveGetMonitorResponse.connections:type_name -> san.tower.v1.LiveConnection
-	5,  // 10: san.tower.v1.LiveWatchMonitorResponse.state:type_name -> san.tower.v1.LiveMonitorState
-	4,  // 11: san.tower.v1.LiveWatchMonitorResponse.tick:type_name -> san.tower.v1.LiveTick
-	37, // 12: san.tower.v1.LiveGetCandlesResponse.candles:type_name -> san.tower.v1.BacktestCandle
-	34, // 13: san.tower.v1.LiveApproach.params:type_name -> san.tower.v1.LiveApproach.ParamsEntry
-	13, // 14: san.tower.v1.LiveListApproachesResponse.approaches:type_name -> san.tower.v1.LiveApproach
-	35, // 15: san.tower.v1.LivePaperSettings.params:type_name -> san.tower.v1.LivePaperSettings.ParamsEntry
-	15, // 16: san.tower.v1.LivePaperSettings.costs:type_name -> san.tower.v1.LivePaperCosts
-	36, // 17: san.tower.v1.LivePaperPosition.open_time:type_name -> google.protobuf.Timestamp
-	36, // 18: san.tower.v1.LivePaperOrder.placed:type_name -> google.protobuf.Timestamp
-	16, // 19: san.tower.v1.LivePaperSession.settings:type_name -> san.tower.v1.LivePaperSettings
-	36, // 20: san.tower.v1.LivePaperSession.from:type_name -> google.protobuf.Timestamp
-	36, // 21: san.tower.v1.LivePaperSession.started_at:type_name -> google.protobuf.Timestamp
-	36, // 22: san.tower.v1.LivePaperSession.stopped_at:type_name -> google.protobuf.Timestamp
-	36, // 23: san.tower.v1.LivePaperSession.last_close:type_name -> google.protobuf.Timestamp
-	36, // 24: san.tower.v1.LivePaperSession.next_close:type_name -> google.protobuf.Timestamp
-	36, // 25: san.tower.v1.LivePaperSession.last_signal_at:type_name -> google.protobuf.Timestamp
-	17, // 26: san.tower.v1.LivePaperSession.positions:type_name -> san.tower.v1.LivePaperPosition
-	18, // 27: san.tower.v1.LivePaperSession.orders:type_name -> san.tower.v1.LivePaperOrder
-	36, // 28: san.tower.v1.LivePaperSession.created_at:type_name -> google.protobuf.Timestamp
-	36, // 29: san.tower.v1.LivePaperSession.updated_at:type_name -> google.protobuf.Timestamp
-	16, // 30: san.tower.v1.LiveCreatePaperSessionRequest.settings:type_name -> san.tower.v1.LivePaperSettings
-	19, // 31: san.tower.v1.LivePaperSessionResponse.session:type_name -> san.tower.v1.LivePaperSession
-	19, // 32: san.tower.v1.LiveListPaperSessionsResponse.sessions:type_name -> san.tower.v1.LivePaperSession
-	25, // 33: san.tower.v1.LiveWatchPaperSessionsResponse.snapshot:type_name -> san.tower.v1.LiveListPaperSessionsResponse
-	19, // 34: san.tower.v1.LiveWatchPaperSessionsResponse.changed:type_name -> san.tower.v1.LivePaperSession
-	38, // 35: san.tower.v1.LivePaperJournal.trades:type_name -> san.tower.v1.BacktestTrade
-	39, // 36: san.tower.v1.LivePaperJournal.decisions:type_name -> san.tower.v1.BacktestDecision
-	40, // 37: san.tower.v1.LivePaperJournal.equity:type_name -> san.tower.v1.BacktestEquityPoint
-	37, // 38: san.tower.v1.LivePaperJournal.candles:type_name -> san.tower.v1.BacktestCandle
-	41, // 39: san.tower.v1.LivePaperJournal.missed:type_name -> san.tower.v1.BacktestMissed
-	19, // 40: san.tower.v1.LivePaperSessionDetail.session:type_name -> san.tower.v1.LivePaperSession
-	29, // 41: san.tower.v1.LivePaperSessionDetail.journal:type_name -> san.tower.v1.LivePaperJournal
-	30, // 42: san.tower.v1.LiveWatchPaperSessionResponse.snapshot:type_name -> san.tower.v1.LivePaperSessionDetail
-	30, // 43: san.tower.v1.LiveWatchPaperSessionResponse.update:type_name -> san.tower.v1.LivePaperSessionDetail
-	6,  // 44: san.tower.v1.LiveTradingService.GetMonitor:input_type -> san.tower.v1.LiveGetMonitorRequest
-	8,  // 45: san.tower.v1.LiveTradingService.WatchMonitor:input_type -> san.tower.v1.LiveWatchMonitorRequest
-	10, // 46: san.tower.v1.LiveTradingService.GetLiveCandles:input_type -> san.tower.v1.LiveGetCandlesRequest
-	12, // 47: san.tower.v1.LiveTradingService.ListApproaches:input_type -> san.tower.v1.LiveListApproachesRequest
-	20, // 48: san.tower.v1.LiveTradingService.CreatePaperSession:input_type -> san.tower.v1.LiveCreatePaperSessionRequest
-	21, // 49: san.tower.v1.LiveTradingService.StartPaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
-	21, // 50: san.tower.v1.LiveTradingService.StopPaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
-	21, // 51: san.tower.v1.LiveTradingService.DeletePaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
-	24, // 52: san.tower.v1.LiveTradingService.ListPaperSessions:input_type -> san.tower.v1.LiveListPaperSessionsRequest
-	21, // 53: san.tower.v1.LiveTradingService.GetPaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
-	26, // 54: san.tower.v1.LiveTradingService.WatchPaperSessions:input_type -> san.tower.v1.LiveWatchPaperSessionsRequest
-	28, // 55: san.tower.v1.LiveTradingService.WatchPaperSession:input_type -> san.tower.v1.LiveWatchPaperSessionRequest
-	32, // 56: san.tower.v1.LiveTradingService.ExportPaperSession:input_type -> san.tower.v1.LiveExportPaperSessionRequest
-	7,  // 57: san.tower.v1.LiveTradingService.GetMonitor:output_type -> san.tower.v1.LiveGetMonitorResponse
-	9,  // 58: san.tower.v1.LiveTradingService.WatchMonitor:output_type -> san.tower.v1.LiveWatchMonitorResponse
-	11, // 59: san.tower.v1.LiveTradingService.GetLiveCandles:output_type -> san.tower.v1.LiveGetCandlesResponse
-	14, // 60: san.tower.v1.LiveTradingService.ListApproaches:output_type -> san.tower.v1.LiveListApproachesResponse
-	22, // 61: san.tower.v1.LiveTradingService.CreatePaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
-	22, // 62: san.tower.v1.LiveTradingService.StartPaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
-	22, // 63: san.tower.v1.LiveTradingService.StopPaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
-	23, // 64: san.tower.v1.LiveTradingService.DeletePaperSession:output_type -> san.tower.v1.LiveDeletePaperSessionResponse
-	25, // 65: san.tower.v1.LiveTradingService.ListPaperSessions:output_type -> san.tower.v1.LiveListPaperSessionsResponse
-	22, // 66: san.tower.v1.LiveTradingService.GetPaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
-	27, // 67: san.tower.v1.LiveTradingService.WatchPaperSessions:output_type -> san.tower.v1.LiveWatchPaperSessionsResponse
-	31, // 68: san.tower.v1.LiveTradingService.WatchPaperSession:output_type -> san.tower.v1.LiveWatchPaperSessionResponse
-	33, // 69: san.tower.v1.LiveTradingService.ExportPaperSession:output_type -> san.tower.v1.LiveExportPaperSessionResponse
-	57, // [57:70] is the sub-list for method output_type
-	44, // [44:57] is the sub-list for method input_type
-	44, // [44:44] is the sub-list for extension type_name
-	44, // [44:44] is the sub-list for extension extendee
-	0,  // [0:44] is the sub-list for field type_name
+	41, // 0: san.tower.v1.LivePluginFile.mod_time:type_name -> google.protobuf.Timestamp
+	2,  // 1: san.tower.v1.LiveListPluginsResponse.files:type_name -> san.tower.v1.LivePluginFile
+	41, // 2: san.tower.v1.LivePluginRun.mod_time:type_name -> google.protobuf.Timestamp
+	41, // 3: san.tower.v1.LivePosition.open_time:type_name -> google.protobuf.Timestamp
+	41, // 4: san.tower.v1.LiveOrder.created:type_name -> google.protobuf.Timestamp
+	41, // 5: san.tower.v1.LiveTick.time:type_name -> google.protobuf.Timestamp
+	5,  // 6: san.tower.v1.LiveMonitorState.connection:type_name -> san.tower.v1.LiveConnection
+	6,  // 7: san.tower.v1.LiveMonitorState.account:type_name -> san.tower.v1.LiveAccount
+	7,  // 8: san.tower.v1.LiveMonitorState.positions:type_name -> san.tower.v1.LivePosition
+	8,  // 9: san.tower.v1.LiveMonitorState.orders:type_name -> san.tower.v1.LiveOrder
+	41, // 10: san.tower.v1.LiveMonitorState.updated:type_name -> google.protobuf.Timestamp
+	10, // 11: san.tower.v1.LiveGetMonitorResponse.state:type_name -> san.tower.v1.LiveMonitorState
+	5,  // 12: san.tower.v1.LiveGetMonitorResponse.connections:type_name -> san.tower.v1.LiveConnection
+	10, // 13: san.tower.v1.LiveWatchMonitorResponse.state:type_name -> san.tower.v1.LiveMonitorState
+	9,  // 14: san.tower.v1.LiveWatchMonitorResponse.tick:type_name -> san.tower.v1.LiveTick
+	42, // 15: san.tower.v1.LiveGetCandlesResponse.candles:type_name -> san.tower.v1.BacktestCandle
+	39, // 16: san.tower.v1.LiveApproach.params:type_name -> san.tower.v1.LiveApproach.ParamsEntry
+	18, // 17: san.tower.v1.LiveListApproachesResponse.approaches:type_name -> san.tower.v1.LiveApproach
+	40, // 18: san.tower.v1.LivePaperSettings.params:type_name -> san.tower.v1.LivePaperSettings.ParamsEntry
+	20, // 19: san.tower.v1.LivePaperSettings.costs:type_name -> san.tower.v1.LivePaperCosts
+	41, // 20: san.tower.v1.LivePaperPosition.open_time:type_name -> google.protobuf.Timestamp
+	41, // 21: san.tower.v1.LivePaperOrder.placed:type_name -> google.protobuf.Timestamp
+	21, // 22: san.tower.v1.LivePaperSession.settings:type_name -> san.tower.v1.LivePaperSettings
+	41, // 23: san.tower.v1.LivePaperSession.from:type_name -> google.protobuf.Timestamp
+	41, // 24: san.tower.v1.LivePaperSession.started_at:type_name -> google.protobuf.Timestamp
+	41, // 25: san.tower.v1.LivePaperSession.stopped_at:type_name -> google.protobuf.Timestamp
+	41, // 26: san.tower.v1.LivePaperSession.last_close:type_name -> google.protobuf.Timestamp
+	41, // 27: san.tower.v1.LivePaperSession.next_close:type_name -> google.protobuf.Timestamp
+	41, // 28: san.tower.v1.LivePaperSession.last_signal_at:type_name -> google.protobuf.Timestamp
+	22, // 29: san.tower.v1.LivePaperSession.positions:type_name -> san.tower.v1.LivePaperPosition
+	23, // 30: san.tower.v1.LivePaperSession.orders:type_name -> san.tower.v1.LivePaperOrder
+	41, // 31: san.tower.v1.LivePaperSession.created_at:type_name -> google.protobuf.Timestamp
+	41, // 32: san.tower.v1.LivePaperSession.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 33: san.tower.v1.LivePaperSession.plugin:type_name -> san.tower.v1.LivePluginRun
+	21, // 34: san.tower.v1.LiveCreatePaperSessionRequest.settings:type_name -> san.tower.v1.LivePaperSettings
+	24, // 35: san.tower.v1.LivePaperSessionResponse.session:type_name -> san.tower.v1.LivePaperSession
+	24, // 36: san.tower.v1.LiveListPaperSessionsResponse.sessions:type_name -> san.tower.v1.LivePaperSession
+	30, // 37: san.tower.v1.LiveWatchPaperSessionsResponse.snapshot:type_name -> san.tower.v1.LiveListPaperSessionsResponse
+	24, // 38: san.tower.v1.LiveWatchPaperSessionsResponse.changed:type_name -> san.tower.v1.LivePaperSession
+	43, // 39: san.tower.v1.LivePaperJournal.trades:type_name -> san.tower.v1.BacktestTrade
+	44, // 40: san.tower.v1.LivePaperJournal.decisions:type_name -> san.tower.v1.BacktestDecision
+	45, // 41: san.tower.v1.LivePaperJournal.equity:type_name -> san.tower.v1.BacktestEquityPoint
+	42, // 42: san.tower.v1.LivePaperJournal.candles:type_name -> san.tower.v1.BacktestCandle
+	46, // 43: san.tower.v1.LivePaperJournal.missed:type_name -> san.tower.v1.BacktestMissed
+	24, // 44: san.tower.v1.LivePaperSessionDetail.session:type_name -> san.tower.v1.LivePaperSession
+	34, // 45: san.tower.v1.LivePaperSessionDetail.journal:type_name -> san.tower.v1.LivePaperJournal
+	35, // 46: san.tower.v1.LiveWatchPaperSessionResponse.snapshot:type_name -> san.tower.v1.LivePaperSessionDetail
+	35, // 47: san.tower.v1.LiveWatchPaperSessionResponse.update:type_name -> san.tower.v1.LivePaperSessionDetail
+	11, // 48: san.tower.v1.LiveTradingService.GetMonitor:input_type -> san.tower.v1.LiveGetMonitorRequest
+	13, // 49: san.tower.v1.LiveTradingService.WatchMonitor:input_type -> san.tower.v1.LiveWatchMonitorRequest
+	15, // 50: san.tower.v1.LiveTradingService.GetLiveCandles:input_type -> san.tower.v1.LiveGetCandlesRequest
+	17, // 51: san.tower.v1.LiveTradingService.ListApproaches:input_type -> san.tower.v1.LiveListApproachesRequest
+	25, // 52: san.tower.v1.LiveTradingService.CreatePaperSession:input_type -> san.tower.v1.LiveCreatePaperSessionRequest
+	26, // 53: san.tower.v1.LiveTradingService.StartPaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
+	26, // 54: san.tower.v1.LiveTradingService.StopPaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
+	26, // 55: san.tower.v1.LiveTradingService.DeletePaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
+	29, // 56: san.tower.v1.LiveTradingService.ListPaperSessions:input_type -> san.tower.v1.LiveListPaperSessionsRequest
+	26, // 57: san.tower.v1.LiveTradingService.GetPaperSession:input_type -> san.tower.v1.LivePaperSessionRequest
+	31, // 58: san.tower.v1.LiveTradingService.WatchPaperSessions:input_type -> san.tower.v1.LiveWatchPaperSessionsRequest
+	33, // 59: san.tower.v1.LiveTradingService.WatchPaperSession:input_type -> san.tower.v1.LiveWatchPaperSessionRequest
+	37, // 60: san.tower.v1.LiveTradingService.ExportPaperSession:input_type -> san.tower.v1.LiveExportPaperSessionRequest
+	0,  // 61: san.tower.v1.LiveTradingService.ListPlugins:input_type -> san.tower.v1.LiveListPluginsRequest
+	1,  // 62: san.tower.v1.LiveTradingService.ReloadPlugins:input_type -> san.tower.v1.LiveReloadPluginsRequest
+	12, // 63: san.tower.v1.LiveTradingService.GetMonitor:output_type -> san.tower.v1.LiveGetMonitorResponse
+	14, // 64: san.tower.v1.LiveTradingService.WatchMonitor:output_type -> san.tower.v1.LiveWatchMonitorResponse
+	16, // 65: san.tower.v1.LiveTradingService.GetLiveCandles:output_type -> san.tower.v1.LiveGetCandlesResponse
+	19, // 66: san.tower.v1.LiveTradingService.ListApproaches:output_type -> san.tower.v1.LiveListApproachesResponse
+	27, // 67: san.tower.v1.LiveTradingService.CreatePaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
+	27, // 68: san.tower.v1.LiveTradingService.StartPaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
+	27, // 69: san.tower.v1.LiveTradingService.StopPaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
+	28, // 70: san.tower.v1.LiveTradingService.DeletePaperSession:output_type -> san.tower.v1.LiveDeletePaperSessionResponse
+	30, // 71: san.tower.v1.LiveTradingService.ListPaperSessions:output_type -> san.tower.v1.LiveListPaperSessionsResponse
+	27, // 72: san.tower.v1.LiveTradingService.GetPaperSession:output_type -> san.tower.v1.LivePaperSessionResponse
+	32, // 73: san.tower.v1.LiveTradingService.WatchPaperSessions:output_type -> san.tower.v1.LiveWatchPaperSessionsResponse
+	36, // 74: san.tower.v1.LiveTradingService.WatchPaperSession:output_type -> san.tower.v1.LiveWatchPaperSessionResponse
+	38, // 75: san.tower.v1.LiveTradingService.ExportPaperSession:output_type -> san.tower.v1.LiveExportPaperSessionResponse
+	3,  // 76: san.tower.v1.LiveTradingService.ListPlugins:output_type -> san.tower.v1.LiveListPluginsResponse
+	3,  // 77: san.tower.v1.LiveTradingService.ReloadPlugins:output_type -> san.tower.v1.LiveListPluginsResponse
+	63, // [63:78] is the sub-list for method output_type
+	48, // [48:63] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_san_tower_v1_live_trading_proto_init() }
@@ -3041,19 +3359,19 @@ func file_san_tower_v1_live_trading_proto_init() {
 		return
 	}
 	file_san_tower_v1_backtest_analysis_proto_init()
-	file_san_tower_v1_live_trading_proto_msgTypes[9].OneofWrappers = []any{
+	file_san_tower_v1_live_trading_proto_msgTypes[14].OneofWrappers = []any{
 		(*LiveWatchMonitorResponse_State)(nil),
 		(*LiveWatchMonitorResponse_Tick)(nil),
 		(*LiveWatchMonitorResponse_Heartbeat)(nil),
 	}
-	file_san_tower_v1_live_trading_proto_msgTypes[15].OneofWrappers = []any{}
-	file_san_tower_v1_live_trading_proto_msgTypes[27].OneofWrappers = []any{
+	file_san_tower_v1_live_trading_proto_msgTypes[20].OneofWrappers = []any{}
+	file_san_tower_v1_live_trading_proto_msgTypes[32].OneofWrappers = []any{
 		(*LiveWatchPaperSessionsResponse_Snapshot)(nil),
 		(*LiveWatchPaperSessionsResponse_Changed)(nil),
 		(*LiveWatchPaperSessionsResponse_Removed)(nil),
 		(*LiveWatchPaperSessionsResponse_Heartbeat)(nil),
 	}
-	file_san_tower_v1_live_trading_proto_msgTypes[31].OneofWrappers = []any{
+	file_san_tower_v1_live_trading_proto_msgTypes[36].OneofWrappers = []any{
 		(*LiveWatchPaperSessionResponse_Snapshot)(nil),
 		(*LiveWatchPaperSessionResponse_Update)(nil),
 		(*LiveWatchPaperSessionResponse_Removed)(nil),
@@ -3065,7 +3383,7 @@ func file_san_tower_v1_live_trading_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_san_tower_v1_live_trading_proto_rawDesc), len(file_san_tower_v1_live_trading_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   36,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

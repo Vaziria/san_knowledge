@@ -12,6 +12,7 @@ import { StreamIndicator, useStream } from '../stream';
 import { LiveChart, type Level } from './LiveChart';
 import { PaperBadge, SessionActions, SessionStatus } from './LiveTrading';
 import { useMonitor } from './MonitorPanel';
+import { PluginHint } from './PluginsPanel';
 
 type Journal = { trades: BacktestTrade[]; decisions: BacktestDecision[]; equity: BacktestEquityPoint[]; candles: BacktestCandle[] };
 
@@ -106,6 +107,7 @@ export function PaperSessionPage() {
           <Heading size="lg">{st.name}</Heading>
           <PaperBadge />
           <SessionStatus s={session} />
+          <PluginHint s={session} />
           <Text color="fg.muted" textStyle="sm">
             {st.approach} · {st.instrument} {session.timeframes.join(' / ')} · balance {money(st.balance)}, risk {st.risk}%, 1:{st.leverage}
           </Text>

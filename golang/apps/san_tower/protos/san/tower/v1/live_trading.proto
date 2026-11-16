@@ -52,6 +52,43 @@ service LiveTradingService {
   // ExportPaperSession writes a session as a San Backtest report folder
   // (run.json, trades.csv, decisions.jsonl, ...).
   rpc ExportPaperSession(LiveExportPaperSessionRequest) returns (LiveExportPaperSessionResponse);
+  // ListPlugins lists the approach plugins in the data folder's plugins
+  // folder as last read: each file, its approaches and any load error.
+  rpc ListPlugins(LiveListPluginsRequest) returns (LiveListPluginsResponse);
+  // ReloadPlugins reads the plugins folder again (each file is started,
+  // asked for its approaches and stopped). Running sessions keep their own
+  // plugin process until they are started again.
+  rpc ReloadPlugins(LiveReloadPluginsRequest) returns (LiveListPluginsResponse);
+}
+
+message LiveListPluginsRequest {}
+
+message LiveReloadPluginsRequest {}
+
+// LivePluginFile is one file of the plugins folder.
+message LivePluginFile {
+  string name = 1;
+  string path = 2;
+  google.protobuf.Timestamp mod_time = 3;
+  repeated string approaches = 4;
+  // error is why the file, or some of its approaches, cannot be used.
+  string error = 5;
+}
+
+message LiveListPluginsResponse {
+  // dir is the plugins folder.
+  string dir = 1;
+  repeated LivePluginFile files = 2;
+}
+
+// LivePluginRun is the plugin a running session uses.
+message LivePluginRun {
+  string file = 1;
+  // mod_time is the file's modification time when the session started.
+  google.protobuf.Timestamp mod_time = 2;
+  // changed: the file is newer now (a rebuild); a restart of the session
+  // uses it.
+  bool changed = 3;
 }
 
 message LiveConnection {
@@ -178,6 +215,8 @@ message LiveApproach {
   map<string, double> params = 4;
   // max_open is the approach's own positions at once (0: one at a time).
   uint32 max_open = 5;
+  // plugin is the plugin file's name serving it ("" = compiled in).
+  string plugin = 6;
 }
 
 message LiveListApproachesResponse {
@@ -266,6 +305,8 @@ message LivePaperSession {
   string report_path = 24;
   // paper is always true: no orders are sent.
   bool paper = 25;
+  // plugin is set while the session runs a plugin approach.
+  LivePluginRun plugin = 26;
 }
 
 message LiveCreatePaperSessionRequest {

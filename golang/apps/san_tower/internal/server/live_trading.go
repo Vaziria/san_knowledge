@@ -234,7 +234,7 @@ func (s liveService) ListApproaches(_ context.Context, req *connect.Request[v1.L
 	res := &v1.LiveListApproachesResponse{}
 	for _, a := range s.live.Approaches() {
 		res.Approaches = append(res.Approaches, &v1.LiveApproach{Name: a.Name, Timeframes: a.Timeframes, Warmup: uint32(a.Warmup), Params: a.Params,
-			MaxOpen: uint32(max(a.MaxOpen, 0))})
+			MaxOpen: uint32(max(a.MaxOpen, 0)), Plugin: a.Plugin})
 	}
 	return connect.NewResponse(res), nil
 }
@@ -276,7 +276,16 @@ func costsProto(s string) *v1.LivePaperCosts {
 	return out
 }
 
-func sessionProto(p store.PaperSession) *v1.LivePaperSession {
+// sessionProto is a session with the plugin it runs, while it runs one.
+func (s liveService) sessionProto(p store.PaperSession) *v1.LivePaperSession {
+	out := sessionProtoOf(p)
+	if pr, ok := s.live.PluginRun(p.ID); ok {
+		out.Plugin = &v1.LivePluginRun{File: pr.File, ModTime: tsOf(pr.ModTime), Changed: pr.Changed}
+	}
+	return out
+}
+
+func sessionProtoOf(p store.PaperSession) *v1.LivePaperSession {
 	params := map[string]float64{}
 	_ = json.Unmarshal([]byte(p.Params), &params)
 	out := &v1.LivePaperSession{Id: p.ID, Status: p.Status, Message: p.Message, From: tsPtr(p.From), StartedAt: tsPtr(p.StartedAt),
@@ -309,6 +318,29 @@ func sessionProto(p store.PaperSession) *v1.LivePaperSession {
 	return out
 }
 
+func (s liveService) pluginsProto(dir string, files []livetrading.PluginFile) *v1.LiveListPluginsResponse {
+	res := &v1.LiveListPluginsResponse{Dir: dir}
+	for _, f := range files {
+		res.Files = append(res.Files, &v1.LivePluginFile{Name: f.Name, Path: f.Path, ModTime: tsOf(f.ModTime), Approaches: f.Approaches, Error: f.Error})
+	}
+	return res
+}
+
+func (s liveService) ListPlugins(_ context.Context, req *connect.Request[v1.LiveListPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error) {
+	if !fromThisComputer(req.Peer()) {
+		return nil, errLiveNotLocal
+	}
+	return connect.NewResponse(s.pluginsProto(s.live.Plugins())), nil
+}
+
+func (s liveService) ReloadPlugins(_ context.Context, req *connect.Request[v1.LiveReloadPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error) {
+	if !fromThisComputer(req.Peer()) {
+		return nil, errLiveNotLocal
+	}
+	s.live.ReloadPlugins()
+	return connect.NewResponse(s.pluginsProto(s.live.Plugins())), nil
+}
+
 func (s liveService) CreatePaperSession(_ context.Context, req *connect.Request[v1.LiveCreatePaperSessionRequest]) (*connect.Response[v1.LivePaperSessionResponse], error) {
 	if !fromThisComputer(req.Peer()) {
 		return nil, errLiveNotLocal
@@ -333,7 +365,7 @@ func (s liveService) CreatePaperSession(_ context.Context, req *connect.Request[
 	if err != nil {
 		return nil, liveError(err)
 	}
-	return connect.NewResponse(&v1.LivePaperSessionResponse{Session: sessionProto(p)}), nil
+	return connect.NewResponse(&v1.LivePaperSessionResponse{Session: s.sessionProto(p)}), nil
 }
 
 func (s liveService) session(id uint32) (*connect.Response[v1.LivePaperSessionResponse], error) {
@@ -341,7 +373,7 @@ func (s liveService) session(id uint32) (*connect.Response[v1.LivePaperSessionRe
 	if err != nil {
 		return nil, liveError(err)
 	}
-	return connect.NewResponse(&v1.LivePaperSessionResponse{Session: sessionProto(p)}), nil
+	return connect.NewResponse(&v1.LivePaperSessionResponse{Session: s.sessionProto(p)}), nil
 }
 
 func (s liveService) StartPaperSession(_ context.Context, req *connect.Request[v1.LivePaperSessionRequest]) (*connect.Response[v1.LivePaperSessionResponse], error) {
@@ -386,7 +418,7 @@ func (s liveService) list() (*v1.LiveListPaperSessionsResponse, error) {
 	}
 	res := &v1.LiveListPaperSessionsResponse{}
 	for _, p := range list {
-		res.Sessions = append(res.Sessions, sessionProto(p))
+		res.Sessions = append(res.Sessions, s.sessionProto(p))
 	}
 	return res, nil
 }
@@ -433,7 +465,7 @@ func (s liveService) WatchPaperSessions(ctx context.Context, req *connect.Reques
 			}
 			msg := &v1.LiveWatchPaperSessionsResponse{Event: &v1.LiveWatchPaperSessionsResponse_Removed{Removed: ev.Removed}}
 			if ev.Session != nil {
-				msg = &v1.LiveWatchPaperSessionsResponse{Event: &v1.LiveWatchPaperSessionsResponse_Changed{Changed: sessionProto(*ev.Session)}}
+				msg = &v1.LiveWatchPaperSessionsResponse{Event: &v1.LiveWatchPaperSessionsResponse_Changed{Changed: s.sessionProto(*ev.Session)}}
 			}
 			if err := stream.Send(msg); err != nil {
 				return err
@@ -552,7 +584,7 @@ func (s liveService) WatchPaperSession(ctx context.Context, req *connect.Request
 		return connect.NewError(connect.CodeInternal, err)
 	}
 	if err := stream.Send(&v1.LiveWatchPaperSessionResponse{Event: &v1.LiveWatchPaperSessionResponse_Snapshot{Snapshot: &v1.LivePaperSessionDetail{
-		Session: sessionProto(p), Journal: j}}}); err != nil {
+		Session: s.sessionProto(p), Journal: j}}}); err != nil {
 		return err
 	}
 	trades := len(j.Trades)
@@ -583,7 +615,7 @@ func (s liveService) WatchPaperSession(ctx context.Context, req *connect.Request
 				}
 				trades = len(j.Trades)
 				if err := stream.Send(&v1.LiveWatchPaperSessionResponse{Event: &v1.LiveWatchPaperSessionResponse_Snapshot{Snapshot: &v1.LivePaperSessionDetail{
-					Session: sessionProto(*ev.Session), Journal: j}}}); err != nil {
+					Session: s.sessionProto(*ev.Session), Journal: j}}}); err != nil {
 					return err
 				}
 				continue
@@ -606,7 +638,7 @@ func (s liveService) WatchPaperSession(ctx context.Context, req *connect.Request
 				up.Missed = append(up.Missed, missedProto(m))
 			}
 			if err := stream.Send(&v1.LiveWatchPaperSessionResponse{Event: &v1.LiveWatchPaperSessionResponse_Update{Update: &v1.LivePaperSessionDetail{
-				Session: sessionProto(*ev.Session), Journal: up}}}); err != nil {
+				Session: s.sessionProto(*ev.Session), Journal: up}}}); err != nil {
 				return err
 			}
 		}

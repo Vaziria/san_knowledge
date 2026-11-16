@@ -32,6 +32,8 @@ type runner struct {
 
 	mu  sync.Mutex
 	why string // the stop's message
+	// plugin is the session's plugin while it runs (nil: compiled in).
+	plugin *PluginRun
 }
 
 func newRunner(m *Manager, p store.PaperSession) *runner {
@@ -129,9 +131,17 @@ func (r *runner) loop() error {
 	if err != nil {
 		return err
 	}
-	s, err := r.m.cfg.Registry.New(r.p.Approach)
+	s, err := r.m.strategy(r.p.Approach)
 	if err != nil {
 		return err
+	}
+	// A plugin approach's process lives as long as this run of the session.
+	defer bt.CloseStrategy(s)
+	if a, ok := bt.PluginInfoOf(s); ok {
+		pr := &PluginRun{File: a.File, ModTime: a.ModTime}
+		r.mu.Lock()
+		r.plugin = pr
+		r.mu.Unlock()
 	}
 	tfs := s.Timeframes()
 	step := tfs[0]

@@ -14,7 +14,132 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file san/tower/v1/live_trading.proto.
  */
 export const file_san_tower_v1_live_trading: GenFile = /*@__PURE__*/
-  fileDesc("Ch9zYW4vdG93ZXIvdjEvbGl2ZV90cmFkaW5nLnByb3RvEgxzYW4udG93ZXIudjEiKgoOTGl2ZUNvbm5lY3Rpb24SCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCSKZAQoLTGl2ZUFjY291bnQSEgoKYWNjb3VudF9pZBgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCGN1cnJlbmN5GAMgASgJEhAKCGxldmVyYWdlGAQgASgJEg8KB2JhbGFuY2UYBSABKAESDgoGZXF1aXR5GAYgASgBEg4KBm1hcmdpbhgHIAEoARITCgtmcmVlX21hcmdpbhgIIAEoASKKAgoMTGl2ZVBvc2l0aW9uEgoKAmlkGAEgASgJEhIKCmluc3RydW1lbnQYAiABKAkSDAoEc2lkZRgDIAEoCRIOCgZ2b2x1bWUYBCABKAESEgoKb3Blbl9wcmljZRgFIAEoARItCglvcGVuX3RpbWUYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhEKCXN0b3BfbG9zcxgHIAEoARITCgt0YWtlX3Byb2ZpdBgIIAEoARINCgVwcmljZRgJIAEoARIOCgZwcm9maXQYCiABKAESEAoIY3VycmVuY3kYCyABKAkSDAoEc3dhcBgMIAEoARISCgpjb21taXNzaW9uGA0gASgBIrsBCglMaXZlT3JkZXISCgoCaWQYASABKAkSEgoKaW5zdHJ1bWVudBgCIAEoCRIMCgRzaWRlGAMgASgJEgwKBHR5cGUYBCABKAkSDgoGdm9sdW1lGAUgASgBEg0KBXByaWNlGAYgASgBEhEKCXN0b3BfbG9zcxgHIAEoARITCgt0YWtlX3Byb2ZpdBgIIAEoARIrCgdjcmVhdGVkGAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJiCghMaXZlVGljaxISCgppbnN0cnVtZW50GAEgASgJEgsKA2JpZBgCIAEoARILCgNhc2sYAyABKAESKAoEdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiuQIKEExpdmVNb25pdG9yU3RhdGUSMAoKY29ubmVjdGlvbhgBIAEoCzIcLnNhbi50b3dlci52MS5MaXZlQ29ubmVjdGlvbhIOCgZzdGF0dXMYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIqCgdhY2NvdW50GAQgASgLMhkuc2FuLnRvd2VyLnYxLkxpdmVBY2NvdW50Ei0KCXBvc2l0aW9ucxgFIAMoCzIaLnNhbi50b3dlci52MS5MaXZlUG9zaXRpb24SJwoGb3JkZXJzGAYgAygLMhcuc2FuLnRvd2VyLnYxLkxpdmVPcmRlchIrCgd1cGRhdGVkGAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZzb3VyY2UYCCABKAkSEQoJcmVhZF9vbmx5GAkgASgIIi4KFUxpdmVHZXRNb25pdG9yUmVxdWVzdBIVCg1jb25uZWN0aW9uX2lkGAEgASgNInoKFkxpdmVHZXRNb25pdG9yUmVzcG9uc2USLQoFc3RhdGUYASABKAsyHi5zYW4udG93ZXIudjEuTGl2ZU1vbml0b3JTdGF0ZRIxCgtjb25uZWN0aW9ucxgCIAMoCzIcLnNhbi50b3dlci52MS5MaXZlQ29ubmVjdGlvbiJFChdMaXZlV2F0Y2hNb25pdG9yUmVxdWVzdBIVCg1jb25uZWN0aW9uX2lkGAEgASgNEhMKC2luc3RydW1lbnRzGAIgAygJIpEBChhMaXZlV2F0Y2hNb25pdG9yUmVzcG9uc2USLwoFc3RhdGUYASABKAsyHi5zYW4udG93ZXIudjEuTGl2ZU1vbml0b3JTdGF0ZUgAEiYKBHRpY2sYAiABKAsyFi5zYW4udG93ZXIudjEuTGl2ZVRpY2tIABITCgloZWFydGJlYXQYAyABKAhIAEIHCgVldmVudCJkChVMaXZlR2V0Q2FuZGxlc1JlcXVlc3QSFQoNY29ubmVjdGlvbl9pZBgBIAEoDRISCgppbnN0cnVtZW50GAIgASgJEhEKCXRpbWVmcmFtZRgDIAEoCRINCgVjb3VudBgEIAEoDSJ/ChZMaXZlR2V0Q2FuZGxlc1Jlc3BvbnNlEhIKCmluc3RydW1lbnQYASABKAkSEQoJdGltZWZyYW1lGAIgASgJEi0KB2NhbmRsZXMYAyADKAsyHC5zYW4udG93ZXIudjEuQmFja3Rlc3RDYW5kbGUSDwoHZm9ybWluZxgEIAEoCCIbChlMaXZlTGlzdEFwcHJvYWNoZXNSZXF1ZXN0IrkBCgxMaXZlQXBwcm9hY2gSDAoEbmFtZRgBIAEoCRISCgp0aW1lZnJhbWVzGAIgAygJEg4KBndhcm11cBgDIAEoDRI2CgZwYXJhbXMYBCADKAsyJi5zYW4udG93ZXIudjEuTGl2ZUFwcHJvYWNoLlBhcmFtc0VudHJ5EhAKCG1heF9vcGVuGAUgASgNGi0KC1BhcmFtc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEiTAoaTGl2ZUxpc3RBcHByb2FjaGVzUmVzcG9uc2USLgoKYXBwcm9hY2hlcxgBIAMoCzIaLnNhbi50b3dlci52MS5MaXZlQXBwcm9hY2giuAEKDkxpdmVQYXBlckNvc3RzEhMKBnNwcmVhZBgBIAEoAUgAiAEBEhcKCmNvbW1pc3Npb24YAiABKAFIAYgBARIWCglzd2FwX2xvbmcYAyABKAFIAogBARIXCgpzd2FwX3Nob3J0GAQgASgBSAOIAQESEAoIc2xpcHBhZ2UYBSABKAFCCQoHX3NwcmVhZEINCgtfY29tbWlzc2lvbkIMCgpfc3dhcF9sb25nQg0KC19zd2FwX3Nob3J0ItECChFMaXZlUGFwZXJTZXR0aW5ncxIMCgRuYW1lGAEgASgJEhUKDWNvbm5lY3Rpb25faWQYAiABKA0SEAoIYXBwcm9hY2gYAyABKAkSEgoKaW5zdHJ1bWVudBgEIAEoCRIPCgdiYWxhbmNlGAUgASgBEgwKBHJpc2sYBiABKAESEAoIbGV2ZXJhZ2UYByABKA0SEAoIbWF4X29wZW4YCCABKA0SFQoNbWF4X29wZW5fcmlzaxgJIAEoARI7CgZwYXJhbXMYCiADKAsyKy5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2V0dGluZ3MuUGFyYW1zRW50cnkSKwoFY29zdHMYCyABKAsyHC5zYW4udG93ZXIudjEuTGl2ZVBhcGVyQ29zdHMaLQoLUGFyYW1zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgBOgI4ASLCAQoRTGl2ZVBhcGVyUG9zaXRpb24SCgoCaWQYASABKA0SDAoEc2lkZRgCIAEoCRINCgVlbnRyeRgDIAEoARIMCgRzdG9wGAQgASgBEg4KBnRhcmdldBgFIAEoARIMCgRsb3RzGAYgASgBEi0KCW9wZW5fdGltZRgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGcHJvZml0GAggASgBEgwKBHR5cGUYCSABKAkSCwoDdGFnGAogASgJIrEBCg5MaXZlUGFwZXJPcmRlchIKCgJpZBgBIAEoDRIMCgRzaWRlGAIgASgJEgwKBHR5cGUYAyABKAkSDQoFcHJpY2UYBCABKAESDAoEc3RvcBgFIAEoARIOCgZ0YXJnZXQYBiABKAESKgoGcGxhY2VkGAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIRCgliYXJzX2xlZnQYCCABKA0SCwoDdGFnGAkgASgJIqUGChBMaXZlUGFwZXJTZXNzaW9uEgoKAmlkGAEgASgNEjEKCHNldHRpbmdzGAIgASgLMh8uc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNldHRpbmdzEg4KBnN0YXR1cxgDIAEoCRIPCgdtZXNzYWdlGAQgASgJEhIKCnRpbWVmcmFtZXMYBSADKAkSKAoEZnJvbRgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKc3RhcnRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKc3RvcHBlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHYmFsYW5jZRgJIAEoARIOCgZlcXVpdHkYCiABKAESEgoKbmV0X3Byb2ZpdBgLIAEoARIOCgZ0cmFkZXMYDCABKA0SFgoOb3Blbl9wb3NpdGlvbnMYDSABKA0SFgoOcGVuZGluZ19vcmRlcnMYDiABKA0SDwoHY2FuZGxlcxgPIAEoDRIuCgpsYXN0X2Nsb3NlGBAgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgpuZXh0X2Nsb3NlGBEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBITCgtsYXN0X3NpZ25hbBgSIAEoCRIyCg5sYXN0X3NpZ25hbF9hdBgTIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASMgoJcG9zaXRpb25zGBQgAygLMh8uc2FuLnRvd2VyLnYxLkxpdmVQYXBlclBvc2l0aW9uEiwKBm9yZGVycxgVIAMoCzIcLnNhbi50b3dlci52MS5MaXZlUGFwZXJPcmRlchIuCgpjcmVhdGVkX2F0GBYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GBcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBITCgtyZXBvcnRfcGF0aBgYIAEoCRINCgVwYXBlchgZIAEoCCJSCh1MaXZlQ3JlYXRlUGFwZXJTZXNzaW9uUmVxdWVzdBIxCghzZXR0aW5ncxgBIAEoCzIfLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXR0aW5ncyIlChdMaXZlUGFwZXJTZXNzaW9uUmVxdWVzdBIKCgJpZBgBIAEoDSJLChhMaXZlUGFwZXJTZXNzaW9uUmVzcG9uc2USLwoHc2Vzc2lvbhgBIAEoCzIeLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXNzaW9uIiAKHkxpdmVEZWxldGVQYXBlclNlc3Npb25SZXNwb25zZSIeChxMaXZlTGlzdFBhcGVyU2Vzc2lvbnNSZXF1ZXN0IlEKHUxpdmVMaXN0UGFwZXJTZXNzaW9uc1Jlc3BvbnNlEjAKCHNlc3Npb25zGAEgAygLMh4uc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb24iHwodTGl2ZVdhdGNoUGFwZXJTZXNzaW9uc1JlcXVlc3QixQEKHkxpdmVXYXRjaFBhcGVyU2Vzc2lvbnNSZXNwb25zZRI/CghzbmFwc2hvdBgBIAEoCzIrLnNhbi50b3dlci52MS5MaXZlTGlzdFBhcGVyU2Vzc2lvbnNSZXNwb25zZUgAEjEKB2NoYW5nZWQYAiABKAsyHi5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvbkgAEhEKB3JlbW92ZWQYAyABKA1IABITCgloZWFydGJlYXQYBCABKAhIAEIHCgVldmVudCJOChxMaXZlV2F0Y2hQYXBlclNlc3Npb25SZXF1ZXN0EgoKAmlkGAEgASgNEhEKCWRlY2lzaW9ucxgCIAEoDRIPCgdjYW5kbGVzGAMgASgNIoICChBMaXZlUGFwZXJKb3VybmFsEisKBnRyYWRlcxgBIAMoCzIbLnNhbi50b3dlci52MS5CYWNrdGVzdFRyYWRlEjEKCWRlY2lzaW9ucxgCIAMoCzIeLnNhbi50b3dlci52MS5CYWNrdGVzdERlY2lzaW9uEjEKBmVxdWl0eRgDIAMoCzIhLnNhbi50b3dlci52MS5CYWNrdGVzdEVxdWl0eVBvaW50Ei0KB2NhbmRsZXMYBCADKAsyHC5zYW4udG93ZXIudjEuQmFja3Rlc3RDYW5kbGUSLAoGbWlzc2VkGAUgAygLMhwuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0TWlzc2VkInoKFkxpdmVQYXBlclNlc3Npb25EZXRhaWwSLwoHc2Vzc2lvbhgBIAEoCzIeLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXNzaW9uEi8KB2pvdXJuYWwYAiABKAsyHi5zYW4udG93ZXIudjEuTGl2ZVBhcGVySm91cm5hbCLCAQodTGl2ZVdhdGNoUGFwZXJTZXNzaW9uUmVzcG9uc2USOAoIc25hcHNob3QYASABKAsyJC5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvbkRldGFpbEgAEjYKBnVwZGF0ZRgCIAEoCzIkLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXNzaW9uRGV0YWlsSAASEQoHcmVtb3ZlZBgDIAEoCEgAEhMKCWhlYXJ0YmVhdBgEIAEoCEgAQgcKBWV2ZW50IjkKHUxpdmVFeHBvcnRQYXBlclNlc3Npb25SZXF1ZXN0EgoKAmlkGAEgASgNEgwKBHBhdGgYAiABKAkiPQoeTGl2ZUV4cG9ydFBhcGVyU2Vzc2lvblJlc3BvbnNlEgwKBHBhdGgYASABKAkSDQoFZmlsZXMYAiADKAky0QoKEkxpdmVUcmFkaW5nU2VydmljZRJXCgpHZXRNb25pdG9yEiMuc2FuLnRvd2VyLnYxLkxpdmVHZXRNb25pdG9yUmVxdWVzdBokLnNhbi50b3dlci52MS5MaXZlR2V0TW9uaXRvclJlc3BvbnNlEl8KDFdhdGNoTW9uaXRvchIlLnNhbi50b3dlci52MS5MaXZlV2F0Y2hNb25pdG9yUmVxdWVzdBomLnNhbi50b3dlci52MS5MaXZlV2F0Y2hNb25pdG9yUmVzcG9uc2UwARJbCg5HZXRMaXZlQ2FuZGxlcxIjLnNhbi50b3dlci52MS5MaXZlR2V0Q2FuZGxlc1JlcXVlc3QaJC5zYW4udG93ZXIudjEuTGl2ZUdldENhbmRsZXNSZXNwb25zZRJjCg5MaXN0QXBwcm9hY2hlcxInLnNhbi50b3dlci52MS5MaXZlTGlzdEFwcHJvYWNoZXNSZXF1ZXN0Giguc2FuLnRvd2VyLnYxLkxpdmVMaXN0QXBwcm9hY2hlc1Jlc3BvbnNlEmkKEkNyZWF0ZVBhcGVyU2Vzc2lvbhIrLnNhbi50b3dlci52MS5MaXZlQ3JlYXRlUGFwZXJTZXNzaW9uUmVxdWVzdBomLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXNzaW9uUmVzcG9uc2USYgoRU3RhcnRQYXBlclNlc3Npb24SJS5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlcXVlc3QaJi5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlc3BvbnNlEmEKEFN0b3BQYXBlclNlc3Npb24SJS5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlcXVlc3QaJi5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlc3BvbnNlEmkKEkRlbGV0ZVBhcGVyU2Vzc2lvbhIlLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXNzaW9uUmVxdWVzdBosLnNhbi50b3dlci52MS5MaXZlRGVsZXRlUGFwZXJTZXNzaW9uUmVzcG9uc2USbAoRTGlzdFBhcGVyU2Vzc2lvbnMSKi5zYW4udG93ZXIudjEuTGl2ZUxpc3RQYXBlclNlc3Npb25zUmVxdWVzdBorLnNhbi50b3dlci52MS5MaXZlTGlzdFBhcGVyU2Vzc2lvbnNSZXNwb25zZRJgCg9HZXRQYXBlclNlc3Npb24SJS5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlcXVlc3QaJi5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlc3BvbnNlEnEKEldhdGNoUGFwZXJTZXNzaW9ucxIrLnNhbi50b3dlci52MS5MaXZlV2F0Y2hQYXBlclNlc3Npb25zUmVxdWVzdBosLnNhbi50b3dlci52MS5MaXZlV2F0Y2hQYXBlclNlc3Npb25zUmVzcG9uc2UwARJuChFXYXRjaFBhcGVyU2Vzc2lvbhIqLnNhbi50b3dlci52MS5MaXZlV2F0Y2hQYXBlclNlc3Npb25SZXF1ZXN0Gisuc2FuLnRvd2VyLnYxLkxpdmVXYXRjaFBhcGVyU2Vzc2lvblJlc3BvbnNlMAESbwoSRXhwb3J0UGFwZXJTZXNzaW9uEisuc2FuLnRvd2VyLnYxLkxpdmVFeHBvcnRQYXBlclNlc3Npb25SZXF1ZXN0Giwuc2FuLnRvd2VyLnYxLkxpdmVFeHBvcnRQYXBlclNlc3Npb25SZXNwb25zZUKwAQoQY29tLnNhbi50b3dlci52MUIQTGl2ZVRyYWRpbmdQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp, file_san_tower_v1_backtest_analysis]);
+  fileDesc("Ch9zYW4vdG93ZXIvdjEvbGl2ZV90cmFkaW5nLnByb3RvEgxzYW4udG93ZXIudjEiGAoWTGl2ZUxpc3RQbHVnaW5zUmVxdWVzdCIaChhMaXZlUmVsb2FkUGx1Z2luc1JlcXVlc3QifQoOTGl2ZVBsdWdpbkZpbGUSDAoEbmFtZRgBIAEoCRIMCgRwYXRoGAIgASgJEiwKCG1vZF90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBISCgphcHByb2FjaGVzGAQgAygJEg0KBWVycm9yGAUgASgJIlMKF0xpdmVMaXN0UGx1Z2luc1Jlc3BvbnNlEgsKA2RpchgBIAEoCRIrCgVmaWxlcxgCIAMoCzIcLnNhbi50b3dlci52MS5MaXZlUGx1Z2luRmlsZSJcCg1MaXZlUGx1Z2luUnVuEgwKBGZpbGUYASABKAkSLAoIbW9kX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg8KB2NoYW5nZWQYAyABKAgiKgoOTGl2ZUNvbm5lY3Rpb24SCgoCaWQYASABKA0SDAoEbmFtZRgCIAEoCSKZAQoLTGl2ZUFjY291bnQSEgoKYWNjb3VudF9pZBgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCGN1cnJlbmN5GAMgASgJEhAKCGxldmVyYWdlGAQgASgJEg8KB2JhbGFuY2UYBSABKAESDgoGZXF1aXR5GAYgASgBEg4KBm1hcmdpbhgHIAEoARITCgtmcmVlX21hcmdpbhgIIAEoASKKAgoMTGl2ZVBvc2l0aW9uEgoKAmlkGAEgASgJEhIKCmluc3RydW1lbnQYAiABKAkSDAoEc2lkZRgDIAEoCRIOCgZ2b2x1bWUYBCABKAESEgoKb3Blbl9wcmljZRgFIAEoARItCglvcGVuX3RpbWUYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhEKCXN0b3BfbG9zcxgHIAEoARITCgt0YWtlX3Byb2ZpdBgIIAEoARINCgVwcmljZRgJIAEoARIOCgZwcm9maXQYCiABKAESEAoIY3VycmVuY3kYCyABKAkSDAoEc3dhcBgMIAEoARISCgpjb21taXNzaW9uGA0gASgBIrsBCglMaXZlT3JkZXISCgoCaWQYASABKAkSEgoKaW5zdHJ1bWVudBgCIAEoCRIMCgRzaWRlGAMgASgJEgwKBHR5cGUYBCABKAkSDgoGdm9sdW1lGAUgASgBEg0KBXByaWNlGAYgASgBEhEKCXN0b3BfbG9zcxgHIAEoARITCgt0YWtlX3Byb2ZpdBgIIAEoARIrCgdjcmVhdGVkGAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJiCghMaXZlVGljaxISCgppbnN0cnVtZW50GAEgASgJEgsKA2JpZBgCIAEoARILCgNhc2sYAyABKAESKAoEdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiuQIKEExpdmVNb25pdG9yU3RhdGUSMAoKY29ubmVjdGlvbhgBIAEoCzIcLnNhbi50b3dlci52MS5MaXZlQ29ubmVjdGlvbhIOCgZzdGF0dXMYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIqCgdhY2NvdW50GAQgASgLMhkuc2FuLnRvd2VyLnYxLkxpdmVBY2NvdW50Ei0KCXBvc2l0aW9ucxgFIAMoCzIaLnNhbi50b3dlci52MS5MaXZlUG9zaXRpb24SJwoGb3JkZXJzGAYgAygLMhcuc2FuLnRvd2VyLnYxLkxpdmVPcmRlchIrCgd1cGRhdGVkGAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZzb3VyY2UYCCABKAkSEQoJcmVhZF9vbmx5GAkgASgIIi4KFUxpdmVHZXRNb25pdG9yUmVxdWVzdBIVCg1jb25uZWN0aW9uX2lkGAEgASgNInoKFkxpdmVHZXRNb25pdG9yUmVzcG9uc2USLQoFc3RhdGUYASABKAsyHi5zYW4udG93ZXIudjEuTGl2ZU1vbml0b3JTdGF0ZRIxCgtjb25uZWN0aW9ucxgCIAMoCzIcLnNhbi50b3dlci52MS5MaXZlQ29ubmVjdGlvbiJFChdMaXZlV2F0Y2hNb25pdG9yUmVxdWVzdBIVCg1jb25uZWN0aW9uX2lkGAEgASgNEhMKC2luc3RydW1lbnRzGAIgAygJIpEBChhMaXZlV2F0Y2hNb25pdG9yUmVzcG9uc2USLwoFc3RhdGUYASABKAsyHi5zYW4udG93ZXIudjEuTGl2ZU1vbml0b3JTdGF0ZUgAEiYKBHRpY2sYAiABKAsyFi5zYW4udG93ZXIudjEuTGl2ZVRpY2tIABITCgloZWFydGJlYXQYAyABKAhIAEIHCgVldmVudCJkChVMaXZlR2V0Q2FuZGxlc1JlcXVlc3QSFQoNY29ubmVjdGlvbl9pZBgBIAEoDRISCgppbnN0cnVtZW50GAIgASgJEhEKCXRpbWVmcmFtZRgDIAEoCRINCgVjb3VudBgEIAEoDSJ/ChZMaXZlR2V0Q2FuZGxlc1Jlc3BvbnNlEhIKCmluc3RydW1lbnQYASABKAkSEQoJdGltZWZyYW1lGAIgASgJEi0KB2NhbmRsZXMYAyADKAsyHC5zYW4udG93ZXIudjEuQmFja3Rlc3RDYW5kbGUSDwoHZm9ybWluZxgEIAEoCCIbChlMaXZlTGlzdEFwcHJvYWNoZXNSZXF1ZXN0IskBCgxMaXZlQXBwcm9hY2gSDAoEbmFtZRgBIAEoCRISCgp0aW1lZnJhbWVzGAIgAygJEg4KBndhcm11cBgDIAEoDRI2CgZwYXJhbXMYBCADKAsyJi5zYW4udG93ZXIudjEuTGl2ZUFwcHJvYWNoLlBhcmFtc0VudHJ5EhAKCG1heF9vcGVuGAUgASgNEg4KBnBsdWdpbhgGIAEoCRotCgtQYXJhbXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIkwKGkxpdmVMaXN0QXBwcm9hY2hlc1Jlc3BvbnNlEi4KCmFwcHJvYWNoZXMYASADKAsyGi5zYW4udG93ZXIudjEuTGl2ZUFwcHJvYWNoIrgBCg5MaXZlUGFwZXJDb3N0cxITCgZzcHJlYWQYASABKAFIAIgBARIXCgpjb21taXNzaW9uGAIgASgBSAGIAQESFgoJc3dhcF9sb25nGAMgASgBSAKIAQESFwoKc3dhcF9zaG9ydBgEIAEoAUgDiAEBEhAKCHNsaXBwYWdlGAUgASgBQgkKB19zcHJlYWRCDQoLX2NvbW1pc3Npb25CDAoKX3N3YXBfbG9uZ0INCgtfc3dhcF9zaG9ydCLRAgoRTGl2ZVBhcGVyU2V0dGluZ3MSDAoEbmFtZRgBIAEoCRIVCg1jb25uZWN0aW9uX2lkGAIgASgNEhAKCGFwcHJvYWNoGAMgASgJEhIKCmluc3RydW1lbnQYBCABKAkSDwoHYmFsYW5jZRgFIAEoARIMCgRyaXNrGAYgASgBEhAKCGxldmVyYWdlGAcgASgNEhAKCG1heF9vcGVuGAggASgNEhUKDW1heF9vcGVuX3Jpc2sYCSABKAESOwoGcGFyYW1zGAogAygLMisuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNldHRpbmdzLlBhcmFtc0VudHJ5EisKBWNvc3RzGAsgASgLMhwuc2FuLnRvd2VyLnYxLkxpdmVQYXBlckNvc3RzGi0KC1BhcmFtc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEiwgEKEUxpdmVQYXBlclBvc2l0aW9uEgoKAmlkGAEgASgNEgwKBHNpZGUYAiABKAkSDQoFZW50cnkYAyABKAESDAoEc3RvcBgEIAEoARIOCgZ0YXJnZXQYBSABKAESDAoEbG90cxgGIAEoARItCglvcGVuX3RpbWUYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg4KBnByb2ZpdBgIIAEoARIMCgR0eXBlGAkgASgJEgsKA3RhZxgKIAEoCSKxAQoOTGl2ZVBhcGVyT3JkZXISCgoCaWQYASABKA0SDAoEc2lkZRgCIAEoCRIMCgR0eXBlGAMgASgJEg0KBXByaWNlGAQgASgBEgwKBHN0b3AYBSABKAESDgoGdGFyZ2V0GAYgASgBEioKBnBsYWNlZBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEQoJYmFyc19sZWZ0GAggASgNEgsKA3RhZxgJIAEoCSLSBgoQTGl2ZVBhcGVyU2Vzc2lvbhIKCgJpZBgBIAEoDRIxCghzZXR0aW5ncxgCIAEoCzIfLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXR0aW5ncxIOCgZzdGF0dXMYAyABKAkSDwoHbWVzc2FnZRgEIAEoCRISCgp0aW1lZnJhbWVzGAUgAygJEigKBGZyb20YBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnN0YXJ0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnN0b3BwZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg8KB2JhbGFuY2UYCSABKAESDgoGZXF1aXR5GAogASgBEhIKCm5ldF9wcm9maXQYCyABKAESDgoGdHJhZGVzGAwgASgNEhYKDm9wZW5fcG9zaXRpb25zGA0gASgNEhYKDnBlbmRpbmdfb3JkZXJzGA4gASgNEg8KB2NhbmRsZXMYDyABKA0SLgoKbGFzdF9jbG9zZRgQIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKbmV4dF9jbG9zZRgRIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEwoLbGFzdF9zaWduYWwYEiABKAkSMgoObGFzdF9zaWduYWxfYXQYEyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjIKCXBvc2l0aW9ucxgUIAMoCzIfLnNhbi50b3dlci52MS5MaXZlUGFwZXJQb3NpdGlvbhIsCgZvcmRlcnMYFSADKAsyHC5zYW4udG93ZXIudjEuTGl2ZVBhcGVyT3JkZXISLgoKY3JlYXRlZF9hdBgWIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgXIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEwoLcmVwb3J0X3BhdGgYGCABKAkSDQoFcGFwZXIYGSABKAgSKwoGcGx1Z2luGBogASgLMhsuc2FuLnRvd2VyLnYxLkxpdmVQbHVnaW5SdW4iUgodTGl2ZUNyZWF0ZVBhcGVyU2Vzc2lvblJlcXVlc3QSMQoIc2V0dGluZ3MYASABKAsyHy5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2V0dGluZ3MiJQoXTGl2ZVBhcGVyU2Vzc2lvblJlcXVlc3QSCgoCaWQYASABKA0iSwoYTGl2ZVBhcGVyU2Vzc2lvblJlc3BvbnNlEi8KB3Nlc3Npb24YASABKAsyHi5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvbiIgCh5MaXZlRGVsZXRlUGFwZXJTZXNzaW9uUmVzcG9uc2UiHgocTGl2ZUxpc3RQYXBlclNlc3Npb25zUmVxdWVzdCJRCh1MaXZlTGlzdFBhcGVyU2Vzc2lvbnNSZXNwb25zZRIwCghzZXNzaW9ucxgBIAMoCzIeLnNhbi50b3dlci52MS5MaXZlUGFwZXJTZXNzaW9uIh8KHUxpdmVXYXRjaFBhcGVyU2Vzc2lvbnNSZXF1ZXN0IsUBCh5MaXZlV2F0Y2hQYXBlclNlc3Npb25zUmVzcG9uc2USPwoIc25hcHNob3QYASABKAsyKy5zYW4udG93ZXIudjEuTGl2ZUxpc3RQYXBlclNlc3Npb25zUmVzcG9uc2VIABIxCgdjaGFuZ2VkGAIgASgLMh4uc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25IABIRCgdyZW1vdmVkGAMgASgNSAASEwoJaGVhcnRiZWF0GAQgASgISABCBwoFZXZlbnQiTgocTGl2ZVdhdGNoUGFwZXJTZXNzaW9uUmVxdWVzdBIKCgJpZBgBIAEoDRIRCglkZWNpc2lvbnMYAiABKA0SDwoHY2FuZGxlcxgDIAEoDSKCAgoQTGl2ZVBhcGVySm91cm5hbBIrCgZ0cmFkZXMYASADKAsyGy5zYW4udG93ZXIudjEuQmFja3Rlc3RUcmFkZRIxCglkZWNpc2lvbnMYAiADKAsyHi5zYW4udG93ZXIudjEuQmFja3Rlc3REZWNpc2lvbhIxCgZlcXVpdHkYAyADKAsyIS5zYW4udG93ZXIudjEuQmFja3Rlc3RFcXVpdHlQb2ludBItCgdjYW5kbGVzGAQgAygLMhwuc2FuLnRvd2VyLnYxLkJhY2t0ZXN0Q2FuZGxlEiwKBm1pc3NlZBgFIAMoCzIcLnNhbi50b3dlci52MS5CYWNrdGVzdE1pc3NlZCJ6ChZMaXZlUGFwZXJTZXNzaW9uRGV0YWlsEi8KB3Nlc3Npb24YASABKAsyHi5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvbhIvCgdqb3VybmFsGAIgASgLMh4uc2FuLnRvd2VyLnYxLkxpdmVQYXBlckpvdXJuYWwiwgEKHUxpdmVXYXRjaFBhcGVyU2Vzc2lvblJlc3BvbnNlEjgKCHNuYXBzaG90GAEgASgLMiQuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25EZXRhaWxIABI2CgZ1cGRhdGUYAiABKAsyJC5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvbkRldGFpbEgAEhEKB3JlbW92ZWQYAyABKAhIABITCgloZWFydGJlYXQYBCABKAhIAEIHCgVldmVudCI5Ch1MaXZlRXhwb3J0UGFwZXJTZXNzaW9uUmVxdWVzdBIKCgJpZBgBIAEoDRIMCgRwYXRoGAIgASgJIj0KHkxpdmVFeHBvcnRQYXBlclNlc3Npb25SZXNwb25zZRIMCgRwYXRoGAEgASgJEg0KBWZpbGVzGAIgAygJMo0MChJMaXZlVHJhZGluZ1NlcnZpY2USVwoKR2V0TW9uaXRvchIjLnNhbi50b3dlci52MS5MaXZlR2V0TW9uaXRvclJlcXVlc3QaJC5zYW4udG93ZXIudjEuTGl2ZUdldE1vbml0b3JSZXNwb25zZRJfCgxXYXRjaE1vbml0b3ISJS5zYW4udG93ZXIudjEuTGl2ZVdhdGNoTW9uaXRvclJlcXVlc3QaJi5zYW4udG93ZXIudjEuTGl2ZVdhdGNoTW9uaXRvclJlc3BvbnNlMAESWwoOR2V0TGl2ZUNhbmRsZXMSIy5zYW4udG93ZXIudjEuTGl2ZUdldENhbmRsZXNSZXF1ZXN0GiQuc2FuLnRvd2VyLnYxLkxpdmVHZXRDYW5kbGVzUmVzcG9uc2USYwoOTGlzdEFwcHJvYWNoZXMSJy5zYW4udG93ZXIudjEuTGl2ZUxpc3RBcHByb2FjaGVzUmVxdWVzdBooLnNhbi50b3dlci52MS5MaXZlTGlzdEFwcHJvYWNoZXNSZXNwb25zZRJpChJDcmVhdGVQYXBlclNlc3Npb24SKy5zYW4udG93ZXIudjEuTGl2ZUNyZWF0ZVBhcGVyU2Vzc2lvblJlcXVlc3QaJi5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlc3BvbnNlEmIKEVN0YXJ0UGFwZXJTZXNzaW9uEiUuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25SZXF1ZXN0GiYuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25SZXNwb25zZRJhChBTdG9wUGFwZXJTZXNzaW9uEiUuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25SZXF1ZXN0GiYuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25SZXNwb25zZRJpChJEZWxldGVQYXBlclNlc3Npb24SJS5zYW4udG93ZXIudjEuTGl2ZVBhcGVyU2Vzc2lvblJlcXVlc3QaLC5zYW4udG93ZXIudjEuTGl2ZURlbGV0ZVBhcGVyU2Vzc2lvblJlc3BvbnNlEmwKEUxpc3RQYXBlclNlc3Npb25zEiouc2FuLnRvd2VyLnYxLkxpdmVMaXN0UGFwZXJTZXNzaW9uc1JlcXVlc3QaKy5zYW4udG93ZXIudjEuTGl2ZUxpc3RQYXBlclNlc3Npb25zUmVzcG9uc2USYAoPR2V0UGFwZXJTZXNzaW9uEiUuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25SZXF1ZXN0GiYuc2FuLnRvd2VyLnYxLkxpdmVQYXBlclNlc3Npb25SZXNwb25zZRJxChJXYXRjaFBhcGVyU2Vzc2lvbnMSKy5zYW4udG93ZXIudjEuTGl2ZVdhdGNoUGFwZXJTZXNzaW9uc1JlcXVlc3QaLC5zYW4udG93ZXIudjEuTGl2ZVdhdGNoUGFwZXJTZXNzaW9uc1Jlc3BvbnNlMAESbgoRV2F0Y2hQYXBlclNlc3Npb24SKi5zYW4udG93ZXIudjEuTGl2ZVdhdGNoUGFwZXJTZXNzaW9uUmVxdWVzdBorLnNhbi50b3dlci52MS5MaXZlV2F0Y2hQYXBlclNlc3Npb25SZXNwb25zZTABEm8KEkV4cG9ydFBhcGVyU2Vzc2lvbhIrLnNhbi50b3dlci52MS5MaXZlRXhwb3J0UGFwZXJTZXNzaW9uUmVxdWVzdBosLnNhbi50b3dlci52MS5MaXZlRXhwb3J0UGFwZXJTZXNzaW9uUmVzcG9uc2USWgoLTGlzdFBsdWdpbnMSJC5zYW4udG93ZXIudjEuTGl2ZUxpc3RQbHVnaW5zUmVxdWVzdBolLnNhbi50b3dlci52MS5MaXZlTGlzdFBsdWdpbnNSZXNwb25zZRJeCg1SZWxvYWRQbHVnaW5zEiYuc2FuLnRvd2VyLnYxLkxpdmVSZWxvYWRQbHVnaW5zUmVxdWVzdBolLnNhbi50b3dlci52MS5MaXZlTGlzdFBsdWdpbnNSZXNwb25zZUKwAQoQY29tLnNhbi50b3dlci52MUIQTGl2ZVRyYWRpbmdQcm90b1ABWjhnaXRodWIuY29tL3dhcmdhc2lwaWwvc2FuX3Rvd2VyL2dlbi9zYW4vdG93ZXIvdjE7dG93ZXJ2MaICA1NUWKoCDFNhbi5Ub3dlci5WMcoCDFNhblxUb3dlclxWMeICGFNhblxUb3dlclxWMVxHUEJNZXRhZGF0YeoCDlNhbjo6VG93ZXI6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp, file_san_tower_v1_backtest_analysis]);
+
+/**
+ * @generated from message san.tower.v1.LiveListPluginsRequest
+ */
+export type LiveListPluginsRequest = Message<"san.tower.v1.LiveListPluginsRequest"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.LiveListPluginsRequest.
+ * Use `create(LiveListPluginsRequestSchema)` to create a new message.
+ */
+export const LiveListPluginsRequestSchema: GenMessage<LiveListPluginsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_live_trading, 0);
+
+/**
+ * @generated from message san.tower.v1.LiveReloadPluginsRequest
+ */
+export type LiveReloadPluginsRequest = Message<"san.tower.v1.LiveReloadPluginsRequest"> & {
+};
+
+/**
+ * Describes the message san.tower.v1.LiveReloadPluginsRequest.
+ * Use `create(LiveReloadPluginsRequestSchema)` to create a new message.
+ */
+export const LiveReloadPluginsRequestSchema: GenMessage<LiveReloadPluginsRequest> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_live_trading, 1);
+
+/**
+ * LivePluginFile is one file of the plugins folder.
+ *
+ * @generated from message san.tower.v1.LivePluginFile
+ */
+export type LivePluginFile = Message<"san.tower.v1.LivePluginFile"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp mod_time = 3;
+   */
+  modTime?: Timestamp;
+
+  /**
+   * @generated from field: repeated string approaches = 4;
+   */
+  approaches: string[];
+
+  /**
+   * error is why the file, or some of its approaches, cannot be used.
+   *
+   * @generated from field: string error = 5;
+   */
+  error: string;
+};
+
+/**
+ * Describes the message san.tower.v1.LivePluginFile.
+ * Use `create(LivePluginFileSchema)` to create a new message.
+ */
+export const LivePluginFileSchema: GenMessage<LivePluginFile> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_live_trading, 2);
+
+/**
+ * @generated from message san.tower.v1.LiveListPluginsResponse
+ */
+export type LiveListPluginsResponse = Message<"san.tower.v1.LiveListPluginsResponse"> & {
+  /**
+   * dir is the plugins folder.
+   *
+   * @generated from field: string dir = 1;
+   */
+  dir: string;
+
+  /**
+   * @generated from field: repeated san.tower.v1.LivePluginFile files = 2;
+   */
+  files: LivePluginFile[];
+};
+
+/**
+ * Describes the message san.tower.v1.LiveListPluginsResponse.
+ * Use `create(LiveListPluginsResponseSchema)` to create a new message.
+ */
+export const LiveListPluginsResponseSchema: GenMessage<LiveListPluginsResponse> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_live_trading, 3);
+
+/**
+ * LivePluginRun is the plugin a running session uses.
+ *
+ * @generated from message san.tower.v1.LivePluginRun
+ */
+export type LivePluginRun = Message<"san.tower.v1.LivePluginRun"> & {
+  /**
+   * @generated from field: string file = 1;
+   */
+  file: string;
+
+  /**
+   * mod_time is the file's modification time when the session started.
+   *
+   * @generated from field: google.protobuf.Timestamp mod_time = 2;
+   */
+  modTime?: Timestamp;
+
+  /**
+   * changed: the file is newer now (a rebuild); a restart of the session
+   * uses it.
+   *
+   * @generated from field: bool changed = 3;
+   */
+  changed: boolean;
+};
+
+/**
+ * Describes the message san.tower.v1.LivePluginRun.
+ * Use `create(LivePluginRunSchema)` to create a new message.
+ */
+export const LivePluginRunSchema: GenMessage<LivePluginRun> = /*@__PURE__*/
+  messageDesc(file_san_tower_v1_live_trading, 4);
 
 /**
  * @generated from message san.tower.v1.LiveConnection
@@ -36,7 +161,7 @@ export type LiveConnection = Message<"san.tower.v1.LiveConnection"> & {
  * Use `create(LiveConnectionSchema)` to create a new message.
  */
 export const LiveConnectionSchema: GenMessage<LiveConnection> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 0);
+  messageDesc(file_san_tower_v1_live_trading, 5);
 
 /**
  * @generated from message san.tower.v1.LiveAccount
@@ -88,7 +213,7 @@ export type LiveAccount = Message<"san.tower.v1.LiveAccount"> & {
  * Use `create(LiveAccountSchema)` to create a new message.
  */
 export const LiveAccountSchema: GenMessage<LiveAccount> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 1);
+  messageDesc(file_san_tower_v1_live_trading, 6);
 
 /**
  * @generated from message san.tower.v1.LivePosition
@@ -172,7 +297,7 @@ export type LivePosition = Message<"san.tower.v1.LivePosition"> & {
  * Use `create(LivePositionSchema)` to create a new message.
  */
 export const LivePositionSchema: GenMessage<LivePosition> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 2);
+  messageDesc(file_san_tower_v1_live_trading, 7);
 
 /**
  * @generated from message san.tower.v1.LiveOrder
@@ -231,7 +356,7 @@ export type LiveOrder = Message<"san.tower.v1.LiveOrder"> & {
  * Use `create(LiveOrderSchema)` to create a new message.
  */
 export const LiveOrderSchema: GenMessage<LiveOrder> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 3);
+  messageDesc(file_san_tower_v1_live_trading, 8);
 
 /**
  * @generated from message san.tower.v1.LiveTick
@@ -263,7 +388,7 @@ export type LiveTick = Message<"san.tower.v1.LiveTick"> & {
  * Use `create(LiveTickSchema)` to create a new message.
  */
 export const LiveTickSchema: GenMessage<LiveTick> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 4);
+  messageDesc(file_san_tower_v1_live_trading, 9);
 
 /**
  * @generated from message san.tower.v1.LiveMonitorState
@@ -326,7 +451,7 @@ export type LiveMonitorState = Message<"san.tower.v1.LiveMonitorState"> & {
  * Use `create(LiveMonitorStateSchema)` to create a new message.
  */
 export const LiveMonitorStateSchema: GenMessage<LiveMonitorState> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 5);
+  messageDesc(file_san_tower_v1_live_trading, 10);
 
 /**
  * @generated from message san.tower.v1.LiveGetMonitorRequest
@@ -345,7 +470,7 @@ export type LiveGetMonitorRequest = Message<"san.tower.v1.LiveGetMonitorRequest"
  * Use `create(LiveGetMonitorRequestSchema)` to create a new message.
  */
 export const LiveGetMonitorRequestSchema: GenMessage<LiveGetMonitorRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 6);
+  messageDesc(file_san_tower_v1_live_trading, 11);
 
 /**
  * @generated from message san.tower.v1.LiveGetMonitorResponse
@@ -369,7 +494,7 @@ export type LiveGetMonitorResponse = Message<"san.tower.v1.LiveGetMonitorRespons
  * Use `create(LiveGetMonitorResponseSchema)` to create a new message.
  */
 export const LiveGetMonitorResponseSchema: GenMessage<LiveGetMonitorResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 7);
+  messageDesc(file_san_tower_v1_live_trading, 12);
 
 /**
  * @generated from message san.tower.v1.LiveWatchMonitorRequest
@@ -393,7 +518,7 @@ export type LiveWatchMonitorRequest = Message<"san.tower.v1.LiveWatchMonitorRequ
  * Use `create(LiveWatchMonitorRequestSchema)` to create a new message.
  */
 export const LiveWatchMonitorRequestSchema: GenMessage<LiveWatchMonitorRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 8);
+  messageDesc(file_san_tower_v1_live_trading, 13);
 
 /**
  * @generated from message san.tower.v1.LiveWatchMonitorResponse
@@ -428,7 +553,7 @@ export type LiveWatchMonitorResponse = Message<"san.tower.v1.LiveWatchMonitorRes
  * Use `create(LiveWatchMonitorResponseSchema)` to create a new message.
  */
 export const LiveWatchMonitorResponseSchema: GenMessage<LiveWatchMonitorResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 9);
+  messageDesc(file_san_tower_v1_live_trading, 14);
 
 /**
  * @generated from message san.tower.v1.LiveGetCandlesRequest
@@ -464,7 +589,7 @@ export type LiveGetCandlesRequest = Message<"san.tower.v1.LiveGetCandlesRequest"
  * Use `create(LiveGetCandlesRequestSchema)` to create a new message.
  */
 export const LiveGetCandlesRequestSchema: GenMessage<LiveGetCandlesRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 10);
+  messageDesc(file_san_tower_v1_live_trading, 15);
 
 /**
  * @generated from message san.tower.v1.LiveGetCandlesResponse
@@ -500,7 +625,7 @@ export type LiveGetCandlesResponse = Message<"san.tower.v1.LiveGetCandlesRespons
  * Use `create(LiveGetCandlesResponseSchema)` to create a new message.
  */
 export const LiveGetCandlesResponseSchema: GenMessage<LiveGetCandlesResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 11);
+  messageDesc(file_san_tower_v1_live_trading, 16);
 
 /**
  * @generated from message san.tower.v1.LiveListApproachesRequest
@@ -513,7 +638,7 @@ export type LiveListApproachesRequest = Message<"san.tower.v1.LiveListApproaches
  * Use `create(LiveListApproachesRequestSchema)` to create a new message.
  */
 export const LiveListApproachesRequestSchema: GenMessage<LiveListApproachesRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 12);
+  messageDesc(file_san_tower_v1_live_trading, 17);
 
 /**
  * @generated from message san.tower.v1.LiveApproach
@@ -547,6 +672,13 @@ export type LiveApproach = Message<"san.tower.v1.LiveApproach"> & {
    * @generated from field: uint32 max_open = 5;
    */
   maxOpen: number;
+
+  /**
+   * plugin is the plugin file's name serving it ("" = compiled in).
+   *
+   * @generated from field: string plugin = 6;
+   */
+  plugin: string;
 };
 
 /**
@@ -554,7 +686,7 @@ export type LiveApproach = Message<"san.tower.v1.LiveApproach"> & {
  * Use `create(LiveApproachSchema)` to create a new message.
  */
 export const LiveApproachSchema: GenMessage<LiveApproach> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 13);
+  messageDesc(file_san_tower_v1_live_trading, 18);
 
 /**
  * @generated from message san.tower.v1.LiveListApproachesResponse
@@ -571,7 +703,7 @@ export type LiveListApproachesResponse = Message<"san.tower.v1.LiveListApproache
  * Use `create(LiveListApproachesResponseSchema)` to create a new message.
  */
 export const LiveListApproachesResponseSchema: GenMessage<LiveListApproachesResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 14);
+  messageDesc(file_san_tower_v1_live_trading, 19);
 
 /**
  * LivePaperCosts overrides Exness's real costs; unset fields keep them
@@ -611,7 +743,7 @@ export type LivePaperCosts = Message<"san.tower.v1.LivePaperCosts"> & {
  * Use `create(LivePaperCostsSchema)` to create a new message.
  */
 export const LivePaperCostsSchema: GenMessage<LivePaperCosts> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 15);
+  messageDesc(file_san_tower_v1_live_trading, 20);
 
 /**
  * @generated from message san.tower.v1.LivePaperSettings
@@ -684,7 +816,7 @@ export type LivePaperSettings = Message<"san.tower.v1.LivePaperSettings"> & {
  * Use `create(LivePaperSettingsSchema)` to create a new message.
  */
 export const LivePaperSettingsSchema: GenMessage<LivePaperSettings> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 16);
+  messageDesc(file_san_tower_v1_live_trading, 21);
 
 /**
  * @generated from message san.tower.v1.LivePaperPosition
@@ -746,7 +878,7 @@ export type LivePaperPosition = Message<"san.tower.v1.LivePaperPosition"> & {
  * Use `create(LivePaperPositionSchema)` to create a new message.
  */
 export const LivePaperPositionSchema: GenMessage<LivePaperPosition> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 17);
+  messageDesc(file_san_tower_v1_live_trading, 22);
 
 /**
  * @generated from message san.tower.v1.LivePaperOrder
@@ -803,7 +935,7 @@ export type LivePaperOrder = Message<"san.tower.v1.LivePaperOrder"> & {
  * Use `create(LivePaperOrderSchema)` to create a new message.
  */
 export const LivePaperOrderSchema: GenMessage<LivePaperOrder> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 18);
+  messageDesc(file_san_tower_v1_live_trading, 23);
 
 /**
  * @generated from message san.tower.v1.LivePaperSession
@@ -941,6 +1073,13 @@ export type LivePaperSession = Message<"san.tower.v1.LivePaperSession"> & {
    * @generated from field: bool paper = 25;
    */
   paper: boolean;
+
+  /**
+   * plugin is set while the session runs a plugin approach.
+   *
+   * @generated from field: san.tower.v1.LivePluginRun plugin = 26;
+   */
+  plugin?: LivePluginRun;
 };
 
 /**
@@ -948,7 +1087,7 @@ export type LivePaperSession = Message<"san.tower.v1.LivePaperSession"> & {
  * Use `create(LivePaperSessionSchema)` to create a new message.
  */
 export const LivePaperSessionSchema: GenMessage<LivePaperSession> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 19);
+  messageDesc(file_san_tower_v1_live_trading, 24);
 
 /**
  * @generated from message san.tower.v1.LiveCreatePaperSessionRequest
@@ -965,7 +1104,7 @@ export type LiveCreatePaperSessionRequest = Message<"san.tower.v1.LiveCreatePape
  * Use `create(LiveCreatePaperSessionRequestSchema)` to create a new message.
  */
 export const LiveCreatePaperSessionRequestSchema: GenMessage<LiveCreatePaperSessionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 20);
+  messageDesc(file_san_tower_v1_live_trading, 25);
 
 /**
  * @generated from message san.tower.v1.LivePaperSessionRequest
@@ -982,7 +1121,7 @@ export type LivePaperSessionRequest = Message<"san.tower.v1.LivePaperSessionRequ
  * Use `create(LivePaperSessionRequestSchema)` to create a new message.
  */
 export const LivePaperSessionRequestSchema: GenMessage<LivePaperSessionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 21);
+  messageDesc(file_san_tower_v1_live_trading, 26);
 
 /**
  * @generated from message san.tower.v1.LivePaperSessionResponse
@@ -999,7 +1138,7 @@ export type LivePaperSessionResponse = Message<"san.tower.v1.LivePaperSessionRes
  * Use `create(LivePaperSessionResponseSchema)` to create a new message.
  */
 export const LivePaperSessionResponseSchema: GenMessage<LivePaperSessionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 22);
+  messageDesc(file_san_tower_v1_live_trading, 27);
 
 /**
  * @generated from message san.tower.v1.LiveDeletePaperSessionResponse
@@ -1012,7 +1151,7 @@ export type LiveDeletePaperSessionResponse = Message<"san.tower.v1.LiveDeletePap
  * Use `create(LiveDeletePaperSessionResponseSchema)` to create a new message.
  */
 export const LiveDeletePaperSessionResponseSchema: GenMessage<LiveDeletePaperSessionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 23);
+  messageDesc(file_san_tower_v1_live_trading, 28);
 
 /**
  * @generated from message san.tower.v1.LiveListPaperSessionsRequest
@@ -1025,7 +1164,7 @@ export type LiveListPaperSessionsRequest = Message<"san.tower.v1.LiveListPaperSe
  * Use `create(LiveListPaperSessionsRequestSchema)` to create a new message.
  */
 export const LiveListPaperSessionsRequestSchema: GenMessage<LiveListPaperSessionsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 24);
+  messageDesc(file_san_tower_v1_live_trading, 29);
 
 /**
  * @generated from message san.tower.v1.LiveListPaperSessionsResponse
@@ -1042,7 +1181,7 @@ export type LiveListPaperSessionsResponse = Message<"san.tower.v1.LiveListPaperS
  * Use `create(LiveListPaperSessionsResponseSchema)` to create a new message.
  */
 export const LiveListPaperSessionsResponseSchema: GenMessage<LiveListPaperSessionsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 25);
+  messageDesc(file_san_tower_v1_live_trading, 30);
 
 /**
  * @generated from message san.tower.v1.LiveWatchPaperSessionsRequest
@@ -1055,7 +1194,7 @@ export type LiveWatchPaperSessionsRequest = Message<"san.tower.v1.LiveWatchPaper
  * Use `create(LiveWatchPaperSessionsRequestSchema)` to create a new message.
  */
 export const LiveWatchPaperSessionsRequestSchema: GenMessage<LiveWatchPaperSessionsRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 26);
+  messageDesc(file_san_tower_v1_live_trading, 31);
 
 /**
  * @generated from message san.tower.v1.LiveWatchPaperSessionsResponse
@@ -1096,7 +1235,7 @@ export type LiveWatchPaperSessionsResponse = Message<"san.tower.v1.LiveWatchPape
  * Use `create(LiveWatchPaperSessionsResponseSchema)` to create a new message.
  */
 export const LiveWatchPaperSessionsResponseSchema: GenMessage<LiveWatchPaperSessionsResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 27);
+  messageDesc(file_san_tower_v1_live_trading, 32);
 
 /**
  * @generated from message san.tower.v1.LiveWatchPaperSessionRequest
@@ -1127,7 +1266,7 @@ export type LiveWatchPaperSessionRequest = Message<"san.tower.v1.LiveWatchPaperS
  * Use `create(LiveWatchPaperSessionRequestSchema)` to create a new message.
  */
 export const LiveWatchPaperSessionRequestSchema: GenMessage<LiveWatchPaperSessionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 28);
+  messageDesc(file_san_tower_v1_live_trading, 33);
 
 /**
  * @generated from message san.tower.v1.LivePaperJournal
@@ -1164,7 +1303,7 @@ export type LivePaperJournal = Message<"san.tower.v1.LivePaperJournal"> & {
  * Use `create(LivePaperJournalSchema)` to create a new message.
  */
 export const LivePaperJournalSchema: GenMessage<LivePaperJournal> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 29);
+  messageDesc(file_san_tower_v1_live_trading, 34);
 
 /**
  * @generated from message san.tower.v1.LivePaperSessionDetail
@@ -1186,7 +1325,7 @@ export type LivePaperSessionDetail = Message<"san.tower.v1.LivePaperSessionDetai
  * Use `create(LivePaperSessionDetailSchema)` to create a new message.
  */
 export const LivePaperSessionDetailSchema: GenMessage<LivePaperSessionDetail> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 30);
+  messageDesc(file_san_tower_v1_live_trading, 35);
 
 /**
  * @generated from message san.tower.v1.LiveWatchPaperSessionResponse
@@ -1233,7 +1372,7 @@ export type LiveWatchPaperSessionResponse = Message<"san.tower.v1.LiveWatchPaper
  * Use `create(LiveWatchPaperSessionResponseSchema)` to create a new message.
  */
 export const LiveWatchPaperSessionResponseSchema: GenMessage<LiveWatchPaperSessionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 31);
+  messageDesc(file_san_tower_v1_live_trading, 36);
 
 /**
  * @generated from message san.tower.v1.LiveExportPaperSessionRequest
@@ -1258,7 +1397,7 @@ export type LiveExportPaperSessionRequest = Message<"san.tower.v1.LiveExportPape
  * Use `create(LiveExportPaperSessionRequestSchema)` to create a new message.
  */
 export const LiveExportPaperSessionRequestSchema: GenMessage<LiveExportPaperSessionRequest> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 32);
+  messageDesc(file_san_tower_v1_live_trading, 37);
 
 /**
  * @generated from message san.tower.v1.LiveExportPaperSessionResponse
@@ -1280,7 +1419,7 @@ export type LiveExportPaperSessionResponse = Message<"san.tower.v1.LiveExportPap
  * Use `create(LiveExportPaperSessionResponseSchema)` to create a new message.
  */
 export const LiveExportPaperSessionResponseSchema: GenMessage<LiveExportPaperSessionResponse> = /*@__PURE__*/
-  messageDesc(file_san_tower_v1_live_trading, 33);
+  messageDesc(file_san_tower_v1_live_trading, 38);
 
 /**
  * LiveTradingService is the tower's Live Trading page (the user,
@@ -1436,6 +1575,29 @@ export const LiveTradingService: GenService<{
     methodKind: "unary";
     input: typeof LiveExportPaperSessionRequestSchema;
     output: typeof LiveExportPaperSessionResponseSchema;
+  },
+  /**
+   * ListPlugins lists the approach plugins in the data folder's plugins
+   * folder as last read: each file, its approaches and any load error.
+   *
+   * @generated from rpc san.tower.v1.LiveTradingService.ListPlugins
+   */
+  listPlugins: {
+    methodKind: "unary";
+    input: typeof LiveListPluginsRequestSchema;
+    output: typeof LiveListPluginsResponseSchema;
+  },
+  /**
+   * ReloadPlugins reads the plugins folder again (each file is started,
+   * asked for its approaches and stopped). Running sessions keep their own
+   * plugin process until they are started again.
+   *
+   * @generated from rpc san.tower.v1.LiveTradingService.ReloadPlugins
+   */
+  reloadPlugins: {
+    methodKind: "unary";
+    input: typeof LiveReloadPluginsRequestSchema;
+    output: typeof LiveListPluginsResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_san_tower_v1_live_trading, 0);

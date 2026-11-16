@@ -275,10 +275,15 @@ func (a Action) Side() Side {
 type Registry struct {
 	mu sync.Mutex
 	m  map[string]func() Strategy
+	// plugins are the loaded plugin files by absolute path (Load).
+	plugins map[string]*loadedPlugin
+	opts    PluginOptions
 }
 
 // NewRegistry makes an empty registry.
-func NewRegistry() *Registry { return &Registry{m: map[string]func() Strategy{}} }
+func NewRegistry() *Registry {
+	return &Registry{m: map[string]func() Strategy{}, plugins: map[string]*loadedPlugin{}}
+}
 
 // Register adds a strategy maker under name (a new one each run, so state
 // is never shared).
@@ -291,12 +296,17 @@ func (r *Registry) Register(name string, make func() Strategy) {
 // New makes the strategy registered under name.
 func (r *Registry) New(name string) (Strategy, error) {
 	r.mu.Lock()
-	defer r.mu.Unlock()
 	mk, ok := r.m[name]
 	if !ok {
+		defer r.mu.Unlock()
 		return nil, fmt.Errorf("no strategy %q (have: %s)", name, strings.Join(r.namesLocked(), ", "))
 	}
-	return mk(), nil
+	r.mu.Unlock()
+	s := mk()
+	if err := pluginErr(s); err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 // Names lists the registered names, sorted.

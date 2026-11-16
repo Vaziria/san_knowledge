@@ -511,6 +511,140 @@ chains; tests show each trades exactly like its hand-written twin (count,
 times, prices, P/L, walk-forward), and san_research checks the same on the
 whole cached XAUUSD history.
 
+## Approach plugins
+
+An approach can come from code (`Register`, as above) or from a file (the
+user, 2026-11-16: "backtest and live library can load 2 mode, first
+approach is from code, and approach from dll, like approach: Load
+approach(dllfile)"). The file is a program of its own, not a DLL: Go
+cannot load or unload a Go DLL on Windows, and a crash in another process
+cannot take the host down. It talks over its stdin and stdout (the user,
+2026-11-16: "Stdin and out seem better"), so there is no port and no
+firewall prompt. A loaded approach is an ordinary `Strategy`: Run,
+walk-forward, `NewLive`, the reports, the CLI and San Tower's Live Trading
+use it unchanged, and it decides exactly as compiled in.
+
+### Write one
+
+The approach is written as usual (plain Go or a chain); the plugin's
+`main` only serves it:
+
+```go
+package main
+
+import (
+	bt "github.com/wargasipil/san_backtest"
+	"github.com/wargasipil/san_backtest/plugin"
+)
+
+type myScalp struct{}
+
+func (myScalp) Name() string         { return "my_scalp" }
+func (myScalp) Timeframes() []string { return []string{"M15", "H1"} }
+func (myScalp) Warmup() int          { return 50 }
+func (myScalp) OnCandle(c *bt.Context) bt.Signal {
+	if c.Close("M15") > c.EMA("H1", 50) {
+		return bt.Buy(c.Close("M15")-5, c.Close("M15")+10)
+	}
+	return bt.Wait
+}
+
+func main() {
+	plugin.Serve(map[string]func() bt.Strategy{"my_scalp": func() bt.Strategy { return myScalp{} }})
+}
+```
+
+`plugin.Makers(r)` serves a whole registry (`examples/plugin` serves the
+examples, san_research's `cmd/research_plugin` every research approach).
+Each instance the host asks for is a fresh maker call, so instances never
+share state. stdout belongs to the protocol: `Serve` points `os.Stdout` at
+stderr, so a stray `fmt.Println` goes to the host's log.
+
+### Build
+
+```bash
+go build -o plugins/my_scalp.exe .
+```
+
+### Load
+
+```go
+r := bt.NewRegistry()
+examples.Register(r)                    // from code
+err := r.Load("plugins/my_scalp.exe")   // from a file: its approaches join r
+s, err := r.New("my_scalp")             // used like any approach
+res, err := bt.Run(ctx, bt.Config{Strategy: s, ...})
+
+s, err := bt.LoadApproach("plugins/my_scalp.exe", "my_scalp") // one approach, its own process
+defer bt.CloseStrategy(s)                                     // stops that process
+```
+
+- `Load` starts the file once, checks the versions and registers every
+  approach it serves; it refuses a name already taken. One process serves
+  every approach of the file and every instance made from it (by id), so
+  walk-forward trials don't start processes.
+- `Unload(file)` stops the process and removes its approaches; `Reload(file)`
+  is Unload plus Load, for a rebuilt file. The process runs a copy of the
+  file (in the temp folder), so the file can be rebuilt while it runs.
+- `Close()` stops every loaded plugin. `ListPlugin(file)` lists a file's
+  approaches without keeping it; `PluginOf(name)`, `PluginFileOf(s)` and
+  `PluginInfoOf(s)` say where an approach comes from.
+- `SetPluginOptions` / the `PluginOptions` argument: `Stderr` (the plugin's
+  log; default this process's stderr), `Timeout` (per answer, default 10
+  s), `Env` and `CleanEnv` (only the system's basic variables, so nothing
+  the host holds in its environment reaches the plugin).
+- The process starts hidden (no console window), and Close kills it and
+  anything it started (a Windows job object).
+
+### Failures
+
+A plugin that exits, panics, or gives no answer within the timeout fails
+only that run, like a strategy panic, with the reason: "plugin x.exe
+exited (exit status 3): <its last log line>", "panic: <value>" (the stack
+goes to its stderr; the plugin lives on), "gave no answer in 10s: stopped
+it". A version mismatch fails the Load: "built with protocol 2 (API 1),
+host speaks 1 (API 1): rebuild the plugin".
+
+### Reload
+
+Rebuild the file, then `r.Reload(file)` (CLI: just run again; San Tower:
+Reload plugins). Approaches made before keep the old process until they
+are closed; new ones use the new build.
+
+### Protocol
+
+`plugin/pb/plugin.proto` (package `san.backtest.plugin.v1`): each message
+is a `Request` or a `Response`, prefixed by its length as a varint
+(`protodelim`); the host sends one request and waits for its answer.
+
+| Call | What |
+|---|---|
+| `Hello` | protocol and API versions both ways; a mismatch is refused |
+| `List` | the approaches: name, timeframes, warm-up, params, max open, has OnStart / Grid |
+| `NewInstance` | a fresh approach by name, returns its id |
+| `Start` | OnStart: instrument, timeframes, from/to, balance, params, bucket anchors, whether notes are kept, and `keep`: the timeframes whose candles the instance keeps from its last run |
+| `Step` | OnCandle: the candles it does not have yet, `closed` (how many it sees, when it holds more), time, gap, spread, positions, orders, max open, account; returns the `Signal` and the step's notes |
+| `Grid` | a walk-forward grid (GridTuner) |
+| `Close` / `Shutdown` | drop an instance / end the process |
+
+The plugin keeps a mirror of the Context (`bt.Mirror`) and computes
+indicators, Forming and the rest with this package's own code, so only
+deltas cross the pipe. A walk-forward trial runs on the candles of the run
+before it, so its Start keeps them and its steps send only `closed`;
+without that, each trial sent the whole history before its window in one
+message (tens of MB on M1), which made Windows refuse the pipe write
+("Insufficient system resources") and plugins miss their timeout. Writes
+are also cut into 1 MB pieces, and each side polls its pipe for 100 µs
+before a blocking read, which about halves a round trip.
+
+**Cost:** about 30-40 µs a candle on top of the compiled run. Over the
+4.5-year XAUUSD M15 history (107k candles), moving_average takes 1.0 s
+compiled and 5.5 s as a plugin; a walk-forward over a year about 7x its
+compiled time. san_research's `plugin_proof_test.go` (`SBT_PLUGIN_PROOF=1`)
+runs every registered approach both ways on the real cache (the full run,
+walk-forward and NewLive with gaps) and finds the same trades, missed
+signals, decisions, equity and stats.
+
 ## CLI
 
 `cmd/san_backtest` reads candles and conditions only; it never trades.
@@ -529,6 +663,12 @@ san_backtest run big_trend --instrument XAUUSDm --last 1y --walk 3m:1m --risk 0.
 # several strategies side by side: one folder each plus the comparison table
 san_backtest run big_trend,breakout_retest,moving_average --instrument XAUUSDm --last 180d --out out/cmp
 
+# an approach from a plugin file (repeatable; list --plugin shows them too)
+san_backtest run my_scalp --plugin plugins/my_scalp.exe --csv data --instrument XAUUSD --last 90d --out out/my
+
+# the approaches a plugin file serves
+san_backtest plugins plugins/my_scalp.exe
+
 # a portfolio on one account
 san_backtest portfolio --leg big_trend:XAUUSDm:1 --leg moving_average:EURUSDm:0.5 --max-open 2 --max-open-risk 3 \
   --max-daily-loss 4 --tz WIB --last 90d --out out/pf
@@ -539,6 +679,7 @@ COMMANDS:
    run        backtest one strategy, or several (comma-separated) side by side
    portfolio  backtest several legs on one shared account
    list       list the strategies: timeframes, warm-up, params
+   plugins    list the approaches a plugin file serves (starts it, asks, stops it)
 
 GLOBAL OPTIONS:
    --api-key string           Exness API key identifier (exnsk-...) [%EXN_API_KEY%]
@@ -563,6 +704,7 @@ run and portfolio:
    --strict                 fail when history starts after --from (Config.Strict)
    --cache string           folder for downloaded Exness candles; "off" keeps none (Config.Cache) (default: "./backtest_cache")
    --csv string             read candles from CSV files in this folder instead of Exness (see README)
+   --plugin string          approach plugin file (.exe) whose approaches can be named too, repeatable (Registry.Load)
    --out string             write summary.txt, trades.csv, missed.csv, equity.csv, equity.png, decisions.jsonl, candles.csv (and walk.csv) and run.json here
 
 run only:
@@ -848,7 +990,10 @@ that first run; a wrong one shows as a note or as odd costs, and
 | `result.go`, `report.go`, `chart.go` | stats, text/CSV reports, the PNG |
 | `chain.go`, `chain_build.go`, `chain_run.go` | chain strategies: `Chain`, `Step`, `Link`, `Define`, `Decl`, `ParamDef`, `RequireSLTP` |
 | `steps/` | the built-in chain steps and value expressions |
-| `examples/` | three example approaches, and the same three as chains |
+| `plugin_registry.go`, `plugin_proc*.go`, `plugin_remote.go`, `plugin_mirror.go` | approach plugins, the host side: `Load`, `LoadApproach`, the process, the remote Strategy, `Mirror` |
+| `plugin/` | approach plugins, the plugin side: `Serve`, `Makers`; `plugin/pb/plugin.proto` the protocol |
+| `internal/pipe/` | the plugin pipes: polling reads, 1 MB writes |
+| `examples/` | three example approaches, and the same three as chains; `examples/plugin` serves them as a plugin |
 | `cmd/san_backtest/` | the CLI |
 
 ## Build and test

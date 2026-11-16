@@ -9,6 +9,7 @@ import type { LiveApproach, LivePaperSession, LiveWatchPaperSessionsResponse } f
 import { StreamIndicator, useStream } from '../stream';
 import { MonitorPanel } from './MonitorPanel';
 import { ApproachPicker } from './ApproachPicker';
+import { PluginHint, PluginsPanel } from './PluginsPanel';
 
 export const PAPER_BADGE = 'PAPER - no orders are sent';
 
@@ -199,6 +200,7 @@ function SessionsTable({ list, onMessage }: { list: LivePaperSession[]; onMessag
                   {' '}
                   {s.timeframes[0]}
                 </Text>
+                <PluginHint s={s} />
               </Table.Cell>
               <Table.Cell>{s.settings?.instrument}</Table.Cell>
               <Table.Cell textAlign="end">{money(s.balance)}</Table.Cell>
@@ -317,6 +319,7 @@ function NewSession({ onClose, onMessage }: { onClose: () => void; onMessage: (m
                     {cur && (
                       <Field.HelperText textStyle="2xs">
                         steps on {cur.timeframes[0]} closes; {cur.warmup} warm-up candles; {cur.maxOpen > 1 ? `${cur.maxOpen} positions at once` : 'one position at a time'}
+                        {cur.plugin && `; from the plugin ${cur.plugin}`}
                       </Field.HelperText>
                     )}
                   </Field.Root>
@@ -426,6 +429,7 @@ export function LiveTrading() {
           <SessionsTable list={list} onMessage={setMessage} />
         )}
       </Stack>
+      <PluginsPanel />
       {adding && <NewSession onClose={() => setAdding(false)} onMessage={setMessage} />}
     </Stack>
   );

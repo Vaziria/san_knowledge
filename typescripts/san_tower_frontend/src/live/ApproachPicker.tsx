@@ -1,4 +1,4 @@
-import { Combobox, useFilter, useListCollection } from '@chakra-ui/react';
+import { Badge, Combobox, useFilter, useListCollection } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import type { LiveApproach } from '../gen/san/tower/v1/live_trading_pb';
 
@@ -18,7 +18,7 @@ export function ApproachPicker({
   const { contains } = useFilter({ sensitivity: 'base' });
   const { collection, filter, set } = useListCollection<LiveApproach>({
     initialItems: approaches,
-    itemToString: (a) => `${a.name} ${a.timeframes.join('/')}`,
+    itemToString: (a) => `${a.name} ${a.timeframes.join('/')} ${a.plugin}`,
     itemToValue: (a) => a.name,
     filter: contains,
   });
@@ -51,6 +51,11 @@ export function ApproachPicker({
             <Combobox.Item item={a} key={a.name} data-testid="approach-option">
               <Combobox.ItemText>
                 {a.name} <span style={{ opacity: 0.6 }}>({a.timeframes.join('/')})</span>
+                {a.plugin && (
+                  <Badge ml="2" size="xs" colorPalette="purple" variant="subtle" title={`served by the plugin ${a.plugin}`} data-testid="plugin-tag">
+                    plugin · {a.plugin}
+                  </Badge>
+                )}
               </Combobox.ItemText>
               <Combobox.ItemIndicator />
             </Combobox.Item>

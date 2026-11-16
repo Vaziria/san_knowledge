@@ -72,6 +72,12 @@ const (
 	// LiveTradingServiceExportPaperSessionProcedure is the fully-qualified name of the
 	// LiveTradingService's ExportPaperSession RPC.
 	LiveTradingServiceExportPaperSessionProcedure = "/san.tower.v1.LiveTradingService/ExportPaperSession"
+	// LiveTradingServiceListPluginsProcedure is the fully-qualified name of the LiveTradingService's
+	// ListPlugins RPC.
+	LiveTradingServiceListPluginsProcedure = "/san.tower.v1.LiveTradingService/ListPlugins"
+	// LiveTradingServiceReloadPluginsProcedure is the fully-qualified name of the LiveTradingService's
+	// ReloadPlugins RPC.
+	LiveTradingServiceReloadPluginsProcedure = "/san.tower.v1.LiveTradingService/ReloadPlugins"
 )
 
 // LiveTradingServiceClient is a client for the san.tower.v1.LiveTradingService service.
@@ -113,6 +119,13 @@ type LiveTradingServiceClient interface {
 	// ExportPaperSession writes a session as a San Backtest report folder
 	// (run.json, trades.csv, decisions.jsonl, ...).
 	ExportPaperSession(context.Context, *connect.Request[v1.LiveExportPaperSessionRequest]) (*connect.Response[v1.LiveExportPaperSessionResponse], error)
+	// ListPlugins lists the approach plugins in the data folder's plugins
+	// folder as last read: each file, its approaches and any load error.
+	ListPlugins(context.Context, *connect.Request[v1.LiveListPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error)
+	// ReloadPlugins reads the plugins folder again (each file is started,
+	// asked for its approaches and stopped). Running sessions keep their own
+	// plugin process until they are started again.
+	ReloadPlugins(context.Context, *connect.Request[v1.LiveReloadPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error)
 }
 
 // NewLiveTradingServiceClient constructs a client for the san.tower.v1.LiveTradingService service.
@@ -204,6 +217,18 @@ func NewLiveTradingServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(liveTradingServiceMethods.ByName("ExportPaperSession")),
 			connect.WithClientOptions(opts...),
 		),
+		listPlugins: connect.NewClient[v1.LiveListPluginsRequest, v1.LiveListPluginsResponse](
+			httpClient,
+			baseURL+LiveTradingServiceListPluginsProcedure,
+			connect.WithSchema(liveTradingServiceMethods.ByName("ListPlugins")),
+			connect.WithClientOptions(opts...),
+		),
+		reloadPlugins: connect.NewClient[v1.LiveReloadPluginsRequest, v1.LiveListPluginsResponse](
+			httpClient,
+			baseURL+LiveTradingServiceReloadPluginsProcedure,
+			connect.WithSchema(liveTradingServiceMethods.ByName("ReloadPlugins")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -222,6 +247,8 @@ type liveTradingServiceClient struct {
 	watchPaperSessions *connect.Client[v1.LiveWatchPaperSessionsRequest, v1.LiveWatchPaperSessionsResponse]
 	watchPaperSession  *connect.Client[v1.LiveWatchPaperSessionRequest, v1.LiveWatchPaperSessionResponse]
 	exportPaperSession *connect.Client[v1.LiveExportPaperSessionRequest, v1.LiveExportPaperSessionResponse]
+	listPlugins        *connect.Client[v1.LiveListPluginsRequest, v1.LiveListPluginsResponse]
+	reloadPlugins      *connect.Client[v1.LiveReloadPluginsRequest, v1.LiveListPluginsResponse]
 }
 
 // GetMonitor calls san.tower.v1.LiveTradingService.GetMonitor.
@@ -289,6 +316,16 @@ func (c *liveTradingServiceClient) ExportPaperSession(ctx context.Context, req *
 	return c.exportPaperSession.CallUnary(ctx, req)
 }
 
+// ListPlugins calls san.tower.v1.LiveTradingService.ListPlugins.
+func (c *liveTradingServiceClient) ListPlugins(ctx context.Context, req *connect.Request[v1.LiveListPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error) {
+	return c.listPlugins.CallUnary(ctx, req)
+}
+
+// ReloadPlugins calls san.tower.v1.LiveTradingService.ReloadPlugins.
+func (c *liveTradingServiceClient) ReloadPlugins(ctx context.Context, req *connect.Request[v1.LiveReloadPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error) {
+	return c.reloadPlugins.CallUnary(ctx, req)
+}
+
 // LiveTradingServiceHandler is an implementation of the san.tower.v1.LiveTradingService service.
 type LiveTradingServiceHandler interface {
 	// GetMonitor reads an Exness connection's account, positions and orders
@@ -328,6 +365,13 @@ type LiveTradingServiceHandler interface {
 	// ExportPaperSession writes a session as a San Backtest report folder
 	// (run.json, trades.csv, decisions.jsonl, ...).
 	ExportPaperSession(context.Context, *connect.Request[v1.LiveExportPaperSessionRequest]) (*connect.Response[v1.LiveExportPaperSessionResponse], error)
+	// ListPlugins lists the approach plugins in the data folder's plugins
+	// folder as last read: each file, its approaches and any load error.
+	ListPlugins(context.Context, *connect.Request[v1.LiveListPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error)
+	// ReloadPlugins reads the plugins folder again (each file is started,
+	// asked for its approaches and stopped). Running sessions keep their own
+	// plugin process until they are started again.
+	ReloadPlugins(context.Context, *connect.Request[v1.LiveReloadPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error)
 }
 
 // NewLiveTradingServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -415,6 +459,18 @@ func NewLiveTradingServiceHandler(svc LiveTradingServiceHandler, opts ...connect
 		connect.WithSchema(liveTradingServiceMethods.ByName("ExportPaperSession")),
 		connect.WithHandlerOptions(opts...),
 	)
+	liveTradingServiceListPluginsHandler := connect.NewUnaryHandler(
+		LiveTradingServiceListPluginsProcedure,
+		svc.ListPlugins,
+		connect.WithSchema(liveTradingServiceMethods.ByName("ListPlugins")),
+		connect.WithHandlerOptions(opts...),
+	)
+	liveTradingServiceReloadPluginsHandler := connect.NewUnaryHandler(
+		LiveTradingServiceReloadPluginsProcedure,
+		svc.ReloadPlugins,
+		connect.WithSchema(liveTradingServiceMethods.ByName("ReloadPlugins")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/san.tower.v1.LiveTradingService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case LiveTradingServiceGetMonitorProcedure:
@@ -443,6 +499,10 @@ func NewLiveTradingServiceHandler(svc LiveTradingServiceHandler, opts ...connect
 			liveTradingServiceWatchPaperSessionHandler.ServeHTTP(w, r)
 		case LiveTradingServiceExportPaperSessionProcedure:
 			liveTradingServiceExportPaperSessionHandler.ServeHTTP(w, r)
+		case LiveTradingServiceListPluginsProcedure:
+			liveTradingServiceListPluginsHandler.ServeHTTP(w, r)
+		case LiveTradingServiceReloadPluginsProcedure:
+			liveTradingServiceReloadPluginsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -502,4 +562,12 @@ func (UnimplementedLiveTradingServiceHandler) WatchPaperSession(context.Context,
 
 func (UnimplementedLiveTradingServiceHandler) ExportPaperSession(context.Context, *connect.Request[v1.LiveExportPaperSessionRequest]) (*connect.Response[v1.LiveExportPaperSessionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.LiveTradingService.ExportPaperSession is not implemented"))
+}
+
+func (UnimplementedLiveTradingServiceHandler) ListPlugins(context.Context, *connect.Request[v1.LiveListPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.LiveTradingService.ListPlugins is not implemented"))
+}
+
+func (UnimplementedLiveTradingServiceHandler) ReloadPlugins(context.Context, *connect.Request[v1.LiveReloadPluginsRequest]) (*connect.Response[v1.LiveListPluginsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("san.tower.v1.LiveTradingService.ReloadPlugins is not implemented"))
 }

@@ -1,0 +1,7 @@
+# Go code for the approach plugin protocol: `buf generate` from this folder
+# (local protoc-gen-go from ~/go/bin, no BSR login).
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: pb
+    opt: paths=source_relative

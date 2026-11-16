@@ -69,7 +69,32 @@ func shared() []cli.Flag {
 		&cli.StringFlag{Name: "cache", Value: bt.DefaultCache, Usage: `folder for downloaded Exness candles; "off" keeps none (Config.Cache)`},
 		&cli.StringFlag{Name: "csv", Usage: "read candles from CSV files in this folder instead of Exness (see README)"},
 		&cli.StringFlag{Name: "out", Usage: "write summary.txt, trades.csv, missed.csv, equity.csv, equity.png, decisions.jsonl, candles.csv (and walk.csv) and run.json here"},
+		pluginFlag(),
 	}
+}
+
+// pluginFlag loads approaches from plugin files next to the compiled-in
+// ones (Registry.Load).
+func pluginFlag() cli.Flag {
+	return &cli.StringSliceFlag{Name: "plugin", Usage: "approach plugin file (.exe) whose approaches can be named too, repeatable (Registry.Load)"}
+}
+
+// withPlugins loads the --plugin files into reg for one command and stops
+// their processes afterwards.
+func withPlugins(cmd *cli.Command, reg *bt.Registry, f func() error) error {
+	var loaded []string
+	defer func() {
+		for _, file := range loaded {
+			reg.Unload(file)
+		}
+	}()
+	for _, file := range cmd.StringSlice("plugin") {
+		if err := reg.Load(file); err != nil {
+			return err
+		}
+		loaded = append(loaded, file)
+	}
+	return f()
 }
 
 func app(out io.Writer, reg *bt.Registry) *cli.Command {
@@ -99,7 +124,9 @@ func app(out io.Writer, reg *bt.Registry) *cli.Command {
 					&cli.IntFlag{Name: "max-open", Usage: "positions open at once; 0 = the strategy's own, else 1 (Config.MaxOpen)"},
 					&cli.Float64Flag{Name: "max-open-risk", Usage: "max total risk: percent of the balance the open positions lose at their stops; 0 = no limit (Config.MaxOpenRisk)"},
 				),
-				Action: func(ctx context.Context, cmd *cli.Command) error { return runCmd(ctx, cmd, out, reg) },
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					return withPlugins(cmd, reg, func() error { return runCmd(ctx, cmd, out, reg) })
+				},
 			},
 			{
 				Name:  "portfolio",
@@ -109,22 +136,37 @@ func app(out io.Writer, reg *bt.Registry) *cli.Command {
 					&cli.IntFlag{Name: "max-open", Usage: "open positions at once, all legs; 0 = no limit (Portfolio.MaxOpen)"},
 					&cli.Float64Flag{Name: "max-open-risk", Usage: "percent of the balance at risk in open positions; 0 = no limit (Portfolio.MaxOpenRisk)"},
 				),
-				Action: func(ctx context.Context, cmd *cli.Command) error { return portfolioCmd(ctx, cmd, out, reg) },
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					return withPlugins(cmd, reg, func() error { return portfolioCmd(ctx, cmd, out, reg) })
+				},
 			},
 			{
 				Name:  "list",
 				Usage: "list the strategies: timeframes, warm-up, params",
-				Action: func(_ context.Context, _ *cli.Command) error {
-					for _, n := range reg.Names() {
-						s, _ := reg.New(n)
-						line := fmt.Sprintf("%s\ttimeframes %s\twarmup %d", n, strings.Join(s.Timeframes(), ","), s.Warmup())
-						if t, ok := s.(bt.Tunable); ok {
-							var p []string
-							for k, v := range t.Params() {
-								p = append(p, fmt.Sprintf("%s=%g", k, v))
-							}
-							sort.Strings(p)
-							line += "\tparams " + strings.Join(p, " ")
+				Flags: []cli.Flag{pluginFlag()},
+				Action: func(_ context.Context, cmd *cli.Command) error {
+					return withPlugins(cmd, reg, func() error { return listCmd(out, reg) })
+				},
+			},
+			{
+				Name:      "plugins",
+				Usage:     "list the approaches a plugin file serves (starts it, asks, stops it)",
+				ArgsUsage: "FILE",
+				Action: func(_ context.Context, cmd *cli.Command) error {
+					if cmd.Args().Len() != 1 {
+						return errors.New("give one plugin file")
+					}
+					list, err := bt.ListPlugin(cmd.Args().First())
+					if err != nil {
+						return err
+					}
+					for _, a := range list {
+						line := fmt.Sprintf("%s\ttimeframes %s\twarmup %d", a.Name, strings.Join(a.Timeframes, ","), a.Warmup)
+						if a.Params != nil {
+							line += "\tparams " + paramList(a.Params)
+						}
+						if a.MaxOpen > 0 {
+							line += fmt.Sprintf("\tmax open %d", a.MaxOpen)
 						}
 						fmt.Fprintln(out, line)
 					}
@@ -133,6 +175,31 @@ func app(out io.Writer, reg *bt.Registry) *cli.Command {
 			},
 		},
 	}
+}
+
+func paramList(m map[string]float64) string {
+	var p []string
+	for k, v := range m {
+		p = append(p, fmt.Sprintf("%s=%g", k, v))
+	}
+	sort.Strings(p)
+	return strings.Join(p, " ")
+}
+
+func listCmd(out io.Writer, reg *bt.Registry) error {
+	for _, n := range reg.Names() {
+		s, _ := reg.New(n)
+		line := fmt.Sprintf("%s\ttimeframes %s\twarmup %d", n, strings.Join(s.Timeframes(), ","), s.Warmup())
+		if t, ok := s.(bt.Tunable); ok {
+			line += "\tparams " + paramList(t.Params())
+		}
+		if f := bt.PluginFileOf(s); f != "" {
+			line += "\tplugin " + filepath.Base(f)
+		}
+		bt.CloseStrategy(s)
+		fmt.Fprintln(out, line)
+	}
+	return nil
 }
 
 // common holds the flags both commands share, parsed.

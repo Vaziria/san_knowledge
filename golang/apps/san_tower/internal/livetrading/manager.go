@@ -68,6 +68,7 @@ type Manager struct {
 	nextSub  int
 	closed   bool
 	views    sync.Mutex
+	plugins  plugins
 }
 
 // New makes the Manager. Every session that was going when the tower
@@ -88,6 +89,7 @@ func New(cfg Config) *Manager {
 		cfg.Log = slog.New(slog.DiscardHandler)
 	}
 	m := &Manager{cfg: cfg, log: cfg.Log, monitors: map[uint32]*Monitor{}, runs: map[uint32]*runner{}, subs: map[int]*sessionSub{}}
+	m.ReloadPlugins()
 	if n, err := cfg.Store.StopPaperSessions(RestartMessage); err != nil {
 		m.log.Error("live trading: marking the paper sessions stopped", "err", err)
 	} else if n > 0 {
@@ -138,26 +140,55 @@ type Approach struct {
 	Warmup     int
 	Params     map[string]float64
 	MaxOpen    int // the approach's own; 0 = one at a time
+	// Plugin is the plugin file's name serving it; "" = compiled in.
+	Plugin string
 }
 
-// Approaches lists the registry's approaches.
+// Approaches lists the registry's approaches, then the plugins' ones.
 func (m *Manager) Approaches() []Approach {
 	var out []Approach
 	for _, n := range m.cfg.Registry.Names() {
-		s, err := m.cfg.Registry.New(n)
-		if err != nil {
-			continue
+		if a, err := m.describe(n); err == nil {
+			out = append(out, a)
 		}
-		a := Approach{Name: n, Timeframes: s.Timeframes(), Warmup: s.Warmup(), Params: map[string]float64{}}
-		if t, ok := s.(bt.Tunable); ok {
-			a.Params = t.Params()
+	}
+	m.plugins.mu.Lock()
+	var names []string
+	for n := range m.plugins.by {
+		names = append(names, n)
+	}
+	m.plugins.mu.Unlock()
+	sort.Strings(names)
+	for _, n := range names {
+		if a, err := m.describe(n); err == nil {
+			out = append(out, a)
 		}
-		if mp, ok := s.(bt.MultiPosition); ok {
-			a.MaxOpen = mp.MaxOpen()
-		}
-		out = append(out, a)
 	}
 	return out
+}
+
+// describe is approach name's facts, without starting a plugin.
+func (m *Manager) describe(name string) (Approach, error) {
+	if pa, ok := m.pluginOf(name); ok {
+		a := Approach{Name: name, Timeframes: pa.Timeframes, Warmup: pa.Warmup, Params: map[string]float64{}, MaxOpen: pa.MaxOpen,
+			Plugin: filepath.Base(pa.File)}
+		for k, v := range pa.Params {
+			a.Params[k] = v
+		}
+		return a, nil
+	}
+	s, err := m.cfg.Registry.New(name)
+	if err != nil {
+		return Approach{}, err
+	}
+	a := Approach{Name: name, Timeframes: s.Timeframes(), Warmup: s.Warmup(), Params: map[string]float64{}}
+	if t, ok := s.(bt.Tunable); ok {
+		a.Params = t.Params()
+	}
+	if mp, ok := s.(bt.MultiPosition); ok {
+		a.MaxOpen = mp.MaxOpen()
+	}
+	return a, nil
 }
 
 // Monitor gives the monitor of an Exness connection (0: the first),
@@ -280,14 +311,11 @@ func (m *Manager) Session(id uint32) (store.PaperSession, error) {
 // Create saves a new session (stopped) after checking its approach, its
 // params and its instrument's name.
 func (m *Manager) Create(p store.PaperSession, params map[string]float64) (store.PaperSession, error) {
-	s, err := m.cfg.Registry.New(p.Approach)
+	a, err := m.describe(p.Approach)
 	if err != nil {
 		return p, fmt.Errorf("%w: %v", store.ErrInvalid, err)
 	}
-	defs := map[string]float64{}
-	if t, ok := s.(bt.Tunable); ok {
-		defs = t.Params()
-	}
+	defs := a.Params
 	keep := map[string]float64{}
 	var unknown []string
 	for k, v := range params {
@@ -305,7 +333,7 @@ func (m *Manager) Create(p store.PaperSession, params map[string]float64) (store
 		return p, fmt.Errorf("%w: %s has no param %v", store.ErrInvalid, p.Approach, unknown)
 	}
 	p.Params = mustJSON(keep)
-	p.Timeframes = joinTF(s.Timeframes())
+	p.Timeframes = joinTF(a.Timeframes)
 	p, err = m.cfg.Store.CreatePaperSession(p)
 	if err == nil {
 		m.publish(SessionEvent{Session: &p})

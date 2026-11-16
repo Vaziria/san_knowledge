@@ -1,0 +1,255 @@
+syntax = "proto3";
+
+// The approach plugin protocol: a plugin is a separate program (an .exe)
+// that serves approaches to a host (san_backtest's Registry, its CLI, San
+// Tower) over the child process's stdin and stdout. Each message is a
+// Request or a Response, prefixed by its length as a protobuf varint
+// (google.golang.org/protobuf/encoding/protodelim). The host sends one
+// Request and waits for its Response; the plugin never speaks first.
+// stderr is the plugin's log.
+//
+// Not gRPC (the user, 2026-11-16: "Why we use grpc ? Can't direct function
+// call ?" and "Stdin and out seem better"): no port, so no firewall prompt.
+// The service below only documents the calls; nothing is generated for it.
+package san.backtest.plugin.v1;
+
+option go_package = "github.com/wargasipil/san_backtest/plugin/pb";
+
+service ApproachPlugin {
+  // Hello is the first call: both sides' versions. The host refuses a
+  // plugin whose protocol or API version differs from its own.
+  rpc Hello(HelloRequest) returns (HelloReply);
+  // List is every approach the plugin serves.
+  rpc List(ListRequest) returns (ListReply);
+  // NewInstance makes a fresh approach (its maker called again, so state
+  // is never shared) and returns its id.
+  rpc NewInstance(NewInstanceRequest) returns (NewInstanceReply);
+  // Start begins a run (OnStart): the mirror of the Context starts over,
+  // keeping the candles of the timeframes in keep.
+  rpc Start(StartRequest) returns (Empty);
+  // Step is one OnCandle: the candles closed since the last step plus the
+  // state now; it returns the signal and the notes made.
+  rpc Step(StepRequest) returns (StepReply);
+  // Grid is a walk-forward grid (GridTuner) for one parameter.
+  rpc Grid(GridRequest) returns (GridReply);
+  // Close drops an instance.
+  rpc Close(CloseRequest) returns (Empty);
+  // Shutdown ends the plugin process after its reply.
+  rpc Shutdown(Empty) returns (Empty);
+}
+
+message Request {
+  oneof call {
+    HelloRequest hello = 1;
+    ListRequest list = 2;
+    NewInstanceRequest new_instance = 3;
+    StartRequest start = 4;
+    StepRequest step = 5;
+    GridRequest grid = 6;
+    CloseRequest close = 7;
+    Empty shutdown = 8;
+  }
+}
+
+message Response {
+  // error is a refusal or a recovered panic (its stack went to stderr).
+  string error = 1;
+  oneof reply {
+    HelloReply hello = 2;
+    ListReply list = 3;
+    NewInstanceReply new_instance = 4;
+    StepReply step = 5;
+    GridReply grid = 6;
+    Empty ok = 7;
+  }
+}
+
+message Empty {}
+
+message HelloRequest {
+  int32 protocol = 1;
+  int32 api = 2;
+}
+
+message HelloReply {
+  int32 protocol = 1;
+  int32 api = 2;
+  // program is the plugin's own name for itself (os.Args[0]'s base).
+  string program = 3;
+}
+
+message ListRequest {}
+
+message ListReply {
+  repeated Approach approaches = 1;
+}
+
+message Approach {
+  string name = 1;
+  repeated string timeframes = 2;
+  int32 warmup = 3;
+  // params are Tunable's defaults; has_params says it is Tunable.
+  map<string, double> params = 4;
+  bool has_params = 5;
+  // max_open is MultiPosition's limit; has_max_open says it has one.
+  int32 max_open = 6;
+  bool has_max_open = 7;
+  bool has_on_start = 8;
+  bool has_grid = 9;
+  // strategy_name is the approach's own Name(), which may differ from the
+  // name it is served under.
+  string strategy_name = 10;
+}
+
+message NewInstanceRequest {
+  string name = 1;
+}
+
+message NewInstanceReply {
+  uint64 id = 1;
+}
+
+message StartRequest {
+  uint64 id = 1;
+  Instrument instrument = 2;
+  // timeframes in force, the step first (Context.Timeframes).
+  repeated string timeframes = 3;
+  // from and to: Unix nanoseconds, 0 = the zero time (a live run has no To).
+  int64 from_unix_nano = 4;
+  int64 to_unix_nano = 5;
+  double balance = 6;
+  string currency = 7;
+  map<string, double> params = 8;
+  // anchors are each timeframe's bucket anchor (Forming).
+  map<string, int64> anchors_unix_nano = 9;
+  // record: notes are kept (the main run; false in walk-forward trials).
+  bool record = 10;
+  // keep are the timeframes whose candles the instance keeps from its
+  // last run: the host checked they are the same candles (a walk-forward
+  // trial runs on the candles of the run before it). Without this every
+  // trial sent the whole history before its window in one message (tens
+  // of MB for M1), which made Windows refuse the pipe write and the
+  // plugin miss its timeout. The others start empty.
+  repeated string keep = 11;
+}
+
+message Instrument {
+  string name = 1;
+  string base = 2;
+  string quote = 3;
+  int32 digits = 4;
+  double point = 5;
+  double contract_size = 6;
+  double lot_min = 7;
+  double lot_max = 8;
+  double lot_step = 9;
+  double spread = 10;
+}
+
+// Times are Unix nanoseconds in UTC; 0 is the zero time.
+message Candle {
+  int64 open_time = 1;
+  int64 close_time = 2;
+  double open = 3;
+  double high = 4;
+  double low = 5;
+  double close = 6;
+  double ask_open = 7;
+  double ask_high = 8;
+  double ask_low = 9;
+  double ask_close = 10;
+  double volume = 11;
+}
+
+message Candles {
+  repeated Candle candles = 1;
+}
+
+message Position {
+  string side = 1;
+  double entry = 2;
+  double stop = 3;
+  double target = 4;
+  double lots = 5;
+  int64 open_time = 6;
+  double risk = 7;
+  double profit = 8;
+  int64 id = 9;
+  int64 order_id = 10;
+  string type = 11;
+  string tag = 12;
+}
+
+message Order {
+  int64 id = 1;
+  string side = 2;
+  string type = 3;
+  double price = 4;
+  double stop = 5;
+  double target = 6;
+  int64 placed = 7;
+  int64 bars_left = 8;
+  int64 expires = 9;
+  string tag = 10;
+}
+
+message Account {
+  string currency = 1;
+  double balance = 2;
+  double equity = 3;
+  double margin = 4;
+  int64 open = 5;
+}
+
+message StepRequest {
+  uint64 id = 1;
+  // candles the instance does not have yet, per timeframe, oldest first;
+  // they are appended to what it has.
+  map<string, Candles> candles = 2;
+  int64 time = 3;
+  int64 gap_nanos = 4;
+  double spread = 5;
+  repeated Position positions = 6;
+  repeated Order orders = 7;
+  int64 max_open = 8;
+  Account account = 9;
+  // closed is how many of each timeframe's candles have closed now: the
+  // Context sees only those (the instance may hold more, kept from an
+  // earlier run).
+  map<string, int64> closed = 10;
+}
+
+message Signal {
+  int32 action = 1;
+  double stop = 2;
+  double target = 3;
+  string reason = 4;
+  double price = 5;
+  int64 id = 6;
+  int64 bars = 7;
+  int64 expires = 8;
+  string label = 9;
+  repeated Signal batch = 10;
+}
+
+message StepReply {
+  Signal signal = 1;
+  // notes are the Note and Explain texts of this step, in order.
+  repeated string notes = 2;
+}
+
+message GridRequest {
+  uint64 id = 1;
+  string name = 2;
+  double centre = 3;
+}
+
+message GridReply {
+  repeated double values = 1;
+  // none: the approach has no grid of its own for the name (nil).
+  bool none = 2;
+}
+
+message CloseRequest {
+  uint64 id = 1;
+}

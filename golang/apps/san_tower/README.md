@@ -2958,6 +2958,24 @@ Exness account is real money.
   - **Export** writes a session as a normal report folder (run.json,
     trades.csv, candles.csv, decisions.jsonl...; San Backtest's Save), by
     default under `live_trading/exports/` in the data folder.
+- **Approach plugins** (the user, 2026-11-16: "backtest and live library
+  can load 2 mode, first approach is from code, and approach from dll"):
+  approaches built as programs of their own with San Backtest's `plugin`
+  package (its README, "Approach plugins") and dropped as `*.exe` into
+  `plugins/` in the data folder. The tower reads the folder at start and
+  on **Reload plugins** (the Plugins panel at the bottom of Live Trading:
+  each file, its modification time, its approaches, or why it can't be
+  used: not a program, a version mismatch, a name already taken). The
+  approach picker tags plugin approaches (`plugin · <file>`). A session of
+  a plugin approach starts its own process of the file and keeps it until
+  the session stops, also when the file is rebuilt meanwhile; the session
+  then shows "plugin changed: restart the session to use the new build".
+  A plugin gets only candles, positions, orders and the account over its
+  stdin: no Exness client, no connection, no arguments, and a clean
+  environment (no EXN_* or other keys; `TestPluginGetsNoCredentials`). It
+  starts hidden, and a crash, panic or a step unanswered in 10 s stops
+  only that session, with the reason. ListPlugins / ReloadPlugins in
+  LiveTradingService.
 - **Testing on a fake:** `SAN_TOWER_EXNESS_CA` (a PEM file of extra CAs the
   Exness clients trust) and `SAN_TOWER_LIVE_CLOCK`
   (`<start RFC3339>*<speed>@<anchor unix>`, a virtual clock for paper

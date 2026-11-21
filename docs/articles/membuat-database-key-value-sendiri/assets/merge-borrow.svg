@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 410" width="1520" height="820" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Node yang terisi kurang dari seperempat halaman digabung dengan saudaranya">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="410" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" text-anchor="start" fill="#1f1f1f" font-weight="600">Node yang terisi kurang dari seperempat halaman digabung dengan saudaranya</text>
+  <text x="24" y="56" font-size="11.5" text-anchor="start" fill="#5f5f5f">Setelah Delete, leaf kanan tinggal 10%. Kalau gabungannya muat di satu halaman, keduanya menjadi satu leaf.</text>
+  <text x="24" y="72" font-size="11.5" text-anchor="start" fill="#5f5f5f">Kalau tidak muat, gabungan itu dibelah lagi di tengah. Hasilnya sama dengan meminjam key dari saudara.</text>
+  <text x="24" y="110" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Gabung</text>
+  <rect x="24" y="132" width="150" height="26" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="24" y="132" width="90.0" height="26" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="24" y="126" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">a … f   60%</text>
+  <rect x="184" y="132" width="150" height="26" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="184" y="132" width="15.0" height="26" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="184" y="126" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">g   10%</text>
+  <line x1="350" y1="145" x2="410" y2="145" stroke="#a8a69c" stroke-width="1.4" marker-end="url(#a-grey)"/>
+  <rect x="420" y="132" width="150" height="26" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="420" y="132" width="105.0" height="26" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="420" y="126" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">a … g   70%</text>
+  <text x="584" y="132" font-size="11.5" text-anchor="start" fill="#5f5f5f">Satu halaman dilepas,</text>
+  <text x="584" y="148" font-size="11.5" text-anchor="start" fill="#5f5f5f">pemisah g dihapus</text>
+  <text x="584" y="164" font-size="11.5" text-anchor="start" fill="#5f5f5f">dari induknya.</text>
+  <text x="24" y="215" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Pinjam</text>
+  <rect x="24" y="246" width="150" height="26" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="24" y="246" width="142.5" height="26" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="24" y="240" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">a … l   95%</text>
+  <rect x="184" y="246" width="150" height="26" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="184" y="246" width="15.0" height="26" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="184" y="240" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">m   10%</text>
+  <line x1="350" y1="259" x2="410" y2="259" stroke="#a8a69c" stroke-width="1.4" marker-end="url(#a-grey)"/>
+  <rect x="420" y="246" width="150" height="26" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="420" y="246" width="78.0" height="26" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="420" y="240" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">a … f   52%</text>
+  <rect x="420" y="294" width="150" height="26" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="420" y="294" width="79.5" height="26" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="420" y="288" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">g … m   53%</text>
+  <text x="584" y="256" font-size="11.5" text-anchor="start" fill="#5f5f5f">Gabungan 105% tidak</text>
+  <text x="584" y="272" font-size="11.5" text-anchor="start" fill="#5f5f5f">muat, jadi dibelah lagi.</text>
+  <text x="584" y="288" font-size="11.5" text-anchor="start" fill="#5f5f5f">Pemisah baru g naik</text>
+  <text x="584" y="304" font-size="11.5" text-anchor="start" fill="#5f5f5f">ke induknya.</text>
+  <text x="24" y="350" font-size="11.5" text-anchor="start" fill="#5f5f5f">Batas seperempat halaman sama dengan bbolt. Branch diperlakukan sama, dengan pemisah dari induknya ikut</text>
+  <text x="24" y="366" font-size="11.5" text-anchor="start" fill="#5f5f5f">turun ke gabungan. Root boleh terisi sedikit, dan root berupa branch dengan satu anak diganti oleh anaknya.</text>
+  <text x="24" y="390" font-size="11" text-anchor="start" fill="#5f5f5f">Persentase adalah contoh.</text>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="1520" height="800" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Leaf hanya menyimpan key dan posisi record. Value ada di file data">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" text-anchor="start" fill="#1f1f1f" font-weight="600">Leaf hanya menyimpan key dan posisi record. Value ada di file data</text>
+  <text x="24" y="56" font-size="11.5" text-anchor="start" fill="#5f5f5f">File data setelah empat perintah di try-out: dua Put, satu Put yang mengganti value, dan satu del.</text>
+  <text x="24" y="72" font-size="11.5" text-anchor="start" fill="#5f5f5f">Record tidak pernah diubah. Yang berubah hanya leaf, yang sekarang menunjuk ke record terbaru.</text>
+  <text x="310" y="110" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Leaf (file index)</text>
+  <rect x="310" y="122" width="230" height="54" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="425.0" y="145.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">user:2</text>
+  <text x="425.0" y="161.0" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">posisi 42, 12 byte</text>
+  <text x="24" y="200" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">File data, hanya bertambah di ujungnya</text>
+  <text x="24" y="226" font-size="11" text-anchor="start" fill="#5f5f5f">posisi 0, 21 byte</text>
+  <rect x="24" y="234" width="142" height="60" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="95.0" y="260.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">user:1 = Andi</text>
+  <text x="95.0" y="276.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">sampah setelah del</text>
+  <text x="174" y="226" font-size="11" text-anchor="start" fill="#5f5f5f">posisi 21, 21 byte</text>
+  <rect x="174" y="234" width="142" height="60" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="245.0" y="260.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">user:2 = Budi</text>
+  <text x="245.0" y="276.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">sampah setelah diganti</text>
+  <text x="324" y="226" font-size="11" text-anchor="start" fill="#5f5f5f">posisi 42, 29 byte</text>
+  <rect x="324" y="234" width="202" height="60" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="425.0" y="260.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">user:2 = Budi Santoso</text>
+  <text x="425.0" y="276.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">satu-satunya yang hidup</text>
+  <text x="534" y="226" font-size="11" text-anchor="start" fill="#5f5f5f">posisi 71, 17 byte</text>
+  <rect x="534" y="234" width="162" height="60" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="615.0" y="260.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">tombstone user:1</text>
+  <text x="615.0" y="276.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">catatan delete</text>
+  <line x1="425" y1="176" x2="425" y2="232" stroke="#2f76d6" stroke-width="1.4" marker-end="url(#a-acc)"/>
+  <text x="24" y="330" font-size="11.5" text-anchor="start" fill="#5f5f5f">Setiap record diawali header 11 byte: CRC-32C 4 byte, jenis 1 byte (value atau tombstone),</text>
+  <text x="24" y="346" font-size="11.5" text-anchor="start" fill="#5f5f5f">panjang key 2 byte, dan panjang value 4 byte. Get membaca satu record, lalu memeriksa CRC dan key-nya.</text>
+  <text x="24" y="370" font-size="11.5" text-anchor="start" fill="#2f76d6">Panjang file data adalah 88 byte, tetapi hanya 29 byte yang masih ditunjuk tree.</text>
+</svg>

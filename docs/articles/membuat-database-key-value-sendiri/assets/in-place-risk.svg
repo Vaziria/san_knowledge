@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 372" width="1520" height="744" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Menimpa halaman di tempatnya bisa merusak tree saat listrik padam">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="372" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Menimpa halaman di tempatnya bisa merusak tree saat listrik padam</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Put yang membelah leaf di halaman 2 mengubah tiga halaman. Sync menulisnya satu per satu, mulai dari halaman 2.</text>
+  <text x="24" y="72" font-size="11.5" fill="#5f5f5f">Kalau listrik padam tepat setelah halaman 2 ditulis, file berisi halaman 2 yang baru dan halaman 3 yang lama.</text>
+  <text x="24" y="100" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Yang seharusnya ditulis Sync</text>
+  <text x="24" y="130" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 2</text>
+  <rect x="24" y="138" width="150" height="64" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="99" y="160" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">leaf</text>
+  <text x="99" y="178" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">m … r</text>
+  <text x="99" y="194" font-size="10.5" text-anchor="middle" fill="#5f5f5f">dipotong jadi separuh</text>
+  <text x="198" y="130" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 3</text>
+  <rect x="198" y="138" width="150" height="64" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="273" y="160" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">branch (root)</text>
+  <text x="273" y="178" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">1 | m | 2 | s | 4</text>
+  <text x="273" y="194" font-size="10.5" text-anchor="middle" fill="#5f5f5f">pemisah baru s</text>
+  <text x="372" y="130" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 4</text>
+  <rect x="372" y="138" width="150" height="64" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="447" y="160" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">leaf baru</text>
+  <text x="447" y="178" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">s … z</text>
+  <text x="447" y="194" font-size="10.5" text-anchor="middle" fill="#5f5f5f">separuh kanan</text>
+  <text x="560" y="160" font-size="11.5" text-anchor="start" fill="#5f5f5f">Ketiganya harus</text>
+  <text x="560" y="176" font-size="11.5" text-anchor="start" fill="#5f5f5f">sampai ke disk,</text>
+  <text x="560" y="192" font-size="11.5" text-anchor="start" fill="#5f5f5f">baru tree utuh lagi.</text>
+  <text x="24" y="240" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Yang ada di file setelah listrik padam</text>
+  <text x="24" y="270" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 2</text>
+  <rect x="24" y="278" width="150" height="64" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="99" y="300" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">leaf</text>
+  <text x="99" y="318" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">m … r</text>
+  <text x="99" y="334" font-size="10.5" text-anchor="middle" fill="#5f5f5f">sudah ditulis</text>
+  <text x="198" y="270" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 3</text>
+  <rect x="198" y="278" width="150" height="64" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="273" y="300" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">branch (root)</text>
+  <text x="273" y="318" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">1 | m | 2</text>
+  <text x="273" y="334" font-size="10.5" text-anchor="middle" fill="#5f5f5f">masih yang lama</text>
+  <text x="372" y="270" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 4</text>
+  <rect x="372" y="278" width="150" height="64" rx="0" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="447" y="300" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">leaf baru</text>
+  <text x="447" y="318" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace"></text>
+  <text x="447" y="334" font-size="10.5" text-anchor="middle" fill="#5f5f5f">belum ditulis</text>
+  <rect x="372" y="278" width="150" height="64" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="560" y="296" font-size="11.5" text-anchor="start" fill="#2f76d6">Key s sampai z hilang.</text>
+  <text x="560" y="312" font-size="11.5" text-anchor="start" fill="#2f76d6">Halaman 2 sudah tidak</text>
+  <text x="560" y="328" font-size="11.5" text-anchor="start" fill="#2f76d6">berisi key itu, dan root</text>
+  <text x="560" y="344" font-size="11.5" text-anchor="start" fill="#2f76d6">tidak tahu halaman 4.</text>
+</svg>

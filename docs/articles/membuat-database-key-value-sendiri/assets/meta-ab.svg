@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="1520" height="800" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Meta ditulis paling akhir, di slot yang tidak dipakai commit terakhir">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" text-anchor="start" fill="#1f1f1f" font-weight="600">Meta ditulis paling akhir, di slot yang tidak dipakai commit terakhir</text>
+  <text x="24" y="56" font-size="11.5" text-anchor="start" fill="#5f5f5f">Halaman 0 berisi dua meta di sektor yang berbeda. Commit genap ditulis ke A, commit ganjil ke B.</text>
+  <text x="24" y="72" font-size="11.5" text-anchor="start" fill="#5f5f5f">Saat dibuka, meta yang utuh dengan nomor commit terbesar yang menang.</text>
+  <text x="24" y="108" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Halaman 0</text>
+  <rect x="24" y="118" width="200" height="44" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="124.0" y="136.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">meta A, byte 0-511</text>
+  <text x="124.0" y="152.0" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">commit 7</text>
+  <rect x="232" y="118" width="200" height="44" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="332.0" y="136.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">meta B, byte 512-1023</text>
+  <text x="332.0" y="152.0" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">commit 8 ditulis di sini</text>
+  <rect x="440" y="118" width="296" height="44" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="588.0" y="136.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">sisa halaman 0</text>
+  <text x="588.0" y="152.0" font-size="11" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">tidak dipakai</text>
+  <text x="24" y="200" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Urutan satu commit</text>
+  <rect x="24" y="210" width="130" height="50" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="89.0" y="231.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">1. record baru</text>
+  <text x="89.0" y="247.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">di file data</text>
+  <line x1="154" y1="235" x2="168" y2="235" stroke="#a8a69c" stroke-width="1.4" marker-end="url(#a-grey)"/>
+  <rect x="170" y="210" width="130" height="50" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="235.0" y="231.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">2. halaman baru</text>
+  <text x="235.0" y="247.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">di file index</text>
+  <line x1="300" y1="235" x2="314" y2="235" stroke="#a8a69c" stroke-width="1.4" marker-end="url(#a-grey)"/>
+  <rect x="316" y="210" width="130" height="50" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="381.0" y="231.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">3. fsync</text>
+  <text x="381.0" y="247.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">kedua file</text>
+  <line x1="446" y1="235" x2="460" y2="235" stroke="#a8a69c" stroke-width="1.4" marker-end="url(#a-grey)"/>
+  <rect x="462" y="210" width="130" height="50" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="527.0" y="231.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">4. meta B</text>
+  <text x="527.0" y="247.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">commit 8</text>
+  <line x1="592" y1="235" x2="606" y2="235" stroke="#a8a69c" stroke-width="1.4" marker-end="url(#a-grey)"/>
+  <rect x="608" y="210" width="130" height="50" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="673.0" y="231.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">5. fsync</text>
+  <text x="673.0" y="247.0" font-size="10.5" text-anchor="middle" fill="#5f5f5f">file index</text>
+  <text x="24" y="300" font-size="11.5" text-anchor="start" fill="#5f5f5f">Padam di langkah 1 sampai 3: meta A menang. Record dan halaman baru tidak ditunjuk meta mana pun,</text>
+  <text x="24" y="316" font-size="11.5" text-anchor="start" fill="#5f5f5f">dan dibuang saat folder dibuka lagi.</text>
+  <text x="24" y="340" font-size="11.5" text-anchor="start" fill="#5f5f5f">Padam saat langkah 4: meta B tertulis setengah, CRC-nya tidak cocok, dan meta A menang.</text>
+  <text x="24" y="364" font-size="11.5" text-anchor="start" fill="#2f76d6">Setelah langkah 5: meta B menang karena nomor commit-nya lebih besar. Meta A menjadi cadangan,</text>
+  <text x="24" y="380" font-size="11.5" text-anchor="start" fill="#2f76d6">dan akan ditimpa oleh commit 9.</text>
+</svg>

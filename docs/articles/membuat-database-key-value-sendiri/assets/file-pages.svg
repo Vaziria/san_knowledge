@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 318" width="1520" height="636" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="File dibagi menjadi halaman 16 KB, dan node saling menunjuk lewat nomor halaman">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="318" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">File dibagi menjadi halaman 16 KB, dan node saling menunjuk lewat nomor halaman</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">File setelah root pertama kali terbelah. Posisi halaman n di file adalah n × 16.384 byte, jadi nomor halaman</text>
+  <text x="24" y="72" font-size="11.5" fill="#5f5f5f">cukup untuk menemukannya. Halaman meta di awal file menyimpan nomor halaman root.</text>
+  <text x="24" y="110" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 0</text>
+  <text x="192" y="110" font-size="10.5" text-anchor="end" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">0</text>
+  <rect x="24" y="118" width="170" height="82" rx="0" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="109.0" y="142" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">meta</text>
+  <text x="109.0" y="164" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">root = 3</text>
+  <text x="109.0" y="182" font-size="11.5" text-anchor="middle" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">jumlah halaman = 4</text>
+  <text x="208" y="110" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 1</text>
+  <text x="376" y="110" font-size="10.5" text-anchor="end" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">16.384</text>
+  <rect x="208" y="118" width="170" height="82" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="293.0" y="142" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">leaf</text>
+  <text x="293.0" y="164" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">a … l</text>
+  <text x="293.0" y="182" font-size="11.5" text-anchor="middle" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">berikutnya = 2</text>
+  <text x="392" y="110" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 2</text>
+  <text x="560" y="110" font-size="10.5" text-anchor="end" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">32.768</text>
+  <rect x="392" y="118" width="170" height="82" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="477.0" y="142" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">leaf</text>
+  <text x="477.0" y="164" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">m … z</text>
+  <text x="477.0" y="182" font-size="11.5" text-anchor="middle" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">berikutnya = 0</text>
+  <text x="576" y="110" font-size="11" text-anchor="start" fill="#5f5f5f">halaman 3</text>
+  <text x="744" y="110" font-size="10.5" text-anchor="end" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">49.152</text>
+  <rect x="576" y="118" width="170" height="82" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="661.0" y="142" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">branch (root)</text>
+  <text x="661.0" y="164" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">anak 1 | m | anak 2</text>
+  <path d="M109.0 118 V94 H681.0 V116" fill="none" stroke="#2f76d6" stroke-width="1.25" marker-end="url(#a-acc)"/>
+  <path d="M631.0 200 V238 H293.0 V202" fill="none" stroke="#2f76d6" stroke-width="1.25" marker-end="url(#a-acc)"/>
+  <path d="M691.0 200 V258 H477.0 V202" fill="none" stroke="#2f76d6" stroke-width="1.25" marker-end="url(#a-acc)"/>
+  <path d="M378 159 L390 159" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#a-grey)"/>
+  <text x="24" y="294" font-size="11.5" text-anchor="start" fill="#5f5f5f">Root adalah halaman 3, bukan halaman 1, karena halaman baru selalu ditambahkan di ujung file. Saat leaf di halaman 1</text>
+  <text x="24" y="310" font-size="11.5" text-anchor="start" fill="#5f5f5f">dibelah, belahan kanannya menjadi halaman 2, lalu root baru menjadi halaman 3. Open cukup membaca halaman 0.</text>
+</svg>

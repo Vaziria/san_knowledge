@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="1520" height="600" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Map di memori hilang saat program berhenti, log di disk tidak">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="300" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Map di memori hilang saat program berhenti, log di disk tidak</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">Kiri: data hanya ada di map. Kanan: map hanya menjadi index, dan isinya dibangun ulang dari log saat program mulai.</text>
+  <text x="24" y="92" font-size="13" text-anchor="start" fill="#1f1f1f" font-weight="600">Hanya map di memori</text>
+  <rect x="24" y="104" width="150" height="104" rx="4" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="99" y="126" font-size="11" text-anchor="middle" fill="#5f5f5f">program, sebelum restart</text>
+  <text x="40" y="156" font-size="12" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">user:1 = Andi</text>
+  <text x="40" y="178" font-size="12" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">user:2 = Budi</text>
+  <path d="M178 156 L210 156" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#a-grey)"/>
+  <text x="194" y="146" font-size="11" text-anchor="middle" fill="#5f5f5f">restart</text>
+  <rect x="214" y="104" width="150" height="104" rx="4" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="289" y="126" font-size="11" text-anchor="middle" fill="#5f5f5f">program, sesudah restart</text>
+  <rect x="234" y="142" width="110" height="40" rx="4" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="289" y="166" font-size="12" text-anchor="middle" fill="#5f5f5f">map kosong</text>
+  <text x="24" y="236" font-size="11.5" text-anchor="start" fill="#5f5f5f">Semua isi map hilang, karena memori</text>
+  <text x="24" y="252" font-size="11.5" text-anchor="start" fill="#5f5f5f">program dikembalikan ke OS saat ia berhenti.</text>
+  <text x="396" y="92" font-size="13" text-anchor="start" fill="#1f1f1f" font-weight="600">Map sebagai index, data di log</text>
+  <rect x="396" y="104" width="140" height="104" rx="4" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="466" y="126" font-size="11" text-anchor="middle" fill="#5f5f5f">index di memori</text>
+  <text x="410" y="156" font-size="12" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">user:1 → 44</text>
+  <text x="410" y="178" font-size="12" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">user:2 → 22</text>
+  <rect x="586" y="104" width="150" height="104" rx="4" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="661" y="126" font-size="11" text-anchor="middle" fill="#5f5f5f">file log di disk</text>
+  <text x="598" y="152" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">0  user:1 Andi</text>
+  <text x="598" y="170" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">22 user:2 Budi</text>
+  <text x="598" y="188" font-size="11" text-anchor="start" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">44 user:1 Andi Wijaya</text>
+  <path d="M540 140 L582 140" fill="none" stroke="#a8a69c" stroke-width="1.25" marker-end="url(#a-grey)"/>
+  <text x="561" y="132" font-size="11" text-anchor="middle" fill="#5f5f5f">Get</text>
+  <path d="M582 178 L540 178" fill="none" stroke="#2f76d6" stroke-width="1.25" marker-end="url(#a-acc)"/>
+  <text x="561" y="198" font-size="11" text-anchor="middle" fill="#2f76d6">Open</text>
+  <text x="396" y="236" font-size="11.5" text-anchor="start" fill="#5f5f5f">Setelah restart, Open membaca log dari awal</text>
+  <text x="396" y="252" font-size="11.5" text-anchor="start" fill="#5f5f5f">dan mengisi index lagi. Angka di index adalah</text>
+  <text x="396" y="268" font-size="11.5" text-anchor="start" fill="#5f5f5f">posisi record terbaru untuk key itu di file.</text>
+</svg>

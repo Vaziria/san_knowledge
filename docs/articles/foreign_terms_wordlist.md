@@ -235,6 +235,41 @@ Write these as they are, with no Indonesian equivalent next to them.
 | Blender's interface names | | Sidebar, Properties, Physics, Modifier, Add Modifier, Randomize, Amount, Random Seed, Clipping, Merge, Apply Modifiers and the like stay exactly as Blender shows them |
 | script | skrip | a small program you run; "script-nya" (the user, 2026-11-02) |
 | run | eksekusi | one run of a workflow or a program; "run-nya", "satu run" (the user, 2026-11-02) |
+| key, value | kunci, nilai | the key-value series: the name data is looked up by, and the data itself; "key-nya", "value-nya". "kunci" stays for cryptographic keys |
+| database key-value, key-value store | basis data kunci-nilai | Indonesian word order, like "server DNS"; explained at first use |
+| index | indeks | what points to where a key's data is; "index-nya". Chosen without asking the user (2026-11-20); "indeks" is also common Indonesian, so check on review |
+| B+tree, B-tree, binary search tree, red-black tree | pohon B+ | |
+| tree | pohon | a B+tree as a whole: "tree setinggi tiga tingkat", "tree-nya" |
+| map | peta | the Go map, as in "map di memori" |
+| node, leaf, branch | simpul, daun, cabang | B+tree parts; "node root", "leaf berikutnya" |
+| root | akar | also the tree's top node in the key-value series, introduced as "node paling atas disebut root"; the Linux account meaning is above |
+| order | orde | the most keys one B+tree node may hold |
+| fan-out | | how many children a node has; explained at first use |
+| binary search | pencarian biner | explained at first use |
+| hash table | tabel hash | |
+| keydir | | Bitcask's in-memory hash table |
+| file hint | | Bitcask's file that speeds up startup |
+| durability | daya tahan | data surviving a power cut; explained at first use |
+| cache | | "cache sendiri", "di cache" |
+| page cache | cache halaman | the OS's memory for recently read file data; explained at first use |
+| buffer | penyangga | a slice a program reads into |
+| decode | mengurai | "di-decode", "hasil decode" |
+| system call | panggilan sistem | a program's request to the OS; explained at first use |
+| pointer | penunjuk | the Go meaning |
+| slice | irisan | the Go meaning |
+| generics | | Go's type parameters; explained at first use |
+| panic | | a Go panic, as in "panic `unexpected fault address`" |
+| copy-on-write | | writing a changed page to a new place instead of over the old one; explained at first use (Bagian 4) |
+| tombstone | batu nisan | a record saying a key was deleted; explained at first use |
+| compaction | pemadatan | taking back space that holds no live data |
+| commit | | one Sync that makes every change since the last one safe on disk; "commit 8", "di-commit" (key-value series Bagian 4) |
+| journal, rollback journal, WAL (write-ahead log) | jurnal | SQLite's two ways to an atomic commit |
+| free list | daftar halaman bebas | pages no longer used by the tree, ready to be reused (Bagian 5) |
+| LRU (least recently used) | | a cache that drops what was used longest ago; "cache LRU" |
+| heap | | Go's managed memory, as in "heap Go" |
+| LSM tree, memtable, SSTable | | Badger's and Pebble's design, explained at first use (Bagian 6) |
+| value log | | Badger's file of values kept apart from keys |
+| iterator, snapshot | | |
 
 ## Keep in Indonesian
 
@@ -311,3 +346,22 @@ Everyday words that Indonesian readers use, including Indonesian spellings of bo
 | cermin, garis cermin | mirror, mirror line | the plain idea; "Mirror modifier" is the term |
 | titik | point, vertex | the points of a mesh, in running text |
 | kubus, bola, tiang, batu, tanah | cube, sphere, pillar, stone, ground | object names in running text; Blender's own object names (Cube, Plane) stay as shown |
+| halaman, halaman meta | page, meta page | a fixed-size piece of a database file; "halaman 16 KB", "nomor halaman" |
+| induk, anak | parent, child | B+tree nodes: "induknya", "anak ke-i" |
+| pemisah | separator key | the keys a branch holds |
+| membelah, dibelah, terbelah | split | a node that no longer fits; not "split" |
+| rantai leaf | leaf chain | leaves linked left to right |
+| tinggi tree, kedalaman | tree height, depth | |
+| rentang key | key range | what Range reads; "membaca rentang key" |
+| kunci jawaban | test oracle | the plain structure a test compares against, such as a map |
+| mesin penyimpanan | storage engine | as in Bitcask |
+| menimpa di tempatnya | update in place | writing a changed page over its old copy |
+| atomik | atomic | a commit that lands whole or not at all |
+| sampah | garbage | bytes in a file that the tree no longer points to |
+| daftar tunggu | pending (free list) | pages left by the last commit, reusable after the next one |
+| saudara | sibling | a B+tree node with the same parent |
+| menggabung, meminjam | merge, borrow | what a node under a quarter page does with its sibling |
+| ambang | threshold | "ambang compaction 75%" |
+| penulis, pembaca | writer, reader | goroutines that change or read the tree |
+| kunci (lock) | lock | a mutex, as in "dua kunci" and "kunci tulis eksklusif"; the Go methods stay "Lock" and "RLock". Clashes with "kunci" for cryptographic keys; check on review |
+| listrik padam | power cut | simulated in the tests; "titik padam" for one simulated cut |

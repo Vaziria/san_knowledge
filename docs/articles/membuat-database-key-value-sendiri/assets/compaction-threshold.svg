@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="1520" height="660" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Ambang compaction menentukan seberapa besar file data boleh tumbuh">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="330" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" text-anchor="start" fill="#1f1f1f" font-weight="600">Ambang compaction menentukan seberapa besar file data boleh tumbuh</text>
+  <text x="24" y="56" font-size="11.5" text-anchor="start" fill="#5f5f5f">Compaction saat sampah mencapai bagian g dari file data. Semakin tinggi g, semakin jarang value hidup disalin,</text>
+  <text x="24" y="72" font-size="11.5" text-anchor="start" fill="#5f5f5f">tetapi file data boleh semakin besar dibanding data yang hidup.</text>
+  <text x="24" y="120" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">g = 50%, saran Badger</text>
+  <text x="24" y="146" font-size="11.5" text-anchor="start" fill="#5f5f5f">ukuran file data</text>
+  <rect x="170" y="132" width="400" height="20" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="170" y="132" width="200.0" height="20" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="580" y="147" font-size="11.5" text-anchor="start" fill="#1f1f1f">paling besar 2 kali data hidup</text>
+  <text x="24" y="174" font-size="11.5" text-anchor="start" fill="#5f5f5f">byte ditulis per byte</text>
+  <rect x="170" y="160" width="400" height="20" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="170" y="160" width="200.0" height="20" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="580" y="175" font-size="11.5" text-anchor="start" fill="#1f1f1f">sekitar 2 kali seumur value</text>
+  <text x="24" y="210" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">g = 75%, kvku</text>
+  <text x="24" y="236" font-size="11.5" text-anchor="start" fill="#5f5f5f">ukuran file data</text>
+  <rect x="170" y="222" width="400" height="20" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="170" y="222" width="400.0" height="20" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="580" y="237" font-size="11.5" text-anchor="start" fill="#1f1f1f">paling besar 4 kali data hidup</text>
+  <text x="24" y="264" font-size="11.5" text-anchor="start" fill="#5f5f5f">byte ditulis per byte</text>
+  <rect x="170" y="250" width="400" height="20" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="170" y="250" width="133.0" height="20" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="580" y="265" font-size="11.5" text-anchor="start" fill="#1f1f1f">sekitar 1,33 kali seumur value</text>
+  <text x="24" y="306" font-size="11" text-anchor="start" fill="#5f5f5f">Angka seumur value: 1 + (1-g) + (1-g)^2 + ..., cara hitung yang dipakai dokumentasi Badger untuk g = 50%.</text>
+</svg>

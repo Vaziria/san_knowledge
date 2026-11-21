@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" width="1520" height="960" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Compaction menyalin value yang hidup ke file data baru, pembaca tetap membaca yang lama">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="480" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" text-anchor="start" fill="#1f1f1f" font-weight="600">Compaction menyalin value yang hidup ke file data baru, pembaca tetap membaca yang lama</text>
+  <text x="24" y="56" font-size="11.5" text-anchor="start" fill="#5f5f5f">Compaction menuruni tree, membaca value setiap key, dan menulisnya ke file data baru, urut menurut key. Tree</text>
+  <text x="24" y="72" font-size="11.5" text-anchor="start" fill="#5f5f5f">baru ditulis ke halaman bebas. Pembaca baru pindah saat semuanya siap, dengan Lock yang hanya sebentar.</text>
+  <text x="24" y="110" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">data-000001</text>
+  <rect x="24" y="120" width="92" height="36" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="70.0" y="142.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">a=1</text>
+  <rect x="122" y="120" width="92" height="36" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="168.0" y="142.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">b=1</text>
+  <rect x="220" y="120" width="92" height="36" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="266.0" y="142.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">a=2</text>
+  <rect x="318" y="120" width="92" height="36" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="364.0" y="142.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">c=1</text>
+  <rect x="416" y="120" width="92" height="36" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="462.0" y="142.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">b=2</text>
+  <rect x="514" y="120" width="92" height="36" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="560.0" y="142.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">del a</text>
+  <rect x="612" y="120" width="92" height="36" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="658.0" y="142.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">c=2</text>
+  <text x="24" y="196" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">data-000002</text>
+  <rect x="416" y="206" width="92" height="36" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="462.0" y="228.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">b=2</text>
+  <rect x="612" y="206" width="92" height="36" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="658.0" y="228.0" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-weight="600">c=2</text>
+  <line x1="462" y1="158" x2="462" y2="204" stroke="#2f76d6" stroke-width="1.4" marker-end="url(#a-acc)"/>
+  <line x1="658" y1="158" x2="658" y2="204" stroke="#2f76d6" stroke-width="1.4" marker-end="url(#a-acc)"/>
+  <text x="24" y="220" font-size="11.5" text-anchor="start" fill="#5f5f5f">Hanya value yang hidup, urut menurut key.</text>
+  <text x="24" y="236" font-size="11.5" text-anchor="start" fill="#5f5f5f">Tombstone tidak ikut disalin.</text>
+  <text x="24" y="272" font-size="11.5" text-anchor="start" fill="#5f5f5f">Garis putus-putus adalah sampah: value yang sudah diganti, value yang dihapus, dan tombstone.</text>
+  <text x="24" y="312" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Waktu</text>
+  <text x="24" y="342" font-size="11.5" text-anchor="start" fill="#5f5f5f">pembaca</text>
+  <rect x="110" y="328" width="470" height="22" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="345" y="343" font-size="11" text-anchor="middle" fill="#1f1f1f">Get dan Range jalan terus, di tree dan file data lama</text>
+  <rect x="580" y="328" width="14" height="22" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="594" y="328" width="142" height="22" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="665" y="343" font-size="11" text-anchor="middle" fill="#1f1f1f">tree dan file baru</text>
+  <text x="24" y="382" font-size="11.5" text-anchor="start" fill="#5f5f5f">compaction</text>
+  <rect x="110" y="368" width="470" height="22" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="345" y="383" font-size="11" text-anchor="middle" fill="#1f1f1f">menyalin value dan halaman, tanpa Lock</text>
+  <rect x="580" y="368" width="14" height="22" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <rect x="594" y="368" width="142" height="22" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="665" y="383" font-size="11" text-anchor="middle" fill="#1f1f1f">commit, hapus file lama</text>
+  <text x="24" y="422" font-size="11.5" text-anchor="start" fill="#5f5f5f">penulis</text>
+  <rect x="110" y="408" width="626" height="22" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="423" y="423" font-size="11" text-anchor="middle" fill="#1f1f1f">Put, Delete dan Sync menunggu sampai compaction selesai</text>
+  <text x="24" y="462" font-size="11" text-anchor="start" fill="#5f5f5f">Kotak abu-abu kecil adalah Lock singkat saat pembaca dipindah ke tree dan file data yang baru.</text>
+</svg>

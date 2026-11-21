@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 318" width="1520" height="636" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Setiap Put ditulis sebagai record baru di ujung log">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="318" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#1f1f1f">Setiap Put ditulis sebagai record baru di ujung log</text>
+  <text x="24" y="56" font-size="11.5" fill="#5f5f5f">CRC-32C dihitung dari byte 4 sampai akhir record. Put yang menimpa key tidak mengubah record lama.</text>
+  <text x="24" y="90" font-size="11.5" text-anchor="start" fill="#5f5f5f">Satu record</text>
+  <rect x="24" y="106" width="80" height="46" rx="0" fill="#2f76d6" fill-opacity="0.14" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="64.0" y="126" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">CRC-32C</text>
+  <text x="64.0" y="143" font-size="11" text-anchor="middle" fill="#5f5f5f">4 byte</text>
+  <rect x="104" y="106" width="100" height="46" rx="0" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="154.0" y="126" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">panjang key</text>
+  <text x="154.0" y="143" font-size="11" text-anchor="middle" fill="#5f5f5f">4 byte</text>
+  <rect x="204" y="106" width="110" height="46" rx="0" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="259.0" y="126" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">panjang value</text>
+  <text x="259.0" y="143" font-size="11" text-anchor="middle" fill="#5f5f5f">4 byte</text>
+  <rect x="314" y="106" width="200" height="46" rx="0" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="414.0" y="126" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">key</text>
+  <text x="414.0" y="143" font-size="11" text-anchor="middle" fill="#5f5f5f">sepanjang angkanya</text>
+  <rect x="514" y="106" width="222" height="46" rx="0" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="625.0" y="126" font-size="12" text-anchor="middle" fill="#1f1f1f" font-weight="600">value</text>
+  <text x="625.0" y="143" font-size="11" text-anchor="middle" fill="#5f5f5f">sepanjang angkanya</text>
+  <text x="27" y="101" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">0</text>
+  <text x="107" y="101" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">4</text>
+  <text x="207" y="101" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">8</text>
+  <text x="317" y="101" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">12</text>
+  <path d="M104 158V166H736V158" fill="none" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="420" y="182" font-size="11.5" text-anchor="middle" fill="#2f76d6">dicakup CRC-32C</text>
+  <text x="24" y="214" font-size="11.5" text-anchor="start" fill="#5f5f5f">File log setelah tiga Put: user:1, user:2, lalu user:1 lagi</text>
+  <rect x="24.0" y="224" width="165.0" height="40" rx="0" fill="#ffffff" stroke="#a8a69c" stroke-width="1.25" stroke-dasharray="4 3"/>
+  <text x="106.5" y="248" font-size="11.5" text-anchor="middle" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">user:1 = Andi</text>
+  <text x="26.0" y="280" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">0</text>
+  <rect x="189.0" y="224" width="165.0" height="40" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="271.5" y="248" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">user:2 = Budi</text>
+  <text x="191.0" y="280" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">22</text>
+  <rect x="354.0" y="224" width="217.5" height="40" rx="0" fill="#f1f0eb" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="462.75" y="248" font-size="11.5" text-anchor="middle" fill="#1f1f1f" font-family="Consolas, Menlo, monospace">user:1 = Andi Wijaya</text>
+  <text x="356.0" y="280" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">44</text>
+  <text x="565.5" y="280" font-size="10.5" text-anchor="start" fill="#5f5f5f" font-family="Consolas, Menlo, monospace">73</text>
+  <text x="24" y="302" font-size="11.5" text-anchor="start" fill="#5f5f5f">Record pertama masih ada di file, tetapi index sudah menunjuk ke record di posisi 44.</text>
+</svg>

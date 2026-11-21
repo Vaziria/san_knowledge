@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="1520" height="800" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="mmap hanya jauh lebih cepat saat data sudah ada di page cache">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" text-anchor="start" fill="#1f1f1f" font-weight="600">mmap hanya jauh lebih cepat saat data sudah ada di page cache</text>
+  <text x="24" y="56" font-size="11.5" text-anchor="start" fill="#5f5f5f">Potongan 4 KB di posisi acak, dibaca dengan ReadAt dan lewat mmap. Putaran pertama membaca dari disk,</text>
+  <text x="24" y="72" font-size="11.5" text-anchor="start" fill="#5f5f5f">putaran kedua membaca posisi yang sama lagi. Laptop dengan RAM sekitar 7,4 GB, Windows.</text>
+  <text x="24" y="110" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Putaran 1, dari disk</text>
+  <text x="24" y="138" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 1,2 GB, ReadAt</text>
+  <rect x="250" y="124" width="129.07333333333332" height="18" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="387.0733333333333" y="138" font-size="11.5" text-anchor="start" fill="#1f1f1f">101,9 µs</text>
+  <text x="24" y="164" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 1,2 GB, mmap</text>
+  <rect x="250" y="150" width="115.26666666666667" height="18" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="373.26666666666665" y="164" font-size="11.5" text-anchor="start" fill="#1f1f1f">91 µs</text>
+  <text x="24" y="190" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 9,3 GB, ReadAt</text>
+  <rect x="250" y="176" width="227.62" height="18" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="485.62" y="190" font-size="11.5" text-anchor="start" fill="#1f1f1f">179,7 µs</text>
+  <text x="24" y="216" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 9,3 GB, mmap</text>
+  <rect x="250" y="202" width="328.9533333333333" height="18" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="586.9533333333334" y="216" font-size="11.5" text-anchor="start" fill="#1f1f1f">259,7 µs</text>
+  <text x="24" y="250" font-size="12.5" text-anchor="start" fill="#1f1f1f" font-weight="600">Putaran 2, dari page cache</text>
+  <text x="24" y="278" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 1,2 GB, ReadAt</text>
+  <rect x="250" y="264" width="273.6" height="18" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="531.6" y="278" font-size="11.5" text-anchor="start" fill="#1f1f1f">7,2 µs</text>
+  <text x="24" y="304" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 1,2 GB, mmap</text>
+  <rect x="250" y="290" width="22.8" height="18" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="280.8" y="304" font-size="11.5" text-anchor="start" fill="#1f1f1f">0,6 µs</text>
+  <text x="24" y="330" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 9,3 GB, ReadAt</text>
+  <rect x="250" y="316" width="334.40000000000003" height="18" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="592.4000000000001" y="330" font-size="11.5" text-anchor="start" fill="#1f1f1f">8,8 µs</text>
+  <text x="24" y="356" font-size="11.5" text-anchor="start" fill="#5f5f5f">file 9,3 GB, mmap</text>
+  <rect x="250" y="342" width="19.0" height="18" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="277.0" y="356" font-size="11.5" text-anchor="start" fill="#1f1f1f">0,5 µs</text>
+  <text x="24" y="388" font-size="11" text-anchor="start" fill="#5f5f5f">Skala kedua panel berbeda: panel atas sampai 300 µs, panel bawah sampai 10 µs.</text>
+</svg>

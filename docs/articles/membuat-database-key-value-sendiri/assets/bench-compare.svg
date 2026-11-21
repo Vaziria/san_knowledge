@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" width="1520" height="1120" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" role="img" aria-label="Tidak ada yang tercepat di semua beban, dan kvku tertinggal di tulisan dan bacaan">
+  <defs>
+    <marker id="a-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f76d6"/></marker>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8a69c"/></marker>
+  </defs>
+  <rect x="0" y="0" width="760" height="560" fill="#ffffff"/>
+  <text x="24" y="34" font-size="15" text-anchor="start" fill="#1f1f1f" font-weight="600">Tidak ada yang tercepat di semua beban, dan kvku tertinggal di tulisan dan bacaan</text>
+  <text x="24" y="56" font-size="11.5" text-anchor="start" fill="#5f5f5f">Satu laptop Windows, key 14 byte, value 100 byte acak, database berisi 100.000 key. Lebih pendek lebih baik.</text>
+  <text x="24" y="72" font-size="11.5" text-anchor="start" fill="#5f5f5f">Setiap baris punya skalanya sendiri. Angka dari go test -bench, kecuali ukuran, untuk satu juta key.</text>
+  <text x="24" y="104" font-size="12" text-anchor="start" fill="#1f1f1f" font-weight="600">Put lalu commit</text>
+  <text x="250" y="104" font-size="10.5" text-anchor="start" fill="#5f5f5f">Badger di Windows tidak menunggu disk</text>
+  <text x="24" y="123" font-size="11" text-anchor="start" fill="#5f5f5f">kvku</text>
+  <rect x="100" y="112" width="419.99999999999994" height="13" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="528.0" y="123" font-size="11" text-anchor="start" fill="#1f1f1f">1,71 ms</text>
+  <text x="24" y="141" font-size="11" text-anchor="start" fill="#5f5f5f">bbolt</text>
+  <rect x="100" y="130" width="319.29824561403507" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="427.29824561403507" y="141" font-size="11" text-anchor="start" fill="#1f1f1f">1,3 ms</text>
+  <text x="24" y="159" font-size="11" text-anchor="start" fill="#5f5f5f">Badger</text>
+  <rect x="100" y="148" width="3.9298245614035086" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="111.9298245614035" y="159" font-size="11" text-anchor="start" fill="#1f1f1f">0,016 ms</text>
+  <text x="24" y="180" font-size="12" text-anchor="start" fill="#1f1f1f" font-weight="600">1.000 Put, satu commit</text>
+  <text x="24" y="199" font-size="11" text-anchor="start" fill="#5f5f5f">kvku</text>
+  <rect x="100" y="188" width="420.0" height="13" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="528.0" y="199" font-size="11" text-anchor="start" fill="#1f1f1f">9,74 ms</text>
+  <text x="24" y="217" font-size="11" text-anchor="start" fill="#5f5f5f">bbolt</text>
+  <rect x="100" y="206" width="163.86036960985626" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="271.86036960985626" y="217" font-size="11" text-anchor="start" fill="#1f1f1f">3,8 ms</text>
+  <text x="24" y="235" font-size="11" text-anchor="start" fill="#5f5f5f">Badger</text>
+  <rect x="100" y="224" width="88.82956878850104" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="196.82956878850104" y="235" font-size="11" text-anchor="start" fill="#1f1f1f">2,06 ms</text>
+  <text x="24" y="256" font-size="12" text-anchor="start" fill="#1f1f1f" font-weight="600">Get acak</text>
+  <text x="24" y="275" font-size="11" text-anchor="start" fill="#5f5f5f">kvku</text>
+  <rect x="100" y="264" width="420.0" height="13" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="528.0" y="275" font-size="11" text-anchor="start" fill="#1f1f1f">7,4 µs</text>
+  <text x="24" y="293" font-size="11" text-anchor="start" fill="#5f5f5f">bbolt</text>
+  <rect x="100" y="282" width="113.5135135135135" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="221.5135135135135" y="293" font-size="11" text-anchor="start" fill="#1f1f1f">2 µs</text>
+  <text x="24" y="311" font-size="11" text-anchor="start" fill="#5f5f5f">Badger</text>
+  <rect x="100" y="300" width="204.32432432432432" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="312.3243243243243" y="311" font-size="11" text-anchor="start" fill="#1f1f1f">3,6 µs</text>
+  <text x="24" y="332" font-size="12" text-anchor="start" fill="#1f1f1f" font-weight="600">Range 100 key</text>
+  <text x="24" y="351" font-size="11" text-anchor="start" fill="#5f5f5f">kvku</text>
+  <rect x="100" y="340" width="61.37404580152671" height="13" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="169.3740458015267" y="351" font-size="11" text-anchor="start" fill="#1f1f1f">26,8 µs</text>
+  <text x="24" y="369" font-size="11" text-anchor="start" fill="#5f5f5f">bbolt</text>
+  <rect x="100" y="358" width="13.282442748091603" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="121.2824427480916" y="369" font-size="11" text-anchor="start" fill="#1f1f1f">5,8 µs</text>
+  <text x="24" y="387" font-size="11" text-anchor="start" fill="#5f5f5f">Badger</text>
+  <rect x="100" y="376" width="420.0" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="528.0" y="387" font-size="11" text-anchor="start" fill="#1f1f1f">183,4 µs</text>
+  <text x="24" y="408" font-size="12" text-anchor="start" fill="#1f1f1f" font-weight="600">Open, Get, Close</text>
+  <text x="24" y="427" font-size="11" text-anchor="start" fill="#5f5f5f">kvku</text>
+  <rect x="100" y="416" width="3.04040404040404" height="13" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="111.04040404040404" y="427" font-size="11" text-anchor="start" fill="#1f1f1f">0,43 ms</text>
+  <text x="24" y="445" font-size="11" text-anchor="start" fill="#5f5f5f">bbolt</text>
+  <rect x="100" y="434" width="63.63636363636364" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="171.63636363636363" y="445" font-size="11" text-anchor="start" fill="#1f1f1f">9 ms</text>
+  <text x="24" y="463" font-size="11" text-anchor="start" fill="#5f5f5f">Badger</text>
+  <rect x="100" y="452" width="420.0" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="528.0" y="463" font-size="11" text-anchor="start" fill="#1f1f1f">59,4 ms</text>
+  <text x="24" y="484" font-size="12" text-anchor="start" fill="#1f1f1f" font-weight="600">Ukuran, 1 juta key</text>
+  <text x="250" y="484" font-size="10.5" text-anchor="start" fill="#5f5f5f">bbolt: 264 MB terpakai dari 512 MB</text>
+  <text x="24" y="503" font-size="11" text-anchor="start" fill="#5f5f5f">kvku</text>
+  <rect x="100" y="492" width="138.6328125" height="13" rx="0" fill="#2f76d6" fill-opacity="0.1" stroke="#2f76d6" stroke-width="1.25"/>
+  <text x="246.6328125" y="503" font-size="11" text-anchor="start" fill="#1f1f1f">169 MB</text>
+  <text x="24" y="521" font-size="11" text-anchor="start" fill="#5f5f5f">bbolt</text>
+  <rect x="100" y="510" width="420.0" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="528.0" y="521" font-size="11" text-anchor="start" fill="#1f1f1f">512 MB</text>
+  <text x="24" y="539" font-size="11" text-anchor="start" fill="#5f5f5f">Badger</text>
+  <rect x="100" y="528" width="91.875" height="13" rx="0" fill="#d9d7cf" stroke="#a8a69c" stroke-width="1.25"/>
+  <text x="199.875" y="539" font-size="11" text-anchor="start" fill="#1f1f1f">112 MB</text>
+</svg>
